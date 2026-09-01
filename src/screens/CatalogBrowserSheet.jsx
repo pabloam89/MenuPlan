@@ -36,6 +36,10 @@ import {
   RotateCcw,
   BookOpen,
   NotebookPen,
+  CalendarDays,
+  Zap,
+  Folder as FolderIcon,
+  FolderPlus,
   Droplets,
   Sun,
   Snowflake,
@@ -46,6 +50,27 @@ import guarnicionesData from "../data/recipes/guarniciones.json";
 import salsasData from "../data/recipes/salsas.json";
 import { dishImageUrl, dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
+import { allFolders, collectionRecipeIds, collectionCounts, DISCARDED_ID } from "../lib/recipeCollections.js";
+
+// Carpeta virtual: todo lo que has guardado, sin filtrar por carpeta.
+const ALL_ID = "__all__";
+
+// Arte de cada carpeta fija, reusando las ilustraciones que ya existen — las
+// tres facetas coinciden con el criterio real del filtro (gourmet = apetecible,
+// rápido, peques), así que la imagen dice la verdad sobre lo que hay dentro.
+// Las carpetas del usuario no tienen arte propio y caen en la genérica.
+const COLLECTION_ART = {
+  [ALL_ID]: { Icon: NotebookPen, img: "/avatares/cards/empty_recetas_propias.jpg" },
+  dia_a_dia: { Icon: CalendarDays, img: "/avatares/cards/comidas.jpg" },
+  ocasion_especial: { Icon: Sparkles, img: "/categories/faceta_gourmet.webp" },
+  cena_rapida: { Icon: Zap, img: "/categories/faceta_rapido.webp" },
+  hijos: { Icon: Baby, img: "/categories/faceta_ninos.webp" },
+  [DISCARDED_ID]: { Icon: Trash2, img: "/avatares/cards/empty_descartes.jpg" },
+};
+
+const CUSTOM_FOLDER_ART = { Icon: FolderIcon, img: "/avatares/cards/otros.jpg" };
+
+const folderArt = (id) => COLLECTION_ART[id] ?? CUSTOM_FOLDER_ART;
 import { favoriteRecipeIds, getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
 import { categoryImageSrc, proteinImageSrc } from "../lib/ingredientImages.js";
 import { RecipeProvenance } from "../components/RecipeProvenance.jsx";
@@ -219,6 +244,13 @@ export function CatalogBrowserSheet({
   extraGarnishes = [],
   // User votes keyed by recipe id: { v: 'up'|'down' (rating), fav: 'all'|string[] (favorite scope) }.
   recipeVotes = {},
+  // Carpetas: recipeId → folder ids, y las carpetas propias del usuario
+  // (las 4 fijas de Inspíranos son constantes, ver lib/recipeCollections.js).
+  recipeCollections = {},
+  recipeFolders = [],
+  onCreateFolder,
+  onDeleteFolder,
+  onSetRecipeFolders,
   // Selectable menu-group labels for per-group favorites (e.g. ["Adultos",
   // "Niños"]); when there's more than one, tapping the heart opens a picker
   // instead of favoriting for everyone right away.
@@ -267,7 +299,13 @@ export function CatalogBrowserSheet({
   onRecoverRecipe = null,
 }) {
   const [query, setQuery] = useState("");
-  const [sourceTab, setSourceTab] = useState("catalog"); // mine | favorites | catalog
+  // mine | favorites | catalog. Al cambiar un plato del menú se abre en "Mis
+  // recetas": si has guardado algo, lo que quieres poner ahí casi siempre está
+  // entre lo tuyo, no entre 539 del catálogo. Si aún no tienes nada, abrir en
+  // una lista vacía sería peor, así que se cae al catálogo.
+  const [sourceTab, setSourceTab] = useState(() =>
+    gatePickSourceTabs && favoriteRecipeIds(recipeVotes).length > 0 ? "mine" : "catalog",
+  );
 
   const resolvedFavoriteIds = useMemo(
     () => favoriteIds ?? (gatePickSourceTabs ? new Set(favoriteRecipeIds(recipeVotes)) : null),
@@ -388,6 +426,26 @@ export function CatalogBrowserSheet({
   // La tile "Mis recetas" del grid de categorías filtra al vuelo por tuyas +
   // favoritas, mismo mecanismo que una categoría pero sin tocar `cats`.
   const [viewingMine, setViewingMine] = useState(false);
+  // Carpeta de Inspíranos que se está viendo (o null). Un solo id en vez de un
+  // booleano por carpeta: son mutuamente excluyentes al navegar.
+  const [viewingCollection, setViewingCollection] = useState(null);
+  // Raíz de "Mis recetas": solo carpetas, ninguna receta suelta. Las recetas
+  // viven dentro de una carpeta — "Todas" es la que las contiene a todas.
+  const inMineRoot = viewingMine && !viewingCollection;
+
+  const collectionIds = useMemo(() => {
+    if (!viewingCollection || viewingCollection === ALL_ID) return null;
+    // "Descartados" no vive en recipeCollections: son los rechazos de menú.
+    if (viewingCollection === DISCARDED_ID) return discardedIds ?? new Set();
+    return collectionRecipeIds(recipeCollections, viewingCollection);
+  }, [viewingCollection, recipeCollections, discardedIds]);
+  const folderCounts = useMemo(
+    () => collectionCounts(recipeCollections, recipeFolders),
+    [recipeCollections, recipeFolders],
+  );
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  // Receta cuyo selector de carpetas está abierto.
+  const [folderPickerFor, setFolderPickerFor] = useState(null);
   const [cats, setCats] = useState(() => (initialCategory ? new Set([initialCategory]) : new Set()));
   const [proteins, setProteins] = useState(() => new Set());
   const [maxTime, setMaxTime] = useState(0);
@@ -438,7 +496,8 @@ export function CatalogBrowserSheet({
     const q = norm(query);
     const filtered = platoCatalog.filter((r) => {
       if (restrictToIds && !restrictToIds.has(r.id)) return false;
-      if (viewingMine && !mineIds.has(r.id)) return false;
+      if (viewingMine && (!viewingCollection || viewingCollection === ALL_ID) && !mineIds.has(r.id)) return false;
+      if (collectionIds && !collectionIds.has(r.id)) return false;
       if (q && !norm(r.name).includes(q)) return false;
       if (cats.size && !cats.has(r.category)) return false;
       if (proteins.size && !proteins.has(r.mainProtein)) return false;
@@ -451,7 +510,7 @@ export function CatalogBrowserSheet({
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, platoCatalog, restrictToIds, viewingMine, mineIds]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, platoCatalog, restrictToIds, viewingMine, mineIds, collectionIds]);
 
   const garnishResults = useMemo(() => {
     const q = norm(query);
@@ -511,7 +570,8 @@ export function CatalogBrowserSheet({
       // filtraba en ESTA lista — platoResults sí lo aplicaba, pero no es la
       // que se pinta aquí — así que salía el catálogo entero, como si fuera
       // una categoría más.
-      if (viewingMine && !mineIds.has(r.id)) return false;
+      if (viewingMine && (!viewingCollection || viewingCollection === ALL_ID) && !mineIds.has(r.id)) return false;
+      if (collectionIds && !collectionIds.has(r.id)) return false;
       if (restrictToIds && !restrictToIds.has(r.id)) return false;
       if (q && !norm(r.name).includes(q)) return false;
       if (maxTime && (r.time ?? 999) > maxTime) return false;
@@ -545,7 +605,7 @@ export function CatalogBrowserSheet({
       }
     }
     return sortByNameQuery(out, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes, viewingMine, mineIds]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes, viewingMine, mineIds, collectionIds]);
 
   const gatePickMinePlatoCount = useMemo(
     () => mineRecipes.filter(isGatePickPlato).length,
@@ -622,7 +682,7 @@ export function CatalogBrowserSheet({
   // tesela.
   const anyFacetActive = kidOnly || activeFacets.size > 0;
   const showCategoryGrid =
-    isBrowseCatalog && cats.size === 0 && !viewingMine && !query.trim() && !anyFacetActive;
+    isBrowseCatalog && cats.size === 0 && !viewingMine && !viewingCollection && !query.trim() && !anyFacetActive;
   // En la rejilla de inicio (fuera de gatePick) el estante de facetas ya
   // cubre "explorar" — la barra de busqueda/filtros solo aparece al entrar
   // en una categoria o al buscar, no compitiendo con el estante arriba.
@@ -850,10 +910,17 @@ export function CatalogBrowserSheet({
   // en un único grid de 3 columnas. Cada tile conserva su propio gesto: una
   // categoría navega al listado filtrado, una faceta se enciende/apaga en
   // el sitio (mismo toggleFacet de siempre).
+  // Las carpetas NO viven aquí: son un nivel más abajo, dentro de "Mis
+  // recetas" (ver FolderRail), porque organizan lo que ya has guardado, no el
+  // catálogo entero.
+  // Sin facetas (peques / cenas rápidas / gourmet / verano / invierno): tres de
+  // ellas eran el mismo corte que una carpeta de Mis recetas con distinto
+  // nombre y distinto contenido (la faceta, todo el catálogo; la carpeta, solo
+  // lo tuyo), y tener los dos ejes a la vez confundía. El filtrado por faceta
+  // sigue existiendo dentro de Filtros; lo que desaparece es la tile.
   const gridTiles = [
     { kind: "mine", id: "__mine__" },
     ...allCats.map((catId) => ({ kind: "category", id: catId })),
-    ...Object.keys(FACET_META).map((id) => ({ kind: "facet", id })),
   ];
 
   const categoryGrid = (
@@ -888,11 +955,13 @@ export function CatalogBrowserSheet({
           if (disabled) return;
           if (isMine) {
             setViewingMine(true);
+            setViewingCollection(null);
             setCats(new Set());
           } else if (isFacet) {
             toggleFacet(tile.id);
           } else {
             setViewingMine(false);
+            setViewingCollection(null);
             setCats(new Set([tile.id]));
           }
         };
@@ -982,9 +1051,43 @@ export function CatalogBrowserSheet({
     </div>
   ) : null;
 
+  // Dentro de "Mis recetas" y sin carpeta abierta, las carpetas ocupan huecos
+  // del propio grid, como un plato más: van primero y luego las recetas.
+  // Antes eran pills en una fila y no escalaba — con muchas carpetas la fila
+  // se volvía un carrusel horizontal imposible de escanear.
+  const folderTiles = inMineRoot ? (
+    <>
+      <FolderTile
+        label="Todas"
+        {...folderArt(ALL_ID)}
+        count={mineIds.size}
+        onClick={() => setViewingCollection(ALL_ID)}
+      />
+      {allFolders(recipeFolders).map((f) => (
+        <FolderTile
+          key={f.id}
+          label={f.label}
+          {...folderArt(f.id)}
+          count={folderCounts[f.id] ?? 0}
+          onClick={() => setViewingCollection(f.id)}
+          onDelete={f.builtIn || !onDeleteFolder ? null : () => onDeleteFolder(f.id)}
+        />
+      ))}
+      <FolderTile
+        label="Descartados"
+        {...folderArt(DISCARDED_ID)}
+        count={discardedIds?.size ?? 0}
+        muted
+        onClick={() => setViewingCollection(DISCARDED_ID)}
+      />
+      {onCreateFolder && <NewFolderTile onClick={() => setCreatingFolder(true)} />}
+    </>
+  ) : null;
+
   const cards = (
     <>
-      {gatePick
+      {folderTiles}
+      {inMineRoot ? null : gatePick
         ? visible.map((entry, i) => (
             <GatePickCard
               key={`${entry.kind}-${entry.item.id}`}
@@ -1015,6 +1118,8 @@ export function CatalogBrowserSheet({
                 hasScopeChoice={scopeGroups.length > 1}
                 onOpenScopePicker={() => setScopeFor(r)}
                 onOpenRecipe={onOpenRecipe}
+                onOpenFolders={onSetRecipeFolders ? () => setFolderPickerFor(r) : undefined}
+                inFolders={(recipeCollections[r.id] ?? []).length}
                 // Borrar solo en "Mis recetas" y solo sobre recetas propias:
                 // esta tarjeta es la del catálogo, donde no se borra nada.
                 onDelete={
@@ -1052,7 +1157,7 @@ export function CatalogBrowserSheet({
                 onDiscard={discardedIds && r.source !== "user" ? (discardedIds.has(r.id) ? () => onRecoverRecipe?.(r.id) : () => onDiscardRecipe?.(r.id)) : undefined}
               />
             ))}
-      {results.length === 0 && (
+      {results.length === 0 && !inMineRoot && (
         emptyImg || gatePickTabEmpty?.img ? (
           <div style={{ padding: "16px 20px" }}>
             <EmptyIllustration
@@ -1097,6 +1202,22 @@ export function CatalogBrowserSheet({
 
   const overlays = (
     <>
+      {creatingFolder && onCreateFolder && (
+        <NewFolderDialog
+          onCreate={(name) => onCreateFolder(name)}
+          onClose={() => setCreatingFolder(false)}
+        />
+      )}
+      {folderPickerFor && (
+        <FolderPickerSheet
+          recipe={folderPickerFor}
+          folders={allFolders(recipeFolders)}
+          current={recipeCollections[folderPickerFor.id] ?? []}
+          onSave={(ids) => onSetRecipeFolders?.(folderPickerFor.id, ids)}
+          onCreateFolder={onCreateFolder}
+          onClose={() => setFolderPickerFor(null)}
+        />
+      )}
       {garnishFor && (
         <GarnishPickerSheet
           recipe={garnishFor}
@@ -2285,7 +2406,8 @@ function formatDishTime(totalMin) {
 // tiene foto propia — sin guarnición, sin salsa, sin descarte: eso vivía en
 // la lista antigua y ya no aplica a este pool.
 function RecipeGridCard({
-  recipe, favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker, onOpenRecipe, onDelete, animDelay = 0,
+  recipe, favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker, onOpenRecipe, onDelete,
+  onOpenFolders, inFolders = 0, animDelay = 0,
 }) {
   const color = categoryColor(recipe.category);
   const photo = dishImageForRecipe(recipe);
@@ -2349,6 +2471,28 @@ function RecipeGridCard({
             }}
           >
             <Heart size={12} color={favorite ? "#fff" : "#c9b8ae"} fill={favorite ? "#fff" : "none"} strokeWidth={2.4} />
+          </span>
+        )}
+        {onOpenFolders && (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => { e.stopPropagation(); onOpenFolders(); }}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
+            aria-label={`Guardar ${recipe.name} en una carpeta`}
+            title="Guardar en una carpeta"
+            style={{
+              position: "absolute", bottom: 6, left: 6, height: 24, minWidth: 24,
+              padding: inFolders ? "0 7px" : 0, borderRadius: 999,
+              border: "1.5px solid #fff",
+              background: inFolders ? GREEN : "rgba(255,255,255,.92)",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 3,
+              boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
+              fontSize: 10.5, fontWeight: 800, color: "#fff",
+            }}
+          >
+            <FolderIcon size={12} color={inFolders ? "#fff" : "#8aa294"} strokeWidth={2.4} />
+            {inFolders > 0 && inFolders}
           </span>
         )}
         {onDelete && (
@@ -3004,3 +3148,240 @@ function GarnishPickCard({
   );
 }
 
+
+// ── Carpetas (dentro de "Mis recetas") ───────────────────────────────────────
+
+/**
+ * Carpeta como tile del grid de 2 columnas, con la misma silueta que una
+ * tarjeta de receta (cuadrada, esquinas iguales) para que se lea como "un
+ * plato más" — solo que sin foto, con icono sobre color.
+ */
+function FolderTile({ label, Icon, img, count, onClick, onDelete, muted = false }) {
+  const accent = muted ? "#8aa294" : GREEN;
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImg = Boolean(img) && !imgFailed;
+  return (
+    <div className="catalog-card-enter" style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={`Abrir carpeta ${label}`}
+        style={{
+          position: "relative", width: "100%", aspectRatio: "1 / 1",
+          padding: 0, borderRadius: 14, overflow: "hidden", cursor: "pointer",
+          border: showImg ? "none" : `1.5px dashed ${accent}44`,
+          background: showImg ? "#f4f7f5" : `${accent}0f`,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
+          fontFamily: "inherit",
+        }}
+      >
+        {showImg ? (
+          <>
+            <img
+              src={img}
+              alt=""
+              loading="lazy"
+              onError={() => setImgFailed(true)}
+              style={{
+                position: "absolute", inset: 0, width: "100%", height: "100%",
+                objectFit: "cover", filter: muted ? "grayscale(.55)" : "none",
+              }}
+            />
+            {/* El conteo va sobre la foto, así que necesita su propio fondo
+                para leerse igual sobre una imagen clara o una oscura. */}
+            <span
+              style={{
+                position: "absolute", bottom: 6, left: 6,
+                padding: "2px 8px", borderRadius: 999,
+                background: "rgba(255,255,255,.92)", color: accent,
+                fontSize: 13, fontWeight: 900, lineHeight: 1.5,
+                boxShadow: "0 1px 3px rgba(0,0,0,.18)",
+              }}
+            >
+              {count}
+            </span>
+          </>
+        ) : (
+          <>
+            <Icon size={30} color={accent} strokeWidth={1.9} />
+            <span style={{ fontSize: 19, fontWeight: 900, color: accent, lineHeight: 1 }}>{count}</span>
+          </>
+        )}
+        {onDelete && (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
+            aria-label={`Borrar carpeta ${label}`}
+            style={{
+              position: "absolute", top: 6, right: 6, width: 22, height: 22, borderRadius: "50%",
+              border: "1.5px solid #fff", background: "rgba(255,255,255,.92)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,.18)",
+            }}
+          >
+            <X size={11} color="#c0392b" strokeWidth={3} />
+          </span>
+        )}
+      </button>
+      <div style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.25, minWidth: 0 }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function NewFolderTile({ onClick }) {
+  return (
+    <div className="catalog-card-enter" style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+      <button
+        type="button"
+        onClick={onClick}
+        style={{
+          width: "100%", aspectRatio: "1 / 1", padding: 0, borderRadius: 14, cursor: "pointer",
+          border: `1.5px dashed ${GREEN}66`, background: "#fff",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
+          fontFamily: "inherit",
+        }}
+      >
+        <FolderPlus size={28} color={GREEN} strokeWidth={2} />
+      </button>
+      <div style={{ fontSize: 12.5, fontWeight: 800, color: GREEN, lineHeight: 1.25 }}>Crear carpeta</div>
+    </div>
+  );
+}
+
+const newFolderChip = {
+  display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
+  padding: "6px 11px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+  border: `1.5px dashed ${GREEN}66`, background: "#fff", color: GREEN,
+  fontSize: 12, fontWeight: 800, whiteSpace: "nowrap",
+};
+
+/** Diálogo mínimo de "¿cómo se llama la carpeta?". */
+function NewFolderDialog({ onCreate, onClose }) {
+  const [name, setName] = useState("");
+  const trimmed = name.trim();
+  return (
+    <div
+      onClick={onClose}
+      className="mp-overlay-in"
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 320, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="mp-sheet-up"
+        style={{ background: "#fff", borderRadius: 20, padding: 18, width: "100%", maxWidth: 340 }}
+      >
+        <div style={{ fontSize: 16, fontWeight: 900, color: "#142f1d" }}>Nueva carpeta</div>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: "#42594c", marginTop: 4 }}>
+          Para agrupar recetas a tu manera: «Cumpleaños», «Del abuelo»…
+        </div>
+        <input
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && trimmed) { onCreate(trimmed); onClose(); } }}
+          placeholder="Nombre de la carpeta"
+          maxLength={40}
+          style={{
+            width: "100%", boxSizing: "border-box", marginTop: 14,
+            padding: "11px 12px", borderRadius: 12,
+            border: "1.5px solid #d7e6dc", fontSize: 14, fontFamily: "inherit", color: "#142f1d",
+          }}
+        />
+        <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+          <button type="button" onClick={onClose} style={{ flex: 1, padding: "11px", borderRadius: 12, border: "1.5px solid #d7e6dc", background: "#fff", color: "#42594c", fontSize: 13.5, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            disabled={!trimmed}
+            onClick={() => { onCreate(trimmed); onClose(); }}
+            style={{ flex: 1, padding: "11px", borderRadius: 12, border: "none", background: trimmed ? GREEN : "#c2d2c8", color: "#fff", fontSize: 13.5, fontWeight: 800, fontFamily: "inherit", cursor: trimmed ? "pointer" : "default" }}
+          >
+            Crear
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Selector de carpetas de UNA receta: marca/desmarca y guarda al cerrar. */
+export function FolderPickerSheet({ recipe, folders, current, onSave, onCreateFolder, onClose }) {
+  const [picked, setPicked] = useState(() => new Set(current ?? []));
+  const [creating, setCreating] = useState(false);
+  const toggle = (id) =>
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  return (
+    <div
+      onClick={onClose}
+      className="mp-overlay-in"
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 300, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="mp-sheet-up"
+        style={{ background: "#f5f9f6", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 420, maxHeight: "80dvh", display: "flex", flexDirection: "column", padding: 18, boxSizing: "border-box" }}
+      >
+        <div style={{ fontSize: 16, fontWeight: 900, color: "#142f1d" }}>Guardar en…</div>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: "#42594c", marginTop: 3 }}>{recipe.name}</div>
+
+        <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginTop: 14 }}>
+          {folders.map((f) => {
+            const on = picked.has(f.id);
+            const Icon = folderArt(f.id).Icon;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => toggle(f.id)}
+                aria-pressed={on}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10, width: "100%",
+                  padding: "11px 12px", borderRadius: 14, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                  border: `2px solid ${on ? GREEN : "#d7e6dc"}`, background: on ? "#eef6f0" : "#fff",
+                }}
+              >
+                <Icon size={16} color={on ? GREEN : "#8aa294"} strokeWidth={2.4} />
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#142f1d" }}>{f.label}</span>
+                {on && <Check size={15} color={GREEN} strokeWidth={3} />}
+              </button>
+            );
+          })}
+          {onCreateFolder && (
+            <button type="button" onClick={() => setCreating(true)} style={{ ...newFolderChip, justifyContent: "center", padding: "11px 12px", borderRadius: 14 }}>
+              <FolderPlus size={14} strokeWidth={2.6} /> Nueva carpeta
+            </button>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => { onSave([...picked]); onClose(); }}
+          style={{ marginTop: 14, padding: "13px", borderRadius: 14, border: "none", background: GREEN, color: "#fff", fontSize: 14, fontWeight: 800, fontFamily: "inherit", cursor: "pointer" }}
+        >
+          Guardar
+        </button>
+
+        {creating && (
+          <NewFolderDialog
+            onCreate={(name) => {
+              const id = onCreateFolder(name);
+              if (id) setPicked((prev) => new Set([...prev, id]));
+            }}
+            onClose={() => setCreating(false)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}

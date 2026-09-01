@@ -3,10 +3,10 @@ import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
-import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes } from "../utils/filterRecipes.js";
+import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
-import { isMontaje, effectiveRecipeTime } from "../data/recipeSchema.js";
+import { isMontaje } from "../data/recipeSchema.js";
 import {
   validateMenu,
   buildCorrectionMessage,
@@ -29,6 +29,7 @@ import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortion
 import { dominantComponentOf } from "./dominantComponent.js";
 import { normalizeKidDinnerConfig, schoolAvoidCategories, householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
+import { lowerFirst } from "./dishNaming.js";
 
 // School-menu avoidance categories for the kids' cena. Historically the kids'
 // dinner ALWAYS avoided the school's protein + carb base (that's the "cena
@@ -602,41 +603,9 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
 }
 
 // ── Slot-type exceptions (user-marked "plato único" / "cena rápida") ──────
-
-// Umbral de "rápida": una receta curada como montaje (tostas, ensaladas de
-// asamblaje...) siempre cuenta, sin importar tiempo/dificultad — es la razón
-// de ser de la categoría. Pero exigir SOLO montaje deja fuera platos que
-// cualquiera llamaría rápidos sin ser de asamblaje (una tortilla francesa a
-// la sartén), así que dificultad fácil + tiempo por debajo del umbral cuenta
-// como camino alternativo (OR), no como sustituto — el catálogo curado a
-// mano no se pierde, solo se amplía. `eaters` ajusta el tiempo vía
-// effectiveRecipeTime() para las recetas marcadas scalesWithEaters (cortar
-// para 6 no es lo mismo que para 3).
-function recipeMatchesPreferType(recipe, preferType, eaters) {
-  if (!recipe) return false;
-  if (preferType === "plato_unico") return (recipe.mealRole ?? []).includes("plato_unico");
-  if (preferType === "cena_rapida") {
-    if (isMontaje(recipe)) return true;
-    // Same role gate validateMenu.slotAcceptsRole applies to every cena slot —
-    // sin esto, un "segundo" pensado para acompañar un primero (un filete a
-    // la plancha) colaba como cena completa solo por ser fácil y rápido.
-    return (
-      (recipe.mealRole ?? []).includes("cena") &&
-      recipe.difficulty === "facil" &&
-      effectiveRecipeTime(recipe, eaters) < 20
-    );
-  }
-  if (preferType === "comida_rapida") {
-    const roles = recipe.mealRole ?? [];
-    return (
-      !isMontaje(recipe) &&
-      recipe.difficulty === "facil" &&
-      effectiveRecipeTime(recipe, eaters) < 15 &&
-      (roles.includes("plato_unico") || roles.includes("segundo") || roles.includes("primero"))
-    );
-  }
-  return true;
-}
+// recipeMatchesPreferType vive en utils/filterRecipes.js: Inspíranos arma su
+// mazo de "cena rápida" con el mismo predicado, y duplicarlo dejaría que el
+// mazo y el generador divergieran.
 
 /**
  * Deterministically forces slots the user flagged (preferType) to carry a
@@ -1818,10 +1787,11 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   // "<dish>+<garnish>" that the image is stored under.
   fr.garnishId = garnish.id;
   // shortName es un dato curado a mano que no todas las guarniciones tienen
-  // (p. ej. ninguna de las nuevas de Recetario Estrella lo trae todavía) —
-  // sin fallback, el nombre del plato salía "... con undefined". Mismo
-  // fallback que ya usa formatDishWithGarnish en lib/dishNaming.js.
-  const suffix = ` con ${garnish.shortName ?? garnish.name}`;
+  // (de hecho NINGUNA receta del catálogo lo trae todavía) — sin fallback,
+  // el nombre del plato salía "... con undefined". Mismo fallback (y mismo
+  // lowerFirst para no pegar el nombre-título de la guarnición con mayúscula
+  // en mitad de la frase) que ya usa formatDishWithGarnish en lib/dishNaming.js.
+  const suffix = ` con ${lowerFirst(garnish.shortName ?? garnish.name)}`;
   const norm = (s) => s.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
   if (!norm(fr.name).endsWith(norm(suffix))) {
     fr.name = `${fr.name}${suffix}`;

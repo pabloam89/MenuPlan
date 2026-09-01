@@ -13090,5 +13090,396 @@
       }
     ],
     "estrella": true
+  },
+  {
+    "id": "legumbres_068",
+    "name": "Alubias con verduras y jamón",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 22,
+    "carbs_g": 52,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Alubias blancas cocidas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Puerro",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Jamón serrano en tacos",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla, el puerro y la zanahoria, sofreír en una cazuela con aceite hasta que estén tiernos.",
+      "Añadir el jamón en tacos y sofreír 2 min más.",
+      "Incorporar las alubias cocidas con un poco de su caldo, cocinar 15 min a fuego suave.",
+      "Rectificar de sal y servir."
+    ],
+    "description": "Alubias blancas guisadas con verduras y jamón serrano.",
+    "estrella": true
+  },
+  {
+    "id": "legumbres_069",
+    "name": "Potaje de verduras de temporada",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 340,
+    "protein_g": 16,
+    "carbs_g": 50,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Acelgas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Sofreír la cebolla picada en una cazuela con aceite hasta transparentar.",
+      "Añadir la zanahoria y la patata troceadas, sofreír 3 min.",
+      "Incorporar el pimentón, cubrir con agua o caldo y cocer 20 min.",
+      "Añadir las acelgas troceadas y los garbanzos, cocinar 10 min más.",
+      "Rectificar de sal y servir."
+    ],
+    "description": "Potaje sencillo de garbanzos con verduras de temporada.",
+    "estrella": true
+  },
+  {
+    "id": "legumbres_070",
+    "name": "Judías blancas con arroz y chorizo",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 20,
+    "carbs_g": 60,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Judías blancas cocidas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Sofreír la cebolla picada en una cazuela con aceite hasta transparentar.",
+      "Añadir el chorizo en rodajas y el tomate, cocinar 5 min.",
+      "Incorporar el arroz y cubrir con caldo o agua, cocer 15-18 min.",
+      "Añadir las judías cocidas los últimos 5 min para que se calienten.",
+      "Servir caliente."
+    ],
+    "description": "Guiso de judías blancas con arroz y chorizo.",
+    "estrella": true
+  },
+  {
+    "id": "legumbres_071",
+    "name": "Guiso de garbanzos con patatas y pimentón",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 400,
+    "protein_g": 18,
+    "carbs_g": 56,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Patatas",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Ajo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Sofreír la cebolla y el ajo picados hasta transparentar.",
+      "Añadir las patatas troceadas, el pimentón y el tomate, sofreír 2 min.",
+      "Cubrir con agua o caldo y cocer 20 min hasta que las patatas estén tiernas.",
+      "Añadir los garbanzos los últimos 5 min.",
+      "Rectificar de sal y servir."
+    ],
+    "description": "Garbanzos guisados con patatas en una salsa de pimentón.",
+    "estrella": true
+  },
+  {
+    "id": "legumbres_072",
+    "name": "Alubias con costilla y verduras",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 70,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 28,
+    "carbs_g": 46,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Alubias blancas cocidas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Costilla de cerdo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Puerro",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Salpimentar la costilla y dorarla en una cazuela con aceite.",
+      "Retirar y sofreír la cebolla, el puerro y la zanahoria picados en la misma cazuela.",
+      "Incorporar de nuevo la costilla, cubrir con agua y cocer a fuego medio 40 min hasta que esté tierna.",
+      "Añadir las alubias cocidas y cocinar 10 min más.",
+      "Rectificar de sal y servir."
+    ],
+    "description": "Alubias blancas guisadas con costilla de cerdo y verduras.",
+    "estrella": true
+  },
+  {
+    "id": "legumbres_073",
+    "name": "Garbanzos con arroz y verduras salteadas",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 16,
+    "carbs_g": 66,
+    "fat_g": 10,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer el arroz en agua con sal 15-18 min, escurrir.",
+      "Saltear la cebolla, el calabacín y el pimiento en dados con aceite hasta que estén tiernos.",
+      "Añadir los garbanzos cocidos y saltear 3 min más.",
+      "Mezclar con el arroz y servir."
+    ],
+    "description": "Garbanzos salteados con verduras y arroz blanco.",
+    "estrella": true
   }
 ]

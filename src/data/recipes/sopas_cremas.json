@@ -13924,5 +13924,328 @@
       }
     ],
     "estrella": true
+  },
+  {
+    "id": "sopas_cremas_082",
+    "name": "Puré de verduras con picatostes",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 220,
+    "protein_g": 6,
+    "carbs_g": 30,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pan de molde",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y trocear las verduras, cocer en agua o caldo con sal 20 min hasta que estén tiernas.",
+      "Triturar hasta obtener una crema fina, rectificar de sal.",
+      "Cortar el pan en dados y tostar en una sartén con un poco de aceite hasta dorar.",
+      "Servir el puré con los picatostes por encima."
+    ],
+    "description": "Puré casero de verduras de siempre, con picatostes crujientes.",
+    "estrella": true
+  },
+  {
+    "id": "sopas_cremas_083",
+    "name": "Sopa de picadillo con jamón y huevo duro",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 240,
+    "protein_g": 14,
+    "carbs_g": 26,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Caldo de pollo",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Fideos finos",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano en tacos",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cocer los huevos 10 min, enfriar, pelar y picar.",
+      "Llevar el caldo a ebullición, añadir los fideos y cocer 4-5 min.",
+      "Incorporar el jamón en tacos y el huevo picado.",
+      "Servir espolvoreado con perejil."
+    ],
+    "description": "Sopa de fideos con jamón y huevo duro picado, la sopa de toda la vida.",
+    "estrella": true
+  },
+  {
+    "id": "sopas_cremas_084",
+    "name": "Caldo con fideos, pollo y verduras",
+    "category": "sopas_cremas",
+    "mainProtein": "pollo",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 200,
+    "protein_g": 16,
+    "carbs_g": 22,
+    "fat_g": 5,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Fideos finos",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Puerro",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Apio",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Agua",
+        "amount": 700,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer la pechuga de pollo con las verduras troceadas en agua con sal 25-30 min hasta que el pollo esté hecho.",
+      "Retirar el pollo, desmenuzarlo y volver a incorporarlo al caldo.",
+      "Añadir los fideos y cocer 4-5 min más.",
+      "Servir caliente."
+    ],
+    "description": "Caldo casero de pollo con verduras y fideos.",
+    "estrella": true
+  },
+  {
+    "id": "sopas_cremas_085",
+    "name": "Sopa de pescado sencilla con picatostes",
+    "category": "sopas_cremas",
+    "mainProtein": "pescado_blanco",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 260,
+    "protein_g": 20,
+    "carbs_g": 22,
+    "fat_g": 10,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Merluza o pescado blanco",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Fideos finos",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan de molde",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 500,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Sofreír la cebolla picada con aceite hasta transparentar, añadir el tomate y cocinar 5 min.",
+      "Incorporar el caldo de pescado y llevar a ebullición.",
+      "Añadir los fideos y cocer 4 min, incorporar el pescado troceado y cocinar 3-4 min más hasta que esté hecho.",
+      "Tostar el pan en dados y servir la sopa con los picatostes por encima."
+    ],
+    "description": "Sopa de pescado sencilla con fideos y picatostes, sin mariscos caros.",
+    "estrella": true
+  },
+  {
+    "id": "sopas_cremas_086",
+    "name": "Sopa de verduras con pasta y jamón",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 220,
+    "protein_g": 10,
+    "carbs_g": 30,
+    "fat_g": 6,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Caldo de verduras",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Pasta pequeña",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Judía verde",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano en tacos",
+        "amount": 40,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Llevar el caldo a ebullición, añadir la zanahoria y la judía verde troceadas, cocer 10 min.",
+      "Incorporar la pasta y cocer 8-10 min más hasta que esté al dente.",
+      "Añadir el jamón en tacos al final.",
+      "Servir caliente."
+    ],
+    "description": "Sopa ligera de verduras con pasta pequeña y jamón serrano.",
+    "estrella": true
   }
 ]
