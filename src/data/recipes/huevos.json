@@ -12646,6 +12646,9 @@
     "name": "Tortilla de jamón y queso",
     "category": "huevos",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "cena",
       "segundo"
