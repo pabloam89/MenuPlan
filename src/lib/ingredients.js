@@ -24,7 +24,7 @@ import substitutionsJson from "../data/ingredientSubstitutions.json";
 import { validateIngredients } from "../data/ingredientSchema.js";
 import { createIngredientResolver } from "./ingredientResolver.js";
 import { guessShoppingAisle, guessIngredientCategory } from "./ingredientCategories.js";
-import { gramsForRecipeQuantity } from "./kitchenUnits.js";
+import { gramsForRecipeQuantity, gramsPerPiece } from "./kitchenUnits.js";
 
 // Mismo criterio que recipeCatalog.js: el JSON va bundleado con la app, así que
 // si está roto tiene que fallar de forma ruidosa e incondicional. El generador
@@ -79,6 +79,35 @@ export function ingredientAisleFor(name) {
 /** Categoría de despensa, del catálogo si lo conoce y si no por heurística. */
 export function ingredientCategoryFor(name) {
   return resolveIngredient(name)?.category ?? guessIngredientCategory(name);
+}
+
+/**
+ * Como se cuenta este ingrediente por piezas: `{ nombre, g }` o null.
+ *
+ * El nombre importa tanto como el gramaje. "1 ud" no dice de que pieza habla
+ * -un diente no es una cabeza, una rebanada no es una hogaza- y esa palabra es
+ * la que permite pintar "3 dientes de ajo" o "medio pomelo" en vez de "0,5 ud".
+ * @param {string} name
+ * @returns {{ nombre: string, g: number }|null}
+ */
+export function pieceFor(name) {
+  return resolveIngredient(name)?.pieza ?? null;
+}
+
+/**
+ * Gramos de una pieza, del catalogo si lo sabe y si no por heuristica.
+ *
+ * El orden NO es intercambiable. La heuristica de kitchenUnits casa por regex
+ * contra el nombre y gana la primera que coincida, asi que un ingrediente puede
+ * heredar el peso de otro que solo se le parece: "Pimientos del piquillo" salia
+ * a 180 g porque contenia "pimiento". Preguntar al catalogo primero -que resuelve
+ * por id- es lo unico que lo impide de raiz; el regex se queda como red para los
+ * nombres libres de las recetas del usuario, que no estan en el catalogo.
+ * @param {string} name
+ * @returns {number|null}
+ */
+export function pieceGramsFor(name) {
+  return pieceFor(name)?.g ?? gramsPerPiece(name);
 }
 
 /**

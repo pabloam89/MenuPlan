@@ -77,6 +77,26 @@ export const IngredientSchema = z
     defaultUnit: z.enum(UNITS),
     medianAmount: z.number().positive().nullable(),
 
+    // Como se cuenta este ingrediente cuando una receta lo pide por piezas.
+    //
+    // "ud" es un sustantivo que nadie escribia: un diente, una rebanada, media
+    // cabeza. Sin nombrarlo, el gramaje se adivinaba por parecido de nombre
+    // contra una lista de regex, y asi "Pimientos del piquillo" heredaba los
+    // 180 g de un morron: una lata de 8 pasaba a ser 1,4 kg.
+    //
+    // Nombrar la pieza no es cosmetica: es lo que hace que un numero malo se
+    // cante solo. "rebanada, 35 g" se lee bien; "hogaza, 35 g" salta a la vista.
+    //
+    // Opcional a proposito: solo lo llevan los que el catalogo pide en "ud"
+    // alguna vez. Ausente = no se cuenta por piezas (harina, leche) o aun no
+    // se ha decidido, y entonces se cae a la heuristica de kitchenUnits.
+    pieza: z
+      .object({
+        nombre: z.string().min(1),
+        g: z.number().positive(),
+      })
+      .optional(),
+
     // Nutrición por 100g (Fase 9), vía BEDCA — ver scripts/bedca-nutrition.mjs.
     // Todo opcional/nullable: BEDCA cubre ~500 alimentos y el catálogo tiene
     // 379 propios, así que no habrá cobertura del 100% — "sin dato" no es un

@@ -260,15 +260,15 @@ describe("buildShoppingList: mismo ingrediente en dos unidades", () => {
     registerRecipes([
       {
         id: "test_nogpp_ud",
-        name: "Receta con higos en pieza",
+        name: "Receta con alga en pieza",
         servings: 2,
-        ingredients: [{ id: "higo", name: "Higo", category: "Verduras y frutas", qty: 4, unit: "ud" }],
+        ingredients: [{ id: "alga", name: "Alga kombu", category: "Verduras y frutas", qty: 4, unit: "ud" }],
       },
       {
         id: "test_nogpp_g",
-        name: "Receta con higos al peso",
+        name: "Receta con alga al peso",
         servings: 2,
-        ingredients: [{ id: "higo", name: "Higo", category: "Verduras y frutas", qty: 300, unit: "g" }],
+        ingredients: [{ id: "alga", name: "Alga kombu", category: "Verduras y frutas", qty: 300, unit: "g" }],
       },
     ]);
     const plan = {
@@ -278,8 +278,8 @@ describe("buildShoppingList: mismo ingrediente en dos unidades", () => {
       },
     };
     const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
-    const higos = sh.byCategory.flatMap((c) => c.items).filter((it) => it.name === "Higo");
-    expect(higos.length).toBe(2);
+    const algas = sh.byCategory.flatMap((c) => c.items).filter((it) => it.name === "Alga kombu");
+    expect(algas.length).toBe(2);
   });
 
   it("no depende del orden en que se recorra el menu", () => {

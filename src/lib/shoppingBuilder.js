@@ -3,8 +3,7 @@ import { categoryForIngredient, normalizeIngredientKey, isQualitativeUnit, quali
 import { DAYS, MEALS } from "./planner.js";
 import { ingredientWords, wordsOverlapEither, isWordSubsetOf } from "../utils/normalizePantryInput.js";
 import { cookedEatersFor, slotUsesPrepared, slotGarnishInTupper } from "./freezer.js";
-import { resolveIngredientId } from "./ingredients.js";
-import { gramsPerPiece, convertStockAmount } from "./kitchenUnits.js";
+import { resolveIngredientId, pieceGramsFor } from "./ingredients.js";
 
 // Whole-word match (not raw substring — see normalizePantryInput.js's
 // "Repollo" note) between a shopping-list ingredient name and the user's
@@ -89,7 +88,7 @@ export function findMatchingPantryItem(ingredientName, pantryStock, { adapted = 
 // dos mitades siguen separadas igual que hasta ahora. Es lo correcto: preferimos
 // dos filas visibles a fusionarlas con un factor inventado.
 function aggregationUnit(name, unit) {
-  if (unit === "ud" && gramsPerPiece(name) != null) return "g";
+  if (unit === "ud" && pieceGramsFor(name) != null) return "g";
   return unit;
 }
 
@@ -237,9 +236,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
             // caer en la misma fila, no en dos.
             const aggUnit = aggregationUnit(ing.name, ing.unit);
             const aggQty =
-              aggUnit === ing.unit
-                ? scaled.qty
-                : convertStockAmount(scaled.qty, ing.unit, aggUnit, ing.name) ?? scaled.qty;
+              aggUnit === ing.unit ? scaled.qty : scaled.qty * pieceGramsFor(ing.name);
             const key = normalizeIngredientKey(ing.name, aggUnit);
             const category = categoryForIngredient(ing.name, ing.category);
             if (!aggregate[key]) {
