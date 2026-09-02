@@ -3614,6 +3614,58 @@ export default function App() {
   // Vaciar hueco: keep the slot (flagged `cleared`) so the deck renders a
   // tappable placeholder to refill it; offer an undo that restores the dishes.
   // Duplicar: copy a dish into another slot (action bar → "Duplicar" → tap target).
+  /**
+   * Un plato que viene de FUERA (del menu de otra persona) esperando hueco.
+   * Vive aqui y no en MenuScreen porque el gesto empieza en el Feed y termina
+   * en el menu: son dos pantallas, y el plato tiene que sobrevivir al salto.
+   */
+  const [pendingDish, setPendingDish] = useState(null);
+
+  /**
+   * Colocar una receta concreta en un hueco. Es el gemelo de
+   * handleDuplicateSlot, pero recibiendo el id en vez de leerlo de un hueco
+   * tuyo: el plato de otra persona no esta en tu plan, asi que no hay origen
+   * de donde copiarlo.
+   */
+  const handlePlaceRecipeInSlot = useCallback(async (recipeId, target) => {
+    if (householdReadOnly || !recipeId || !target) return;
+    const baseId = String(recipeId).split("__").pop();
+    const tGroup = target.groupId;
+    const tKey = `${target.day}-${target.meal}`;
+    const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const prevSlot = plan[tGroup]?.[tKey] ?? {};
+      const nextSlot = { ...prevSlot, [tField]: baseId, cleared: false, warnings: [] };
+      const next = { ...plan, [tGroup]: { ...(plan[tGroup] ?? {}), [tKey]: nextSlot } };
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    setPendingDish(null);
+    showToast("Plato añadido a tu menú");
+    trackEvent(user, "dish_copied_from_feed", "menu", { to: tKey });
+  }, [householdReadOnly, data, showToast, user, applyShoppingFor]);
+
+  /**
+   * "A mis recetas" desde el menu de otra persona.
+   *
+   * Segun de donde salga el plato significa una cosa distinta, y las dos son
+   * "que aparezca en Mis Recetas":
+   *  · receta SUYA  -> se copia a tu biblioteca (nace privada y con id propio),
+   *  · del catalogo -> ya la tienes; lo que falta es marcarla como favorita,
+   *    que es exactamente lo que hace que salga en Mis Recetas.
+   */
+  const handleSaveDishToRecipes = useCallback(async (dish) => {
+    if (!dish?.recipeId) return;
+    if (dish.source === "user") {
+      const newId = await handleCopyRecipeFromFeed(dish.recipeId, dish.ownerId ?? null);
+      if (newId) showToast("Guardada en tus recetas");
+      return;
+    }
+    handlePersonalSetFavoriteScope(dish.recipeId, "all");
+  }, [handleCopyRecipeFromFeed, handlePersonalSetFavoriteScope, showToast]);
+
   const handleDuplicateSlot = useCallback(async (source, target) => {
     if (householdReadOnly) return;
     if (!source || !target) return;
@@ -4268,6 +4320,9 @@ export default function App() {
               onDishReplace={householdReadOnly ? undefined : handleReplaceSlot}
               onDishSwap={householdReadOnly ? undefined : handleSwapSlots}
               onDishDuplicate={householdReadOnly ? undefined : handleDuplicateSlot}
+              incomingDish={pendingDish}
+              onDishPlace={householdReadOnly ? undefined : handlePlaceRecipeInSlot}
+              onIncomingCancel={() => setPendingDish(null)}
               onDishManualPick={householdReadOnly ? undefined : handleManualPickSlot}
               onRegenerateDay={householdReadOnly ? undefined : handleRegenerateDay}
               onNav={handleNav}
@@ -4529,6 +4584,8 @@ export default function App() {
                 onNav={handleNav}
                 onOpenRecipe={handleOpenFeedRecipe}
                 initialPersonId={deepLinkPerson}
+                onSaveDish={handleSaveDishToRecipes}
+                onPlaceDish={(dish) => { setPendingDish(dish); fwd(() => setScreen("menu")); }}
                 onConsumedPerson={() => setDeepLinkPerson(null)}
                 onCopyRecipe={handleCopyRecipeFromFeed}
                 recipeFolders={data.recipeFolders}

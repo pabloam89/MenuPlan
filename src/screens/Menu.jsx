@@ -76,7 +76,15 @@ import salsasData from "../data/recipes/salsas.json";
 import { categoryColor, categoryIcon, categoryLabel, isKnownCategory } from "./CatalogBrowserSheet.jsx";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
 import { RecipeStepList } from "../components/RecipeSteps.jsx";
-import { formatQty, normalizeRichSteps, resolveApplianceSteps } from "../lib/recipeSteps.js";
+import {
+  formatQty,
+  normalizeRichSteps,
+  resolveApplianceSteps,
+  availablePartsOf,
+  stepsByPart,
+  ingredientsByPart,
+  STEP_PART_META,
+} from "../lib/recipeSteps.js";
 import {
   assignFreezerToSlot,
   assignFridgeToSlot,
@@ -3707,6 +3715,9 @@ export const MenuScreen = memo(function MenuScreen({
   onDishReplace,
   onDishSwap,
   onDishDuplicate,
+  incomingDish = null,
+  onDishPlace,
+  onIncomingCancel,
   onDishManualPick,
   onNav,
   onRegenerate,
@@ -3750,7 +3761,14 @@ export const MenuScreen = memo(function MenuScreen({
   // a two-tap mode (`armed`), where the next dish/hueco tapped is the target;
   // "Cambiar" executes on the spot, no extra step.
   const [dishAction, setDishAction] = useState(null);
-  const [armed, setArmed] = useState(null); // null | { mode: "swap" | "duplicate", source }
+  const [armed, setArmed] = useState(null); // null | { mode: "swap" | "duplicate" | "incoming", source }
+
+  // Un plato copiado del menu de otra persona llega ya armado: has cruzado de
+  // pantalla justamente para colocarlo, asi que pedirte un toque mas para
+  // "activarlo" seria hacerte repetir la intencion que ya expresaste.
+  useEffect(() => {
+    if (incomingDish?.recipeId) setArmed({ mode: "incoming", dish: incomingDish });
+  }, [incomingDish]);
 
   const handleTileTap = useCallback(
     (sel) => {
@@ -3763,6 +3781,7 @@ export const MenuScreen = memo(function MenuScreen({
         }
         if (armed.mode === "swap") onDishSwap?.(armed.source, sel);
         else if (armed.mode === "duplicate") onDishDuplicate?.(armed.source, sel);
+        else if (armed.mode === "incoming") onDishPlace?.(armed.dish.recipeId, sel);
         setArmed(null);
         return;
       }
@@ -3773,7 +3792,7 @@ export const MenuScreen = memo(function MenuScreen({
       }
       onDishTap?.(sel);
     },
-    [armed, onDishSwap, onDishDuplicate, onDishManualPick, onDishTap, readOnly],
+    [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly],
   );
 
   const handleTileLongPress = useCallback(
@@ -4602,19 +4621,24 @@ export const MenuScreen = memo(function MenuScreen({
                   animation: "deckModalIn .2s cubic-bezier(.4,0,.2,1) both",
                 }}
               >
-                {armed.mode === "duplicate" ? (
-                  <CopyPlus size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
-                ) : (
+                {armed.mode === "swap" ? (
                   <ArrowLeftRight size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
+                ) : (
+                  <CopyPlus size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
                 )}
                 <span style={{ flex: 1, minWidth: 0, color: "#fff", fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>
-                  {armed.mode === "duplicate"
-                    ? "Toca el hueco donde repetir el plato"
-                    : "Toca el plato al que moverlo"}
+                  {/* El plato que viene de fuera se nombra: has cambiado de
+                      pantalla desde que lo elegiste y conviene confirmar que
+                      es el que creias. */}
+                  {armed.mode === "incoming"
+                    ? `Toca el hueco para ${armed.dish.name}`
+                    : armed.mode === "duplicate"
+                      ? "Toca el hueco donde repetir el plato"
+                      : "Toca el plato al que moverlo"}
                 </span>
                 <button
                   type="button"
-                  onClick={() => setArmed(null)}
+                  onClick={() => { setArmed(null); if (armed.mode === "incoming") onIncomingCancel?.(); }}
                   style={{
                     flexShrink: 0,
                     padding: "7px 13px",
@@ -5178,8 +5202,24 @@ export function DishDetail({
     garnishShortName,
     sauceRecipe,
   );
-  const showGarnishCourse = Boolean(garnishRecipe) && !platoUnico;
-  const showSalsaCourse = Boolean(sauceRecipe) && !platoUnico;
+  // ── Desglose por `part` de la propia receta (sin guarnición/salsa de
+  // catálogo aparte) — mutuamente excluyente con el modelo antiguo: si ya hay
+  // garnishRecipe/sauceRecipe, esas mandan tal cual y esto se queda vacío.
+  const ownParts = useMemo(
+    () => (!garnishRecipe && !sauceRecipe ? availablePartsOf(richSteps) : []),
+    [garnishRecipe, sauceRecipe, richSteps],
+  );
+  const hasOwnParts = ownParts.length > 0;
+  const ownStepsByPart = useMemo(
+    () => (hasOwnParts ? stepsByPart(richSteps) : {}),
+    [hasOwnParts, richSteps],
+  );
+  const ownIngredientsByPart = useMemo(
+    () => (hasOwnParts ? ingredientsByPart(richSteps, ingredients) : {}),
+    [hasOwnParts, richSteps, ingredients],
+  );
+  const showGarnishCourse = (Boolean(garnishRecipe) && !platoUnico) || ownParts.includes("guarnicion");
+  const showSalsaCourse = (Boolean(sauceRecipe) && !platoUnico) || ownParts.includes("salsa");
   const displayName = useMemo(() => {
     if (!garnishRecipe && !sauceRecipe) return recipe.name;
     if (platoUnico || activeCourse === "combinado") {
@@ -5208,15 +5248,14 @@ export function DishDetail({
     (platoUnico && (Boolean(garnishRecipe) || Boolean(sauceRecipe)));
   const cookCourse = platoUnico || (!onGarnishCourse && !onSalsaCourse && !onCombinedCourse);
   const courseIngredients = onGarnishCourse
-    ? garnishIngredients
+    ? (garnishRecipe ? garnishIngredients : (ownIngredientsByPart.guarnicion ?? []))
     : onSalsaCourse
-      ? sauceIngredients
+      ? (sauceRecipe ? sauceIngredients : (ownIngredientsByPart.salsa ?? []))
       : onCombinedCourse
         ? [...ingredients, ...garnishIngredients, ...sauceIngredients]
-        : ingredients;
-  // Grupos de ingredientes plegables en la vista combinada; colapsados de salida.
-  const [openIngGroups, setOpenIngGroups] = useState({ principal: false, guarnicion: false, salsa: false });
-
+        : hasOwnParts
+          ? (ownIngredientsByPart.principal ?? [])
+          : ingredients;
   // Nutrientes secundarios (fibra, azúcares, grasas sat., sodio): opcionales y
   // solo presentes tras la pasada de enriquecimiento. Se muestran colapsados.
   const [nutriExpanded, setNutriExpanded] = useState(true);
@@ -5861,8 +5900,8 @@ export function DishDetail({
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
               {[
                 { id: "principal", Icon: CookingPot, color: "#2d5a3d", copy: "Primer plato", sub: baseName },
-                showGarnishCourse && { id: "guarnicion", Icon: Salad, color: "#16a34a", copy: "Guarnición", sub: garnishRecipe.name },
-                showSalsaCourse && { id: "salsa", Icon: Droplets, color: "#c2703d", copy: "Salsa", sub: sauceRecipe.name },
+                showGarnishCourse && { id: "guarnicion", Icon: Salad, color: "#16a34a", copy: "Guarnición", sub: garnishRecipe ? garnishRecipe.name : STEP_PART_META.guarnicion.label },
+                showSalsaCourse && { id: "salsa", Icon: Droplets, color: "#c2703d", copy: "Salsa", sub: sauceRecipe ? sauceRecipe.name : STEP_PART_META.salsa.label },
                 {
                   id: "combinado", Icon: Layers2, color: "#2f6fb8", copy: "Combinado",
                   sub: [showGarnishCourse && "guarnición", showSalsaCourse && "salsa"].filter(Boolean).join(" + ") || "guarnición",
@@ -6135,43 +6174,32 @@ export function DishDetail({
             </div>
             {recipeTab === "ingredientes" && onCombinedCourse && (
               <div style={{ marginBottom: 4 }}>
-                {/* Combinado: ingredientes agrupados por curso, plegables y
-                    colapsados de salida para no soltar una lista larguísima. */}
-                {[
-                  { key: "principal", label: recipe.name, items: ingredients },
-                  garnishRecipe && { key: "guarnicion", label: garnishRecipe.name, items: garnishIngredients },
-                  sauceRecipe && { key: "salsa", label: sauceRecipe.name, items: sauceIngredients },
-                ].filter(Boolean).map((grp) => {
-                  const open = openIngGroups[grp.key];
-                  return (
-                    <div key={grp.key} style={{ marginBottom: 10, border: "1.5px solid #e3ede6", borderRadius: 12, overflow: "hidden" }}>
-                      <button
-                        type="button"
-                        onClick={() => setOpenIngGroups((s) => ({ ...s, [grp.key]: !s[grp.key] }))}
-                        aria-expanded={open}
-                        style={{
-                          width: "100%", display: "flex", alignItems: "center", gap: 8,
-                          padding: "10px 12px", border: "none",
-                          background: open ? "#f4f7f4" : "#fff",
-                          cursor: "pointer", fontFamily: "inherit",
-                        }}
-                      >
-                        <span style={{ fontSize: 12.5, fontWeight: 800, color: "#2d5a3d", flex: 1, minWidth: 0, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {grp.label}
-                        </span>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: "#7a8a7f" }}>{grp.items.length}</span>
-                        <ChevronDown size={16} strokeWidth={2.6} color="#9db3a6" style={{ transition: "transform .18s", transform: open ? "rotate(180deg)" : "none" }} />
-                      </button>
-                      {open && (
-                        <div style={{ padding: "2px 12px 6px" }}>
-                          {grp.items.map((ing, i) => (
-                            <DishIngredientRow key={ing.id} ing={ing} isLast={i === grp.items.length - 1} cookable={false} />
-                          ))}
-                        </div>
-                      )}
+                {/* Combinado: ingredientes agrupados por curso, en secciones
+                    siempre visibles — misma paridad que Pasos/Combinado, que
+                    ya pinta una cabecera de color por `part` sin necesidad de
+                    plegar nada. */}
+                {(hasOwnParts
+                  ? ["principal", "guarnicion", "salsa", "combinado"]
+                      .filter((part) => (ownIngredientsByPart[part] ?? []).length > 0)
+                      .map((part) => ({ key: part, label: STEP_PART_META[part].label, color: STEP_PART_META[part].color, items: ownIngredientsByPart[part] }))
+                  : [
+                      { key: "principal", label: recipe.name, color: "#2d5a3d", items: ingredients },
+                      garnishRecipe && { key: "guarnicion", label: garnishRecipe.name, color: "#16a34a", items: garnishIngredients },
+                      sauceRecipe && { key: "salsa", label: sauceRecipe.name, color: "#c2703d", items: sauceIngredients },
+                    ].filter(Boolean)
+                ).map((grp, gi) => (
+                  <div key={grp.key} style={{ marginTop: gi === 0 ? 0 : 18 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 10px" }}>
+                      <span style={{ fontSize: 12, fontWeight: 900, color: grp.color, whiteSpace: "nowrap" }}>
+                        {grp.label}
+                      </span>
+                      <div style={{ flex: 1, borderTop: `1.5px dashed ${grp.color}44` }} />
                     </div>
-                  );
-                })}
+                    {grp.items.map((ing, i) => (
+                      <DishIngredientRow key={ing.id} ing={ing} isLast={i === grp.items.length - 1} cookable={false} />
+                    ))}
+                  </div>
+                ))}
               </div>
             )}
             {recipeTab === "ingredientes" && !onCombinedCourse && courseIngredients.length === 0 && (
@@ -6214,46 +6242,62 @@ export function DishDetail({
               </div>
             )}
             {recipeTab === "pasos" && onGarnishCourse && (
-              garnishRichSteps?.length > 0 || garnishPlainSteps.length > 0 ? (
-                <RecipeStepList rich={garnishRichSteps} plain={garnishPlainSteps} ingredients={garnishIngredients} kitchenTools={kitchenTools} />
+              garnishRecipe ? (
+                garnishRichSteps?.length > 0 || garnishPlainSteps.length > 0 ? (
+                  <RecipeStepList rich={garnishRichSteps} plain={garnishPlainSteps} ingredients={garnishIngredients} kitchenTools={kitchenTools} />
+                ) : (
+                  <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
+                    Esta guarnición no tiene pasos detallados.
+                  </p>
+                )
               ) : (
-                <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
-                  Esta guarnición no tiene pasos detallados.
-                </p>
+                <RecipeStepList rich={ownStepsByPart.guarnicion} plain={[]} ingredients={ownIngredientsByPart.guarnicion} kitchenTools={kitchenTools} />
               )
             )}
             {recipeTab === "pasos" && onSalsaCourse && (
-              sauceRichSteps?.length > 0 || saucePlainSteps.length > 0 ? (
-                <RecipeStepList rich={sauceRichSteps} plain={saucePlainSteps} ingredients={sauceIngredients} kitchenTools={kitchenTools} />
+              sauceRecipe ? (
+                sauceRichSteps?.length > 0 || saucePlainSteps.length > 0 ? (
+                  <RecipeStepList rich={sauceRichSteps} plain={saucePlainSteps} ingredients={sauceIngredients} kitchenTools={kitchenTools} />
+                ) : (
+                  <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
+                    Esta salsa no tiene pasos detallados.
+                  </p>
+                )
               ) : (
-                <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
-                  Esta salsa no tiene pasos detallados.
-                </p>
+                <RecipeStepList rich={ownStepsByPart.salsa} plain={[]} ingredients={ownIngredientsByPart.salsa} kitchenTools={kitchenTools} />
               )
             )}
             {recipeTab === "pasos" && onCombinedCourse && (
-              <>
-                {/* Combinado: pasos del plato + guarnición + salsa (los que
-                    haya) en bloques etiquetados, el método tradicional de
-                    cada uno por separado. */}
-                {[
-                  { key: "principal", label: "Primer plato", color: "#2d5a3d", Icon: CookingPot, rich: richSteps, plain: mainPlainSteps, ings: ingredients },
-                  garnishRecipe && { key: "guarnicion", label: "Guarnición", color: "#16a34a", Icon: Salad, rich: garnishRichSteps, plain: garnishPlainSteps, ings: garnishIngredients },
-                  sauceRecipe && { key: "salsa", label: "Salsa", color: "#c2703d", Icon: Droplets, rich: sauceRichSteps, plain: saucePlainSteps, ings: sauceIngredients },
-                ].filter(Boolean).map((blk, bi) => (
-                  <div key={blk.key} style={{ marginTop: bi === 0 ? 0 : 18 }}>
-                    <div style={{
-                      display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10,
-                      padding: "3px 10px", borderRadius: 999,
-                      background: `${blk.color}14`, color: blk.color, fontSize: 11.5, fontWeight: 800,
-                    }}>
-                      <blk.Icon size={13} strokeWidth={2.4} />
-                      {blk.label}
+              hasOwnParts ? (
+                // Receta propia con `part`: richSteps ya es la secuencia completa
+                // (principal+guarnición/salsa+combinado intercalados); RecipeStepList
+                // ya pinta una cabecera de color al cambiar de `part` entre pasos
+                // consecutivos, así que no hace falta reconstruir bloques aquí.
+                <RecipeStepList rich={richSteps} plain={mainPlainSteps} ingredients={ingredients} kitchenTools={kitchenTools} />
+              ) : (
+                <>
+                  {/* Combinado: pasos del plato + guarnición + salsa (los que
+                      haya) en bloques etiquetados, el método tradicional de
+                      cada uno por separado. */}
+                  {[
+                    { key: "principal", label: "Primer plato", color: "#2d5a3d", Icon: CookingPot, rich: richSteps, plain: mainPlainSteps, ings: ingredients },
+                    garnishRecipe && { key: "guarnicion", label: "Guarnición", color: "#16a34a", Icon: Salad, rich: garnishRichSteps, plain: garnishPlainSteps, ings: garnishIngredients },
+                    sauceRecipe && { key: "salsa", label: "Salsa", color: "#c2703d", Icon: Droplets, rich: sauceRichSteps, plain: saucePlainSteps, ings: sauceIngredients },
+                  ].filter(Boolean).map((blk, bi) => (
+                    <div key={blk.key} style={{ marginTop: bi === 0 ? 0 : 18 }}>
+                      <div style={{
+                        display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10,
+                        padding: "3px 10px", borderRadius: 999,
+                        background: `${blk.color}14`, color: blk.color, fontSize: 11.5, fontWeight: 800,
+                      }}>
+                        <blk.Icon size={13} strokeWidth={2.4} />
+                        {blk.label}
+                      </div>
+                      <RecipeStepList rich={blk.rich} plain={blk.plain} ingredients={blk.ings} kitchenTools={kitchenTools} />
                     </div>
-                    <RecipeStepList rich={blk.rich} plain={blk.plain} ingredients={blk.ings} kitchenTools={kitchenTools} />
-                  </div>
-                ))}
-              </>
+                  ))}
+                </>
+              )
             )}
             {/* Plato del congelador: los pasos de descongelado SUSTITUYEN a los de
                 cocinado — no hay nada que cocinar, hay que resucitarlo. Si además
@@ -6342,7 +6386,12 @@ export function DishDetail({
                     hay que estar delante. Si los pasos llegan sin metadatos
                     (recetas de usuario vía API), cae a la lista numerada. */}
                 {activeAppliance === "base" && richSteps?.length > 0 ? (
-                  <RecipeStepList rich={richSteps} plain={mainPlainSteps} ingredients={ingredients} kitchenTools={kitchenTools} />
+                  <RecipeStepList
+                    rich={hasOwnParts ? (ownStepsByPart.principal ?? richSteps) : richSteps}
+                    plain={mainPlainSteps}
+                    ingredients={hasOwnParts ? (ownIngredientsByPart.principal ?? ingredients) : ingredients}
+                    kitchenTools={kitchenTools}
+                  />
                 ) : stepsLoading ? (
                   <div
                     style={{

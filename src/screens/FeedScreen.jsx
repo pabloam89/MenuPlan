@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon } from "lucide-react";
+import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon, ChefHat } from "lucide-react";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
 import { RecipePoster, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
@@ -91,6 +91,8 @@ export function FeedScreen({
   unsharedRecipes = [],
   myRecipes = [],
   initialPersonId = null,
+  onSaveDish,
+  onPlaceDish,
   onConsumedPerson,
   onPublishRecipe,
   recipeFolders = [],
@@ -938,13 +940,17 @@ function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onC
  * compra, ni presupuesto, ni horarios, ni nombres — aunque el menú original
  * los tenga, aquí no han llegado nunca.
  */
-function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked }) {
+function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   // Filtro por comensal: toca un avatar de la cabecera y ves solo lo que come
   // esa persona ("que han comido los peques hoy"). Es una VISTA sobre lo ya
   // publicado — no ensena nada que la semana entera no ensenara igual.
   const [eaterFilter, setEaterFilter] = useState(null);
+  // El plato que estas mirando de cerca. Se copia PLATO a plato -no la semana
+  // entera-, que es como se usa de verdad el menu de otra persona: te llevas
+  // la idea suelta que te ha gustado.
+  const [dishPick, setDishPick] = useState(null);
   const days = m.payload?.weeks?.[0]?.days ?? [];
   const members = m.payload?.members ?? [];
   const byId = Object.fromEntries(members.map((x) => [x.id, x]));
@@ -1052,17 +1058,38 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked }) 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ ...peekSlotLabel, color: SLOT_COLOR[meal.slot] ?? "#7a9485" }}>{meal.slot}</div>
                     {(meal.dishes ?? []).map((dish, di) => (
-                      <div key={di} style={{ display: "flex", alignItems: "center", gap: 9, marginTop: di === 0 ? 5 : 7 }}>
+                      <button
+                        key={di}
+                        type="button"
+                        // Un plato cerrado no se puede copiar: no hay receta
+                        // detras, solo su nombre. Se deja quieto en vez de
+                        // ofrecer algo que acabaria en un hueco vacio.
+                        onClick={dish.readable === false ? undefined : () => setDishPick(dish)}
+                        disabled={dish.readable === false}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 9, width: "100%",
+                          marginTop: di === 0 ? 5 : 7, padding: 0, border: "none",
+                          background: "none", textAlign: "left", fontFamily: "inherit",
+                          cursor: dish.readable === false ? "default" : "pointer",
+                        }}
+                      >
                         <DishThumb dish={dish} />
                         <span style={{ fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.25, minWidth: 0 }}>
                           {dish.name}
+                          {/* De quien es la receta: las del catalogo las tiene
+                              cualquiera, asi que solo se marca lo que es SUYO
+                              -que es lo que tiene merito y lo que no puedes
+                              encontrar buscando en HoMenu. */}
+                          {dish.source === "user" && (
+                            <ChefHat size={11} strokeWidth={2.6} style={{ verticalAlign: "-1px", marginLeft: 4, color: "#cf7833" }} />
+                          )}
                           {/* El nombre se ve siempre; la receta solo si su
                               autor la tiene en publico o de amigos. */}
                           {dish.readable === false && (
                             <Lock size={11} strokeWidth={2.6} style={{ verticalAlign: "-1px", marginLeft: 4, color: "#9aa8a0" }} />
                           )}
                         </span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                   {(meal.eaters ?? []).length > 0 && (
@@ -1084,6 +1111,30 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked }) 
           </div>
         </div>
       </div>
+
+      {/* Dos acciones y ya: llevartelo al menu (lo colocas tu, en el hueco que
+          quieras) o guardarlo para luego. Son los dos motivos por los que
+          alguien copia un plato ajeno, y no hay un tercero. */}
+      {dishPick && (
+        <div style={dishPickOverlay} onClick={() => setDishPick(null)}>
+          <div style={dishPickCard} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <DishThumb dish={dishPick} />
+              <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 800, color: INK }}>{dishPick.name}</span>
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <button type="button" onClick={() => { onPlaceDish?.(dishPick); setDishPick(null); }} style={dishPickAction}>
+                <CalendarDays size={19} strokeWidth={2.3} color="#4a6fd4" />
+                A mi menú
+              </button>
+              <button type="button" onClick={() => { onSaveDish?.(dishPick); setDishPick(null); }} style={dishPickAction}>
+                <Heart size={19} strokeWidth={2.3} color={GREEN} />
+                A mis recetas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {reporting && (
         <ReportSheet user={user} targetType="menu" targetId={m.id} onClose={() => setReporting(false)} />
@@ -1326,6 +1377,26 @@ const readOnlyPill = {
   display: "inline-flex", alignItems: "center", gap: 5, marginTop: 12,
   padding: "5px 11px", borderRadius: 999,
   background: "#eef3f0", color: "#5c6b60", fontSize: 11, fontWeight: 800,
+};
+
+const dishPickOverlay = {
+  position: "fixed", inset: 0, zIndex: 340,
+  background: "rgba(20,47,29,.45)", backdropFilter: "blur(2px)",
+  display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+};
+
+const dishPickCard = {
+  width: "100%", maxWidth: 330, padding: 14,
+  borderRadius: 20, background: "#fff",
+  boxShadow: "0 24px 60px rgba(0,0,0,.25)", boxSizing: "border-box",
+};
+
+const dishPickAction = {
+  flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+  padding: "14px 8px", borderRadius: 16,
+  border: "1.5px solid #e0eae3", background: "#fbfcfb",
+  fontSize: 12, fontWeight: 800, color: INK,
+  cursor: "pointer", fontFamily: "inherit",
 };
 
 const peekDayCard = {
