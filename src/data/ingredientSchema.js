@@ -97,6 +97,21 @@ export const IngredientSchema = z
       })
       .optional(),
 
+    // Cuando un id agrupa varios formatos del MISMO producto y el alias es lo
+    // unico que los distingue: el ajo se vende en cabezas y se cocina en
+    // dientes, y entre uno y otro hay un 10x. Igual con la hogaza y la
+    // rebanada, o el champinon y el portobello.
+    //
+    // La clave es el alias literal, tal y como aparece en `aliases`.
+    piezaPorAlias: z
+      .record(
+        z.object({
+          nombre: z.string().min(1),
+          g: z.number().positive(),
+        }),
+      )
+      .optional(),
+
     // Nutrición por 100g (Fase 9), vía BEDCA — ver scripts/bedca-nutrition.mjs.
     // Todo opcional/nullable: BEDCA cubre ~500 alimentos y el catálogo tiene
     // 379 propios, así que no habrá cobertura del 100% — "sin dato" no es un

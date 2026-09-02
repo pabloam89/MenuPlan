@@ -251,6 +251,16 @@
       "sugar100g": null,
       "saturatedFat100g": 0.05,
       "sodium100g": 19
+    },
+    "pieza": {
+      "nombre": "diente",
+      "g": 5
+    },
+    "piezaPorAlias": {
+      "Cabeza de ajos": {
+        "nombre": "cabeza",
+        "g": 50
+      }
     }
   },
   {
@@ -1804,7 +1814,21 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 200,
-    "nutrition": null
+    "nutrition": null,
+    "pieza": {
+      "nombre": "champiñón",
+      "g": 20
+    },
+    "piezaPorAlias": {
+      "Champiñones portobello": {
+        "nombre": "portobello",
+        "g": 80
+      },
+      "Champiñón grande": {
+        "nombre": "champiñón grande",
+        "g": 40
+      }
+    }
   },
   {
     "id": "chocolate",
@@ -1960,6 +1984,29 @@
     "defaultUnit": "g",
     "medianAmount": 50,
     "nutrition": null
+  },
+  {
+    "id": "clara-de-huevo",
+    "name": "Clara de huevo",
+    "aliases": [
+      "Claras de huevo"
+    ],
+    "aisle": "Huevos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "ud",
+    "medianAmount": 2,
+    "nutrition": null,
+    "pieza": {
+      "nombre": "clara",
+      "g": 35
+    }
   },
   {
     "id": "coco",
@@ -2283,6 +2330,27 @@
     "defaultUnit": "g",
     "medianAmount": 80,
     "nutrition": null
+  },
+  {
+    "id": "endivia",
+    "name": "Endivia",
+    "aliases": [
+      "Endivias"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 4,
+    "nutrition": null,
+    "pieza": {
+      "nombre": "endivia",
+      "g": 80
+    }
   },
   {
     "id": "eneldo",
@@ -3130,9 +3198,7 @@
     "id": "huevos",
     "name": "Huevo",
     "aliases": [
-      "Yema de huevo",
-      "Huevo cocido",
-      "Clara de huevo"
+      "Huevo cocido"
     ],
     "aisle": "Huevos",
     "category": "Lácteos y huevos",
@@ -3145,7 +3211,11 @@
     "isVegan": false,
     "defaultUnit": "ud",
     "medianAmount": 3,
-    "nutrition": null
+    "nutrition": null,
+    "pieza": {
+      "nombre": "huevo",
+      "g": 60
+    }
   },
   {
     "id": "jamon",
@@ -3542,8 +3612,6 @@
     "aliases": [
       "Canónigos",
       "Lechuga romana",
-      "Endivias",
-      "Endivia",
       "Lechuga variada",
       "Lechugas variadas"
     ],
@@ -4714,7 +4782,17 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 80,
-    "nutrition": null
+    "nutrition": null,
+    "pieza": {
+      "nombre": "rebanada",
+      "g": 35
+    },
+    "piezaPorAlias": {
+      "Pan de hogaza": {
+        "nombre": "hogaza",
+        "g": 500
+      }
+    }
   },
   {
     "id": "pan-de-payes",
@@ -4935,7 +5013,17 @@
       "nombre": "patata",
       "g": 200
     },
-    "nutrition": null
+    "nutrition": null,
+    "piezaPorAlias": {
+      "Patata grande": {
+        "nombre": "patata grande",
+        "g": 250
+      },
+      "Patata baby": {
+        "nombre": "patata baby",
+        "g": 30
+      }
+    }
   },
   {
     "id": "pate",
@@ -5258,7 +5346,8 @@
       "Ñora hidratada",
       "Pimiento choricero (pulpa de ñora)",
       "Pimiento choricero (pulpa)",
-      "Pimiento choricero o ñora hidratado"
+      "Pimiento choricero o ñora hidratado",
+      "Pimientos choriceros"
     ],
     "aisle": "Especias",
     "category": "Verduras y frutas",
@@ -5304,8 +5393,7 @@
       "Pimiento morrón",
       "Pimiento amarillo",
       "Pimiento de padrón",
-      "Pimiento verde italiano",
-      "Pimientos choriceros"
+      "Pimiento verde italiano"
     ],
     "aisle": "Verduras",
     "category": "Verduras y frutas",
@@ -5316,7 +5404,17 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 60,
-    "nutrition": null
+    "nutrition": null,
+    "pieza": {
+      "nombre": "pimiento",
+      "g": 180
+    },
+    "piezaPorAlias": {
+      "Pimiento de padrón": {
+        "nombre": "padrón",
+        "g": 6
+      }
+    }
   },
   {
     "id": "pimientos-del-piquillo",
@@ -5619,7 +5717,29 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 50,
-    "nutrition": null
+    "nutrition": null,
+    "piezaPorAlias": {
+      "Queso cheddar (lonchas)": {
+        "nombre": "loncha",
+        "g": 20
+      },
+      "Queso cheddar curado en lonchas": {
+        "nombre": "loncha",
+        "g": 20
+      },
+      "Queso cheddar en lonchas": {
+        "nombre": "loncha",
+        "g": 20
+      },
+      "Queso emmental en lonchas": {
+        "nombre": "loncha",
+        "g": 20
+      },
+      "Queso para fundir en lonchas": {
+        "nombre": "loncha",
+        "g": 20
+      }
+    }
   },
   {
     "id": "queso-azul",
@@ -6138,8 +6258,7 @@
     "aliases": [
       "Salmón (lomos)",
       "Salmón",
-      "Salmonetes limpios",
-      "Salmonetes pequeños"
+      "Salmonetes limpios"
     ],
     "aisle": "Pescado",
     "category": "Carnes y pescados",
@@ -6200,6 +6319,26 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 220,
+    "nutrition": null
+  },
+  {
+    "id": "salmonete",
+    "name": "Salmonete",
+    "aliases": [
+      "Salmonetes pequeños",
+      "Salmonetes"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 310,
     "nutrition": null
   },
   {
@@ -6725,6 +6864,12 @@
       "sugar100g": null,
       "saturatedFat100g": null,
       "sodium100g": 18
+    },
+    "piezaPorAlias": {
+      "Tomates grandes": {
+        "nombre": "tomate grande",
+        "g": 220
+      }
     }
   },
   {
@@ -6867,7 +7012,17 @@
       "nombre": "tortilla",
       "g": 45
     },
-    "nutrition": null
+    "nutrition": null,
+    "piezaPorAlias": {
+      "Tortillas de trigo grandes": {
+        "nombre": "tortilla grande",
+        "g": 60
+      },
+      "Tortillas de trigo pequeñas": {
+        "nombre": "tortilla pequeña",
+        "g": 30
+      }
+    }
   },
   {
     "id": "trofie",
@@ -7217,6 +7372,29 @@
       "sugar100g": null,
       "saturatedFat100g": 0,
       "sodium100g": null
+    }
+  },
+  {
+    "id": "yema-de-huevo",
+    "name": "Yema de huevo",
+    "aliases": [
+      "Yemas de huevo"
+    ],
+    "aisle": "Huevos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "ud",
+    "medianAmount": 2,
+    "nutrition": null,
+    "pieza": {
+      "nombre": "yema",
+      "g": 18
     }
   },
   {

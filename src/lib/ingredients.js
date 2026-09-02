@@ -23,7 +23,7 @@ import ingredientsJson from "../data/ingredients.json";
 import substitutionsJson from "../data/ingredientSubstitutions.json";
 import { validateIngredients } from "../data/ingredientSchema.js";
 import { createIngredientResolver } from "./ingredientResolver.js";
-import { guessShoppingAisle, guessIngredientCategory } from "./ingredientCategories.js";
+import { guessShoppingAisle, guessIngredientCategory, normalizeName } from "./ingredientCategories.js";
 import { gramsForRecipeQuantity, gramsPerPiece } from "./kitchenUnits.js";
 
 // Mismo criterio que recipeCatalog.js: el JSON va bundleado con la app, así que
@@ -91,7 +91,18 @@ export function ingredientCategoryFor(name) {
  * @returns {{ nombre: string, g: number }|null}
  */
 export function pieceFor(name) {
-  return resolveIngredient(name)?.pieza ?? null;
+  const ing = resolveIngredient(name);
+  if (!ing) return null;
+  // El alias primero: es lo unico que distingue "Cabeza de ajos" de "Ajo"
+  // cuando los dos resuelven al mismo id, y entre los dos hay un 10x.
+  const porAlias = ing.piezaPorAlias;
+  if (porAlias) {
+    const buscado = normalizeName(name);
+    for (const alias of Object.keys(porAlias)) {
+      if (normalizeName(alias) === buscado) return porAlias[alias];
+    }
+  }
+  return ing.pieza ?? null;
 }
 
 /**
