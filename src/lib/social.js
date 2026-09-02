@@ -650,10 +650,19 @@ export async function loadFeed({
   // Paginacion por FECHA y no por offset: con offset, publicar algo mientras
   // alguien baja por el feed le repite filas y le esconde otras. El cursor es
   // la fecha del ultimo visto, asi que la ventana no se mueve bajo sus pies.
+  // Descubrir = lo publico de quien AUN NO sigues. Si trajera tambien a tus
+  // seguidos, las dos pestañas enseñarian casi lo mismo y cambiar de una a
+  // otra no significaria nada. Lo tuyo tampoco sale: descubrir tu propia
+  // receta no es descubrir.
+  const exclude = scope === "all" && viewerId
+    ? [...new Set([...(followingIds ?? await loadFollowing(viewerId)), viewerId])]
+    : [];
+
   const page = (q) => {
     let out = q.neq("visibility", "private").order("created_at", { ascending: false }).limit(limit);
     if (cursor) out = out.lt("created_at", cursor);
     if (following) out = out.in("owner_id", following);
+    if (exclude.length) out = out.not("owner_id", "in", `(${exclude.join(",")})`);
     return out;
   };
 

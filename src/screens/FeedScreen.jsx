@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Users, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon } from "lucide-react";
+import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon } from "lucide-react";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
 import { RecipePoster, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
@@ -470,22 +470,32 @@ export function FeedScreen({
               arriba del rio y no en la cabecera: no compite con buscar,
               notificaciones y perfil, que son atajos, no modos de lectura. */}
           <div style={scopeTabs}>
-            {[["following", "Siguiendo"], ["all", "Descubrir"]].map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={scope === id}
-                onClick={() => { if (scope !== id) { setScope(id); setItems([]); } }}
-                style={{
-                  ...scopeTab,
-                  background: scope === id ? "#fff" : "transparent",
-                  color: scope === id ? INK : "#8aa294",
-                  boxShadow: scope === id ? "0 1px 4px rgba(0,0,0,.1)" : "none",
-                }}
-              >
-                {label}
-              </button>
-            ))}
+            {/* Cada pestaña con su icono y su color: azul para los tuyos,
+                teja para lo que esta por descubrir. En gris las dos, la fila
+                no decia nada y habia que leerla entera. */}
+            {[
+              ["following", "Siguiendo", Users, "#4a6fd4"],
+              ["all", "Descubrir", Compass, "#cf7833"],
+            ].map(([id, label, TabIcon, tint]) => {
+              const on = scope === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => { if (!on) { setScope(id); setItems([]); } }}
+                  style={{
+                    ...scopeTab,
+                    background: on ? "#fff" : "transparent",
+                    color: on ? INK : "#8aa294",
+                    boxShadow: on ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                  }}
+                >
+                  <TabIcon size={14} strokeWidth={2.5} color={on ? tint : "#b6c7bd"} />
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Sigues a gente pero no han publicado nada: no es lo mismo que no
@@ -762,8 +772,10 @@ function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onC
           targetOwnerId={item.ownerId}
           count={stats?.comments ?? 0}
         />
-        {/* Mandarla fuera de la app. Sin esto, enseñarle a alguien lo que
-            cocinas exigia que ya estuviera dentro. */}
+        {/* Compartir y reportar van JUNTOS y pegados: son las dos acciones
+            de "esta tarjeta" y sueltas por la fila parecian dos botones sin
+            relacion entre si. */}
+        <span style={{ display: "flex", alignItems: "center", gap: 2, marginLeft: "auto", flexShrink: 0 }}>
         <button
           type="button"
           aria-label="Compartir receta"
@@ -776,15 +788,16 @@ function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onC
             if (res === "copied") setShared("Enlace copiado");
             else if (res === "error") setShared("No se ha podido compartir");
           }}
-          style={{ ...reportLink, marginLeft: "auto" }}
+          style={reportLink}
         >
-          <Share2 size={11} strokeWidth={2.5} />
+          <Share2 size={12} strokeWidth={2.5} />
         </button>
         {!mine && (
           <button type="button" onClick={() => setReporting(true)} aria-label="Reportar receta" style={reportLink}>
-            <Flag size={11} strokeWidth={2.5} />
+            <Flag size={12} strokeWidth={2.5} />
           </button>
         )}
+        </span>
       </div>
 
       {shared && <div style={sharedNote}>{shared}</div>}
@@ -1389,7 +1402,8 @@ const scopeTabs = {
 };
 
 const scopeTab = {
-  flex: 1, padding: "7px 0", borderRadius: 9, border: "none",
+  flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+  padding: "7px 0", borderRadius: 9, border: "none",
   fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
   transition: "background .15s ease, color .15s ease",
 };

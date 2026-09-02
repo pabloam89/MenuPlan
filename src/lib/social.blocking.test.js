@@ -21,6 +21,7 @@ function makeQuery(result, log, table) {
     limit: (...a) => (log.push({ table, op: "limit", args: a }), q),
     lt: (...a) => (log.push({ table, op: "lt", args: a }), q),
     in: (...a) => (log.push({ table, op: "in", args: a }), q),
+    not: (...a) => (log.push({ table, op: "not", args: a }), q),
     then: (resolve, reject) => Promise.resolve(result).then(resolve, reject),
   };
   return q;
@@ -209,5 +210,35 @@ describe("loadFeed: siguiendo y paginacion", () => {
     expect(res.items).toHaveLength(20);
     expect(res.cursor).toBe(res.items[res.items.length - 1].createdAt);
     expect(res.done).toBe(false);
+  });
+});
+
+describe("loadFeed: Descubrir", () => {
+  it("excluye a quien ya sigues y a ti mismo — si no, las dos pestañas dirian lo mismo", async () => {
+    const client = mockClient({
+      tables: {
+        user_recipes: [{ data: [], error: null }],
+        shared_menus: [{ data: [], error: null }],
+      },
+    });
+    Object.assign(supabase, client);
+    await loadFeed({ viewerId: "yo", scope: "all", followingIds: ["amigo"] });
+    const not = client.log.find((l) => l.op === "not");
+    expect(not.args[0]).toBe("owner_id");
+    expect(not.args[1]).toBe("in");
+    expect(not.args[2]).toContain("amigo");
+    expect(not.args[2]).toContain("yo");
+  });
+
+  it("sin sesion no excluye a nadie: no hay a quien seguir ni quien seas", async () => {
+    const client = mockClient({
+      tables: {
+        user_recipes: [{ data: [], error: null }],
+        shared_menus: [{ data: [], error: null }],
+      },
+    });
+    Object.assign(supabase, client);
+    await loadFeed({ scope: "all" });
+    expect(client.log.some((l) => l.op === "not")).toBe(false);
   });
 });

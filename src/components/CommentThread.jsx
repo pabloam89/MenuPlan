@@ -192,9 +192,12 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
   return (
     <div>
       <button type="button" onClick={() => setOpen((v) => !v)} style={toggle}>
-        <MessageCircle size={14} strokeWidth={2.5} />
+        <MessageCircle size={13} strokeWidth={2.5} />
+        {/* La etiqueta dice lo que HAY, no lo que pasaria al tocar. "Ocultar
+            comentarios" sobre un hilo vacio no oculta nada: es un boton
+            mintiendo sobre su propio contenido. */}
         {open
-          ? "Ocultar comentarios"
+          ? (items?.length ? "Ocultar comentarios" : "Aún no hay comentarios")
           : count === null || count === 0
             ? "Sé el primero en comentar"
             : `${count} comentario${count === 1 ? "" : "s"}`}
@@ -203,7 +206,6 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
       {open && (
         <div style={{ marginTop: 8 }}>
           {items === null && <p style={hint}>Cargando…</p>}
-          {items?.length === 0 && <p style={hint}>Todavía no hay comentarios.</p>}
 
           {roots.map((c) => (
             <div key={c.id}>
@@ -220,17 +222,18 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 7, marginTop: 8 }}>
+          <div style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}>
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") send(); }}
               maxLength={500}
+              className="mp-field"
               placeholder={replyTo ? "Escribe tu respuesta…" : "Escribe un comentario…"}
               style={input}
             />
             <button type="button" onClick={send} disabled={sending || !draft.trim()} aria-label="Enviar" style={{ ...sendBtn, opacity: draft.trim() ? 1 : .45 }}>
-              <Send size={15} strokeWidth={2.6} />
+              <Send size={14} strokeWidth={2.6} />
             </button>
           </div>
         </div>
@@ -280,13 +283,19 @@ const replyBanner = {
   fontSize: 11.5, fontWeight: 700, color: TEAL,
 };
 
+// fontSize 16 es INNEGOCIABLE: por debajo, iOS hace zoom al enfocar y la
+// pantalla se descoloca. Lo que se encoge es el placeholder, via la clase
+// global .mp-field (13px) — por eso el campo lleva className="mp-field".
 const input = {
-  flex: 1, minWidth: 0, padding: "9px 12px", borderRadius: 11,
+  flex: 1, minWidth: 0, padding: "7px 11px", borderRadius: 10,
   border: "1.5px solid #dde7e0", fontSize: 16, outline: "none", fontFamily: "inherit",
+  height: 34, boxSizing: "border-box", color: "#1a3a24",
 };
 
+// Cuadrado y a la altura del campo: sin `height` se estiraba a lo que diera
+// la fila y quedaba un boton desproporcionado al lado de un campo bajo.
 const sendBtn = {
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-  width: 40, borderRadius: 11, border: "none",
+  width: 34, height: 34, borderRadius: 10, border: "none",
   background: GREEN, color: "#fff", cursor: "pointer",
 };
