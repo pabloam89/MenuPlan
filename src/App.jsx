@@ -24,6 +24,7 @@ import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
 import { publishMenu, unpublishMenu, loadMyPublishedMenus } from "./lib/social.js";
 import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
 import { readIncomingLink } from "./lib/shareLink.js";
+import { migrateEmbeddedPhotos } from "./lib/recipePhotos.js";
 import { searchProfiles } from "./lib/social.js";
 import { setFeedBadge } from "./lib/socialBadge.js";
 // Import normal, no lazy: es el paso 0 del asistente y `onbScreens` se pinta
@@ -2854,6 +2855,16 @@ export default function App() {
     // Solo al montar: un enlace se atiende una vez.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Las fotos que quedaron incrustadas de antes se mueven a Storage en
+  // segundo plano, una vez por sesion. Se hace aqui y no en un script porque
+  // solo el dueño puede escribir en su carpeta del cubo: la migracion tiene
+  // que correr con SU sesion. No bloquea nada — la app ya funciona mientras.
+  useEffect(() => {
+    if (!user?.id) return;
+    const t = setTimeout(() => { migrateEmbeddedPhotos(user.id); }, 4000);
+    return () => clearTimeout(t);
+  }, [user?.id]);
 
   // El punto del tab Feed necesita saberse al ARRANCAR, no al entrar al Feed
   // (si hiciera falta entrar para verlo, no avisaria de nada). Una consulta

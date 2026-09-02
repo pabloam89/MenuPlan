@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { uploadRecipePhoto, deleteRecipePhoto, isDataUrl } from "./recipePhotos.js";
 
 /**
  * Cloud persistence for user-created recipes (see user_recipes in
@@ -156,16 +157,30 @@ export async function loadPublicRecipe(recipeId) {
 /** Inserts or updates a single recipe. */
 export async function upsertUserRecipe(userId, recipe) {
   if (!supabase || !userId || !recipe?.id) return;
+  // La foto va a Storage y en la fila queda su URL. Se hace aqui, en el unico
+  // sitio por el que pasan TODAS las escrituras, para que ninguna via -el
+  // asistente, una edicion, una copia del feed- pueda volver a incrustar dos
+  // megas de imagen dentro de la fila. Ver lib/recipePhotos.js.
+  const photo = await uploadRecipePhoto(userId, recipe.id, recipe.photo);
   const { error } = await supabase
     .from("user_recipes")
-    .upsert(recipeToRow(recipe, userId), { onConflict: "id" });
+    .upsert(recipeToRow({ ...recipe, photo }, userId), { onConflict: "id" });
   if (error) console.warn("[userRecipes] upsert failed", error.message);
+  return photo;
 }
 
 /** Backfills several local-only recipes to the cloud (first login on device). */
 export async function upsertUserRecipes(userId, recipes) {
   if (!supabase || !userId || !recipes?.length) return;
-  const rows = recipes.map((r) => recipeToRow(r, userId));
+  // De una en una y no en paralelo: cada foto son un par de megas y disparar
+  // diez subidas a la vez desde un movil es la mejor forma de que fallen.
+  const withPhotos = [];
+  for (const r of recipes) {
+    withPhotos.push(isDataUrl(r.photo)
+      ? { ...r, photo: await uploadRecipePhoto(userId, r.id, r.photo) }
+      : r);
+  }
+  const rows = withPhotos.map((r) => recipeToRow(r, userId));
   const { error } = await supabase
     .from("user_recipes")
     .upsert(rows, { onConflict: "id" });
@@ -185,6 +200,9 @@ export async function updateRecipeVisibility(userId, recipeId, visibility) {
 
 export async function deleteUserRecipe(userId, recipeId) {
   if (!supabase || !userId || !recipeId) return false;
+  // Primero el fichero: si se borra la fila y falla esto, la foto se queda
+  // para siempre en el cubo sin nadie que sepa a que receta pertenecia.
+  await deleteRecipePhoto(userId, recipeId);
   const { error } = await supabase
     .from("user_recipes")
     .delete()
