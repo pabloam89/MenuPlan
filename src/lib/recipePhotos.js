@@ -61,6 +61,10 @@ export async function uploadRecipePhoto(userId, recipeId, photo) {
   const path = `${userId}/${recipeId}.${EXT[blob.type] ?? "jpg"}`;
   const { error } = await supabase.storage
     .from(BUCKET)
+    // cacheControl en segundos (un año). Storage sirve ademas un ETag, asi
+    // que aunque la cabecera acabe siendo no-cache, la segunda visita se
+    // resuelve con un 304 de unos cientos de bytes en vez de reenviar la
+    // imagen entera. Comprobado en produccion.
     .upload(path, blob, { contentType: blob.type, upsert: true, cacheControl: "31536000" });
 
   if (error) {
