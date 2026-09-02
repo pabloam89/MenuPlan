@@ -48,6 +48,7 @@ import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, ac
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
+import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
