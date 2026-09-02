@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { SYSTEM_PROMPTS, PROMPT_ALLERGEN_IDS } from "../../api/_prompts.js";
 import { EU_ALLERGENS } from "./allergens.js";
+import { STEP_PARTS } from "./recipeSteps.js";
 
 // The system prompts live server-side (api/_prompts.js) so /api/generate can't
 // be driven as a general-purpose LLM — see the header there. Two things can
@@ -23,6 +24,15 @@ describe("server-owned system prompts", () => {
   it("embeds every allergen id in the recipe-structuring prompt", () => {
     for (const id of Object.keys(EU_ALLERGENS)) {
       expect(SYSTEM_PROMPTS["structure-recipe"]).toContain(id);
+    }
+  });
+
+  // Fase 6: el prompt tiene que pedir "part" con los mismos 4 valores que
+  // STEP_PARTS (recipeSteps.js) — si alguien añade un valor nuevo al enum ahí
+  // sin tocar el prompt, el modelo seguirá sin poder usarlo nunca.
+  it("pide los 4 valores de STEP_PARTS en el prompt de structure-recipe", () => {
+    for (const part of STEP_PARTS) {
+      expect(SYSTEM_PROMPTS["structure-recipe"]).toContain(`"${part}"`);
     }
   });
 

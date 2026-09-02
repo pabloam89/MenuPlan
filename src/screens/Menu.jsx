@@ -28,6 +28,7 @@ import {
   Droplets,
   Drumstick,
   Egg,
+  Euro,
   Fish,
   Flame,
   Gauge,
@@ -61,10 +62,12 @@ import {
   Wrench,
   X,
   Zap,
+  MilkOff,
 } from "lucide-react";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
+import { adaptationsNeededFor } from "../lib/substitutions.js";
 import { matchingHealthProfiles } from "../lib/healthProfileMatch.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -74,7 +77,16 @@ import salsasData from "../data/recipes/salsas.json";
 import { categoryColor, categoryIcon, categoryLabel, isKnownCategory } from "./CatalogBrowserSheet.jsx";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
 import { RecipeStepList } from "../components/RecipeSteps.jsx";
-import { formatQty, normalizeRichSteps, resolveApplianceSteps } from "../lib/recipeSteps.js";
+import {
+  formatQty,
+  normalizeRichSteps,
+  resolveApplianceSteps,
+  availablePartsOf,
+  stepsByPart,
+  ingredientsByPart,
+  STEP_PART_META,
+} from "../lib/recipeSteps.js";
+import { estimateRecipeCost } from "../lib/listPricing.js";
 import {
   assignFreezerToSlot,
   assignFridgeToSlot,
@@ -103,6 +115,8 @@ import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
 import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { CommentThread } from "../components/CommentThread.jsx";
+import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -136,6 +150,7 @@ import {
 import {
   APPLIANCE_LABELS,
   APPLIANCE_COLORS,
+  REQUIRED_APPLIANCE_ICONS,
   selectMethodForRecipe,
   methodDifficultyLabel,
   userApplianceSlugs,
@@ -3703,6 +3718,9 @@ export const MenuScreen = memo(function MenuScreen({
   onDishReplace,
   onDishSwap,
   onDishDuplicate,
+  incomingDish = null,
+  onDishPlace,
+  onIncomingCancel,
   onDishManualPick,
   onNav,
   onRegenerate,
@@ -3731,6 +3749,11 @@ export const MenuScreen = memo(function MenuScreen({
   shoppingItems = null,
   readOnly = false,
   readOnlyLabel = null,
+  // Publicar el menu en el Feed (distinto del "Compartir" nativo de abajo,
+  // que manda texto por WhatsApp/portapapeles y no publica nada en la app).
+  onPublishToFeed = null,
+  onUnpublishFromFeed = null,
+  menuSharedInFeed = false,
 }) {
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
@@ -3741,7 +3764,14 @@ export const MenuScreen = memo(function MenuScreen({
   // a two-tap mode (`armed`), where the next dish/hueco tapped is the target;
   // "Cambiar" executes on the spot, no extra step.
   const [dishAction, setDishAction] = useState(null);
-  const [armed, setArmed] = useState(null); // null | { mode: "swap" | "duplicate", source }
+  const [armed, setArmed] = useState(null); // null | { mode: "swap" | "duplicate" | "incoming", source }
+
+  // Un plato copiado del menu de otra persona llega ya armado: has cruzado de
+  // pantalla justamente para colocarlo, asi que pedirte un toque mas para
+  // "activarlo" seria hacerte repetir la intencion que ya expresaste.
+  useEffect(() => {
+    if (incomingDish?.recipeId) setArmed({ mode: "incoming", dish: incomingDish });
+  }, [incomingDish]);
 
   const handleTileTap = useCallback(
     (sel) => {
@@ -3754,6 +3784,7 @@ export const MenuScreen = memo(function MenuScreen({
         }
         if (armed.mode === "swap") onDishSwap?.(armed.source, sel);
         else if (armed.mode === "duplicate") onDishDuplicate?.(armed.source, sel);
+        else if (armed.mode === "incoming") onDishPlace?.(armed.dish.recipeId, sel);
         setArmed(null);
         return;
       }
@@ -3764,7 +3795,7 @@ export const MenuScreen = memo(function MenuScreen({
       }
       onDishTap?.(sel);
     },
-    [armed, onDishSwap, onDishDuplicate, onDishManualPick, onDishTap, readOnly],
+    [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly],
   );
 
   const handleTileLongPress = useCallback(
@@ -3940,6 +3971,8 @@ export const MenuScreen = memo(function MenuScreen({
     () => (data.groups ?? []).filter((g) => membersOfGroup(g, data.members).length > 0),
     [data.groups, data.members],
   );
+
+  const [publishSheetOpen, setPublishSheetOpen] = useState(false);
 
   const handleShare = async () => {
     try {
@@ -4298,7 +4331,8 @@ export const MenuScreen = memo(function MenuScreen({
                     // "Análisis" y "Borrar menú" quitados de momento (2026-08-27):
                     // para borrar, ahora se genera otro menú por encima.
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
-                    hasMenu && { key: "share", label: "Compartir", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
+                    hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú en el Feed" : "Publicar en el Feed", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
+                    hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
                     !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
                   ]
@@ -4358,7 +4392,17 @@ export const MenuScreen = memo(function MenuScreen({
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <WeekRangeBadge label={weekLabel} hideLabel />
           <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-            <ProfileButton onClick={() => setProfileOpen(true)} />
+            {/* Las caras de quien come, y al tocarlas se abren los ajustes
+                del hogar: en esta app "tu perfil" son ellos, asi que la
+                puerta es su propia foto y no un icono de persona generica. */}
+            <button
+              type="button"
+              onClick={() => setProfileOpen(true)}
+              aria-label="Ajustes del hogar"
+              style={{ display: "flex", alignItems: "center", padding: 0, border: "none", background: "none", cursor: "pointer", fontFamily: "inherit" }}
+            >
+              <GroupAvatarStack faces={groupAvatarFaces(data.members ?? [], data.members ?? [])} size={26} max={4} />
+            </button>
           </div>
           <button
             type="button"
@@ -4580,19 +4624,24 @@ export const MenuScreen = memo(function MenuScreen({
                   animation: "deckModalIn .2s cubic-bezier(.4,0,.2,1) both",
                 }}
               >
-                {armed.mode === "duplicate" ? (
-                  <CopyPlus size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
-                ) : (
+                {armed.mode === "swap" ? (
                   <ArrowLeftRight size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
+                ) : (
+                  <CopyPlus size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
                 )}
                 <span style={{ flex: 1, minWidth: 0, color: "#fff", fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>
-                  {armed.mode === "duplicate"
-                    ? "Toca el hueco donde repetir el plato"
-                    : "Toca el plato al que moverlo"}
+                  {/* El plato que viene de fuera se nombra: has cambiado de
+                      pantalla desde que lo elegiste y conviene confirmar que
+                      es el que creias. */}
+                  {armed.mode === "incoming"
+                    ? `Toca el hueco para ${armed.dish.name}`
+                    : armed.mode === "duplicate"
+                      ? "Toca el hueco donde repetir el plato"
+                      : "Toca el plato al que moverlo"}
                 </span>
                 <button
                   type="button"
-                  onClick={() => setArmed(null)}
+                  onClick={() => { setArmed(null); if (armed.mode === "incoming") onIncomingCancel?.(); }}
                   style={{
                     flexShrink: 0,
                     padding: "7px 13px",
@@ -4870,6 +4919,21 @@ export const MenuScreen = memo(function MenuScreen({
 
       {showIconCoach && <MenuCoachTour onClose={() => setShowIconCoach(false)} />}
 
+      {publishSheetOpen && (
+        <ShareMenuSheet
+          shared={menuSharedInFeed}
+          onPublish={async (scope) => {
+            const done = await onPublishToFeed?.(scope);
+            if (done) setPublishSheetOpen(false);
+          }}
+          onUnpublish={async () => {
+            await onUnpublishFromFeed?.();
+            setPublishSheetOpen(false);
+          }}
+          onClose={() => setPublishSheetOpen(false)}
+        />
+      )}
+
       <BottomNav active="menu" onNav={onNav} />
     </div>
   );
@@ -5141,8 +5205,24 @@ export function DishDetail({
     garnishShortName,
     sauceRecipe,
   );
-  const showGarnishCourse = Boolean(garnishRecipe) && !platoUnico;
-  const showSalsaCourse = Boolean(sauceRecipe) && !platoUnico;
+  // ── Desglose por `part` de la propia receta (sin guarnición/salsa de
+  // catálogo aparte) — mutuamente excluyente con el modelo antiguo: si ya hay
+  // garnishRecipe/sauceRecipe, esas mandan tal cual y esto se queda vacío.
+  const ownParts = useMemo(
+    () => (!garnishRecipe && !sauceRecipe ? availablePartsOf(richSteps) : []),
+    [garnishRecipe, sauceRecipe, richSteps],
+  );
+  const hasOwnParts = ownParts.length > 0;
+  const ownStepsByPart = useMemo(
+    () => (hasOwnParts ? stepsByPart(richSteps) : {}),
+    [hasOwnParts, richSteps],
+  );
+  const ownIngredientsByPart = useMemo(
+    () => (hasOwnParts ? ingredientsByPart(richSteps, ingredients) : {}),
+    [hasOwnParts, richSteps, ingredients],
+  );
+  const showGarnishCourse = (Boolean(garnishRecipe) && !platoUnico) || ownParts.includes("guarnicion");
+  const showSalsaCourse = (Boolean(sauceRecipe) && !platoUnico) || ownParts.includes("salsa");
   const displayName = useMemo(() => {
     if (!garnishRecipe && !sauceRecipe) return recipe.name;
     if (platoUnico || activeCourse === "combinado") {
@@ -5171,15 +5251,14 @@ export function DishDetail({
     (platoUnico && (Boolean(garnishRecipe) || Boolean(sauceRecipe)));
   const cookCourse = platoUnico || (!onGarnishCourse && !onSalsaCourse && !onCombinedCourse);
   const courseIngredients = onGarnishCourse
-    ? garnishIngredients
+    ? (garnishRecipe ? garnishIngredients : (ownIngredientsByPart.guarnicion ?? []))
     : onSalsaCourse
-      ? sauceIngredients
+      ? (sauceRecipe ? sauceIngredients : (ownIngredientsByPart.salsa ?? []))
       : onCombinedCourse
         ? [...ingredients, ...garnishIngredients, ...sauceIngredients]
-        : ingredients;
-  // Grupos de ingredientes plegables en la vista combinada; colapsados de salida.
-  const [openIngGroups, setOpenIngGroups] = useState({ principal: false, guarnicion: false, salsa: false });
-
+        : hasOwnParts
+          ? (ownIngredientsByPart.principal ?? [])
+          : ingredients;
   // Nutrientes secundarios (fibra, azúcares, grasas sat., sodio): opcionales y
   // solo presentes tras la pasada de enriquecimiento. Se muestran colapsados.
   const [nutriExpanded, setNutriExpanded] = useState(true);
@@ -5189,6 +5268,11 @@ export function DishDetail({
   // source of truth: a tick means "you already have it in En casa"; "Marcar
   // cocinado" discounts the dish's ingredients from that stock (undo restores).
   const cookable = !browse && day != null && meal != null && cookWeekKey != null && setData != null;
+  // Solo se calcula al navegar el catálogo, que es donde se pinta.
+  const potentialSwaps = useMemo(
+    () => (browse ? adaptationsNeededFor(recipe, "lactosa_fina") : []),
+    [browse, recipe],
+  );
   const cookedKey = cookable ? `${cookWeekKey}::${day}::${meal}::${recipe.id}` : null;
   const isCooked = cookedKey ? (data?.cookedDishes ?? []).includes(cookedKey) : false;
   const [pantryStock, setPantryStock] = useState([]);
@@ -5217,6 +5301,29 @@ export function DishDetail({
     }
     return map;
   }, [cookable, ingredients, pantryStock]);
+  // Coste estimado por ración — mismo motor de precios que la lista de la
+  // compra (Fase 8), aplicado a lo que este plato compra de verdad (los
+  // ingredientes ya escalados a `cookedEaters`). Async porque el catálogo de
+  // Mercadona se carga por fetch; sin resultado (aún cargando, o ningún
+  // ingrediente con precio) no se pinta nada — nunca un coste inventado.
+  const [recipeCost, setRecipeCost] = useState(null);
+  useEffect(() => {
+    let active = true;
+    setRecipeCost(null);
+    if (ingredients.length === 0 || !(cookedEaters > 0)) return undefined;
+    (async () => {
+      const cost = await estimateRecipeCost({ ingredients }, cookedEaters, data?.priceObs ?? []);
+      if (active) setRecipeCost(cost);
+    })();
+    return () => { active = false; };
+  }, [ingredients, cookedEaters, data?.priceObs]);
+  // Electrodoméstico usado para cocinar el plato (RecipePlanner.jsx, paso
+  // "¿Cómo se prepara?"), si se marcó alguno — nada si es tradicional
+  // (fuego/sartén/olla), mismo criterio que el resto de chips opcionales de
+  // esta fila. `requiredAppliances` (recetas de usuario) y `requiredAppliance`
+  // (catálogo curado) usan nombres de campo distintos; se comprueban los dos.
+  const usedAppliance = recipe.requiredAppliances?.[0] ?? recipe.requiredAppliance ?? null;
+  const UsedApplianceIcon = usedAppliance ? (REQUIRED_APPLIANCE_ICONS[usedAppliance] ?? UtensilsCrossed) : null;
   // "Lo tengo": you have this even though it's not registered — add it to En
   // casa (the override we agreed on), so the tick lights up and cooking can
   // later discount it. Uses the dish's scaled need as the stocked amount.
@@ -5790,6 +5897,16 @@ export function DishDetail({
             <span style={detailTagStyle}>
               <Gauge size={12} /> {activeMethod.difficultyLabel}
             </span>
+            {recipeCost != null && (
+              <span style={detailTagStyle}>
+                <Euro size={12} /> ~{recipeCost.perServing.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/ración
+              </span>
+            )}
+            {usedAppliance && (
+              <span style={detailTagStyle}>
+                <UsedApplianceIcon size={12} /> {usedAppliance}
+              </span>
+            )}
             {recipe.allergens.length > 0 && (
               <>
                 <span style={{ width: 1, alignSelf: "stretch", background: "#e6efe9", margin: "0 2px" }} />
@@ -5819,8 +5936,8 @@ export function DishDetail({
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
               {[
                 { id: "principal", Icon: CookingPot, color: "#2d5a3d", copy: "Primer plato", sub: baseName },
-                showGarnishCourse && { id: "guarnicion", Icon: Salad, color: "#16a34a", copy: "Guarnición", sub: garnishRecipe.name },
-                showSalsaCourse && { id: "salsa", Icon: Droplets, color: "#c2703d", copy: "Salsa", sub: sauceRecipe.name },
+                showGarnishCourse && { id: "guarnicion", Icon: Salad, color: "#16a34a", copy: "Guarnición", sub: garnishRecipe ? garnishRecipe.name : STEP_PART_META.guarnicion.label },
+                showSalsaCourse && { id: "salsa", Icon: Droplets, color: "#c2703d", copy: "Salsa", sub: sauceRecipe ? sauceRecipe.name : STEP_PART_META.salsa.label },
                 {
                   id: "combinado", Icon: Layers2, color: "#2f6fb8", copy: "Combinado",
                   sub: [showGarnishCourse && "guarnición", showSalsaCourse && "salsa"].filter(Boolean).join(" + ") || "guarnición",
@@ -5871,6 +5988,32 @@ export function DishDetail({
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#3a5a44", marginTop: 3 }}>
                   {recipe.adaptations.map((a) => `${a.from} → ${a.to}`).join(" · ")}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mismo bloque de arriba pero en potencial: el de arriba aparece
+              cuando el menú YA se generó adaptado para alguien de la casa;
+              este solo al navegar el catálogo, para que un plato diga por sí
+              mismo que se puede hacer sin lactosa y con qué cambio. Fuera del
+              catálogo no se pinta: a quien no le afecta, le sobra. */}
+          {browse && !recipe.adaptations?.length && potentialSwaps.length > 0 && (
+            <div style={{
+              display: "flex", alignItems: "flex-start", gap: 8,
+              marginBottom: 14,
+              padding: "12px 15px",
+              borderRadius: 16,
+              background: "#f2f9f4",
+              border: "2px solid #4cba6e",
+            }}>
+              <MilkOff size={15} color="#2f9e52" strokeWidth={2.4} style={{ marginTop: 1, flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#2f9e52", letterSpacing: ".3px", textTransform: "uppercase" }}>
+                  Se puede hacer sin lactosa
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#3a5a44", marginTop: 3 }}>
+                  {potentialSwaps.map((a) => `${a.from} → ${a.to}`).join(" · ")}
                 </div>
               </div>
             </div>
@@ -6067,43 +6210,32 @@ export function DishDetail({
             </div>
             {recipeTab === "ingredientes" && onCombinedCourse && (
               <div style={{ marginBottom: 4 }}>
-                {/* Combinado: ingredientes agrupados por curso, plegables y
-                    colapsados de salida para no soltar una lista larguísima. */}
-                {[
-                  { key: "principal", label: recipe.name, items: ingredients },
-                  garnishRecipe && { key: "guarnicion", label: garnishRecipe.name, items: garnishIngredients },
-                  sauceRecipe && { key: "salsa", label: sauceRecipe.name, items: sauceIngredients },
-                ].filter(Boolean).map((grp) => {
-                  const open = openIngGroups[grp.key];
-                  return (
-                    <div key={grp.key} style={{ marginBottom: 10, border: "1.5px solid #e3ede6", borderRadius: 12, overflow: "hidden" }}>
-                      <button
-                        type="button"
-                        onClick={() => setOpenIngGroups((s) => ({ ...s, [grp.key]: !s[grp.key] }))}
-                        aria-expanded={open}
-                        style={{
-                          width: "100%", display: "flex", alignItems: "center", gap: 8,
-                          padding: "10px 12px", border: "none",
-                          background: open ? "#f4f7f4" : "#fff",
-                          cursor: "pointer", fontFamily: "inherit",
-                        }}
-                      >
-                        <span style={{ fontSize: 12.5, fontWeight: 800, color: "#2d5a3d", flex: 1, minWidth: 0, textAlign: "left", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {grp.label}
-                        </span>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: "#7a8a7f" }}>{grp.items.length}</span>
-                        <ChevronDown size={16} strokeWidth={2.6} color="#9db3a6" style={{ transition: "transform .18s", transform: open ? "rotate(180deg)" : "none" }} />
-                      </button>
-                      {open && (
-                        <div style={{ padding: "2px 12px 6px" }}>
-                          {grp.items.map((ing, i) => (
-                            <DishIngredientRow key={ing.id} ing={ing} isLast={i === grp.items.length - 1} cookable={false} />
-                          ))}
-                        </div>
-                      )}
+                {/* Combinado: ingredientes agrupados por curso, en secciones
+                    siempre visibles — misma paridad que Pasos/Combinado, que
+                    ya pinta una cabecera de color por `part` sin necesidad de
+                    plegar nada. */}
+                {(hasOwnParts
+                  ? ["principal", "guarnicion", "salsa", "combinado"]
+                      .filter((part) => (ownIngredientsByPart[part] ?? []).length > 0)
+                      .map((part) => ({ key: part, label: STEP_PART_META[part].label, color: STEP_PART_META[part].color, items: ownIngredientsByPart[part] }))
+                  : [
+                      { key: "principal", label: recipe.name, color: "#2d5a3d", items: ingredients },
+                      garnishRecipe && { key: "guarnicion", label: garnishRecipe.name, color: "#16a34a", items: garnishIngredients },
+                      sauceRecipe && { key: "salsa", label: sauceRecipe.name, color: "#c2703d", items: sauceIngredients },
+                    ].filter(Boolean)
+                ).map((grp, gi) => (
+                  <div key={grp.key} style={{ marginTop: gi === 0 ? 0 : 18 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 10px" }}>
+                      <span style={{ fontSize: 12, fontWeight: 900, color: grp.color, whiteSpace: "nowrap" }}>
+                        {grp.label}
+                      </span>
+                      <div style={{ flex: 1, borderTop: `1.5px dashed ${grp.color}44` }} />
                     </div>
-                  );
-                })}
+                    {grp.items.map((ing, i) => (
+                      <DishIngredientRow key={ing.id} ing={ing} isLast={i === grp.items.length - 1} cookable={false} />
+                    ))}
+                  </div>
+                ))}
               </div>
             )}
             {recipeTab === "ingredientes" && !onCombinedCourse && courseIngredients.length === 0 && (
@@ -6146,46 +6278,62 @@ export function DishDetail({
               </div>
             )}
             {recipeTab === "pasos" && onGarnishCourse && (
-              garnishRichSteps?.length > 0 || garnishPlainSteps.length > 0 ? (
-                <RecipeStepList rich={garnishRichSteps} plain={garnishPlainSteps} ingredients={garnishIngredients} kitchenTools={kitchenTools} />
+              garnishRecipe ? (
+                garnishRichSteps?.length > 0 || garnishPlainSteps.length > 0 ? (
+                  <RecipeStepList rich={garnishRichSteps} plain={garnishPlainSteps} ingredients={garnishIngredients} kitchenTools={kitchenTools} />
+                ) : (
+                  <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
+                    Esta guarnición no tiene pasos detallados.
+                  </p>
+                )
               ) : (
-                <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
-                  Esta guarnición no tiene pasos detallados.
-                </p>
+                <RecipeStepList rich={ownStepsByPart.guarnicion} plain={[]} ingredients={ownIngredientsByPart.guarnicion} kitchenTools={kitchenTools} />
               )
             )}
             {recipeTab === "pasos" && onSalsaCourse && (
-              sauceRichSteps?.length > 0 || saucePlainSteps.length > 0 ? (
-                <RecipeStepList rich={sauceRichSteps} plain={saucePlainSteps} ingredients={sauceIngredients} kitchenTools={kitchenTools} />
+              sauceRecipe ? (
+                sauceRichSteps?.length > 0 || saucePlainSteps.length > 0 ? (
+                  <RecipeStepList rich={sauceRichSteps} plain={saucePlainSteps} ingredients={sauceIngredients} kitchenTools={kitchenTools} />
+                ) : (
+                  <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
+                    Esta salsa no tiene pasos detallados.
+                  </p>
+                )
               ) : (
-                <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
-                  Esta salsa no tiene pasos detallados.
-                </p>
+                <RecipeStepList rich={ownStepsByPart.salsa} plain={[]} ingredients={ownIngredientsByPart.salsa} kitchenTools={kitchenTools} />
               )
             )}
             {recipeTab === "pasos" && onCombinedCourse && (
-              <>
-                {/* Combinado: pasos del plato + guarnición + salsa (los que
-                    haya) en bloques etiquetados, el método tradicional de
-                    cada uno por separado. */}
-                {[
-                  { key: "principal", label: "Primer plato", color: "#2d5a3d", Icon: CookingPot, rich: richSteps, plain: mainPlainSteps, ings: ingredients },
-                  garnishRecipe && { key: "guarnicion", label: "Guarnición", color: "#16a34a", Icon: Salad, rich: garnishRichSteps, plain: garnishPlainSteps, ings: garnishIngredients },
-                  sauceRecipe && { key: "salsa", label: "Salsa", color: "#c2703d", Icon: Droplets, rich: sauceRichSteps, plain: saucePlainSteps, ings: sauceIngredients },
-                ].filter(Boolean).map((blk, bi) => (
-                  <div key={blk.key} style={{ marginTop: bi === 0 ? 0 : 18 }}>
-                    <div style={{
-                      display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10,
-                      padding: "3px 10px", borderRadius: 999,
-                      background: `${blk.color}14`, color: blk.color, fontSize: 11.5, fontWeight: 800,
-                    }}>
-                      <blk.Icon size={13} strokeWidth={2.4} />
-                      {blk.label}
+              hasOwnParts ? (
+                // Receta propia con `part`: richSteps ya es la secuencia completa
+                // (principal+guarnición/salsa+combinado intercalados); RecipeStepList
+                // ya pinta una cabecera de color al cambiar de `part` entre pasos
+                // consecutivos, así que no hace falta reconstruir bloques aquí.
+                <RecipeStepList rich={richSteps} plain={mainPlainSteps} ingredients={ingredients} kitchenTools={kitchenTools} />
+              ) : (
+                <>
+                  {/* Combinado: pasos del plato + guarnición + salsa (los que
+                      haya) en bloques etiquetados, el método tradicional de
+                      cada uno por separado. */}
+                  {[
+                    { key: "principal", label: "Primer plato", color: "#2d5a3d", Icon: CookingPot, rich: richSteps, plain: mainPlainSteps, ings: ingredients },
+                    garnishRecipe && { key: "guarnicion", label: "Guarnición", color: "#16a34a", Icon: Salad, rich: garnishRichSteps, plain: garnishPlainSteps, ings: garnishIngredients },
+                    sauceRecipe && { key: "salsa", label: "Salsa", color: "#c2703d", Icon: Droplets, rich: sauceRichSteps, plain: saucePlainSteps, ings: sauceIngredients },
+                  ].filter(Boolean).map((blk, bi) => (
+                    <div key={blk.key} style={{ marginTop: bi === 0 ? 0 : 18 }}>
+                      <div style={{
+                        display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10,
+                        padding: "3px 10px", borderRadius: 999,
+                        background: `${blk.color}14`, color: blk.color, fontSize: 11.5, fontWeight: 800,
+                      }}>
+                        <blk.Icon size={13} strokeWidth={2.4} />
+                        {blk.label}
+                      </div>
+                      <RecipeStepList rich={blk.rich} plain={blk.plain} ingredients={blk.ings} kitchenTools={kitchenTools} />
                     </div>
-                    <RecipeStepList rich={blk.rich} plain={blk.plain} ingredients={blk.ings} kitchenTools={kitchenTools} />
-                  </div>
-                ))}
-              </>
+                  ))}
+                </>
+              )
             )}
             {/* Plato del congelador: los pasos de descongelado SUSTITUYEN a los de
                 cocinado — no hay nada que cocinar, hay que resucitarlo. Si además
@@ -6274,7 +6422,12 @@ export function DishDetail({
                     hay que estar delante. Si los pasos llegan sin metadatos
                     (recetas de usuario vía API), cae a la lista numerada. */}
                 {activeAppliance === "base" && richSteps?.length > 0 ? (
-                  <RecipeStepList rich={richSteps} plain={mainPlainSteps} ingredients={ingredients} kitchenTools={kitchenTools} />
+                  <RecipeStepList
+                    rich={hasOwnParts ? (ownStepsByPart.principal ?? richSteps) : richSteps}
+                    plain={mainPlainSteps}
+                    ingredients={hasOwnParts ? (ownIngredientsByPart.principal ?? ingredients) : ingredients}
+                    kitchenTools={kitchenTools}
+                  />
                 ) : stepsLoading ? (
                   <div
                     style={{
@@ -6366,6 +6519,15 @@ export function DishDetail({
               }}
             >
               <Flame size={16} /> Nutrientes por ración
+              {recipe.source === "user" && recipe.nutritionSource && (
+                <span style={{
+                  fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999,
+                  color: recipe.nutritionSource === "computed" ? "#2d5a3d" : "#8a6d1f",
+                  background: recipe.nutritionSource === "computed" ? "#2d5a3d14" : "#8a6d1f14",
+                }}>
+                  {recipe.nutritionSource === "computed" ? "Nutrición calculada" : "Estimada por IA"}
+                </span>
+              )}
               <ChevronDown
                 size={16}
                 strokeWidth={2.6}
@@ -6468,6 +6630,24 @@ export function DishDetail({
               </button>
             )}
           </div>
+          )}
+
+          {/* Lo que dice la gente de este plato.
+              Tambien en las recetas de HoMenu: los votos y los comentarios de
+              una receta de la casa son igual de utiles que los de una tuya, y
+              desde 0036 el dueño puede ir nulo justo para esto.
+              Sin sesion no se pinta: comentar pide cuenta, y un hilo que no
+              puedes usar solo estorba. */}
+          {user?.id && recipe?.id && (
+            <section style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eef3f0" }}>
+              <CommentThread
+                user={user}
+                targetType="recipe"
+                targetId={String(recipe.id).split("__").pop()}
+                targetOwnerId={recipe.owner?.id ?? null}
+                startOpen
+              />
+            </section>
           )}
         </div>
       </div>

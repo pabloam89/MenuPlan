@@ -20,6 +20,13 @@ import {
   IndividualMenuSheet,
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
+import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
+import { publishMenu, unpublishMenu, loadMyPublishedMenus } from "./lib/social.js";
+import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
+import { readIncomingLink } from "./lib/shareLink.js";
+import { migrateEmbeddedPhotos } from "./lib/recipePhotos.js";
+import { searchProfiles } from "./lib/social.js";
+import { setFeedBadge } from "./lib/socialBadge.js";
 // Import normal, no lazy: es el paso 0 del asistente y `onbScreens` se pinta
 // sin <Suspense> alrededor. Además vive sobre OnboardingShell, que ya viene en
 // el bundle por el import de arriba, así que separarlo no ahorraba nada.
@@ -44,10 +51,11 @@ import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, ac
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
+import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { getDayMeals, DAYS } from "./lib/planner.js";
+import { getDayMeals, getMeals, DAYS } from "./lib/planner.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,
@@ -78,7 +86,7 @@ import {
   planHasDishes,
   orderedWeeks,
 } from "./lib/menuArchive.js";
-import { todayDayIdx } from "./lib/weekCalendar.js";
+import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import {
   saveMenu as saveMenuRemote,
   loadMenuSummaries as loadMenuSummariesRemote,
@@ -142,6 +150,7 @@ import {
   upsertUserRecipes,
   updateRecipeVisibility,
   deleteUserRecipe,
+  loadPublicRecipe,
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";
@@ -374,6 +383,9 @@ const INITIAL_DATA = {
   freqsByGroup: {},
   cookLevel: "normal",
   cookSkills: [],
+  // Cual de los miembros es la persona de la cuenta. Se marca a mano en Mi
+  // perfil; sin marcar, la app lo adivina por el nombre (ver stages.js).
+  accountMemberId: null,
   kitchenTools: [],
   customKitchenTools: [],
   cookTime: { ...COOK_TIME_DEFAULTS },
@@ -624,6 +636,7 @@ function migrate(state) {
     d.goalsManualByGroup = {};
   }
   if (!Array.isArray(d.cookSkills)) d.cookSkills = [];
+  if (typeof d.accountMemberId !== "string") d.accountMemberId = null;
   if (!Array.isArray(d.kitchenTools)) d.kitchenTools = [];
   if (!Array.isArray(d.customKitchenTools)) d.customKitchenTools = [];
   // Normalize school menus: courses (Primero/Segundo/Postre) instead of meals.
@@ -2818,6 +2831,88 @@ export default function App() {
   // the steps already configured in Mi perfil (family + cooking), while still
   // walking through the per-menu screens (week, schedule, style, restrictions…).
   const [quickMenu, setQuickMenu] = useState(false);
+  // Menús que ya tienes publicados, por menu_id, para saber si el botón
+  // dice "Compartir" o "Retirar".
+  const [publishedMenus, setPublishedMenus] = useState({});
+  /**
+   * Sin menú activo no puede haber lista de la compra.
+   *
+   * La compra no es una lista propia: es la proyección de lo que hay que
+   * cocinar. Si el menú que la generó ya no existe -lo borraste, o
+   * `activeMenuId` apunta a un id que ya no está en `menus`- lo que queda en
+   * Compra son ingredientes de platos fantasma: te manda a comprar cosas para
+   * un menú que nadie va a cocinar.
+   *
+   * Ya había una limpieza para esto, pero pedía DOS condiciones a la vez
+   * (ni menú activo en la nube, ni id local) y solo corría al sincronizar. Un
+   * `activeMenuId` que apunta a un menú inexistente se colaba por ahí.
+   *
+   * Esto lo comprueba contra el estado ya cargado -`menus` y `activeMenuId`
+   * salen del mismo sitio-, así que no hay carrera con la red: nunca puede
+   * borrar una lista buena porque los menús aún no hubieran llegado.
+   */
+  useEffect(() => {
+    if (householdReadOnly) return;
+    const activeMenu = data.activeMenuId ? data.menus?.[data.activeMenuId] : null;
+    if (activeMenu) return;
+    if ((shopping.items?.length ?? 0) === 0 && Object.keys(menuPlan).length === 0) return;
+    setShopping({ items: [] });
+    setMenuPlan({});
+  }, [data.activeMenuId, data.menus, shopping.items, menuPlan, householdReadOnly]);
+
+  // Al entrar se pregunta que menus tienes ya en el feed: sin esto, el boton
+  // de compartir decia "Compartir" aunque hubieras publicado ayer, y solo se
+  // corregia publicando otra vez en la misma sesion.
+  useEffect(() => {
+    let alive = true;
+    if (!user?.id) { setPublishedMenus({}); return; }
+    loadMyPublishedMenus(user.id).then((m) => { if (alive) setPublishedMenus(m); });
+    return () => { alive = false; };
+  }, [user?.id]);
+  // Quien llega desde un enlace compartido (?r= receta, ?u= perfil) entra
+  // directo a eso. Se lee una sola vez al arrancar: readIncomingLink limpia
+  // la barra, asi que recargar no repite la apertura.
+  const [deepLinkPerson, setDeepLinkPerson] = useState(null);
+  useEffect(() => {
+    const link = readIncomingLink();
+    if (!link) return;
+    if (link.kind === "recipe") {
+      handleOpenFeedRecipe({ id: link.id });
+      return;
+    }
+    // Del handle solo tenemos el texto: hay que resolverlo a una persona.
+    searchProfiles(link.username).then((rows) => {
+      const hit = rows.find((r) => r.username?.toLowerCase() === link.username.toLowerCase());
+      if (!hit) return;
+      setDeepLinkPerson(hit.user_id);
+      setScreen("feed");
+    });
+    // Solo al montar: un enlace se atiende una vez.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Las fotos que quedaron incrustadas de antes se mueven a Storage en
+  // segundo plano, una vez por sesion. Se hace aqui y no en un script porque
+  // solo el dueño puede escribir en su carpeta del cubo: la migracion tiene
+  // que correr con SU sesion. No bloquea nada — la app ya funciona mientras.
+  useEffect(() => {
+    if (!user?.id) return;
+    const t = setTimeout(() => { migrateEmbeddedPhotos(user.id); }, 4000);
+    return () => clearTimeout(t);
+  }, [user?.id]);
+
+  // El punto del tab Feed necesita saberse al ARRANCAR, no al entrar al Feed
+  // (si hiciera falta entrar para verlo, no avisaria de nada). Una consulta
+  // al iniciar sesion y ya: sin polling — el Feed refresca el punto solo
+  // cuando lo visitas.
+  useEffect(() => {
+    if (!user?.id) return;
+    let alive = true;
+    loadNotifications(user.id).then(({ items, seenAt }) => {
+      if (alive) setFeedBadge(countUnread(items, seenAt) > 0);
+    });
+    return () => { alive = false; };
+  }, [user?.id]);
   // Temas que el usuario ha marcado en "¿Qué quieres ajustar de tu menú?"
   // (paso 0). Vacío = genera con lo que hay. Se conserva entre visitas al
   // asistente para que el picker vuelva con lo de la última vez marcado.
@@ -3162,6 +3257,150 @@ export default function App() {
     trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id, garnishId: resolvedGarnishId ?? undefined, sauceId: resolvedSauceId ?? undefined });
   }, [data.members, user]);
 
+  /**
+   * Copiar una receta del Feed a mi biblioteca. Es una INSTANTÁNEA: nace con
+   * id nuevo y dueño nuevo, y no vuelve a mirar al original — si el autor la
+   * edita o borra su cuenta, tu menú de la semana no cambia debajo. Las
+   * columnas copied_from_* solo guardan de quién era, para poder firmarla.
+   *
+   * Nace en privado siempre: copiar algo no es publicarlo.
+   */
+  const handleCopyRecipeFromFeed = useCallback(async (recipeId, ownerId) => {
+    if (householdReadOnly) { showToast("Solo lectura: no puedes copiar aquí"); return null; }
+    const src = await loadPublicRecipe(recipeId);
+    if (!src) { showToast("Esa receta ya no está disponible"); return null; }
+    const copy = {
+      ...src,
+      id: `user_${crypto.randomUUID()}`,
+      visibility: "private",
+      copiedFromRecipeId: recipeId,
+      copiedFromOwnerId: ownerId ?? null,
+      createdAt: Date.now(),
+    };
+    setData((d) => ({ ...d, userRecipes: [...(d.userRecipes ?? []), copy] }));
+    const eaters = Math.max(1, data.members?.length || 4);
+    registerRecipes([catalogToFrontendRecipe(copy, eaters)]);
+    if (user?.id) upsertUserRecipe(user.id, copy);
+    showToast("Receta añadida a tus recetas");
+    // Devuelve el id NUEVO: quien copia necesita saberlo para archivarla en
+    // carpetas, que se guardan contra la copia y no contra el original.
+    return copy.id;
+  }, [householdReadOnly, showToast, data.members, user]);
+
+  /**
+   * La ⓘ del Feed. `handleOpenCatalogRecipe` espera un objeto receta, no un
+   * id, y una receta ajena no está en el catálogo local — así que hay que
+   * traérsela antes. Si no se puede (sin sesión, o es un fixture de diseño),
+   * se abre con lo poco que trae la tarjeta en vez de no abrir nada.
+   */
+  const handleOpenFeedRecipe = useCallback(async (row) => {
+    if (!row?.id) return;
+    const full = (await loadPublicRecipe(row.id)) ?? {
+      id: row.id,
+      name: row.name,
+      category: row.category,
+      type: row.type ?? "principal",
+      time: row.time_minutes ?? null,
+      difficulty: row.difficulty ?? null,
+      photo: row.photo ?? null,
+      ingredients: [],
+      steps: [],
+      source: "user",
+    };
+    handleOpenCatalogRecipe(full);
+  }, [handleOpenCatalogRecipe]);
+
+  /**
+   * Publicar el menú activo en el Feed.
+   *
+   * Lo que se manda NO es el menú: es la proyección que construye
+   * buildSharedMenuPayload — platos por día y avatares anónimos. El menú vivo
+   * lleva en la misma estructura la compra, el presupuesto y los días que
+   * coméis fuera, y eso no sale de aquí (ver el contrato y sus tests).
+   *
+   * Y es una instantánea: seguir editando tu semana no cambia lo publicado
+   * hasta que vuelvas a darle a compartir.
+   */
+  const handlePublishMenu = useCallback(async (scope = "week", visibility = "followers") => {
+    if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return false; }
+    const menuId = data.activeMenuId ?? "actual";
+    const { dates } = getWeekDatesByMenuWeek({
+      offset: data.menuWeek?.offset ?? 0,
+      startDayIdx: data.menuWeek?.startDayIdx ?? 0,
+    });
+    const iso = (d) => new Date(d).toISOString().slice(0, 10);
+    // "Solo hoy": el payload lleva únicamente el día de hoy, y el rango de
+    // fechas se estrecha a hoy — así en «Hoy cocinan» aparece hoy y mañana ya
+    // no, que es exactamente lo que significa compartir solo el día.
+    const todayLabel = DAYS[(new Date().getDay() + 6) % 7];
+    const todayIso = new Date().toISOString().slice(0, 10);
+
+    const payload = buildSharedMenuPayload({
+      menuPlan,
+      groups: data.groups ?? [],
+      members: data.members ?? [],
+      meals: getMeals(data),
+      onlyDays: scope === "today" ? [todayLabel] : null,
+      weekStart: scope === "today" ? todayIso : (dates?.[0] ? iso(dates[0]) : null),
+      dishName: (id) => recipeCatalogById[id]?.name
+        ?? (data.userRecipes ?? []).find((r) => r.id === id)?.name
+        ?? null,
+      // Las del catálogo las puede abrir cualquiera. Las tuyas, solo si no
+      // están en privado — el nombre del plato se ve igual.
+      isReadable: (id) => {
+        if (!String(id).startsWith("user_")) return true;
+        const own = (data.userRecipes ?? []).find((r) => r.id === id);
+        return Boolean(own && own.visibility && own.visibility !== "private");
+      },
+    });
+
+    const days = payload.weeks?.[0]?.days ?? [];
+    if (days.length === 0) {
+      showToast(scope === "today" ? "Hoy no hay nada planificado que compartir" : "Genera un menú antes de compartirlo");
+      return false;
+    }
+
+    const saved = await publishMenu(user.id, {
+      menuId,
+      title: null,
+      weekStart: payload.weeks[0].weekStart,
+      weekEnd: scope === "today" ? todayIso : (dates?.length ? iso(dates[dates.length - 1]) : null),
+      payload,
+      visibility,
+    });
+    if (!saved) { showToast("No se pudo compartir el menú"); return false; }
+    setPublishedMenus((prev) => ({ ...prev, [menuId]: saved }));
+    showToast("Menú compartido en tu feed");
+    return true;
+  }, [user, data, menuPlan, showToast]);
+
+  const handleUnpublishMenu = useCallback(async () => {
+    const menuId = data.activeMenuId ?? "actual";
+    if (!user?.id) return false;
+    const done = await unpublishMenu(user.id, menuId);
+    if (done) {
+      setPublishedMenus((prev) => { const next = { ...prev }; delete next[menuId]; return next; });
+      showToast("Menú retirado del feed");
+    }
+    return done;
+  }, [user, data.activeMenuId, showToast]);
+
+  /**
+   * Publicar una receta tuya = cambiarle la visibilidad. Sin tabla nueva ni
+   * copia: el interruptor private/friends/public existe desde 0003, esto solo
+   * le pone una puerta comoda en el Feed.
+   */
+  const handlePublishRecipe = useCallback((recipeId, visibility) => {
+    if (!recipeId || !visibility) return false;
+    setData((d) => ({
+      ...d,
+      userRecipes: (d.userRecipes ?? []).map((r) => (r.id === recipeId ? { ...r, visibility } : r)),
+    }));
+    if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
+    showToast(visibility === "public" ? "Receta publicada para todo el mundo" : "Receta publicada para tus amigos");
+    return true;
+  }, [user, showToast]);
+
   const handleUpdateUserRecipe = useCallback((updated) => {
     if (householdReadOnly) return;
     if (!updated?.id) return;
@@ -3421,6 +3660,58 @@ export default function App() {
   // Vaciar hueco: keep the slot (flagged `cleared`) so the deck renders a
   // tappable placeholder to refill it; offer an undo that restores the dishes.
   // Duplicar: copy a dish into another slot (action bar → "Duplicar" → tap target).
+  /**
+   * Un plato que viene de FUERA (del menu de otra persona) esperando hueco.
+   * Vive aqui y no en MenuScreen porque el gesto empieza en el Feed y termina
+   * en el menu: son dos pantallas, y el plato tiene que sobrevivir al salto.
+   */
+  const [pendingDish, setPendingDish] = useState(null);
+
+  /**
+   * Colocar una receta concreta en un hueco. Es el gemelo de
+   * handleDuplicateSlot, pero recibiendo el id en vez de leerlo de un hueco
+   * tuyo: el plato de otra persona no esta en tu plan, asi que no hay origen
+   * de donde copiarlo.
+   */
+  const handlePlaceRecipeInSlot = useCallback(async (recipeId, target) => {
+    if (householdReadOnly || !recipeId || !target) return;
+    const baseId = String(recipeId).split("__").pop();
+    const tGroup = target.groupId;
+    const tKey = `${target.day}-${target.meal}`;
+    const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const prevSlot = plan[tGroup]?.[tKey] ?? {};
+      const nextSlot = { ...prevSlot, [tField]: baseId, cleared: false, warnings: [] };
+      const next = { ...plan, [tGroup]: { ...(plan[tGroup] ?? {}), [tKey]: nextSlot } };
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    setPendingDish(null);
+    showToast("Plato añadido a tu menú");
+    trackEvent(user, "dish_copied_from_feed", "menu", { to: tKey });
+  }, [householdReadOnly, data, showToast, user, applyShoppingFor]);
+
+  /**
+   * "A mis recetas" desde el menu de otra persona.
+   *
+   * Segun de donde salga el plato significa una cosa distinta, y las dos son
+   * "que aparezca en Mis Recetas":
+   *  · receta SUYA  -> se copia a tu biblioteca (nace privada y con id propio),
+   *  · del catalogo -> ya la tienes; lo que falta es marcarla como favorita,
+   *    que es exactamente lo que hace que salga en Mis Recetas.
+   */
+  const handleSaveDishToRecipes = useCallback(async (dish) => {
+    if (!dish?.recipeId) return;
+    if (dish.source === "user") {
+      const newId = await handleCopyRecipeFromFeed(dish.recipeId, dish.ownerId ?? null);
+      if (newId) showToast("Guardada en tus recetas");
+      return;
+    }
+    handlePersonalSetFavoriteScope(dish.recipeId, "all");
+  }, [handleCopyRecipeFromFeed, handlePersonalSetFavoriteScope, showToast]);
+
   const handleDuplicateSlot = useCallback(async (source, target) => {
     if (householdReadOnly) return;
     if (!source || !target) return;
@@ -4061,6 +4352,9 @@ export default function App() {
           >
             <MenuScreen
               data={data}
+              onPublishToFeed={householdReadOnly ? null : handlePublishMenu}
+              onUnpublishFromFeed={handleUnpublishMenu}
+              menuSharedInFeed={Boolean(publishedMenus[data.activeMenuId ?? "actual"])}
               setData={householdReadOnly ? null : setData}
               menuPlan={menuPlan}
               readOnly={householdReadOnly}
@@ -4072,6 +4366,9 @@ export default function App() {
               onDishReplace={householdReadOnly ? undefined : handleReplaceSlot}
               onDishSwap={householdReadOnly ? undefined : handleSwapSlots}
               onDishDuplicate={householdReadOnly ? undefined : handleDuplicateSlot}
+              incomingDish={pendingDish}
+              onDishPlace={householdReadOnly ? undefined : handlePlaceRecipeInSlot}
+              onIncomingCancel={() => setPendingDish(null)}
               onDishManualPick={householdReadOnly ? undefined : handleManualPickSlot}
               onRegenerateDay={householdReadOnly ? undefined : handleRegenerateDay}
               onNav={handleNav}
@@ -4308,7 +4605,38 @@ export default function App() {
                 }}
                 onDeleteRecipe={handleDeleteRecipe}
                 onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
-                onOpenInspirate={() => fwd(() => setScreen("inspiranos"))}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "feed" && (
+          <div
+            key="feed"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <FeedScreen
+                user={user}
+                menuShared={Boolean(publishedMenus[data.activeMenuId ?? "actual"])}
+                onPublishMenu={handlePublishMenu}
+                onUnpublishMenu={handleUnpublishMenu}
+                // Solo las CREADAS por ti (filterOwnCreatedRecipes): las
+                // copias del feed llevan el owner del autor original, y
+                // republicarlas seria duplicar su receta firmada por ti.
+                unsharedRecipes={filterOwnCreatedRecipes(data.userRecipes, user).filter((r) => (r.visibility ?? "private") === "private")}
+                myRecipes={data.userRecipes ?? []}
+                onPublishRecipe={handlePublishRecipe}
+                onNav={handleNav}
+                onOpenRecipe={handleOpenFeedRecipe}
+                initialPersonId={deepLinkPerson}
+                onSaveDish={handleSaveDishToRecipes}
+                onPlaceDish={(dish) => { setPendingDish(dish); fwd(() => setScreen("menu")); }}
+                onConsumedPerson={() => setDeepLinkPerson(null)}
+                onCopyRecipe={handleCopyRecipeFromFeed}
+                recipeFolders={data.recipeFolders}
+                onCreateFolder={householdReadOnly ? undefined : handleCreateFolder}
+                onSetRecipeFolders={householdReadOnly ? undefined : handleSetRecipeFolders}
               />
             </Suspense>
           </div>
@@ -4322,6 +4650,7 @@ export default function App() {
             <Suspense fallback={null}>
               <InspiranosScreen
                 data={data}
+                user={user}
                 onLike={handleInspireLike}
                 onDiscard={householdReadOnly ? undefined : handleInspireDiscard}
                 onNav={handleNav}
@@ -4330,7 +4659,7 @@ export default function App() {
                 recipeFolders={data.recipeFolders}
                 onCreateFolder={householdReadOnly ? undefined : handleCreateFolder}
                 onSetRecipeFolders={householdReadOnly ? undefined : handleSetRecipeFolders}
-                onOpenRecipes={() => back(() => setScreen("recipes"))}
+                onOpenRecipes={() => back(() => setScreen("feed"))}
               />
             </Suspense>
           </div>
@@ -5106,30 +5435,75 @@ export default function App() {
   );
 }
 
+// Una letra que cambia de mayúscula a minúscula (o viceversa) "rodando"
+// sobre su eje X: las dos formas están apiladas y se cruzan con un flip +
+// fundido. `active` decide cuál de las dos se ve; `delay` escalona el
+// disparo para crear una ola que atraviesa el wordmark letra a letra.
+function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, delay }) {
+  const shared = {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: "100%",
+    textAlign: "center",
+    display: "inline-block",
+    backfaceVisibility: "hidden",
+    transitionProperty: "transform, opacity, color",
+    transitionDuration: ".55s, .4s, .5s",
+    transitionTimingFunction: "cubic-bezier(.5,-.2,.5,1.2), ease, ease",
+    transitionDelay: `${delay}ms`,
+  };
+  return (
+    <span style={{ position: "relative", display: "inline-block" }}>
+      {/* espaciador invisible: reserva el ancho del glifo más ancho */}
+      <span aria-hidden="true" style={{ visibility: "hidden" }}>{upper}</span>
+      <span
+        aria-hidden="true"
+        style={{
+          ...shared,
+          color: activeColor,
+          opacity: active ? 1 : 0,
+          transform: active ? "rotateX(0deg) translateY(0)" : "rotateX(-100deg) translateY(-8px)",
+        }}
+      >
+        {upper}
+      </span>
+      <span
+        aria-hidden="true"
+        style={{
+          ...shared,
+          color: inactiveColor,
+          opacity: active ? 0 : 1,
+          transform: active ? "rotateX(100deg) translateY(8px)" : "rotateX(0deg) translateY(0)",
+        }}
+      >
+        {lower}
+      </span>
+    </span>
+  );
+}
+
 function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
-  const phrases = [
-    "qué te gusta comer",
-    "qué no puedes comer",
-    "cuándo comes en casa",
-    "tu tiempo para cocinar",
-    "el menú del cole de tus hijos",
-  ];
-  const [phraseIdx, setPhraseIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
 
+  // El wordmark alterna entre las dos lecturas de las mismas 6 letras
+  // (H-o-m-e-n-u): "HoMenu" (Tu menú) y "HomeNu" (como en casa). El verde
+  // se desplaza de un lado a otro atravesando la M y la e para "elevar" la N.
+  const [reading, setReading] = useState("menu"); // "menu" | "home"
   useEffect(() => {
-    const total = phrases.length;
     const interval = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setPhraseIdx((i) => (i + 1) % total);
-        setVisible(true);
-      }, 350);
-    }, 1800);
+      setReading((r) => (r === "menu" ? "home" : "menu"));
+    }, 2600);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const isMenu = reading === "menu";
+  const GREEN = "#7ecb96";
+  const WHITE = "#fff";
+  // La ola siempre viaja desde la letra que "cede" el mayúscula/verde hacia
+  // la que lo "gana", pasando por la e en medio — y se invierte sola al
+  // volver, porque el retraso se recalcula según hacia dónde vamos.
+  const mDelay = isMenu ? 300 : 0;
+  const nDelay = isMenu ? 0 : 300;
 
   return (
     <div
@@ -5241,17 +5615,51 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
       >
         <h1
           style={{
-            fontSize: 76,
+            fontSize: "clamp(58px, 17vw, 84px)",
             fontWeight: 900,
-            margin: "0 0 18px",
+            margin: "0 0 10px",
             letterSpacing: "-3px",
             lineHeight: 1,
             fontFamily: "'Playfair Display', Georgia, serif",
             textShadow: "0 2px 24px rgba(0,0,0,.55)",
+            perspective: 400,
+            whiteSpace: "nowrap",
           }}
         >
-          Ho<span style={{ color: "#7ecb96" }}>Menu</span>
+          Ho
+          <FlipCaseLetter upper="M" lower="m" active={isMenu} activeColor={GREEN} inactiveColor={WHITE} delay={mDelay} />
+          <FlipCaseLetter upper="e" lower="e" active={isMenu} activeColor={GREEN} inactiveColor={WHITE} delay={150} />
+          <FlipCaseLetter upper="N" lower="n" active={!isMenu} activeColor={GREEN} inactiveColor={GREEN} delay={nDelay} />
+          <span style={{ color: GREEN }}>u</span>
         </h1>
+
+        <p
+          style={{
+            margin: 0,
+            fontSize: 20,
+            fontWeight: 700,
+            fontStyle: "italic",
+            letterSpacing: ".2px",
+            color: "rgba(255,255,255,.82)",
+            display: "flex",
+            justifyContent: "center",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <span>Tu menú</span>
+          <span
+            style={{
+              display: "inline-block",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              maxWidth: isMenu ? 0 : 200,
+              opacity: isMenu ? 0 : 1,
+              transition: "max-width .5s ease 250ms, opacity .4s ease 300ms",
+            }}
+          >
+            , como en casa
+          </span>
+        </p>
       </div>
 
       {/* Botones abajo */}

@@ -12,4 +12,9 @@
 // (scripts/generate-supabase-seed.mjs) so Supabase's catalog_meta.version
 // matches. Forgetting to push just means the app keeps using the (correct)
 // bundled JSON — safe by design.
-export const BUNDLED_CATALOG_VERSION = 18;
+// v19 (2026-09-01): 63 alérgenos añadidos a 60 recetas por
+// scripts/apply-allergen-findings.mjs — gluten de la salsa de soja, sulfitos de
+// encurtidos y desecados, huevo de la pasta al huevo, apio, mostaza, pescado y
+// lactosa. Médicamente relevante: hasta que la seed llegue a Supabase, este
+// número es lo único que impide que la BD sirva las declaraciones viejas.
+export const BUNDLED_CATALOG_VERSION = 19;

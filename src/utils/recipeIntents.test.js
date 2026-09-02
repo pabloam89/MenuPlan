@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { matchesIntent, intentsForRecipe, buildInspireDeck, eligibleCatalogPool } from "./recipeIntents.js";
+import { matchesIntent, intentsForRecipe, buildInspireDeck, eligibleCatalogPool, promoteSocial, spliceUpcoming, SOCIAL_WINDOW } from "./recipeIntents.js";
 
 function recipe(overrides) {
   return {
@@ -140,5 +140,45 @@ describe("eligibleCatalogPool", () => {
       discards: { cooldownUntil: { [victim]: Date.now() - 1000 } },
     });
     expect(expired.some((r) => r.id === victim)).toBe(true);
+  });
+});
+
+describe("recetas de otra gente dentro del mazo", () => {
+  const catalog = Array.from({ length: 300 }, (_, i) => ({ id: `cat_${i}` }));
+  const social = [{ id: "user_a" }, { id: "user_b" }];
+
+  it("las sube a las primeras posiciones en vez de dejarlas donde caiga la baraja", () => {
+    // Sin promoción, dos cartas entre 300 caerían de media por la mitad del
+    // mazo y no las vería nadie.
+    const deck = promoteSocial([...catalog, ...social], social);
+    const positions = social.map((r) => deck.findIndex((c) => c.id === r.id));
+    for (const pos of positions) {
+      expect(pos).toBeGreaterThanOrEqual(0);
+      expect(pos).toBeLessThan(SOCIAL_WINDOW + social.length);
+    }
+  });
+
+  it("no pierde ni duplica cartas", () => {
+    const deck = promoteSocial([...catalog, ...social], social);
+    expect(deck).toHaveLength(catalog.length + social.length);
+    expect(new Set(deck.map((c) => c.id)).size).toBe(deck.length);
+  });
+
+  it("no cuela una receta social que no estuviera ya en el mazo", () => {
+    // Si no pasó el filtro de seguridad (alergias) no está en `deck`, y la
+    // promoción no puede meterla por la puerta de atrás.
+    const deck = promoteSocial([...catalog], [{ id: "user_prohibida" }]);
+    expect(deck.some((c) => c.id === "user_prohibida")).toBe(false);
+    expect(deck).toHaveLength(catalog.length);
+  });
+
+  it("spliceUpcoming no toca la carta que estás viendo", () => {
+    const deck = spliceUpcoming(catalog, 3, social);
+    expect(deck.slice(0, 3).map((c) => c.id)).toEqual(["cat_0", "cat_1", "cat_2"]);
+  });
+
+  it("aguanta un mazo vacío", () => {
+    expect(promoteSocial([], social)).toEqual([]);
+    expect(spliceUpcoming([], 0, social)).toHaveLength(social.length);
   });
 });

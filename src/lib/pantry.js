@@ -1,6 +1,7 @@
 import { supabase } from "./supabase.js";
 import { uid } from "./groups.js";
 import { convertStockAmount } from "./kitchenUnits.js";
+import { resolveIngredientId } from "./ingredients.js";
 
 /**
  * Data access for user_pantry (see supabase/migrations/0002_user_pantry.sql +
@@ -33,6 +34,9 @@ function mapRow(row) {
     cookedAt: row.cooked_at ?? null,
     // Ubicación fijada a mano (0015). null → se deriva en la UI (frozen/aisle).
     location: row.location ?? null,
+    // Id canónico del catálogo de ingredientes (0039), null si no resuelve —
+    // ver ingredients.js. Habilita match exacto despensa↔receta.
+    ingredientId: row.ingredient_id ?? null,
     packCount: row.pack_count != null ? Number(row.pack_count) : null,
     packKind: row.pack_kind ?? null,
     packSize: row.pack_size != null ? Number(row.pack_size) : null,
@@ -61,6 +65,7 @@ function missingColumnHint(error) {
   if (/pack_/.test(msg)) return "pack";
   if (/\blocation\b/.test(msg)) return "location";
   if (/garnish/.test(msg)) return "garnish";
+  if (/ingredient_id/.test(msg)) return "ingredient_id";
   return null;
 }
 
@@ -71,6 +76,10 @@ function omitLocationFromRows(rows) {
 
 function omitGarnishRefFromRows(rows) {
   return rows.map(({ garnish_ref: _g, ...rest }) => rest);
+}
+
+function omitIngredientIdFromRows(rows) {
+  return rows.map(({ ingredient_id: _i, ...rest }) => rest);
 }
 
 function omitPackFromRows(rows) {
@@ -119,6 +128,8 @@ async function insertPantryRows(userId, toInsert, itemsForLegacy) {
         payload = omitLocationFromRows(payload);
       } else if (hint === "garnish" && payload.some((r) => "garnish_ref" in r)) {
         payload = omitGarnishRefFromRows(payload);
+      } else if (hint === "ingredient_id" && payload.some((r) => "ingredient_id" in r)) {
+        payload = omitIngredientIdFromRows(payload);
       } else {
         break;
       }
@@ -190,13 +201,15 @@ const GARNISH_COL = "garnish_ref";
 // freezer columns (lumping them would drop frozen/item_type on the fallback).
 const LOCATION_COLS = "location";
 const PACK_COLS = "pack_count, pack_kind, pack_size, pack_size_unit";
+const INGREDIENT_ID_COL = "ingredient_id";
 const UPDATED_AT_COL = "updated_at";
 // Must mirror the fullest loadPantry tier so insert/update `.select()` returns
 // location + timestamps — otherwise mapRow() zeroes them and Inventario briefly
 // (or permanently, if the caller skips reload) shows Nevera / Hoy / 1 ud.
-const RETURN_COLS = `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}, ${PACK_COLS}`;
+const RETURN_COLS = `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}, ${PACK_COLS}, ${INGREDIENT_ID_COL}`;
 const RETURN_SELECT_TIERS = [
   RETURN_COLS,
+  `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}, ${PACK_COLS}`,
   `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`,
   `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}`,
   `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}`,
@@ -306,6 +319,10 @@ export async function addPantryItems(userId, items, householdId = null) {
           location: it.location ?? null,
           item_type: "ingredient",
           source: it.source ?? "manual",
+          // Resuelto en escritura contra el catálogo canónico (0039) — null si
+          // no cubre este nombre, nunca un error. Habilita match exacto con
+          // los ingredientes de una receta (ver filterRecipes.js/shoppingBuilder.js).
+          ingredient_id: resolveIngredientId(it.name) ?? null,
           ...packDbFields(it.pack),
         });
       }
@@ -642,6 +659,7 @@ export function addLocalPantryItems(items) {
         frozen,
         location: it.location ?? null,
         itemType: "ingredient",
+        ingredientId: resolveIngredientId(it.name) ?? null,
         packCount: it.pack?.count ?? null,
         packKind: it.pack?.kind ?? null,
         packSize: it.pack?.sizeQty ?? null,

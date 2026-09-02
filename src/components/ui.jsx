@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, Sparkles, UserCircle, X } from "lucide-react";
+import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, Sparkles, UserCircle, Users, X } from "lucide-react";
 import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
+import { subscribeFeedBadge, readFeedBadge } from "../lib/socialBadge.js";
 
 const GROUP_ABBREV = { Adultos: "A", Niños: "N", Bebé: "B", Familia: "F" };
 
@@ -464,17 +465,25 @@ export function bottomNavSpacer() {
 // icono de menú ⋮) is la puerta única al menú — 2026-08-25: el tab
 // "Generar" que vivió aquí un tiempo se quitó del todo (competía con "Menú"
 // por el mismo verbo) y no se sustituye por nada — la quinta posición se
-// deja libre a propósito, en reserva para el Feed social. De momento el bar
-// solo enseña estos 4.
+// dejó libre a propósito, en reserva para el Feed social — ocupada desde
+// 2026-09-01. Cinco es el tope de una barra inferior en móvil; no cabe una
+// sexta sin pasar a iconos sin etiqueta.
+// Menú va en el CENTRO a propósito: es la acción principal de la app (ya es
+// el único tab con highlight) y el centro es donde el pulgar la espera — el
+// mismo patrón del botón central de cualquier app con una acción reina.
 const NAV_ITEMS = [
   { id: "dashboard", icon: Home,          label: "Inicio",   color: "#e8854a" },
-  { id: "menu",      icon: ClipboardList, label: "Menú",     highlight: true },
   { id: "recipes",   icon: BookOpen,      label: "Recetas",  color: "#d45c7a" },
+  { id: "menu",      icon: ClipboardList, label: "Menú",     highlight: true },
   { id: "shopping",  icon: ShoppingCart,  label: "Compra",   color: "#5a82d4" },
+  { id: "feed",      icon: Users,         label: "Feed",     color: "#4a6fd4" },
 ];
 
 export function BottomNav({ active, onNav, dissolved = false }) {
   const items = NAV_ITEMS;
+  // Aviso de novedades del Feed: punto sin numero (el numero esta en la
+  // campana del propio Feed). Ver socialBadge.js para el porque del store.
+  const feedNews = useSyncExternalStore(subscribeFeedBadge, readFeedBadge);
   const nav = (
     <nav
       aria-label="Navegación principal"
@@ -561,11 +570,23 @@ export function BottomNav({ active, onNav, dissolved = false }) {
                   <it.icon size={19} color="#fff" strokeWidth={2.4} />
                 </span>
               ) : (
-                <it.icon
-                  size={22}
-                  color={sel ? it.color : "#c2d4cb"}
-                  strokeWidth={sel ? 2.4 : 1.8}
-                />
+                <span style={{ position: "relative", display: "inline-flex" }}>
+                  <it.icon
+                    size={22}
+                    color={sel ? it.color : "#c2d4cb"}
+                    strokeWidth={sel ? 2.4 : 1.8}
+                  />
+                  {it.id === "feed" && feedNews && !sel && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute", top: -2, right: -4,
+                        width: 8, height: 8, borderRadius: "50%",
+                        background: "#d45c5c", border: "2px solid #fff",
+                      }}
+                    />
+                  )}
+                </span>
               )}
               <span
                 style={{

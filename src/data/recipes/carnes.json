@@ -6305,7 +6305,8 @@
     "allergens": [
       "gluten",
       "lactosa",
-      "sulfitos"
+      "sulfitos",
+      "apio"
     ],
     "ingredients": [
       {
@@ -6875,7 +6876,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "soja"
+      "soja",
+      "gluten"
     ],
     "ingredients": [
       {
@@ -9626,7 +9628,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "soja"
+      "soja",
+      "gluten"
     ],
     "ingredients": [
       {
@@ -10691,7 +10694,8 @@
     "tupperFriendly": false,
     "allergens": [
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "ingredients": [
       {
@@ -12478,7 +12482,8 @@
     "allergens": [
       "mostaza",
       "soja",
-      "sulfitos"
+      "sulfitos",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -15245,7 +15250,8 @@
     "allergens": [
       "huevo",
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -15437,7 +15443,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "soja"
+      "soja",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -18208,7 +18215,8 @@
     "tupperFriendly": true,
     "allergens": [
       "lactosa",
-      "gluten"
+      "gluten",
+      "mostaza"
     ],
     "ingredients": [
       {
@@ -18709,7 +18717,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "pescado"
     ],
     "ingredients": [
       {
@@ -19588,7 +19597,8 @@
     "allergens": [
       "huevo",
       "mostaza",
-      "pescado"
+      "pescado",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -22707,7 +22717,8 @@
     "tupperFriendly": true,
     "allergens": [
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "ingredients": [
       {
@@ -22928,7 +22939,9 @@
     "allergens": [
       "gluten",
       "lactosa",
-      "huevo"
+      "huevo",
+      "mostaza",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -25145,7 +25158,8 @@
     "allergens": [
       "gluten",
       "mostaza",
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -29606,7 +29620,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "ingredients": [
       {
         "name": "Filetes de ternera",

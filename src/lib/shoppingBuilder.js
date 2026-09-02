@@ -3,6 +3,7 @@ import { categoryForIngredient, normalizeIngredientKey, isQualitativeUnit, quali
 import { DAYS, MEALS } from "./planner.js";
 import { ingredientWords, wordsOverlapEither, isWordSubsetOf } from "../utils/normalizePantryInput.js";
 import { cookedEatersFor, slotUsesPrepared, slotGarnishInTupper } from "./freezer.js";
+import { resolveIngredientId, pieceGramsFor } from "./ingredients.js";
 
 // Whole-word match (not raw substring — see normalizePantryInput.js's
 // "Repollo" note) between a shopping-list ingredient name and the user's
@@ -17,23 +18,36 @@ import { cookedEatersFor, slotUsesPrepared, slotGarnishInTupper } from "./freeze
 // lactosa" line, defeating the reason that line was flagged `adapted` in the
 // first place — the family still needs to buy the specific substitute
 // product even though they already have the regular one at home.
-function matchesPantry(ingredientName, pantryNormalized, adapted = false) {
+// `pantryIngredientIds` (Fase 8, optional): canonical id per pantry row, same
+// order as `pantryNormalized`. Only used on the non-adapted path — an adapted
+// line (dietary swap) needs the stricter word-subset rule below to stay safe,
+// and the catalog may not distinguish a substitute from its base ingredient
+// by id, so an id match there could reintroduce the exact bug that rule
+// exists to prevent.
+function matchesPantry(ingredientName, pantryNormalized, adapted = false, pantryIngredientIds = []) {
   if (!pantryNormalized || pantryNormalized.length === 0) return false;
   const words = ingredientWords(ingredientName);
   if (adapted) {
     return pantryNormalized.some((key) => isWordSubsetOf(words, key.split("_")));
   }
-  return pantryNormalized.some((key) => wordsOverlapEither(key.split("_"), words));
+  const ingredientId = resolveIngredientId(ingredientName);
+  return pantryNormalized.some(
+    (key, i) => wordsOverlapEither(key.split("_"), words) || (ingredientId != null && pantryIngredientIds[i] === ingredientId),
+  );
 }
 
 /**
  * Pick the first pantry stock row that matches a recipe/shopping ingredient
- * name — same fuzzy rules as matchesPantry (or the stricter adapted rule).
+ * name — same fuzzy rules as matchesPantry (or the stricter adapted rule),
+ * plus an exact-id shortcut (Fase 8, non-adapted only — see matchesPantry's
+ * comment on why `adapted` never uses it) when the row carries a resolved
+ * `ingredientId` (`user_pantry.ingredient_id`) matching the ingredient name's
+ * own resolution. Purely additive: never matches less than before.
  * Used by Modo cocina «Marcar cocinado» so decrementing stock agrees with
  * «Ya en casa» discounts.
  *
  * @param {string} ingredientName
- * @param {{ ingredientNormalized: string }[]} pantryStock
+ * @param {{ ingredientNormalized: string, ingredientId?: string|null }[]} pantryStock
  * @param {{ adapted?: boolean }} [opts]
  * @returns {object|null}
  */
@@ -41,17 +55,41 @@ export function findMatchingPantryItem(ingredientName, pantryStock, { adapted = 
   if (!pantryStock?.length) return null;
   const words = ingredientWords(ingredientName);
   if (!words.length) return null;
+  const ingredientId = adapted ? null : resolveIngredientId(ingredientName);
   for (const row of pantryStock) {
+    const idMatch = ingredientId != null && row.ingredientId != null && row.ingredientId === ingredientId;
     const keyWords = String(row.ingredientNormalized ?? "")
       .split("_")
       .filter(Boolean);
-    if (!keyWords.length) continue;
-    const ok = adapted
-      ? isWordSubsetOf(words, keyWords)
-      : wordsOverlapEither(keyWords, words);
+    if (!idMatch && !keyWords.length) continue;
+    const ok = idMatch || (adapted ? isWordSubsetOf(words, keyWords) : wordsOverlapEither(keyWords, words));
     if (ok) return row;
   }
   return null;
+}
+
+// Unidad en la que se acumula un ingrediente, ANTES de agrupar.
+//
+// El catalogo declara 40 ingredientes en dos unidades a la vez -Aguacate en
+// "ud" en 17 recetas y en "g" en otras 30, Cebolla 18/282, Ajo 11/370- porque
+// una receta pide "1 aguacate" y otra "150 g de aguacate". Como la clave de
+// agrupacion llevaba la unidad cruda, cada uno de esos 40 se partia en DOS
+// filas del mismo ingrediente en la lista de la compra.
+//
+// El peso es la base porque de el se derivan las dos lecturas: la columna
+// "Unidades" saca las piezas de los gramos (shoppingUnitsLabel -> pieceUnits),
+// y snapToPackSize tambien convierte g -> ud al final. Al reves no se puede.
+//
+// Depende SOLO del nombre y la unidad, nunca del orden en que se recorra el
+// menu: si dependiera de "la primera que aparezca", el mismo menu podria dar
+// filas distintas en cada generacion.
+//
+// Sin gramos por pieza conocidos devuelve la unidad tal cual, y entonces las
+// dos mitades siguen separadas igual que hasta ahora. Es lo correcto: preferimos
+// dos filas visibles a fusionarlas con un factor inventado.
+function aggregationUnit(name, unit) {
+  if (unit === "ud" && pieceGramsFor(name) != null) return "g";
+  return unit;
 }
 
 function scaleIngredient(ing, eaters, recipeServings) {
@@ -194,14 +232,19 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
             // esperando en el congelador.
             if (ingEaters <= 0) continue;
             const scaled = scaleIngredient(ing, ingEaters, recipe.servings);
-            const key = normalizeIngredientKey(ing.name, ing.unit);
+            // Ver aggregationUnit: "1 aguacate" y "150 g de aguacate" tienen que
+            // caer en la misma fila, no en dos.
+            const aggUnit = aggregationUnit(ing.name, ing.unit);
+            const aggQty =
+              aggUnit === ing.unit ? scaled.qty : scaled.qty * pieceGramsFor(ing.name);
+            const key = normalizeIngredientKey(ing.name, aggUnit);
             const category = categoryForIngredient(ing.name, ing.category);
             if (!aggregate[key]) {
               aggregate[key] = {
                 id: key,
                 name: ing.name,
                 category,
-                unit: ing.unit,
+                unit: aggUnit,
                 qty: 0,
                 price: 0,
                 sources: [],
@@ -212,7 +255,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
               };
             }
             if (adaptedNames.has(ing.name)) aggregate[key].adapted = true;
-            aggregate[key].qty += scaled.qty;
+            aggregate[key].qty += aggQty;
             aggregate[key].price += scaled.scaledPrice;
             aggregate[key].sources.push({
               day,
@@ -228,10 +271,10 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
               id: `${day}-${meal}-${groupId}-${rid}-${ing.id}`,
               name: ing.name,
               category: ing.category,
-              qty: scaled.qty,
-              unit: ing.unit,
+              qty: aggQty,
+              unit: aggUnit,
               price: scaled.scaledPrice,
-              displayQty: formatQty(scaled.qty, ing.unit),
+              displayQty: formatQty(aggQty, aggUnit),
               meal,
               group: group.label,
               recipeName: recipe.name,
@@ -243,6 +286,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
   }
 
   const pantryNormalized = pantryIngredients.map((p) => p.ingredientNormalized);
+  const pantryIngredientIds = pantryIngredients.map((p) => p.ingredientId ?? null);
   const items = Object.values(aggregate).map((it) => {
     const { qty: snappedQty, unit: snappedUnit } = snapToPackSize(it.name, it.unit, it.qty);
     return {
@@ -251,7 +295,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
       unit: snappedUnit,
       displayQty: formatQty(snappedQty, snappedUnit),
       price: Math.round(it.price * 100) / 100,
-      fromPantry: matchesPantry(it.name, pantryNormalized, it.adapted),
+      fromPantry: matchesPantry(it.name, pantryNormalized, it.adapted, pantryIngredientIds),
     };
   });
 

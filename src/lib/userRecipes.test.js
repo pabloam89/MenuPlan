@@ -4,6 +4,7 @@ import {
   isOwnCreatedRecipe,
   patchUserRecipeClassification,
 } from "./userRecipes.js";
+import { ingredientById } from "./ingredients.js";
 
 function mockAIResponse(payload) {
   vi.stubGlobal(
@@ -106,6 +107,137 @@ describe("generateUserRecipeDraft ingredients", () => {
     });
 
     expect(draft.ingredients).toEqual([{ name: "Sal", unit: "al gusto" }]);
+  });
+});
+
+// Bug real: "Merienda"/"Postre" (RecipePlanner.jsx, paso "¿Cuándo se sirve?")
+// no estaban en el enum de mealRole — se descartaban en silencio y marcar
+// esas casillas no guardaba nada.
+describe("generateUserRecipeDraft mealRole merienda/postre", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("acepta merienda y postre como mealRole válidos", async () => {
+    mockAIResponse({ ...VALID_DRAFT_FIELDS, mealRole: ["merienda", "postre"] });
+    const draft = await generateUserRecipeDraft({
+      name: "Macedonia de frutas",
+      baseServings: 4,
+      time: 10,
+      ingredients: [{ name: "Fruta variada", amount: 500, unit: "g" }],
+    });
+    expect(draft.mealRole).toEqual(["merienda", "postre"]);
+  });
+});
+
+// Fase 9: nutrición fiable. El catálogo real no tiene nutrición BEDCA
+// todavía, así que estos tests inyectan `nutrition` a mano sobre "ajo" (misma
+// técnica que ingredients.test.js: ingredientById devuelve la referencia
+// compartida que usa el resolver) y la restauran después.
+describe("generateUserRecipeDraft nutrición calculada (Fase 9)", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    ingredientById.ajo.nutrition = null;
+  });
+
+  it("sustituye los macros de la IA por el cálculo real cuando la cobertura es alta", async () => {
+    ingredientById.ajo.nutrition = {
+      kcal100g: 100, protein100g: 20, carbs100g: 10, fat100g: 5,
+      fiber100g: 2, sugar100g: 1, saturatedFat100g: 0.5, sodium100g: 50,
+    };
+    // 20 dientes × 5g/diente (PIECE_WEIGHTS) = 100g, cobertura total.
+    const ingredients = [{ name: "Ajo", amount: 20, unit: "diente" }];
+    mockAIResponse({ ...VALID_DRAFT_FIELDS, ingredients, kcal: 9999 });
+
+    const draft = await generateUserRecipeDraft({
+      name: "Receta de ajo",
+      baseServings: 4,
+      time: 15,
+      ingredients,
+    });
+
+    expect(draft.nutritionSource).toBe("computed");
+    // 100g de un ingrediente a 100kcal/100g = 100kcal totales / 4 raciones = 25.
+    expect(draft.kcal).toBeCloseTo(25, 0);
+    expect(draft.kcal).not.toBe(9999);
+    expect(draft.fiber_g).toBeCloseTo(0.5, 1);
+    // 50mg/100g × 100g / 4 raciones = 12.5, Math.round → 13.
+    expect(draft.sodium_mg).toBe(13);
+  });
+
+  it("deja la estimación de la IA intacta cuando la cobertura es baja (sin catálogo BEDCA para el ingrediente)", async () => {
+    // "ajo" se queda sin nutrición (afterEach ya lo limpió) — cobertura 0.
+    const ingredients = [{ name: "Ajo", amount: 20, unit: "diente" }];
+    mockAIResponse({ ...VALID_DRAFT_FIELDS, ingredients, kcal: 123 });
+
+    const draft = await generateUserRecipeDraft({
+      name: "Receta de ajo",
+      baseServings: 4,
+      time: 15,
+      ingredients,
+    });
+
+    expect(draft.nutritionSource).toBe("ai");
+    expect(draft.kcal).toBe(123);
+    expect(draft.fiber_g).toBeUndefined();
+  });
+});
+
+// Fase 6: canReceiveSauce/canBeGarnish, propuestos por la IA igual que
+// usageTags — sin gate ex-ante sobre si la clasificación "tiene sentido". La
+// única corrección que se aplica es de CONSISTENCIA INTERNA (dos campos de la
+// misma respuesta que se contradicen), nunca un juicio de gusto.
+describe("generateUserRecipeDraft canReceiveSauce/canBeGarnish", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const userIngredients = [{ name: "Merluza", amount: 200, unit: "g" }];
+
+  it("respeta canReceiveSauce:true cuando no hay contradicción con los pasos", async () => {
+    mockAIResponse({
+      ...VALID_DRAFT_FIELDS,
+      ingredients: userIngredients,
+      canReceiveSauce: true,
+      canBeGarnish: false,
+    });
+
+    const draft = await generateUserRecipeDraft({
+      name: "Merluza a la plancha",
+      baseServings: 4,
+      time: 15,
+      ingredients: userIngredients,
+    });
+
+    expect(draft.canReceiveSauce).toBe(true);
+    expect(draft.canBeGarnish).toBe(false);
+  });
+
+  // El caso que motivó la corrección: la propia receta etiqueta un paso como
+  // "ya hago mi salsa aparte" (part:"salsa") pero el modelo también dice que
+  // el plato necesita que le empareje OTRA salsa — contradicción interna, se
+  // corrige a false sin preguntar si la receta "tiene sentido".
+  it("fuerza canReceiveSauce a false si algún paso ya es part:salsa, aunque el modelo diga true", async () => {
+    mockAIResponse({
+      ...VALID_DRAFT_FIELDS,
+      ingredients: userIngredients,
+      canReceiveSauce: true,
+      steps: [
+        { text: "Picar el ajo y el perejil.", minutes: 3, kind: "prep", part: "salsa" },
+        { text: "Mezclar con aceite para el chimichurri.", minutes: 2, kind: "prep", part: "salsa" },
+        { text: "Hacer la merluza a la plancha.", minutes: 6, kind: "activo", part: "principal" },
+        { text: "Servir la merluza con el chimichurri por encima.", minutes: 1, kind: "emplatado", part: "combinado" },
+      ],
+    });
+
+    const draft = await generateUserRecipeDraft({
+      name: "Merluza con chimichurri",
+      baseServings: 4,
+      time: 15,
+      ingredients: userIngredients,
+    });
+
+    expect(draft.canReceiveSauce).toBe(false);
   });
 });
 

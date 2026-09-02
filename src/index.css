@@ -32,6 +32,15 @@ textarea::placeholder {
   opacity: 1;
 }
 
+/* El texto escrito tiene que seguir en 16px (ver la nota de arriba: por debajo,
+   iOS hace zoom al enfocar y ya no se sale). Lo que sí puede ir más pequeño es
+   la pista, que no se escribe: así el campo deja de parecer enorme sin
+   reintroducir el zoom. */
+.mp-field::placeholder {
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* Hides the native up/down spinner buttons on <input type="number">, used for
    compact numeric fields (e.g. ticket qty/price) where the arrows eat into an
    already-tight width and overlap the digits. */
@@ -137,6 +146,70 @@ textarea::placeholder {
   animation: mpNudge .62s cubic-bezier(.34,1.3,.64,1) .55s 2 backwards;
 }
 
+/* "Asomarse" al menú de alguien: la pantalla crece desde el avatar en vez de
+   deslizarse, para que se sienta como entrar dentro y no como abrir otra hoja
+   más. Corta y con rebote mínimo — es un vistazo, no una transición de gala. */
+@keyframes mpPeekIn {
+  from { opacity: 0; transform: scale(.90) translateY(14px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.mp-peek-in {
+  animation: mpPeekIn .26s cubic-bezier(.22,1.1,.36,1) both;
+}
+
+/* El cajon de perfil entra desde el borde derecho: viene de "fuera de la
+   pantalla", que es justo lo que es — un sitio al lado, no una pantalla nueva
+   que sustituye a la que estabas mirando. */
+@keyframes mpDrawerIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.mp-drawer-in {
+  animation: mpDrawerIn .34s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* El panel de notificaciones NACE de la campana: crece desde su esquina en
+   vez de subir desde abajo. Una hoja inferior diria "esto es una pantalla
+   nueva"; esto es un desplegable de lo que acabas de tocar, y el origen de la
+   escala es lo que lo cuenta sin una sola palabra. */
+@keyframes mpPopBell {
+  from { opacity: 0; transform: scale(.86) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.mp-pop-bell {
+  transform-origin: top right;
+  animation: mpPopBell .2s cubic-bezier(.22,1.1,.36,1) both;
+}
+
+/* Y la campana acusa el toque con un badazo minimo. Dos grados de giro: lo
+   justo para que el ojo la registre como el sitio del que sale el panel. */
+@keyframes mpBellRing {
+  0%, 100% { transform: rotate(0); }
+  25%      { transform: rotate(-13deg); }
+  55%      { transform: rotate(9deg); }
+  80%      { transform: rotate(-4deg); }
+}
+
+.mp-bell-ring {
+  animation: mpBellRing .5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Acordeon horizontal del feed: publicar y las pestañas se reparten una sola
+   fila. Se anima flex-basis (no width) porque los dos paneles compiten por el
+   mismo hueco: al crecer uno, el otro se pliega en el mismo gesto y no hay
+   salto entre ambos. La curva sale un pelin por encima al final, que es lo
+   que hace que se sienta un despliegue y no un cambio de tamaño. */
+.mp-hpanel {
+  overflow: hidden;
+  min-width: 0;
+  transition:
+    flex-grow .34s cubic-bezier(.22, 1, .36, 1),
+    opacity .2s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mp-overlay-in,
   .mp-sheet-up,
@@ -144,13 +217,26 @@ textarea::placeholder {
   .mp-nav-back,
   .mp-tab-fwd,
   .mp-tab-back,
-  .mp-toast-in {
+  .mp-toast-in,
+  .mp-peek-in,
+  .mp-drawer-in,
+  .mp-pop-bell {
     animation: mpFadeIn .12s ease both;
+  }
+
+  /* Sin movimiento no hay badazo: la campana se queda quieta. */
+  .mp-bell-ring {
+    animation: none;
   }
 
   /* Aquí no vale el fade de arriba: la pista es el movimiento, así que sin
      movimiento simplemente no hay pista. */
   .mp-nudge {
     animation: none;
+  }
+
+  /* Sin movimiento: el acordeon cambia de estado de golpe. */
+  .mp-hpanel {
+    transition: none;
   }
 }

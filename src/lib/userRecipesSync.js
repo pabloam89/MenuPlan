@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { uploadRecipePhoto, deleteRecipePhoto, isDataUrl } from "./recipePhotos.js";
 
 /**
  * Cloud persistence for user-created recipes (see user_recipes in
@@ -16,7 +17,7 @@ import { supabase } from "./supabase.js";
 const num = (v) => (v == null ? null : Number(v));
 
 /** Frontend recipe object → user_recipes row. */
-function recipeToRow(recipe, userId) {
+export function recipeToRow(recipe, userId) {
   return {
     id: recipe.id,
     owner_id: userId,
@@ -37,6 +38,14 @@ function recipeToRow(recipe, userId) {
     protein_g: num(recipe.protein_g),
     carbs_g: num(recipe.carbs_g),
     fat_g: num(recipe.fat_g),
+    // Fase 9 (0042_user_recipes_nutrition.sql): rellenos solo cuando
+    // computeRecipeNutrition (ingredients.js) los calculó de verdad — ver
+    // generateUserRecipeDraft, userRecipes.js.
+    fiber_g: num(recipe.fiber_g),
+    sugar_g: num(recipe.sugar_g),
+    saturated_fat_g: num(recipe.saturated_fat_g),
+    sodium_mg: num(recipe.sodium_mg),
+    nutrition_source: recipe.nutritionSource ?? null,
     base_servings: num(recipe.baseServings),
     kid_friendly: Boolean(recipe.kidFriendly),
     tupper_friendly: Boolean(recipe.tupperFriendly),
@@ -60,6 +69,10 @@ function recipeToRow(recipe, userId) {
     photo: recipe.photo ?? null,
     owner_snapshot: recipe.owner ?? null,
     visibility: recipe.visibility ?? "private",
+    // Atribución de copia (0027_social_feed.sql). Instantánea: la copia no
+    // se resincroniza con el original, esto solo sirve para firmar el "de @X".
+    copied_from_recipe_id: recipe.copiedFromRecipeId ?? null,
+    copied_from_owner_id: recipe.copiedFromOwnerId ?? null,
     created_at: recipe.createdAt
       ? new Date(recipe.createdAt).toISOString()
       : new Date().toISOString(),
@@ -87,6 +100,14 @@ export function rowToRecipe(row) {
     protein_g: num(row.protein_g),
     carbs_g: num(row.carbs_g),
     fat_g: num(row.fat_g),
+    // Fase 9: ausentes (undefined, no null) en una fila guardada antes de
+    // 0042_user_recipes_nutrition.sql — mismo criterio que montaje/apetecible
+    // arriba, para no confundir "no calculado nunca" con "cero real".
+    fiber_g: row.fiber_g != null ? num(row.fiber_g) : undefined,
+    sugar_g: row.sugar_g != null ? num(row.sugar_g) : undefined,
+    saturated_fat_g: row.saturated_fat_g != null ? num(row.saturated_fat_g) : undefined,
+    sodium_mg: row.sodium_mg != null ? num(row.sodium_mg) : undefined,
+    nutritionSource: row.nutrition_source ?? undefined,
     baseServings: row.base_servings,
     kidFriendly: Boolean(row.kid_friendly),
     tupperFriendly: Boolean(row.tupper_friendly),
@@ -106,6 +127,8 @@ export function rowToRecipe(row) {
     photo: row.photo ?? null,
     owner: row.owner_snapshot ?? null,
     visibility: row.visibility ?? "private",
+    copiedFromRecipeId: row.copied_from_recipe_id ?? undefined,
+    copiedFromOwnerId: row.copied_from_owner_id ?? undefined,
     createdAt: row.created_at ? Date.parse(row.created_at) : Date.now(),
     rating: { up: 0, down: 0, score: 0 },
     source: "user",
@@ -127,19 +150,53 @@ export async function loadUserRecipes(userId) {
   return (data ?? []).map(rowToRecipe);
 }
 
+/**
+ * Una receta ajena que este usuario puede leer: la RLS de user_recipes deja
+ * pasar las 'public' a cualquiera y las 'friends' a seguidores mutuos. Si no
+ * tienes permiso no da error, devuelve null — y el que copia se entera de
+ * que ya no está disponible, no de que existe.
+ */
+export async function loadPublicRecipe(recipeId) {
+  if (!supabase || !recipeId) return null;
+  const { data, error } = await supabase
+    .from("user_recipes")
+    .select("*")
+    .eq("id", recipeId)
+    .maybeSingle();
+  if (error) {
+    console.warn("[userRecipes] public load failed", error.message);
+    return null;
+  }
+  return data ? rowToRecipe(data) : null;
+}
+
 /** Inserts or updates a single recipe. */
 export async function upsertUserRecipe(userId, recipe) {
   if (!supabase || !userId || !recipe?.id) return;
+  // La foto va a Storage y en la fila queda su URL. Se hace aqui, en el unico
+  // sitio por el que pasan TODAS las escrituras, para que ninguna via -el
+  // asistente, una edicion, una copia del feed- pueda volver a incrustar dos
+  // megas de imagen dentro de la fila. Ver lib/recipePhotos.js.
+  const photo = await uploadRecipePhoto(userId, recipe.id, recipe.photo);
   const { error } = await supabase
     .from("user_recipes")
-    .upsert(recipeToRow(recipe, userId), { onConflict: "id" });
+    .upsert(recipeToRow({ ...recipe, photo }, userId), { onConflict: "id" });
   if (error) console.warn("[userRecipes] upsert failed", error.message);
+  return photo;
 }
 
 /** Backfills several local-only recipes to the cloud (first login on device). */
 export async function upsertUserRecipes(userId, recipes) {
   if (!supabase || !userId || !recipes?.length) return;
-  const rows = recipes.map((r) => recipeToRow(r, userId));
+  // De una en una y no en paralelo: cada foto son un par de megas y disparar
+  // diez subidas a la vez desde un movil es la mejor forma de que fallen.
+  const withPhotos = [];
+  for (const r of recipes) {
+    withPhotos.push(isDataUrl(r.photo)
+      ? { ...r, photo: await uploadRecipePhoto(userId, r.id, r.photo) }
+      : r);
+  }
+  const rows = withPhotos.map((r) => recipeToRow(r, userId));
   const { error } = await supabase
     .from("user_recipes")
     .upsert(rows, { onConflict: "id" });
@@ -159,6 +216,9 @@ export async function updateRecipeVisibility(userId, recipeId, visibility) {
 
 export async function deleteUserRecipe(userId, recipeId) {
   if (!supabase || !userId || !recipeId) return false;
+  // Primero el fichero: si se borra la fila y falla esto, la foto se queda
+  // para siempre en el cubo sin nadie que sepa a que receta pertenecia.
+  await deleteRecipePhoto(userId, recipeId);
   const { error } = await supabase
     .from("user_recipes")
     .delete()

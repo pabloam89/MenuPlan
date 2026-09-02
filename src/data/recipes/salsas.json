@@ -479,7 +479,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": false,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -1952,7 +1954,8 @@
     "tupperFriendly": true,
     "freezable": true,
     "allergens": [
-      "soja"
+      "soja",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -2165,7 +2168,8 @@
     "freezable": false,
     "allergens": [
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [

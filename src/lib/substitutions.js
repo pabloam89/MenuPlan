@@ -21,6 +21,7 @@
 
 import { INTOLERANCE_RULES } from "./intolerances.js";
 import { compileKeywordRegex, normalizeText } from "./recipeText.js";
+import { resolveIngredient, substitutionFor } from "./ingredients.js";
 
 /** Append a suffix once (idempotent): "Nata" + "sin lactosa" → "Nata sin lactosa". */
 function withSuffix(name, suffix) {
@@ -29,9 +30,17 @@ function withSuffix(name, suffix) {
   return `${name} ${suffix}`;
 }
 
-// Keyed by restriction id (must match a key in INTOLERANCE_RULES). Reusing the
-// same keyword list guarantees the set of recipes we can RESCUE here is exactly
-// the set the intolerance filter would otherwise EXCLUDE — they never drift.
+// Keyed by restriction id (must match a key in INTOLERANCE_RULES).
+//
+// `keywords` ya NO decide qué se sustituye — eso lo dice el catálogo de
+// ingredientes (ver planAdaptations). Se conserva porque sigue haciendo falta
+// para detectar el conflicto que vive solo en el NOMBRE del plato, donde no hay
+// ingrediente que resolver.
+//
+// `rename` sí sigue mandando en el texto: conserva la redacción de la receta y
+// le añade el sufijo ("Leche entera" → "Leche entera sin lactosa"). El catálogo
+// guarda el nombre canónico del producto ("Leche sin lactosa"), que sirve para
+// buscarlo en el súper pero perdería el matiz al pintarlo en la receta.
 export const SUBSTITUTION_RULES = {
   lactosa_fina: {
     // Short tag surfaced in the UI ("Adaptado: sin lactosa").
@@ -84,8 +93,24 @@ export function planAdaptations(recipe, restrictionIds) {
     let matchedIngredient = false;
     for (const ing of recipe?.ingredients ?? []) {
       if (!ing?.name) continue;
-      if (!re.test(normalizeText(ing.name))) continue;
+
+      // El choque lo dice el catálogo, no las palabras clave. Antes bastaba con
+      // que el nombre contuviera "leche" o "vino", y eso producía adaptaciones
+      // inventadas que llegaban al usuario: "Leche de coco sin lactosa" (no
+      // lleva lactosa), "Vinagre sin alcohol" (ya fermentó en ácido acético) o
+      // "Ron sin alcohol" (no es un producto de súper).
+      const ingredient = resolveIngredient(ing.name);
+      if (!ingredient?.conflictsWith?.includes(id)) continue;
       matchedIngredient = true;
+
+      // Choca pero no tiene recambio real (mozzarella sin lactosa, ron sin
+      // alcohol). Antes se renombraba igual y la receta se daba por adaptada;
+      // ahora se bloquea, que es la verdad: no se puede adaptar.
+      if (!substitutionFor(ing.name, id)) {
+        blocked = true;
+        continue;
+      }
+
       const to = rule.rename(ing.name);
       if (normalizeText(to) !== normalizeText(ing.name)) {
         swaps.push({ from: ing.name, to, restriction: id, label: rule.label });
@@ -94,12 +119,43 @@ export function planAdaptations(recipe, restrictionIds) {
 
     // Conflict lives only in the dish name (e.g. "Batido de leche" with no
     // itemized "leche") — we can't rename a phantom ingredient, so bail out.
+    // Aquí sí siguen mandando las palabras clave: no hay ingrediente que
+    // resolver, solo el título del plato.
     if (!matchedIngredient && re.test(normalizeText(recipe?.name))) {
       blocked = true;
     }
   }
 
   return { swaps, blocked };
+}
+
+/**
+ * ¿Puede alguien con esta restricción comerse este plato?
+ *
+ * Verdadero tanto si el plato ya cumple (no lleva nada que choque) como si lo
+ * que lleva se puede cambiar. Es la pregunta del FILTRO del explorador: "qué
+ * puedo comer", no "qué hay que tocar".
+ *
+ * @param {Object} recipe
+ * @param {string} restrictionId
+ */
+export function isCompatibleWith(recipe, restrictionId) {
+  if (!isAdaptableRestriction(restrictionId)) return false;
+  return !planAdaptations(recipe, [restrictionId]).blocked;
+}
+
+/**
+ * Los cambios concretos que haría falta hacer, o [] si el plato ya cumple tal
+ * cual. Es la pregunta del BADGE: sin esto, una ensalada sin lácteos luciría
+ * "sin lactosa" igual que una lasaña adaptada, y el distintivo dejaría de
+ * significar nada.
+ *
+ * @returns {Array<{from: string, to: string}>}
+ */
+export function adaptationsNeededFor(recipe, restrictionId) {
+  if (!isAdaptableRestriction(restrictionId)) return [];
+  const { swaps, blocked } = planAdaptations(recipe, [restrictionId]);
+  return blocked ? [] : swaps.map(({ from, to }) => ({ from, to }));
 }
 
 /**

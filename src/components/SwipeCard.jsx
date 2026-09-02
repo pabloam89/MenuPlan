@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import { Clock, Info } from "lucide-react";
+import { Clock, Info, ThumbsUp, ThumbsDown, CookingPot, MessageCircle } from "lucide-react";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { categoryColor, categoryLabel } from "../screens/CatalogBrowserSheet.jsx";
@@ -30,7 +30,186 @@ const reduceMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * La carta arrastrable del mazo de Inspíranos.
+ * El aspecto de una receta como cartel: foto a sangre, dificultad arriba a la
+ * izquierda, tiempo arriba a la derecha, y el nombre sobre un degradado.
+ *
+ * Vive separado del arrastre porque lo usan dos sitios con gestos distintos:
+ * el mazo de Inspírate (que lo arrastra) y el Feed (que lo apila en scroll).
+ * Si cada uno lo pintara por su lado, dos "mismas" cartas acabarían siendo
+ * distintas a la primera corrección de estilo.
+ *
+ * `children` se pinta encima, dentro del recorte: es donde el mazo mete sus
+ * sellos de ME GUSTA / NO / NI FU NI FA.
+ */
+export function RecipePoster({ recipe, onInfo, onOwner = null, showOwner = true, when = null, stats = null, style, children }) {
+  const photo = dishImageForRecipe(recipe);
+  const color = categoryColor(recipe.category);
+  const diffLabel = DIFFICULTY_LABEL[recipe.difficulty];
+  const time = formatTime(recipe.time);
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        borderRadius: 20,
+        overflow: "hidden",
+        background: `${color}14`,
+        ...style,
+      }}
+    >
+      {photo ? (
+        <img
+          src={deckImg(photo, 600)}
+          alt=""
+          draggable={false}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
+        />
+      ) : (
+        <div style={{ width: "100%", height: "100%", background: `${color}22` }} />
+      )}
+
+      <div
+        style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.25) 38%, rgba(0,0,0,0) 62%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Izquierda, apiladas: lo que la receta ES — cuánto cuesta hacerla y
+          cuánto tarda. Derecha: lo que la GENTE dice de ella. Dos columnas,
+          dos naturalezas, y ninguna pelea con el nombre de abajo. */}
+      <div style={{ ...cornerStack, top: 12, left: 12, alignItems: "flex-start" }}>
+        {diffLabel && (
+          <span style={{ ...cornerBadge, color: DIFFICULTY_COLOR[recipe.difficulty] ?? "#2d5a3d" }}>
+            {diffLabel}
+          </span>
+        )}
+        {time && (
+          <span style={{ ...cornerBadge, color: "#42594c", gap: 4 }}>
+            <Clock size={11} strokeWidth={2.6} /> {time}
+          </span>
+        )}
+      </div>
+
+      {stats && (
+        <div style={{ ...cornerStack, top: 12, right: 12, alignItems: "flex-end" }}>
+          <span style={{ ...cornerBadge, color: "#42594c", gap: 7 }}>
+            <span style={statPair}><ThumbsUp size={11} strokeWidth={2.6} /> {stats.likes ?? 0}</span>
+            <span style={statPair}><ThumbsDown size={11} strokeWidth={2.6} /> {stats.dislikes ?? 0}</span>
+          </span>
+          {/* Veces que alguien la ha cocinado de verdad. Cuesta más que un
+              aplauso, así que es la señal que más dice — de ahí el teal. */}
+          <span style={{ ...cornerBadge, color: "#0f766e", gap: 4 }}>
+            <CookingPot size={12} strokeWidth={2.6} /> {stats.used ?? 0}
+          </span>
+          {/* Debajo de las veces cocinada: los dos son "que ha pasado con esta
+              receta ahi fuera", frente a la columna izquierda, que es lo que
+              la receta es. */}
+          <span style={{ ...cornerBadge, color: "#42594c", gap: 4 }}>
+            <MessageCircle size={12} strokeWidth={2.6} /> {stats.comments ?? 0}
+          </span>
+        </div>
+      )}
+
+      {children}
+
+      {/* Hueco a la derecha para la ⓘ, para que el nombre no pase por debajo. */}
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "18px 50px 18px 18px", color: "#fff", pointerEvents: "none" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, opacity: .85, letterSpacing: ".4px", textTransform: "uppercase" }}>
+          {categoryLabel(recipe.category)}
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.2, marginTop: 4, textWrap: "balance" }}>
+          {recipe.name}
+        </div>
+        {/* De quién es la receta. Misma regla que la ficha grande (Menu.jsx):
+            sin `owner` es del catálogo, o sea HoMenu. Importa aquí porque el
+            mazo mezcla catálogo con recetas de otros. En el Feed se apaga
+            (`showOwner`) porque la línea de autor ya va encima de la tarjeta,
+            y con la hora al lado. */}
+        {showOwner && (
+          // Pulsable solo si hay a donde ir (en el mazo, el catalogo no tiene
+          // perfil). `pointerEvents: auto` porque el bloque de abajo los tiene
+          // apagados, y stopPropagation para que tocar el nombre no empiece un
+          // arrastre de la carta.
+          <div
+            {...(onOwner ? {
+              role: "button",
+              tabIndex: 0,
+              onPointerDown: (e) => e.stopPropagation(),
+              onPointerUp: (e) => e.stopPropagation(),
+              onClick: (e) => { e.stopPropagation(); onOwner(); },
+            } : {})}
+            style={{
+              display: "flex", alignItems: "center", gap: 7, marginTop: 10,
+              ...(onOwner ? { pointerEvents: "auto", cursor: "pointer", width: "fit-content" } : {}),
+            }}
+          >
+            {recipe.owner?.avatar ? (
+              <img
+                src={recipe.owner.avatar}
+                alt=""
+                style={{ width: 22, height: 22, borderRadius: 999, objectFit: "cover", flexShrink: 0 }}
+              />
+            ) : recipe.owner ? (
+              // Persona sin foto: inicial en un círculo. Antes caía en el logo
+              // de HoMenu, y eso firmaba como nuestra la receta de otro.
+              <span
+                style={{
+                  width: 22, height: 22, borderRadius: 999, flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(255,255,255,.28)", border: "1px solid rgba(255,255,255,.5)",
+                  fontSize: 11, fontWeight: 900,
+                }}
+              >
+                {String(recipe.owner.name ?? "?").replace(/^@/, "").charAt(0).toUpperCase()}
+              </span>
+            ) : (
+              <MenuPlanBadge size={22} />
+            )}
+            <span style={{ fontSize: 12.5, fontWeight: 700, opacity: .95 }}>
+              {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
+              {/* Cuándo se publicó: separado del autor por aire, no por un
+                  punto — dos datos distintos se separan con espacio, y la
+                  mayúscula inicial hace que se lea como dato propio y no como
+                  coletilla del nombre. */}
+              {when && (
+                <span style={{ fontWeight: 600, opacity: .75, marginLeft: 14 }}>
+                  {when.charAt(0).toUpperCase() + when.slice(1)}
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {onInfo && (
+        <button
+          type="button"
+          aria-label={`Ver la receta de ${recipe.name}`}
+          title="Ver la receta"
+          // El pointerdown no debe llegar a la carta: sin esto, tocar la ⓘ
+          // empieza un arrastre y el toque se interpreta como swipe corto.
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onInfo(); }}
+          style={{
+            position: "absolute", right: 12, bottom: 16,
+            padding: 4, border: "none", background: "transparent",
+            color: "#fff", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            filter: "drop-shadow(0 1px 3px rgba(0,0,0,.5))",
+          }}
+        >
+          <Info size={28} strokeWidth={2.2} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * La carta arrastrable del mazo de Inspírate.
  *  · derecha = me gusta · izquierda = no me gusta · abajo = ni fu ni fa
  *
  * Pointer Events (no `touch*`) para que valga igual con dedo y con ratón, y
@@ -80,11 +259,6 @@ export const SwipeCard = forwardRef(function SwipeCard({ recipe, onSwipe, onInfo
     else reset();
   };
 
-  const photo = dishImageForRecipe(recipe);
-  const color = categoryColor(recipe.category);
-  const diffLabel = DIFFICULTY_LABEL[recipe.difficulty];
-  const time = formatTime(recipe.time);
-
   const verticalDrag = Math.abs(drag.dy) > Math.abs(drag.dx);
   const dx = exiting === "like" ? 700 : exiting === "no" ? -700 : exiting ? 0 : drag.dx;
   // Arriba no hay salida, así que el arrastre se frena a un tercio para que se
@@ -105,8 +279,6 @@ export const SwipeCard = forwardRef(function SwipeCard({ recipe, onSwipe, onInfo
         position: "absolute",
         inset: 0,
         borderRadius: 20,
-        overflow: "hidden",
-        background: `${color}14`,
         boxShadow: "0 6px 24px rgba(0,0,0,.18)",
         transform: `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`,
         // Sin esto el scroll nativo del navegador compite con el arrastre en
@@ -118,96 +290,56 @@ export const SwipeCard = forwardRef(function SwipeCard({ recipe, onSwipe, onInfo
         userSelect: "none",
       }}
     >
-      {photo ? (
-        <img
-          src={deckImg(photo, 600)}
-          alt=""
-          draggable={false}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
-        />
-      ) : (
-        <div style={{ width: "100%", height: "100%", background: `${color}22` }} />
-      )}
-
-      <div
-        style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.25) 38%, rgba(0,0,0,0) 62%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {diffLabel && (
-        <span style={{ ...cornerBadge, top: 12, left: 12, color: DIFFICULTY_COLOR[recipe.difficulty] ?? "#2d5a3d" }}>
-          {diffLabel}
-        </span>
-      )}
-      {time && (
-        <span style={{ ...cornerBadge, top: 12, right: 12, color: "#42594c", gap: 4 }}>
-          <Clock size={11} strokeWidth={2.6} /> {time}
-        </span>
-      )}
-
-      <Stamp side="like" opacity={drag.dx > 0 ? stampX : 0} />
-      <Stamp side="no" opacity={drag.dx < 0 ? stampX : 0} />
-      <Stamp side="meh" opacity={stampMeh} />
-
-      {/* Hueco a la derecha para la ⓘ, para que el nombre no pase por debajo. */}
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "18px 50px 18px 18px", color: "#fff", pointerEvents: "none" }}>
-        <div style={{ fontSize: 12, fontWeight: 700, opacity: .85, letterSpacing: ".4px", textTransform: "uppercase" }}>
-          {categoryLabel(recipe.category)}
-        </div>
-        <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.2, marginTop: 4, textWrap: "balance" }}>
-          {recipe.name}
-        </div>
-        {/* De quién es la receta. Misma regla que la ficha grande (Menu.jsx):
-            sin `owner` es del catálogo, o sea MenuPlan. Importa aquí porque el
-            mazo es donde vas a mezclar catálogo con recetas de otros. */}
-        <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10 }}>
-          {recipe.owner?.avatar ? (
-            <img
-              src={recipe.owner.avatar}
-              alt=""
-              style={{ width: 22, height: 22, borderRadius: 999, objectFit: "cover", flexShrink: 0 }}
-            />
-          ) : (
-            <MenuPlanBadge size={22} />
-          )}
-          <span style={{ fontSize: 12.5, fontWeight: 700, opacity: .95 }}>
-            {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
-          </span>
-        </div>
-      </div>
-
-      {onInfo && (
-        <button
-          type="button"
-          aria-label={`Ver la receta de ${recipe.name}`}
-          title="Ver la receta"
-          // El pointerdown no debe llegar a la carta: sin esto, tocar la ⓘ
-          // empieza un arrastre y el toque se interpreta como swipe corto.
-          onPointerDown={(e) => e.stopPropagation()}
-          onPointerUp={(e) => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); onInfo(); }}
-          style={{
-            position: "absolute", right: 12, bottom: 16,
-            padding: 4, border: "none", background: "transparent",
-            color: "#fff", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            filter: "drop-shadow(0 1px 3px rgba(0,0,0,.5))",
-          }}
-        >
-          <Info size={28} strokeWidth={2.2} />
-        </button>
-      )}
+      <RecipePoster recipe={recipe} onInfo={onInfo} style={{ position: "absolute", inset: 0 }}>
+        <Stamp side="like" opacity={drag.dx > 0 ? stampX : 0} />
+        <Stamp side="no" opacity={drag.dx < 0 ? stampX : 0} />
+        <Stamp side="meh" opacity={stampMeh} />
+      </RecipePoster>
     </div>
   );
 });
 
+/**
+ * Los botones redondos de debajo del mazo. Viven aquí, con la carta, porque
+ * son la otra mitad del mismo gesto: cada uno dispara el mismo `swipe(dir)`
+ * que haría el dedo, y el arrastre nunca puede ser la única vía (ratón,
+ * accesibilidad).
+ */
+export function ActionButton({ label, color, size = 60, disabled, onClick, children, ...pointerProps }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      {...pointerProps}
+      style={{
+        width: size, height: size, borderRadius: "50%",
+        border: `2px solid ${disabled ? "#e0eae3" : color}`,
+        background: "#fff", color: disabled ? "#c2d2c8" : color,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: disabled ? "default" : "pointer",
+        boxShadow: disabled ? "none" : "0 3px 12px rgba(20,47,29,.14)",
+        transition: "transform .12s ease",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 // Dificultad (izquierda) y tiempo (derecha) comparten forma: son los dos
 // datos que se miran antes de decidir, así que pesan lo mismo.
-const cornerBadge = {
+const cornerStack = {
   position: "absolute",
+  display: "flex", flexDirection: "column", gap: 6,
+  pointerEvents: "none",
+};
+
+const statPair = { display: "inline-flex", alignItems: "center", gap: 3 };
+
+const cornerBadge = {
   display: "inline-flex", alignItems: "center",
   fontSize: 11, fontWeight: 800, letterSpacing: ".2px",
   padding: "4px 9px", borderRadius: 999,

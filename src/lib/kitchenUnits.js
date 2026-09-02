@@ -68,6 +68,10 @@ const PIECE_WEIGHTS = [
   [/pepino/, 200, "pepino", "pepinos"],
   [/patata grande/, 250, "patata grande", "patatas grandes"],
   [/patata/, 200, "patata", "patatas"],
+  // Piquillo ANTES que pimiento — misma convencion que cebolla morada arriba:
+  // gana la primera. Sin esta linea "Pimientos del piquillo" heredaba los 180 g
+  // del morron y una lata de 8 piquillos se convertia en 1,4 kg de pimiento.
+  [/piquillo/, 25, "piquillo", "piquillos"],
   [/pimiento/, 180, "pimiento", "pimientos"],
   [/boniato/, 200, "boniato", "boniatos"],
   [/remolacha/, 120, "remolacha", "remolachas"],
@@ -78,7 +82,7 @@ const PIECE_WEIGHTS = [
 // not by piece (minced, crushed, canned, grated, in a punnet…). Guards the
 // piece block so e.g. "tomate triturado" or "carne picada" never become counts.
 const SKIP_PIECE_RE =
-  /triturad|frito|cherry|rallad|conserva|desalad|en polvo|molid|picad|choricero|concentrad|\bsalsa\b|cocid|troced|guisar|entero|deshidratad/;
+  /triturad|frito|cherry|rallad|conserva|desalad|en polvo|molid|picad|choricero|concentrad|\bsalsa\b|cocid|troced|guisar|entero|deshidratad|vinagre/;
 
 // ── Block 3: dry-solid volume (grams) ──────────────────────────────
 // [regex, gramsPerTablespoon|null, gramsPerCup|null]
@@ -320,6 +324,67 @@ export function gramsPerPiece(name) {
  * @param {string} name  Ingredient name (for the piece-weight lookup).
  * @returns {number|null}
  */
+/**
+ * Grams for one recipe-ingredient line, across the FULL unit vocabulary a
+ * recipe can use (`INGREDIENT_UNITS`, userRecipes.js) — a superset of
+ * `convertStockAmount`'s g/kg/ml/l/ud domain, used by
+ * `computeRecipeNutrition` (Fase 9, ingredients.js) to turn a quantity into
+ * "how many grams of this went into the dish" before scaling a per-100g
+ * nutrition value. Reuses the SAME piece-weight/dry-volume tables `kitchenHint`
+ * already relies on, rather than tracking a second copy of this knowledge.
+ *
+ * `null` means "no safe conversion" (never invents one) — happens for:
+ *   - qualitative units (`al gusto`, `pizca`, `c/n`) — no numeric amount to
+ *     convert in the first place.
+ *   - `ud`/`diente` on an ingredient `gramsPerPiece` doesn't cover.
+ *   - `cucharada`/`cucharadita`/`taza` on an ingredient `DRY_VOLUME` doesn't
+ *     cover AND that isn't a plain liquid either (density unknown either way).
+ *
+ * Liquids (`ml`/`l`, and a spoon/cup measure of something NOT in `DRY_VOLUME`)
+ * assume ~1 g/ml — true for water/stock/most sauces, off for pure oil/fat by
+ * a small, accepted margin (same simplification `estimateRecipeCost` already
+ * makes for the shopping-price conversion).
+ *
+ * @param {string} name
+ * @param {number} qty
+ * @param {string} unit
+ * @returns {number|null}
+ */
+export function gramsForRecipeQuantity(name, qty, unit) {
+  if (typeof qty !== "number" || !Number.isFinite(qty) || qty < 0) return null;
+  const normalized = normalizeName(name);
+  switch (unit) {
+    case "g":
+      return qty;
+    case "kg":
+      return qty * 1000;
+    case "ml":
+      return qty;
+    case "l":
+      return qty * 1000;
+    case "ud":
+    case "diente": {
+      const gpp = gramsPerPiece(normalized);
+      return gpp != null ? qty * gpp : null;
+    }
+    case "cucharada":
+    case "cucharadita":
+    case "taza": {
+      for (const [regex, gPerTbsp, gPerCup] of DRY_VOLUME) {
+        if (!regex.test(normalized)) continue;
+        if (unit === "taza") return gPerCup != null ? qty * gPerCup : gPerTbsp != null ? qty * gPerTbsp * (ML_PER_CUP / ML_PER_TBSP) : null;
+        if (gPerTbsp == null) return null;
+        return unit === "cucharadita" ? qty * gPerTbsp * (ML_PER_TSP / ML_PER_TBSP) : qty * gPerTbsp;
+      }
+      // No entry in DRY_VOLUME: treat as a plain liquid (~1 g/ml).
+      const mlPerUnit = unit === "taza" ? ML_PER_CUP : unit === "cucharadita" ? ML_PER_TSP : ML_PER_TBSP;
+      return qty * mlPerUnit;
+    }
+    default:
+      return null;
+  }
+}
+
 export function convertStockAmount(qty, fromUnit, toUnit, name) {
   if (typeof qty !== "number" || !Number.isFinite(qty)) return null;
   if (fromUnit === toUnit) return qty;

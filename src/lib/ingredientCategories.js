@@ -75,7 +75,7 @@ export function qualitativeUnitLabel(unit) {
 
 // Already-singular words that happen to end in -s. Stripping the s would
 // turn "cuscús" into "cuscu" and break catalog keys.
-const INVARIANT_S_WORDS = new Set(["cuscus", "hummus", "anis"]);
+const INVARIANT_S_WORDS = new Set(["cuscus", "hummus", "anis", "boletus"]);
 
 // Consonant-ending singulars form the plural with -es (calamar→calamares,
 // pan→panes, col→coles, yogur→yogures, laurel→laureles, perejil→perejiles,
@@ -177,9 +177,25 @@ const SHOPPING_AISLE_HINTS = [
   // "pan rallado"/"panko" are breadcrumbs — all belong in Panadería. Runs before
   // every other group so those specific breads never get mis-shelved.
   [
-    /pan de hamburguesa|pan de perrito|pan de hot ?dog|pan de molde|pan de pita|pan de leche|pan rallado|panko|panecillo|bollo de pan|chapata|ciabatta|baguette|hogaza|focaccia|brioche|croissant|naan|mollete|telera|bagel|biscote|candeal|payes|pan rustico|pan gallego|pan arabe|pan de viena|pan de cereal|pan de masa madre|colines|\bpicos\b/,
+    // `\bpan\b` va el primero porque el ingrediente más usado de este grupo se
+    // llama literalmente "Pan" (69 recetas) y NINGUNA alternativa lo cogía: la
+    // lista de abajo enumera panes compuestos y la genérica de más abajo exige
+    // "pan " con espacio detrás. Caía al default "Verduras", que además lo
+    // marcaba como perecedero vía isPerishableAisle.
+    /\bpan\b|pan de hamburguesa|pan de perrito|pan de hot ?dog|pan de molde|pan de pita|pan de leche|pan rallado|panko|panecillo|bollo de pan|chapata|ciabatta|baguette|hogaza|focaccia|brioche|croissant|naan|mollete|telera|bagel|biscote|candeal|payes|pan rustico|pan gallego|pan arabe|pan de viena|pan de cereal|pan de masa madre|colines|\bpicos\b|muffin/,
     "Panadería",
   ],
+  // Masas, obleas y bollería industrial: mismo pasillo, y también caían a
+  // "Verduras" por no estar en ninguna lista.
+  [
+    /hojaldre|vol-?au-?vent|masa quebrada|masa de pizza|masa brisa|\boblea|empanadilla|galleta|soletilla|bizcocho|magdalena|granola|tortita|\bcrepe|gofre|nachos|tortillas? de (trigo|maiz)/,
+    "Panadería",
+  ],
+  // Salsas y fondos embotellados, antes de que los grupos de fresco los
+  // reclamen por su ingrediente base: "Vinagre de arroz" caía en Pasta y arroz,
+  // "Pesto de albahaca" en Especias y "Caldo de pescado" en Pescado, que
+  // además es perecedero — un brik de caldo no va a la nevera.
+  [/\bvinagre\b|\bpesto\b|\bcaldo\b|\bfumet\b|tomate frito|salsa de (tomate|pescado)/, "Aceites y conservas"],
   [
     // `\b`-bounded for "pera"/"mora"/"pina": all three are also short
     // mid-word fragments of very common, very much NOT fruit ingredients —
@@ -187,20 +203,23 @@ const SHOPPING_AISLE_HINTS = [
     // (spinach) — all three used to silently resolve to "Frutas" because
     // this group is checked before Pescado/the Verduras default even runs,
     // and a bare substring match doesn't care where in the word it hits.
-    /manzana|platano|naranja|limon|lima|\bperas?\b|melon|sandia|fresa|frambuesa|\bmoras?\b|cerez|arandano|uvas|mandarina|kiwi|mango|\bpinas?\b|granada|ciruela|melocoton|albaricoque|higo|chirimoya|pitaya|papaya|maracuya|lichi|caqui|nispero/,
+    /manzana|platano|naranja|limon|lima|\bperas?\b|melon|sandia|fresa|frambuesa|\bmoras?\b|cerez|arandano|uvas(?! pasas)|mandarina|kiwi|mango|\bpinas?\b|granada|ciruela|melocoton|albaricoque|higo|chirimoya|pitaya|papaya|maracuya|lichi|caqui|nispero|pomelo|frutos rojos|\bacai\b/,
     "Frutas",
   ],
   // Pescado antes que Carne: "lomos de salmón" contiene "lomo" (Carne) y
   // "salmón" (Pescado); la primera coincidencia gana, así que el pez va primero.
   [
-    /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo|rosada|bonito|berberecho|chirla|navaja|coquina|rodaja|ventresca|cogote|suprema|pescadilla|gallo|panga|perca|tilapia|\bmero\b|congrio|raya|chipiron|chopito|vieira|zamburi|carabinero|cigala|necora|centoll|bogavante|cangrejo|buey de mar|surimi|jurel|salmonete|cazon|abadejo|halibut|corvina|palometa|pez espada|marisco/,
+    /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo|rosada|bonito|berberecho|chirla|navaja|coquina|ventresca|cogote|suprema|pescadilla|gallo|panga|perca|tilapia|\bmero\b|congrio|raya|chipiron|chopito|vieira|zamburi|carabinero|cigala|necora|centoll|bogavante|cangrejo|buey de mar|surimi|jurel|salmonete|cazon|abadejo|halibut|corvina|palometa|pez espada|marisco|cabracho|txangurro/,
     "Pescado",
   ],
   [
-    /pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|beicon|panceta|tocino|cordero|solomillo|chuleta|chuleton|morcilla|picada|costilla|entrecot|hamburgues|albondig|butifarra|fuet|mortadela|fiambre|entrana|entraña|aguja|secreto|presa|pluma|carrillera|morcillo|jarrete|osobuco|redondo|cadera|babilla|espaldilla|contramuslo|muslo|pechuga|magro|escalop|filete|conejo|pato|codorniz|higado|churrasco|villagodio|lacon|manitas/,
+    /pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|beicon|panceta|tocino|cordero|solomillo|chuleta|chuleton|morcilla|picada|costilla|entrecot|hamburgues|albondig|butifarra|fuet|mortadela|fiambre|sobrasada|cecina|entrana|entraña|aguja|secreto|presa|pluma|carrillera|morcillo|jarrete|osobuco|redondo|cadera|babilla|espaldilla|contramuslo|muslo|pechuga|magro|escalop|filete|conejo|pato|codorniz|higado|churrasco|villagodio|lacon|manitas|rabo de toro|carrillada|guanciale|cochinillo|perdiz|jabali|venado|ciervo|pichon|\bfoie\b|\bpate\b|\bunto\b/,
     "Carne",
   ],
-  [/lentej|garbanz|alubi|judia verde|habas|soja|tofu|judion|judias? pintas?|garrofon|fabes/, "Legumbres"],
+  // "judia verde" NO va aquí: la judía verde es verdura fresca, no legumbre
+  // seca, y el propio test de este grupo dice "distinct from fresh green
+  // beans". Estaba mandando las judías verdes al pasillo de las alubias.
+  [/lentej|garbanz|alubi|habas|soja|tofu|judion|judias? pintas?|garrofon|fabes|frijol|edamame|falafel|judias? (blanca|negra|roja)/, "Legumbres"],
   // "lasaña" (with ñ) never actually matched anything: `normalizeName` runs
   // NFD + strips combining marks, which turns "ñ" into a plain "n" ("lasaña"
   // -> "lasana") before this regex ever sees it — dead alternative, silently
@@ -209,21 +228,46 @@ const SHOPPING_AISLE_HINTS = [
   // raviolis) added to the ingredient dictionary in the receipt-matching
   // pass but never wired into this separate aisle list.
   [
-    /pasta|espagueti|macarron|fideo|arroz|cuscus|quinoa|noodle|lasan|fusilli|penne|tallarin|tirabuzon|lacito|canelon|raviol|tortellini/,
+    /pasta|espagueti|macarron|fideo|arroz|cuscus|quinoa|noodle|lasan|fusilli|penne|tallarin|tirabuzon|lacito|canelon|cannelon|raviol|tortellini|tagliatelle|fettuccine|linguine|pappardelle|rigatoni|farfalle|orecchiette|trofie|\borzo\b|bucatini|conchiglie|casarecce|noqui|gnocchi|semola|bulgur/,
     "Pasta y arroz",
   ],
   [
-    /leche|nata|queso|yogur|mantequilla|requeson|mozzarella|parmesano|cuajada|quesito|roquefort|camembert|\bbrie\b|gorgonzola|cabrales|manchego|idiazabal|mahon|tetilla|feta|ricotta|mascarpone|burrata|gruyere|emmental|cheddar|gouda|\bedam\b|provolone|halloumi|pecorino|comte|havarti|scamorza|stilton|taleggio|fontina|raclette|roncal|zamorano|valdeon|arzua|grana padano/,
+    /leche|nata|queso|yogur|mantequilla|requeson|mozzarella|parmesano|cuajada|quesito|roquefort|camembert|\bbrie\b|gorgonzola|cabrales|manchego|idiazabal|mahon|tetilla|feta|ricotta|mascarpone|burrata|gruyere|emmental|cheddar|gouda|\bedam\b|provolone|halloumi|pecorino|comte|havarti|scamorza|stilton|taleggio|fontina|raclette|roncal|zamorano|valdeon|arzua|grana padano|kefir/,
     "Lácteos",
   ],
   [/huevo/, "Huevos"],
-  [/pan |harina|avena|cereales|tostada|boller|pan rallado|panko/, "Panadería"],
+  // "tostada" a secas mandaba "Almendra tostada" y "Avellana tostada" a
+  // Panadería. Como pan solo aparece en el catálogo como "Pan tostado", el
+  // token exige el contexto — mismo arreglo que en la tabla de alérgenos.
+  [/pan |harina|avena|cereales|pan tostado|boller|pan rallado|panko/, "Panadería"],
   [
-    /ajo en polvo|cebolla en polvo|ajo granulado|guindilla|perejil|eneldo|albahaca|romero|tomillo|oregano|cilantro|curry|curcuma|pimenton|comino|laurel|menta|hierbabuena|estrag|salvia|nuez moscada|canela|jengibre|anis|hinojo|especias|chile|pimienta|azafran|vainilla|guindillas|alcaparra|cebollino|mejorana|estragón/,
+    // Las semillas de sésamo van aquí, pero el ACEITE de sésamo no: este grupo
+    // se evalúa antes que "Aceites y conservas", así que el patrón exige que
+    // "sésamo" venga con su calificativo de semilla, nunca a secas.
+    /ajo en polvo|cebolla en polvo|ajo granulado|guindilla|perejil|eneldo|albahaca|romero|tomillo|oregano|cilantro|curry|curcuma|pimenton|comino|laurel|menta|hierbabuena|estrag|salvia|nuez moscada|canela|jengibre|anis|hinojo|especias|chile|pimienta|azafran|vainilla|guindillas|alcaparra|cebollino|mejorana|estragón|semillas? de sesamo|sesamo (tostado|blanco|negro|crudo)|gomasio|\bnora\b|aji amarillo|wasabi|cayena|pimiento choricero/,
     "Especias",
   ],
   [
     /aceite|vinagre|sal|caldo|azucar|vino|tomate triturado|pasta de tomate|concentrado de tomate|miel|mostaza|mayonesa|ketchup|salsa|soja|levadura|maicena|almendra|nuez|aceituna|oliva|conserva|tahini|bechamel|besamel|alioli|allioli|holandesa|romesco|chimichurri|pesto|roux/,
+    "Aceites y conservas",
+  ],
+  // Resto de despensa que no encaja en ningún pasillo fresco. Sin esta regla
+  // todo esto caía al default "Verduras" y viajaba a la nevera: frutos secos en
+  // plural ("nueces" no contiene "nuez"), bebidas alcohólicas, repostería,
+  // encurtidos, algas y condimentos asiáticos.
+  [
+    /\bnueces\b|\bpinones?\b|castana|pistacho|anacardo|avellana|cacahuete|\bpipas\b|semillas? de (girasol|calabaza|chia|lino|amapola)/,
+    "Aceites y conservas",
+  ],
+  [
+    /\bbrandy\b|\bcona?c\b|\bron\b|whisky|vodka|ginebra|\blicor\b|\bcava\b|champan|cerveza|\bsidra\b|\bjerez\b|pedro ximenez|\bvermut\b|\bmarsala\b|\bmirin\b|\bsake\b|cointreau/,
+    "Aceites y conservas",
+  ],
+  [
+    // Los desecados (pasas, orejones, dátiles) van a despensa, no a Frutas: en
+    // Frutas isPerishableAisle los mandaría a la nevera. Por eso el grupo de
+    // Frutas lleva `uvas(?! pasas)`, para no cazarlos antes de llegar aquí.
+    /chocolate|\bcacao\b|sirope|mermelada|gelatina|bicarbonato|\bcafe\b|\bagua\b|leche condensada|pepinillo|piquillo|\btrufa\b|gazpacho|\bmiso\b|\balga\b|\bnori\b|wakame|coco rallado|tabasco|sriracha|harissa|gochujang|encurtido|\bpasas?\b|orejones?|\bdatiles?\b|fruta desecada/,
     "Aceites y conservas",
   ],
 ];

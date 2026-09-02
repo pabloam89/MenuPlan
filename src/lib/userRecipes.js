@@ -4,6 +4,7 @@ import { callModel, extractJson, AIPlannerError, ICON_TYPE_MAP, CATEGORY_ICON } 
 import { FAST_MODEL } from "./aiModels.js";
 import { EU_ALLERGENS } from "./allergens.js";
 import { normalizeRichSteps, richToPlainSteps } from "./recipeSteps.js";
+import { computeRecipeNutrition } from "./ingredients.js";
 import { StepRichSchema, isMontaje } from "../data/recipeSchema.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { lowerFirst } from "./dishNaming.js";
@@ -186,6 +187,12 @@ export const USER_RECIPE_MEAL_ROLES = [
   { id: "segundo", label: "Segundo" },
   { id: "plato_unico", label: "Plato único" },
   { id: "cena", label: "Cena" },
+  // "Merienda"/"Postre" del asistente (RecipePlanner.jsx, paso "¿Cuándo se
+  // sirve?") vivían fuera de esta lista — se descartaban en silencio en
+  // normalizeMealRole() y el enum de abajo, así que marcarlas no guardaba
+  // nada. Ya existen en MEAL_ROLES del catálogo curado (recipeSchema.js).
+  { id: "merienda", label: "Merienda" },
+  { id: "postre", label: "Postre" },
 ];
 
 // How a recipe can be used at the table — proposed by the AI at the review
@@ -664,11 +671,18 @@ export const UserRecipeDraftSchema = z.object({
     "pollo", "pavo", "cerdo", "ternera", "pescado_blanco", "pescado_azul",
     "marisco", "huevo", "legumbre", "none",
   ]),
-  mealRole: z.array(z.enum(["primero", "segundo", "plato_unico", "cena", "guarnicion"])).min(1),
+  mealRole: z.array(z.enum(["primero", "segundo", "plato_unico", "cena", "guarnicion", "merienda", "postre"])).min(1),
   // How the dish can be served — multi-select. `type` (below) is derived from
   // this and kept in sync for backward compatibility with the rest of the app.
   usageTags: z.array(z.enum(["plato_unico", "plato_normal", "guarnicion"])).min(1),
   type: z.enum(["completo", "principal", "guarnicion"]),
+  // Fase 6: mismo criterio y mismo patrón que usageTags — propuesto por la IA
+  // mirando la receta, nunca preguntado al usuario. No es un juicio ex-ante
+  // sobre si la clasificación "tiene sentido": si sale mal, se corrige como
+  // cualquier otro eje propuesto por IA (votos, revisión del propio usuario).
+  // Ver recipeSchema.js para el criterio curado del que se copian.
+  canReceiveSauce: z.boolean().optional(),
+  canBeGarnish: z.boolean().optional(),
   // Coerced: fast/cheap models occasionally quote numbers ("30" instead of 30)
   // — tolerate that instead of failing the whole draft over formatting.
   time: z.coerce.number().positive(),
@@ -677,6 +691,16 @@ export const UserRecipeDraftSchema = z.object({
   protein_g: z.coerce.number().nonnegative(),
   carbs_g: z.coerce.number().nonnegative(),
   fat_g: z.coerce.number().nonnegative(),
+  // Fase 9: rellenos solo cuando computeRecipeNutrition (ingredients.js)
+  // pudo calcularlos de verdad — nunca por la IA (el prompt no los pide,
+  // ver api/_prompts.js). `nutritionSource` dice de dónde salen los 4 macros
+  // de arriba: "computed" si se sustituyeron por el cálculo real, "ai" si se
+  // quedaron tal cual los propuso el modelo (cobertura insuficiente).
+  fiber_g: z.coerce.number().nonnegative().optional(),
+  sugar_g: z.coerce.number().nonnegative().optional(),
+  saturated_fat_g: z.coerce.number().nonnegative().optional(),
+  sodium_mg: z.coerce.number().nonnegative().optional(),
+  nutritionSource: z.enum(["computed", "ai"]).optional(),
   baseServings: z.coerce.number().positive(),
   kidFriendly: z.boolean(),
   tupperFriendly: z.boolean(),
@@ -722,6 +746,10 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
       ...(isQualitativeUnit(i.unit) ? {} : { amount: Number(i.amount) || 0 }),
     })),
     allergens: input.allergens?.length ? input.allergens : undefined,
+    // Electrodoméstico elegido en el paso "¿Cómo se prepara?" — para que los
+    // pasos generados lo tengan en cuenta (ver regla en api/_prompts.js) en
+    // vez de dar por hecho fuego/sartén tradicional.
+    appliance: input.requiredAppliances?.[0] || undefined,
     preparationNotes: input.preparationNotes || undefined,
   };
 
@@ -775,6 +803,32 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
     // trusting the echo, so this entire failure mode can't happen.
     parsed.ingredients = userPayload.ingredients;
 
+    // Fase 9: nutrición fiable. Los macros de arriba (kcal/protein_g/carbs_g/
+    // fat_g) son estimación de la IA, sin validar contra nada (ver el prompt
+    // en api/_prompts.js: una frase, sin cálculo real detrás). Si el catálogo
+    // canónico cubre suficiente peso de la receta (>= 70%), se sustituyen por
+    // el cálculo real a partir de los ingredientes — y de paso se rellenan
+    // fibra/azúcares/grasas sat./sodio, que la IA nunca ha devuelto porque el
+    // prompt no se los pide. Por debajo del umbral, se deja la estimación de
+    // la IA tal cual (comportamiento de siempre, cero regresión) — el
+    // catálogo (379 ingredientes) nunca va a cubrir el 100% de lo que
+    // alguien escribe a mano.
+    const NUTRITION_COVERAGE_THRESHOLD = 0.7;
+    const computed = computeRecipeNutrition({ ingredients: parsed.ingredients }, Number(parsed.baseServings));
+    if (computed && computed.coverage >= NUTRITION_COVERAGE_THRESHOLD) {
+      parsed.kcal = computed.kcal;
+      parsed.protein_g = computed.protein_g;
+      parsed.carbs_g = computed.carbs_g;
+      parsed.fat_g = computed.fat_g;
+      if (computed.fiber_g != null) parsed.fiber_g = computed.fiber_g;
+      if (computed.sugar_g != null) parsed.sugar_g = computed.sugar_g;
+      if (computed.saturated_fat_g != null) parsed.saturated_fat_g = computed.saturated_fat_g;
+      if (computed.sodium_mg != null) parsed.sodium_mg = computed.sodium_mg;
+      parsed.nutritionSource = "computed";
+    } else {
+      parsed.nutritionSource = "ai";
+    }
+
     // El modelo devuelve `steps` como objetos enriquecidos; normalizarlos aquí
     // (tolera también un array de strings, que es a lo que cae un modelo rápido
     // cuando se despista) y derivar de ahí los `steps` planos, que siguen
@@ -786,6 +840,16 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
     if (rich.length > 0) {
       parsed.steps = richToPlainSteps(rich);
       parsed.stepsRich = rich.some((s) => s.kind || s.minutes) ? rich : undefined;
+    }
+
+    // Corrección de CONSISTENCIA INTERNA, no de gusto: si la propia receta
+    // etiquetó un paso "part":"salsa" (un hecho estructural sobre sus propios
+    // pasos), no puede a la vez pedir que le empareje otra salsa — son dos
+    // afirmaciones de la misma respuesta que se contradicen. No es un juicio
+    // sobre si la clasificación general "tiene sentido"; eso queda para la
+    // comunidad (votos) como con cualquier otro eje propuesto por IA.
+    if (parsed.canReceiveSauce && rich.some((s) => s.part === "salsa")) {
+      parsed.canReceiveSauce = false;
     }
   }
 

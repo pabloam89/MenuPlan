@@ -71,7 +71,15 @@ export function intentsForRecipe(recipe, intentIds, eaters) {
  *    único límite de tiempo que importa es el que impone "cena rápida".
  * `cookLevel` sí se respeta: es lo que el usuario ha declarado saber cocinar.
  */
-export function eligibleCatalogPool(data, { excludeIds } = {}) {
+/**
+ * `extraRecipes` entra por el mismo sitio que las recetas propias en
+ * filterRecipes: es lo que permite meter en el mazo las recetas públicas de
+ * otra gente. Importante que sea por ahí y no concatenando después — así
+ * pasan por las MISMAS reglas duras (alergias, intolerancias, alcohol con
+ * niños, aislamiento de bebés). Una receta de un desconocido no puede
+ * saltarse el filtro de alergias por venir de fuera del catálogo.
+ */
+export function eligibleCatalogPool(data, { excludeIds, extraRecipes = [] } = {}) {
   const members = data?.members ?? [];
   // Lo descartado no vuelve al mazo: ni lo que se rechazó desde el menú ni lo
   // que se descartó aquí mismo (🚫 permanente, 😐 con enfriamiento). Se lee de
@@ -99,6 +107,7 @@ export function eligibleCatalogPool(data, { excludeIds } = {}) {
       new Set([...(data?.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])]),
     ),
     excludeIds: blocked,
+    extraRecipes,
     kitchenTools: [...(data?.kitchenTools ?? []), ...(data?.customKitchenTools ?? [])],
     cookLevel: data?.cookLevel ?? "normal",
     hasKids: false,
@@ -128,4 +137,35 @@ export function buildInspireDeck(pool, intentIds, eaters) {
     intentIds.some((id) => matchesIntent(r, id, eaters)),
   );
   return shuffle(matching);
+}
+
+// ── Recetas de otra gente dentro del mazo ───────────────────────────────────
+//
+// Cinco recetas de gente contra 361 de catálogo: con una baraja uniforme no
+// las vería nadie. Se suben a las primeras posiciones — lo que ha cocinado
+// alguien a quien sigues interesa más que el plato número 200 del catálogo.
+export const SOCIAL_WINDOW = 12;
+
+/** Reparte `cards` por posiciones al azar de la ventana que arranca en `from`. */
+export function spliceUpcoming(deck, from, cards, window = SOCIAL_WINDOW) {
+  const out = [...deck];
+  for (const card of cards ?? []) {
+    const start = Math.min(Math.max(0, from), out.length);
+    const span = Math.min(window, Math.max(1, out.length - start));
+    out.splice(start + Math.floor(Math.random() * span), 0, card);
+  }
+  return out;
+}
+
+/**
+ * Saca del mazo las cartas de `social` y las vuelve a meter arriba. No añade
+ * nada que no estuviera ya: si una receta social no pasó el filtro de
+ * seguridad no está en `deck`, y aquí no se cuela por la puerta de atrás.
+ */
+export function promoteSocial(deck, social, window = SOCIAL_WINDOW) {
+  if (!social?.length || !deck?.length) return deck ?? [];
+  const socialIds = new Set(social.map((r) => r.id));
+  const mine = deck.filter((r) => socialIds.has(r.id));
+  if (mine.length === 0) return deck;
+  return spliceUpcoming(deck.filter((r) => !socialIds.has(r.id)), 0, mine, window);
 }

@@ -72,6 +72,27 @@ describe("buildShoppingList pantry discount (Phase 6)", () => {
     const pantryNames = sh.pantryItems.map((it) => it.name);
     expect(pantryNames).toEqual(["Cebolla"]);
   });
+
+  // Fase 8: match exacto por id canónico, además del solape de palabras.
+  // "Fabes de la granja secas" / "Judiones" son alias reales del mismo
+  // ingrediente (alubia-grande) sin ninguna palabra en común — el
+  // word-overlap por sí solo no los cruzaría.
+  it("discounts via ingredientId when the pantry name shares no words with the recipe's", () => {
+    registerRecipes([
+      {
+        id: "test_shopping_exact_id",
+        name: "Fabada",
+        servings: 2,
+        ingredients: [
+          { id: "fabes", name: "Fabes de la granja secas", category: "Legumbres", qty: 400, unit: "g" },
+        ],
+      },
+    ]);
+    const plan = planWith("Lun", "Comida", "test_shopping_exact_id");
+    const pantry = [{ ingredientName: "Judiones", ingredientNormalized: "judiones", ingredientId: "alubia-grande" }];
+    const sh = buildShoppingList(plan, GROUPS, ["Comida"], pantry);
+    expect(sh.pantryItems.map((it) => it.name)).toContain("Fabes de la granja secas");
+  });
 });
 
 describe("buildShoppingList adapted-ingredient flag", () => {
@@ -197,6 +218,86 @@ describe("buildShoppingList aggregation across recipes (Fase 5 audit)", () => {
       expect(Number.isInteger(it.qty)).toBe(true);
       expect(it.qty).toBeGreaterThanOrEqual(1);
     }
+  });
+});
+
+describe("buildShoppingList: mismo ingrediente en dos unidades", () => {
+  // El catalogo declara 40 ingredientes en dos unidades a la vez, porque una
+  // receta pide "1 aguacate" y otra "150 g de aguacate". Antes la clave de
+  // agrupacion llevaba la unidad, asi que cada uno salia DOS veces en la
+  // lista de la compra (bug reportado en produccion: "Aguacate" repetido).
+  it("funde 'ud' y 'g' del mismo ingrediente en una sola linea", () => {
+    registerRecipes([
+      {
+        id: "test_dualunit_ud",
+        name: "Tostada de aguacate",
+        servings: 2,
+        ingredients: [{ id: "aguacate", name: "Aguacate", category: "Verduras y frutas", qty: 2, unit: "ud" }],
+      },
+      {
+        id: "test_dualunit_g",
+        name: "Ensalada de aguacate",
+        servings: 2,
+        ingredients: [{ id: "aguacate", name: "Aguacate", category: "Verduras y frutas", qty: 225, unit: "g" }],
+      },
+    ]);
+    const plan = {
+      g1: {
+        "Lun-Comida": { recipeId: "test_dualunit_ud", firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+        "Mar-Comida": { recipeId: "test_dualunit_g", firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+      },
+    };
+    const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
+    const aguacates = sh.byCategory.flatMap((c) => c.items).filter((it) => it.name === "Aguacate");
+    expect(aguacates.length).toBe(1);
+    // 2 piezas (200 g cada una) + 225 g = 625 g, ni una mitad perdida.
+    expect(aguacates[0].qty).toBe(625);
+  });
+
+  it("deja las dos lineas separadas cuando no hay conversion conocida", () => {
+    // Sin gramos por pieza no se puede fusionar sin inventarse un factor.
+    // Dos lineas visibles es mejor que una linea con un numero falso.
+    registerRecipes([
+      {
+        id: "test_nogpp_ud",
+        name: "Receta con alga en pieza",
+        servings: 2,
+        ingredients: [{ id: "alga", name: "Alga kombu", category: "Verduras y frutas", qty: 4, unit: "ud" }],
+      },
+      {
+        id: "test_nogpp_g",
+        name: "Receta con alga al peso",
+        servings: 2,
+        ingredients: [{ id: "alga", name: "Alga kombu", category: "Verduras y frutas", qty: 300, unit: "g" }],
+      },
+    ]);
+    const plan = {
+      g1: {
+        "Lun-Comida": { recipeId: "test_nogpp_ud", firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+        "Mar-Comida": { recipeId: "test_nogpp_g", firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+      },
+    };
+    const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
+    const algas = sh.byCategory.flatMap((c) => c.items).filter((it) => it.name === "Alga kombu");
+    expect(algas.length).toBe(2);
+  });
+
+  it("no depende del orden en que se recorra el menu", () => {
+    // La unidad base sale solo del nombre. Si saliera de "la primera que
+    // aparezca", el mismo menu daria filas distintas segun el dia que se
+    // colocara antes -exactamente el tipo de inestabilidad que ya nos mordio
+    // en los valores por defecto del wizard.
+    const mk = (first, second) => ({
+      g1: {
+        "Lun-Comida": { recipeId: first, firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+        "Mar-Comida": { recipeId: second, firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+      },
+    });
+    const a = buildShoppingList(mk("test_dualunit_ud", "test_dualunit_g"), GROUPS, ["Comida"]);
+    const b = buildShoppingList(mk("test_dualunit_g", "test_dualunit_ud"), GROUPS, ["Comida"]);
+    const pick = (sh) =>
+      sh.byCategory.flatMap((c) => c.items).filter((it) => it.name === "Aguacate").map((it) => `${it.qty}${it.unit}`);
+    expect(pick(a)).toEqual(pick(b));
   });
 });
 
@@ -373,5 +474,32 @@ describe("findMatchingPantryItem", () => {
         { id: "1", ingredientNormalized: "tomate", qty: 1, unit: "ud" },
       ]),
     ).toBeNull();
+  });
+
+  // Fase 8: match exacto por ingredientId, cuando el word-overlap por sí solo
+  // no llegaría. "Fabes de la granja secas" / "Judiones" son alias reales del
+  // mismo ingrediente canónico (alubia-grande) sin ninguna palabra en común.
+  it("matches via ingredientId even when the words share nothing", () => {
+    const stock = [
+      { id: "9", ingredientName: "Judiones", ingredientNormalized: "judiones", ingredientId: "alubia-grande", qty: 500, unit: "g" },
+    ];
+    expect(findMatchingPantryItem("Fabes de la granja secas", stock)?.id).toBe("9");
+  });
+
+  it("never uses the ingredientId shortcut on an adapted (dietary swap) line", () => {
+    // A base ingredient's id must never satisfy an adapted line's stricter
+    // rule — that's precisely the false-positive the adapted path exists to
+    // prevent (see matchesPantry's comment).
+    const stock = [
+      { id: "1", ingredientName: "Leche", ingredientNormalized: "leche", ingredientId: "leche", qty: 1, unit: "l" },
+    ];
+    expect(findMatchingPantryItem("Leche sin lactosa", stock, { adapted: true })).toBeNull();
+  });
+
+  it("a pantry row without ingredientId falls back to word-overlap, never throws", () => {
+    const stock = [
+      { id: "1", ingredientName: "Pollo", ingredientNormalized: "pollo", qty: 500, unit: "g" },
+    ];
+    expect(findMatchingPantryItem("Pollo entero", stock)?.id).toBe("1");
   });
 });

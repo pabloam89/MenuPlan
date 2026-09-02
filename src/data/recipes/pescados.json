@@ -4047,7 +4047,8 @@
     "allergens": [
       "gluten",
       "lactosa",
-      "pescado"
+      "pescado",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -8066,7 +8067,8 @@
     "allergens": [
       "pescado",
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -10363,7 +10365,8 @@
     "tupperFriendly": true,
     "allergens": [
       "pescado",
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -11233,7 +11236,8 @@
     "allergens": [
       "pescado",
       "huevo",
-      "mostaza"
+      "mostaza",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -13155,7 +13159,8 @@
     "allergens": [
       "pescado",
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -13307,7 +13312,8 @@
     "kidFriendly": false,
     "tupperFriendly": false,
     "allergens": [
-      "pescado"
+      "pescado",
+      "apio"
     ],
     "season": "verano",
     "ingredients": [
@@ -15719,7 +15725,9 @@
     "allergens": [
       "marisco",
       "moluscos",
-      "sulfitos"
+      "sulfitos",
+      "huevo",
+      "pescado"
     ],
     "season": "verano",
     "ingredients": [
@@ -16628,7 +16636,8 @@
       "pescado",
       "huevo",
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -17682,7 +17691,8 @@
       "pescado",
       "lactosa",
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -18407,7 +18417,8 @@
       "pescado",
       "lactosa",
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -18854,7 +18865,8 @@
     "allergens": [
       "gluten",
       "lactosa",
-      "pescado"
+      "pescado",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -21446,7 +21458,8 @@
     "allergens": [
       "pescado",
       "gluten",
-      "huevo"
+      "huevo",
+      "sulfitos"
     ],
     "ingredients": [
       {

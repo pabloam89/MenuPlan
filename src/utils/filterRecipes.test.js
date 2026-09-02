@@ -43,6 +43,26 @@ describe("scorePantryMatch", () => {
     const r = recipe(["Pechuga de pollo", "Muslos de pollo", "Arroz"]);
     expect(scorePantryMatch(r, ["pollo"])).toBeCloseTo(1 / 3);
   });
+
+  // Fase 8: coincidencia exacta por id canónico, ADEMÁS del solape de palabras
+  // — nunca en su lugar. "Fabes de la granja secas" / "Judiones" son alias
+  // reales del mismo ingrediente (alubia-grande) sin ninguna palabra en común,
+  // el caso exacto que el word-overlap de arriba no puede resolver por sí solo.
+  it("matches via canonical id even with zero word overlap, when a pantry row carries it", () => {
+    const r = recipe(["Fabes de la granja secas"]);
+    expect(scorePantryMatch(r, ["judiones"])).toBe(0);
+    expect(scorePantryMatch(r, ["judiones"], ["alubia-grande"])).toBe(1);
+  });
+
+  it("omitting pantryIngredientIds behaves exactly as before (no regression)", () => {
+    const r = recipe(["Pechuga de pollo", "Arroz"]);
+    expect(scorePantryMatch(r, ["pollo", "arroz"])).toBe(scorePantryMatch(r, ["pollo", "arroz"], []));
+  });
+
+  it("a null id on either side falls back to the word-overlap result, never throws", () => {
+    const r = recipe(["Cebolla"]);
+    expect(scorePantryMatch(r, ["puerro"], [null])).toBe(0);
+  });
 });
 
 describe("filterRecipes pantry integration", () => {
@@ -140,6 +160,13 @@ describe("filterRecipes intolerances & dietary states", () => {
       const renamed = new Set((r.adaptations ?? []).map((a) => a.from));
       for (const ing of r.ingredients ?? []) {
         if (renamed.has(ing.name)) continue;
+        // El VINAGRE de vino se salta a propósito: contiene la palabra "vino"
+        // pero no es alcohol de cocina — el suyo ya fermentó en ácido acético,
+        // mismo criterio que el comentario de intolerances.js sobre el vinagre
+        // de Jerez. Mientras el choque se detectaba por palabras clave se
+        // renombraba a "Vinagre de vino sin alcohol", una adaptación inventada;
+        // ahora lo decide el catálogo de ingredientes y se queda como está.
+        if (/vinagre/i.test(ing.name)) continue;
         expect(/\bvino\b|\bcerveza\b/i.test(ing.name)).toBe(false);
       }
     }

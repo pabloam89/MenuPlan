@@ -3,6 +3,8 @@ import {
   buildAdaptationMap,
   isAdaptableRestriction,
   planAdaptations,
+  isCompatibleWith,
+  adaptationsNeededFor,
 } from "./substitutions.js";
 
 const recipe = (name, ingredientNames = []) => ({
@@ -139,6 +141,59 @@ describe("planAdaptations (lactosa_fina)", () => {
   });
 });
 
+// El choque dejó de decidirse por palabras clave y lo dice el catálogo de
+// ingredientes (conflictsWith). Estos casos son adaptaciones que la versión por
+// keywords SÍ producía y que llegaban al usuario como una promesa falsa.
+describe("adaptaciones que ya no se inventan", () => {
+  it("no adapta la leche de coco: no lleva lactosa", () => {
+    const { swaps, blocked } = planAdaptations(
+      recipe("Curry", ["Leche de coco", "Pollo"]),
+      ["lactosa_fina"],
+    );
+    expect(swaps).toEqual([]);
+    expect(blocked).toBe(false);
+  });
+
+  it("no adapta el vinagre: su alcohol ya fermentó en ácido acético", () => {
+    const { swaps, blocked } = planAdaptations(
+      recipe("Escabeche", ["Vinagre", "Pollo"]),
+      ["alcohol_cocina"],
+    );
+    expect(swaps).toEqual([]);
+    expect(blocked).toBe(false);
+  });
+
+  // Un destilado no tiene versión sin alcohol de súper, así que la receta NO se
+  // puede adaptar. Bloquearla es la respuesta honesta; renombrarla "Ron sin
+  // alcohol" era prometer un producto inexistente a una embarazada.
+  it("bloquea en vez de fingir que adapta un destilado", () => {
+    const { swaps, blocked } = planAdaptations(
+      recipe("Solomillo al whisky", ["Whisky", "Solomillo"]),
+      ["alcohol_cocina"],
+    );
+    expect(swaps).toEqual([]);
+    expect(blocked).toBe(true);
+  });
+
+  it("bloquea con un lácteo sin versión sin lactosa (mozzarella)", () => {
+    const { swaps, blocked } = planAdaptations(
+      recipe("Ensalada caprese", ["Mozzarella fresca", "Tomate"]),
+      ["lactosa_fina"],
+    );
+    expect(swaps).toEqual([]);
+    expect(blocked).toBe(true);
+  });
+
+  // Un ingrediente sustituible no rescata a la receta si otro no lo es.
+  it("bloquea aunque parte de los ingredientes sí se puedan cambiar", () => {
+    const { blocked } = planAdaptations(
+      recipe("Lasaña de setas", ["Leche", "Mozzarella fresca"]),
+      ["lactosa_fina"],
+    );
+    expect(blocked).toBe(true);
+  });
+});
+
 describe("buildAdaptationMap", () => {
   it("returns a rename map and a compact adaptations list", () => {
     const { renameByName, adaptations } = buildAdaptationMap(
@@ -148,5 +203,44 @@ describe("buildAdaptationMap", () => {
     expect(renameByName.get("Nata")).toBe("Nata sin lactosa");
     expect(renameByName.has("Puerro")).toBe(false);
     expect(adaptations).toEqual([{ from: "Nata", to: "Nata sin lactosa", label: "sin lactosa" }]);
+  });
+});
+
+describe("isCompatibleWith / adaptationsNeededFor", () => {
+  it("un plato sin lácteos es compatible y no necesita ningún cambio", () => {
+    const r = recipe("Merluza a la plancha", ["Merluza", "Limón"]);
+    expect(isCompatibleWith(r, "lactosa_fina")).toBe(true);
+    expect(adaptationsNeededFor(r, "lactosa_fina")).toEqual([]);
+  });
+
+  it("un plato con lácteo sustituible es compatible Y dice qué cambiar", () => {
+    const r = recipe("Crema de puerros", ["Nata para cocinar", "Puerro"]);
+    expect(isCompatibleWith(r, "lactosa_fina")).toBe(true);
+    expect(adaptationsNeededFor(r, "lactosa_fina")).toEqual([
+      { from: "Nata para cocinar", to: "Nata para cocinar sin lactosa" },
+    ]);
+  });
+
+  it("un plato con lácteo sin recambio NO es compatible", () => {
+    const r = recipe("Caprese", ["Mozzarella fresca", "Tomate"]);
+    expect(isCompatibleWith(r, "lactosa_fina")).toBe(false);
+    expect(adaptationsNeededFor(r, "lactosa_fina")).toEqual([]);
+  });
+
+  // La distinción que hace que el distintivo signifique algo: sin ella, una
+  // ensalada sin lácteos luciría "sin lactosa" igual que una lasaña adaptada.
+  it("separa 'ya cumple' de 'hay que cambiar algo'", () => {
+    const yaCumple = recipe("Ensalada", ["Lechuga", "Tomate"]);
+    const hayQueCambiar = recipe("Crema", ["Leche", "Puerro"]);
+    expect(isCompatibleWith(yaCumple, "lactosa_fina")).toBe(true);
+    expect(isCompatibleWith(hayQueCambiar, "lactosa_fina")).toBe(true);
+    expect(adaptationsNeededFor(yaCumple, "lactosa_fina")).toHaveLength(0);
+    expect(adaptationsNeededFor(hayQueCambiar, "lactosa_fina")).toHaveLength(1);
+  });
+
+  it("devuelve falso para una restricción que no es adaptable", () => {
+    const r = recipe("Tarta", ["Harina"]);
+    expect(isCompatibleWith(r, "gluten")).toBe(false);
+    expect(isCompatibleWith(r, "fructosa")).toBe(false);
   });
 });

@@ -1792,7 +1792,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "frutos_secos"
+      "frutos_secos",
+      "sulfitos"
     ],
     "ingredients": [
       {

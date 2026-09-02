@@ -421,12 +421,16 @@ const ALIASES = [
 // Anything the aliases miss but that still has a recognisable visual family.
 // Deliberately broad — these run last, so a miss here means "use the aisle".
 const FAMILIES = [
-  [/ternera|buey|\btoro\b|entrecot|chuleton|chuleta|aguja|redondo|cadera|babilla|espaldilla|filete|escalop|entrana|morcillo|jarrete|osobuco|carrillera|villagodio/, "fam_carne_roja"],
-  [/cerdo|lomo|secreto|presa|pluma|magro|manitas|iberico/, "fam_cerdo"],
-  [/mortadela|embutido|fiambre|salami|pastrami/, "fam_embutido"],
+  // Los pescados van ANTES que las carnes: "Filetes de pez espada" casaba con
+  // el token `filete` de fam_carne_roja y se dibujaba como un solomillo. Aquí
+  // el orden es el desempate, igual que en SHOPPING_AISLE_HINTS (donde Pescado
+  // también precede a Carne por "lomos de salmón").
   [/rodaballo|lenguado|\bgallo\b|panga|perca|tilapia|\bmero\b|congrio|raya|halibut|palometa|rape|trucha|cazon|emperador|pez espada/, "fam_pescado_blanco"],
   [/lomos? de|filete de pescado|suprema|cogote|rodaja/, "fam_filete_pescado"],
   [/pescado azul/, "fam_pescado_azul"],
+  [/ternera|buey|\btoro\b|entrecot|chuleton|chuleta|aguja|redondo|cadera|babilla|espaldilla|filete|escalop|entrana|morcillo|jarrete|osobuco|carrillera|villagodio/, "fam_carne_roja"],
+  [/cerdo|lomo|secreto|presa|pluma|magro|manitas|iberico/, "fam_cerdo"],
+  [/mortadela|embutido|fiambre|salami|pastrami/, "fam_embutido"],
   [/necora|centoll|cangrejo|marisco|vieira|zamburi/, "fam_marisco"],
   [/molusco/, "fam_molusco"],
   [/cefalopodo/, "fam_cefalopodo"],

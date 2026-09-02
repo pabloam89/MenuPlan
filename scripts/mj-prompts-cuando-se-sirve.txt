@@ -1,0 +1,44 @@
+Esquema — RecipePlanner, paso "¿Cuándo se sirve?" (5 opciones: Comida, Cena,
+Cena rápida, Merienda, Postre). Dos variantes por opción para elegir estilo
+antes de generar el set completo — mismo seed en las dos, mismo destino final
+(elegida una, se descarta la otra).
+
+Variante A · ICÓNICA (fórmula del catálogo de ingredientes/condimentos: un solo
+plato/prop, fondo blanco, sin --v ni --ar porque MJ ya sale cuadrado así):
+[{slug}_icono] cute stylized 3D cartoon render in the style of Pixar and Disney, {sujeto}, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+Variante B · CARGADA / escena (fórmula de merienda/pantry-prefs: escena
+completa con personajes, más color y contexto):
+[{slug}_escena] 3D illustrated cartoon scene, {escena}, Pixar animation style, Disney warmth, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 1:1
+
+Archivo: public/avatares/cards/cuando_se_sirve/{slug}.jpg (una vez decidida la variante)
+
+--- COMIDA ---
+
+[comida_icono] cute stylized 3D cartoon render in the style of Pixar and Disney, a steaming plate of home-style Spanish lentil stew with a spoon resting on the side, warm amber and terracotta tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[comida_escena] 3D illustrated cartoon scene, a Spanish family of four gathered around a sunlit dining table at midday sharing a big pot of paella, grandmother serving with a wooden spoon, bright warm noon light streaming through a window, multigenerational everyday joy, Pixar animation style, Disney warmth, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 1:1
+
+--- CENA ---
+
+[cena_icono] cute stylized 3D cartoon render in the style of Pixar and Disney, a plate of grilled salmon with roasted vegetables beside a small lit tea light candle, cool teal and warm amber tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[cena_escena] 3D illustrated cartoon scene, a couple and their two kids having a calm dinner at home under a warm hanging pendant lamp, a dark window behind them showing a few stars, cozy relaxed evening mood, soft steam rising from the plates, Pixar animation style, Disney warmth, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 1:1
+
+--- CENA RÁPIDA ---
+
+[cena_rapida_icono] cute stylized 3D cartoon render in the style of Pixar and Disney, a sizzling single skillet with a quick vegetable stir-fry, a small vintage stopwatch propped beside the pan, bright red and golden tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[cena_rapida_escena] 3D illustrated cartoon scene, a busy parent quickly plating a one-pan tortilla in a bright kitchen at early evening, a wall clock on the tiles showing the time, two kids already sitting eagerly at the table in the background, energetic motion and warm light, sense of a fast weekday dinner, Pixar animation style, Disney warmth, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 1:1
+
+--- MERIENDA ---
+
+[merienda_icono] cute stylized 3D cartoon render in the style of Pixar and Disney, a small plate with half a ham and cheese bocadillo, a piece of fruit and a glass of milk, warm golden-hour tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[merienda_escena] 3D illustrated cartoon scene, two cheerful school-age kids having an afternoon snack at a sunny kitchen table, bocadillos and fruit and glasses of milk, golden late-afternoon light through the window, playful relaxed after-school mood, Pixar animation style, Disney warmth, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 1:1
+
+--- POSTRE ---
+
+[postre_icono] cute stylized 3D cartoon render in the style of Pixar and Disney, a slice of Spanish apple tart with a scoop of vanilla ice cream and a mint leaf on top, soft pastel cream and caramel tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[postre_escena] 3D illustrated cartoon scene, a family sharing a colorful dessert table with a fruit tart, chocolate squares and a bowl of berries, two kids reaching for a slice with delighted expressions, bright cheerful pastel colors, warm home dining room light, everyday sweet moment (not a birthday), Pixar animation style, Disney warmth, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 1:1
