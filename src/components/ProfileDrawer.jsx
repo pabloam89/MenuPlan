@@ -22,7 +22,6 @@ import {
   loadCommentInbox,
   loadMyRecipeStats,
   usernameError,
-  suggestUsername,
   loadBlockedUsers,
   unblockUser,
 } from "../lib/social.js";
@@ -119,19 +118,12 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     if (profile?.username || !user?.id) return;
     let alive = true;
     (async () => {
-      const display = profile?.display_name || googleInfo(user).name;
-      const username = await suggestUsername(display);
-      if (!alive || !username) return;
-      // OJO: aqui NO se manda `visibility`. En un upsert, la columna que no
-      // viaja ni se pisa al actualizar ni tapa el default al insertar, que es
-      // 'followers' desde la migracion 0038. Mandarla valia "private" porque
-      // este efecto corre justo cuando todavia no hay perfil que leer, asi
-      // que el `?? "private"` ganaba siempre y todo el mundo nacia invisible
-      // — anulando en el cliente la decision que habiamos tomado en la base.
-      const saved = await saveMyProfile(user.id, { display_name: display, username });
-      // Si no se pudo guardar (sin sesion, o migracion sin aplicar) igualmente
-      // se ensena el derivado: la alternativa es la pantalla incoherente.
-      if (alive) setProfile((p) => ({ ...(p ?? {}), display_name: display, username, ...(saved?.error ? {} : saved ?? {}) }));
+      // ensureSocialProfile ya corre al iniciar sesion (App.jsx), asi que lo
+      // normal es que esto solo LEA. Se mantiene por si aquel fallo (sin red
+      // en aquel momento): el resultado puede venir `unsaved`, y aun asi se
+      // pinta — la alternativa es la pantalla incoherente.
+      const prof = await ensureSocialProfile(user.id, googleInfo(user).name);
+      if (alive && prof) setProfile((p) => ({ ...(p ?? {}), ...prof }));
     })();
     return () => { alive = false; };
   }, [profile?.username, profile?.display_name, user]);

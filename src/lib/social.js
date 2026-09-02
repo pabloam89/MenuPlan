@@ -173,6 +173,35 @@ export async function suggestUsername(name) {
   return base;
 }
 
+/**
+ * Garantiza que esta cuenta EXISTE para el feed: fila de perfil con nombre y
+ * handle, creada si no estaba.
+ *
+ * El modelo es "cuenta activa = te pueden encontrar, salvo que elijas Nadie".
+ * Eso exige que la fila nazca al INICIAR SESION, no al abrir el cajon del
+ * perfil, que es donde nacia antes: quien usaba HoMenu a diario sin pisar el
+ * Feed no existia para la busqueda, y "Encontrar gente" parecia rota estando
+ * perfecta — buscaba sobre un censo vacio.
+ *
+ * La visibilidad NO viaja: la decide el default de la columna ('followers',
+ * 0038) o lo que el usuario ya eligiera. Ver saveMyProfile.
+ *
+ * Si el guardado falla (sin red, migracion sin aplicar) devuelve el derivado
+ * marcado `unsaved`: quien llama decide si le vale para pintar, y el proximo
+ * inicio de sesion lo reintenta solo.
+ */
+export async function ensureSocialProfile(userId, fallbackName = "") {
+  if (!userId) return null;
+  const current = ok() ? await loadMyProfile(userId) : null;
+  if (current?.username) return current;
+  const display = current?.display_name || fallbackName || "";
+  const username = await suggestUsername(display);
+  if (!username) return current;
+  const saved = ok() ? await saveMyProfile(userId, { display_name: display, username }) : null;
+  if (!saved || saved.error) return { user_id: userId, display_name: display, username, unsaved: true };
+  return saved;
+}
+
 /** El perfil publico de otra persona. */
 export async function loadProfileById(userId) {
   if (!ok() || !userId) return null;
