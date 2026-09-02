@@ -234,3 +234,121 @@ export function buildStepDisplay(rich) {
   }
   return display;
 }
+
+// ── Desglose por componente (Dish Detail: pestañas Principal/Guarnición/
+// Salsa/Combinado para una receta cuyos propios pasos ya usan `part`) ──────
+//
+// Misma regex de marcador que stripStepMarkers, para no tener un tercer
+// parser de {{...}} en el proyecto.
+const MARKER_RE = /\{\{([^}]+)\}\}/g;
+
+/**
+ * Nombres de ingrediente referenciados por los marcadores de un paso —
+ * nunca los de utensilio ({{@Sartén}}), y sin el modificador de
+ * {{Ingrediente|modo}}.
+ */
+function markerIngredientNames(text) {
+  const names = [];
+  let m;
+  MARKER_RE.lastIndex = 0;
+  while ((m = MARKER_RE.exec(String(text ?? ""))) !== null) {
+    const raw = m[1].trim();
+    if (raw.startsWith("@")) continue;
+    const name = raw.split("|")[0].trim();
+    if (name) names.push(name);
+  }
+  return names;
+}
+
+/**
+ * El ingrediente de `ingredients` al que se refiere un marcador — coincidencia
+ * exacta primero, si no la primera que lo contenga o esté contenida (variantes
+ * cortas: "aceite" dentro de "Aceite de oliva"). Antes vivía solo dentro de
+ * RecipeSteps.jsx (pintado); se comparte aquí para que el desglose por `part`
+ * de abajo resuelva un marcador exactamente igual que el texto ya pintado —
+ * si divergieran, un ingrediente podría aparecer en el paso de una pestaña y
+ * en la lista de otra.
+ * @param {string} marker
+ * @param {Array<{name: string}>} ingredients
+ */
+export function findIngredientForMarker(marker, ingredients) {
+  if (!ingredients?.length) return null;
+  const key = String(marker ?? "").trim().toLowerCase();
+  if (!key) return null;
+  return (
+    ingredients.find((i) => i.name.toLowerCase() === key) ??
+    ingredients.find((i) => i.name.toLowerCase().includes(key) || key.includes(i.name.toLowerCase()))
+  );
+}
+
+/**
+ * Valores de `part` que la receta usa de verdad, en el orden en que aparecen.
+ * Vacío si ningún paso lleva `part` — es la señal de "receta de una sola
+ * técnica, no hay nada que desglosar" (ver STEP_PARTS más arriba: el eje es
+ * opcional y no usarlo no cambia nada de lo de siempre).
+ * @param {Array<{part?: string}>} stepsRich
+ * @returns {string[]}
+ */
+export function availablePartsOf(stepsRich) {
+  const seen = [];
+  for (const step of stepsRich ?? []) {
+    if (step?.part && STEP_PARTS.includes(step.part) && !seen.includes(step.part)) {
+      seen.push(step.part);
+    }
+  }
+  return seen;
+}
+
+/**
+ * Agrupa los pasos por `part`. Un paso sin `part` en una receta que sí usa el
+ * eje cae en "principal" — el cajón por defecto según el propio criterio del
+ * prompt de generación (api/_prompts.js): "el componente que NO sea
+ * claramente guarnición/salsa/combinado". Ningún paso desaparece.
+ * Devuelve `{}` si la receta no usa `part` en ningún paso — comprobar
+ * `availablePartsOf(stepsRich).length` antes de tratar esto como "hay
+ * desglose que mostrar".
+ * @param {Array<{part?: string}>} stepsRich
+ * @returns {Record<string, object[]>}
+ */
+export function stepsByPart(stepsRich) {
+  if (availablePartsOf(stepsRich).length === 0) return {};
+  const grouped = {};
+  for (const step of stepsRich ?? []) {
+    const part = step?.part && STEP_PARTS.includes(step.part) ? step.part : "principal";
+    (grouped[part] ??= []).push(step);
+  }
+  return grouped;
+}
+
+/**
+ * Agrupa los ingredientes por la `part` del paso donde aparece su marcador
+ * {{Ingrediente}}. El contrato de los marcadores (api/_prompts.js) dice que un
+ * ingrediente solo lleva marcador la PRIMERA vez que aparece — las referencias
+ * posteriores son texto plano — así que cada ingrediente tiene como mucho una
+ * atribución de `part`, nunca dos partes reclamando el mismo. Un ingrediente
+ * cuyo marcador cae en un paso sin `part`, o que no aparece en ningún
+ * marcador, va a "principal": nunca desaparece de la lista.
+ * Devuelve `{}` si la receta no usa `part` en ningún paso.
+ * @param {Array<{part?: string, text?: string}>} stepsRich
+ * @param {Array<{id: string, name: string}>} ingredients
+ * @returns {Record<string, object[]>}
+ */
+export function ingredientsByPart(stepsRich, ingredients) {
+  if (availablePartsOf(stepsRich).length === 0) return {};
+
+  const partById = new Map();
+  for (const step of stepsRich ?? []) {
+    const part = step?.part && STEP_PARTS.includes(step.part) ? step.part : "principal";
+    for (const name of markerIngredientNames(step?.text)) {
+      const ing = findIngredientForMarker(name, ingredients);
+      if (ing && !partById.has(ing.id)) partById.set(ing.id, part);
+    }
+  }
+
+  const grouped = {};
+  for (const ing of ingredients ?? []) {
+    const part = partById.get(ing.id) ?? "principal";
+    (grouped[part] ??= []).push(ing);
+  }
+  return grouped;
+}
