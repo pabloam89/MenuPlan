@@ -173,7 +173,10 @@ export async function loadPersonContent(userId, { viewerId = null } = {}) {
   const [recipes, menus] = await Promise.all([
     supabase
       .from("user_recipes")
-      .select("id, name, category, difficulty, time_minutes, photo, created_at")
+      // type y los ids de catalogo no son de adorno: sin ellos la ficha no se
+      // puede abrir con su forma real y dishImageForRecipe no resuelve foto
+      // para las recetas que salen del catalogo (que son casi todas).
+      .select("id, owner_id, name, category, type, difficulty, time_minutes, photo, linked_catalog_id, base_dish_id, pinned_garnish_id, created_at")
       .eq("owner_id", userId)
       .neq("visibility", "private")
       .order("created_at", { ascending: false })

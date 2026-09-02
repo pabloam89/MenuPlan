@@ -213,8 +213,12 @@ stable
 set search_path = public
 as $$
   select
-    (select count(*) from public.user_follows where followee_id = p_user),
-    (select count(*) from public.user_follows where follower_id = p_user),
+    -- Solo lo aceptado: una solicitud pendiente no es un seguidor todavia, y
+    -- contarla inflaba el numero justo antes de que decidieras.
+    (select count(*) from public.user_follows
+       where followee_id = p_user and status = 'accepted'),
+    (select count(*) from public.user_follows
+       where follower_id = p_user and status = 'accepted'),
     (select count(*) from public.user_recipes
        where owner_id = p_user and visibility <> 'private'),
     (select count(*) from public.shared_menus

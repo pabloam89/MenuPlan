@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { X, Lock, Clock, ChefHat, CalendarDays, MoreVertical, Ban, Flag } from "lucide-react";
+import { X, Lock, CalendarDays, MoreVertical, Ban, Flag } from "lucide-react";
 import { Avatar } from "./ui.jsx";
-import { personColor } from "../lib/socialUi.js";
+import { RecipePoster } from "./SwipeCard.jsx";
+import { personColor, relativeTime } from "../lib/socialUi.js";
 import {
   loadProfileById, loadProfileCounts, loadPersonContent,
   loadFollowing, loadSentRequests, followUser, unfollowUser,
-  blockUser,
+  blockUser, loadRecipeStats,
 } from "../lib/social.js";
 import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_RECIPES, FIXTURE_MENUS } from "../lib/socialFixtures.js";
 import { ReportSheet } from "./ReportSheet.jsx";
@@ -32,6 +33,7 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const [stats, setStats] = useState({});
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -55,6 +57,10 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
     });
     setRel(following.includes(userId) ? "following" : sent.some((r) => r.followee_id === userId) ? "pending" : "none");
     setLoading(false);
+    // Los numeros van despues y aparte, como en el feed: son un adorno de la
+    // tarjeta y no deben retrasar la pintura de lo que si es contenido.
+    const shown = cont.recipes.length ? cont.recipes : fxRecipes;
+    setStats(await loadRecipeStats(shown.map((r) => r.id)));
   }, [userId, user?.id, seed]);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -182,22 +188,31 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
           {content.recipes.length > 0 && (
             <>
               <h3 style={sectionTitle}>Sus recetas</h3>
-              <div style={grid}>
+              <div style={recipeCol}>
                 {content.recipes.map((r) => (
-                  <button key={r.id} type="button" onClick={() => onOpenRecipe?.(r)} style={tile}>
-                    <img
-                      src={r.photo || FALLBACK}
-                      alt=""
-                      loading="lazy"
-                      style={{ display: "block", width: "100%", aspectRatio: "1 / 1", objectFit: "cover", background: "#f4f7f5" }}
-                    />
-                    <span style={tileGradient} />
-                    <span style={tileName}>{r.name}</span>
-                    <span style={tileMeta}>
-                      {r.time_minutes != null && <span style={metaItem}><Clock size={10} strokeWidth={2.6} /> {r.time_minutes}′</span>}
-                      {r.difficulty && <span style={metaItem}><ChefHat size={10} strokeWidth={2.6} /> {r.difficulty}</span>}
-                    </span>
-                  </button>
+                  // El MISMO cartel que en el feed y en el mazo: si las recetas
+                  // de alguien se vieran distintas aqui, pareceria otro
+                  // catalogo. Trae dificultad, tiempo, numeros y el boton de
+                  // la ficha sin que esta pantalla tenga que repintarlos.
+                  <RecipePoster
+                    key={r.id}
+                    recipe={{
+                      id: r.id,
+                      name: r.name,
+                      category: r.category,
+                      difficulty: r.difficulty,
+                      time: r.time_minutes,
+                      photo: r.photo,
+                      linkedCatalogId: r.linked_catalog_id ?? null,
+                      baseRecipeId: r.base_dish_id ?? null,
+                      pinnedGarnishId: r.pinned_garnish_id ?? null,
+                    }}
+                    showOwner={false}
+                    when={relativeTime(r.created_at)}
+                    stats={stats[r.id] ?? null}
+                    onInfo={() => onOpenRecipe?.(r)}
+                    style={{ aspectRatio: "4 / 5", cursor: "pointer", boxShadow: "0 6px 20px rgba(20,47,29,.14)" }}
+                  />
                 ))}
               </div>
             </>
@@ -227,7 +242,6 @@ function weekLabel(a, b) {
   return b ? `${f(a)} – ${f(b)}` : f(a);
 }
 
-const FALLBACK = "/avatares/cards/empty_recetas_propias.jpg";
 
 const backdrop = {
   position: "fixed", inset: 0, zIndex: 255,
@@ -283,31 +297,12 @@ const menuRow = {
   cursor: "pointer", fontFamily: "inherit", textAlign: "left",
 };
 
-const grid = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 };
+const recipeCol = { display: "flex", flexDirection: "column", gap: 16 };
 
-const tile = {
-  position: "relative", display: "block", padding: 0, overflow: "hidden",
-  borderRadius: 14, border: "1.5px solid #e0eae3", background: "#fff",
-  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-};
 
-const tileGradient = {
-  position: "absolute", inset: 0,
-  background: "linear-gradient(to top, rgba(20,47,29,.9) 0%, rgba(20,47,29,.2) 55%, transparent 100%)",
-};
 
-const tileName = {
-  position: "absolute", left: 9, right: 9, bottom: 21,
-  color: "#fff", fontSize: 12, fontWeight: 800, lineHeight: 1.2,
-  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-};
 
-const tileMeta = {
-  position: "absolute", left: 9, right: 9, bottom: 7,
-  display: "flex", gap: 8, color: "rgba(255,255,255,.9)", fontSize: 10, fontWeight: 700,
-};
 
-const metaItem = { display: "inline-flex", alignItems: "center", gap: 3 };
 
 const miniMenu = {
   position: "absolute", top: 40, left: 0, zIndex: 3,
