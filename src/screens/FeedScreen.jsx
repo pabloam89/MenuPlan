@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Users, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon, CookingPot } from "lucide-react";
+import { Users, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon } from "lucide-react";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
 import { RecipePoster, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
@@ -383,14 +383,15 @@ export function FeedScreen({
 
           {onPublishRecipe && !loading && (
             <button type="button" onClick={() => setShareRecipeOpen(true)} style={publishCard}>
-              <span style={publishBubble}>
-                <CookingPot size={17} strokeWidth={2.4} color="#cf7833" />
-              </span>
+              {/* La ilustracion de Mis Recetas, la misma que ya identifica tu
+                  recetario en el navegador de carpetas: si esa imagen ya
+                  significa "lo tuyo", aqui no hace falta explicar de que va. */}
+              <img src="/avatares/cards/empty_recetas_propias.jpg" alt="" loading="lazy" style={publishArt} />
               <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                <span style={{ display: "block", fontSize: 13, fontWeight: 800, color: INK }}>
+                <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: "#7a4310" }}>
                   Publica una receta tuya
                 </span>
-                <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#8aa294", marginTop: 1 }}>
+                <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, color: "#b07a4a", marginTop: 1 }}>
                   {unsharedRecipes.length > 0
                     ? (unsharedRecipes.length === 1 ? "Tienes 1 sin compartir" : `Tienes ${unsharedRecipes.length} sin compartir`)
                     : "Tus platos, en el feed"}
@@ -406,11 +407,11 @@ export function FeedScreen({
                     <span style={{ display: "inline-flex", flexShrink: 0 }}>
                       {thumbs.map((t, i) => (
                         <img key={t.id} src={deckImg(t.img, 120)} alt="" loading="lazy"
-                          style={{ ...miniThumb, marginLeft: i === 0 ? 0 : -10 }} />
+                          style={{ ...miniThumb, marginLeft: i === 0 ? 0 : -9 }} />
                       ))}
                     </span>
                   )
-                  : <Plus size={16} strokeWidth={2.6} color="#b6c7bd" style={{ flexShrink: 0 }} />;
+                  : <Plus size={15} strokeWidth={2.6} color="#c99a6a" style={{ flexShrink: 0 }} />;
               })()}
             </button>
           )}
@@ -1216,21 +1217,24 @@ const memberDot = {
   background: "#e8efe9", color: "#42594c", fontSize: 10, fontWeight: 900,
 };
 
+// Fondo calido y no blanco: alrededor todo son tarjetas blancas (las recetas
+// del feed), asi que en blanco esta se perdia entre ellas. El tinte teja la
+// separa como "esto es tuyo, no del rio" sin gritar.
 const publishCard = {
-  display: "flex", alignItems: "center", gap: 10, width: "100%",
-  margin: "14px 0 2px", padding: "10px 12px",
-  borderRadius: 16, border: "1px solid #eef3f0", background: "#fff",
-  boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
+  display: "flex", alignItems: "center", gap: 9, width: "100%",
+  margin: "12px 0 2px", padding: "6px 10px 6px 6px",
+  borderRadius: 14, border: "1px solid #f2ddc8",
+  background: "linear-gradient(100deg, #fdf1e7 0%, #fdf7f0 100%)",
   cursor: "pointer", fontFamily: "inherit", boxSizing: "border-box",
 };
 
-const publishBubble = {
-  width: 38, height: 38, borderRadius: 13, background: "#fdf1e7",
-  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+const publishArt = {
+  width: 40, height: 40, borderRadius: 11, objectFit: "cover",
+  display: "block", flexShrink: 0,
 };
 
 const miniThumb = {
-  width: 32, height: 32, borderRadius: 9, objectFit: "cover",
+  width: 28, height: 28, borderRadius: 8, objectFit: "cover",
   border: "2px solid #fff", display: "block", background: "#eef3f0",
 };
 
