@@ -5474,33 +5474,6 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
   );
 }
 
-// Un icono pequeño que aparece "encima" de una letra concreta del wordmark
-// (la H para la lectura "casa", la M para la lectura "menú"), con el mismo
-// aire de pop que el resto de la animación: entra con un rebote y se retira
-// cuando le toca a la otra lectura.
-function LetterAccentIcon({ show, color, delay, children, size = 22 }) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: -size - 4,
-        width: size,
-        height: size,
-        pointerEvents: "none",
-        transform: `translate(-50%, ${show ? 0 : 6}px) scale(${show ? 1 : 0.5})`,
-        opacity: show ? 1 : 0,
-        transition: `transform .5s cubic-bezier(.5,-.2,.5,1.2) ${delay}ms, opacity .35s ease ${delay}ms`,
-      }}
-    >
-      <svg viewBox="0 0 120 120" fill="none" stroke={color} strokeWidth={11} strokeLinecap="round" strokeLinejoin="round" style={{ width: "100%", height: "100%" }}>
-        {children}
-      </svg>
-    </span>
-  );
-}
-
 function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
 
@@ -5644,19 +5617,8 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
             whiteSpace: "nowrap",
           }}
         >
-          <span style={{ position: "relative", display: "inline-block" }}>
-            <LetterAccentIcon show={!isMenu} color={WHITE} delay={300}>
-              <polyline points="16,86 60,26 104,86" />
-            </LetterAccentIcon>
-            H
-          </span>
-          o
-          <span style={{ position: "relative", display: "inline-block" }}>
-            <LetterAccentIcon show={isMenu} color={GREEN} delay={300} size={26}>
-              <path d="M20 90 Q20 24 60 24 Q100 24 100 90" />
-            </LetterAccentIcon>
-            <FlipCaseLetter upper="M" lower="m" active={isMenu} activeColor={GREEN} inactiveColor={WHITE} delay={mDelay} />
-          </span>
+          Ho
+          <FlipCaseLetter upper="M" lower="m" active={isMenu} activeColor={GREEN} inactiveColor={WHITE} delay={mDelay} />
           <FlipCaseLetter upper="e" lower="e" active={isMenu} activeColor={GREEN} inactiveColor={WHITE} delay={150} />
           <FlipCaseLetter upper="N" lower="n" active={!isMenu} activeColor={GREEN} inactiveColor={GREEN} delay={nDelay} />
           <span style={{ color: GREEN }}>u</span>
