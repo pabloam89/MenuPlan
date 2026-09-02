@@ -343,6 +343,18 @@ export function CatalogBrowserSheet({
     return [...extraRecipes, ...favorited];
   }, [extraRecipes, recipeVotes]);
 
+  // La tile "Mis recetas" del grid de categorías filtra al vuelo por tuyas +
+  // favoritas, mismo mecanismo que una categoría pero sin tocar `cats`.
+  const [viewingMine, setViewingMine] = useState(false);
+  // Como le va a lo que publicaste: se pide UNA vez al entrar en Mis Recetas
+  // y solo para lo tuyo publicado. Fuera de ahi no se pregunta nada.
+  const [socialStats, setSocialStats] = useState({});
+
+  // OJO al sitio: este efecto va DESPUES de viewingMine y socialStats, no
+  // antes. El array de dependencias se evalua durante el render -no dentro
+  // del callback-, asi que colocado arriba leia dos const que aun no
+  // existian y reventaba la pantalla entera con "Cannot access ... before
+  // initialization". El build no lo ve: es correcto sintacticamente.
   useEffect(() => {
     if (!viewingMine) return;
     const ids = mineRecipes
@@ -448,12 +460,6 @@ export function CatalogBrowserSheet({
     setKidOnly(false);
   }, [sourceTab, gatePickSourceTabs, gatePick]);
   const [showFilters, setShowFilters] = useState(false);
-  // La tile "Mis recetas" del grid de categorías filtra al vuelo por tuyas +
-  // favoritas, mismo mecanismo que una categoría pero sin tocar `cats`.
-  const [viewingMine, setViewingMine] = useState(false);
-  // Como le va a lo que publicaste: se pide UNA vez al entrar en Mis Recetas
-  // y solo para lo tuyo publicado. Fuera de ahi no se pregunta nada.
-  const [socialStats, setSocialStats] = useState({});
   // Carpeta de Inspíranos que se está viendo (o null). Un solo id en vez de un
   // booleano por carpeta: son mutuamente excluyentes al navegar.
   const [viewingCollection, setViewingCollection] = useState(null);
