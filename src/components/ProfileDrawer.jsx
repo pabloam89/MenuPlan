@@ -374,7 +374,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
             </span>
           </button>
           {privacyOpen && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 7, marginTop: 9 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 7, padding: "12px 20px 20px" }}>
               <VisOption on={vis === "private"} disabled={saving} Icon={Lock}
                 art="/avatares/cards/vis_nadie.png" tint={VIS_TINT.private}
                 title="Nadie" desc="No apareces en búsquedas ni en el feed."
@@ -392,8 +392,8 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
         </section>
 
         {blocked.length > 0 && (
-          <section style={privacyBlock}>
-            <button type="button" onClick={() => setBlockedOpen((v) => !v)} style={privacyHead}>
+          <section style={plainBlock}>
+            <button type="button" onClick={() => setBlockedOpen((v) => !v)} style={plainHead}>
               <ShieldOff size={14} strokeWidth={2.5} color="#8aa294" />
               <span style={{ flex: 1, textAlign: "left" }}>
                 Cuentas bloqueadas · <strong style={{ color: INK }}>{blocked.length}</strong>
@@ -707,7 +707,21 @@ const ghostBtn = {
   fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
 };
 
-const privacyBlock = { padding: "14px 20px 24px", borderTop: "1px solid #eef3f0", background: "#f7fbf8" };
+// Sin padding: la franja de "Quien te ve" ocupa la seccion entera, de borde
+// a borde y de arriba abajo, para que se lea como DOS colores y no como una
+// tira flotando sobre un fondo. El aire lo pone el contenido desplegado.
+// Bloqueados sigue siendo una seccion normal con su padding: la franja de
+// dos colores es exclusiva de "Quien te ve", que es la unica decision que
+// hay que poder leer de un vistazo sin desplegar nada.
+const plainBlock = { padding: "14px 20px 24px", borderTop: "1px solid #eef3f0", background: "#f7fbf8" };
+
+const plainHead = {
+  display: "flex", alignItems: "center", gap: 8, width: "100%",
+  padding: 0, border: "none", background: "none", cursor: "pointer",
+  fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#6b7d70",
+};
+
+const privacyBlock = { padding: 0, borderTop: "1px solid #eef3f0", background: "#f7fbf8" };
 
 // La misma ilustracion de cada opcion, en miniatura: quien ya eligio
 // reconoce el candado, la puerta o el globo sin leer nada.
@@ -722,7 +736,7 @@ const VIS_ART = {
 // llegar a los dos bordes: es una banda, no una tarjeta dentro de otra.
 const visAsk = {
   display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
-  alignSelf: "stretch", padding: "9px 12px 9px 20px",
+  alignSelf: "stretch", padding: "13px 13px 13px 20px",
   borderRight: "1px solid #d7e6e1",
   color: "#6b7d70",
 };
@@ -730,7 +744,7 @@ const visAsk = {
 const visState = {
   display: "flex", alignItems: "center", gap: 8,
   flex: 1, minWidth: 0, alignSelf: "stretch",
-  padding: "7px 20px 7px 11px",
+  padding: "11px 20px 11px 12px",
   background: "#dcefeb",
 };
 
@@ -740,7 +754,7 @@ const visBandArt = {
 
 const privacyHead = {
   display: "flex", alignItems: "stretch", width: "100%",
-  margin: "0 -20px", padding: 0, border: "none",
+  margin: 0, padding: 0, border: "none",
   background: "#eaf3f0", cursor: "pointer",
   fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#6b7d70",
   textAlign: "left",
