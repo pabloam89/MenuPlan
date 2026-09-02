@@ -7,16 +7,13 @@
 
 import { isQualitativeUnit } from "../lib/ingredientCategories.js";
 import { kitchenHint } from "../lib/kitchenUnits.js";
-import { buildStepDisplay, formatQty, formatStepMinutes, STEP_PART_META } from "../lib/recipeSteps.js";
-
-function findIngredientForMarker(marker, ingredients) {
-  if (!ingredients?.length) return null;
-  const key = marker.trim().toLowerCase();
-  return (
-    ingredients.find((i) => i.name.toLowerCase() === key)
-    ?? ingredients.find((i) => i.name.toLowerCase().includes(key) || key.includes(i.name.toLowerCase()))
-  );
-}
+import {
+  buildStepDisplay,
+  formatQty,
+  formatStepMinutes,
+  findIngredientForMarker,
+  STEP_PART_META,
+} from "../lib/recipeSteps.js";
 
 function parseQtyMarker(raw) {
   const [name, mode] = raw.split("|").map((s) => s.trim());
