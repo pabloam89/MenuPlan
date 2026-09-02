@@ -357,10 +357,18 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
         <section style={privacyBlock}>
           <button type="button" onClick={() => setPrivacyOpen((v) => !v)} style={privacyHead}>
             <Eye size={14} strokeWidth={2.5} color="#8aa294" />
-            <span style={{ flex: 1, textAlign: "left" }}>
-              Quién te ve · <strong style={{ color: INK }}>{VIS_LABEL[vis]}</strong>
+            <span style={{ flexShrink: 0 }}>Quién te ve</span>
+            {/* El estado ocupa TODO lo que queda hasta el chevron, sobre su
+                propia franja teal. Antes iba pegado con un punto separador,
+                y un "·" es lo mas debil que hay para separar dos cosas que
+                se leen distinto: una es la etiqueta y otra el valor. */}
+            <span style={visBand}>
+              <img src={VIS_ART[vis]} alt="" style={visBandArt} />
+              <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {VIS_LABEL[vis]}
+              </span>
             </span>
-            <ChevronDown size={15} strokeWidth={2.6} style={{ transform: privacyOpen ? "rotate(180deg)" : "none", transition: "transform .18s ease" }} />
+            <ChevronDown size={15} strokeWidth={2.6} style={{ flexShrink: 0, marginLeft: 10, transform: privacyOpen ? "rotate(180deg)" : "none", transition: "transform .18s ease" }} />
           </button>
           {privacyOpen && (
             <div style={{ display: "flex", flexDirection: "column", gap: 7, marginTop: 9 }}>
@@ -697,6 +705,28 @@ const ghostBtn = {
 };
 
 const privacyBlock = { padding: "14px 20px 24px", borderTop: "1px solid #eef3f0", background: "#f7fbf8" };
+
+// La misma ilustracion de cada opcion, en miniatura: quien ya eligio
+// reconoce el candado, la puerta o el globo sin leer nada.
+const VIS_ART = {
+  private: "/avatares/cards/vis_nadie.png",
+  followers: "/avatares/cards/vis_seguidores.png",
+  public: "/avatares/cards/vis_cualquiera.png",
+};
+
+// Franja teal hasta el borde: el estado no es un dato mas de la fila, es LA
+// respuesta a la pregunta de la izquierda, y merece su propio fondo.
+const visBand = {
+  display: "flex", alignItems: "center", gap: 7,
+  flex: 1, minWidth: 0, marginLeft: 10,
+  padding: "5px 10px 5px 7px", borderRadius: 999,
+  background: "#e4f2ef", color: "#0f766e",
+  fontSize: 12, fontWeight: 800,
+};
+
+const visBandArt = {
+  width: 22, height: 22, display: "block", flexShrink: 0,
+};
 
 const privacyHead = {
   display: "flex", alignItems: "center", gap: 8, width: "100%",
