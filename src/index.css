@@ -197,6 +197,19 @@ textarea::placeholder {
   animation: mpBellRing .5s cubic-bezier(.36,.07,.19,.97) both;
 }
 
+/* Acordeon horizontal del feed: publicar y las pestañas se reparten una sola
+   fila. Se anima flex-basis (no width) porque los dos paneles compiten por el
+   mismo hueco: al crecer uno, el otro se pliega en el mismo gesto y no hay
+   salto entre ambos. La curva sale un pelin por encima al final, que es lo
+   que hace que se sienta un despliegue y no un cambio de tamaño. */
+.mp-hpanel {
+  overflow: hidden;
+  min-width: 0;
+  transition:
+    flex-grow .34s cubic-bezier(.22, 1, .36, 1),
+    opacity .2s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mp-overlay-in,
   .mp-sheet-up,
@@ -220,5 +233,10 @@ textarea::placeholder {
      movimiento simplemente no hay pista. */
   .mp-nudge {
     animation: none;
+  }
+
+  /* Sin movimiento: el acordeon cambia de estado de golpe. */
+  .mp-hpanel {
+    transition: none;
   }
 }

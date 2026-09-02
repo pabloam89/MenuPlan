@@ -466,33 +466,77 @@ export function FeedScreen({
               arriba del rio y no en la cabecera: no compite con buscar,
               notificaciones y perfil, que son atajos, no modos de lectura. */}
           <div style={{ position: "relative" }}>
-          {publishOpen && onPublishRecipe ? (
-            <div style={publishCard}>
-              {/* La ilustracion de Mis Recetas, la misma que ya identifica tu
-                  recetario en el navegador de carpetas: si esa imagen ya
-                  significa "lo tuyo", la tarjeta no tiene que explicarse. Y es
-                  ella quien pone el color: el resto va en la escala de tinta. */}
-              <img src="/avatares/cards/empty_recetas_propias.jpg" alt="" loading="lazy" style={publishArt} />
-              <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK }}>
-                  Publica una receta tuya
-                </span>
-                <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, color: "#7a8a7f", marginTop: 1 }}>
-                  {unsharedRecipes.length === 1
-                    ? "Tienes 1 sin compartir"
-                    : unsharedRecipes.length > 1
-                      ? `Tienes ${unsharedRecipes.length} sin compartir`
-                      : "Tus platos, en el feed"}
-                </span>
-              </span>
-              <button type="button" onClick={() => setShareRecipeOpen(true)} style={publishPill}>Publicar</button>
-              <button type="button" onClick={() => setPublishOpen(false)} aria-label="Cerrar" style={publishClose}>
-                <X size={13} strokeWidth={2.8} />
-              </button>
-            </div>
-          ) : (
+          {/* Acordeon horizontal: publicar y las pestañas se reparten UNA fila.
+              Los dos paneles estan siempre montados y lo que se anima es su
+              reparto (flex-grow), asi que al crecer uno el otro se pliega en
+              el mismo gesto — sin desmontar nada, que es lo que provocaria el
+              salto. Las pestañas conservan su seleccion: al volver, sigues en
+              la vista en la que estabas. */}
           <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
-          <div style={{ ...scopeTabs, flex: 1, marginTop: 0 }}>
+            {onPublishRecipe && (
+              <div
+                className="mp-hpanel"
+                style={{
+                  // La base se queda FIJA en 46 y lo que se anima es cuanto
+                  // crece. Interpolar flex-basis de 46px a 100% no funciona:
+                  // el navegador no sabe pasar de px a % y da un salto seco.
+                  flexBasis: 46,
+                  flexGrow: publishOpen ? 1 : 0,
+                  flexShrink: 0,
+                }}
+                {...(publishOpen ? {} : {
+                  role: "button",
+                  tabIndex: 0,
+                  "aria-label": "Publicar una receta tuya",
+                  onClick: () => { setPublishOpen(true); dismissPublishHint(); },
+                  onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { setPublishOpen(true); dismissPublishHint(); } },
+                })}
+              >
+                <div style={{ ...publishCard, marginTop: 0, marginBottom: 0, cursor: publishOpen ? "default" : "pointer" }}>
+                  {/* La ilustracion de Mis Recetas, la misma que ya identifica
+                      tu recetario en el navegador de carpetas: si esa imagen ya
+                      significa "lo tuyo", la tarjeta no tiene que explicarse. */}
+                  <img src="/avatares/cards/empty_recetas_propias.jpg" alt="" loading="lazy" style={publishArt} />
+                  {/* El texto no se desmonta al plegar: se queda detras del
+                      recorte y reaparece deslizandose. Montarlo y desmontarlo
+                      haria que apareciera de golpe a mitad de la animacion. */}
+                  <span style={{ flex: 1, minWidth: 0, textAlign: "left", whiteSpace: "nowrap", opacity: publishOpen ? 1 : 0, transition: "opacity .2s ease" }}>
+                    <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK }}>
+                      Publica una receta tuya
+                    </span>
+                    <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, color: "#7a8a7f", marginTop: 1 }}>
+                      {unsharedRecipes.length === 1
+                        ? "Tienes 1 sin compartir"
+                        : unsharedRecipes.length > 1
+                          ? `Tienes ${unsharedRecipes.length} sin compartir`
+                          : "Tus platos, en el feed"}
+                    </span>
+                  </span>
+                  {publishOpen && (
+                    <>
+                      <button type="button" onClick={() => setShareRecipeOpen(true)} style={publishPill}>Publicar</button>
+                      <button type="button" onClick={() => setPublishOpen(false)} aria-label="Cerrar" style={publishClose}>
+                        <X size={13} strokeWidth={2.8} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div
+              className="mp-hpanel"
+              style={{
+                // Base 0 y todo el reparto por flex-grow, para que el gesto
+                // sea el mismo numero animandose en los dos paneles a la vez.
+                flexBasis: 0,
+                flexGrow: publishOpen ? 0 : 1,
+                opacity: publishOpen ? 0 : 1,
+                marginLeft: onPublishRecipe ? 8 : 0,
+              }}
+              aria-hidden={publishOpen}
+            >
+          <div style={{ ...scopeTabs, marginTop: 0 }}>
             {/* Cada pestaña con su icono y su color: azul para los tuyos,
                 teja para lo que esta por descubrir. En gris las dos, la fila
                 no decia nada y habia que leerla entera. */}
@@ -520,23 +564,8 @@ export function FeedScreen({
               );
             })}
           </div>
-
-          {/* La lengueta. Asoma por el borde derecho (margen negativo contra
-              el padding de la columna) para leerse como "aqui hay algo mas" y
-              no como un boton mas de la fila. Al tocarla ocupa el sitio de
-              las pestañas. */}
-          {onPublishRecipe && (
-            <button
-              type="button"
-              onClick={() => { setPublishOpen(true); dismissPublishHint(); }}
-              aria-label="Publicar una receta tuya"
-              style={publishPeek}
-            >
-              <img src="/avatares/cards/empty_recetas_propias.jpg" alt="" loading="lazy" style={publishPeekArt} />
-            </button>
-          )}
+            </div>
           </div>
-          )}
 
           {publishHint && !publishOpen && (
             <div style={hintBubble}>
@@ -1429,16 +1458,7 @@ const PUBLISH_HINT_KEY = "hm_feed_publish_hint";
 
 // La lengueta: a la altura de la fila de pestañas, redondeada solo por la
 // izquierda y mordida por el borde derecho de la columna.
-const publishPeek = {
-  display: "flex", alignItems: "center",
-  width: 46, height: 40, marginRight: -18, marginLeft: 8, paddingLeft: 7,
-  border: "none", borderRadius: "14px 0 0 14px",
-  background: "#f6efe6", cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
-};
 
-const publishPeekArt = {
-  width: 30, height: 30, borderRadius: 9, objectFit: "cover", display: "block",
-};
 
 const publishClose = {
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
@@ -1447,7 +1467,7 @@ const publishClose = {
 };
 
 const hintBubble = {
-  position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 4,
+  position: "absolute", left: 0, top: "calc(100% + 6px)", zIndex: 4,
   display: "flex", alignItems: "center", gap: 8,
   maxWidth: 260, padding: "8px 10px 8px 12px", borderRadius: 12,
   background: "#1a3a24", color: "#fff",
@@ -1461,11 +1481,13 @@ const hintOk = {
   fontSize: 11, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
 };
 
+// Plegada asoma por el borde izquierdo (margen negativo contra el padding de
+// la columna) y solo se redondea por la derecha, que es el lado que se ve.
 const publishCard = {
-  display: "flex", alignItems: "center", gap: 10, width: "100%",
-  margin: "14px 0 2px", padding: "6px 8px 6px 6px",
-  borderRadius: 14, border: "none", background: "#f6efe6",
-  cursor: "pointer", fontFamily: "inherit", boxSizing: "border-box",
+  display: "flex", alignItems: "center", gap: 10, minWidth: "100%",
+  marginLeft: -18, padding: "6px 8px 6px 18px",
+  borderRadius: "0 14px 14px 0", border: "none", background: "#f6efe6",
+  fontFamily: "inherit", boxSizing: "border-box",
 };
 
 const publishArt = {
