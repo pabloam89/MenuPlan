@@ -68,6 +68,10 @@ const PIECE_WEIGHTS = [
   [/pepino/, 200, "pepino", "pepinos"],
   [/patata grande/, 250, "patata grande", "patatas grandes"],
   [/patata/, 200, "patata", "patatas"],
+  // Piquillo ANTES que pimiento — misma convencion que cebolla morada arriba:
+  // gana la primera. Sin esta linea "Pimientos del piquillo" heredaba los 180 g
+  // del morron y una lata de 8 piquillos se convertia en 1,4 kg de pimiento.
+  [/piquillo/, 25, "piquillo", "piquillos"],
   [/pimiento/, 180, "pimiento", "pimientos"],
   [/boniato/, 200, "boniato", "boniatos"],
   [/remolacha/, 120, "remolacha", "remolachas"],
@@ -78,7 +82,7 @@ const PIECE_WEIGHTS = [
 // not by piece (minced, crushed, canned, grated, in a punnet…). Guards the
 // piece block so e.g. "tomate triturado" or "carne picada" never become counts.
 const SKIP_PIECE_RE =
-  /triturad|frito|cherry|rallad|conserva|desalad|en polvo|molid|picad|choricero|concentrad|\bsalsa\b|cocid|troced|guisar|entero|deshidratad/;
+  /triturad|frito|cherry|rallad|conserva|desalad|en polvo|molid|picad|choricero|concentrad|\bsalsa\b|cocid|troced|guisar|entero|deshidratad|vinagre/;
 
 // ── Block 3: dry-solid volume (grams) ──────────────────────────────
 // [regex, gramsPerTablespoon|null, gramsPerCup|null]
