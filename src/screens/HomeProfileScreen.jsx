@@ -255,12 +255,15 @@ export function HomeProfileScreen({
   householdReadOnly = false,
 }) {
   const g = googleInfo(user);
-  // Quien eres tu dentro de la familia. Explicito si lo has marcado; si no, la
-  // adivinanza de siempre por nombre (ver resolveAccountMember en stages.js).
-  const accountMember = resolveAccountMember(members, data.accountMemberId, g.name);
   const fileInputRef = useRef(null);
   const members = data.members ?? [];
   const userRecipes = data.userRecipes ?? [];
+  // Quien eres tu dentro de la familia. Explicito si lo has marcado; si no, la
+  // adivinanza de siempre por nombre (ver resolveAccountMember en stages.js).
+  // OJO: va DESPUES de members. Estaba encima y reventaba la pantalla entera
+  // con "Cannot access members before initialization" — un const no existe
+  // hasta su linea, aunque el fichero compile sin rechistar.
+  const accountMember = resolveAccountMember(members, data.accountMemberId, g.name);
 
   const setField = (key, val) => setData((d) => ({ ...d, [key]: val }));
 
