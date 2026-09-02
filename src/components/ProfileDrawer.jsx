@@ -356,19 +356,22 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
             decide una vez, y aun así nunca debe quedar en duda. */}
         <section style={privacyBlock}>
           <button type="button" onClick={() => setPrivacyOpen((v) => !v)} style={privacyHead}>
-            <Eye size={14} strokeWidth={2.5} color="#8aa294" />
-            <span style={{ flexShrink: 0 }}>Quién te ve</span>
-            {/* El estado ocupa TODO lo que queda hasta el chevron, sobre su
-                propia franja teal. Antes iba pegado con un punto separador,
-                y un "·" es lo mas debil que hay para separar dos cosas que
-                se leen distinto: una es la etiqueta y otra el valor. */}
-            <span style={visBand}>
+            {/* Dos zonas de la MISMA franja, separadas por un divisor: a la
+                izquierda la pregunta, a la derecha la respuesta, en un teal
+                un punto mas fuerte y hasta el borde. El texto del estado va
+                en tinta y no en el color del tinte: teñir la letra del mismo
+                tono que su fondo es lo que convierte una franja en pegatina. */}
+            <span style={visAsk}>
+              <Eye size={14} strokeWidth={2.5} color="#8aa294" />
+              Quién te ve
+            </span>
+            <span style={visState}>
               <img src={VIS_ART[vis]} alt="" style={visBandArt} />
-              <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: INK }}>
                 {VIS_LABEL[vis]}
               </span>
+              <ChevronDown size={15} strokeWidth={2.6} color="#5a8f86" style={{ flexShrink: 0, marginLeft: 10, transform: privacyOpen ? "rotate(180deg)" : "none", transition: "transform .18s ease" }} />
             </span>
-            <ChevronDown size={15} strokeWidth={2.6} style={{ flexShrink: 0, marginLeft: 10, transform: privacyOpen ? "rotate(180deg)" : "none", transition: "transform .18s ease" }} />
           </button>
           {privacyOpen && (
             <div style={{ display: "flex", flexDirection: "column", gap: 7, marginTop: 9 }}>
@@ -714,14 +717,21 @@ const VIS_ART = {
   public: "/avatares/cards/vis_cualquiera.png",
 };
 
-// Franja teal hasta el borde: el estado no es un dato mas de la fila, es LA
-// respuesta a la pregunta de la izquierda, y merece su propio fondo.
-const visBand = {
-  display: "flex", alignItems: "center", gap: 7,
-  flex: 1, minWidth: 0, marginLeft: 10,
-  padding: "5px 10px 5px 7px", borderRadius: 999,
-  background: "#e4f2ef", color: "#0f766e",
-  fontSize: 12, fontWeight: 800,
+
+// La franja ocupa la fila entera y se sale del padding de la seccion para
+// llegar a los dos bordes: es una banda, no una tarjeta dentro de otra.
+const visAsk = {
+  display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
+  alignSelf: "stretch", padding: "9px 12px 9px 20px",
+  borderRight: "1px solid #d7e6e1",
+  color: "#6b7d70",
+};
+
+const visState = {
+  display: "flex", alignItems: "center", gap: 8,
+  flex: 1, minWidth: 0, alignSelf: "stretch",
+  padding: "7px 20px 7px 11px",
+  background: "#dcefeb",
 };
 
 const visBandArt = {
@@ -729,9 +739,11 @@ const visBandArt = {
 };
 
 const privacyHead = {
-  display: "flex", alignItems: "center", gap: 8, width: "100%",
-  padding: 0, border: "none", background: "none", cursor: "pointer",
+  display: "flex", alignItems: "stretch", width: "100%",
+  margin: "0 -20px", padding: 0, border: "none",
+  background: "#eaf3f0", cursor: "pointer",
   fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#6b7d70",
+  textAlign: "left",
 };
 
 const visArt = {
