@@ -43,3 +43,26 @@ describe("usernameError", () => {
     expect(usernameError("a".repeat(25))).toMatch(/Máximo/);
   });
 });
+
+describe("handles reservados (0044)", () => {
+  it("veta los nombres de confianza y cualquier cosa con la marca dentro", () => {
+    // La lista exacta no basta: "homenu.oficial" no está en ninguna lista y
+    // es exactamente el handle con el que alguien se haría pasar por la app.
+    for (const u of ["soporte", "admin", "ayuda", "homenu", "homenu.oficial", "soporte_homenu", "menuplan2"]) {
+      expect(usernameError(u), u).toBe("Ese nombre está reservado");
+    }
+  });
+
+  it("exige al menos una letra o número", () => {
+    // "..." pasa el regex de formato (3-24 de [a-z0-9._]) y no identifica a
+    // nadie. Salió al auditar, no de la imaginación.
+    expect(usernameError("...")).toBe("Necesita al menos una letra o número");
+    expect(usernameError("._.")).toBe("Necesita al menos una letra o número");
+  });
+
+  it("los handles normales siguen pasando", () => {
+    for (const u of ["pablo.artinano2", "marta.cocina", "javidcasa", "ana_ru"]) {
+      expect(usernameError(u), u).toBeNull();
+    }
+  });
+});

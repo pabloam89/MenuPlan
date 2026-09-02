@@ -111,12 +111,32 @@ export async function isUsernameFree(username) {
  */
 export const USERNAME_RE = /^[a-z0-9._]{3,24}$/;
 
+// Handles que se prestan a hacerse pasar por la app o por su equipo. Lista
+// EXACTA + veto por marca (cualquier handle que contenga "homenu" o
+// "menuplan"): la lista sola no para "homenu.oficial" ni "soporte_homenu".
+//
+// Lo comprueban dos, como el formato: este modulo (para avisar mientras
+// escribes) y el CHECK de la base (0044, que es el que manda). Si divergen,
+// el formulario diria que si y el guardado fallaria sin explicar.
+export const RESERVED_USERNAMES = [
+  "admin", "administrador", "soporte", "support", "ayuda", "help",
+  "info", "contacto", "oficial", "official", "equipo", "staff",
+  "moderador", "moderacion", "mod", "seguridad", "security",
+  "sistema", "system", "api", "root", "noreply", "news", "legal",
+  "privacidad", "terminos",
+];
+const BRAND_RE = /homenu|menuplan/;
+
 export function usernameError(value) {
   const v = (value ?? "").trim();
   if (!v) return null;                       // vacio es valido: no tener handle
   if (v.length < 3) return "Mínimo 3 caracteres";
   if (v.length > 24) return "Máximo 24 caracteres";
   if (!USERNAME_RE.test(v)) return "Solo minúsculas, números, punto y guion bajo";
+  // "..." o "._." pasan el regex pero no identifican a nadie: un handle sin
+  // una sola letra o numero solo sirve para confundir.
+  if (!/[a-z0-9]/.test(v)) return "Necesita al menos una letra o número";
+  if (RESERVED_USERNAMES.includes(v) || BRAND_RE.test(v)) return "Ese nombre está reservado";
   return null;
 }
 
