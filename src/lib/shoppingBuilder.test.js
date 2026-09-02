@@ -221,6 +221,86 @@ describe("buildShoppingList aggregation across recipes (Fase 5 audit)", () => {
   });
 });
 
+describe("buildShoppingList: mismo ingrediente en dos unidades", () => {
+  // El catalogo declara 40 ingredientes en dos unidades a la vez, porque una
+  // receta pide "1 aguacate" y otra "150 g de aguacate". Antes la clave de
+  // agrupacion llevaba la unidad, asi que cada uno salia DOS veces en la
+  // lista de la compra (bug reportado en produccion: "Aguacate" repetido).
+  it("funde 'ud' y 'g' del mismo ingrediente en una sola linea", () => {
+    registerRecipes([
+      {
+        id: "test_dualunit_ud",
+        name: "Tostada de aguacate",
+        servings: 2,
+        ingredients: [{ id: "aguacate", name: "Aguacate", category: "Verduras y frutas", qty: 2, unit: "ud" }],
+      },
+      {
+        id: "test_dualunit_g",
+        name: "Ensalada de aguacate",
+        servings: 2,
+        ingredients: [{ id: "aguacate", name: "Aguacate", category: "Verduras y frutas", qty: 225, unit: "g" }],
+      },
+    ]);
+    const plan = {
+      g1: {
+        "Lun-Comida": { recipeId: "test_dualunit_ud", firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+        "Mar-Comida": { recipeId: "test_dualunit_g", firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+      },
+    };
+    const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
+    const aguacates = sh.byCategory.flatMap((c) => c.items).filter((it) => it.name === "Aguacate");
+    expect(aguacates.length).toBe(1);
+    // 2 piezas (200 g cada una) + 225 g = 625 g, ni una mitad perdida.
+    expect(aguacates[0].qty).toBe(625);
+  });
+
+  it("deja las dos lineas separadas cuando no hay conversion conocida", () => {
+    // Sin gramos por pieza no se puede fusionar sin inventarse un factor.
+    // Dos lineas visibles es mejor que una linea con un numero falso.
+    registerRecipes([
+      {
+        id: "test_nogpp_ud",
+        name: "Receta con higos en pieza",
+        servings: 2,
+        ingredients: [{ id: "higo", name: "Higo", category: "Verduras y frutas", qty: 4, unit: "ud" }],
+      },
+      {
+        id: "test_nogpp_g",
+        name: "Receta con higos al peso",
+        servings: 2,
+        ingredients: [{ id: "higo", name: "Higo", category: "Verduras y frutas", qty: 300, unit: "g" }],
+      },
+    ]);
+    const plan = {
+      g1: {
+        "Lun-Comida": { recipeId: "test_nogpp_ud", firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+        "Mar-Comida": { recipeId: "test_nogpp_g", firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+      },
+    };
+    const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
+    const higos = sh.byCategory.flatMap((c) => c.items).filter((it) => it.name === "Higo");
+    expect(higos.length).toBe(2);
+  });
+
+  it("no depende del orden en que se recorra el menu", () => {
+    // La unidad base sale solo del nombre. Si saliera de "la primera que
+    // aparezca", el mismo menu daria filas distintas segun el dia que se
+    // colocara antes -exactamente el tipo de inestabilidad que ya nos mordio
+    // en los valores por defecto del wizard.
+    const mk = (first, second) => ({
+      g1: {
+        "Lun-Comida": { recipeId: first, firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+        "Mar-Comida": { recipeId: second, firstRecipeId: null, eaters: 2, mode: "casa", warnings: [] },
+      },
+    });
+    const a = buildShoppingList(mk("test_dualunit_ud", "test_dualunit_g"), GROUPS, ["Comida"]);
+    const b = buildShoppingList(mk("test_dualunit_g", "test_dualunit_ud"), GROUPS, ["Comida"]);
+    const pick = (sh) =>
+      sh.byCategory.flatMap((c) => c.items).filter((it) => it.name === "Aguacate").map((it) => `${it.qty}${it.unit}`);
+    expect(pick(a)).toEqual(pick(b));
+  });
+});
+
 describe("buildShoppingList slots del congelador", () => {
   // Plato principal + guarnición ya fusionada, tal como la deja
   // applyGarnishToRecipe: los ingredientes de la guarnición van con id
