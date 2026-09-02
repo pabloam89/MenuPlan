@@ -125,6 +125,12 @@ export function FeedScreen({
   const [sharing, setSharing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareRecipeOpen, setShareRecipeOpen] = useState(false);
+  // Publicar vive plegado, asomando por el borde, y comparte hueco con
+  // Siguiendo/Descubrir: al desplegarse, las pestañas se van. Son dos cosas
+  // que nunca se necesitan a la vez -o estas leyendo o estas publicando- asi
+  // que la zona alta del feed no tiene por que crecer para tener las dos.
+  const [publishOpen, setPublishOpen] = useState(false);
+  const [publishHint, setPublishHint] = useState(false);
   const [meh, setMeh] = useState(() => new Set());
   const [notif, setNotif] = useState({ items: [], seenAt: null });
   const [notifPeople, setNotifPeople] = useState({});
@@ -223,6 +229,15 @@ export function FeedScreen({
 
   useEffect(() => { refresh(); }, [refresh]);
 
+  // Una lengueta a medio asomar no se explica sola: la primera vez se señala,
+  // y solo la primera.
+  useEffect(() => {
+    if (!onPublishRecipe) return;
+    try {
+      if (!localStorage.getItem(PUBLISH_HINT_KEY)) setPublishHint(true);
+    } catch { /* modo privado: sin pista, pero sin romper nada */ }
+  }, [onPublishRecipe]);
+
   /**
    * La siguiente tanda. Se pide sola al llegar al final (ver el centinela de
    * abajo): un boton de "cargar mas" es un peaje que nadie quiere pagar
@@ -272,6 +287,11 @@ export function FeedScreen({
   }, [user?.id]);
 
   useEffect(() => { refreshNotifications(); }, [refreshNotifications]);
+
+  const dismissPublishHint = () => {
+    setPublishHint(false);
+    try { localStorage.setItem(PUBLISH_HINT_KEY, "1"); } catch { /* modo privado */ }
+  };
 
   const openNotifications = () => {
     setBellRect(bellRef.current?.getBoundingClientRect() ?? null);
@@ -442,13 +462,16 @@ export function FeedScreen({
 
           {loading && <p style={hint}>Cargando…</p>}
 
-          {onPublishRecipe && !loading && (
-            <button type="button" onClick={() => setShareRecipeOpen(true)} style={publishCard}>
+          {/* Siguiendo o Descubrir. Es la unica decision del feed, asi que va
+              arriba del rio y no en la cabecera: no compite con buscar,
+              notificaciones y perfil, que son atajos, no modos de lectura. */}
+          <div style={{ position: "relative" }}>
+          {publishOpen && onPublishRecipe ? (
+            <div style={publishCard}>
               {/* La ilustracion de Mis Recetas, la misma que ya identifica tu
                   recetario en el navegador de carpetas: si esa imagen ya
-                  significa "lo tuyo", la tarjeta no tiene que explicarse.
-                  Y es ella quien pone el color: el resto va en la escala de
-                  tinta de siempre. */}
+                  significa "lo tuyo", la tarjeta no tiene que explicarse. Y es
+                  ella quien pone el color: el resto va en la escala de tinta. */}
               <img src="/avatares/cards/empty_recetas_propias.jpg" alt="" loading="lazy" style={publishArt} />
               <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
                 <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK }}>
@@ -462,14 +485,14 @@ export function FeedScreen({
                       : "Tus platos, en el feed"}
                 </span>
               </span>
-              <span style={publishPill}>Publicar</span>
-            </button>
-          )}
-
-          {/* Siguiendo o Descubrir. Es la unica decision del feed, asi que va
-              arriba del rio y no en la cabecera: no compite con buscar,
-              notificaciones y perfil, que son atajos, no modos de lectura. */}
-          <div style={scopeTabs}>
+              <button type="button" onClick={() => setShareRecipeOpen(true)} style={publishPill}>Publicar</button>
+              <button type="button" onClick={() => setPublishOpen(false)} aria-label="Cerrar" style={publishClose}>
+                <X size={13} strokeWidth={2.8} />
+              </button>
+            </div>
+          ) : (
+          <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
+          <div style={{ ...scopeTabs, flex: 1, marginTop: 0 }}>
             {/* Cada pestaña con su icono y su color: azul para los tuyos,
                 teja para lo que esta por descubrir. En gris las dos, la fila
                 no decia nada y habia que leerla entera. */}
@@ -496,6 +519,31 @@ export function FeedScreen({
                 </button>
               );
             })}
+          </div>
+
+          {/* La lengueta. Asoma por el borde derecho (margen negativo contra
+              el padding de la columna) para leerse como "aqui hay algo mas" y
+              no como un boton mas de la fila. Al tocarla ocupa el sitio de
+              las pestañas. */}
+          {onPublishRecipe && (
+            <button
+              type="button"
+              onClick={() => { setPublishOpen(true); dismissPublishHint(); }}
+              aria-label="Publicar una receta tuya"
+              style={publishPeek}
+            >
+              <img src="/avatares/cards/empty_recetas_propias.jpg" alt="" loading="lazy" style={publishPeekArt} />
+            </button>
+          )}
+          </div>
+          )}
+
+          {publishHint && !publishOpen && (
+            <div style={hintBubble}>
+              <span style={{ flex: 1 }}>Ahí están tus recetas sin publicar</span>
+              <button type="button" onClick={dismissPublishHint} style={hintOk}>Vale</button>
+            </div>
+          )}
           </div>
 
           {/* Sigues a gente pero no han publicado nada: no es lo mismo que no
@@ -1377,9 +1425,45 @@ const memberDot = {
  * tono del fondo — un mismo color untado en fondo, borde y letras convierte
  * cualquier tarjeta en una pegatina.
  */
+const PUBLISH_HINT_KEY = "hm_feed_publish_hint";
+
+// La lengueta: a la altura de la fila de pestañas, redondeada solo por la
+// izquierda y mordida por el borde derecho de la columna.
+const publishPeek = {
+  display: "flex", alignItems: "center",
+  width: 46, height: 40, marginRight: -18, marginLeft: 8, paddingLeft: 7,
+  border: "none", borderRadius: "14px 0 0 14px",
+  background: "#f6efe6", cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+};
+
+const publishPeekArt = {
+  width: 30, height: 30, borderRadius: 9, objectFit: "cover", display: "block",
+};
+
+const publishClose = {
+  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+  width: 24, height: 24, borderRadius: 999, marginLeft: 4,
+  border: "none", background: "rgba(20,47,29,.07)", color: "#7a8a7f", cursor: "pointer",
+};
+
+const hintBubble = {
+  position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 4,
+  display: "flex", alignItems: "center", gap: 8,
+  maxWidth: 260, padding: "8px 10px 8px 12px", borderRadius: 12,
+  background: "#1a3a24", color: "#fff",
+  fontSize: 11.5, fontWeight: 700, lineHeight: 1.35,
+  boxShadow: "0 8px 22px rgba(20,47,29,.28)",
+};
+
+const hintOk = {
+  flexShrink: 0, padding: "4px 10px", borderRadius: 999, border: "none",
+  background: "rgba(255,255,255,.16)", color: "#fff",
+  fontSize: 11, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+};
+
 const publishCard = {
   display: "flex", alignItems: "center", gap: 10, width: "100%",
-  margin: "12px 0 2px", padding: "6px 8px 6px 6px",
+  margin: "14px 0 2px", padding: "6px 8px 6px 6px",
   borderRadius: 14, border: "none", background: "#f6efe6",
   cursor: "pointer", fontFamily: "inherit", boxSizing: "border-box",
 };
@@ -1392,8 +1476,9 @@ const publishArt = {
 // Verde de accion, como cualquier boton primario de la app: es el unico
 // elemento saturado ademas de la ilustracion.
 const publishPill = {
-  flexShrink: 0, padding: "6px 13px", borderRadius: 999,
+  flexShrink: 0, padding: "6px 13px", borderRadius: 999, border: "none",
   background: GREEN, color: "#fff", fontSize: 11.5, fontWeight: 800,
+  cursor: "pointer", fontFamily: "inherit",
 };
 
 const scopeTabs = {
