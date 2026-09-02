@@ -170,6 +170,33 @@ textarea::placeholder {
   animation: mpDrawerIn .34s cubic-bezier(.22,1,.36,1) both;
 }
 
+/* El panel de notificaciones NACE de la campana: crece desde su esquina en
+   vez de subir desde abajo. Una hoja inferior diria "esto es una pantalla
+   nueva"; esto es un desplegable de lo que acabas de tocar, y el origen de la
+   escala es lo que lo cuenta sin una sola palabra. */
+@keyframes mpPopBell {
+  from { opacity: 0; transform: scale(.86) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.mp-pop-bell {
+  transform-origin: top right;
+  animation: mpPopBell .2s cubic-bezier(.22,1.1,.36,1) both;
+}
+
+/* Y la campana acusa el toque con un badazo minimo. Dos grados de giro: lo
+   justo para que el ojo la registre como el sitio del que sale el panel. */
+@keyframes mpBellRing {
+  0%, 100% { transform: rotate(0); }
+  25%      { transform: rotate(-13deg); }
+  55%      { transform: rotate(9deg); }
+  80%      { transform: rotate(-4deg); }
+}
+
+.mp-bell-ring {
+  animation: mpBellRing .5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mp-overlay-in,
   .mp-sheet-up,
@@ -179,8 +206,14 @@ textarea::placeholder {
   .mp-tab-back,
   .mp-toast-in,
   .mp-peek-in,
-  .mp-drawer-in {
+  .mp-drawer-in,
+  .mp-pop-bell {
     animation: mpFadeIn .12s ease both;
+  }
+
+  /* Sin movimiento no hay badazo: la campana se queda quieta. */
+  .mp-bell-ring {
+    animation: none;
   }
 
   /* Aquí no vale el fade de arriba: la pista es el movimiento, así que sin

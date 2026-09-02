@@ -4499,6 +4499,7 @@ export default function App() {
                 // copias del feed llevan el owner del autor original, y
                 // republicarlas seria duplicar su receta firmada por ti.
                 unsharedRecipes={filterOwnCreatedRecipes(data.userRecipes, user).filter((r) => (r.visibility ?? "private") === "private")}
+                myRecipes={data.userRecipes ?? []}
                 onPublishRecipe={handlePublishRecipe}
                 onNav={handleNav}
                 onOpenRecipe={handleOpenFeedRecipe}

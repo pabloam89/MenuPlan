@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Users, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon, CookingPot } from "lucide-react";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
 import { RecipePoster, ActionButton } from "../components/SwipeCard.jsx";
@@ -8,7 +8,7 @@ import { CommentThread } from "../components/CommentThread.jsx";
 import { ReportSheet } from "../components/ReportSheet.jsx";
 import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { ShareRecipeSheet } from "../components/ShareRecipeSheet.jsx";
-import { NotificationsSheet } from "../components/NotificationsSheet.jsx";
+import { NotificationsPopover } from "../components/NotificationsPopover.jsx";
 import { loadNotifications, markNotificationsSeen, countUnread } from "../lib/socialNotifications.js";
 import { setFeedBadge } from "../lib/socialBadge.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -83,6 +83,7 @@ export function FeedScreen({
   onPublishMenu,
   onUnpublishMenu,
   unsharedRecipes = [],
+  myRecipes = [],
   onPublishRecipe,
   recipeFolders = [],
   onCreateFolder,
@@ -112,6 +113,11 @@ export function FeedScreen({
   // La marca de agua de ANTES de abrir: la campana se pone a cero al abrir,
   // pero dentro del panel lo nuevo sigue tintado durante esta visita.
   const [prevSeenAt, setPrevSeenAt] = useState(null);
+  // El panel cuelga de la campana de verdad: se mide al abrir en vez de
+  // dejar una posicion fija a ojo, que se rompe en cuanto cambia el alto de
+  // la cabecera o el navegador pinta las safe areas de otra forma.
+  const bellRef = useRef(null);
+  const [bellRect, setBellRect] = useState(null);
 
   // La corriente es SOLO de recetas: los menús ya están arriba, y repetirlos
   // aquí los pondría dos veces en la misma pantalla.
@@ -132,6 +138,24 @@ export function FeedScreen({
    * la receta no estan (muy viejos, o retirados), no pasa nada — mejor un
    * toque sin efecto que abrir una pantalla vacia.
    */
+  /**
+   * La foto del plato del que habla una notificacion. Sale de lo que el feed
+   * ya tiene en memoria: si esa receta no esta cargada, la fila se queda sin
+   * miniatura — mejor eso que una peticion por notificacion.
+   */
+  const thumbForTarget = (type, id) => {
+    if (type !== "recipe") return null;
+    // Tu biblioteca primero: casi todas estas notificaciones hablan de algo
+    // TUYO, y tu receta puede llevar semanas fuera de la tanda del feed. El
+    // feed es el respaldo, para responder a un comentario tuyo en lo de otro.
+    const src =
+      myRecipes.find((r) => r.id === id) ??
+      items.find((i) => i.kind === "recipe" && i.recipe.id === id)?.recipe ??
+      null;
+    const img = src ? dishImageForRecipe(src) : null;
+    return img ? deckImg(img, 160) : null;
+  };
+
   const openTarget = (type, id) => {
     if (type === "menu") {
       const m = weekly.find((w) => w.id === id) ?? items.find((i) => i.kind === "menu" && i.id === id)?.menu;
@@ -177,6 +201,7 @@ export function FeedScreen({
   useEffect(() => { refreshNotifications(); }, [refreshNotifications]);
 
   const openNotifications = () => {
+    setBellRect(bellRef.current?.getBoundingClientRect() ?? null);
     setPrevSeenAt(notif.seenAt);
     setNotifOpen(true);
     // Abrir = leer: la marca avanza YA (campana y punto del nav a cero), no
@@ -258,8 +283,17 @@ export function FeedScreen({
             {(() => {
               const unread = countUnread(notif.items, notif.seenAt);
               return (
-                <button type="button" onClick={openNotifications} title="Notificaciones" style={{ ...iconBtn, position: "relative" }}>
-                  <Bell size={16} strokeWidth={2.3} />
+                <button
+                  type="button"
+                  ref={bellRef}
+                  onClick={openNotifications}
+                  title="Notificaciones"
+                  aria-label={unread > 0 ? `Notificaciones (${unread} sin leer)` : "Notificaciones"}
+                  style={{ ...iconBtn, position: "relative" }}
+                >
+                  <span className={notifOpen ? "mp-bell-ring" : undefined} style={{ display: "inline-flex" }}>
+                    <Bell size={16} strokeWidth={2.3} />
+                  </span>
                   {unread > 0 && (
                     <span style={bellBadge}>{unread > 9 ? "9+" : unread}</span>
                   )}
@@ -304,18 +338,6 @@ export function FeedScreen({
                   <span style={{ ...weeklyName, fontWeight: 700, color: INK }}>Tu menú</span>
                 </button>
               )}
-              {onPublishRecipe && (
-                <button type="button" onClick={() => setShareRecipeOpen(true)} style={weeklyItem}>
-                  <span style={ringDashed}>
-                    <span style={ringGap}>
-                      <span style={shareCircle}>
-                        <CookingPot size={19} strokeWidth={2.4} color="#8aa294" />
-                      </span>
-                    </span>
-                  </span>
-                  <span style={{ ...weeklyName, fontWeight: 700, color: INK }}>Tu receta</span>
-                </button>
-              )}
             {weekly.map((m) => {
                 const p = profiles[m.owner_id];
                 const unseen = !seenMenus.has(m.id);
@@ -358,12 +380,28 @@ export function FeedScreen({
                 <button type="button" onClick={() => setSearchOpen(true)} style={{ ...primaryBtn, marginTop: 14 }}>
                   <Search size={14} strokeWidth={2.6} /> Buscar gente
                 </button>
+                {onPublishRecipe && (
+                  <button type="button" onClick={() => setShareRecipeOpen(true)} style={{ ...sectionAction, margin: "10px auto 0" }}>
+                    <CookingPot size={13} strokeWidth={2.6} /> Publicar una receta tuya
+                  </button>
+                )}
               </EmptyIllustration>
             </div>
           )}
 
           {recipes.length > 0 && (
-            <h2 style={{ ...sectionTitle, marginTop: 18 }}>Recién salido del horno</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18 }}>
+              <h2 style={{ ...sectionTitle, margin: 0, flex: 1 }}>Recién salido del horno</h2>
+              {/* Publicar una receta vivia en el carrusel de "Hoy cocinan",
+                  donde no pintaba nada: alli van menus de la semana. Aqui es
+                  la accion de la seccion que ya habla de recetas, y no gasta
+                  ni una fila de alto. */}
+              {onPublishRecipe && (
+                <button type="button" onClick={() => setShareRecipeOpen(true)} style={sectionAction}>
+                  <CookingPot size={13} strokeWidth={2.6} /> Publicar la tuya
+                </button>
+              )}
+            </div>
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 26, padding: "4px 0 18px" }}>
@@ -405,11 +443,15 @@ export function FeedScreen({
       )}
 
       {notifOpen && (
-        <NotificationsSheet
+        <NotificationsPopover
           user={user}
           items={notif.items}
           prevSeenAt={prevSeenAt}
           people={notifPeople}
+          anchor={bellRect}
+          followingIds={following}
+          pendingIds={pendingIds}
+          thumbFor={thumbForTarget}
           onOpenPerson={(id) => { setNotifOpen(false); setPersonId(id); }}
           onOpenTarget={(type, id) => { setNotifOpen(false); openTarget(type, id); }}
           onChanged={refreshNotifications}
@@ -1242,6 +1284,13 @@ const memberDot = {
   width: 22, height: 22, borderRadius: 999, flexShrink: 0,
   display: "flex", alignItems: "center", justifyContent: "center",
   background: "#e8efe9", color: "#42594c", fontSize: 10, fontWeight: 900,
+};
+
+const sectionAction = {
+  display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
+  padding: 0, border: "none", background: "transparent",
+  color: GREEN, fontSize: 12.5, fontWeight: 800,
+  cursor: "pointer", fontFamily: "inherit",
 };
 
 const bellBadge = {
