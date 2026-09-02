@@ -666,28 +666,23 @@ export async function loadFeed({
     return out;
   };
 
-  const [recipes, menus] = await Promise.all([
-    page(supabase.from("user_recipes").select(
-      "id, owner_id, name, category, type, time_minutes, difficulty, photo, linked_catalog_id, base_dish_id, pinned_garnish_id, visibility, created_at")),
-    page(supabase.from("shared_menus").select(
-      "id, owner_id, menu_id, title, week_start, week_end, payload, visibility, copy_count, created_at")),
-  ]);
+  // Solo recetas. Los menus son de una semana concreta y caducan con ella,
+  // asi que viven en el carrusel de arriba (loadWeeklyMenus) y no en el rio.
+  // Antes se pedian aqui tambien -con su payload entero, todos los platos de
+  // la semana- en CADA pagina del feed, para luego no pintarlos en ningun
+  // sitio: era la peticion mas pesada de la pantalla y no se veia jamas.
+  const recipes = await page(supabase.from("user_recipes").select(
+    "id, owner_id, name, category, type, time_minutes, difficulty, photo, linked_catalog_id, base_dish_id, pinned_garnish_id, visibility, created_at"));
 
   warn("loadFeed/recipes", recipes.error);
-  warn("loadFeed/menus", menus.error);
 
   // Lo descartado con "no me la ensenes mas" no vuelve ni aqui ni en el mazo:
   // el mismo filtro en los dos sitios por donde entran recetas ajenas.
   const hidden = readHiddenRecipes();
 
-  const merged = [
-    ...(recipes.data ?? [])
-      .filter((r) => !hidden.has(r.id) && !blocked.has(r.owner_id))
-      .map((r) => ({ kind: "recipe", id: r.id, ownerId: r.owner_id, createdAt: r.created_at, recipe: r })),
-    ...(menus.data ?? [])
-      .filter((m) => !blocked.has(m.owner_id))
-      .map((m) => ({ kind: "menu", id: m.id, ownerId: m.owner_id, createdAt: m.created_at, menu: m })),
-  ].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  const merged = (recipes.data ?? [])
+    .filter((r) => !hidden.has(r.id) && !blocked.has(r.owner_id))
+    .map((r) => ({ kind: "recipe", id: r.id, ownerId: r.owner_id, createdAt: r.created_at, recipe: r }));
 
   // En dev, si no hay nada real que enseñar (la migración 0027 aún no está
   // aplicada, o todavía no sigues a nadie), se rellena con sintéticos para
@@ -696,12 +691,10 @@ export async function loadFeed({
     return { items: fixtureFeed().slice(0, limit), cursor: null, done: true };
   }
 
-  // Se piden `limit` de CADA tabla y se corta la mezcla: lo que sobra no se
-  // tira, vuelve en la siguiente pagina porque el cursor queda en la fecha
-  // del ultimo entregado.
-  const items = merged.slice(0, limit);
+  const items = merged;
   const last = items[items.length - 1];
-  const done = merged.length <= limit && (recipes.data ?? []).length < limit && (menus.data ?? []).length < limit;
+  // Si la consulta devolvio menos de lo que cabia, no hay mas paginas.
+  const done = (recipes.data ?? []).length < limit;
   return { items, cursor: done ? null : last?.createdAt ?? null, done };
 }
 
@@ -731,17 +724,27 @@ export async function loadProfilesByIds(ids) {
  * Es lo único del feed que caduca de verdad — un menú semanal deja de tener
  * sentido el lunes siguiente — así que se filtra por fecha, no por antigüedad.
  */
-export async function loadWeeklyMenus({ viewerId = null, today = new Date() } = {}) {
+export async function loadWeeklyMenus({ viewerId = null, scope = "all", followingIds = null, today = new Date() } = {}) {
   if (!ok()) return [];
   const blocked = viewerId ? new Set(await loadBlockedIds(viewerId)) : new Set();
   const iso = today.toISOString().slice(0, 10);
-  const { data, error } = await supabase
+
+  // La fila de arriba obedece a la misma pestaña que el rio: estar en
+  // "Siguiendo" y ver desconocidos ahi arriba contradecia la eleccion que
+  // acababas de hacer dos centimetros mas abajo.
+  const mine = scope === "following" && viewerId
+    ? (followingIds ?? await loadFollowing(viewerId))
+    : null;
+  if (scope === "following" && (mine?.length ?? 0) === 0) return [];
+
+  let q = supabase
     .from("shared_menus")
     .select("id, owner_id, title, week_start, week_end, payload, created_at")
     .neq("visibility", "private")
     .lte("week_start", iso)
-    .gte("week_end", iso)
-    .order("created_at", { ascending: false });
+    .gte("week_end", iso);
+  if (mine) q = q.in("owner_id", mine);
+  const { data, error } = await q.order("created_at", { ascending: false });
   // Ojo al orden: si la tabla no existe (migración sin aplicar) esto salía
   // antes de llegar al relleno de dev, y la fila de arriba no aparecía nunca.
   if (warn("loadWeeklyMenus", error)) return FIXTURES_ENABLED ? FIXTURE_MENUS : [];

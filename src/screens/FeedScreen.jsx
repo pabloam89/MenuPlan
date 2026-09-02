@@ -211,7 +211,7 @@ export function FeedScreen({
     const mineIds = await loadFollowing(user?.id);
     const [feed, week, sent] = await Promise.all([
       loadFeed({ viewerId: user?.id, scope, followingIds: mineIds }),
-      loadWeeklyMenus({ viewerId: user?.id }),
+      loadWeeklyMenus({ viewerId: user?.id, scope, followingIds: mineIds }),
       loadSentRequests(user?.id),
     ]);
     const mine = mineIds;

@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("./supabase.js", () => ({ supabase: {} }));
 import { supabase } from "./supabase.js";
 import {
-  blockUser, unblockUser, loadBlockedIds, reportContent, loadFeed,
+  blockUser, unblockUser, loadBlockedIds, reportContent, loadFeed, loadWeeklyMenus,
 } from "./social.js";
 
 function makeQuery(result, log, table) {
@@ -22,6 +22,8 @@ function makeQuery(result, log, table) {
     lt: (...a) => (log.push({ table, op: "lt", args: a }), q),
     in: (...a) => (log.push({ table, op: "in", args: a }), q),
     not: (...a) => (log.push({ table, op: "not", args: a }), q),
+    lte: (...a) => (log.push({ table, op: "lte", args: a }), q),
+    gte: (...a) => (log.push({ table, op: "gte", args: a }), q),
     then: (resolve, reject) => Promise.resolve(result).then(resolve, reject),
   };
   return q;
@@ -102,7 +104,8 @@ describe("bloquear", () => {
     Object.assign(supabase, client);
     const { items } = await loadFeed({ viewerId: "me" });
     expect(items.map((i) => i.ownerId)).not.toContain("villano");
-    expect(items.map((i) => i.id).sort()).toEqual(["m2", "r2"]);
+    // Solo recetas: los menus viven en el carrusel, no en el rio.
+    expect(items.map((i) => i.id)).toEqual(["r2"]);
   });
 
   it("sin viewerId (sin sesión) no filtra por bloqueo — pero tampoco lo pide", async () => {
@@ -189,7 +192,7 @@ describe("loadFeed: siguiendo y paginacion", () => {
     Object.assign(supabase, client);
     await loadFeed({ viewerId: null, cursor: "2026-01-05" });
     const lt = client.log.filter((l) => l.op === "lt");
-    expect(lt).toHaveLength(2); // recetas y menus
+    expect(lt).toHaveLength(1);
     expect(lt[0].args).toEqual(["created_at", "2026-01-05"]);
   });
 
@@ -240,5 +243,30 @@ describe("loadFeed: Descubrir", () => {
     Object.assign(supabase, client);
     await loadFeed({ scope: "all" });
     expect(client.log.some((l) => l.op === "not")).toBe(false);
+  });
+});
+
+describe("loadWeeklyMenus: la fila de arriba obedece la pestaña", () => {
+  it("en Siguiendo solo trae menus de tus seguidos", async () => {
+    const client = mockClient({ tables: { shared_menus: [{ data: [], error: null }] } });
+    Object.assign(supabase, client);
+    await loadWeeklyMenus({ viewerId: "yo", scope: "following", followingIds: ["amigo"] });
+    const inCall = client.log.find((l) => l.op === "in");
+    expect(inCall.args).toEqual(["owner_id", ["amigo"]]);
+  });
+
+  it("en Siguiendo sin seguidos no pregunta nada", async () => {
+    const client = mockClient({ tables: { shared_menus: [{ data: [], error: null }] } });
+    Object.assign(supabase, client);
+    const rows = await loadWeeklyMenus({ viewerId: "yo", scope: "following", followingIds: [] });
+    expect(rows).toEqual([]);
+    expect(client.log.some((l) => l.table === "shared_menus")).toBe(false);
+  });
+
+  it("en Descubrir no acota por seguidos", async () => {
+    const client = mockClient({ tables: { shared_menus: [{ data: [], error: null }] } });
+    Object.assign(supabase, client);
+    await loadWeeklyMenus({ viewerId: "yo", scope: "all" });
+    expect(client.log.some((l) => l.op === "in")).toBe(false);
   });
 });
