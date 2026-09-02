@@ -2825,6 +2825,32 @@ export default function App() {
   // Menús que ya tienes publicados, por menu_id, para saber si el botón
   // dice "Compartir" o "Retirar".
   const [publishedMenus, setPublishedMenus] = useState({});
+  /**
+   * Sin menú activo no puede haber lista de la compra.
+   *
+   * La compra no es una lista propia: es la proyección de lo que hay que
+   * cocinar. Si el menú que la generó ya no existe -lo borraste, o
+   * `activeMenuId` apunta a un id que ya no está en `menus`- lo que queda en
+   * Compra son ingredientes de platos fantasma: te manda a comprar cosas para
+   * un menú que nadie va a cocinar.
+   *
+   * Ya había una limpieza para esto, pero pedía DOS condiciones a la vez
+   * (ni menú activo en la nube, ni id local) y solo corría al sincronizar. Un
+   * `activeMenuId` que apunta a un menú inexistente se colaba por ahí.
+   *
+   * Esto lo comprueba contra el estado ya cargado -`menus` y `activeMenuId`
+   * salen del mismo sitio-, así que no hay carrera con la red: nunca puede
+   * borrar una lista buena porque los menús aún no hubieran llegado.
+   */
+  useEffect(() => {
+    if (householdReadOnly) return;
+    const activeMenu = data.activeMenuId ? data.menus?.[data.activeMenuId] : null;
+    if (activeMenu) return;
+    if ((shopping.items?.length ?? 0) === 0 && Object.keys(menuPlan).length === 0) return;
+    setShopping({ items: [] });
+    setMenuPlan({});
+  }, [data.activeMenuId, data.menus, shopping.items, menuPlan, householdReadOnly]);
+
   // Al entrar se pregunta que menus tienes ya en el feed: sin esto, el boton
   // de compartir decia "Compartir" aunque hubieras publicado ayer, y solo se
   // corregia publicando otra vez en la misma sesion.
