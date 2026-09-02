@@ -86,6 +86,7 @@ import {
   ToggleSwitch,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
+import { applyFreqWithinBudget } from "../lib/freqBudget.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from "../lib/weekCalendar.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
@@ -7566,29 +7567,10 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   const setCustomFreq = (key, next) => {
     setData((d) => {
       const cur = (subjectId ? d.freqsByGroup?.[subjectId] : d.freqs) ?? {};
-      const base = {};
-      FOOD_ORDER.forEach((k) => {
-        base[k] = Math.max(0, cur[k] ?? 0);
-      });
-      base[key] = Math.max(0, Math.min(99, Math.round(next)));
-
-      let over = FOOD_ORDER.reduce((s, k) => s + base[k], 0) - slotBudget.total;
-      if (over > 0) {
-        const others = FOOD_ORDER.filter((k) => k !== key);
-        let guard = 0;
-        while (over > 0 && guard < 200) {
-          const shuffled = [...others].sort(() => Math.random() - 0.5);
-          const trimmable = shuffled.filter((k) => base[k] > 0);
-          if (trimmable.length === 0) break;
-          const pick = trimmable[0];
-          base[pick] -= 1;
-          over -= 1;
-          guard += 1;
-        }
-        // Nothing left to trim elsewhere (all other categories at 0) — cap
-        // this one instead so the total still never exceeds the budget.
-        if (over > 0) base[key] = Math.max(0, base[key] - over);
-      }
+      // El reparto vive en lib/freqBudget.js: es lo que el usuario ve en el
+      // formulario, asi que esta como funcion pura y con tests que fijan que
+      // la misma accion da SIEMPRE el mismo resultado.
+      const base = applyFreqWithinBudget(cur, key, next, FOOD_ORDER, slotBudget.total);
 
       if (subjectId) {
         return { ...d, freqsByGroup: { ...(d.freqsByGroup ?? {}), [subjectId]: base } };
