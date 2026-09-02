@@ -11,6 +11,7 @@ import { ShareRecipeSheet } from "../components/ShareRecipeSheet.jsx";
 import { NotificationsPopover } from "../components/NotificationsPopover.jsx";
 import { DiscoverPeopleSheet } from "../components/DiscoverPeopleSheet.jsx";
 import { VisibilityPrompt } from "../components/VisibilityPrompt.jsx";
+import { CoachTour } from "../components/HomeCoachTour.jsx";
 import { loadNotifications, markNotificationsSeen, countUnread } from "../lib/socialNotifications.js";
 import { setFeedBadge } from "../lib/socialBadge.js";
 import { shareOut } from "../lib/shareLink.js";
@@ -512,6 +513,7 @@ export function FeedScreen({
             {onPublishRecipe && (
               <div
                 className="mp-hpanel"
+                data-coach="feed-publish"
                 style={{
                   // La base se queda FIJA en 46 y lo que se anima es cuanto
                   // crece. Interpolar flex-basis de 46px a 100% no funciona:
@@ -603,12 +605,6 @@ export function FeedScreen({
             </div>
           </div>
 
-          {publishHint && !publishOpen && (
-            <div style={hintBubble}>
-              <span style={{ flex: 1 }}>Ahí están tus recetas sin publicar</span>
-              <button type="button" onClick={dismissPublishHint} style={hintOk}>Vale</button>
-            </div>
-          )}
           </div>
 
           {/* Sigues a gente pero no han publicado nada: no es lo mismo que no
@@ -699,6 +695,24 @@ export function FeedScreen({
 
       {menuOpen && (
         <MenuPeek menu={menuOpen} user={user} profile={profiles[menuOpen.owner_id]} onOpenPerson={() => { setMenuOpen(null); setPersonId(menuOpen.owner_id); }} onBlocked={handleBlocked} onClose={() => setMenuOpen(null)} />
+      )}
+
+      {/* La lengueta a medio asomar no se explica sola, pero una burbuja
+          flotando al lado tampoco: sin oscurecer el resto, no se sabe a que
+          apunta. Se reusa el coach-mark de la casa -mismo recorte, misma
+          burbuja- para que se vea como el resto de explicaciones de la app y
+          no como un aviso pegado encima. */}
+      {publishHint && !publishOpen && onPublishRecipe && (
+        <CoachTour
+          steps={[{
+            selector: '[data-coach="feed-publish"]',
+            Icon: ChefHat,
+            title: "Tus recetas sin publicar",
+            desc: "Aquí asoman las que aún no has compartido. Tócalo y se abre para elegir cuál publicas.",
+            place: "below",
+          }]}
+          onClose={dismissPublishHint}
+        />
       )}
 
       {visPrompt && (
@@ -1582,20 +1596,7 @@ const publishClose = {
   border: "none", background: "rgba(20,47,29,.07)", color: "#7a8a7f", cursor: "pointer",
 };
 
-const hintBubble = {
-  position: "absolute", left: 0, top: "calc(100% + 6px)", zIndex: 4,
-  display: "flex", alignItems: "center", gap: 8,
-  maxWidth: 260, padding: "8px 10px 8px 12px", borderRadius: 12,
-  background: "#1a3a24", color: "#fff",
-  fontSize: 11.5, fontWeight: 700, lineHeight: 1.35,
-  boxShadow: "0 8px 22px rgba(20,47,29,.28)",
-};
 
-const hintOk = {
-  flexShrink: 0, padding: "4px 10px", borderRadius: 999, border: "none",
-  background: "rgba(255,255,255,.16)", color: "#fff",
-  fontSize: 11, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-};
 
 // Plegada asoma por el borde izquierdo (margen negativo contra el padding de
 // la columna) y solo se redondea por la derecha, que es el lado que se ve.

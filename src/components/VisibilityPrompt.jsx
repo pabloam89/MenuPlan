@@ -14,8 +14,9 @@ const INK = "#142f1d";
  *
  * Justamente por eso esta pantalla ya no pide permiso: AVISA. Si abrimos el
  * valor por defecto, hay que decirlo a la cara la primera vez y dejar la
- * puerta de salida al lado. Por eso arriba se lee en qué estado estás ahora,
- * y la opción actual va marcada.
+ * puerta de salida al lado. El estado actual va PRIMERO y con su etiqueta
+ * "Ahora": las tres filas ya se explican solas, y un párrafo encima
+ * repitiéndolas solo aleja la decisión.
  *
  * Se enseña al entrar al Feed -el único momento en que importa- y UNA vez:
  * conteste lo que conteste, no se insiste. Cambiar de idea es ir a Mi perfil,
@@ -35,7 +36,6 @@ export function VisibilityPrompt({ current = "followers", onChoose, onClose }) {
     <WizardSheet
       icon={Eye}
       title="¿Quién te puede encontrar?"
-      subtitle={SUBTITLE[current] ?? SUBTITLE.followers}
       onClose={onClose}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -70,11 +70,6 @@ export function VisibilityPrompt({ current = "followers", onChoose, onClose }) {
   );
 }
 
-const SUBTITLE = {
-  followers: "Ahora mismo te pueden encontrar por tu nombre, pero lo que publicas solo lo ve quien tú aceptes. Puedes cambiarlo aquí o luego desde Mi perfil.",
-  public: "Ahora mismo cualquiera puede encontrarte y ver lo que publicas. Puedes cambiarlo aquí o luego desde Mi perfil.",
-  private: "Ahora mismo no sales en las búsquedas de nadie. Puedes cambiarlo aquí o luego desde Mi perfil.",
-};
 
 /** Los mismos tres colores de privacidad que usa Mi perfil. */
 function Option({ art, tint, now = false, title, subtitle, onClick }) {
