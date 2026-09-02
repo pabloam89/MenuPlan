@@ -135,7 +135,7 @@ export function FeedScreen({
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishHint, setPublishHint] = useState(false);
   // "¿Quieres que te encuentren?", una vez. Ver VisibilityPrompt.
-  const [visPrompt, setVisPrompt] = useState(false);
+  const [visPrompt, setVisPrompt] = useState(null);
   const [meh, setMeh] = useState(() => new Set());
   const [notif, setNotif] = useState({ items: [], seenAt: null });
   const [notifPeople, setNotifPeople] = useState({});
@@ -234,10 +234,10 @@ export function FeedScreen({
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  // Todo perfil nace privado, asi que sin preguntar esto la red social
-  // arranca vacia para todo el mundo: nadie sale en las busquedas de nadie.
-  // Se pregunta al entrar al Feed -el unico momento en que la respuesta le
-  // importa a quien la contesta- y solo si sigues siendo invisible.
+  // Desde 0038 el perfil nuevo nace en 'followers' (te encuentran por tu
+  // nombre, tu contenido no). Abrir un valor por defecto obliga a decirlo, no
+  // a esconderlo: por eso esto se enseña una vez al entrar al Feed, diga lo
+  // que diga tu estado actual, y con la puerta de salida al lado.
   useEffect(() => {
     if (!user?.id) return;
     let alive = true;
@@ -248,18 +248,19 @@ export function FeedScreen({
       const prof = await loadMyProfile(user.id);
       // Sin perfil todavia no se pregunta: el handle se crea al abrir Mi
       // perfil, y preguntar antes seria hablar de algo que aun no existe.
-      if (!alive || !prof || (prof.visibility ?? "private") !== "private") return;
-      setVisPrompt(true);
+      if (!alive || !prof) return;
+      setVisPrompt(prof.visibility ?? "followers");
     })();
     return () => { alive = false; };
   }, [user?.id]);
 
   const answerVisibility = async (visibility) => {
-    setVisPrompt(false);
+    const before = visPrompt;
+    setVisPrompt(null);
     try { localStorage.setItem(VIS_PROMPT_KEY, "1"); } catch { /* modo privado */ }
-    // "Nadie" ya es el estado actual: no hay nada que guardar, y escribirlo
-    // igualmente seria una peticion para dejar todo como estaba.
-    if (visibility !== "private") await saveMyProfile(user?.id, { visibility });
+    // Si eliges lo que ya eras, no hay nada que guardar: seria una peticion
+    // para dejar todo igual.
+    if (visibility !== before) await saveMyProfile(user?.id, { visibility });
   };
 
   // Una lengueta a medio asomar no se explica sola: la primera vez se señala,
@@ -700,9 +701,11 @@ export function FeedScreen({
 
       {visPrompt && (
         <VisibilityPrompt
+          current={visPrompt}
           onChoose={answerVisibility}
-          // Cerrar sin elegir tambien cuenta como respuesta: no se insiste.
-          onClose={() => answerVisibility("private")}
+          // Cerrar sin tocar nada deja el estado como esta -no se cambia la
+          // privacidad de nadie por no contestar- y no se vuelve a preguntar.
+          onClose={() => answerVisibility(visPrompt)}
         />
       )}
 
