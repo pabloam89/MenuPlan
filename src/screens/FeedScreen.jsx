@@ -12,6 +12,7 @@ import { NotificationsPopover } from "../components/NotificationsPopover.jsx";
 import { DiscoverPeopleSheet } from "../components/DiscoverPeopleSheet.jsx";
 import { loadNotifications, markNotificationsSeen, countUnread } from "../lib/socialNotifications.js";
 import { setFeedBadge } from "../lib/socialBadge.js";
+import { relativeTime } from "../lib/socialUi.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { folderArt, ALL_ID } from "./CatalogBrowserSheet.jsx";
@@ -536,6 +537,7 @@ export function FeedScreen({
       {profileOpen && (
         <ProfileDrawer
           user={user}
+          thumbFor={thumbForTarget}
           onClose={() => setProfileOpen(false)}
           onOpenTarget={(type, id) => { setProfileOpen(false); openTarget(type, id); }}
         />
@@ -991,22 +993,6 @@ function readSeenMenus() {
 }
 function writeSeenMenus(set) {
   try { localStorage.setItem(SEEN_KEY, JSON.stringify([...set])); } catch { /* modo privado */ }
-}
-
-/** "hace 2 h". Se corta en semanas: más allá, la fecha ya no aporta. */
-function relativeTime(iso) {
-  if (!iso) return null;
-  const mins = Math.round((Date.now() - Date.parse(iso)) / 60000);
-  if (!Number.isFinite(mins)) return null;
-  if (mins < 2) return "ahora";
-  if (mins < 60) return `hace ${mins} min`;
-  const h = Math.round(mins / 60);
-  if (h < 24) return `hace ${h} h`;
-  const d = Math.round(h / 24);
-  if (d === 1) return "ayer";
-  if (d < 7) return `hace ${d} días`;
-  const w = Math.round(d / 7);
-  return w === 1 ? "hace 1 semana" : `hace ${w} semanas`;
 }
 
 function rangeLabel(a, b) {

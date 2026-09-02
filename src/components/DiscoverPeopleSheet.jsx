@@ -5,6 +5,7 @@ import {
   searchProfiles, followUser, unfollowUser,
   loadSuggestedProfiles, loadFollowers, loadProfilesByIds, loadRecipesByOwners,
 } from "../lib/social.js";
+import { personColor } from "../lib/socialUi.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 
@@ -176,7 +177,7 @@ export function DiscoverPeopleSheet({
               {loading && <p style={hint}>Buscando a quién seguir…</p>}
 
               {backFollows.length > 0 && (
-                <Section Icon={UserPlus} title="Te siguen" note="Y tú a ellos todavía no">
+                <Section Icon={UserPlus} tint="#4a6fd4" title="Te siguen" note="Y tú a ellos todavía no">
                   {backFollows.map((p) => (
                     <PersonCard
                       key={p.user_id}
@@ -191,7 +192,7 @@ export function DiscoverPeopleSheet({
               )}
 
               {suggested.length > 0 && (
-                <Section Icon={Users2} title="Por gente que sigues">
+                <Section Icon={Users2} tint="#8a6cc4" title="Por gente que sigues">
                   {suggested.map((p) => (
                     <PersonCard
                       key={p.user_id}
@@ -208,7 +209,7 @@ export function DiscoverPeopleSheet({
               )}
 
               {openCooks.length > 0 && (
-                <Section Icon={Sparkles} title="Cocinan en abierto">
+                <Section Icon={Sparkles} tint="#cf7833" title="Cocinan en abierto">
                   {openCooks.map((a) => (
                     <PersonCard
                       key={a.id}
@@ -237,12 +238,14 @@ export function DiscoverPeopleSheet({
   );
 }
 
-function Section({ Icon, title, note, children }) {
+// Cada seccion con su color (azul / violeta / teja): son tres motivos
+// distintos para seguir a alguien, y el color lo separa antes que el texto.
+function Section({ Icon, tint = GREEN, title, note, children }) {
   return (
     <section style={{ marginBottom: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 2px 6px" }}>
-        <Icon size={13} strokeWidth={2.6} color={GREEN} />
-        <span style={{ fontSize: 11, fontWeight: 800, color: GREEN, textTransform: "uppercase", letterSpacing: ".6px" }}>
+        <Icon size={13} strokeWidth={2.6} color={tint} />
+        <span style={{ fontSize: 11, fontWeight: 800, color: tint, textTransform: "uppercase", letterSpacing: ".6px" }}>
           {title}
         </span>
         {note && <span style={{ fontSize: 10.5, fontWeight: 700, color: "#9ab0a1" }}>· {note}</span>}
@@ -274,7 +277,7 @@ function PersonCard({ person, dishes = [], via = [], mutuals = 0, state, onFollo
     <div style={card}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <button type="button" onClick={onOpen} style={{ ...plainBtn, display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0, textAlign: "left" }}>
-          <Avatar name={name} photo={person.avatar_url} size={44} color={TEAL} />
+          <Avatar name={name} photo={person.avatar_url} size={44} color={personColor(person.user_id)} />
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={oneLine}>{name}</span>
             {via.length > 0 && <MutualFaces via={via} mutuals={mutuals} />}
@@ -323,7 +326,7 @@ function MutualFaces({ via, mutuals }) {
       <span style={{ display: "inline-flex" }}>
         {via.map((p, i) => (
           <span key={p.user_id} style={{ marginLeft: i === 0 ? 0 : -7, border: "2px solid #fff", borderRadius: "50%", display: "inline-flex" }}>
-            <Avatar name={p.display_name || p.username || "?"} photo={p.avatar_url} size={20} color={GREEN} />
+            <Avatar name={p.display_name || p.username || "?"} photo={p.avatar_url} size={20} color={personColor(p.user_id)} />
           </span>
         ))}
       </span>
@@ -346,7 +349,7 @@ function PersonRow({ person, state, onFollow, onOpen }) {
   return (
     <div style={row}>
       <button type="button" onClick={onOpen} style={{ ...plainBtn, display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0, textAlign: "left" }}>
-        <Avatar name={name} photo={person.avatar_url} size={40} color={TEAL} />
+        <Avatar name={name} photo={person.avatar_url} size={40} color={personColor(person.user_id)} />
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={oneLine}>{name}</span>
           {person.username && person.display_name && (

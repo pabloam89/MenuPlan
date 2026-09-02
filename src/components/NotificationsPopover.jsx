@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BellOff, UserPlus, UserCheck, MessageCircle, CornerDownRight, Check } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { acceptFollowRequest, rejectFollowRequest, followUser } from "../lib/social.js";
+import { relativeTime, personColor } from "../lib/socialUi.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -150,7 +151,7 @@ function Row({ n, people, isNew = false, decided, relOf, onDecide, onFollowBack,
   return (
     <div style={{ ...row, background: isNew ? "#f2fbf5" : "transparent" }}>
       <button type="button" onClick={() => onOpenPerson?.(n.actorId)} style={{ ...plainBtn, position: "relative", flexShrink: 0 }} aria-label={`Ver a ${name}`}>
-        <Avatar name={name} size={38} color={GREEN} photo={person?.avatar_url} />
+        <Avatar name={name} size={38} color={personColor(n.actorId)} photo={person?.avatar_url} />
         <span style={{ ...kindDot, background: tint }}>
           <Icon size={9} strokeWidth={2.8} color={ink} />
         </span>
@@ -215,21 +216,6 @@ const LINE = {
   comment:  (n) => (n.targetType === "menu" ? "comentó tu menú" : "comentó tu receta"),
   reply:    () => "respondió a tu comentario",
 };
-
-/** "hace 2 h". Igual que en las tarjetas del feed: se corta en semanas. */
-function relativeTime(iso) {
-  const mins = Math.round((Date.now() - Date.parse(iso)) / 60000);
-  if (!Number.isFinite(mins)) return "";
-  if (mins < 2) return "ahora";
-  if (mins < 60) return `hace ${mins} min`;
-  const h = Math.round(mins / 60);
-  if (h < 24) return `hace ${h} h`;
-  const d = Math.round(h / 24);
-  if (d === 1) return "ayer";
-  if (d < 7) return `hace ${d} días`;
-  const w = Math.round(d / 7);
-  return w === 1 ? "hace 1 semana" : `hace ${w} semanas`;
-}
 
 const overlay = { position: "fixed", inset: 0, zIndex: 300 };
 

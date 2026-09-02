@@ -4,6 +4,7 @@ import {
   Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff, Ban,
 } from "lucide-react";
 import { Avatar } from "./ui.jsx";
+import { relativeTime, personColor } from "../lib/socialUi.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
 import { googleInfo } from "../screens/Settings.jsx";
 import {
@@ -49,7 +50,7 @@ const TEAL = "#0f766e";
  * y se olvida, así que no merece el sitio de arriba, pero tampoco esconderse
  * en otra pantalla.
  */
-export function ProfileDrawer({ user, onClose, onOpenTarget }) {
+export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget }) {
   const [profile, setProfile] = useState(null);
   const [counts, setCounts] = useState({ followers: 0, following: 0, recipes: 0, menus: 0 });
   const [requests, setRequests] = useState([]);
@@ -300,19 +301,26 @@ export function ProfileDrawer({ user, onClose, onOpenTarget }) {
                       onClick={() => onOpenTarget?.(c.target_type, c.target_id)}
                       style={{ ...row, alignItems: "flex-start", width: "100%", border: "none", background: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left", borderBottom: "1px solid #f2f6f3" }}
                     >
-                      <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={30} color={TEAL} />
+                      <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={30} color={personColor(c.author_id)} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={rowName}>
-                          {p?.display_name || `@${p?.username ?? "alguien"}`}
+                          {p?.display_name || `@${p?.username ?? "alguien"}`}{" "}
                           <span style={{ fontWeight: 600, color: "#8aa294" }}>
-                            {" · "}{c.target_type === "menu" ? "en tu menú" : "en tu receta"}
+                            {c.target_type === "menu" ? "en tu menú" : "en tu receta"}
                           </span>
                         </div>
                         <div style={{ fontSize: 12.5, color: "#33463b", marginTop: 2, lineHeight: 1.35 }}>{c.body}</div>
+                        <div style={{ fontSize: 10.5, fontWeight: 700, color: "#9ab0a1", marginTop: 3 }}>{relativeTime(c.created_at)}</div>
                       </div>
-                      {/* La fila entera lleva al sitio comentado: leer "te han
-                          dicho algo" sin poder ir a verlo obliga a buscarlo. */}
-                      <ArrowUpRight size={15} strokeWidth={2.5} color="#b6c7bd" style={{ flexShrink: 0, marginTop: 2 }} />
+                      {/* La fila entera lleva al sitio comentado. La foto del
+                          plato ES la flecha cuando la hay: dice a donde vas
+                          mejor que un icono generico. */}
+                      {(() => {
+                        const img = thumbFor?.(c.target_type, c.target_id);
+                        return img
+                          ? <img src={img} alt="" loading="lazy" style={{ width: 38, height: 38, borderRadius: 10, objectFit: "cover", flexShrink: 0, background: "#eef3f0" }} />
+                          : <ArrowUpRight size={15} strokeWidth={2.5} color="#b6c7bd" style={{ flexShrink: 0, marginTop: 2 }} />;
+                      })()}
                     </button>
                   );
                 })
@@ -468,7 +476,7 @@ function ProfileForm({ profile, inheritedName, onSave }) {
 function PersonRow({ p, note, children }) {
   return (
     <div style={row}>
-      <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={34} color={TEAL} />
+      <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={34} color={personColor(p?.user_id)} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={rowName}>{p?.display_name || `@${p?.username ?? "alguien"}`}</div>
         {(note || p?.username) && (

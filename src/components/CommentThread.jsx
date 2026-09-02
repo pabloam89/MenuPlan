@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { MessageCircle, Send, Trash2, Heart, CornerDownRight, Flag } from "lucide-react";
 import { Avatar } from "./ui.jsx";
+import { personColor } from "../lib/socialUi.js";
 import {
   loadComments, postComment, deleteComment, loadProfilesByIds,
   loadCommentLikes, toggleCommentLike,
@@ -92,7 +93,7 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
     const l = likes[c.id] ?? { likes: 0, mine: false };
     return (
       <div key={c.id} style={{ ...commentRow, paddingLeft: isReply ? 30 : 0 }}>
-        <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={isReply ? 22 : 26} color={TEAL} />
+        <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={isReply ? 22 : 26} color={personColor(c.author_id)} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: INK }}>
             {p?.display_name || (p?.username ? `@${p.username}` : "Alguien")}

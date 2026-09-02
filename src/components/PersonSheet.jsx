@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { X, Lock, Clock, ChefHat, CalendarDays, MoreVertical, Ban, Flag } from "lucide-react";
 import { Avatar } from "./ui.jsx";
+import { personColor } from "../lib/socialUi.js";
 import {
   loadProfileById, loadProfileCounts, loadPersonContent,
   loadFollowing, loadSentRequests, followUser, unfollowUser,
@@ -118,7 +119,7 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
               )}
             </div>
           )}
-          <Avatar name={name} photo={profile?.avatar_url} size={72} color={TEAL} />
+          <Avatar name={name} photo={profile?.avatar_url} size={72} color={personColor(userId)} />
           <div style={{ fontSize: 19, fontWeight: 900, color: INK, marginTop: 10 }}>{name}</div>
           {profile?.username && profile?.display_name && (
             <div style={{ fontSize: 12.5, fontWeight: 700, color: "#8aa294" }}>@{profile.username}</div>
