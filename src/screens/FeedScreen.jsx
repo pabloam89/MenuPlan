@@ -385,34 +385,23 @@ export function FeedScreen({
             <button type="button" onClick={() => setShareRecipeOpen(true)} style={publishCard}>
               {/* La ilustracion de Mis Recetas, la misma que ya identifica tu
                   recetario en el navegador de carpetas: si esa imagen ya
-                  significa "lo tuyo", aqui no hace falta explicar de que va. */}
+                  significa "lo tuyo", la tarjeta no tiene que explicarse.
+                  Y es ella quien pone el color: el resto va en la escala de
+                  tinta de siempre. */}
               <img src="/avatares/cards/empty_recetas_propias.jpg" alt="" loading="lazy" style={publishArt} />
               <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: "#7a4310" }}>
+                <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK }}>
                   Publica una receta tuya
                 </span>
-                <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, color: "#b07a4a", marginTop: 1 }}>
-                  {unsharedRecipes.length > 0
-                    ? (unsharedRecipes.length === 1 ? "Tienes 1 sin compartir" : `Tienes ${unsharedRecipes.length} sin compartir`)
-                    : "Tus platos, en el feed"}
+                <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, color: "#7a8a7f", marginTop: 1 }}>
+                  {unsharedRecipes.length === 1
+                    ? "Tienes 1 sin compartir"
+                    : unsharedRecipes.length > 1
+                      ? `Tienes ${unsharedRecipes.length} sin compartir`
+                      : "Tus platos, en el feed"}
                 </span>
               </span>
-              {(() => {
-                const thumbs = unsharedRecipes
-                  .map((r) => ({ id: r.id, img: dishImageForRecipe(r) }))
-                  .filter((t) => t.img)
-                  .slice(0, 3);
-                return thumbs.length > 0
-                  ? (
-                    <span style={{ display: "inline-flex", flexShrink: 0 }}>
-                      {thumbs.map((t, i) => (
-                        <img key={t.id} src={deckImg(t.img, 120)} alt="" loading="lazy"
-                          style={{ ...miniThumb, marginLeft: i === 0 ? 0 : -9 }} />
-                      ))}
-                    </span>
-                  )
-                  : <Plus size={15} strokeWidth={2.6} color="#c99a6a" style={{ flexShrink: 0 }} />;
-              })()}
+              <span style={publishPill}>Publicar</span>
             </button>
           )}
 
@@ -1217,25 +1206,32 @@ const memberDot = {
   background: "#e8efe9", color: "#42594c", fontSize: 10, fontWeight: 900,
 };
 
-// Fondo calido y no blanco: alrededor todo son tarjetas blancas (las recetas
-// del feed), asi que en blanco esta se perdia entre ellas. El tinte teja la
-// separa como "esto es tuyo, no del rio" sin gritar.
+/**
+ * La tarjeta de publicar.
+ *
+ * Fondo crema para separarla del rio de recetas (que son fotos a sangre) sin
+ * competir con ellas. El color lo ponen SOLO la ilustracion y la pildora
+ * verde de accion: el texto va en la escala de tinta de la app, nunca en el
+ * tono del fondo — un mismo color untado en fondo, borde y letras convierte
+ * cualquier tarjeta en una pegatina.
+ */
 const publishCard = {
-  display: "flex", alignItems: "center", gap: 9, width: "100%",
-  margin: "12px 0 2px", padding: "6px 10px 6px 6px",
-  borderRadius: 14, border: "1px solid #f2ddc8",
-  background: "linear-gradient(100deg, #fdf1e7 0%, #fdf7f0 100%)",
+  display: "flex", alignItems: "center", gap: 10, width: "100%",
+  margin: "12px 0 2px", padding: "6px 8px 6px 6px",
+  borderRadius: 14, border: "none", background: "#f6efe6",
   cursor: "pointer", fontFamily: "inherit", boxSizing: "border-box",
 };
 
 const publishArt = {
-  width: 40, height: 40, borderRadius: 11, objectFit: "cover",
+  width: 36, height: 36, borderRadius: 10, objectFit: "cover",
   display: "block", flexShrink: 0,
 };
 
-const miniThumb = {
-  width: 28, height: 28, borderRadius: 8, objectFit: "cover",
-  border: "2px solid #fff", display: "block", background: "#eef3f0",
+// Verde de accion, como cualquier boton primario de la app: es el unico
+// elemento saturado ademas de la ilustracion.
+const publishPill = {
+  flexShrink: 0, padding: "6px 13px", borderRadius: 999,
+  background: GREEN, color: "#fff", fontSize: 11.5, fontWeight: 800,
 };
 
 const bellBadge = {
