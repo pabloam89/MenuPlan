@@ -79,6 +79,7 @@ import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle, ingredientStem 
 import { RecipeStepList } from "../components/RecipeSteps.jsx";
 import { STEP_KIND_META, removeRichStep, richToPlainSteps } from "../lib/recipeSteps.js";
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
+import { deriveRecipeAllergens } from "../lib/ingredients.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
 import { deckImg, deckSrcSet } from "../lib/dishPhotoOptimize.js";
 
@@ -1783,7 +1784,27 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   const [aiState, setAiState] = useState(isEditing ? "done" : "idle"); // idle | loading | error | done
   const [aiError, setAiError] = useState(null);
   const [draft, setDraft] = useState(isEditing ? editRecipe : null);
-  const [confirmedAllergens, setConfirmedAllergens] = useState(new Set(isEditing ? editRecipe.allergens ?? [] : []));
+  // Alérgenos mostrados en la vista previa (Fase 4 del catálogo de
+  // ingredientes). Antes era un `useState` fijado UNA vez con el guess de la
+  // IA (`setConfirmedAllergens(new Set(result.allergens))`) y nunca vuelto a
+  // tocar — así que si el usuario volvía atrás (el wizard lo permite,
+  // `onJump`/`goBack` más abajo) y cambiaba los ingredientes, la ficha seguía
+  // enseñando los alérgenos de la lista vieja. Al ser ahora un `useMemo` sobre
+  // `form.ingredients`, se recalcula solo con cualquier cambio.
+  //
+  // Cuando el 100% de los ingredientes resuelve contra el catálogo
+  // (`ingredients.json`), los alérgenos dejan de ser una estimación de la IA y
+  // pasan a ser el hecho computado por `deriveRecipeAllergens` — mismo cálculo
+  // que ya usa el catálogo curado. Si algo no resuelve, se cae al guess de la
+  // IA (`draft.allergens`, idéntico comportamiento a hoy) y `verified` queda a
+  // `false` para quien quiera mostrarlo más adelante.
+  const derivedAllergens = useMemo(() => {
+    const derived = deriveRecipeAllergens({ ingredients: form.ingredients });
+    if (derived.unknownNames.length === 0) {
+      return { allergens: derived.allergens, verified: true };
+    }
+    return { allergens: draft?.allergens ?? [], verified: false };
+  }, [form.ingredients, draft]);
   const [photo, setPhoto] = useState(isEditing ? editRecipe.photo ?? null : null);
   const [photoGenState, setPhotoGenState] = useState("idle"); // idle | loading | error
   const [photoGenError, setPhotoGenError] = useState(null);
@@ -1908,7 +1929,9 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
         { signal: ctrl.signal },
       );
       setDraft(result);
-      setConfirmedAllergens(new Set(result.allergens));
+      // Los alérgenos de la ficha ya no se fijan aquí: `derivedAllergens`
+      // (useMemo, arriba) los recalcula solo a partir de `form.ingredients` +
+      // este `draft` como fallback.
       // The user already chose "¿Cómo se sirve?" on the cuándo se sirve step.
       // Category and main protein are AI-only (internal catalog ordering); we
       // seed them silently and never surface them for editing.
@@ -2203,7 +2226,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
         : form.quickDinner
           ? Array.from(new Set([...(draft.mealRole ?? []), "cena"]))
           : draft.mealRole,
-      allergens: Array.from(confirmedAllergens),
+      allergens: derivedAllergens.allergens,
       requiredAppliances: form.requiredAppliances.length ? form.requiredAppliances : undefined,
       baseDishId: form.baseDishId || undefined,
       pinnedGarnishId,
@@ -2426,6 +2449,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
             <div>
               <FieldLabel icon={UtensilsCrossed}>¿Cómo se sirve?</FieldLabel>
+              <FieldHint>Si no lo tienes claro, la IA lo decide por los ingredientes.</FieldHint>
               <UsageSegmentedControl value={form.usageTags} onChange={setUsage} />
             </div>
 
@@ -2435,7 +2459,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
               <OptionSection
                 icon={Clock}
                 title="¿Cuándo se sirve?"
-                subtitle="La cena rápida es una cena de poca elaboración y tiempo."
+                subtitle="La cena rápida es una cena de poca elaboración y tiempo. Sin marcar nada, decide la IA."
               >
                 <OptionRow
                   icon={Soup}
@@ -2582,7 +2606,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
             userRecipes={userRecipes}
             userGarnishesOnly={userGarnishesOnly}
             kitchenTools={kitchenTools}
-            confirmedAllergens={confirmedAllergens}
+            confirmedAllergens={derivedAllergens.allergens}
             onRetry={runAI}
             saved={saved}
             photo={photo}
@@ -2922,7 +2946,7 @@ function ReviewStep({
 
       <div>
         <FieldLabel icon={ClipboardCheck} color={GREEN}>Así se verá tu receta</FieldLabel>
-        <DishPreviewCard draft={draft} photo={photo} allergens={Array.from(confirmedAllergens)} user={user} />
+        <DishPreviewCard draft={draft} photo={photo} allergens={confirmedAllergens} user={user} />
       </div>
 
       <ClassificationEditor

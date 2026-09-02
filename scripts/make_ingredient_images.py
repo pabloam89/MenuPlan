@@ -23,6 +23,14 @@ COLORS = 128
 # Everything between the Midjourney user prefix and the start of the prompt.
 NAME_RE = re.compile(r"^u\d+_(.+?)_cute_stylized", re.IGNORECASE)
 
+# El lote de 2026-09-02 se pidió con el número de recetas entre paréntesis
+# ("[eneldo-fresco] (16) cute stylized…") para poder priorizar, y Midjourney se
+# lo tragó dentro del nombre: "eneldo-fresco_16_cute_stylized…". Sin quitarlo,
+# el id sale como "eneldo-fresco-16" y el resolutor nunca lo encuentra.
+# Se limpia aquí y no renombrando los ficheros para no tocar el material
+# original, que es lo que se vuelve a procesar en cada pasada.
+TRAILING_COUNT_RE = re.compile(r"_\d+$")
+
 
 def square_crop(img):
     w, h = img.size
@@ -37,7 +45,7 @@ def main():
         m = NAME_RE.match(src.stem)
         if not m:
             continue
-        ing = m.group(1).lower()
+        ing = TRAILING_COUNT_RE.sub("", m.group(1).lower())
         # First variant wins; later duplicates (…_1, …_2, “(1)”) are skipped.
         found.setdefault(ing, src)
 

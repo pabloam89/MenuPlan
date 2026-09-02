@@ -5426,30 +5426,102 @@ export default function App() {
   );
 }
 
+// Una letra que cambia de mayúscula a minúscula (o viceversa) "rodando"
+// sobre su eje X: las dos formas están apiladas y se cruzan con un flip +
+// fundido. `active` decide cuál de las dos se ve; `delay` escalona el
+// disparo para crear una ola que atraviesa el wordmark letra a letra.
+function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, delay }) {
+  const shared = {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: "100%",
+    textAlign: "center",
+    display: "inline-block",
+    backfaceVisibility: "hidden",
+    transitionProperty: "transform, opacity, color",
+    transitionDuration: ".55s, .4s, .5s",
+    transitionTimingFunction: "cubic-bezier(.5,-.2,.5,1.2), ease, ease",
+    transitionDelay: `${delay}ms`,
+  };
+  return (
+    <span style={{ position: "relative", display: "inline-block" }}>
+      {/* espaciador invisible: reserva el ancho del glifo más ancho */}
+      <span aria-hidden="true" style={{ visibility: "hidden" }}>{upper}</span>
+      <span
+        aria-hidden="true"
+        style={{
+          ...shared,
+          color: activeColor,
+          opacity: active ? 1 : 0,
+          transform: active ? "rotateX(0deg) translateY(0)" : "rotateX(-100deg) translateY(-8px)",
+        }}
+      >
+        {upper}
+      </span>
+      <span
+        aria-hidden="true"
+        style={{
+          ...shared,
+          color: inactiveColor,
+          opacity: active ? 0 : 1,
+          transform: active ? "rotateX(100deg) translateY(8px)" : "rotateX(0deg) translateY(0)",
+        }}
+      >
+        {lower}
+      </span>
+    </span>
+  );
+}
+
+// Un icono pequeño que aparece "encima" de una letra concreta del wordmark
+// (la H para la lectura "casa", la M para la lectura "menú"), con el mismo
+// aire de pop que el resto de la animación: entra con un rebote y se retira
+// cuando le toca a la otra lectura.
+function LetterAccentIcon({ show, color, delay, children, size = 22 }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        left: "50%",
+        top: -size - 4,
+        width: size,
+        height: size,
+        pointerEvents: "none",
+        transform: `translate(-50%, ${show ? 0 : 6}px) scale(${show ? 1 : 0.5})`,
+        opacity: show ? 1 : 0,
+        transition: `transform .5s cubic-bezier(.5,-.2,.5,1.2) ${delay}ms, opacity .35s ease ${delay}ms`,
+      }}
+    >
+      <svg viewBox="0 0 120 120" fill="none" stroke={color} strokeWidth={11} strokeLinecap="round" strokeLinejoin="round" style={{ width: "100%", height: "100%" }}>
+        {children}
+      </svg>
+    </span>
+  );
+}
+
 function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
-  const phrases = [
-    "qué te gusta comer",
-    "qué no puedes comer",
-    "cuándo comes en casa",
-    "tu tiempo para cocinar",
-    "el menú del cole de tus hijos",
-  ];
-  const [phraseIdx, setPhraseIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
 
+  // El wordmark alterna entre las dos lecturas de las mismas 6 letras
+  // (H-o-m-e-n-u): "HoMenu" (Tu menú) y "HomeNu" (como en casa). El verde
+  // se desplaza de un lado a otro atravesando la M y la e para "elevar" la N.
+  const [reading, setReading] = useState("menu"); // "menu" | "home"
   useEffect(() => {
-    const total = phrases.length;
     const interval = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setPhraseIdx((i) => (i + 1) % total);
-        setVisible(true);
-      }, 350);
-    }, 1800);
+      setReading((r) => (r === "menu" ? "home" : "menu"));
+    }, 2600);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const isMenu = reading === "menu";
+  const GREEN = "#7ecb96";
+  const WHITE = "#fff";
+  // La ola siempre viaja desde la letra que "cede" el mayúscula/verde hacia
+  // la que lo "gana", pasando por la e en medio — y se invierte sola al
+  // volver, porque el retraso se recalcula según hacia dónde vamos.
+  const mDelay = isMenu ? 300 : 0;
+  const nDelay = isMenu ? 0 : 300;
 
   return (
     <div
@@ -5561,17 +5633,62 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
       >
         <h1
           style={{
-            fontSize: 76,
+            fontSize: "clamp(58px, 17vw, 84px)",
             fontWeight: 900,
-            margin: "0 0 18px",
+            margin: "0 0 10px",
             letterSpacing: "-3px",
             lineHeight: 1,
             fontFamily: "'Playfair Display', Georgia, serif",
             textShadow: "0 2px 24px rgba(0,0,0,.55)",
+            perspective: 400,
+            whiteSpace: "nowrap",
           }}
         >
-          Ho<span style={{ color: "#7ecb96" }}>Menu</span>
+          <span style={{ position: "relative", display: "inline-block" }}>
+            <LetterAccentIcon show={!isMenu} color={WHITE} delay={300}>
+              <polyline points="16,86 60,26 104,86" />
+            </LetterAccentIcon>
+            H
+          </span>
+          o
+          <span style={{ position: "relative", display: "inline-block" }}>
+            <LetterAccentIcon show={isMenu} color={GREEN} delay={300} size={26}>
+              <path d="M20 90 Q20 24 60 24 Q100 24 100 90" />
+            </LetterAccentIcon>
+            <FlipCaseLetter upper="M" lower="m" active={isMenu} activeColor={GREEN} inactiveColor={WHITE} delay={mDelay} />
+          </span>
+          <FlipCaseLetter upper="e" lower="e" active={isMenu} activeColor={GREEN} inactiveColor={WHITE} delay={150} />
+          <FlipCaseLetter upper="N" lower="n" active={!isMenu} activeColor={GREEN} inactiveColor={GREEN} delay={nDelay} />
+          <span style={{ color: GREEN }}>u</span>
         </h1>
+
+        <p
+          style={{
+            margin: 0,
+            fontSize: 20,
+            fontWeight: 700,
+            fontStyle: "italic",
+            letterSpacing: ".2px",
+            color: "rgba(255,255,255,.82)",
+            display: "flex",
+            justifyContent: "center",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <span>Tu menú</span>
+          <span
+            style={{
+              display: "inline-block",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              maxWidth: isMenu ? 0 : 200,
+              opacity: isMenu ? 0 : 1,
+              transition: "max-width .5s ease 250ms, opacity .4s ease 300ms",
+            }}
+          >
+            , como en casa
+          </span>
+        </p>
       </div>
 
       {/* Botones abajo */}
