@@ -3,11 +3,9 @@ import { X, Search, UserPlus, Users2, Sparkles, Check } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import {
   searchProfiles, followUser, unfollowUser,
-  loadSuggestedProfiles, loadFollowers, loadProfilesByIds, loadRecipesByOwners,
+  loadSuggestedProfiles, loadFollowers, loadProfilesByIds,
 } from "../lib/social.js";
 import { personColor } from "../lib/socialUi.js";
-import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
-import { deckImg } from "../lib/dishPhotoOptimize.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -27,9 +25,9 @@ const TEAL = "#0f766e";
  *      es lo único que le queda a quien acaba de llegar y no sigue a nadie.
  *
  * Cada tarjeta dice POR QUÉ está ahí, pero SIN contarlo con texto: las caras
- * de los conocidos en común y una muestra de sus platos. En una app de comida
- * lo que decide un seguimiento es lo que cocina esa persona, no su nombre de
- * usuario ni un contador — así que eso es lo que se enseña.
+ * de los conocidos en común, no una frase gris. Lo que cocina cada uno se ve
+ * al tocar su ficha, no aquí — se probó una tira de platos por tarjeta y
+ * sobraba: la lista es para decidir rápido, no un escaparate.
  */
 export function DiscoverPeopleSheet({
   user,
@@ -47,7 +45,6 @@ export function DiscoverPeopleSheet({
   const [suggested, setSuggested] = useState([]);
   const [backFollows, setBackFollows] = useState([]);
   const [people, setPeople] = useState({});
-  const [dishes, setDishes] = useState({});
   const [loading, setLoading] = useState(true);
 
   // none | pending | following por persona. followUser devuelve el estado en
@@ -73,16 +70,10 @@ export function DiscoverPeopleSheet({
     const sugIds = sug.map((p) => p.user_id);
     const shownIds = [...new Set([...backIds, ...sugIds, ...authorIds])];
 
-    // Todo lo que falta, en dos peticiones para la lista entera: las caras
-    // (las de la propia lista y las de los conocidos en común) y una muestra
-    // de platos por persona.
-    const [profs, plates] = await Promise.all([
-      loadProfilesByIds([...shownIds, ...sug.flatMap((p) => p.via_ids ?? [])]),
-      loadRecipesByOwners(shownIds),
-    ]);
+    // Las caras que faltan (la lista y los conocidos en comun), de una vez.
+    const profs = await loadProfilesByIds([...shownIds, ...sug.flatMap((p) => p.via_ids ?? [])]);
 
     setPeople(profs);
-    setDishes(plates);
     setBackFollows(backIds.map((id) => profs[id]).filter(Boolean));
     setSuggested(sug);
     setLoading(false);
@@ -182,7 +173,6 @@ export function DiscoverPeopleSheet({
                     <PersonCard
                       key={p.user_id}
                       person={p}
-                      dishes={dishes[p.user_id]}
                       state={rel[p.user_id] ?? "none"}
                       onFollow={() => toggle(p.user_id)}
                       onOpen={() => onOpenPerson?.(p.user_id)}
@@ -197,7 +187,6 @@ export function DiscoverPeopleSheet({
                     <PersonCard
                       key={p.user_id}
                       person={p}
-                      dishes={dishes[p.user_id]}
                       via={(p.via_ids ?? []).map((id) => people[id]).filter(Boolean)}
                       mutuals={p.mutuals}
                       state={rel[p.user_id] ?? "none"}
@@ -214,7 +203,6 @@ export function DiscoverPeopleSheet({
                     <PersonCard
                       key={a.id}
                       person={people[a.id] ?? profiles[a.id]}
-                      dishes={dishes[a.id]}
                       state={rel[a.id] ?? "none"}
                       onFollow={() => toggle(a.id)}
                       onOpen={() => onOpenPerson?.(a.id)}
@@ -259,19 +247,13 @@ function Section({ Icon, tint = GREEN, title, note, children }) {
  * Tarjeta de sugerencia.
  *
  * Un nombre, un @usuario y una frase gris debajo eran tres líneas de texto
- * casi iguales que no respondían a la única pregunta que importa: ¿me
- * interesa lo que cocina? Así que el @usuario se va (es identificación, y
- * pinta en el perfil y al buscar, no aquí), el porqué se enseña con las CARAS
- * de los conocidos en común, y debajo van sus platos, que es lo que de verdad
- * decide un seguimiento en una app de comida.
- *
- * Sin platos visibles la tira desaparece y la tarjeta se queda en su fila:
- * mejor una tarjeta corta que tres huecos grises.
+ * casi iguales. El @usuario se va (es identificación: pinta en el perfil y
+ * al buscar, no aquí) y el porqué se enseña con las CARAS de los conocidos
+ * en común. Para ver lo que cocina, su ficha — a un toque.
  */
-function PersonCard({ person, dishes = [], via = [], mutuals = 0, state, onFollow, onOpen }) {
+function PersonCard({ person, via = [], mutuals = 0, state, onFollow, onOpen }) {
   if (!person) return null;
   const name = person.display_name || (person.username ? `@${person.username}` : "Alguien");
-  const plates = (dishes ?? []).slice(0, 3);
 
   return (
     <div style={card}>
@@ -289,25 +271,7 @@ function PersonCard({ person, dishes = [], via = [], mutuals = 0, state, onFollo
         </button>
       </div>
 
-      {/* Menos de tres platos no se rellenan con huecos: la tira se encoge y
-          ya. Un placeholder gris no es informacion. */}
-      {plates.length > 0 && (
-        <div style={{ display: "flex", gap: 4, marginTop: 9 }}>
-          {plates.map((r) => <Plate key={r.id} recipe={r} onClick={onOpen} />)}
-        </div>
-      )}
     </div>
-  );
-}
-
-/** El plato, sin nombre encima: es una muestra, no un menú. */
-function Plate({ recipe, onClick }) {
-  const img = dishImageForRecipe(recipe);
-  if (!img) return null;
-  return (
-    <button type="button" onClick={onClick} style={plateBtn} aria-label={recipe.name}>
-      <img src={deckImg(img, 200)} alt="" loading="lazy" style={plate} />
-    </button>
   );
 }
 
@@ -417,12 +381,6 @@ const card = {
   boxShadow: "0 1px 3px rgba(20,47,29,.05)",
 };
 
-// Un tercio del ancho SIEMPRE, no flex: con flex, quien solo tiene una
-// receta publicada se comia la fila entera con un cuadrado gigante.
-const plateBtn = {
-  ...{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', fontFamily: 'inherit' },
-  width: 'calc((100% - 8px) / 3)', flexShrink: 0,
-};
 
 const moreBubble = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -431,10 +389,6 @@ const moreBubble = {
   fontSize: 9, fontWeight: 800, boxSizing: 'border-box',
 };
 
-const plate = {
-  display: "block", width: "100%", aspectRatio: "1 / 1",
-  borderRadius: 10, objectFit: "cover", background: "#eef3f0",
-};
 
 const row = {
   display: "flex", alignItems: "center", gap: 8,

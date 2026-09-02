@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 import { rowToRecipe } from "./userRecipesSync.js";
-import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, FIXTURE_SUGGESTED, FIXTURE_OWNER_RECIPES, fixtureFeed } from "./socialFixtures.js";
+import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, FIXTURE_SUGGESTED, fixtureFeed } from "./socialFixtures.js";
 
 /**
  * Capa de datos del Feed social (ver supabase/migrations/0027_social_feed.sql).
@@ -460,51 +460,6 @@ export async function loadSuggestedProfiles(userId, { limit = 12 } = {}) {
   if (warn("loadSuggestedProfiles", error)) return [];
   const rows = data ?? [];
   return rows.length === 0 && FIXTURES_ENABLED ? FIXTURE_SUGGESTED : rows;
-}
-
-/**
- * Las recetas publicas de un puñado de autores, para enseñar UNA MUESTRA de
- * lo que cocinan. En una app de comida eso es lo que decide un seguimiento
- * mucho mejor que un nombre y un contador: se ve el plato o no se ve.
- *
- * Una sola petición para toda la lista — una por persona serían diez.
- */
-export async function loadRecipesByOwners(ownerIds, { perOwner = 3 } = {}) {
-  const ids = [...new Set((ownerIds ?? []).filter(Boolean))];
-  if (ids.length === 0) return {};
-  // Los autores de mentira (fx_) no existen en la tabla: se resuelven aquí
-  // para que las tarjetas sintéticas también enseñen sus platos.
-  const fx = FIXTURES_ENABLED
-    ? Object.fromEntries(ids.filter((id) => FIXTURE_OWNER_RECIPES[id]).map((id) => [id, FIXTURE_OWNER_RECIPES[id].slice(0, perOwner)]))
-    : {};
-  if (!ok()) return fx;
-  const { data, error } = await supabase
-    .from("user_recipes")
-    // linked_catalog_id / base_dish_id no son decoracion: sin ellos una
-    // receta de usuario sin foto propia no resuelve ninguna imagen, y la
-    // muestra de platos se queda siempre vacia.
-    .select("id, owner_id, name, category, photo, linked_catalog_id, base_dish_id, pinned_garnish_id, created_at")
-    .in("owner_id", ids)
-    .neq("visibility", "private")
-    .order("created_at", { ascending: false })
-    .limit(ids.length * perOwner * 2);
-  if (warn("loadRecipesByOwners", error)) return fx;
-  const out = { ...fx };
-  for (const row of data ?? []) {
-    const list = (out[row.owner_id] ??= []);
-    if (list.length < perOwner) {
-      list.push({
-        id: row.id,
-        name: row.name,
-        category: row.category,
-        photo: row.photo,
-        linkedCatalogId: row.linked_catalog_id ?? null,
-        baseRecipeId: row.base_dish_id ?? null,
-        pinnedGarnishId: row.pinned_garnish_id ?? null,
-      });
-    }
-  }
-  return out;
 }
 
 export async function loadProfileCounts(userId) {
