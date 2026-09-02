@@ -10,6 +10,7 @@ import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { ShareRecipeSheet } from "../components/ShareRecipeSheet.jsx";
 import { NotificationsPopover } from "../components/NotificationsPopover.jsx";
 import { DiscoverPeopleSheet } from "../components/DiscoverPeopleSheet.jsx";
+import { VisibilityPrompt } from "../components/VisibilityPrompt.jsx";
 import { loadNotifications, markNotificationsSeen, countUnread } from "../lib/socialNotifications.js";
 import { setFeedBadge } from "../lib/socialBadge.js";
 import { shareOut } from "../lib/shareLink.js";
@@ -25,6 +26,8 @@ import {
   loadFollowing,
   loadSentRequests,
   loadRecipeStats,
+  loadMyProfile,
+  saveMyProfile,
   hideRecipe,
   searchProfiles,
   followUser,
@@ -131,6 +134,8 @@ export function FeedScreen({
   // que la zona alta del feed no tiene por que crecer para tener las dos.
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishHint, setPublishHint] = useState(false);
+  // "¿Quieres que te encuentren?", una vez. Ver VisibilityPrompt.
+  const [visPrompt, setVisPrompt] = useState(false);
   const [meh, setMeh] = useState(() => new Set());
   const [notif, setNotif] = useState({ items: [], seenAt: null });
   const [notifPeople, setNotifPeople] = useState({});
@@ -228,6 +233,34 @@ export function FeedScreen({
   }, [user?.id, scope]);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  // Todo perfil nace privado, asi que sin preguntar esto la red social
+  // arranca vacia para todo el mundo: nadie sale en las busquedas de nadie.
+  // Se pregunta al entrar al Feed -el unico momento en que la respuesta le
+  // importa a quien la contesta- y solo si sigues siendo invisible.
+  useEffect(() => {
+    if (!user?.id) return;
+    let alive = true;
+    (async () => {
+      try {
+        if (localStorage.getItem(VIS_PROMPT_KEY)) return;
+      } catch { /* modo privado: se preguntara otra vez, mal menor */ }
+      const prof = await loadMyProfile(user.id);
+      // Sin perfil todavia no se pregunta: el handle se crea al abrir Mi
+      // perfil, y preguntar antes seria hablar de algo que aun no existe.
+      if (!alive || !prof || (prof.visibility ?? "private") !== "private") return;
+      setVisPrompt(true);
+    })();
+    return () => { alive = false; };
+  }, [user?.id]);
+
+  const answerVisibility = async (visibility) => {
+    setVisPrompt(false);
+    try { localStorage.setItem(VIS_PROMPT_KEY, "1"); } catch { /* modo privado */ }
+    // "Nadie" ya es el estado actual: no hay nada que guardar, y escribirlo
+    // igualmente seria una peticion para dejar todo como estaba.
+    if (visibility !== "private") await saveMyProfile(user?.id, { visibility });
+  };
 
   // Una lengueta a medio asomar no se explica sola: la primera vez se señala,
   // y solo la primera.
@@ -663,6 +696,14 @@ export function FeedScreen({
 
       {menuOpen && (
         <MenuPeek menu={menuOpen} user={user} profile={profiles[menuOpen.owner_id]} onOpenPerson={() => { setMenuOpen(null); setPersonId(menuOpen.owner_id); }} onBlocked={handleBlocked} onClose={() => setMenuOpen(null)} />
+      )}
+
+      {visPrompt && (
+        <VisibilityPrompt
+          onChoose={answerVisibility}
+          // Cerrar sin elegir tambien cuenta como respuesta: no se insiste.
+          onClose={() => answerVisibility("private")}
+        />
       )}
 
       {notifOpen && (
@@ -1455,6 +1496,7 @@ const memberDot = {
  * cualquier tarjeta en una pegatina.
  */
 const PUBLISH_HINT_KEY = "hm_feed_publish_hint";
+const VIS_PROMPT_KEY = "hm_feed_visibility_asked";
 
 // La lengueta: a la altura de la fila de pestañas, redondeada solo por la
 // izquierda y mordida por el borde derecho de la columna.
