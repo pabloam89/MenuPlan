@@ -75,11 +75,19 @@ export function NotificationsPopover({
     followed.get(actorId) ??
     (followingIds.includes(actorId) ? "following" : pendingIds.includes(actorId) ? "pending" : "none");
 
-  // Colgado de la campana de verdad: se mide al abrir, así el panel cae justo
-  // debajo aunque la cabecera cambie de alto.
-  const pos = anchor
-    ? { top: Math.round(anchor.bottom + 10), right: Math.round(window.innerWidth - anchor.right) }
-    : { top: 62, right: 16 };
+  // Colgado de la campana, pero SIEMPRE dentro de la pantalla: el ancho se
+  // calcula aquí (no en CSS) para poder acotar el desplazamiento — alineado
+  // a la campana sin mas, en moviles estrechos el panel se salia por la
+  // izquierda y las filas quedaban cortadas.
+  const vw = window.innerWidth;
+  const width = Math.min(396, vw - 24);
+  const rawRight = anchor ? vw - anchor.right : 16;
+  const right = Math.round(Math.min(Math.max(rawRight, 12), vw - 12 - width));
+  const top = Math.round(anchor ? anchor.bottom + 10 : 62);
+  // Y el pico sigue a la campana aunque el panel se haya recolocado.
+  const caretRight = anchor
+    ? Math.min(Math.max((vw - right) - (anchor.right + anchor.left) / 2 - 5, 12), width - 24)
+    : 15;
 
   const rowProps = { people, decided, followed, relOf, onDecide: decide, onFollowBack: followBack, thumbFor, onOpenPerson, onOpenTarget };
 
@@ -87,12 +95,12 @@ export function NotificationsPopover({
     <div style={overlay} onClick={onClose}>
       <div
         className="mp-pop-bell"
-        style={{ ...panel, top: pos.top, right: pos.right }}
+        style={{ ...panel, width, top, right }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Notificaciones"
       >
-        <span aria-hidden="true" style={caret} />
+        <span aria-hidden="true" style={{ ...caret, right: caretRight }} />
 
         {items.length === 0 ? (
           <div style={{ padding: "30px 22px", textAlign: "center" }}>
@@ -107,13 +115,13 @@ export function NotificationsPopover({
             {fresh.length > 0 && (
               <>
                 <div style={eyebrow}>Nuevas</div>
-                {fresh.map((n) => <Row key={n.key} n={n} isNew {...rowProps} />)}
+                {fresh.map((n, i) => <Row key={n.key} n={n} divider={i < fresh.length - 1} {...rowProps} />)}
               </>
             )}
             {older.length > 0 && (
               <>
                 {fresh.length > 0 && <div style={{ ...eyebrow, marginTop: 6 }}>Antes</div>}
-                {older.map((n) => <Row key={n.key} n={n} {...rowProps} />)}
+                {older.map((n, i) => <Row key={n.key} n={n} divider={i < older.length - 1} {...rowProps} />)}
               </>
             )}
           </div>
@@ -131,7 +139,7 @@ export function NotificationsPopover({
  * así "quién" y "qué" se leen como una sola cosa y la columna derecha queda
  * libre para lo único que de verdad se toca.
  */
-function Row({ n, people, isNew = false, decided, relOf, onDecide, onFollowBack, thumbFor, onOpenPerson, onOpenTarget }) {
+function Row({ n, people, divider = false, decided, relOf, onDecide, onFollowBack, thumbFor, onOpenPerson, onOpenTarget }) {
   const person = people[n.actorId];
   const name = person?.display_name || person?.username || "Alguien";
   const { Icon, tint, ink } = KIND[n.kind] ?? KIND.comment;
@@ -149,7 +157,7 @@ function Row({ n, people, isNew = false, decided, relOf, onDecide, onFollowBack,
   };
 
   return (
-    <div style={{ ...row, background: isNew ? "#f2fbf5" : "transparent" }}>
+    <div style={{ ...row, borderBottom: divider ? "1px solid #dbe8df" : "none" }}>
       <button type="button" onClick={() => onOpenPerson?.(n.actorId)} style={{ ...plainBtn, position: "relative", flexShrink: 0 }} aria-label={`Ver a ${name}`}>
         <Avatar name={name} size={38} color={personColor(n.actorId)} photo={person?.avatar_url} />
         <span style={{ ...kindDot, background: tint }}>
@@ -223,7 +231,6 @@ const overlay = { position: "fixed", inset: 0, zIndex: 300 };
 // llevan avatar + texto + accion, y con menos se pisan entre ellas.
 const panel = {
   position: "fixed",
-  width: "min(calc(100vw - 24px), 396px)",
   background: "#fff",
   borderRadius: 18,
   border: "1px solid #e8efe9",
@@ -233,7 +240,7 @@ const panel = {
 
 /** El pico que ata el panel a la campana. Solo los dos lados que se ven. */
 const caret = {
-  position: "absolute", top: -6, right: 15,
+  position: "absolute", top: -6,
   width: 11, height: 11, background: "#fff",
   borderTop: "1px solid #e8efe9", borderLeft: "1px solid #e8efe9",
   transform: "rotate(45deg)", borderRadius: 2,
@@ -247,7 +254,7 @@ const eyebrow = {
 
 const row = {
   display: "flex", alignItems: "center", gap: 10,
-  padding: "9px 10px", borderRadius: 13,
+  padding: "10px 8px",
 };
 
 const kindDot = {

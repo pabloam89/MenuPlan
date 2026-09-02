@@ -147,6 +147,7 @@ import {
   upsertUserRecipes,
   updateRecipeVisibility,
   deleteUserRecipe,
+  loadPublicRecipe,
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";

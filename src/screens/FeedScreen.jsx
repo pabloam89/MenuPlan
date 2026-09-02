@@ -342,8 +342,8 @@ export function FeedScreen({
                     <span style={ringGap}>
                       <span style={shareCircle}>
                         {menuShared
-                          ? <Check size={20} strokeWidth={2.8} color={TEAL} />
-                          : <Plus size={20} strokeWidth={2.6} color="#8aa294" />}
+                          ? <Check size={17} strokeWidth={2.8} color={TEAL} />
+                          : <Plus size={17} strokeWidth={2.6} color="#8aa294" />}
                       </span>
                     </span>
                   </span>
@@ -360,7 +360,7 @@ export function FeedScreen({
                         la paleta de la app, no el naranja-morado de allí. */}
                     <span style={unseen ? ringOn : ringOff}>
                       <span style={ringGap}>
-                        <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={62} color={TEAL} />
+                        <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={48} color={TEAL} />
                       </span>
                     </span>
                     <span style={{ ...weeklyName, fontWeight: unseen ? 700 : 500, color: unseen ? INK : "#8aa294" }}>
@@ -381,6 +381,40 @@ export function FeedScreen({
 
           {loading && <p style={hint}>Cargando…</p>}
 
+          {onPublishRecipe && !loading && (
+            <button type="button" onClick={() => setShareRecipeOpen(true)} style={publishCard}>
+              <span style={publishBubble}>
+                <CookingPot size={17} strokeWidth={2.4} color="#cf7833" />
+              </span>
+              <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                <span style={{ display: "block", fontSize: 13, fontWeight: 800, color: INK }}>
+                  Publica una receta tuya
+                </span>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#8aa294", marginTop: 1 }}>
+                  {unsharedRecipes.length > 0
+                    ? (unsharedRecipes.length === 1 ? "Tienes 1 sin compartir" : `Tienes ${unsharedRecipes.length} sin compartir`)
+                    : "Tus platos, en el feed"}
+                </span>
+              </span>
+              {(() => {
+                const thumbs = unsharedRecipes
+                  .map((r) => ({ id: r.id, img: dishImageForRecipe(r) }))
+                  .filter((t) => t.img)
+                  .slice(0, 3);
+                return thumbs.length > 0
+                  ? (
+                    <span style={{ display: "inline-flex", flexShrink: 0 }}>
+                      {thumbs.map((t, i) => (
+                        <img key={t.id} src={deckImg(t.img, 120)} alt="" loading="lazy"
+                          style={{ ...miniThumb, marginLeft: i === 0 ? 0 : -10 }} />
+                      ))}
+                    </span>
+                  )
+                  : <Plus size={16} strokeWidth={2.6} color="#b6c7bd" style={{ flexShrink: 0 }} />;
+              })()}
+            </button>
+          )}
+
           {!loading && recipes.length === 0 && weekly.length === 0 && (
             <div style={{ padding: "26px 0 10px" }}>
               <EmptyIllustration
@@ -392,28 +426,12 @@ export function FeedScreen({
                 <button type="button" onClick={() => setSearchOpen(true)} style={{ ...primaryBtn, marginTop: 14 }}>
                   <Search size={14} strokeWidth={2.6} /> Buscar gente
                 </button>
-                {onPublishRecipe && (
-                  <button type="button" onClick={() => setShareRecipeOpen(true)} style={{ ...sectionAction, margin: "10px auto 0" }}>
-                    <CookingPot size={13} strokeWidth={2.6} /> Publicar una receta tuya
-                  </button>
-                )}
               </EmptyIllustration>
             </div>
           )}
 
           {recipes.length > 0 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18 }}>
-              <h2 style={{ ...sectionTitle, margin: 0, flex: 1 }}>Recién salido del horno</h2>
-              {/* Publicar una receta vivia en el carrusel de "Hoy cocinan",
-                  donde no pintaba nada: alli van menus de la semana. Aqui es
-                  la accion de la seccion que ya habla de recetas, y no gasta
-                  ni una fila de alto. */}
-              {onPublishRecipe && (
-                <button type="button" onClick={() => setShareRecipeOpen(true)} style={sectionAction}>
-                  <CookingPot size={13} strokeWidth={2.6} /> Publicar la tuya
-                </button>
-              )}
-            </div>
+            <h2 style={{ ...sectionTitle, marginTop: 16 }}>Recién salido del horno</h2>
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 26, padding: "4px 0 18px" }}>
@@ -1198,11 +1216,22 @@ const memberDot = {
   background: "#e8efe9", color: "#42594c", fontSize: 10, fontWeight: 900,
 };
 
-const sectionAction = {
-  display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
-  padding: 0, border: "none", background: "transparent",
-  color: GREEN, fontSize: 12.5, fontWeight: 800,
-  cursor: "pointer", fontFamily: "inherit",
+const publishCard = {
+  display: "flex", alignItems: "center", gap: 10, width: "100%",
+  margin: "14px 0 2px", padding: "10px 12px",
+  borderRadius: 16, border: "1px solid #eef3f0", background: "#fff",
+  boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
+  cursor: "pointer", fontFamily: "inherit", boxSizing: "border-box",
+};
+
+const publishBubble = {
+  width: 38, height: 38, borderRadius: 13, background: "#fdf1e7",
+  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+};
+
+const miniThumb = {
+  width: 32, height: 32, borderRadius: 9, objectFit: "cover",
+  border: "2px solid #fff", display: "block", background: "#eef3f0",
 };
 
 const bellBadge = {
@@ -1221,8 +1250,8 @@ const iconBtn = {
 };
 
 const weeklyItem = {
-  display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-  flexShrink: 0, width: 74,
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+  flexShrink: 0, width: 60,
   padding: 0, border: "none", background: "none", cursor: "pointer", fontFamily: "inherit",
 };
 
@@ -1243,7 +1272,7 @@ const ringDashed = {
 };
 
 const shareCircle = {
-  width: 62, height: 62, borderRadius: "50%",
+  width: 48, height: 48, borderRadius: "50%",
   display: "flex", alignItems: "center", justifyContent: "center",
   background: "#f2f6f3",
 };
@@ -1262,7 +1291,7 @@ const inspireBtn = {
 };
 
 const weeklyName = {
-  fontSize: 11.5, maxWidth: 74,
+  fontSize: 10.5, maxWidth: 60,
   whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
 };
 
