@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { X, CalendarDays, CalendarClock, Share2, EyeOff, Check } from "lucide-react";
+import { X, Share2, EyeOff, Check } from "lucide-react";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const TEAL = "#0f766e";
+const BLUE = "#4a6fd4";
+const CLAY = "#cf7833";
 
 /**
  * Publicar el menú en el Feed: elegir alcance y confirmar.
@@ -37,17 +39,19 @@ export function ShareMenuSheet({ shared = false, sharing = false, onPublish, onU
           </button>
         </div>
 
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
           <ScopeOption
             on={scope === "week"}
-            Icon={CalendarDays}
+            art="/avatares/cards/share_semana.png"
+            tint={BLUE}
             title="La semana"
             desc="Todos los días planificados"
             onClick={() => setScope("week")}
           />
           <ScopeOption
             on={scope === "today"}
-            Icon={CalendarClock}
+            art="/avatares/cards/share_hoy.png"
+            tint={CLAY}
             title="Solo hoy"
             desc="Lo que coméis hoy y ya"
             onClick={() => setScope("today")}
@@ -80,14 +84,41 @@ export function ShareMenuSheet({ shared = false, sharing = false, onPublish, onU
   );
 }
 
-function ScopeOption({ on, Icon, title, desc, onClick }) {
+/**
+ * Una de las dos formas de compartir.
+ *
+ * La ilustracion va SIN caja blanca detras (el png viene recortado con alfa),
+ * asi que apagada se lee como un objeto sobre la hoja y no como una foto
+ * pegada. Al elegirla se enciende: la tarjeta coge el color de esa opcion en
+ * muy suave, el borde se tiñe y aparece un halo — el resalte es el color, no
+ * un check escondido en una esquina.
+ *
+ * El texto se queda en la escala de tinta pase lo que pase: teñirlo del mismo
+ * tono que el fondo es lo que convierte una tarjeta en pegatina.
+ */
+function ScopeOption({ on, art, tint, title, desc, onClick }) {
   return (
     <button type="button" onClick={onClick} aria-pressed={on}
-      style={{ ...scopeBox, borderColor: on ? TEAL : "#e0eae3", background: on ? "#eef6f4" : "#fff" }}>
-      <Icon size={17} strokeWidth={2.4} color={on ? TEAL : "#8aa294"} />
-      <span style={{ fontSize: 13, fontWeight: 800, color: INK, marginTop: 5 }}>{title}</span>
+      style={{
+        ...scopeBox,
+        borderColor: on ? tint : "#e6ede8",
+        background: on ? `${tint}12` : "#fbfcfb",
+        boxShadow: on ? `0 6px 18px -8px ${tint}80` : "none",
+      }}>
+      <img
+        src={art}
+        alt=""
+        loading="lazy"
+        style={{
+          ...scopeArt,
+          // Apagada, la ilustracion baja de saturacion: la que esta elegida
+          // tiene que ser la que canta, no las dos a la vez.
+          filter: on ? "none" : "saturate(.55) opacity(.75)",
+        }}
+      />
+      <span style={{ fontSize: 13, fontWeight: 800, color: INK }}>{title}</span>
       <span style={{ fontSize: 10.5, fontWeight: 600, color: "#6b7d70", marginTop: 1, lineHeight: 1.3 }}>{desc}</span>
-      {on && <span style={scopeCheck}><Check size={10} color="#fff" strokeWidth={3.4} /></span>}
+      {on && <span style={{ ...scopeCheck, background: tint }}><Check size={10} color="#fff" strokeWidth={3.4} /></span>}
     </button>
   );
 }
@@ -113,14 +144,20 @@ const closeBtn = {
 
 const scopeBox = {
   position: "relative", flex: 1,
-  display: "flex", flexDirection: "column", alignItems: "flex-start",
-  padding: "12px 12px 11px", borderRadius: 14, border: "2px solid #e0eae3",
-  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+  display: "flex", flexDirection: "column", alignItems: "center",
+  padding: "10px 10px 12px", borderRadius: 16, border: "2px solid #e6ede8",
+  cursor: "pointer", fontFamily: "inherit", textAlign: "center",
+  transition: "background .18s ease, border-color .18s ease, box-shadow .18s ease",
+};
+
+const scopeArt = {
+  width: 76, height: 76, display: "block", marginBottom: 2,
+  transition: "filter .18s ease",
 };
 
 const scopeCheck = {
   position: "absolute", top: 8, right: 8,
-  width: 17, height: 17, borderRadius: "50%", background: TEAL,
+  width: 17, height: 17, borderRadius: "50%",
   display: "flex", alignItems: "center", justifyContent: "center",
 };
 
