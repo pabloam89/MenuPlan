@@ -35,7 +35,7 @@ function warn(where, error) {
  * Junta las cinco fuentes en una lista ordenada de más nueva a más vieja.
  *
  * Cada item: { key, kind, actorId, at, targetType?, targetId?, body? }
- * kinds: "request" | "accepted" | "follower" | "comment" | "reply"
+ * kinds: "request" | "accepted" | "follower" | "comment" | "reply" | "mention"
  *
  * Decisiones finas, todas a favor de no dar la brasa:
  *  · followers solo cuenta los que llegaron SOLOS (responded_at null = perfil
@@ -44,7 +44,7 @@ function warn(where, error) {
  *  · replies descarta los que ya están en comments (una respuesta a ti en TU
  *    contenido llega por los dos caminos; con una vez basta).
  */
-export function buildNotifications({ requests = [], accepted = [], followers = [], comments = [], replies = [], meId = null } = {}) {
+export function buildNotifications({ requests = [], accepted = [], followers = [], comments = [], replies = [], mentions = [], meId = null } = {}) {
   const items = [];
 
   for (const r of requests) {
@@ -76,6 +76,19 @@ export function buildNotifications({ requests = [], accepted = [], followers = [
     });
   }
 
+  // Una mencion dentro de un comentario a lo tuyo (o a tu comentario) ya te
+  // ha llegado por su camino: avisar dos veces del mismo comentario es lo que
+  // convierte una campana en ruido.
+  const already = new Set(items.map((i) => i.key.replace(/^(com|rep)_/, "")));
+  for (const c of mentions) {
+    if (already.has(c.id)) continue;
+    if (meId && c.author_id === meId) continue;
+    items.push({
+      key: `men_${c.id}`, kind: "mention", actorId: c.author_id, at: c.created_at,
+      targetType: c.target_type, targetId: c.target_id, body: c.body,
+    });
+  }
+
   return items
     .filter((i) => i.at)
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
@@ -100,7 +113,7 @@ export async function loadNotifications(userId, { limit = 40 } = {}) {
       : { items: [], seenAt: null };
   }
 
-  const [reqs, accs, fols, coms, reps, prof] = await Promise.all([
+  const [reqs, accs, fols, coms, reps, mens, prof] = await Promise.all([
     supabase.from("user_follows")
       .select("follower_id, created_at")
       .eq("followee_id", userId).eq("status", "pending")
@@ -119,11 +132,12 @@ export async function loadNotifications(userId, { limit = 40 } = {}) {
       .eq("target_owner_id", userId)
       .order("created_at", { ascending: false }).limit(30),
     supabase.rpc("my_reply_inbox", { p_limit: 30 }),
+    supabase.rpc("my_mention_inbox", { p_limit: 20 }),
     supabase.from("social_profiles")
       .select("notifications_seen_at")
       .eq("user_id", userId).maybeSingle(),
   ]);
-  for (const [where, r] of [["requests", reqs], ["accepted", accs], ["followers", fols], ["comments", coms], ["replies", reps], ["seen", prof]]) {
+  for (const [where, r] of [["requests", reqs], ["accepted", accs], ["followers", fols], ["comments", coms], ["replies", reps], ["mentions", mens], ["seen", prof]]) {
     warn(where, r.error);
   }
 
@@ -133,6 +147,7 @@ export async function loadNotifications(userId, { limit = 40 } = {}) {
     followers: fols.data ?? [],
     comments: coms.data ?? [],
     replies: reps.data ?? [],
+    mentions: mens.data ?? [],
     meId: userId,
   }).slice(0, limit);
 

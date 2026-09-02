@@ -4,6 +4,7 @@ import {
   Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff, Ban,
 } from "lucide-react";
 import { Avatar } from "./ui.jsx";
+import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
 import { googleInfo } from "../screens/Settings.jsx";
@@ -50,7 +51,7 @@ const TEAL = "#0f766e";
  * y se olvida, así que no merece el sitio de arriba, pero tampoco esconderse
  * en otra pantalla.
  */
-export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget }) {
+export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPerson }) {
   const [profile, setProfile] = useState(null);
   const [counts, setCounts] = useState({ followers: 0, following: 0, recipes: 0, menus: 0 });
   const [requests, setRequests] = useState([]);
@@ -62,6 +63,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget }) {
   const [tab, setTab] = useState("solicitudes");
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [blockedOpen, setBlockedOpen] = useState(false);
+  const [listKind, setListKind] = useState(null);
   const [blocked, setBlocked] = useState([]);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -228,9 +230,9 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget }) {
           {editing && user?.id && <ProfileForm profile={profile} inheritedName={inheritedName} onSave={async (fields) => { await patch(fields); setEditing(false); }} />}
 
           <div style={statsCard}>
-            <Stat n={counts.followers} label="Seguidores" />
+            <Stat n={counts.followers} label="Seguidores" onClick={() => setListKind("followers")} />
             <span style={statDivider} />
-            <Stat n={counts.following} label="Siguiendo" />
+            <Stat n={counts.following} label="Siguiendo" onClick={() => setListKind("following")} />
             <span style={statDivider} />
             <Stat n={counts.recipes} label="Recetas" />
             <span style={statDivider} />
@@ -403,6 +405,15 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget }) {
           </section>
         )}
       </aside>
+
+      {listKind && (
+        <FollowListSheet
+          userId={user?.id}
+          kind={listKind}
+          onOpenPerson={(id) => { setListKind(null); onOpenPerson?.(id); }}
+          onClose={() => setListKind(null)}
+        />
+      )}
     </div>
   );
 }
@@ -537,7 +548,20 @@ function VisOption({ on, disabled, Icon, art, tint, title, desc, onClick }) {
   );
 }
 
-function Stat({ n, label }) {
+function Stat({ n, label, onClick }) {
+  const inner = (
+    <>
+      <div style={{ fontSize: 19, fontWeight: 900, color: INK, lineHeight: 1.1 }}>{n}</div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: onClick ? TEAL : "#8aa294", marginTop: 2 }}>{label}</div>
+    </>
+  );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} style={{ flex: 1, textAlign: "center", border: "none", background: "none", padding: 0, cursor: "pointer", fontFamily: "inherit" }}>
+        {inner}
+      </button>
+    );
+  }
   return (
     <div style={{ flex: 1, textAlign: "center" }}>
       <div style={{ fontSize: 19, fontWeight: 900, color: INK, lineHeight: 1.1 }}>{n}</div>

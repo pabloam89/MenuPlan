@@ -10,6 +10,7 @@ import {
 } from "../lib/social.js";
 import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_RECIPES, FIXTURE_MENUS } from "../lib/socialFixtures.js";
 import { ReportSheet } from "./ReportSheet.jsx";
+import { FollowListSheet } from "./FollowListSheet.jsx";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -24,7 +25,7 @@ const TEAL = "#0f766e";
  * su perfil pide seguimiento y no te ha aceptado, el contenido vuelve vacío y
  * aquí se explica por qué en vez de enseñar una lista en blanco.
  */
-export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpenRecipe, onOpenMenu, onBlocked }) {
+export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpenRecipe, onOpenMenu, onOpenPerson, onBlocked }) {
   const [profile, setProfile] = useState(seed);
   const [counts, setCounts] = useState({ followers: 0, following: 0, recipes: 0, menus: 0 });
   const [content, setContent] = useState({ recipes: [], menus: [] });
@@ -34,6 +35,7 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
   const [menuOpen, setMenuOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [stats, setStats] = useState({});
+  const [listKind, setListKind] = useState(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -137,7 +139,9 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
           )}
 
           <div style={statsCard}>
-            <Stat n={counts.followers} label="Seguidores" />
+            {/* El numero lleva a la lista: era el camino natural para
+                descubrir gente y no iba a ninguna parte. */}
+            <Stat n={counts.followers} label="Seguidores" onClick={() => setListKind("followers")} />
             <span style={divider} />
             <Stat n={counts.recipes} label="Recetas" />
             <span style={divider} />
@@ -220,6 +224,15 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
         </div>
       </div>
 
+      {listKind && (
+        <FollowListSheet
+          userId={userId}
+          kind={listKind}
+          onOpenPerson={(id) => { setListKind(null); onOpenPerson?.(id); }}
+          onClose={() => setListKind(null)}
+        />
+      )}
+
       {reporting && (
         <ReportSheet user={user} targetType="profile" targetId={userId} onClose={() => setReporting(false)} />
       )}
@@ -227,7 +240,19 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
   );
 }
 
-function Stat({ n, label }) {
+function Stat({ n, label, onClick }) {
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} style={{ flex: 1, textAlign: "center", border: "none", background: "none", padding: 0, cursor: "pointer", fontFamily: "inherit" }}>
+        <div style={{ fontSize: 19, fontWeight: 900, color: INK, lineHeight: 1.1 }}>{n}</div>
+        <div style={{ fontSize: 10, fontWeight: 700, color: TEAL, marginTop: 2 }}>{label}</div>
+      </button>
+    );
+  }
+  return _Stat({ n, label });
+}
+
+function _Stat({ n, label }) {
   return (
     <div style={{ flex: 1, textAlign: "center" }}>
       <div style={{ fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.1 }}>{n}</div>

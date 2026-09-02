@@ -1,13 +1,27 @@
 import { useCallback, useEffect, useState } from "react";
-import { MessageCircle, Send, Trash2, Heart, CornerDownRight, Flag } from "lucide-react";
+import { MessageCircle, Send, Trash2, Heart, CornerDownRight, Flag, Pencil, Check, X } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { personColor } from "../lib/socialUi.js";
 import {
-  loadComments, postComment, deleteComment, loadProfilesByIds,
+  loadComments, postComment, deleteComment, updateComment, loadProfilesByIds,
   loadCommentLikes, toggleCommentLike,
 } from "../lib/social.js";
 import { FIXTURES_ENABLED, FIXTURE_THREADS } from "../lib/socialFixtures.js";
 import { ReportSheet } from "./ReportSheet.jsx";
+
+/**
+ * Los @ del texto, resaltados. No son enlaces todavia -no hay pantalla a la
+ * que ir sin buscar antes el handle-, pero verlos distintos ya dice "esto va
+ * por ti" a quien se reconoce, que es la mitad del valor de una mencion.
+ */
+function renderMentions(body) {
+  const parts = String(body ?? "").split(/(@[a-z0-9._]{3,24})/gi);
+  return parts.map((p, i) =>
+    p.startsWith("@")
+      ? <strong key={i} style={{ color: "#4a6fd4", fontWeight: 800 }}>{p}</strong>
+      : p
+  );
+}
 
 const INK = "#142f1d";
 const TEAL = "#0f766e";
@@ -36,6 +50,11 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
   const [likes, setLikes] = useState({});
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState(null);
+  // Edicion en el sitio: se sustituye el texto por un campo y se sale al
+  // guardar o al cancelar. Abrir una hoja para cambiar una palabra seria
+  // mas ceremonia que la propia correccion.
+  const [editingId, setEditingId] = useState(null);
+  const [editDraft, setEditDraft] = useState("");
   const [reportingId, setReportingId] = useState(null);
   const [sending, setSending] = useState(false);
 
@@ -87,6 +106,14 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
   const repliesOf = (id) => (items ?? []).filter((c) => c.parent_id === id);
   const count = items?.length ?? initialCount;
 
+  const saveEdit = async (id) => {
+    const text = editDraft.trim();
+    if (!text) return;
+    setItems((prev) => prev.map((c) => (c.id === id ? { ...c, body: text, edited_at: new Date().toISOString() } : c)));
+    setEditingId(null);
+    await updateComment(id, text);
+  };
+
   const renderOne = (c, isReply) => {
     const p = people[c.author_id];
     const mine = c.author_id === user?.id;
@@ -98,7 +125,31 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
           <div style={{ fontSize: 12, fontWeight: 800, color: INK }}>
             {p?.display_name || (p?.username ? `@${p.username}` : "Alguien")}
           </div>
-          <div style={{ fontSize: 12.5, color: "#33463b", lineHeight: 1.35, marginTop: 1 }}>{c.body}</div>
+          {editingId === c.id ? (
+            <div style={{ display: "flex", gap: 6, marginTop: 3 }}>
+              <input
+                autoFocus
+                value={editDraft}
+                onChange={(e) => setEditDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveEdit(c.id);
+                  if (e.key === "Escape") setEditingId(null);
+                }}
+                style={editInput}
+              />
+              <button type="button" onClick={() => saveEdit(c.id)} aria-label="Guardar" style={{ ...editBtn, background: GREEN, color: "#fff", border: "none" }}>
+                <Check size={13} strokeWidth={3} />
+              </button>
+              <button type="button" onClick={() => setEditingId(null)} aria-label="Cancelar" style={editBtn}>
+                <X size={13} strokeWidth={2.8} />
+              </button>
+            </div>
+          ) : (
+            <div style={{ fontSize: 12.5, color: "#33463b", lineHeight: 1.35, marginTop: 1 }}>
+              {renderMentions(c.body)}
+              {c.edited_at && <span style={{ fontSize: 10.5, fontWeight: 700, color: "#b6c7bd" }}> · editado</span>}
+            </div>
+          )}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
             <button type="button" onClick={() => like(c.id)} style={{ ...miniBtn, color: l.mine ? "#c0392b" : "#8aa294" }}>
               <Heart size={12} strokeWidth={2.6} fill={l.mine ? "#c0392b" : "none"} />
@@ -118,6 +169,13 @@ export function CommentThread({ user, targetType, targetId, targetOwnerId, count
             )}
             {/* Borra el autor, y también el dueño del contenido: lo que se
                 publica en tu receta lo puedes quitar tú. */}
+            {/* Editar es SOLO del autor: el dueño del contenido puede quitar
+                lo que se dice en su receta, pero no reescribirlo. */}
+            {mine && editingId !== c.id && (
+              <button type="button" onClick={() => { setEditingId(c.id); setEditDraft(c.body); }} style={{ ...miniBtn, color: "#b6c7bd" }} aria-label="Editar comentario">
+                <Pencil size={11.5} strokeWidth={2.5} />
+              </button>
+            )}
             {(mine || targetOwnerId === user?.id) && (
               <button type="button" onClick={() => remove(c.id)} style={{ ...miniBtn, color: "#b6c7bd" }} aria-label="Borrar comentario">
                 <Trash2 size={12} strokeWidth={2.5} />
@@ -194,6 +252,18 @@ const hint = { margin: "6px 0", fontSize: 12, fontWeight: 600, color: "#8aa294" 
 const commentRow = {
   display: "flex", alignItems: "flex-start", gap: 8, padding: "7px 0",
   borderBottom: "1px solid #f2f6f3",
+};
+
+const editInput = {
+  flex: 1, minWidth: 0, padding: "6px 9px", borderRadius: 9,
+  border: "1.5px solid #dde7e0", background: "#fff",
+  fontSize: 16, outline: "none", fontFamily: "inherit", color: "#1a3a24",
+};
+
+const editBtn = {
+  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+  width: 28, height: 28, borderRadius: 9,
+  border: "1.5px solid #dde7e0", background: "#fff", color: "#5a7066", cursor: "pointer",
 };
 
 const miniBtn = {

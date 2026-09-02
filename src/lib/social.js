@@ -413,7 +413,12 @@ export async function toggleCommentLike(userId, commentId, on) {
  * politica de escritura solo comprueba que el autor seas tu, y mentir sobre el
  * dueno solo consigue que el comentario no lo lea nadie.
  */
-export async function postComment(userId, { targetType, targetId, targetOwnerId, body, parentId = null }) {
+/**
+ * Comentar. `targetOwnerId` va NULO en las recetas del catalogo: son de la
+ * casa y no tienen dueño (ver 0036). No es un descuido, es el caso normal
+ * para casi todo lo que se comenta.
+ */
+export async function postComment(userId, { targetType, targetId, targetOwnerId = null, body, parentId = null }) {
   const text = (body ?? "").trim();
   if (!ok() || !userId || !targetId || !text) return null;
   const { data, error } = await supabase
@@ -430,6 +435,21 @@ export async function postComment(userId, { targetType, targetId, targetOwnerId,
     .maybeSingle();
   if (warn("postComment", error)) return null;
   return data ?? null;
+}
+
+/**
+ * Editar un comentario propio. Deja constancia en `edited_at` para que la
+ * interfaz pueda decir "editado": cambiar en silencio lo que otro ya leyo es
+ * una forma barata de mentir.
+ */
+export async function updateComment(commentId, body) {
+  const text = (body ?? "").trim();
+  if (!ok() || !commentId || !text) return false;
+  const { error } = await supabase
+    .from("social_comments")
+    .update({ body: text.slice(0, 500), edited_at: new Date().toISOString() })
+    .eq("id", commentId);
+  return !warn("updateComment", error);
 }
 
 export async function deleteComment(commentId) {
@@ -463,6 +483,30 @@ export async function loadSuggestedProfiles(userId, { limit = 12 } = {}) {
   if (warn("loadSuggestedProfiles", error)) return [];
   const rows = data ?? [];
   return rows.length === 0 && FIXTURES_ENABLED ? FIXTURE_SUGGESTED : rows;
+}
+
+/**
+ * La lista de seguidores (o de seguidos) de alguien. Por RPC porque las
+ * politicas de user_follows solo dejan ver tus propias filas.
+ *
+ * La de un perfil privado no se enseña ni de refilon; eso lo decide la
+ * funcion, no esta pantalla.
+ */
+export async function loadFollowList(userId, kind = "followers") {
+  if (!ok() || !userId) return [];
+  const { data, error } = await supabase.rpc("profile_follow_list", { p_user: userId, p_kind: kind });
+  if (warn("loadFollowList", error)) return [];
+  return data ?? [];
+}
+
+/**
+ * Sumar uno al contador de copias de un menu ajeno. La copia en si pasa
+ * entera en el cliente; esto es solo el contador, que la fila es de otro.
+ */
+export async function countMenuCopy(menuId) {
+  if (!ok() || !menuId) return false;
+  const { error } = await supabase.rpc("count_menu_copy", { p_menu: menuId });
+  return !warn("countMenuCopy", error);
 }
 
 export async function loadProfileCounts(userId) {

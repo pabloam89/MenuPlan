@@ -642,6 +642,7 @@ export function FeedScreen({
           onClose={() => setPersonId(null)}
           onOpenRecipe={(r) => { setPersonId(null); onOpenRecipe?.(r); }}
           onOpenMenu={(m) => { setPersonId(null); openMenu(m); }}
+          onOpenPerson={(id) => setPersonId(id)}
           onBlocked={handleBlocked}
         />
       )}
@@ -650,6 +651,7 @@ export function FeedScreen({
         <ProfileDrawer
           user={user}
           thumbFor={thumbForTarget}
+          onOpenPerson={(id) => { setProfileOpen(false); setPersonId(id); }}
           onClose={() => setProfileOpen(false)}
           onOpenTarget={(type, id) => { setProfileOpen(false); openTarget(type, id); }}
         />

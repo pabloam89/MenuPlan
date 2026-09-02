@@ -50,6 +50,21 @@ describe("buildNotifications", () => {
     expect(items[0].kind).toBe("comment");
   });
 
+  it("una mencion dentro de un comentario que ya te llego no avisa dos veces", () => {
+    const c = { id: "c1", author_id: "otra", created_at: iso(1), target_type: "recipe", target_id: "r1", body: "oye @yo mira esto" };
+    const items = buildNotifications({ meId: "yo", comments: [c], mentions: [c] });
+    expect(items).toHaveLength(1);
+    expect(items[0].kind).toBe("comment");
+  });
+
+  it("una mencion en contenido ajeno si genera aviso propio", () => {
+    const items = buildNotifications({
+      meId: "yo",
+      mentions: [{ id: "c9", author_id: "otra", created_at: iso(1), target_type: "recipe", target_id: "rX", body: "@yo esto te va" }],
+    });
+    expect(items.map((i) => i.kind)).toEqual(["mention"]);
+  });
+
   it("descarta items sin fecha en vez de romper el orden", () => {
     const items = buildNotifications({
       requests: [{ follower_id: "a", created_at: null }, { follower_id: "b", created_at: iso(1) }],

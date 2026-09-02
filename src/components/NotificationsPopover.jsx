@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BellOff, UserPlus, UserCheck, MessageCircle, CornerDownRight, Check } from "lucide-react";
+import { BellOff, UserPlus, UserCheck, MessageCircle, CornerDownRight, AtSign, Check } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { acceptFollowRequest, rejectFollowRequest, followUser } from "../lib/social.js";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -215,6 +215,7 @@ const KIND = {
   follower: { Icon: UserCheck,       tint: "#eaf6ee", ink: GREEN },
   comment:  { Icon: MessageCircle,   tint: "#e6efff", ink: BLUE },
   reply:    { Icon: CornerDownRight, tint: "#e6efff", ink: BLUE },
+  mention:  { Icon: AtSign,          tint: "#e6efff", ink: BLUE },
 };
 
 const LINE = {
@@ -223,6 +224,7 @@ const LINE = {
   follower: () => "empezó a seguirte",
   comment:  (n) => (n.targetType === "menu" ? "comentó tu menú" : "comentó tu receta"),
   reply:    () => "respondió a tu comentario",
+  mention:  () => "te ha nombrado",
 };
 
 const overlay = { position: "fixed", inset: 0, zIndex: 300 };
