@@ -3,8 +3,10 @@ import { X, Search, UserPlus, Users2, Sparkles, Check } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import {
   searchProfiles, followUser, unfollowUser,
-  loadSuggestedProfiles, loadFollowers, loadProfilesByIds,
+  loadSuggestedProfiles, loadFollowers, loadProfilesByIds, loadRecipesByOwners,
 } from "../lib/social.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
+import { deckImg } from "../lib/dishPhotoOptimize.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -23,8 +25,10 @@ const TEAL = "#0f766e";
  *   3. Cocinan en abierto · autores del feed público que aún no sigues, que
  *      es lo único que le queda a quien acaba de llegar y no sigue a nadie.
  *
- * Cada fila dice POR QUÉ está ahí. Una sugerencia sin motivo es una lista de
- * desconocidos, y eso no se toca nunca.
+ * Cada tarjeta dice POR QUÉ está ahí, pero SIN contarlo con texto: las caras
+ * de los conocidos en común y una muestra de sus platos. En una app de comida
+ * lo que decide un seguimiento es lo que cocina esa persona, no su nombre de
+ * usuario ni un contador — así que eso es lo que se enseña.
  */
 export function DiscoverPeopleSheet({
   user,
@@ -41,6 +45,8 @@ export function DiscoverPeopleSheet({
   const [busy, setBusy] = useState(false);
   const [suggested, setSuggested] = useState([]);
   const [backFollows, setBackFollows] = useState([]);
+  const [people, setPeople] = useState({});
+  const [dishes, setDishes] = useState({});
   const [loading, setLoading] = useState(true);
 
   // none | pending | following por persona. followUser devuelve el estado en
@@ -62,11 +68,24 @@ export function DiscoverPeopleSheet({
     ]);
     // Quien te sigue y tú no: el bloque de "devolver el seguimiento".
     const backIds = followers.map((f) => f.follower_id).filter((id) => !following.includes(id));
-    const backProfiles = await loadProfilesByIds(backIds);
-    setBackFollows(backIds.map((id) => backProfiles[id]).filter(Boolean));
+    const authorIds = feedAuthors.slice(0, 6).map((a) => a.id);
+    const sugIds = sug.map((p) => p.user_id);
+    const shownIds = [...new Set([...backIds, ...sugIds, ...authorIds])];
+
+    // Todo lo que falta, en dos peticiones para la lista entera: las caras
+    // (las de la propia lista y las de los conocidos en común) y una muestra
+    // de platos por persona.
+    const [profs, plates] = await Promise.all([
+      loadProfilesByIds([...shownIds, ...sug.flatMap((p) => p.via_ids ?? [])]),
+      loadRecipesByOwners(shownIds),
+    ]);
+
+    setPeople(profs);
+    setDishes(plates);
+    setBackFollows(backIds.map((id) => profs[id]).filter(Boolean));
     setSuggested(sug);
     setLoading(false);
-  }, [user?.id, following]);
+  }, [user?.id, following, feedAuthors]);
 
   useEffect(() => { loadSuggestions(); }, [loadSuggestions]);
 
@@ -159,10 +178,10 @@ export function DiscoverPeopleSheet({
               {backFollows.length > 0 && (
                 <Section Icon={UserPlus} title="Te siguen" note="Y tú a ellos todavía no">
                   {backFollows.map((p) => (
-                    <PersonRow
+                    <PersonCard
                       key={p.user_id}
                       person={p}
-                      reason="Empezó a seguirte"
+                      dishes={dishes[p.user_id]}
                       state={rel[p.user_id] ?? "none"}
                       onFollow={() => toggle(p.user_id)}
                       onOpen={() => onOpenPerson?.(p.user_id)}
@@ -174,10 +193,12 @@ export function DiscoverPeopleSheet({
               {suggested.length > 0 && (
                 <Section Icon={Users2} title="Por gente que sigues">
                   {suggested.map((p) => (
-                    <PersonRow
+                    <PersonCard
                       key={p.user_id}
                       person={p}
-                      reason={viaLine(p)}
+                      dishes={dishes[p.user_id]}
+                      via={(p.via_ids ?? []).map((id) => people[id]).filter(Boolean)}
+                      mutuals={p.mutuals}
                       state={rel[p.user_id] ?? "none"}
                       onFollow={() => toggle(p.user_id)}
                       onOpen={() => onOpenPerson?.(p.user_id)}
@@ -189,10 +210,10 @@ export function DiscoverPeopleSheet({
               {openCooks.length > 0 && (
                 <Section Icon={Sparkles} title="Cocinan en abierto">
                   {openCooks.map((a) => (
-                    <PersonRow
+                    <PersonCard
                       key={a.id}
-                      person={profiles[a.id]}
-                      reason={a.count === 1 ? "1 receta en el feed" : `${a.count} recetas en el feed`}
+                      person={people[a.id] ?? profiles[a.id]}
+                      dishes={dishes[a.id]}
                       state={rel[a.id] ?? "none"}
                       onFollow={() => toggle(a.id)}
                       onOpen={() => onOpenPerson?.(a.id)}
@@ -216,13 +237,6 @@ export function DiscoverPeopleSheet({
   );
 }
 
-/** "Le sigue Marta · 3 en común". El porqué de la sugerencia, en una línea. */
-function viaLine(p) {
-  const via = p.via_name ? `Le sigue ${p.via_name}` : null;
-  const more = p.mutuals > 1 ? `${p.mutuals} en común` : null;
-  return [via, more].filter(Boolean).join(" · ") || "Sugerido";
-}
-
 function Section({ Icon, title, note, children }) {
   return (
     <section style={{ marginBottom: 14 }}>
@@ -239,10 +253,94 @@ function Section({ Icon, title, note, children }) {
 }
 
 /**
- * Fila de persona. El botón dice en qué estado quedó la relación, no lo que
- * te gustaría que dijera: "Pendiente" cuando esa cuenta aprueba a mano.
+ * Tarjeta de sugerencia.
+ *
+ * Un nombre, un @usuario y una frase gris debajo eran tres líneas de texto
+ * casi iguales que no respondían a la única pregunta que importa: ¿me
+ * interesa lo que cocina? Así que el @usuario se va (es identificación, y
+ * pinta en el perfil y al buscar, no aquí), el porqué se enseña con las CARAS
+ * de los conocidos en común, y debajo van sus platos, que es lo que de verdad
+ * decide un seguimiento en una app de comida.
+ *
+ * Sin platos visibles la tira desaparece y la tarjeta se queda en su fila:
+ * mejor una tarjeta corta que tres huecos grises.
  */
-function PersonRow({ person, reason, state, onFollow, onOpen }) {
+function PersonCard({ person, dishes = [], via = [], mutuals = 0, state, onFollow, onOpen }) {
+  if (!person) return null;
+  const name = person.display_name || (person.username ? `@${person.username}` : "Alguien");
+  const plates = (dishes ?? []).slice(0, 3);
+
+  return (
+    <div style={card}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <button type="button" onClick={onOpen} style={{ ...plainBtn, display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0, textAlign: "left" }}>
+          <Avatar name={name} photo={person.avatar_url} size={44} color={TEAL} />
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={oneLine}>{name}</span>
+            {via.length > 0 && <MutualFaces via={via} mutuals={mutuals} />}
+          </span>
+        </button>
+        <button type="button" onClick={onFollow} style={state === "none" ? followPill : followingPill}>
+          {state === "following" && <Check size={12} strokeWidth={3} />}
+          {LABEL[state]}
+        </button>
+      </div>
+
+      {/* Menos de tres platos no se rellenan con huecos: la tira se encoge y
+          ya. Un placeholder gris no es informacion. */}
+      {plates.length > 0 && (
+        <div style={{ display: "flex", gap: 4, marginTop: 9 }}>
+          {plates.map((r) => <Plate key={r.id} recipe={r} onClick={onOpen} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** El plato, sin nombre encima: es una muestra, no un menú. */
+function Plate({ recipe, onClick }) {
+  const img = dishImageForRecipe(recipe);
+  if (!img) return null;
+  return (
+    <button type="button" onClick={onClick} style={plateBtn} aria-label={recipe.name}>
+      <img src={deckImg(img, 200)} alt="" loading="lazy" style={plate} />
+    </button>
+  );
+}
+
+/**
+ * "Le siguen estos": las caras, y nada mas. Tres avatares solapados se leen
+ * de un vistazo; "Le sigue Marta · 3 en comun" hay que pararse a leerlo.
+ *
+ * Sin coletilla de texto a proposito: la cabecera de la seccion ya dice "por
+ * gente que sigues", asi que repetirlo en cada fila es ruido. Si hay mas de
+ * los que caben, la burbuja +N lo cuenta sin una palabra.
+ */
+function MutualFaces({ via, mutuals }) {
+  const extra = Math.max(0, (mutuals ?? via.length) - via.length);
+  return (
+    <span style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+      <span style={{ display: "inline-flex" }}>
+        {via.map((p, i) => (
+          <span key={p.user_id} style={{ marginLeft: i === 0 ? 0 : -7, border: "2px solid #fff", borderRadius: "50%", display: "inline-flex" }}>
+            <Avatar name={p.display_name || p.username || "?"} photo={p.avatar_url} size={20} color={GREEN} />
+          </span>
+        ))}
+      </span>
+      {extra > 0 && (
+        <span style={{ marginLeft: -7, ...moreBubble }}>+{extra}</span>
+      )}
+    </span>
+  );
+}
+
+/**
+ * Fila compacta de BÚSQUEDA. Aquí el @usuario sí pinta: has escrito para
+ * encontrar a alguien concreto y el handle es lo que confirma que es quien
+ * buscabas. El botón dice en qué estado quedó la relación, no lo que te
+ * gustaría que dijera: "Pendiente" cuando esa cuenta aprueba a mano.
+ */
+function PersonRow({ person, state, onFollow, onOpen }) {
   if (!person) return null;
   const name = person.display_name || (person.username ? `@${person.username}` : "Alguien");
   return (
@@ -253,9 +351,6 @@ function PersonRow({ person, reason, state, onFollow, onOpen }) {
           <span style={oneLine}>{name}</span>
           {person.username && person.display_name && (
             <span style={{ ...oneLine, fontSize: 11.5, fontWeight: 700, color: "#8aa294" }}>@{person.username}</span>
-          )}
-          {reason && (
-            <span style={{ ...oneLine, fontSize: 11, fontWeight: 700, color: "#9ab0a1", marginTop: 1 }}>{reason}</span>
           )}
         </span>
       </button>
@@ -311,6 +406,31 @@ const closeBtn = {
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   width: 32, height: 32, borderRadius: "50%",
   border: "none", background: "#f0f4f1", color: GREEN, cursor: "pointer",
+};
+
+const card = {
+  padding: "10px 11px", borderRadius: 16,
+  background: "#fff", border: "1px solid #eef3f0",
+  boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+};
+
+// Un tercio del ancho SIEMPRE, no flex: con flex, quien solo tiene una
+// receta publicada se comia la fila entera con un cuadrado gigante.
+const plateBtn = {
+  ...{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer', fontFamily: 'inherit' },
+  width: 'calc((100% - 8px) / 3)', flexShrink: 0,
+};
+
+const moreBubble = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  width: 20, height: 20, borderRadius: '50%',
+  border: '2px solid #fff', background: '#e8efe9', color: '#5a7066',
+  fontSize: 9, fontWeight: 800, boxSizing: 'border-box',
+};
+
+const plate = {
+  display: "block", width: "100%", aspectRatio: "1 / 1",
+  borderRadius: 10, objectFit: "cover", background: "#eef3f0",
 };
 
 const row = {

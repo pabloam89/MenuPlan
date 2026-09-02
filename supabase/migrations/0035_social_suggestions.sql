@@ -17,10 +17,12 @@
 --   · solo perfiles que NO son privados (los privados no se sugieren jamás),
 --   · nunca a quien ya sigues o a quien ya has pedido seguir,
 --   · nunca a quien has bloqueado, ni a quien te ha bloqueado (is_blocked),
---   · y `via_name` es alguien a quien TÚ ya sigues — es el "le sigue Marta"
---     de toda red social. Decisión consciente: cuenta un vínculo entre dos
---     cuentas no privadas, y sin ese "por qué" una sugerencia es solo una
---     lista de desconocidos.
+--   · y `via_ids` son gente a la que TÚ ya sigues — el "le siguen estos" de
+--     toda red social. Devuelve los IDS y no un nombre montado aquí porque
+--     el cliente enseña sus CARAS: tres avatares se leen de un vistazo y una
+--     frase gris hay que pararse a leerla. Decisión consciente: revela un
+--     vínculo entre cuentas no privadas, y sin ese "por qué" una sugerencia
+--     es solo una lista de desconocidos.
 
 create or replace function public.suggested_profiles(p_limit integer default 12)
 returns table (
@@ -30,7 +32,7 @@ returns table (
   avatar_url text,
   visibility public.social_visibility,
   mutuals integer,
-  via_name text
+  via_ids uuid[]
 )
 language sql
 security definer
@@ -44,15 +46,15 @@ as $$
     where follower_id = auth.uid() and status = 'accepted'
   ),
   theirs as (
-    -- A quién siguen ellos, con cuántos de los tuyos coinciden y un ejemplo
-    -- para poder decir "le sigue Marta".
+    -- A quién siguen ellos, con cuántos de los tuyos coinciden y quiénes son
+    -- unos cuantos, para poder enseñar sus caras.
     select
       f.followee_id as id,
       count(*)::integer as mutuals,
-      min(coalesce(p.display_name, '@' || p.username)) as via_name
+      -- Solo los tres primeros: son las caras que caben en la fila.
+      (array_agg(f.follower_id order by f.follower_id))[1:3] as via_ids
     from public.user_follows f
     join mine m on m.id = f.follower_id
-    left join public.social_profiles p on p.user_id = f.follower_id
     where f.status = 'accepted'
       and f.followee_id <> auth.uid()
       and f.followee_id not in (select id from mine)
@@ -66,7 +68,7 @@ as $$
   )
   select
     p.user_id, p.username, p.display_name, p.avatar_url, p.visibility,
-    t.mutuals, t.via_name
+    t.mutuals, t.via_ids
   from theirs t
   join public.social_profiles p on p.user_id = t.id
   where p.visibility <> 'private'

@@ -217,6 +217,26 @@ export const FIXTURE_NOTIFICATIONS = [
  * perfil + por que se sugiere (cuantos conocidos en comun y el nombre de uno).
  */
 export const FIXTURE_SUGGESTED = [
-  { ...FIXTURE_PROFILES.fx_pau, mutuals: 3, via_name: "Marta" },
-  { ...FIXTURE_PROFILES.fx_javi, mutuals: 1, via_name: "Ana y Ruben" },
+  { ...FIXTURE_PROFILES.fx_pau, mutuals: 3, via_ids: ["fx_marta", "fx_ana", "fx_javi"] },
+  { ...FIXTURE_PROFILES.fx_javi, mutuals: 1, via_ids: ["fx_ana"] },
 ];
+
+/**
+ * Las recetas de cada autor de mentira, para la muestra de platos.
+ *
+ * Se les cuelga un linkedCatalogId real: sin el, dishImageForRecipe no puede
+ * resolver nada (un id "fx_" no esta en el manifiesto de fotos) y la tira
+ * saldria vacia justo en dev, que es donde se disena.
+ */
+const FIXTURE_PLATE_IDS = {
+  fx_r1: "carnes_001",
+  fx_r2: "pasta_arroces_002",
+  fx_r3: "legumbres_003",
+  fx_r4: "pescados_001",
+  fx_r5: "carnes_004",
+};
+
+export const FIXTURE_OWNER_RECIPES = FIXTURE_RECIPES.reduce((acc, r) => {
+  (acc[r.owner_id] ??= []).push({ ...r, linkedCatalogId: FIXTURE_PLATE_IDS[r.id] ?? null });
+  return acc;
+}, {});
