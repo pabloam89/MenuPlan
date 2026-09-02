@@ -2463,7 +2463,7 @@ function RotatingCardImage({ images, interval = 2500, alt = "" }) {
 
 /** Forest green for nested choices; teal for top section switchers (Alergias, Comidas…). */
 const CARD_ACCENT = "#2d5a3d";
-const CARD_ACCENT_TEAL = "#0f766e";
+export const CARD_ACCENT_TEAL = "#0f766e";
 
 /** 4-ray cumulative spectrum (casa ← → libre): 1, 2, 3 or 4 bars filled in teal. */
 function PantrySpectrumBar({ index }) {
@@ -2496,7 +2496,7 @@ function PantrySpectrumBar({ index }) {
   );
 }
 
-function RestrictionTabCard({
+export function RestrictionTabCard({
   Icon,
   img,
   images,
@@ -9478,7 +9478,10 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 // Los 6 electrodomésticos que trae la app de serie. Son justo 2 columnas × 3
 // filas: la rejilla se reparte el alto de la pantalla sin scroll. Lo que el
 // usuario añada a mano vive aparte, en la fila de abajo, para no romper eso.
-const APPLIANCES = [
+// Exportado: RecipePlanner.jsx ("¿Cómo se prepara?") reutiliza la misma
+// lista + ilustraciones para que el electrodoméstico se vea igual en el
+// asistente de crear receta que aquí, en vez de duplicar el catálogo.
+export const APPLIANCES = [
   { id: "Airfryer", img: "/avatares/cards/electrodomesticos/airfryer.webp" },
   { id: "Horno", img: "/avatares/cards/electrodomesticos/horno.webp" },
   { id: "Microondas", img: "/avatares/cards/electrodomesticos/microondas.webp" },

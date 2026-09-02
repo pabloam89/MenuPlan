@@ -18,17 +18,10 @@ import {
   Fish,
   Egg,
   Bean,
-  Salad,
-  Soup,
-  Zap,
   UtensilsCrossed,
-  Moon,
   Flame,
   ListOrdered,
   Check,
-  Wind,
-  Microwave,
-  Bot,
   CookingPot,
   Layers2,
   Camera,
@@ -47,48 +40,40 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronUp,
-  ThumbsUp,
-  ThumbsDown,
-  CalendarDays,
-  UserCircle2,
-  Gauge,
-  Globe,
-  Users2,
-  Lock,
-  IceCream,
 } from "lucide-react";
 import { ProgressDots, SegmentedControl } from "../components/ui.jsx";
-import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
+import { RestrictionTabCard, APPLIANCES, CARD_ACCENT_TEAL } from "./Onboarding.jsx";
+import { DishDetail } from "./Menu.jsx";
+import { RecipePoster } from "../components/SwipeCard.jsx";
+import { catalogToFrontendRecipe } from "../lib/aiPlanner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import {
-  USAGE_TAGS,
   deriveTypeFromUsageTags,
   INGREDIENT_UNITS,
   ALLERGEN_OPTIONS,
   INGREDIENT_CATALOG,
   INGREDIENT_CATALOG_BY_AISLE,
-  COOKING_METHODS,
   generateUserRecipeDraft,
   generateDishPhotoWithAI,
   suggestRecipeIngredients,
-  filterOwnCreatedRecipes,
 } from "../lib/userRecipes.js";
-import { isMontaje } from "../data/recipeSchema.js";
 import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle, ingredientStem } from "../lib/ingredientCategories.js";
 import { RecipeStepList } from "../components/RecipeSteps.jsx";
 import { STEP_KIND_META, removeRichStep, richToPlainSteps } from "../lib/recipeSteps.js";
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
 import { deriveRecipeAllergens } from "../lib/ingredients.js";
-import { mealTimeColor } from "../lib/mealTimes.js";
-import { deckImg, deckSrcSet } from "../lib/dishPhotoOptimize.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const BG = "#f5f9f6";
 
+// Orden: El plato → ¿Cómo se prepara? (electrodoméstico, su propia pantalla
+// desde aquí — antes vivía metido dentro de "El plato") → Ingredientes →
+// ¿Cuándo se sirve? → Preparación (pasos) → Foto → Revisión.
 const STEP_META = [
   { title: "El plato", icon: ChefHat, color: GREEN },
+  { title: "¿Cómo se prepara?", icon: CookingPot, color: "#2f6fb8" },
   { title: "Ingredientes", icon: Carrot, color: "#c96a1c" },
   { title: "¿Cuándo se sirve?", icon: Clock, color: "#2f6fb8" },
   { title: "Preparación", icon: Sparkles, color: GREEN },
@@ -170,18 +155,6 @@ function PantryCategoryIcon({ name, size = 26 }) {
   );
 }
 
-const USAGE_TAG_ICONS = {
-  plato_unico: UtensilsCrossed,
-  plato_normal: Beef,
-  guarnicion: Salad,
-};
-
-const USAGE_TAG_COLORS = {
-  plato_unico: "#6b4fa0",
-  plato_normal: "#c96a1c",
-  guarnicion: "#2d8659",
-};
-
 // Minimal snapshot of the signed-in Google account stamped on a saved recipe
 // so the catalog can show who created it. Mirrors Settings.jsx#googleInfo.
 //
@@ -199,21 +172,6 @@ function ownerFromUser(user) {
     name: meta.full_name ?? meta.name ?? user.email?.split("@")[0] ?? "Anónimo",
     avatar: meta.avatar_url ?? meta.picture ?? null,
   };
-}
-
-// "hace un momento" / "hace 3 días" / "6 jul 2026" — compact relative date for
-// the recipe's generation stamp.
-function formatGeneratedAt(ts) {
-  if (!ts) return "";
-  const diff = Date.now() - ts;
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "hace un momento";
-  if (min < 60) return `hace ${min} min`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `hace ${h} h`;
-  const d = Math.floor(h / 24);
-  if (d < 7) return `hace ${d} ${d === 1 ? "día" : "días"}`;
-  return new Date(ts).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
 }
 
 function normDishName(s) {
@@ -288,14 +246,6 @@ function markSuggestHintSeen() {
   }
 }
 
-const MEAL_ROLE_ICONS = {
-  primero: Soup,
-  segundo: UtensilsCrossed,
-  plato_unico: UtensilsCrossed,
-  cena: Moon,
-  postre: IceCream,
-};
-
 // Lunch is not a stored mealRole — we infer primero/segundo/plato_unico from
 // the usage tag when the user marks "Comida".
 const COMIDA_POSITIONS = ["plato_unico", "primero", "segundo"];
@@ -305,23 +255,6 @@ function defaultComidaRole(usageTags = []) {
   return "segundo";
 }
 
-const APPLIANCE_ICONS = {
-  "Airfryer": Wind,
-  "Horno": Flame,
-  "Microondas": Microwave,
-  "Thermomix": Bot,
-  "Olla rápida": CookingPot,
-  "Vaporera": Layers2,
-};
-
-const APPLIANCE_COLORS = {
-  "Airfryer": "#2f6fb8",
-  "Horno": "#c0392b",
-  "Microondas": "#0f9d8c",
-  "Thermomix": "#6b4fa0",
-  "Olla rápida": "#c96a1c",
-  "Vaporera": "#2d8659",
-};
 
 const headerBtnStyle = {
   display: "inline-flex",
@@ -390,70 +323,6 @@ function TextField({ value, onChange, placeholder, type = "text", suffix, ...res
   );
 }
 
-// ── Allergen-style option list (matches Onboarding's AvoidSection/AllergenRow):
-// colored icon + label + a real checkbox, 2-column matrix, thin row dividers ──
-
-function OptionSection({ icon: Icon, title, subtitle, children }) {
-  return (
-    <div style={{ background: "#fff", border: "1px solid #ebf0ed", borderRadius: 16, marginBottom: 12, boxShadow: "0 1px 3px rgba(20,47,29,.05)", overflow: "hidden" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#dcebe1", borderBottom: "1px solid #c9ddd0" }}>
-        <span style={{ width: 28, height: 28, borderRadius: 9, background: GREEN, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Icon size={14} strokeWidth={2.2} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: "#1a3a24" }}>{title}</p>
-          {subtitle && <p style={{ margin: "1px 0 0", fontSize: 11.5, color: "#5e7a68", fontWeight: 600, lineHeight: 1.3 }}>{subtitle}</p>}
-        </div>
-      </div>
-      <div style={{ padding: "16px 14px 10px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: 12 }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function optionRowIsLast(index, total) {
-  return Math.floor(index / 2) === Math.floor((total - 1) / 2);
-}
-
-// Icon segmented control for "¿Cómo se sirve?" (plato único / normal /
-// guarnición). Single-select — asked on the "cuándo se sirve" step so the
-// review stays a pure preview.
-function UsageSegmentedControl({ value = [], onChange }) {
-  const selected = value[0] ?? null;
-  return (
-    <div style={{ display: "flex", gap: 8 }}>
-      {USAGE_TAGS.map((t) => {
-        const Icon = USAGE_TAG_ICONS[t.id] ?? UtensilsCrossed;
-        const color = USAGE_TAG_COLORS[t.id] ?? GREEN;
-        const sel = selected === t.id;
-        return (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => onChange(t.id)}
-            style={{
-              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 7,
-              padding: "13px 6px 11px", borderRadius: 13, cursor: "pointer", fontFamily: "inherit",
-              border: `2px solid ${sel ? GREEN : "#e8efe9"}`,
-              background: sel ? "#eef6f0" : "#fff",
-              boxShadow: sel ? "0 2px 10px rgba(45,90,61,.12)" : "none",
-              transition: "all .15s",
-            }}
-          >
-            <span style={{ width: 30, height: 30, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", background: sel ? `${color}1f` : "#f2f6f3" }}>
-              <Icon size={16} color={color} strokeWidth={2.3} />
-            </span>
-            <span style={{ fontSize: 11.5, fontWeight: sel ? 800 : 700, color: sel ? INK : "#5a6b60", textAlign: "center", lineHeight: 1.15 }}>
-              {t.label}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 // ── Preset-grid number picker (servings / time): 4 cols × 2 rows,
 // 7 presets + a "+" cell that turns into a custom input ──
 
@@ -512,51 +381,6 @@ function GridNumberPicker({ values, value, onChange }) {
         </button>
       )}
     </div>
-  );
-}
-
-function OptionRow({ icon: Icon, label, checked, onToggle, color = GREEN, last }) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={checked}
-      style={{
-        width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 8,
-        padding: "8px 2px", border: "none", background: "transparent", cursor: "pointer",
-        fontFamily: "inherit", textAlign: "left",
-        borderBottom: last ? "none" : "1px solid #eef3f0",
-      }}
-    >
-      <span
-        style={{
-          width: 24, height: 24, borderRadius: 7, flexShrink: 0,
-          background: `${color}1a`, color,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}
-      >
-        <Icon size={13} strokeWidth={2.2} />
-      </span>
-      <span
-        style={{
-          flex: 1, minWidth: 0, fontSize: 12, fontWeight: checked ? 800 : 650,
-          color: checked ? "#142f1d" : "#3a4a42", overflow: "hidden", textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          width: 18, height: 18, borderRadius: 5, flexShrink: 0,
-          border: `1.5px solid ${checked ? GREEN : "#cdd8d0"}`,
-          background: checked ? GREEN : "#fff",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}
-      >
-        {checked && <Check size={11} strokeWidth={3} color="#fff" />}
-      </span>
-    </button>
   );
 }
 
@@ -1445,18 +1269,6 @@ function draftRichSteps(draft) {
 }
 
 /**
- * Ingredientes del borrador en la forma que espera el resolutor de marcadores
- * ({{Ajo}} → "2 dientes de ajo"), que lee `qty` y no `amount`.
- */
-function stepPreviewIngredients(draft) {
-  return (draft?.ingredients ?? []).map((i) => ({
-    name: i.name,
-    qty: Number(i.amount) || 0,
-    unit: i.unit,
-  }));
-}
-
-/**
  * Editor del paso a paso. Trabaja sobre `stepsRich` ({ text, minutes, kind }),
  * el mismo formato que el catálogo, para que lo que se edita aquí sea
  * exactamente lo que luego pinta el stepper del detalle del menú.
@@ -1568,7 +1380,7 @@ function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
 const VISIBILITY_OPTIONS = [
   {
     id: "public",
-    icon: Globe,
+    art: "/avatares/cards/vis_cualquiera.png",
     label: "Pública",
     sub: "Cualquier usuario de HoMenu puede verla y valorarla.",
     color: "#2d5a3d",
@@ -1577,7 +1389,7 @@ const VISIBILITY_OPTIONS = [
   },
   {
     id: "friends",
-    icon: Users2,
+    art: "/avatares/cards/vis_seguidores.png",
     label: "Solo amigos",
     sub: "Solo la ven las personas que sigues y que te siguen.",
     color: "#7a4e00",
@@ -1586,7 +1398,7 @@ const VISIBILITY_OPTIONS = [
   },
   {
     id: "private",
-    icon: Lock,
+    art: "/avatares/cards/vis_nadie.png",
     label: "Privada",
     sub: "Solo tú puedes verla. No aparece en ningún listado.",
     color: "#5a2d7a",
@@ -1636,7 +1448,6 @@ function VisibilitySheet({ onConfirm, onClose }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 18 }}>
           {VISIBILITY_OPTIONS.map((opt) => {
             const active = selected === opt.id;
-            const Icon = opt.icon;
             return (
               <button
                 key={opt.id}
@@ -1651,15 +1462,10 @@ function VisibilitySheet({ onConfirm, onClose }) {
                   transition: "all .15s",
                 }}
               >
-                <div
-                  style={{
-                    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                    background: active ? opt.border : "#f0f4f1",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <Icon size={17} color={active ? opt.color : "#9ab0a1"} />
-                </div>
+                {/* Mismas ilustraciones que VisibilityPrompt.jsx (Feed, "¿Quién
+                    te puede encontrar?") — mismo concepto de privacidad, mismos
+                    tres colores ya elegidos para él, sin duplicar el encargo. */}
+                <img src={opt.art} alt="" style={{ width: 36, height: 36, flexShrink: 0, display: "block" }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 800, color: active ? opt.color : "#1a3a24" }}>
                     {opt.label}
@@ -1725,9 +1531,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           ingredients: editRecipe.ingredients ?? [],
           category: editRecipe.category ?? "",
           mealRole: editRecipe.mealRole ?? [],
-          // "Cena rápida" = plato de montaje. Persistido en `montaje`;
-          // isMontaje cae a la categoría deprecada para recetas anteriores.
-          quickDinner: isMontaje(editRecipe),
           mainProtein: editRecipe.mainProtein ?? "",
           usageTags: editRecipe.usageTags ?? [],
           baseDishId: editRecipe.baseDishId ?? null,
@@ -1745,7 +1548,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     ingredients: [],
     category: "",
     mealRole: [],
-    quickDinner: false,
     mainProtein: "",
     usageTags: [], // Eje B: proposed by AI at review, editable there (multi)
     baseDishId: null, // Eje A: this is another recipe for an existing dish
@@ -1760,16 +1562,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   const [baseDishDecision, setBaseDishDecision] = useState(null);
   // Visibility popup shown just before the final save.
   const [showVisibilitySheet, setShowVisibilitySheet] = useState(false);
-
-  // Every existing garnish a "plato normal" can pin: the bundled
-  // guarniciones.json plus any garnish the user created earlier (type/role
-  // "guarnicion"), so the pool grows as the user adds their own.
-  const userGarnishesOnly = useMemo(
-    () => filterOwnCreatedRecipes(userRecipes, user).filter(
-      (r) => r.type === "guarnicion" || r.mealRole?.includes?.("guarnicion"),
-    ),
-    [userRecipes, user],
-  );
 
   const baseDishPool = useMemo(
     () => [...recipeCatalog, ...(userRecipes ?? [])],
@@ -1847,28 +1639,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     }
   };
 
-  // "Cena rápida" is a proxy sub-type of dinner (quick + easy). Turning it on
-  // implies "Cena", so we tick that role too; it persists as category
-  // "cenas_rapidas" on save.
-  const toggleQuickDinner = () => {
-    setForm((f) => {
-      const next = !f.quickDinner;
-      const mealRole = next && !f.mealRole.includes("cena") ? [...f.mealRole, "cena"] : f.mealRole;
-      return { ...f, quickDinner: next, mealRole };
-    });
-  };
-
-  // Single-select ("¿Cómo se sirve?" segmented control on the cuándo se
-  // sirve step). Switching role clears any pairing that only made sense for
-  // the previous one.
-  const setUsage = (id) =>
-    setForm((f) => ({
-      ...f,
-      usageTags: f.usageTags[0] === id ? [] : [id],
-      pinnedGarnishId: id === "plato_normal" ? f.pinnedGarnishId : null,
-      linkedCatalogId: id === "guarnicion" ? f.linkedCatalogId : null,
-    }));
-
   const toggleIngredient = (name) =>
     setForm((f) => {
       const key = String(name).trim().toLowerCase();
@@ -1902,6 +1672,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
 
   const canNext = [
     form.name.trim().length > 0 && Number(form.baseServings) > 0 && Number(form.time) > 0,
+    true, // ¿Cómo se prepara? — opcional, nada marcado = tradicional
     form.ingredients.length > 0,
     true,
     true,
@@ -1924,6 +1695,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           mealRole: form.mealRole,
           kidFriendly: form.kidFriendly,
           allergens: form.allergens,
+          requiredAppliances: form.requiredAppliances,
           preparationNotes: form.preparationNotes.trim() || undefined,
         },
         { signal: ctrl.signal },
@@ -2036,7 +1808,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           ingredients: [],
           usageTags: [],
           mealRole: [],
-          quickDinner: false,
           kidFriendly: null,
           requiredAppliances: [],
           baseServings: 4,
@@ -2215,17 +1986,22 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
       id: editRecipe?.id ?? draft.id,
       usageTags,
       type,
-      // Cena rápida: viaja en su propio eje (`montaje`), no secuestrando
-      // `category` — que ahora solo responde "qué lleva el plato". El rol
-      // "cena" se sigue añadiendo abajo para que sea elegible en cenas.
-      montaje: isGarnishOnly ? undefined : form.quickDinner,
+      // Cena rápida ya no es una casilla manual: se infiere sola de tiempo +
+      // dificultad (mismo criterio que ya usan usageTags/canReceiveSauce —
+      // no hace falta preguntárselo al usuario si se puede deducir). Un
+      // plato de 15 min o menos y dificultad "fácil" es, por definición, de
+      // poca elaboración y tiempo — justo lo que pedía el antiguo toggle.
+      montaje: isGarnishOnly ? undefined : Boolean(draft.time <= 15 && draft.difficulty === "facil"),
       category: isGarnishOnly ? "guarniciones" : form.category || draft.category,
       mainProtein: isGarnishOnly ? "none" : form.mainProtein || draft.mainProtein,
+      // Bug real corregido: esto nunca leía `form.mealRole` (Comida/Cena/
+      // Merienda/Postre del paso "¿Cuándo se sirve?") — marcar esas casillas
+      // no guardaba nada, solo importaba lo que propusiera la IA. Mismo
+      // criterio que `usageTags` arriba: la elección explícita del usuario
+      // gana, y solo se cae a la propuesta de la IA si se dejó en blanco.
       mealRole: isGarnishOnly
         ? ["guarnicion"]
-        : form.quickDinner
-          ? Array.from(new Set([...(draft.mealRole ?? []), "cena"]))
-          : draft.mealRole,
+        : (form.mealRole.length ? form.mealRole : draft.mealRole ?? []),
       allergens: derivedAllergens.allergens,
       requiredAppliances: form.requiredAppliances.length ? form.requiredAppliances : undefined,
       baseDishId: form.baseDishId || undefined,
@@ -2283,7 +2059,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   const goNext = () => setStep((s) => Math.min(STEP_META.length - 1, s + 1));
 
   return (
-    <div style={{ minHeight: "100dvh", background: BG, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
+    <div style={{ height: "100dvh", overflow: "hidden", background: BG, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
       {/* Header: back / progress dots / close — same language as onboarding */}
       <div style={{ minHeight: 38, padding: "16px 20px 0", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <div style={{ flex: "0 0 auto" }}>
@@ -2375,32 +2151,47 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
                 onChange={(v) => updateForm({ time: v })}
               />
             </div>
-            <div style={{ height: 1, background: "#e3ebe6" }} />
-            <OptionSection
-              icon={CookingPot}
-              title="¿Cómo se prepara?"
-              subtitle="Elige una. Si no marcas nada, asumimos la forma tradicional (fuego / sartén / olla)."
-            >
-              {COOKING_METHODS.map((m, i) => (
-                <OptionRow
-                  key={m.id}
-                  icon={APPLIANCE_ICONS[m.id] ?? UtensilsCrossed}
-                  color={APPLIANCE_COLORS[m.id] ?? GREEN}
-                  label={m.label}
-                  checked={form.requiredAppliances[0] === m.id}
-                  onToggle={() =>
-                    updateForm({
-                      requiredAppliances: form.requiredAppliances[0] === m.id ? [] : [m.id],
-                    })
-                  }
-                  last={optionRowIsLast(i, COOKING_METHODS.length)}
-                />
-              ))}
-            </OptionSection>
           </div>
         )}
 
         {step === 1 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <p style={{ margin: 0, fontSize: 12.5, color: "#7a9485", textAlign: "center" }}>
+              Elige uno. Si no marcas nada, asumimos la forma tradicional (fuego / sartén / olla).
+            </p>
+            {/* Mismas 6 tarjetas ilustradas (MJ) que OnboardingAppliances
+                (Onboarding.jsx), pero en cuadrado (imgRatio 1/1) en vez de
+                estiradas a tira horizontal: las ilustraciones de MJ están
+                compuestas en cuadrado y un recorte panorámico les quedaba
+                fatal. Ya no hace falta forzar el grid a llenar el alto
+                disponible (`fillHeight`/`alignContent`): el footer con
+                "Siguiente" no puede desaparecer con scroll de página
+                (RecipePlannerScreen limita su alto a 100dvh), así que si el
+                grid cuadrado no cabe entero, este paso simplemente hace su
+                propio scroll interno sin arrastrarse el footer. */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {APPLIANCES.map((a) => (
+                <RestrictionTabCard
+                  key={a.id}
+                  img={a.img}
+                  title={a.id}
+                  imgRatio="1 / 1"
+                  compact
+                  textOverlay
+                  accent={CARD_ACCENT_TEAL}
+                  active={form.requiredAppliances[0] === a.id}
+                  onClick={() =>
+                    updateForm({
+                      requiredAppliances: form.requiredAppliances[0] === a.id ? [] : [a.id],
+                    })
+                  }
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
           <div>
             {suggestState === "loading" ? (
               <div style={{
@@ -2445,59 +2236,40 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
             <div>
-              <FieldLabel icon={UtensilsCrossed}>¿Cómo se sirve?</FieldLabel>
-              <FieldHint>Si no lo tienes claro, la IA lo decide por los ingredientes.</FieldHint>
-              <UsageSegmentedControl value={form.usageTags} onChange={setUsage} />
-            </div>
-
-            <div style={{ height: 1, background: "#e3ebe6" }} />
-
-            <div>
-              <OptionSection
-                icon={Clock}
-                title="¿Cuándo se sirve?"
-                subtitle="La cena rápida es una cena de poca elaboración y tiempo. Sin marcar nada, decide la IA."
-              >
-                <OptionRow
-                  icon={Soup}
-                  color={mealTimeColor("Comida")}
-                  label="Comida"
-                  checked={comidaChecked}
-                  onToggle={toggleComida}
-                />
-                <OptionRow
-                  icon={MEAL_ROLE_ICONS.cena}
-                  color={mealTimeColor("Cena")}
-                  label="Cena"
-                  checked={form.mealRole.includes("cena")}
-                  onToggle={() => toggleMealRole("cena")}
-                />
-                <OptionRow
-                  icon={Zap}
-                  color="#d56b9a"
-                  label="Cena rápida"
-                  checked={form.quickDinner}
-                  onToggle={toggleQuickDinner}
-                />
-                <OptionRow
-                  icon={Apple}
-                  color="#c0504d"
-                  label="Merienda"
-                  checked={form.mealRole.includes("merienda")}
-                  onToggle={() => toggleMealRole("merienda")}
-                />
-                <OptionRow
-                  icon={IceCream}
-                  color="#c0568f"
-                  label="Postre"
-                  checked={form.mealRole.includes("postre")}
-                  onToggle={() => toggleMealRole("postre")}
-                  last
-                />
-              </OptionSection>
+              {/* Sin FieldLabel con el título: el header del paso ya dice
+                  "¿Cuándo se sirve?" arriba, repetirlo aquí era redundante
+                  (mismo criterio que el paso "¿Cómo se prepara?", que tampoco
+                  repite su propio título). Ilustraciones MJ en vez de la
+                  lista de OptionRow con iconos lucide — un momento de comida
+                  se reconoce antes por el plato típico que por un icono
+                  genérico. Sin tarjeta de "Cena rápida": ese eje (`montaje`)
+                  ya no es una elección manual, se infiere solo de tiempo +
+                  dificultad al guardar (ver finalRecipe más abajo). */}
+              <p style={{ margin: 0, fontSize: 12.5, color: "#7a9485", textAlign: "center" }}>
+                Marca los que encajen. Si no marcas nada, decide la IA.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 10 }}>
+                {[
+                  { id: "comida", img: "/avatares/cards/cuando_se_sirve/comida.webp", label: "Comida", checked: comidaChecked, onClick: toggleComida },
+                  { id: "cena", img: "/avatares/cards/cuando_se_sirve/cena.webp", label: "Cena", checked: form.mealRole.includes("cena"), onClick: () => toggleMealRole("cena") },
+                  { id: "merienda", img: "/avatares/cards/cuando_se_sirve/merienda.webp", label: "Merienda", checked: form.mealRole.includes("merienda"), onClick: () => toggleMealRole("merienda") },
+                  { id: "postre", img: "/avatares/cards/cuando_se_sirve/postre.webp", label: "Postre", checked: form.mealRole.includes("postre"), onClick: () => toggleMealRole("postre") },
+                ].map((m) => (
+                  <RestrictionTabCard
+                    key={m.id}
+                    img={m.img}
+                    title={m.label}
+                    imgRatio="1 / 1"
+                    textOverlay
+                    accent={CARD_ACCENT_TEAL}
+                    active={m.checked}
+                    onClick={m.onClick}
+                  />
+                ))}
+              </div>
             </div>
 
             <div style={{ height: 1, background: "#e3ebe6" }} />
@@ -2518,7 +2290,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div>
               <FieldLabel icon={ChefHat}>¿Cómo lo preparas? (opcional)</FieldLabel>
@@ -2584,7 +2356,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           </div>
         )}
 
-        {step === 4 && (
+        {step === 5 && (
           <PhotoStep
             dishName={form.name}
             photo={photo}
@@ -2592,6 +2364,8 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
             genError={photoGenError}
             onGenerate={generatePhoto}
             onRemovePhoto={() => { setPhoto(null); setPhotoGenState("idle"); }}
+            form={form}
+            draft={draft}
           />
         )}
 
@@ -2602,9 +2376,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
             draft={draft}
             form={form}
             user={user}
-            updateForm={updateForm}
-            userRecipes={userRecipes}
-            userGarnishesOnly={userGarnishesOnly}
             kitchenTools={kitchenTools}
             confirmedAllergens={derivedAllergens.allergens}
             onRetry={runAI}
@@ -2677,24 +2448,70 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
 // look, so the gallery never feels inconsistent. Whatever ends up in `photo`
 // here shows up read-only in the Revisión step right after.
 
-function PhotoStep({ dishName, photo, genState, genError, onGenerate, onRemovePhoto }) {
+// Objeto "mejor esfuerzo" para previsualizar en el DishDetail real desde
+// dentro del asistente: si el paso de Preparación ya generó `draft` (Zod-
+// validado, forma de catálogo), se usa tal cual; si no, se arma uno mínimo
+// con lo que ya existe en `form` en este punto. catalogToFrontendRecipe
+// (aiPlanner.js) hace la misma conversión amount→qty/id que usa cualquier
+// receta real — reutilizada en vez de duplicar esa lógica aquí.
+function buildPreviewRecipe(form, draft, photo) {
+  const base = draft ?? {
+    id: "wip-preview",
+    name: form.name || "Nueva receta",
+    category: form.category || "cenas_rapidas",
+    mainProtein: form.mainProtein || "none",
+    mealRole: form.mealRole.length ? form.mealRole : ["cena"],
+    ingredients: form.ingredients,
+    steps: [],
+    time: Number(form.time) || 15,
+    difficulty: "normal",
+    kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0,
+    baseServings: Number(form.baseServings) || 4,
+    kidFriendly: Boolean(form.kidFriendly),
+    tupperFriendly: false,
+    allergens: form.allergens ?? [],
+    season: "all",
+  };
+  return {
+    ...catalogToFrontendRecipe({ ...base, photo }, Number(form.baseServings) || base.baseServings),
+    // No están en la forma que devuelve catalogToFrontendRecipe — el chip de
+    // electrodoméstico (Menu.jsx) los lee directamente del objeto.
+    requiredAppliances: form.requiredAppliances,
+    source: "user",
+  };
+}
+
+function PhotoStep({ dishName, photo, genState, genError, onGenerate, onRemovePhoto, form, draft }) {
   const busy = genState === "loading";
+  const [showPreview, setShowPreview] = useState(false);
+  const previewRecipe = useMemo(() => buildPreviewRecipe(form, draft, photo), [form, draft, photo]);
+  // RecipePoster espera el enum crudo de dificultad (facil/normal/elaborada)
+  // para su propio color/label — buildPreviewRecipe ya lo pasa por
+  // catalogToFrontendRecipe, que lo mapea a una etiqueta ("Fácil"/"Normal"/
+  // "Me gusta") pensada para DishDetail, no para esto.
+  const posterRecipe = useMemo(
+    () => ({ ...previewRecipe, difficulty: draft?.difficulty ?? "normal" }),
+    [previewRecipe, draft],
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <p style={{ margin: 0, fontSize: 12.5, color: "#7a9485", textAlign: "center" }}>
-        La generamos con IA, con el mismo estilo que el resto del catálogo de MenuPlan.
+        La generamos con IA, con el mismo estilo que el resto del catálogo de HoMenu.
       </p>
 
-      <div style={{ position: "relative", height: 220, borderRadius: 16, overflow: "hidden" }}>
+      <div style={{ position: "relative", height: 260, borderRadius: 20, overflow: "hidden" }}>
         {photo ? (
-          <>
-            <img
-              src={deckImg(photo, 440)}
-              srcSet={deckSrcSet(photo, 440)}
-              alt=""
-              loading="lazy"
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
+          // Misma tarjeta que el Feed (RecipePoster): nombre, tiempo, dificultad
+          // y la ⓘ que abre el Dish Detail real. Sin estadísticas todavía —
+          // no existen hasta que se publique, y RecipePoster ya sabe omitir
+          // lo que falte (sin `stats`, no pinta esa columna).
+          <RecipePoster
+            recipe={posterRecipe}
+            onInfo={() => setShowPreview(true)}
+            showOwner={false}
+            style={{ width: "100%", height: "100%" }}
+          >
             <button
               type="button"
               onClick={onRemovePhoto}
@@ -2702,16 +2519,16 @@ function PhotoStep({ dishName, photo, genState, genError, onGenerate, onRemovePh
               style={{
                 position: "absolute", top: 8, right: 8, width: 32, height: 32, borderRadius: 10,
                 border: "none", background: "rgba(20,30,24,.55)", color: "#fff", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1,
               }}
             >
               <Trash2 size={15} />
             </button>
-          </>
+          </RecipePoster>
         ) : (
           <div
             style={{
-              width: "100%", height: "100%", borderRadius: 16, border: "1.5px dashed #bcd6c4", background: "#fafcfa",
+              width: "100%", height: "100%", borderRadius: 20, border: "1.5px dashed #bcd6c4", background: "#fafcfa",
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
@@ -2748,158 +2565,46 @@ function PhotoStep({ dishName, photo, genState, genError, onGenerate, onRemovePh
       >
         <Sparkles size={15} /> {photo ? "Regenerar con IA" : "Generar con IA"}
       </button>
-    </div>
-  );
-}
 
-const PREVIEW_TAG_STYLE = {
-  display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 9px",
-  borderRadius: 999, background: "#f3f7f4", color: "#526057", fontSize: 11, fontWeight: 800,
-};
-
-const PREVIEW_MACROS = [
-  { key: "protein_g", label: "Proteína", color: "#3b82f6" },
-  { key: "carbs_g", label: "Carbohidratos", color: "#f97316" },
-  { key: "fat_g", label: "Grasas", color: "#eab308" },
-];
-
-// Google account pictures expire, so a stamped owner avatar can 404 long after
-// the recipe was saved; degrade to the neutral placeholder instead of a broken
-// image. Mirrors OwnerBadge in RecipeProvenance.jsx.
-function OwnerPhoto({ owner }) {
-  const [failed, setFailed] = useState(false);
-  if (owner?.avatar && !failed) {
-    return (
-      <img
-        src={owner.avatar}
-        alt=""
-        onError={() => setFailed(true)}
-        style={{ width: 32, height: 32, borderRadius: 999, objectFit: "cover", flexShrink: 0 }}
-      />
-    );
-  }
-  return (
-    <span style={{ width: 32, height: 32, borderRadius: 999, background: "#eef3ef", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-      <UserCircle2 size={22} color="#9ab0a1" />
-    </span>
-  );
-}
-
-// A read-only preview that mirrors the real DishDetail (Menu.jsx): photo hero
-// with the name overlaid, info pills, allergen strip, macro rings — plus the
-// provenance/community strip (owner, generation date, up/down rating).
-function DishPreviewCard({ draft, photo, allergens = [], user }) {
-  const owner = ownerFromUser(user);
-  const rating = draft.rating ?? { up: 0, down: 0 };
-  const when = formatGeneratedAt(draft.createdAt ?? Date.now());
-  const allergenChips = ALLERGEN_OPTIONS.filter((a) => allergens.includes(a.id));
-
-  return (
-    <div style={{ background: "#fff", border: "1px solid #eef2ef", borderRadius: 16, overflow: "hidden", boxShadow: "0 1px 3px rgba(20,47,29,.05)" }}>
-      {/* Hero */}
-      <div style={{ position: "relative", height: 170, background: "#eef3ef" }}>
-        {photo ? (
-          <img
-            src={deckImg(photo, 440)}
-            srcSet={deckSrcSet(photo, 440)}
-            alt=""
-            loading="lazy"
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-        ) : (
-          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Camera size={26} color="#b6c8bc" />
-          </div>
-        )}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,30,18,.78) 0%, rgba(10,30,18,0) 58%)" }} />
-        <div style={{ position: "absolute", left: 14, right: 14, bottom: 11 }}>
-          <p style={{ margin: 0, fontSize: 10, fontWeight: 800, letterSpacing: ".5px", textTransform: "uppercase", color: "rgba(255,255,255,.82)" }}>
-            Vista previa
-          </p>
-          <p style={{ margin: "3px 0 0", fontSize: 18, fontWeight: 900, color: "#fff", lineHeight: 1.15 }}>{draft.name}</p>
-        </div>
-      </div>
-
-      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 13 }}>
-        {/* Info pills */}
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <span style={PREVIEW_TAG_STYLE}><Users size={12} /> {draft.baseServings} comensales</span>
-          <span style={PREVIEW_TAG_STYLE}><Clock size={12} /> {draft.time} min</span>
-          <span style={{ ...PREVIEW_TAG_STYLE, textTransform: "capitalize" }}><Gauge size={12} /> {draft.difficulty}</span>
-        </div>
-
-        {draft.description && (
-          <p style={{ margin: 0, fontSize: 12.5, color: "#7a9485", lineHeight: 1.4 }}>{draft.description}</p>
-        )}
-
-        {/* Allergens */}
-        {allergenChips.length > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "11px 13px", borderRadius: 14, border: "2px solid #2d5a3d" }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: GREEN, letterSpacing: ".4px", textTransform: "uppercase" }}>Alérgenos</span>
-            {allergenChips.map((a) => (
-              <span key={a.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, color: a.color, fontSize: 12, fontWeight: 700 }}>
-                <a.Icon size={14} strokeWidth={2.2} /> {a.label}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Macro rings */}
-        <div style={{ borderRadius: 14, padding: "14px 12px", border: "2px solid #2d5a3d" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 14 }}>
-            <Flame size={15} color={GREEN} />
-            <span style={{ fontSize: 13, fontWeight: 900, color: GREEN }}>{draft.kcal} kcal por ración</span>
-          </div>
-          <div style={{ display: "flex", gap: 10, justifyContent: "space-around" }}>
-            {PREVIEW_MACROS.map(({ key, label, color }) => (
-              <div key={key} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
-                <div style={{
-                  width: 64, height: 64, borderRadius: "50%", background: "#fff",
-                  border: `3.5px solid ${color}`, boxShadow: `0 2px 12px ${color}28`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <span style={{ fontSize: 16, fontWeight: 900, color: INK, lineHeight: 1 }}>
-                    {draft[key]}<span style={{ fontSize: 13, fontWeight: 900 }}>g</span>
-                  </span>
-                </div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#7a8a7f" }}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ height: 1, background: "#eef3f0" }} />
-
-        {/* Owner + date + rating */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <OwnerPhoto owner={owner} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {owner?.name ?? "Tú"}
-            </p>
-            <p style={{ margin: "1px 0 0", fontSize: 11, color: "#9ab0a1", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-              <CalendarDays size={11} /> {when}
-            </p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "5px 9px", borderRadius: 999, background: "#eef6f0", color: "#2d8659", fontSize: 12, fontWeight: 800 }}>
-              <ThumbsUp size={13} /> {rating.up ?? 0}
-            </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "5px 9px", borderRadius: 999, background: "#fbeeec", color: "#c0392b", fontSize: 12, fontWeight: 800 }}>
-              <ThumbsDown size={13} /> {rating.down ?? 0}
-            </span>
-          </div>
-        </div>
-      </div>
+      {showPreview && (
+        <DishDetail
+          recipe={previewRecipe}
+          slot={{ eaters: Number(form.baseServings) || 4 }}
+          browse
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 }
 
 function ReviewStep({
-  aiState, aiError, draft, form, user, updateForm,
-  userRecipes = [], userGarnishesOnly = [], kitchenTools = [],
+  aiState, aiError, draft, form, user, kitchenTools = [],
   confirmedAllergens, onRetry, saved, photo,
 }) {
+  const [showFullPreview, setShowFullPreview] = useState(false);
+  // La misma ficha (Menu.jsx#DishDetail) que ya se usa en el paso Foto para la
+  // ⓘ, con los alérgenos ya confirmados (más fiables que form.allergens en
+  // crudo) en vez de los que trae el draft, y el propio usuario como owner
+  // (esta receta aún no existe en ningún sitio, así que es de quien la crea).
+  const previewRecipe = useMemo(
+    () => (draft
+      ? { ...buildPreviewRecipe(form, draft, photo), allergens: confirmedAllergens ?? [], owner: ownerFromUser(user) }
+      : null),
+    [form, draft, photo, confirmedAllergens, user],
+  );
+  // Bug real: catalogToFrontendRecipe mapea `difficulty` a una etiqueta para
+  // DishDetail ("Fácil"/"Normal"/"Me gusta"), pero RecipePoster espera el
+  // enum crudo (facil/normal/elaborada) para buscar su propio color/label —
+  // con la etiqueta ya mapeada, la pill de dificultad no aparecía nunca.
+  const posterRecipe = useMemo(
+    () => (previewRecipe ? { ...previewRecipe, difficulty: draft?.difficulty } : null),
+    [previewRecipe, draft],
+  );
+  // Aún sin publicar: cero votos, cero veces cocinada, cero comentarios —
+  // exactamente lo que mostraría el Feed el día 1 de una receta real.
+  const previewStats = { likes: 0, dislikes: 0, used: 0, comments: 0 };
+
   if (aiState === "loading" || aiState === "idle") {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "40px 10px", textAlign: "center" }}>
@@ -2946,27 +2651,39 @@ function ReviewStep({
 
       <div>
         <FieldLabel icon={ClipboardCheck} color={GREEN}>Así se verá tu receta</FieldLabel>
-        <DishPreviewCard draft={draft} photo={photo} allergens={confirmedAllergens} user={user} />
-      </div>
-
-      <ClassificationEditor
-        form={form}
-        updateForm={updateForm}
-        userRecipes={userRecipes}
-        userGarnishesOnly={userGarnishesOnly}
-      />
-
-      <div>
-        <FieldLabel icon={ListOrdered} color={GREEN}>Pasos</FieldLabel>
-        {/* Mismo componente que el detalle del menú: lo que se ve aquí, con los
-            marcadores ya resueltos, es exactamente lo que verá al cocinar. */}
-        <RecipeStepList
-          rich={draft.stepsRich ?? null}
-          plain={draft.steps ?? []}
-          ingredients={stepPreviewIngredients(draft)}
-          kitchenTools={kitchenTools}
+        {/* La ficha real, no una tarjeta de vista previa aparte — si la
+            receta trae salsa/guarnición como parte de sí misma (pasos con
+            `part`), aquí ya salen en sus propias pestañas, igual que en el
+            menú (Menu.jsx#DishDetail ya sabe hacer ese desglose solo). */}
+        <RecipePoster
+          recipe={posterRecipe}
+          stats={previewStats}
+          onInfo={() => setShowFullPreview(true)}
+          style={{ width: "100%", height: 220, borderRadius: 20 }}
         />
+        <button
+          type="button"
+          onClick={() => setShowFullPreview(true)}
+          style={{
+            width: "100%", marginTop: 10, padding: 12, borderRadius: 12,
+            border: `1.5px solid ${GREEN}`, background: "#fff", color: GREEN,
+            fontSize: 13.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+          }}
+        >
+          <ListOrdered size={15} /> Ver receta completa
+        </button>
       </div>
+
+      {showFullPreview && (
+        <DishDetail
+          recipe={previewRecipe}
+          slot={{ eaters: Number(form.baseServings) || 4 }}
+          browse
+          kitchenTools={kitchenTools}
+          onClose={() => setShowFullPreview(false)}
+        />
+      )}
     </div>
   );
 }
@@ -3047,58 +2764,3 @@ function BaseDishDetector({ matches, decision, selectedId, onNew, onVariant }) {
   );
 }
 
-// ── Eje B: classification the AI proposed, editable at review. Multi-select
-// usage tags + category/protein (hidden when it's only a garnish) + the
-// conditional catalog pairing (garnish for a main, or a reference dish for a
-// garnish → combo photo).
-// Optional pairing refinements shown in the review. "¿Cómo se sirve?" is chosen
-// on the cuándo se sirve step, and category / main protein are filled by the
-// AI (internal catalog ordering, invisible to the user), so the review only
-// offers the meaningful choice left: pinning a specific garnish or the plate a
-// garnish accompanies.
-function ClassificationEditor({ form, updateForm, userRecipes, userGarnishesOnly }) {
-  const usageTags = form.usageTags ?? [];
-  const showGarnishPicker = usageTags.includes("plato_normal");
-  const showPlatoPicker = usageTags.includes("guarnicion");
-
-  if (!showGarnishPicker && !showPlatoPicker) return null;
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
-      {showGarnishPicker && (
-        <div style={{ marginTop: 6 }}>
-          <FieldLabel icon={Salad}>Guarnición (opcional)</FieldLabel>
-          <FieldHint>
-            Fija una guarnición del catálogo para este plato, o déjalo en blanco y rotará sola cada semana.
-          </FieldHint>
-          <CatalogBrowserSheet
-            inline
-            gatePick
-            gatePickType="guarnicion"
-            extraRecipes={userRecipes}
-            extraGarnishes={userGarnishesOnly}
-            selectedGarnishId={form.pinnedGarnishId}
-            onPickGarnish={(id) => updateForm({ pinnedGarnishId: id })}
-          />
-        </div>
-      )}
-
-      {showPlatoPicker && (
-        <div style={{ marginTop: 6 }}>
-          <FieldLabel icon={UtensilsCrossed}>Plato al que acompaña (opcional)</FieldLabel>
-          <FieldHint>
-            Asóciala a un plato del catálogo para generar la foto del combo. Si no, se guarda como guarnición de uso general.
-          </FieldHint>
-          <CatalogBrowserSheet
-            inline
-            gatePick
-            gatePickType="plato"
-            extraRecipes={userRecipes}
-            selectedPlatoId={form.linkedCatalogId}
-            onPickPlato={(id) => updateForm({ linkedCatalogId: id })}
-          />
-        </div>
-      )}
-    </div>
-  );
-}

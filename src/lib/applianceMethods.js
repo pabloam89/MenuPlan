@@ -8,6 +8,8 @@
 // (stovetop / its own technique). Methods are alternatives the user can pick
 // based on the kitchen tools they declared in onboarding.
 
+import { Wind, Flame, Microwave, Bot, CookingPot, Layers2 } from "lucide-react";
+
 export const APPLIANCE_LABELS = {
   airfryer: "Airfryer",
   horno: "Horno",
@@ -25,6 +27,33 @@ export const APPLIANCE_COLORS = {
   vaporera: "#06b6d4",
   olla_express: "#6b7280",
   microondas: "#3b82f6",
+};
+
+// Segundo sistema de electrodoméstico, DELIBERADAMENTE separado del de arriba
+// (APPLIANCE_LABELS/APPLIANCE_COLORS, ids en snake_case, para `methods[]` —
+// técnicas alternativas de un mismo plato). Este es el de `requiredAppliances`
+// (RecipePlanner.jsx, "¿Cómo se prepara?" — QUÉ aparato hizo falta para
+// cocinar ESTE plato, uno solo), con sus propios ids en español-mayúscula
+// porque así se guarda ya en producción — cambiar el id rompería recetas
+// reales guardadas. Solo se comparten los ICONOS, no los ids: un electro
+// puede tener un icono coherente en los dos sitios sin que las dos listas
+// sean la misma lista.
+export const REQUIRED_APPLIANCE_ICONS = {
+  "Airfryer": Wind,
+  "Horno": Flame,
+  "Microondas": Microwave,
+  "Thermomix": Bot,
+  "Olla rápida": CookingPot,
+  "Vaporera": Layers2,
+};
+
+export const REQUIRED_APPLIANCE_COLORS = {
+  "Airfryer": "#2f6fb8",
+  "Horno": "#c0392b",
+  "Microondas": "#0f9d8c",
+  "Thermomix": "#6b4fa0",
+  "Olla rápida": "#c96a1c",
+  "Vaporera": "#2d8659",
 };
 
 // Onboarding tool label (lowercased) → method appliance slug.

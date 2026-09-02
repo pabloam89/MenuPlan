@@ -110,6 +110,26 @@ describe("generateUserRecipeDraft ingredients", () => {
   });
 });
 
+// Bug real: "Merienda"/"Postre" (RecipePlanner.jsx, paso "¿Cuándo se sirve?")
+// no estaban en el enum de mealRole — se descartaban en silencio y marcar
+// esas casillas no guardaba nada.
+describe("generateUserRecipeDraft mealRole merienda/postre", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("acepta merienda y postre como mealRole válidos", async () => {
+    mockAIResponse({ ...VALID_DRAFT_FIELDS, mealRole: ["merienda", "postre"] });
+    const draft = await generateUserRecipeDraft({
+      name: "Macedonia de frutas",
+      baseServings: 4,
+      time: 10,
+      ingredients: [{ name: "Fruta variada", amount: 500, unit: "g" }],
+    });
+    expect(draft.mealRole).toEqual(["merienda", "postre"]);
+  });
+});
+
 // Fase 9: nutrición fiable. El catálogo real no tiene nutrición BEDCA
 // todavía, así que estos tests inyectan `nutrition` a mano sobre "ajo" (misma
 // técnica que ingredients.test.js: ingredientById devuelve la referencia

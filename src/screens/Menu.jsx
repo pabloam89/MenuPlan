@@ -150,6 +150,7 @@ import {
 import {
   APPLIANCE_LABELS,
   APPLIANCE_COLORS,
+  REQUIRED_APPLIANCE_ICONS,
   selectMethodForRecipe,
   methodDifficultyLabel,
   userApplianceSlugs,
@@ -5316,6 +5317,13 @@ export function DishDetail({
     })();
     return () => { active = false; };
   }, [ingredients, cookedEaters, data?.priceObs]);
+  // Electrodoméstico usado para cocinar el plato (RecipePlanner.jsx, paso
+  // "¿Cómo se prepara?"), si se marcó alguno — nada si es tradicional
+  // (fuego/sartén/olla), mismo criterio que el resto de chips opcionales de
+  // esta fila. `requiredAppliances` (recetas de usuario) y `requiredAppliance`
+  // (catálogo curado) usan nombres de campo distintos; se comprueban los dos.
+  const usedAppliance = recipe.requiredAppliances?.[0] ?? recipe.requiredAppliance ?? null;
+  const UsedApplianceIcon = usedAppliance ? (REQUIRED_APPLIANCE_ICONS[usedAppliance] ?? UtensilsCrossed) : null;
   // "Lo tengo": you have this even though it's not registered — add it to En
   // casa (the override we agreed on), so the tick lights up and cooking can
   // later discount it. Uses the dish's scaled need as the stocked amount.
@@ -5892,6 +5900,11 @@ export function DishDetail({
             {recipeCost != null && (
               <span style={detailTagStyle}>
                 <Euro size={12} /> ~{recipeCost.perServing.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/ración
+              </span>
+            )}
+            {usedAppliance && (
+              <span style={detailTagStyle}>
+                <UsedApplianceIcon size={12} /> {usedAppliance}
               </span>
             )}
             {recipe.allergens.length > 0 && (

@@ -187,6 +187,12 @@ export const USER_RECIPE_MEAL_ROLES = [
   { id: "segundo", label: "Segundo" },
   { id: "plato_unico", label: "Plato único" },
   { id: "cena", label: "Cena" },
+  // "Merienda"/"Postre" del asistente (RecipePlanner.jsx, paso "¿Cuándo se
+  // sirve?") vivían fuera de esta lista — se descartaban en silencio en
+  // normalizeMealRole() y el enum de abajo, así que marcarlas no guardaba
+  // nada. Ya existen en MEAL_ROLES del catálogo curado (recipeSchema.js).
+  { id: "merienda", label: "Merienda" },
+  { id: "postre", label: "Postre" },
 ];
 
 // How a recipe can be used at the table — proposed by the AI at the review
@@ -632,7 +638,7 @@ export const UserRecipeDraftSchema = z.object({
     "pollo", "pavo", "cerdo", "ternera", "pescado_blanco", "pescado_azul",
     "marisco", "huevo", "legumbre", "none",
   ]),
-  mealRole: z.array(z.enum(["primero", "segundo", "plato_unico", "cena", "guarnicion"])).min(1),
+  mealRole: z.array(z.enum(["primero", "segundo", "plato_unico", "cena", "guarnicion", "merienda", "postre"])).min(1),
   // How the dish can be served — multi-select. `type` (below) is derived from
   // this and kept in sync for backward compatibility with the rest of the app.
   usageTags: z.array(z.enum(["plato_unico", "plato_normal", "guarnicion"])).min(1),
@@ -707,6 +713,10 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
       ...(isQualitativeUnit(i.unit) ? {} : { amount: Number(i.amount) || 0 }),
     })),
     allergens: input.allergens?.length ? input.allergens : undefined,
+    // Electrodoméstico elegido en el paso "¿Cómo se prepara?" — para que los
+    // pasos generados lo tengan en cuenta (ver regla en api/_prompts.js) en
+    // vez de dar por hecho fuego/sartén tradicional.
+    appliance: input.requiredAppliances?.[0] || undefined,
     preparationNotes: input.preparationNotes || undefined,
   };
 
