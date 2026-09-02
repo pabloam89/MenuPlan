@@ -93,6 +93,13 @@ export function FeedScreen({
 }) {
   const [seenMenus, setSeenMenus] = useState(readSeenMenus);
   const [items, setItems] = useState([]);
+  // "Siguiendo" o "Descubrir". Arranca en Siguiendo porque es el feed que la
+  // gente espera de una red social; si no sigues a nadie, su estado vacio te
+  // manda a buscar gente en vez de enseñarte desconocidos sin avisar.
+  const [scope, setScope] = useState("following");
+  const [cursor, setCursor] = useState(null);
+  const [more, setMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [weekly, setWeekly] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [following, setFollowing] = useState([]);
@@ -180,28 +187,72 @@ export function FeedScreen({
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const [feed, week, mine, sent] = await Promise.all([
-      loadFeed({ viewerId: user?.id }),
+    const mineIds = await loadFollowing(user?.id);
+    const [feed, week, sent] = await Promise.all([
+      loadFeed({ viewerId: user?.id, scope, followingIds: mineIds }),
       loadWeeklyMenus({ viewerId: user?.id }),
-      loadFollowing(user?.id),
       loadSentRequests(user?.id),
     ]);
-    setItems(feed);
+    const mine = mineIds;
+    setItems(feed.items);
+    setCursor(feed.cursor);
+    setMore(!feed.done);
     setWeekly(week);
     setFollowing(mine);
     setPendingIds(sent.map((r) => r.followee_id));
     // Los autores de las dos listas, en una sola petición: uno por tarjeta
     // serían 20 peticiones por pantalla.
-    setProfiles(await loadProfilesByIds([...feed.map((i) => i.ownerId), ...week.map((w) => w.owner_id)]));
+    setProfiles(await loadProfilesByIds([...feed.items.map((i) => i.ownerId), ...week.map((w) => w.owner_id)]));
     setLoading(false);
     // Las estadísticas van aparte y después: son un adorno de la tarjeta, y no
     // deben retrasar la pintura de lo que sí es contenido.
-    const recipeIds = feed.filter((i) => i.kind === "recipe").map((i) => i.recipe.id);
+    const recipeIds = feed.items.filter((i) => i.kind === "recipe").map((i) => i.recipe.id);
     const real = await loadRecipeStats(recipeIds);
     setStats(FIXTURES_ENABLED ? { ...FIXTURE_STATS, ...real } : real);
-  }, [user?.id]);
+  }, [user?.id, scope]);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  /**
+   * La siguiente tanda. Se pide sola al llegar al final (ver el centinela de
+   * abajo): un boton de "cargar mas" es un peaje que nadie quiere pagar
+   * cuando lo unico que estas haciendo es bajar.
+   */
+  const loadMore = useCallback(async () => {
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    const feed = await loadFeed({ viewerId: user?.id, scope, cursor });
+    setItems((prev) => {
+      // Por si acaso: la misma receta no puede entrar dos veces aunque dos
+      // filas compartan fecha al milisegundo.
+      const seen = new Set(prev.map((i) => `${i.kind}_${i.id}`));
+      return [...prev, ...feed.items.filter((i) => !seen.has(`${i.kind}_${i.id}`))];
+    });
+    setCursor(feed.cursor);
+    setMore(!feed.done);
+    setLoadingMore(false);
+    const nuevos = feed.items.filter((i) => i.kind === "recipe").map((i) => i.recipe.id);
+    const [profs, sts] = await Promise.all([
+      loadProfilesByIds(feed.items.map((i) => i.ownerId)),
+      loadRecipeStats(nuevos),
+    ]);
+    setProfiles((prev) => ({ ...prev, ...profs }));
+    setStats((prev) => ({ ...prev, ...sts }));
+  }, [cursor, loadingMore, user?.id, scope]);
+
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !more) return;
+    const io = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMore(); },
+      // Se dispara un poco antes de llegar al borde para que la siguiente
+      // tanda ya este cuando el dedo termina el gesto.
+      { rootMargin: "600px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [more, loadMore]);
 
   const refreshNotifications = useCallback(async () => {
     const res = await loadNotifications(user?.id);
@@ -405,7 +456,50 @@ export function FeedScreen({
             </button>
           )}
 
-          {!loading && recipes.length === 0 && weekly.length === 0 && (
+          {/* Siguiendo o Descubrir. Es la unica decision del feed, asi que va
+              arriba del rio y no en la cabecera: no compite con buscar,
+              notificaciones y perfil, que son atajos, no modos de lectura. */}
+          <div style={scopeTabs}>
+            {[["following", "Siguiendo"], ["all", "Descubrir"]].map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={scope === id}
+                onClick={() => { if (scope !== id) { setScope(id); setItems([]); } }}
+                style={{
+                  ...scopeTab,
+                  background: scope === id ? "#fff" : "transparent",
+                  color: scope === id ? INK : "#8aa294",
+                  boxShadow: scope === id ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Sigues a gente pero no han publicado nada: no es lo mismo que no
+              seguir a nadie, y decir lo que toca evita que parezca roto. */}
+          {!loading && scope === "following" && recipes.length === 0 && (
+            <div style={{ padding: "22px 0 4px", textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: "#8aa294", lineHeight: 1.5 }}>
+                {following.length === 0
+                  ? "Aquí verás lo que cocina la gente a la que sigues. Todavía no sigues a nadie."
+                  : "La gente a la que sigues no ha publicado nada nuevo. Date una vuelta por Descubrir."}
+              </p>
+              <button
+                type="button"
+                onClick={() => (following.length === 0 ? setSearchOpen(true) : setScope("all"))}
+                style={{ ...primaryBtn, margin: "12px auto 0" }}
+              >
+                {following.length === 0
+                  ? <><Search size={14} strokeWidth={2.6} /> Encontrar gente</>
+                  : <><Users size={14} strokeWidth={2.4} /> Ir a Descubrir</>}
+              </button>
+            </div>
+          )}
+
+          {!loading && scope === "all" && recipes.length === 0 && weekly.length === 0 && (
             <div style={{ padding: "26px 0 10px" }}>
               <EmptyIllustration
                 img="/avatares/cards/comidas.jpg"
@@ -443,6 +537,16 @@ export function FeedScreen({
               />
             ))}
           </div>
+
+          {/* Centinela: al asomar por el borde inferior pide la siguiente
+              tanda. Ver loadMore. */}
+          {more && (
+            <div ref={sentinelRef} style={{ padding: "6px 0 26px", textAlign: "center" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#b6c7bd" }}>
+                {loadingMore ? "Cargando más…" : " "}
+              </span>
+            </div>
+          )}
 
         </div>
       </div>
@@ -1232,6 +1336,17 @@ const publishArt = {
 const publishPill = {
   flexShrink: 0, padding: "6px 13px", borderRadius: 999,
   background: GREEN, color: "#fff", fontSize: 11.5, fontWeight: 800,
+};
+
+const scopeTabs = {
+  display: "flex", gap: 3, padding: 3, marginTop: 14,
+  borderRadius: 12, background: "#f0f4f1",
+};
+
+const scopeTab = {
+  flex: 1, padding: "7px 0", borderRadius: 9, border: "none",
+  fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+  transition: "background .15s ease, color .15s ease",
 };
 
 const bellBadge = {

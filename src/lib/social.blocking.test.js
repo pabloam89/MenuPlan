@@ -19,6 +19,8 @@ function makeQuery(result, log, table) {
     neq: (...a) => (log.push({ table, op: "neq", args: a }), q),
     order: (...a) => (log.push({ table, op: "order", args: a }), q),
     limit: (...a) => (log.push({ table, op: "limit", args: a }), q),
+    lt: (...a) => (log.push({ table, op: "lt", args: a }), q),
+    in: (...a) => (log.push({ table, op: "in", args: a }), q),
     then: (resolve, reject) => Promise.resolve(result).then(resolve, reject),
   };
   return q;
@@ -97,7 +99,7 @@ describe("bloquear", () => {
       },
     });
     Object.assign(supabase, client);
-    const items = await loadFeed({ viewerId: "me" });
+    const { items } = await loadFeed({ viewerId: "me" });
     expect(items.map((i) => i.ownerId)).not.toContain("villano");
     expect(items.map((i) => i.id).sort()).toEqual(["m2", "r2"]);
   });
@@ -110,7 +112,7 @@ describe("bloquear", () => {
       },
     });
     Object.assign(supabase, client);
-    const items = await loadFeed();
+    const { items } = await loadFeed();
     expect(items).toHaveLength(1);
     expect(client.log.some((l) => l.table === "blocked_users")).toBe(false);
   });
@@ -142,5 +144,70 @@ describe("reportar", () => {
     Object.assign(supabase, client);
     expect(await reportContent("me", { targetType: "recipe", targetId: "r1", reason: null })).toBe(false);
     expect(client.log).toHaveLength(0);
+  });
+});
+
+// ── Corriente del feed y paginacion ─────────────────────────────────────────
+//
+// Las dos reglas que mas facil se rompen al tocar aqui: que "Siguiendo" NO
+// caiga en silencio a lo publico (si no, seguir a alguien deja de significar
+// nada) y que la paginacion vaya por fecha y no por posicion.
+
+describe("loadFeed: siguiendo y paginacion", () => {
+  it("sin seguir a nadie, Siguiendo devuelve vacio en vez de caer a lo publico", async () => {
+    const client = mockClient({ tables: {} });
+    Object.assign(supabase, client);
+    const res = await loadFeed({ viewerId: "me", scope: "following", followingIds: [] });
+    expect(res.items).toEqual([]);
+    expect(res.empty).toBe("following");
+    // Y ni siquiera pregunta por contenido: no hay a quien.
+    expect(client.log.some((l) => l.table === "user_recipes")).toBe(false);
+  });
+
+  it("Siguiendo acota a los autores que sigues", async () => {
+    const client = mockClient({
+      tables: {
+        user_recipes: [{ data: [{ id: "r1", owner_id: "amigo", created_at: "2026-01-02" }], error: null }],
+        shared_menus: [{ data: [], error: null }],
+      },
+    });
+    Object.assign(supabase, client);
+    await loadFeed({ viewerId: "me", scope: "following", followingIds: ["amigo"] });
+    const inCall = client.log.find((l) => l.op === "in");
+    expect(inCall.args[0]).toBe("owner_id");
+    expect(inCall.args[1]).toEqual(["amigo"]);
+  });
+
+  it("con cursor pide lo ANTERIOR a esa fecha, no un salto por posicion", async () => {
+    const client = mockClient({
+      tables: {
+        user_recipes: [{ data: [], error: null }],
+        shared_menus: [{ data: [], error: null }],
+      },
+    });
+    Object.assign(supabase, client);
+    await loadFeed({ viewerId: null, cursor: "2026-01-05" });
+    const lt = client.log.filter((l) => l.op === "lt");
+    expect(lt).toHaveLength(2); // recetas y menus
+    expect(lt[0].args).toEqual(["created_at", "2026-01-05"]);
+  });
+
+  it("devuelve como cursor la fecha del ultimo entregado", async () => {
+    const many = (n, pref, day) =>
+      Array.from({ length: n }, (_, i) => ({
+        id: `${pref}${i}`, owner_id: "x",
+        created_at: `2026-01-${String(day - i).padStart(2, "0")}`,
+      }));
+    const client = mockClient({
+      tables: {
+        user_recipes: [{ data: many(20, "r", 20), error: null }],
+        shared_menus: [{ data: [], error: null }],
+      },
+    });
+    Object.assign(supabase, client);
+    const res = await loadFeed({ viewerId: null });
+    expect(res.items).toHaveLength(20);
+    expect(res.cursor).toBe(res.items[res.items.length - 1].createdAt);
+    expect(res.done).toBe(false);
   });
 });

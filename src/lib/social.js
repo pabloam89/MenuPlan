@@ -581,24 +581,43 @@ const FEED_PAGE = 20;
  * Las políticas RLS ya filtran por quién eres: aquí no se decide nada de
  * permisos, solo se pide y se ordena.
  */
-export async function loadFeed({ viewerId = null, limit = FEED_PAGE } = {}) {
-  if (!ok()) return [];
+export async function loadFeed({
+  viewerId = null,
+  scope = "all",
+  followingIds = null,
+  cursor = null,
+  limit = FEED_PAGE,
+} = {}) {
+  if (!ok()) return { items: [], cursor: null, done: true };
+
+  // "Siguiendo" necesita saber a quien sigues. Si no sigues a nadie devuelve
+  // vacio A PROPOSITO: caer en silencio a lo publico haria que seguir a
+  // alguien no cambiase nada de lo que ves, que es justo el problema que esta
+  // pestaña viene a arreglar.
+  const following = scope === "following"
+    ? (followingIds ?? (viewerId ? await loadFollowing(viewerId) : []))
+    : null;
+  if (scope === "following" && following.length === 0) {
+    return { items: [], cursor: null, done: true, empty: "following" };
+  }
 
   const blocked = viewerId ? new Set(await loadBlockedIds(viewerId)) : new Set();
 
+  // Paginacion por FECHA y no por offset: con offset, publicar algo mientras
+  // alguien baja por el feed le repite filas y le esconde otras. El cursor es
+  // la fecha del ultimo visto, asi que la ventana no se mueve bajo sus pies.
+  const page = (q) => {
+    let out = q.neq("visibility", "private").order("created_at", { ascending: false }).limit(limit);
+    if (cursor) out = out.lt("created_at", cursor);
+    if (following) out = out.in("owner_id", following);
+    return out;
+  };
+
   const [recipes, menus] = await Promise.all([
-    supabase
-      .from("user_recipes")
-      .select("id, owner_id, name, category, type, time_minutes, difficulty, photo, visibility, created_at")
-      .neq("visibility", "private")
-      .order("created_at", { ascending: false })
-      .limit(limit),
-    supabase
-      .from("shared_menus")
-      .select("id, owner_id, menu_id, title, week_start, week_end, payload, visibility, copy_count, created_at")
-      .neq("visibility", "private")
-      .order("created_at", { ascending: false })
-      .limit(limit),
+    page(supabase.from("user_recipes").select(
+      "id, owner_id, name, category, type, time_minutes, difficulty, photo, linked_catalog_id, base_dish_id, pinned_garnish_id, visibility, created_at")),
+    page(supabase.from("shared_menus").select(
+      "id, owner_id, menu_id, title, week_start, week_end, payload, visibility, copy_count, created_at")),
   ]);
 
   warn("loadFeed/recipes", recipes.error);
@@ -608,7 +627,7 @@ export async function loadFeed({ viewerId = null, limit = FEED_PAGE } = {}) {
   // el mismo filtro en los dos sitios por donde entran recetas ajenas.
   const hidden = readHiddenRecipes();
 
-  const items = [
+  const merged = [
     ...(recipes.data ?? [])
       .filter((r) => !hidden.has(r.id) && !blocked.has(r.owner_id))
       .map((r) => ({ kind: "recipe", id: r.id, ownerId: r.owner_id, createdAt: r.created_at, recipe: r })),
@@ -620,9 +639,17 @@ export async function loadFeed({ viewerId = null, limit = FEED_PAGE } = {}) {
   // En dev, si no hay nada real que enseñar (la migración 0027 aún no está
   // aplicada, o todavía no sigues a nadie), se rellena con sintéticos para
   // poder diseñar la pantalla. Nunca en producción — ver socialFixtures.js.
-  if (items.length === 0 && FIXTURES_ENABLED) return fixtureFeed().slice(0, limit);
+  if (merged.length === 0 && !cursor && FIXTURES_ENABLED) {
+    return { items: fixtureFeed().slice(0, limit), cursor: null, done: true };
+  }
 
-  return items.slice(0, limit);
+  // Se piden `limit` de CADA tabla y se corta la mezcla: lo que sobra no se
+  // tira, vuelve en la siguiente pagina porque el cursor queda en la fecha
+  // del ultimo entregado.
+  const items = merged.slice(0, limit);
+  const last = items[items.length - 1];
+  const done = merged.length <= limit && (recipes.data ?? []).length < limit && (menus.data ?? []).length < limit;
+  return { items, cursor: done ? null : last?.createdAt ?? null, done };
 }
 
 /**
