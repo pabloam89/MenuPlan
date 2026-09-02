@@ -174,6 +174,8 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget }) {
   const inheritedName = googleInfo(user).name;
   const name = profile?.display_name || inheritedName;
   const VIS_LABEL = { private: "Nadie te ve", followers: "Solo quien te sigue", public: "Cualquiera" };
+  // Los tres colores de privacidad que el sistema ya tiene escritos.
+  const VIS_TINT = { private: "#5a2d7a", followers: "#7a4e00", public: "#2d5a3d" };
 
   return (
     <div style={backdrop} onClick={onClose}>
@@ -361,12 +363,15 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget }) {
           {privacyOpen && (
             <div style={{ display: "flex", flexDirection: "column", gap: 7, marginTop: 9 }}>
               <VisOption on={vis === "private"} disabled={saving} Icon={Lock}
+                art="/avatares/cards/vis_nadie.png" tint={VIS_TINT.private}
                 title="Nadie" desc="No apareces en búsquedas ni en el feed."
                 onClick={() => patch({ visibility: "private" })} />
               <VisOption on={vis === "followers"} disabled={saving} Icon={Eye}
+                art="/avatares/cards/vis_seguidores.png" tint={VIS_TINT.followers}
                 title="Solo quien te sigue" desc="Te encuentran por tu nombre, pero tienen que pedirte seguirte."
                 onClick={() => patch({ visibility: "followers" })} />
               <VisOption on={vis === "public"} disabled={saving} Icon={Globe}
+                art="/avatares/cards/vis_cualquiera.png" tint={VIS_TINT.public}
                 title="Cualquiera" desc="Tus recetas y menús publicados los ve todo el mundo."
                 onClick={() => patch({ visibility: "public" })} />
             </div>
@@ -488,16 +493,46 @@ function PersonRow({ p, note, children }) {
   );
 }
 
-function VisOption({ on, disabled, Icon, title, desc, onClick }) {
+/**
+ * Cada nivel de privacidad, con su ilustracion y su color.
+ *
+ * Se queda en filas y no en tres tarjetas: aqui la explicacion ("tienen que
+ * pedirte seguirte") es la mitad de la decision, y en una columna estrecha
+ * como el cajon, tres tarjetas la dejarian en dos palabras cortadas.
+ *
+ * Los colores son los que el sistema ya tiene escritos para privacidad
+ * (violeta privada / ambar amigos / verde publica): no invento tres nuevos
+ * cuando la app ya habla de esto en otro sitio.
+ *
+ * Mientras no existan los png, cae al icono de siempre — asi esta pantalla
+ * nunca se queda con un hueco roto.
+ */
+function VisOption({ on, disabled, Icon, art, tint, title, desc, onClick }) {
+  const [noArt, setNoArt] = useState(false);
   return (
     <button type="button" onClick={onClick} disabled={disabled} aria-pressed={on}
-      style={{ ...visRow, borderColor: on ? TEAL : "#e0eae3", background: on ? "#eef6f4" : "#fff" }}>
-      <Icon size={15} strokeWidth={2.4} color={on ? TEAL : "#8aa294"} style={{ flexShrink: 0, marginTop: 1 }} />
+      style={{
+        ...visRow,
+        borderColor: on ? tint : "#e0eae3",
+        background: on ? `${tint}12` : "#fff",
+        boxShadow: on ? `0 6px 16px -10px ${tint}99` : "none",
+      }}>
+      {art && !noArt ? (
+        <img
+          src={art}
+          alt=""
+          loading="lazy"
+          onError={() => setNoArt(true)}
+          style={{ ...visArt, filter: on ? "none" : "saturate(.55) opacity(.75)" }}
+        />
+      ) : (
+        <Icon size={15} strokeWidth={2.4} color={on ? tint : "#8aa294"} style={{ flexShrink: 0, marginTop: 1 }} />
+      )}
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK }}>{title}</span>
         <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#6b7d70", marginTop: 1, lineHeight: 1.3 }}>{desc}</span>
       </span>
-      {on && <Check size={13} color={TEAL} strokeWidth={3} style={{ flexShrink: 0 }} />}
+      {on && <Check size={13} color={tint} strokeWidth={3} style={{ flexShrink: 0 }} />}
     </button>
   );
 }
@@ -645,7 +680,13 @@ const privacyHead = {
   fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#6b7d70",
 };
 
+const visArt = {
+  width: 40, height: 40, display: "block", flexShrink: 0,
+  transition: "filter .18s ease",
+};
+
 const visRow = {
+  transition: "background .18s ease, border-color .18s ease, box-shadow .18s ease",
   display: "flex", alignItems: "flex-start", gap: 9, width: "100%",
   padding: "9px 11px", borderRadius: 12, border: "1.5px solid #e0eae3",
   cursor: "pointer", fontFamily: "inherit", textAlign: "left",
