@@ -17,7 +17,7 @@ import { uploadRecipePhoto, deleteRecipePhoto, isDataUrl } from "./recipePhotos.
 const num = (v) => (v == null ? null : Number(v));
 
 /** Frontend recipe object → user_recipes row. */
-function recipeToRow(recipe, userId) {
+export function recipeToRow(recipe, userId) {
   return {
     id: recipe.id,
     owner_id: userId,
@@ -38,6 +38,14 @@ function recipeToRow(recipe, userId) {
     protein_g: num(recipe.protein_g),
     carbs_g: num(recipe.carbs_g),
     fat_g: num(recipe.fat_g),
+    // Fase 9 (0042_user_recipes_nutrition.sql): rellenos solo cuando
+    // computeRecipeNutrition (ingredients.js) los calculó de verdad — ver
+    // generateUserRecipeDraft, userRecipes.js.
+    fiber_g: num(recipe.fiber_g),
+    sugar_g: num(recipe.sugar_g),
+    saturated_fat_g: num(recipe.saturated_fat_g),
+    sodium_mg: num(recipe.sodium_mg),
+    nutrition_source: recipe.nutritionSource ?? null,
     base_servings: num(recipe.baseServings),
     kid_friendly: Boolean(recipe.kidFriendly),
     tupper_friendly: Boolean(recipe.tupperFriendly),
@@ -92,6 +100,14 @@ export function rowToRecipe(row) {
     protein_g: num(row.protein_g),
     carbs_g: num(row.carbs_g),
     fat_g: num(row.fat_g),
+    // Fase 9: ausentes (undefined, no null) en una fila guardada antes de
+    // 0042_user_recipes_nutrition.sql — mismo criterio que montaje/apetecible
+    // arriba, para no confundir "no calculado nunca" con "cero real".
+    fiber_g: row.fiber_g != null ? num(row.fiber_g) : undefined,
+    sugar_g: row.sugar_g != null ? num(row.sugar_g) : undefined,
+    saturated_fat_g: row.saturated_fat_g != null ? num(row.saturated_fat_g) : undefined,
+    sodium_mg: row.sodium_mg != null ? num(row.sodium_mg) : undefined,
+    nutritionSource: row.nutrition_source ?? undefined,
     baseServings: row.base_servings,
     kidFriendly: Boolean(row.kid_friendly),
     tupperFriendly: Boolean(row.tupper_friendly),

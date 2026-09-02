@@ -72,6 +72,27 @@ describe("buildShoppingList pantry discount (Phase 6)", () => {
     const pantryNames = sh.pantryItems.map((it) => it.name);
     expect(pantryNames).toEqual(["Cebolla"]);
   });
+
+  // Fase 8: match exacto por id canónico, además del solape de palabras.
+  // "Fabes de la granja secas" / "Judiones" son alias reales del mismo
+  // ingrediente (alubia-grande) sin ninguna palabra en común — el
+  // word-overlap por sí solo no los cruzaría.
+  it("discounts via ingredientId when the pantry name shares no words with the recipe's", () => {
+    registerRecipes([
+      {
+        id: "test_shopping_exact_id",
+        name: "Fabada",
+        servings: 2,
+        ingredients: [
+          { id: "fabes", name: "Fabes de la granja secas", category: "Legumbres", qty: 400, unit: "g" },
+        ],
+      },
+    ]);
+    const plan = planWith("Lun", "Comida", "test_shopping_exact_id");
+    const pantry = [{ ingredientName: "Judiones", ingredientNormalized: "judiones", ingredientId: "alubia-grande" }];
+    const sh = buildShoppingList(plan, GROUPS, ["Comida"], pantry);
+    expect(sh.pantryItems.map((it) => it.name)).toContain("Fabes de la granja secas");
+  });
 });
 
 describe("buildShoppingList adapted-ingredient flag", () => {
@@ -373,5 +394,32 @@ describe("findMatchingPantryItem", () => {
         { id: "1", ingredientNormalized: "tomate", qty: 1, unit: "ud" },
       ]),
     ).toBeNull();
+  });
+
+  // Fase 8: match exacto por ingredientId, cuando el word-overlap por sí solo
+  // no llegaría. "Fabes de la granja secas" / "Judiones" son alias reales del
+  // mismo ingrediente canónico (alubia-grande) sin ninguna palabra en común.
+  it("matches via ingredientId even when the words share nothing", () => {
+    const stock = [
+      { id: "9", ingredientName: "Judiones", ingredientNormalized: "judiones", ingredientId: "alubia-grande", qty: 500, unit: "g" },
+    ];
+    expect(findMatchingPantryItem("Fabes de la granja secas", stock)?.id).toBe("9");
+  });
+
+  it("never uses the ingredientId shortcut on an adapted (dietary swap) line", () => {
+    // A base ingredient's id must never satisfy an adapted line's stricter
+    // rule — that's precisely the false-positive the adapted path exists to
+    // prevent (see matchesPantry's comment).
+    const stock = [
+      { id: "1", ingredientName: "Leche", ingredientNormalized: "leche", ingredientId: "leche", qty: 1, unit: "l" },
+    ];
+    expect(findMatchingPantryItem("Leche sin lactosa", stock, { adapted: true })).toBeNull();
+  });
+
+  it("a pantry row without ingredientId falls back to word-overlap, never throws", () => {
+    const stock = [
+      { id: "1", ingredientName: "Pollo", ingredientNormalized: "pollo", qty: 500, unit: "g" },
+    ];
+    expect(findMatchingPantryItem("Pollo entero", stock)?.id).toBe("1");
   });
 });

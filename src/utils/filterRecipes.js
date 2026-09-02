@@ -6,6 +6,7 @@ import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 import { isMontaje, effectiveRecipeTime } from "../data/recipeSchema.js";
+import { resolveIngredientId } from "../lib/ingredients.js";
 
 // Off-menu categories: the optional desayuno/merienda/postre pool. They live in
 // the same catalog but must never be picked by the comida/cena planner (see the
@@ -135,23 +136,35 @@ function currentSeason() {
  * Proportion (0–1) of a recipe's ingredients the user already has at home.
  * Soft signal only — never excludes a recipe, just ranks it. Matches on
  * whole words (via normalizePantryInput's helpers), not raw substrings: a
- * naive `.includes("pollo")` would also match "Repollo" (cabbage).
+ * naive `.includes("pollo")` would also match "Repollo" (cabbage) — plus an
+ * exact-id match (Fase 8) when both the pantry row and the recipe ingredient
+ * resolve to the same canonical id, purely additive: it can only recognize a
+ * match the word-overlap heuristic missed, never remove one it already found
+ * (the canonical catalog doesn't cover everything someone can stock).
  *
  * @param {Object} recipe
  * @param {string[]} pantryNormalized - normalized keys from user_pantry,
  *   e.g. ["pollo", "tomate", "pechuga_pollo"]
+ * @param {(string|null)[]} [pantryIngredientIds] - canonical ingredient id per
+ *   pantry row (`user_pantry.ingredient_id`, Fase 8), same order/length as
+ *   `pantryNormalized`; `null` where it didn't resolve. Optional — omitting it
+ *   just skips the exact-match bonus, same as before this field existed.
  */
-export function scorePantryMatch(recipe, pantryNormalized) {
+export function scorePantryMatch(recipe, pantryNormalized, pantryIngredientIds = []) {
   if (!pantryNormalized || pantryNormalized.length === 0) return 0;
   if (!recipe.ingredients?.length) return 0;
 
   const recipeIngredientWords = recipe.ingredients.map((ing) => ingredientWords(ing.name));
+  const recipeIngredientIds = recipe.ingredients.map((ing) => resolveIngredientId(ing.name));
+
   let matches = 0;
-  for (const pantryKey of pantryNormalized) {
-    const pantryWords = pantryKey.split("_");
-    if (recipeIngredientWords.some((words) => wordsOverlapEither(pantryWords, words))) {
-      matches++;
-    }
+  for (let i = 0; i < pantryNormalized.length; i++) {
+    const pantryWords = pantryNormalized[i].split("_");
+    const pantryId = pantryIngredientIds[i] ?? null;
+    const isMatch = recipeIngredientWords.some(
+      (words, idx) => wordsOverlapEither(pantryWords, words) || (pantryId != null && pantryId === recipeIngredientIds[idx]),
+    );
+    if (isMatch) matches++;
   }
   return matches / recipe.ingredients.length;
 }
@@ -167,6 +180,8 @@ export function scorePantryMatch(recipe, pantryNormalized) {
  * @param {string[]} opts.kitchenTools - available tools ["Horno", "Batidora", ...]
  * @param {string[]} [opts.pantryIngredients] - normalized user_pantry keys (e.g. ["pollo", "tomate"]);
  *   never excludes recipes, only annotates each with a `pantryScore` (see scorePantryMatch)
+ * @param {(string|null)[]} [opts.pantryIngredientIds] - canonical ingredient id per pantry
+ *   row (Fase 8), same order as `pantryIngredients`; optional, purely additive precision
  * @param {Object[]} [opts.extraRecipes] - user-created recipes, joined into the same pool
  * @returns {{ recipes: Object[], error: string|null }}
  */
@@ -186,6 +201,7 @@ export function filterRecipes({
   cookLevel = "normal",
   isBabyGroup = false,
   pantryIngredients = [],
+  pantryIngredientIds = [],
   extraRecipes = [],
   // "preferred" (default) | "only" (only the user's recipes) | "catalog"
   // (only the bundled catalog). Set from data.recipeMode.
@@ -323,7 +339,7 @@ export function filterRecipes({
   // filter above so it never changes which recipes survive, only how the
   // LLM (Phase 5) can prioritize among them.
   if (pantryIngredients.length > 0) {
-    pool = pool.map((r) => ({ ...r, pantryScore: scorePantryMatch(r, pantryIngredients) }));
+    pool = pool.map((r) => ({ ...r, pantryScore: scorePantryMatch(r, pantryIngredients, pantryIngredientIds) }));
   }
 
   // 8b. Favorites — soft ranking signal only (like pantry): annotate matching

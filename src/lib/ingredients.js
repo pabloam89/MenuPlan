@@ -24,6 +24,7 @@ import substitutionsJson from "../data/ingredientSubstitutions.json";
 import { validateIngredients } from "../data/ingredientSchema.js";
 import { createIngredientResolver } from "./ingredientResolver.js";
 import { guessShoppingAisle, guessIngredientCategory } from "./ingredientCategories.js";
+import { gramsForRecipeQuantity } from "./kitchenUnits.js";
 
 // Mismo criterio que recipeCatalog.js: el JSON va bundleado con la app, así que
 // si está roto tiene que fallar de forma ruidosa e incondicional. El generador
@@ -145,6 +146,75 @@ export function deriveRecipeAllergens(recipe) {
     // vino no añade nada que el usuario pueda evitar cambiando un producto.
     cookingAllergens: [...cookingAllergens].filter((a) => !allergens.has(a)).sort(),
     unknownNames,
+  };
+}
+
+// ── Nutrición calculada (Fase 9) ─────────────────────────────────────────
+//
+// Suma la nutrición por 100g del catálogo (ver ingredientSchema.js#nutrition,
+// poblada vía scripts/bedca-nutrition.mjs) sobre los ingredientes de una
+// receta que SÍ convierten a gramos (gramsForRecipeQuantity, kitchenUnits.js)
+// Y SÍ resuelven a un ingrediente con nutrición BEDCA. Un ingrediente que no
+// cumple una de las dos cosas simplemente no suma — nunca lanza, nunca
+// inventa un valor.
+//
+// `coverage` es la fracción de los gramos QUE PUDIMOS PESAR (no de la receta
+// completa: un ingrediente en una unidad inconvertible es invisible tanto al
+// numerador como al denominador) que además tenía nutrición BEDCA. Es la
+// señal que decide si vale la pena sustituir la estimación de la IA
+// (generateUserRecipeDraft, userRecipes.js) o dejarla como está.
+
+/**
+ * @param {{ingredients?: Array<{name: string, amount?: number, unit?: string}>}} recipe
+ * @param {number} servings
+ * @returns {{kcal:number, protein_g:number, carbs_g:number, fat_g:number, fiber_g:number|null, sugar_g:number|null, saturated_fat_g:number|null, sodium_mg:number|null, coverage:number} | null}
+ *   `null` si no hay servings válidos o ningún ingrediente aportó nutrición.
+ */
+export function computeRecipeNutrition(recipe, servings) {
+  if (!(servings > 0)) return null;
+
+  const totals = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 };
+  const hasSecondary = { fiber_g: false, sugar_g: false, saturated_fat_g: false, sodium_mg: false };
+  let totalGrams = 0;
+  let coveredGrams = 0;
+
+  for (const line of resolveRecipeIngredients(recipe)) {
+    const grams = gramsForRecipeQuantity(line.rawName, line.amount, line.unit);
+    if (grams == null || grams <= 0) continue;
+    totalGrams += grams;
+
+    const nutrition = line.ingredient?.nutrition;
+    if (!nutrition) continue;
+    coveredGrams += grams;
+
+    const factor = grams / 100;
+    totals.kcal += nutrition.kcal100g * factor;
+    totals.protein_g += nutrition.protein100g * factor;
+    totals.carbs_g += nutrition.carbs100g * factor;
+    totals.fat_g += nutrition.fat100g * factor;
+    if (nutrition.fiber100g != null) { totals.fiber_g += nutrition.fiber100g * factor; hasSecondary.fiber_g = true; }
+    if (nutrition.sugar100g != null) { totals.sugar_g += nutrition.sugar100g * factor; hasSecondary.sugar_g = true; }
+    if (nutrition.saturatedFat100g != null) { totals.saturated_fat_g += nutrition.saturatedFat100g * factor; hasSecondary.saturated_fat_g = true; }
+    if (nutrition.sodium100g != null) { totals.sodium_mg += nutrition.sodium100g * factor; hasSecondary.sodium_mg = true; }
+  }
+
+  if (coveredGrams === 0) return null;
+
+  const perServing = (v, decimals = 1) => {
+    const factor = 10 ** decimals;
+    return Math.round((v / servings) * factor) / factor;
+  };
+
+  return {
+    kcal: perServing(totals.kcal, 0),
+    protein_g: perServing(totals.protein_g),
+    carbs_g: perServing(totals.carbs_g),
+    fat_g: perServing(totals.fat_g),
+    fiber_g: hasSecondary.fiber_g ? perServing(totals.fiber_g) : null,
+    sugar_g: hasSecondary.sugar_g ? perServing(totals.sugar_g) : null,
+    saturated_fat_g: hasSecondary.saturated_fat_g ? perServing(totals.saturated_fat_g) : null,
+    sodium_mg: hasSecondary.sodium_mg ? perServing(totals.sodium_mg, 0) : null,
+    coverage: totalGrams > 0 ? Math.round((coveredGrams / totalGrams) * 1000) / 1000 : 0,
   };
 }
 

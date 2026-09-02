@@ -799,6 +799,10 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   const filterOpts = {
     ...ctx.filterOpts,
     pantryIngredients: pantryIngredients.map((p) => p.ingredientNormalized),
+    // Fase 8: id canónico por fila de despensa cuando resolvió al guardar
+    // (user_pantry.ingredient_id) — mismo orden que pantryIngredients, para
+    // que scorePantryMatch pueda cruzar por id además de por texto.
+    pantryIngredientIds: pantryIngredients.map((p) => p.ingredientId ?? null),
   };
 
   let { recipes: filteredPool, error: filterError } = filterRecipes(filterOpts);

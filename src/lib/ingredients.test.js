@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 
 import {
   ingredientCatalog,
@@ -7,6 +7,7 @@ import {
   resolveIngredient,
   resolveRecipeIngredients,
   deriveRecipeAllergens,
+  computeRecipeNutrition,
   ingredientSubstitutions,
   substitutionFor,
   planIngredientSubstitutions,
@@ -216,6 +217,80 @@ describe("deriveRecipeAllergens", () => {
   });
 });
 
+// Fase 9: computeRecipeNutrition. El catálogo real no tiene nutrición BEDCA
+// todavía (scripts/bedca-nutrition.mjs propone, no aplica solo), así que estos
+// tests inyectan `nutrition` a mano sobre una fila real del catálogo
+// compartido (ingredientById devuelve la MISMA referencia que usa el
+// resolver) y la restauran a `null` después — nunca se deja septica para el
+// resto de la suite.
+describe("computeRecipeNutrition", () => {
+  afterEach(() => {
+    ingredientById.ajo.nutrition = null;
+    ingredientById.perejil.nutrition = null;
+  });
+
+  it("devuelve null si servings no es válido", () => {
+    ingredientById.ajo.nutrition = { kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 1, fiber100g: null, sugar100g: null, saturatedFat100g: null, sodium100g: null };
+    const recipe = { ingredients: [{ name: "Ajo", amount: 2, unit: "diente" }] };
+    expect(computeRecipeNutrition(recipe, 0)).toBeNull();
+    expect(computeRecipeNutrition(recipe, null)).toBeNull();
+  });
+
+  it("devuelve null cuando ningún ingrediente aporta nutrición (sin inventar nada)", () => {
+    const recipe = { ingredients: [{ name: "Perejil", amount: 10, unit: "g" }] };
+    expect(computeRecipeNutrition(recipe, 4)).toBeNull();
+  });
+
+  it("suma correctamente con cobertura total (un solo ingrediente, con nutrición)", () => {
+    // 5g/diente (PIECE_WEIGHTS) × 4 dientes = 20g de un ingrediente a 100
+    // kcal/100g → 20 kcal totales, entre 2 raciones = 10 kcal/ración.
+    ingredientById.ajo.nutrition = {
+      kcal100g: 100, protein100g: 20, carbs100g: 10, fat100g: 5,
+      fiber100g: 2, sugar100g: 1, saturatedFat100g: 0.5, sodium100g: 50,
+    };
+    const recipe = { ingredients: [{ name: "Ajo", amount: 4, unit: "diente" }] };
+    const r = computeRecipeNutrition(recipe, 2);
+    expect(r.kcal).toBeCloseTo(10, 0);
+    expect(r.protein_g).toBeCloseTo(2, 1);
+    expect(r.fiber_g).toBeCloseTo(0.2, 1);
+    expect(r.coverage).toBe(1);
+  });
+
+  it("cobertura parcial: un ingrediente sin nutrición cuenta en el peso total pero no en el cubierto", () => {
+    ingredientById.ajo.nutrition = {
+      kcal100g: 100, protein100g: 20, carbs100g: 10, fat100g: 5,
+      fiber100g: null, sugar100g: null, saturatedFat100g: null, sodium100g: null,
+    };
+    // Ajo: 4 dientes × 5g = 20g (con nutrición). Perejil: 20g (sin nutrición).
+    const recipe = {
+      ingredients: [
+        { name: "Ajo", amount: 4, unit: "diente" },
+        { name: "Perejil", amount: 20, unit: "g" },
+      ],
+    };
+    const r = computeRecipeNutrition(recipe, 1);
+    expect(r).not.toBeNull();
+    expect(r.coverage).toBeCloseTo(0.5, 2); // 20g cubiertos de 40g totales
+  });
+
+  it("un ingrediente en unidad cualitativa (al gusto/pizca) no cuenta ni en el peso total ni en el cubierto", () => {
+    ingredientById.ajo.nutrition = {
+      kcal100g: 100, protein100g: 20, carbs100g: 10, fat100g: 5,
+      fiber100g: null, sugar100g: null, saturatedFat100g: null, sodium100g: null,
+    };
+    const recipe = {
+      ingredients: [
+        { name: "Ajo", amount: 4, unit: "diente" },
+        { name: "Sal", unit: "al gusto" },
+      ],
+    };
+    const r = computeRecipeNutrition(recipe, 1);
+    // La sal queda totalmente fuera de la cuenta -> cobertura sigue siendo 1
+    // (100% de lo que SÍ se pudo pesar tenía nutrición), no una fracción rara.
+    expect(r.coverage).toBe(1);
+  });
+});
+
 // Vocabulario UE (catálogo de ingredientes) → histórico (recipes.allergens).
 const A_SCHEMA = {
   crustaceos: "marisco",
@@ -338,6 +413,60 @@ describe("planIngredientSubstitutions", () => {
     );
     expect(plan.blocked).toBe(true);
     expect(plan.swaps).toEqual([]);
+  });
+});
+
+// Fase 4: variantes regionales/calificadas de un ingrediente que SÍ está en el
+// catálogo. Probado contra 88 ingredientes de cocina casera real (offal,
+// pescados regionales, quesos DOP, especias, cocina asiática): un 23% de ellos
+// eran exactamente este caso — la base ya existe, solo faltaba reconocer el
+// calificativo. Los 20 casos de abajo son los que se identificaron en esa
+// medición.
+describe("resolución de variantes regionales/calificadas (Fase 4)", () => {
+  const casos = [
+    ["Pimentón de la Vera agridulce", "pimenton"],
+    ["Azafrán de la Mancha", "azafran"],
+    ["Nata montada", "nata"],
+    ["Nata montada en spray", "nata"],
+    ["Chocolate negro 70%", "chocolate"],
+    ["Aceite de oliva picual", "aceite-oliva"],
+    ["Alcachofa de Tudela", "alcachofa"],
+    ["Vinagre de Módena reserva", "vinagre-balsamico"],
+    ["Miel de romero", "miel"],
+    ["Sal de Ibiza", "sal"],
+    ["Repollo lombardo", "repollo"],
+    ["Granada mollar", "granada"],
+    ["Higo chumbo", "higo"],
+    ["Conejo de monte", "conejo"],
+    ["Bacalao skrei", "bacalao"],
+    ["Queso crema light", "queso-crema"],
+    ["Garbanzo pedrosillano", "garbanzos"],
+    ["Espárrago blanco de Navarra", "esparragos"],
+    ["Pasta de curry rojo", "pasta"],
+    ["Leche de coco light", "leche-coco"],
+  ];
+
+  it.each(casos)("%s → %s", (nombre, esperado) => {
+    expect(resolveIngredientId(nombre)).toBe(esperado);
+  });
+
+  // La razón de ser del recorte por el final y no por el principio: en
+  // español el calificativo va detrás del nombre base. Si se recortara por
+  // delante, "Leche de coco" perdería "coco" (la palabra que la distingue de
+  // la leche normal) antes de perder "light" (el calificativo real).
+  it("nunca recorta más de lo necesario — no confunde un ingrediente con otro parecido", () => {
+    expect(resolveIngredientId("Leche de coco")).toBe("leche-coco");
+    expect(resolveIngredientId("Leche de coco light")).toBe("leche-coco");
+    expect(resolveIngredientId("Leche")).toBe("leche");
+  });
+
+  // Huecos reales del catálogo (no están, ni con alias): el recorte no debe
+  // inventarse una resolución solo porque la primera palabra coincide con
+  // algo genérico.
+  it("no inventa una resolución para un hueco real del catálogo", () => {
+    expect(resolveIngredientId("Queso de Cabrales")).toBeNull();
+    expect(resolveIngredientId("Callos")).toBeNull();
+    expect(resolveIngredientId("Za'atar")).toBeNull();
   });
 });
 

@@ -16,6 +16,7 @@ const VALID = {
   isVegan: true,
   defaultUnit: "g",
   medianAmount: 100,
+  nutrition: null,
 };
 
 describe("EU_ALLERGEN_IDS", () => {

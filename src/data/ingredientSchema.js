@@ -76,6 +76,25 @@ export const IngredientSchema = z
     // lista de la compra), no son una restricción.
     defaultUnit: z.enum(UNITS),
     medianAmount: z.number().positive().nullable(),
+
+    // Nutrición por 100g (Fase 9), vía BEDCA — ver scripts/bedca-nutrition.mjs.
+    // Todo opcional/nullable: BEDCA cubre ~500 alimentos y el catálogo tiene
+    // 379 propios, así que no habrá cobertura del 100% — "sin dato" no es un
+    // error, mismo criterio que el resto de campos derivados de una fuente
+    // externa. `sugar100g` en particular es sparse incluso dentro de BEDCA
+    // (el campo existe pero muchos alimentos no lo tienen relleno).
+    nutrition: z
+      .object({
+        kcal100g: z.number().nonnegative(),
+        protein100g: z.number().nonnegative(),
+        carbs100g: z.number().nonnegative(),
+        fat100g: z.number().nonnegative(),
+        fiber100g: z.number().nonnegative().nullable(),
+        sugar100g: z.number().nonnegative().nullable(),
+        saturatedFat100g: z.number().nonnegative().nullable(),
+        sodium100g: z.number().nonnegative().nullable(),
+      })
+      .nullable(),
   })
   .strict()
   .superRefine((ing, ctx) => {

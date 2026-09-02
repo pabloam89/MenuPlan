@@ -13,7 +13,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": {
+      "kcal100g": 884.3,
+      "protein100g": 0,
+      "carbs100g": 0,
+      "fat100g": 100,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 14.2,
+      "sodium100g": 0
+    }
   },
   {
     "id": "aceite-girasol",
@@ -27,7 +37,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "aceite-oliva",
@@ -47,7 +58,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": {
+      "kcal100g": 883.4,
+      "protein100g": 0,
+      "carbs100g": 0,
+      "fat100g": 99.9,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 17.06,
+      "sodium100g": 0
+    }
   },
   {
     "id": "aceite-oliva-virgen",
@@ -61,7 +82,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": null
   },
   {
     "id": "aceitunas",
@@ -77,7 +99,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "aceitunas-negras",
@@ -95,7 +118,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "acelga",
@@ -109,7 +133,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 275
+    "medianAmount": 275,
+    "nutrition": null
   },
   {
     "id": "agua",
@@ -125,7 +150,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "aguacate",
@@ -139,7 +165,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": {
+      "kcal100g": 136.2,
+      "protein100g": 1.5,
+      "carbs100g": 0.4,
+      "fat100g": 12,
+      "fiber100g": 6.3,
+      "sugar100g": null,
+      "saturatedFat100g": 1.41,
+      "sodium100g": 2
+    }
   },
   {
     "id": "ajete",
@@ -153,7 +189,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "ajetes-tiernos",
@@ -167,7 +204,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "aji-amarillo",
@@ -181,7 +219,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 15
+    "medianAmount": 15,
+    "nutrition": null
   },
   {
     "id": "ajo",
@@ -198,7 +237,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": {
+      "kcal100g": 116.8,
+      "protein100g": 3.9375,
+      "carbs100g": 24.3,
+      "fat100g": 0.23,
+      "fiber100g": 1.2,
+      "sugar100g": null,
+      "saturatedFat100g": 0.05,
+      "sodium100g": 19
+    }
   },
   {
     "id": "ajo-polvo",
@@ -212,7 +261,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 3
+    "medianAmount": 3,
+    "nutrition": {
+      "kcal100g": 369.2,
+      "protein100g": 16.55,
+      "carbs100g": 72.73,
+      "fat100g": 0.73,
+      "fiber100g": 9,
+      "sugar100g": null,
+      "saturatedFat100g": 0.249,
+      "sodium100g": 60
+    }
   },
   {
     "id": "albahaca",
@@ -228,7 +287,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": null
   },
   {
     "id": "alcachofa",
@@ -244,7 +304,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 77
+    "medianAmount": 77,
+    "nutrition": null
   },
   {
     "id": "alcachofa-conserva",
@@ -260,7 +321,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "alcaparras",
@@ -276,7 +338,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 18
+    "medianAmount": 18,
+    "nutrition": null
   },
   {
     "id": "alga-nori",
@@ -290,7 +353,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "alga-wakame",
@@ -304,7 +368,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 5
+    "medianAmount": 5,
+    "nutrition": null
   },
   {
     "id": "alioli",
@@ -320,7 +385,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 55
+    "medianAmount": 55,
+    "nutrition": {
+      "kcal100g": 781.8,
+      "protein100g": 0.46,
+      "carbs100g": 2.84,
+      "fat100g": 86.89,
+      "fiber100g": 0.14,
+      "sugar100g": 0.28,
+      "saturatedFat100g": 12.61,
+      "sodium100g": 565.01
+    }
   },
   {
     "id": "alitas-de-pollo",
@@ -334,7 +409,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 600
+    "medianAmount": 600,
+    "nutrition": null
   },
   {
     "id": "almejas",
@@ -352,7 +428,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 275
+    "medianAmount": 275,
+    "nutrition": null
   },
   {
     "id": "almendras",
@@ -374,7 +451,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "alubia-grande",
@@ -391,7 +469,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": null
   },
   {
     "id": "alubias",
@@ -411,7 +490,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "alubias-rojas",
@@ -425,7 +505,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": null
   },
   {
     "id": "anchoa-en-aceite",
@@ -444,7 +525,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": null
   },
   {
     "id": "apio",
@@ -460,7 +542,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 50
+    "medianAmount": 50,
+    "nutrition": null
   },
   {
     "id": "apionabo",
@@ -476,7 +559,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 475
+    "medianAmount": 475,
+    "nutrition": null
   },
   {
     "id": "arandanos",
@@ -490,7 +574,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "arroz",
@@ -510,7 +595,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 160
+    "medianAmount": 160,
+    "nutrition": {
+      "kcal100g": 385.8,
+      "protein100g": 7,
+      "carbs100g": 86,
+      "fat100g": 0.9,
+      "fiber100g": 0.2,
+      "sugar100g": null,
+      "saturatedFat100g": 0.21,
+      "sodium100g": 6
+    }
   },
   {
     "id": "arroz-arborio",
@@ -524,7 +619,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 160
+    "medianAmount": 160,
+    "nutrition": null
   },
   {
     "id": "arroz-bomba",
@@ -538,7 +634,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 320
+    "medianAmount": 320,
+    "nutrition": null
   },
   {
     "id": "atun",
@@ -559,7 +656,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 160
+    "medianAmount": 160,
+    "nutrition": null
   },
   {
     "id": "atun-fresco",
@@ -579,7 +677,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "atun-lata",
@@ -598,7 +697,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 160
+    "medianAmount": 160,
+    "nutrition": null
   },
   {
     "id": "avellanas",
@@ -617,7 +717,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": null
   },
   {
     "id": "avena",
@@ -633,7 +734,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 50
+    "medianAmount": 50,
+    "nutrition": null
   },
   {
     "id": "azafran",
@@ -650,7 +752,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 1
+    "medianAmount": 1,
+    "nutrition": {
+      "kcal100g": 348.4,
+      "protein100g": 11.4,
+      "carbs100g": 61.5,
+      "fat100g": 5.9,
+      "fiber100g": 3.9,
+      "sugar100g": null,
+      "saturatedFat100g": 1.586,
+      "sodium100g": 150
+    }
   },
   {
     "id": "azucar",
@@ -664,7 +776,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "azucar-glas",
@@ -678,7 +791,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 215
+    "medianAmount": 215,
+    "nutrition": null
   },
   {
     "id": "azucar-moreno",
@@ -692,7 +806,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": {
+      "kcal100g": 396.6,
+      "protein100g": 0,
+      "carbs100g": 97.6,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": 97.6,
+      "saturatedFat100g": 0,
+      "sodium100g": 40
+    }
   },
   {
     "id": "bacalao",
@@ -717,7 +841,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "bacon",
@@ -737,7 +862,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "baguette",
@@ -755,7 +881,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 105
+    "medianAmount": 105,
+    "nutrition": null
   },
   {
     "id": "bechamel",
@@ -774,7 +901,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "berberecho",
@@ -790,7 +918,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 500
+    "medianAmount": 500,
+    "nutrition": null
   },
   {
     "id": "berenjena",
@@ -804,7 +933,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": {
+      "kcal100g": 20.1,
+      "protein100g": 0.7,
+      "carbs100g": 3.8,
+      "fat100g": 0.2,
+      "fiber100g": 2.4,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 3
+    }
   },
   {
     "id": "bicarbonato",
@@ -818,7 +957,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 5
+    "medianAmount": 5,
+    "nutrition": null
   },
   {
     "id": "bizcocho-de-soletilla",
@@ -834,7 +974,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "bogavante",
@@ -850,7 +991,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 600
+    "medianAmount": 600,
+    "nutrition": {
+      "kcal100g": 92,
+      "protein100g": 18.3,
+      "carbs100g": 0,
+      "fat100g": 2,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0.24,
+      "sodium100g": 270
+    }
   },
   {
     "id": "boletus",
@@ -866,7 +1017,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "boniato",
@@ -880,7 +1032,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "bonito-del-norte",
@@ -898,7 +1051,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "boquerones",
@@ -916,7 +1070,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 320
+    "medianAmount": 320,
+    "nutrition": null
   },
   {
     "id": "brandy",
@@ -934,7 +1089,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "brocoli",
@@ -948,7 +1104,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": null
   },
   {
     "id": "brote-tierno",
@@ -962,7 +1119,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 160
+    "medianAmount": 160,
+    "nutrition": null
   },
   {
     "id": "burrata",
@@ -978,7 +1136,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "butifarra",
@@ -992,7 +1151,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 175
+    "medianAmount": 175,
+    "nutrition": {
+      "kcal100g": 239.8,
+      "protein100g": 10,
+      "carbs100g": 5.5,
+      "fat100g": 20,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 6.8,
+      "sodium100g": 703
+    }
   },
   {
     "id": "caballa",
@@ -1008,7 +1177,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "cabracho",
@@ -1026,7 +1196,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "cacahuete",
@@ -1042,7 +1213,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "cacao",
@@ -1056,7 +1228,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": null
   },
   {
     "id": "cafe-espresso",
@@ -1070,7 +1243,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "calabacin",
@@ -1084,7 +1258,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": {
+      "kcal100g": 17.2,
+      "protein100g": 1.8,
+      "carbs100g": 2,
+      "fat100g": 0.2,
+      "fiber100g": 1,
+      "sugar100g": null,
+      "saturatedFat100g": 0.04,
+      "sodium100g": 3
+    }
   },
   {
     "id": "calabaza",
@@ -1098,7 +1282,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "calamar",
@@ -1121,7 +1306,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "caldo-de-carne",
@@ -1137,7 +1323,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "caldo-de-marisco",
@@ -1158,7 +1345,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 500
+    "medianAmount": 500,
+    "nutrition": null
   },
   {
     "id": "caldo-de-pescado",
@@ -1176,7 +1364,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 450
+    "medianAmount": 450,
+    "nutrition": null
   },
   {
     "id": "caldo-de-pollo",
@@ -1190,7 +1379,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 450
+    "medianAmount": 450,
+    "nutrition": null
   },
   {
     "id": "caldo-de-verduras",
@@ -1206,7 +1396,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "callo-de-ternera-limpio",
@@ -1220,7 +1411,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 1000
+    "medianAmount": 1000,
+    "nutrition": null
   },
   {
     "id": "canela",
@@ -1237,7 +1429,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "canelones",
@@ -1253,7 +1446,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 16
+    "medianAmount": 16,
+    "nutrition": null
   },
   {
     "id": "carne-de-cerdo-en-dado-aguja-o-secreto",
@@ -1267,7 +1461,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "carne-de-cocido",
@@ -1284,7 +1479,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 275
+    "medianAmount": 275,
+    "nutrition": null
   },
   {
     "id": "carne-de-jabali-picada",
@@ -1298,7 +1494,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 500
+    "medianAmount": 500,
+    "nutrition": null
   },
   {
     "id": "carne-de-ternera-para-guisar",
@@ -1312,7 +1509,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "carne-de-txangurro",
@@ -1328,7 +1526,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "carne-picada",
@@ -1345,7 +1544,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "carrillada",
@@ -1362,7 +1562,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 750
+    "medianAmount": 750,
+    "nutrition": null
   },
   {
     "id": "carrillera",
@@ -1378,7 +1579,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 650
+    "medianAmount": 650,
+    "nutrition": null
   },
   {
     "id": "castanas",
@@ -1394,7 +1596,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "cava",
@@ -1412,7 +1615,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": {
+      "kcal100g": 70,
+      "protein100g": 0.2,
+      "carbs100g": 1.5,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0,
+      "sodium100g": 4
+    }
   },
   {
     "id": "cayena",
@@ -1428,7 +1641,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": null
   },
   {
     "id": "cebolla",
@@ -1444,7 +1658,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 70
+    "medianAmount": 70,
+    "nutrition": null
   },
   {
     "id": "cebolla-morada",
@@ -1460,7 +1675,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 35
+    "medianAmount": 35,
+    "nutrition": null
   },
   {
     "id": "cebolleta",
@@ -1474,7 +1690,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 25
+    "medianAmount": 25,
+    "nutrition": null
   },
   {
     "id": "cebollino",
@@ -1490,7 +1707,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 5
+    "medianAmount": 5,
+    "nutrition": null
   },
   {
     "id": "cereales",
@@ -1506,7 +1724,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "cerveza",
@@ -1526,7 +1745,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "chalota",
@@ -1540,7 +1760,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "champinon",
@@ -1558,7 +1779,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "chocolate",
@@ -1572,7 +1794,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 175
+    "medianAmount": 175,
+    "nutrition": {
+      "kcal100g": 540.6,
+      "protein100g": 4.7,
+      "carbs100g": 64.8,
+      "fat100g": 29.2,
+      "fiber100g": null,
+      "sugar100g": null,
+      "saturatedFat100g": 16.9,
+      "sodium100g": 12.3333
+    }
   },
   {
     "id": "chorizo",
@@ -1588,7 +1820,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": {
+      "kcal100g": 321.7,
+      "protein100g": 27,
+      "carbs100g": 1.9,
+      "fat100g": 23.1,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 9.6,
+      "sodium100g": 1060
+    }
   },
   {
     "id": "chuletas-de-cerdo",
@@ -1602,7 +1844,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "chuleton-de-ternera",
@@ -1618,7 +1861,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 800
+    "medianAmount": 800,
+    "nutrition": null
   },
   {
     "id": "cigala",
@@ -1634,7 +1878,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ud",
-    "medianAmount": 8
+    "medianAmount": 8,
+    "nutrition": null
   },
   {
     "id": "cilantro",
@@ -1651,7 +1896,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 5
+    "medianAmount": 5,
+    "nutrition": null
   },
   {
     "id": "cinta-de-lomo",
@@ -1669,7 +1915,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "ciruelas-pasas",
@@ -1687,7 +1934,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 50
+    "medianAmount": 50,
+    "nutrition": null
   },
   {
     "id": "coco",
@@ -1701,7 +1949,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 15
+    "medianAmount": 15,
+    "nutrition": null
   },
   {
     "id": "codorniz",
@@ -1717,7 +1966,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ud",
-    "medianAmount": 8
+    "medianAmount": 8,
+    "nutrition": null
   },
   {
     "id": "cointreau",
@@ -1731,7 +1981,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 50
+    "medianAmount": 50,
+    "nutrition": null
   },
   {
     "id": "col",
@@ -1747,7 +1998,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "coles-de-bruselas",
@@ -1761,7 +2013,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "coliflor",
@@ -1777,7 +2030,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 500
+    "medianAmount": 500,
+    "nutrition": null
   },
   {
     "id": "colorante",
@@ -1791,7 +2045,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": null
   },
   {
     "id": "comino",
@@ -1807,7 +2062,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 3
+    "medianAmount": 3,
+    "nutrition": null
   },
   {
     "id": "conejo",
@@ -1821,7 +2077,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "congrio",
@@ -1837,7 +2094,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "contramuslos-de-pollo",
@@ -1855,7 +2113,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": null
   },
   {
     "id": "cordero",
@@ -1871,7 +2130,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 600
+    "medianAmount": 600,
+    "nutrition": null
   },
   {
     "id": "corvina",
@@ -1890,7 +2150,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "costilla",
@@ -1910,7 +2171,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "curcuma",
@@ -1924,7 +2186,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 3
+    "medianAmount": 3,
+    "nutrition": null
   },
   {
     "id": "curry",
@@ -1938,7 +2201,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 8
+    "medianAmount": 8,
+    "nutrition": null
   },
   {
     "id": "cuscus",
@@ -1954,7 +2218,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "dorada",
@@ -1973,7 +2238,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 700
+    "medianAmount": 700,
+    "nutrition": null
   },
   {
     "id": "edamame",
@@ -1991,7 +2257,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "eneldo",
@@ -2007,7 +2274,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 5
+    "medianAmount": 5,
+    "nutrition": null
   },
   {
     "id": "entrania-de-ternera",
@@ -2021,7 +2289,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "entrecot",
@@ -2035,7 +2304,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "escalopines-de-ternera",
@@ -2049,7 +2319,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 325
+    "medianAmount": 325,
+    "nutrition": null
   },
   {
     "id": "espaguetis",
@@ -2065,7 +2336,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "esparragos",
@@ -2081,7 +2353,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "esparragos-blancos",
@@ -2095,7 +2368,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": {
+      "kcal100g": 24.2,
+      "protein100g": 1.9,
+      "carbs100g": 3.4,
+      "fat100g": 0.3,
+      "fiber100g": 1,
+      "sugar100g": null,
+      "saturatedFat100g": 0.07,
+      "sodium100g": 236
+    }
   },
   {
     "id": "especia-cajun",
@@ -2109,7 +2392,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 8
+    "medianAmount": 8,
+    "nutrition": null
   },
   {
     "id": "espinacas",
@@ -2127,7 +2411,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 175
+    "medianAmount": 175,
+    "nutrition": null
   },
   {
     "id": "extracto-de-vainilla",
@@ -2141,7 +2426,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 5
+    "medianAmount": 5,
+    "nutrition": null
   },
   {
     "id": "fabes",
@@ -2155,7 +2441,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": null
   },
   {
     "id": "falafel-congelado",
@@ -2171,7 +2458,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "farfalle",
@@ -2187,7 +2475,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "fettuccine",
@@ -2204,7 +2493,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "fideo-mediano",
@@ -2220,7 +2510,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 180
+    "medianAmount": 180,
+    "nutrition": null
   },
   {
     "id": "fideos",
@@ -2240,7 +2531,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "filete-de-cerdo",
@@ -2254,7 +2546,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "filete-de-pez-espada",
@@ -2270,7 +2563,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "filete-de-ternera",
@@ -2287,7 +2581,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 375
+    "medianAmount": 375,
+    "nutrition": null
   },
   {
     "id": "filetes-finos-de-ternera",
@@ -2301,7 +2596,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "foie",
@@ -2319,7 +2615,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "fresa",
@@ -2333,7 +2630,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "frutos-rojos",
@@ -2350,7 +2648,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "fuet",
@@ -2364,7 +2663,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": {
+      "kcal100g": 473,
+      "protein100g": 19.5,
+      "carbs100g": 5.5,
+      "fat100g": 42,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 15.5,
+      "sodium100g": 1180
+    }
   },
   {
     "id": "fusilli",
@@ -2380,7 +2689,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "galletas-maria",
@@ -2396,7 +2706,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 190
+    "medianAmount": 190,
+    "nutrition": null
   },
   {
     "id": "gambas",
@@ -2418,7 +2729,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "garbanzos",
@@ -2436,7 +2748,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "garrofon",
@@ -2450,7 +2763,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "gazpacho-de-bote",
@@ -2466,7 +2780,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 500
+    "medianAmount": 500,
+    "nutrition": null
   },
   {
     "id": "gochujang",
@@ -2480,7 +2795,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "granada",
@@ -2496,7 +2812,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": {
+      "kcal100g": 62.4,
+      "protein100g": 1,
+      "carbs100g": 13.7,
+      "fat100g": 0.3,
+      "fiber100g": 3.5,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 4
+    }
   },
   {
     "id": "granola",
@@ -2512,7 +2838,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "grelo",
@@ -2526,7 +2853,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "guanciale",
@@ -2540,7 +2868,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 120
+    "medianAmount": 120,
+    "nutrition": null
   },
   {
     "id": "guindilla",
@@ -2563,7 +2892,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "guisantes",
@@ -2580,7 +2910,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "hamburguesa",
@@ -2598,7 +2929,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ud",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "harina",
@@ -2618,7 +2950,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "harissa",
@@ -2632,7 +2965,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": null
   },
   {
     "id": "higado-de-ternera",
@@ -2646,7 +2980,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "higo",
@@ -2662,7 +2997,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 102
+    "medianAmount": 102,
+    "nutrition": null
   },
   {
     "id": "hinojo",
@@ -2676,7 +3012,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "hoja-de-gelatina",
@@ -2690,7 +3027,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 6
+    "medianAmount": 6,
+    "nutrition": null
   },
   {
     "id": "hojaldre",
@@ -2709,7 +3047,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 230
+    "medianAmount": 230,
+    "nutrition": {
+      "kcal100g": 550.1,
+      "protein100g": 7.4,
+      "carbs100g": 44.2,
+      "fat100g": 38.5,
+      "fiber100g": 1.5,
+      "sugar100g": null,
+      "saturatedFat100g": 5.5,
+      "sodium100g": 253
+    }
   },
   {
     "id": "hojas-verdes",
@@ -2728,7 +3076,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "hueso-de-ternera",
@@ -2742,7 +3091,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "huevos",
@@ -2762,7 +3112,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "ud",
-    "medianAmount": 3
+    "medianAmount": 3,
+    "nutrition": null
   },
   {
     "id": "jamon",
@@ -2787,7 +3138,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": {
+      "kcal100g": 317.7,
+      "protein100g": 28.8,
+      "carbs100g": 0.2,
+      "fat100g": 22.6,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 7.94,
+      "sodium100g": 2130
+    }
   },
   {
     "id": "jamon-york",
@@ -2806,7 +3167,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "jarrete-de-ternera",
@@ -2822,7 +3184,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 950
+    "medianAmount": 950,
+    "nutrition": null
   },
   {
     "id": "jengibre",
@@ -2839,7 +3202,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": null
   },
   {
     "id": "jerez-seco",
@@ -2855,7 +3219,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "judia-blanca",
@@ -2871,7 +3236,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": {
+      "kcal100g": 322.9,
+      "protein100g": 21.4,
+      "carbs100g": 54.8,
+      "fat100g": 1.5,
+      "fiber100g": 21.3,
+      "sugar100g": null,
+      "saturatedFat100g": 0.21,
+      "sodium100g": 40
+    }
   },
   {
     "id": "judia-negra",
@@ -2885,7 +3260,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "judia-verde",
@@ -2902,7 +3278,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "judias-pintas",
@@ -2918,7 +3295,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "kefir",
@@ -2934,7 +3312,17 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": {
+      "kcal100g": 63.9,
+      "protein100g": 3.3,
+      "carbs100g": 4.8,
+      "fat100g": 3.5,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 2.3,
+      "sodium100g": 46
+    }
   },
   {
     "id": "ketchup",
@@ -2948,7 +3336,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": {
+      "kcal100g": 103.8,
+      "protein100g": 3.4,
+      "carbs100g": 21.7,
+      "fat100g": 0.2,
+      "fiber100g": 0.9,
+      "sugar100g": null,
+      "saturatedFat100g": 0.04,
+      "sodium100g": 910
+    }
   },
   {
     "id": "lacon",
@@ -2962,7 +3360,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 115
+    "medianAmount": 115,
+    "nutrition": {
+      "kcal100g": 213.4,
+      "protein100g": 19.12,
+      "carbs100g": 9.9,
+      "fat100g": 10.8,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 3.53,
+      "sodium100g": 965
+    }
   },
   {
     "id": "langostinos",
@@ -2983,7 +3391,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "lasana",
@@ -3002,7 +3411,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "laurel",
@@ -3018,7 +3428,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 1
+    "medianAmount": 1,
+    "nutrition": null
   },
   {
     "id": "leche",
@@ -3039,7 +3450,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 230
+    "medianAmount": 230,
+    "nutrition": null
   },
   {
     "id": "leche-coco",
@@ -3053,7 +3465,17 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": {
+      "kcal100g": 207.9,
+      "protein100g": 2,
+      "carbs100g": 2.8,
+      "fat100g": 21.3,
+      "fiber100g": null,
+      "sugar100g": null,
+      "saturatedFat100g": 18.3,
+      "sodium100g": 13
+    }
   },
   {
     "id": "leche-condensada",
@@ -3071,7 +3493,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "lechuga",
@@ -3092,7 +3515,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": {
+      "kcal100g": 15.6,
+      "protein100g": 1.125,
+      "carbs100g": 1.4,
+      "fat100g": 0.6,
+      "fiber100g": 1.5,
+      "sugar100g": null,
+      "saturatedFat100g": 0.12,
+      "sodium100g": 3
+    }
   },
   {
     "id": "lenguado",
@@ -3111,7 +3544,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 161
+    "medianAmount": 161,
+    "nutrition": {
+      "kcal100g": 78.5,
+      "protein100g": 16.5,
+      "carbs100g": 0,
+      "fat100g": 1.3,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0.18,
+      "sodium100g": 100
+    }
   },
   {
     "id": "lentejas",
@@ -3129,7 +3572,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "lentejas-rojas",
@@ -3145,7 +3589,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 90
+    "medianAmount": 90,
+    "nutrition": null
   },
   {
     "id": "levadura",
@@ -3161,7 +3606,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 7
+    "medianAmount": 7,
+    "nutrition": null
   },
   {
     "id": "levadura-quimica",
@@ -3175,7 +3621,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 6
+    "medianAmount": 6,
+    "nutrition": null
   },
   {
     "id": "licor-de-cafe",
@@ -3193,7 +3640,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": {
+      "kcal100g": 343.1,
+      "protein100g": 0,
+      "carbs100g": 46.8,
+      "fat100g": 0.29,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0.1,
+      "sodium100g": 8.62
+    }
   },
   {
     "id": "lima",
@@ -3210,7 +3667,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 4
+    "medianAmount": 4,
+    "nutrition": null
   },
   {
     "id": "limon",
@@ -3227,7 +3685,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 5
+    "medianAmount": 5,
+    "nutrition": null
   },
   {
     "id": "linguine",
@@ -3243,7 +3702,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 180
+    "medianAmount": 180,
+    "nutrition": null
   },
   {
     "id": "lombarda",
@@ -3257,7 +3717,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": {
+      "kcal100g": 22.2,
+      "protein100g": 1.5,
+      "carbs100g": 3.5,
+      "fat100g": 0.18,
+      "fiber100g": 2.5,
+      "sugar100g": null,
+      "saturatedFat100g": 0.036,
+      "sodium100g": 8
+    }
   },
   {
     "id": "lomo-de-cerdo-en-filetes",
@@ -3271,7 +3741,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "lubina",
@@ -3292,7 +3763,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 410
+    "medianAmount": 410,
+    "nutrition": null
   },
   {
     "id": "macarrones",
@@ -3308,7 +3780,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "magro-de-cerdo",
@@ -3322,7 +3795,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "maicena",
@@ -3336,7 +3810,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": null
   },
   {
     "id": "maiz",
@@ -3355,7 +3830,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "mango",
@@ -3372,7 +3848,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "manitas-de-cerdo",
@@ -3388,7 +3865,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 1200
+    "medianAmount": 1200,
+    "nutrition": null
   },
   {
     "id": "manteca-de-cerdo",
@@ -3402,7 +3880,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 155
+    "medianAmount": 155,
+    "nutrition": null
   },
   {
     "id": "mantequilla",
@@ -3418,7 +3897,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": null
   },
   {
     "id": "mantequilla-de-cacahuete",
@@ -3434,7 +3914,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "manzana",
@@ -3453,7 +3934,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 120
+    "medianAmount": 120,
+    "nutrition": null
   },
   {
     "id": "masa-de-pizza",
@@ -3469,7 +3951,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "masa-quebrada",
@@ -3485,7 +3968,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "mascarpone",
@@ -3503,7 +3987,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 500
+    "medianAmount": 500,
+    "nutrition": null
   },
   {
     "id": "mayonesa",
@@ -3519,7 +4004,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "medio-cochinillo",
@@ -3533,7 +4019,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 2500
+    "medianAmount": 2500,
+    "nutrition": null
   },
   {
     "id": "mejillones",
@@ -3553,7 +4040,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "melocoton",
@@ -3567,7 +4055,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "melon",
@@ -3581,7 +4070,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "menta",
@@ -3598,7 +4088,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 8
+    "medianAmount": 8,
+    "nutrition": {
+      "kcal100g": 43.4,
+      "protein100g": 3.8,
+      "carbs100g": 5.3,
+      "fat100g": 0.73,
+      "fiber100g": 6.8,
+      "sugar100g": null,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 15
+    }
   },
   {
     "id": "merluza",
@@ -3621,7 +4121,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "merluza-lomos",
@@ -3639,7 +4140,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 335
+    "medianAmount": 335,
+    "nutrition": null
   },
   {
     "id": "mermelada",
@@ -3653,7 +4155,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "miel",
@@ -3669,7 +4172,17 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": {
+      "kcal100g": 314.1,
+      "protein100g": 0.5,
+      "carbs100g": 76.8,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0,
+      "sodium100g": 23
+    }
   },
   {
     "id": "mirin",
@@ -3683,7 +4196,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": null
   },
   {
     "id": "miso",
@@ -3701,7 +4215,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": {
+      "kcal100g": 208.2,
+      "protein100g": 11.69,
+      "carbs100g": 26.47,
+      "fat100g": 6.01,
+      "fiber100g": 5.4,
+      "sugar100g": null,
+      "saturatedFat100g": 1.139,
+      "sodium100g": 3728
+    }
   },
   {
     "id": "monkfish",
@@ -3721,7 +4245,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": null
   },
   {
     "id": "morcilla",
@@ -3738,7 +4263,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": {
+      "kcal100g": 323,
+      "protein100g": 11,
+      "carbs100g": 3.2,
+      "fat100g": 30,
+      "fiber100g": null,
+      "sugar100g": null,
+      "saturatedFat100g": 11.7,
+      "sodium100g": 700
+    }
   },
   {
     "id": "morcillo",
@@ -3752,7 +4287,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "morcillo-de-ternera",
@@ -3766,7 +4302,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "mostaza",
@@ -3786,7 +4323,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 15
+    "medianAmount": 15,
+    "nutrition": null
   },
   {
     "id": "mozzarella",
@@ -3810,7 +4348,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "muffin-ingle",
@@ -3826,7 +4365,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "muslo-de-pollo",
@@ -3843,7 +4383,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 500
+    "medianAmount": 500,
+    "nutrition": null
   },
   {
     "id": "nabo",
@@ -3857,7 +4398,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 55
+    "medianAmount": 55,
+    "nutrition": null
   },
   {
     "id": "nachos",
@@ -3871,7 +4413,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 135
+    "medianAmount": 135,
+    "nutrition": null
   },
   {
     "id": "naranja",
@@ -3888,7 +4431,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "nata",
@@ -3909,7 +4453,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "nata-para-montar",
@@ -3927,7 +4472,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "navaja",
@@ -3943,7 +4489,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 500
+    "medianAmount": 500,
+    "nutrition": null
   },
   {
     "id": "nueces",
@@ -3961,7 +4508,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": null
   },
   {
     "id": "nuez-moscada",
@@ -3977,7 +4525,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 1
+    "medianAmount": 1,
+    "nutrition": {
+      "kcal100g": 544.8,
+      "protein100g": 5.8,
+      "carbs100g": 49.29,
+      "fat100g": 36.3,
+      "fiber100g": 20.8,
+      "sugar100g": null,
+      "saturatedFat100g": 25.9,
+      "sodium100g": 16.2
+    }
   },
   {
     "id": "obleas",
@@ -3997,7 +4555,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 16
+    "medianAmount": 16,
+    "nutrition": null
   },
   {
     "id": "orecchiette",
@@ -4013,7 +4572,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 180
+    "medianAmount": 180,
+    "nutrition": null
   },
   {
     "id": "oregano",
@@ -4029,7 +4589,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "oreja-de-cerdo",
@@ -4043,7 +4604,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "orzo",
@@ -4059,7 +4621,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 155
+    "medianAmount": 155,
+    "nutrition": null
   },
   {
     "id": "pan",
@@ -4086,7 +4649,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "pan-de-payes",
@@ -4104,7 +4668,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 135
+    "medianAmount": 135,
+    "nutrition": null
   },
   {
     "id": "pan-molde",
@@ -4122,7 +4687,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 18
+    "medianAmount": 18,
+    "nutrition": null
   },
   {
     "id": "pan-rallado",
@@ -4138,7 +4704,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": {
+      "kcal100g": 257.8,
+      "protein100g": 8.47,
+      "carbs100g": 51.5,
+      "fat100g": 1.6,
+      "fiber100g": 3.5,
+      "sugar100g": null,
+      "saturatedFat100g": 0.39,
+      "sodium100g": 540
+    }
   },
   {
     "id": "panceta",
@@ -4156,7 +4732,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "parmesano",
@@ -4179,7 +4756,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "pasas",
@@ -4197,7 +4775,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "pasta",
@@ -4213,7 +4792,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "pasta-corta",
@@ -4229,7 +4809,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 180
+    "medianAmount": 180,
+    "nutrition": null
   },
   {
     "id": "pastrami-de-ternera-en-loncha",
@@ -4243,7 +4824,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "pata-de-ternera",
@@ -4257,7 +4839,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "patata",
@@ -4275,7 +4858,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "pate",
@@ -4291,7 +4875,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 120
+    "medianAmount": 120,
+    "nutrition": null
   },
   {
     "id": "pato",
@@ -4308,7 +4893,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "pavo",
@@ -4324,7 +4910,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "pechuga-de-pavo",
@@ -4340,7 +4927,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "pechuga-de-pollo",
@@ -4356,7 +4944,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "pedro-ximenez",
@@ -4370,7 +4959,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "penne",
@@ -4386,7 +4976,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "pepinillos",
@@ -4406,7 +4997,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "pepino",
@@ -4420,7 +5012,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": {
+      "kcal100g": 11.9,
+      "protein100g": 0.7,
+      "carbs100g": 2,
+      "fat100g": 0.1,
+      "fiber100g": 0.8,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 3
+    }
   },
   {
     "id": "pera",
@@ -4434,7 +5036,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 125
+    "medianAmount": 125,
+    "nutrition": null
   },
   {
     "id": "perdiz",
@@ -4448,7 +5051,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ud",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "perejil",
@@ -4465,7 +5069,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 5
+    "medianAmount": 5,
+    "nutrition": null
   },
   {
     "id": "pescadilla",
@@ -4483,7 +5088,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 335
+    "medianAmount": 335,
+    "nutrition": null
   },
   {
     "id": "pesto",
@@ -4502,7 +5108,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 35
+    "medianAmount": 35,
+    "nutrition": null
   },
   {
     "id": "pimenton",
@@ -4520,7 +5127,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 4
+    "medianAmount": 4,
+    "nutrition": null
   },
   {
     "id": "pimienta",
@@ -4540,7 +5148,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "pimienta-blanca",
@@ -4554,7 +5163,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 1
+    "medianAmount": 1,
+    "nutrition": null
   },
   {
     "id": "pimiento-choricero",
@@ -4574,7 +5184,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 15
+    "medianAmount": 15,
+    "nutrition": null
   },
   {
     "id": "pimiento-rojo",
@@ -4591,7 +5202,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "pimiento-verde",
@@ -4611,7 +5223,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "pimientos-del-piquillo",
@@ -4625,7 +5238,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 104
+    "medianAmount": 104,
+    "nutrition": null
   },
   {
     "id": "pina",
@@ -4639,7 +5253,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": null
   },
   {
     "id": "pinones",
@@ -4655,7 +5270,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": null
   },
   {
     "id": "pistacho",
@@ -4674,7 +5290,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "placas-de-cannelones",
@@ -4688,7 +5305,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "platano",
@@ -4704,7 +5322,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 1
+    "medianAmount": 1,
+    "nutrition": {
+      "kcal100g": 88.8,
+      "protein100g": 1.2,
+      "carbs100g": 20,
+      "fat100g": 0.3,
+      "fiber100g": 3.4,
+      "sugar100g": null,
+      "saturatedFat100g": 0.11,
+      "sodium100g": 1
+    }
   },
   {
     "id": "platano-macho",
@@ -4718,7 +5346,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 1
+    "medianAmount": 1,
+    "nutrition": null
   },
   {
     "id": "pluma-iberica",
@@ -4732,7 +5361,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "pollo",
@@ -4752,7 +5382,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "pomelo",
@@ -4766,7 +5397,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 101
+    "medianAmount": 101,
+    "nutrition": {
+      "kcal100g": 25.7,
+      "protein100g": 0.7,
+      "carbs100g": 5.4,
+      "fat100g": 0.1,
+      "fiber100g": 1.3,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 1
+    }
   },
   {
     "id": "presa-iberica",
@@ -4780,7 +5421,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 375
+    "medianAmount": 375,
+    "nutrition": null
   },
   {
     "id": "puerro",
@@ -4794,7 +5436,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "pulpa-de-acai-congelada",
@@ -4808,7 +5451,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "pulpo",
@@ -4826,7 +5470,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": null
   },
   {
     "id": "quesito",
@@ -4842,7 +5487,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "queso",
@@ -4872,7 +5518,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 50
+    "medianAmount": 50,
+    "nutrition": null
   },
   {
     "id": "queso-azul",
@@ -4888,7 +5535,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "queso-brie",
@@ -4904,7 +5552,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "queso-cabra",
@@ -4922,7 +5571,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "queso-crema",
@@ -4938,7 +5588,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 180
+    "medianAmount": 180,
+    "nutrition": null
   },
   {
     "id": "queso-en-lonchas",
@@ -4954,7 +5605,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "queso-feta",
@@ -4970,7 +5622,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "queso-fresco",
@@ -4988,7 +5641,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "queso-tierno",
@@ -5004,7 +5658,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "quinoa",
@@ -5018,7 +5673,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "rabo-de-toro",
@@ -5032,7 +5688,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 800
+    "medianAmount": 800,
+    "nutrition": null
   },
   {
     "id": "ravioli",
@@ -5049,7 +5706,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "redondo-de-ternera",
@@ -5063,7 +5721,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 425
+    "medianAmount": 425,
+    "nutrition": null
   },
   {
     "id": "remolacha",
@@ -5079,7 +5738,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "repollo",
@@ -5095,7 +5755,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": {
+      "kcal100g": 25.9,
+      "protein100g": 1.8,
+      "carbs100g": 3.7,
+      "fat100g": 0.4,
+      "fiber100g": 3.1,
+      "sugar100g": null,
+      "saturatedFat100g": 0.1,
+      "sodium100g": 16
+    }
   },
   {
     "id": "requeson",
@@ -5113,7 +5783,17 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": {
+      "kcal100g": 101.5,
+      "protein100g": 12.31,
+      "carbs100g": 3.3,
+      "fat100g": 4.3,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 2.045,
+      "sodium100g": 230
+    }
   },
   {
     "id": "ricotta",
@@ -5133,7 +5813,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 175
+    "medianAmount": 175,
+    "nutrition": null
   },
   {
     "id": "rigatoni",
@@ -5149,7 +5830,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "rodaballo",
@@ -5169,7 +5851,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": {
+      "kcal100g": 97.3,
+      "protein100g": 16.1,
+      "carbs100g": 0,
+      "fat100g": 3.6,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 1.12,
+      "sodium100g": 114
+    }
   },
   {
     "id": "rodajas-de-emperador",
@@ -5185,7 +5877,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 320
+    "medianAmount": 320,
+    "nutrition": null
   },
   {
     "id": "romero",
@@ -5201,7 +5894,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 3
+    "medianAmount": 3,
+    "nutrition": {
+      "kcal100g": 343.3,
+      "protein100g": 5,
+      "carbs100g": 46.4,
+      "fat100g": 15.2,
+      "fiber100g": 24.1,
+      "sugar100g": null,
+      "saturatedFat100g": 7.37,
+      "sodium100g": 50
+    }
   },
   {
     "id": "ron",
@@ -5217,7 +5920,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "roquefort",
@@ -5233,7 +5937,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "rucula",
@@ -5247,7 +5952,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 40
+    "medianAmount": 40,
+    "nutrition": {
+      "kcal100g": 31.1,
+      "protein100g": 2.58,
+      "carbs100g": 3.65,
+      "fat100g": 0.66,
+      "fiber100g": 1.6,
+      "sugar100g": null,
+      "saturatedFat100g": 0.086,
+      "sodium100g": 27
+    }
   },
   {
     "id": "sal",
@@ -5261,7 +5976,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 3
+    "medianAmount": 3,
+    "nutrition": null
   },
   {
     "id": "sal-escamas",
@@ -5275,7 +5991,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "sal-gruesa",
@@ -5291,7 +6008,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 25
+    "medianAmount": 25,
+    "nutrition": null
   },
   {
     "id": "salchicha",
@@ -5307,7 +6025,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "salmon",
@@ -5328,7 +6047,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 310
+    "medianAmount": 310,
+    "nutrition": null
   },
   {
     "id": "salmon-ahumado",
@@ -5344,7 +6064,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": {
+      "kcal100g": 180.1,
+      "protein100g": 25.4,
+      "carbs100g": 0,
+      "fat100g": 8.7,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 1.36,
+      "sodium100g": 1880
+    }
   },
   {
     "id": "salmon-fresco",
@@ -5365,7 +6095,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 220
+    "medianAmount": 220,
+    "nutrition": null
   },
   {
     "id": "salsa-barbacoa",
@@ -5379,7 +6110,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": {
+      "kcal100g": 176.9,
+      "protein100g": 1.8,
+      "carbs100g": 37.81,
+      "fat100g": 1.8,
+      "fiber100g": 5.91,
+      "sugar100g": null,
+      "saturatedFat100g": 0.3,
+      "sodium100g": 810
+    }
   },
   {
     "id": "salsa-cesar",
@@ -5397,7 +6138,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "salsa-soja",
@@ -5414,7 +6156,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 20
+    "medianAmount": 20,
+    "nutrition": {
+      "kcal100g": 63.5,
+      "protein100g": 8.7,
+      "carbs100g": 6.7,
+      "fat100g": 0.1,
+      "fiber100g": 1.6,
+      "sugar100g": null,
+      "saturatedFat100g": 0.011,
+      "sodium100g": 5720
+    }
   },
   {
     "id": "salsa-worcestershire",
@@ -5433,7 +6185,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ml",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": null
   },
   {
     "id": "salvia",
@@ -5449,7 +6202,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 6
+    "medianAmount": 6,
+    "nutrition": null
   },
   {
     "id": "sandia",
@@ -5463,7 +6217,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 300
+    "medianAmount": 300,
+    "nutrition": null
   },
   {
     "id": "sardinas",
@@ -5482,7 +6237,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "secreto-iberico",
@@ -5496,7 +6252,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "semola-de-trigo",
@@ -5512,7 +6269,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 15
+    "medianAmount": 15,
+    "nutrition": null
   },
   {
     "id": "sepia",
@@ -5530,7 +6288,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "sesamo",
@@ -5550,7 +6309,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 6
+    "medianAmount": 6,
+    "nutrition": null
   },
   {
     "id": "setas",
@@ -5568,7 +6328,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 250
+    "medianAmount": 250,
+    "nutrition": null
   },
   {
     "id": "sidra",
@@ -5586,7 +6347,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": null
   },
   {
     "id": "sirope-de-arce",
@@ -5600,7 +6362,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "sobrasada",
@@ -5614,7 +6377,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": {
+      "kcal100g": 595.4,
+      "protein100g": 12.9,
+      "carbs100g": 0,
+      "fat100g": 61.4,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 20.7,
+      "sodium100g": 1264
+    }
   },
   {
     "id": "solomillo",
@@ -5635,7 +6408,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 350
+    "medianAmount": 350,
+    "nutrition": null
   },
   {
     "id": "sriracha",
@@ -5649,7 +6423,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 15
+    "medianAmount": 15,
+    "nutrition": null
   },
   {
     "id": "surimi",
@@ -5667,7 +6442,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   },
   {
     "id": "tabasco",
@@ -5681,7 +6457,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": {
+      "kcal100g": 15.2,
+      "protein100g": 1.29,
+      "carbs100g": 0.8,
+      "fat100g": 0.76,
+      "fiber100g": 0.6,
+      "sugar100g": null,
+      "saturatedFat100g": 0.106,
+      "sodium100g": 633
+    }
   },
   {
     "id": "tahini",
@@ -5697,7 +6483,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 25
+    "medianAmount": 25,
+    "nutrition": null
   },
   {
     "id": "tallarines",
@@ -5718,7 +6505,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "ternera-magra",
@@ -5732,7 +6520,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "tinta-de-calamar",
@@ -5752,7 +6541,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 8
+    "medianAmount": 8,
+    "nutrition": null
   },
   {
     "id": "tocino",
@@ -5766,7 +6556,17 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": {
+      "kcal100g": 662,
+      "protein100g": 8.4,
+      "carbs100g": 0,
+      "fat100g": 71,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 29.38,
+      "sodium100g": 560
+    }
   },
   {
     "id": "tofu",
@@ -5782,7 +6582,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "tomate",
@@ -5802,7 +6603,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 150
+    "medianAmount": 150,
+    "nutrition": {
+      "kcal100g": 18.8,
+      "protein100g": 0.9,
+      "carbs100g": 3.5,
+      "fat100g": 0.1,
+      "fiber100g": 1.1,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 18
+    }
   },
   {
     "id": "tomate-cherry",
@@ -5818,7 +6629,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 110
+    "medianAmount": 110,
+    "nutrition": null
   },
   {
     "id": "tomate-concentrado",
@@ -5832,7 +6644,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 18
+    "medianAmount": 18,
+    "nutrition": null
   },
   {
     "id": "tomate-frito",
@@ -5848,7 +6661,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "tomate-seco",
@@ -5864,7 +6678,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 50
+    "medianAmount": 50,
+    "nutrition": null
   },
   {
     "id": "tomate-triturado",
@@ -5880,7 +6695,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": null
   },
   {
     "id": "tomillo",
@@ -5896,7 +6712,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "tortilla-de-maiz",
@@ -5912,7 +6729,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 4
+    "medianAmount": 4,
+    "nutrition": null
   },
   {
     "id": "tortilla-de-trigo",
@@ -5932,7 +6750,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 2
+    "medianAmount": 2,
+    "nutrition": null
   },
   {
     "id": "trofie",
@@ -5948,7 +6767,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 200
+    "medianAmount": 200,
+    "nutrition": null
   },
   {
     "id": "truchas-enteras",
@@ -5967,7 +6787,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 400
+    "medianAmount": 400,
+    "nutrition": null
   },
   {
     "id": "trufa-negra",
@@ -5983,7 +6804,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 9
+    "medianAmount": 9,
+    "nutrition": null
   },
   {
     "id": "unto",
@@ -5997,7 +6819,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 30
+    "medianAmount": 30,
+    "nutrition": null
   },
   {
     "id": "uvas",
@@ -6011,7 +6834,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": null
   },
   {
     "id": "ventresca",
@@ -6027,7 +6851,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 120
+    "medianAmount": 120,
+    "nutrition": null
   },
   {
     "id": "vieira",
@@ -6046,7 +6871,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "ud",
-    "medianAmount": 8
+    "medianAmount": 8,
+    "nutrition": null
   },
   {
     "id": "vinagre",
@@ -6068,7 +6894,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": null
   },
   {
     "id": "vinagre-balsamico",
@@ -6088,7 +6915,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": {
+      "kcal100g": 71.2,
+      "protein100g": 0.49,
+      "carbs100g": 17.03,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0,
+      "sodium100g": 23
+    }
   },
   {
     "id": "vinagre-de-jerez",
@@ -6104,7 +6941,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 10
+    "medianAmount": 10,
+    "nutrition": null
   },
   {
     "id": "vinagre-de-manzana",
@@ -6120,7 +6958,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 15
+    "medianAmount": 15,
+    "nutrition": {
+      "kcal100g": 4.1,
+      "protein100g": 0.4,
+      "carbs100g": 0.6,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0,
+      "sodium100g": 20
+    }
   },
   {
     "id": "vino-blanco",
@@ -6144,7 +6992,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": {
+      "kcal100g": 60.3,
+      "protein100g": 0.1,
+      "carbs100g": 0.1,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0,
+      "sodium100g": 2
+    }
   },
   {
     "id": "vino-tinto",
@@ -6162,7 +7020,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 100
+    "medianAmount": 100,
+    "nutrition": {
+      "kcal100g": 70.2,
+      "protein100g": 0.23,
+      "carbs100g": 0.3,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0,
+      "sodium100g": 4
+    }
   },
   {
     "id": "vodka",
@@ -6178,7 +7046,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 50
+    "medianAmount": 50,
+    "nutrition": null
   },
   {
     "id": "vol-au-vent",
@@ -6197,7 +7066,8 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ud",
-    "medianAmount": 5
+    "medianAmount": 5,
+    "nutrition": null
   },
   {
     "id": "whisky",
@@ -6213,7 +7083,17 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "ml",
-    "medianAmount": 60
+    "medianAmount": 60,
+    "nutrition": {
+      "kcal100g": 244.4,
+      "protein100g": 0,
+      "carbs100g": 0.11,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0,
+      "sodium100g": null
+    }
   },
   {
     "id": "yogur",
@@ -6235,7 +7115,8 @@
     "isVegetarian": true,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 125
+    "medianAmount": 125,
+    "nutrition": null
   },
   {
     "id": "zamburina",
@@ -6251,7 +7132,8 @@
     "isVegetarian": false,
     "isVegan": false,
     "defaultUnit": "g",
-    "medianAmount": 240
+    "medianAmount": 240,
+    "nutrition": null
   },
   {
     "id": "zanahoria",
@@ -6265,6 +7147,7 @@
     "isVegetarian": true,
     "isVegan": true,
     "defaultUnit": "g",
-    "medianAmount": 80
+    "medianAmount": 80,
+    "nutrition": null
   }
 ]

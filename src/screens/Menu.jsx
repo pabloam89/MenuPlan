@@ -28,6 +28,7 @@ import {
   Droplets,
   Drumstick,
   Egg,
+  Euro,
   Fish,
   Flame,
   Gauge,
@@ -85,6 +86,7 @@ import {
   ingredientsByPart,
   STEP_PART_META,
 } from "../lib/recipeSteps.js";
+import { estimateRecipeCost } from "../lib/listPricing.js";
 import {
   assignFreezerToSlot,
   assignFridgeToSlot,
@@ -5298,6 +5300,22 @@ export function DishDetail({
     }
     return map;
   }, [cookable, ingredients, pantryStock]);
+  // Coste estimado por ración — mismo motor de precios que la lista de la
+  // compra (Fase 8), aplicado a lo que este plato compra de verdad (los
+  // ingredientes ya escalados a `cookedEaters`). Async porque el catálogo de
+  // Mercadona se carga por fetch; sin resultado (aún cargando, o ningún
+  // ingrediente con precio) no se pinta nada — nunca un coste inventado.
+  const [recipeCost, setRecipeCost] = useState(null);
+  useEffect(() => {
+    let active = true;
+    setRecipeCost(null);
+    if (ingredients.length === 0 || !(cookedEaters > 0)) return undefined;
+    (async () => {
+      const cost = await estimateRecipeCost({ ingredients }, cookedEaters, data?.priceObs ?? []);
+      if (active) setRecipeCost(cost);
+    })();
+    return () => { active = false; };
+  }, [ingredients, cookedEaters, data?.priceObs]);
   // "Lo tengo": you have this even though it's not registered — add it to En
   // casa (the override we agreed on), so the tick lights up and cooking can
   // later discount it. Uses the dish's scaled need as the stocked amount.
@@ -5871,6 +5889,11 @@ export function DishDetail({
             <span style={detailTagStyle}>
               <Gauge size={12} /> {activeMethod.difficultyLabel}
             </span>
+            {recipeCost != null && (
+              <span style={detailTagStyle}>
+                <Euro size={12} /> ~{recipeCost.perServing.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/ración
+              </span>
+            )}
             {recipe.allergens.length > 0 && (
               <>
                 <span style={{ width: 1, alignSelf: "stretch", background: "#e6efe9", margin: "0 2px" }} />
@@ -6483,6 +6506,15 @@ export function DishDetail({
               }}
             >
               <Flame size={16} /> Nutrientes por ración
+              {recipe.source === "user" && recipe.nutritionSource && (
+                <span style={{
+                  fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999,
+                  color: recipe.nutritionSource === "computed" ? "#2d5a3d" : "#8a6d1f",
+                  background: recipe.nutritionSource === "computed" ? "#2d5a3d14" : "#8a6d1f14",
+                }}>
+                  {recipe.nutritionSource === "computed" ? "Nutrición calculada" : "Estimada por IA"}
+                </span>
+              )}
               <ChevronDown
                 size={16}
                 strokeWidth={2.6}
