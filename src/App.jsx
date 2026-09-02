@@ -1206,12 +1206,21 @@ export default function App() {
             Object.keys(prunedData?.menus ?? {}).length < Object.keys(d.menus ?? {}).length;
           const obsShrunk = (prunedData?.priceObs?.length ?? 0) < (d.priceObs?.length ?? 0);
           const receiptsShrunk = (prunedData?.receipts?.length ?? 0) < (d.receipts?.length ?? 0);
-          if (!menusShrunk && !obsShrunk && !receiptsShrunk) return d;
+          // Heavy embedded recipe photos stripped by the "hard" compaction
+          // tier (see storage.js stripHeavyRecipePhotos) — without syncing
+          // this back too, React state keeps the full-size photo, the next
+          // autosave tick writes it again, and every single save silently
+          // re-strips from scratch instead of ever actually recovering.
+          const recipesShrunk = (prunedData?.userRecipes ?? []).some(
+            (r, i) => d.userRecipes?.[i]?.id === r.id && d.userRecipes[i].photo && !r.photo,
+          );
+          if (!menusShrunk && !obsShrunk && !receiptsShrunk && !recipesShrunk) return d;
           return {
             ...d,
             menus: prunedData.menus ?? d.menus,
             priceObs: prunedData.priceObs ?? d.priceObs,
             receipts: prunedData.receipts ?? d.receipts,
+            userRecipes: prunedData.userRecipes ?? d.userRecipes,
           };
         });
         const prunedAi = result.saved.aiRecipes ?? [];

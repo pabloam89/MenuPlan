@@ -29,10 +29,23 @@ function recipeIdsFromPlan(plan) {
   return ids;
 }
 
+// A recipe's `photo` is a raw base64 data: URL (up to ~1-2MB pre-compression;
+// see compressPhotoDataUrl) stored directly on the recipe object — by far the
+// heaviest thing saveState ever writes. A hosted-URL photo is short and left
+// alone; only an embedded data: URI is worth dropping.
+function stripHeavyRecipePhotos(userRecipes) {
+  if (!Array.isArray(userRecipes)) return userRecipes;
+  return userRecipes.map((r) =>
+    typeof r?.photo === "string" && r.photo.startsWith("data:") ? { ...r, photo: undefined } : r,
+  );
+}
+
 /**
  * Shrinks the heaviest local blobs so a QuotaExceeded write can still succeed.
  * Light = recent history / spend still mostly intact; hard = keep the active
- * menú usable and drop older archive + spend noise.
+ * menú usable and drop older archive + spend noise + embedded recipe photos
+ * (the recipe itself — ingredients, steps — survives; only the thumbnail
+ * goes, which is strictly better than the whole save failing).
  */
 function compactState(state, level) {
   const data = { ...(state.data ?? {}) };
@@ -46,6 +59,9 @@ function compactState(state, level) {
   }
   if (Array.isArray(data.receipts) && data.receipts.length > maxReceipts) {
     data.receipts = data.receipts.slice(-maxReceipts);
+  }
+  if (level === "hard") {
+    data.userRecipes = stripHeavyRecipePhotos(data.userRecipes);
   }
 
   let aiRecipes = Array.isArray(state.aiRecipes) ? state.aiRecipes : [];

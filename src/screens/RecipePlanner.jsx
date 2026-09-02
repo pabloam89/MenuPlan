@@ -71,6 +71,7 @@ import {
   COOKING_METHODS,
   generateUserRecipeDraft,
   generateDishPhotoWithAI,
+  compressPhotoDataUrl,
   suggestRecipeIngredients,
   filterOwnCreatedRecipes,
 } from "../lib/userRecipes.js";
@@ -2160,7 +2161,12 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     photoAbortRef.current = ctrl;
     try {
       const dataUrl = await generateDishPhotoWithAI(form.name.trim(), { signal: ctrl.signal, category: form.category });
-      setPhoto(dataUrl);
+      // Shrink before it ever reaches state/localStorage — the raw Gemini
+      // output can be 1-2MB, and it's about to be stored on the recipe
+      // itself (see compressPhotoDataUrl). Falls back to the original on
+      // any processing error rather than losing the photo.
+      const compressed = await compressPhotoDataUrl(dataUrl).catch(() => dataUrl);
+      setPhoto(compressed);
       setPhotoGenState("idle");
     } catch (err) {
       if (err?.name === "AbortError") return;

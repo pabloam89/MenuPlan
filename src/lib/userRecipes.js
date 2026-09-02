@@ -445,6 +445,39 @@ export async function generateDishPhotoWithAI(dishName, { signal, category, step
   return payload.photo;
 }
 
+const PHOTO_MAX_DIM = 900;
+const PHOTO_JPEG_QUALITY = 0.82;
+
+/**
+ * Gemini's dish photo arrives as a raw base64 data: URL — often 1-2MB — and
+ * is stored as-is on the recipe (localStorage, Supabase, everywhere the
+ * recipe travels). Re-encoding through a canvas at a capped resolution/
+ * quality shrinks that by roughly 10-20x before it's ever saved. Without
+ * this, a handful of AI-photographed recipes alone can exhaust a browser's
+ * localStorage quota (reported in production as "saving a recipe" failing
+ * with a storage-full error after only a few).
+ *
+ * @param {string} dataUrl
+ * @returns {Promise<string>}
+ */
+export function compressPhotoDataUrl(dataUrl, { maxDim = PHOTO_MAX_DIM, quality = PHOTO_JPEG_QUALITY } = {}) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => reject(new Error("No se pudo procesar la foto generada."));
+    img.src = dataUrl;
+  });
+}
+
 export function iconTypeForRecipe(recipe) {
   return ICON_TYPE_MAP[recipe.mainProtein] ?? CATEGORY_ICON[recipe.category] ?? "chef";
 }
