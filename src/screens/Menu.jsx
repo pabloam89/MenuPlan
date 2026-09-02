@@ -61,10 +61,12 @@ import {
   Wrench,
   X,
   Zap,
+  MilkOff,
 } from "lucide-react";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
+import { adaptationsNeededFor } from "../lib/substitutions.js";
 import { matchingHealthProfiles } from "../lib/healthProfileMatch.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -103,6 +105,7 @@ import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
 import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { CommentThread } from "../components/CommentThread.jsx";
 import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
@@ -4367,7 +4370,17 @@ export const MenuScreen = memo(function MenuScreen({
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <WeekRangeBadge label={weekLabel} hideLabel />
           <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-            <ProfileButton onClick={() => setProfileOpen(true)} />
+            {/* Las caras de quien come, y al tocarlas se abren los ajustes
+                del hogar: en esta app "tu perfil" son ellos, asi que la
+                puerta es su propia foto y no un icono de persona generica. */}
+            <button
+              type="button"
+              onClick={() => setProfileOpen(true)}
+              aria-label="Ajustes del hogar"
+              style={{ display: "flex", alignItems: "center", padding: 0, border: "none", background: "none", cursor: "pointer", fontFamily: "inherit" }}
+            >
+              <GroupAvatarStack faces={groupAvatarFaces(data.members ?? [], data.members ?? [])} size={26} max={4} />
+            </button>
           </div>
           <button
             type="button"
@@ -5213,6 +5226,11 @@ export function DishDetail({
   // source of truth: a tick means "you already have it in En casa"; "Marcar
   // cocinado" discounts the dish's ingredients from that stock (undo restores).
   const cookable = !browse && day != null && meal != null && cookWeekKey != null && setData != null;
+  // Solo se calcula al navegar el catálogo, que es donde se pinta.
+  const potentialSwaps = useMemo(
+    () => (browse ? adaptationsNeededFor(recipe, "lactosa_fina") : []),
+    [browse, recipe],
+  );
   const cookedKey = cookable ? `${cookWeekKey}::${day}::${meal}::${recipe.id}` : null;
   const isCooked = cookedKey ? (data?.cookedDishes ?? []).includes(cookedKey) : false;
   const [pantryStock, setPantryStock] = useState([]);
@@ -5900,6 +5918,32 @@ export function DishDetail({
             </div>
           )}
 
+          {/* Mismo bloque de arriba pero en potencial: el de arriba aparece
+              cuando el menú YA se generó adaptado para alguien de la casa;
+              este solo al navegar el catálogo, para que un plato diga por sí
+              mismo que se puede hacer sin lactosa y con qué cambio. Fuera del
+              catálogo no se pinta: a quien no le afecta, le sobra. */}
+          {browse && !recipe.adaptations?.length && potentialSwaps.length > 0 && (
+            <div style={{
+              display: "flex", alignItems: "flex-start", gap: 8,
+              marginBottom: 14,
+              padding: "12px 15px",
+              borderRadius: 16,
+              background: "#f2f9f4",
+              border: "2px solid #4cba6e",
+            }}>
+              <MilkOff size={15} color="#2f9e52" strokeWidth={2.4} style={{ marginTop: 1, flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#2f9e52", letterSpacing: ".3px", textTransform: "uppercase" }}>
+                  Se puede hacer sin lactosa
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#3a5a44", marginTop: 3 }}>
+                  {potentialSwaps.map((a) => `${a.from} → ${a.to}`).join(" · ")}
+                </div>
+              </div>
+            </div>
+          )}
+
           {healthBadges.map(({ id, Icon, label, color, explain }) => (
             <div
               key={id}
@@ -6492,6 +6536,24 @@ export function DishDetail({
               </button>
             )}
           </div>
+          )}
+
+          {/* Lo que dice la gente de este plato.
+              Tambien en las recetas de HoMenu: los votos y los comentarios de
+              una receta de la casa son igual de utiles que los de una tuya, y
+              desde 0036 el dueño puede ir nulo justo para esto.
+              Sin sesion no se pinta: comentar pide cuenta, y un hilo que no
+              puedes usar solo estorba. */}
+          {user?.id && recipe?.id && (
+            <section style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eef3f0" }}>
+              <CommentThread
+                user={user}
+                targetType="recipe"
+                targetId={String(recipe.id).split("__").pop()}
+                targetOwnerId={recipe.owner?.id ?? null}
+                startOpen
+              />
+            </section>
           )}
         </div>
       </div>

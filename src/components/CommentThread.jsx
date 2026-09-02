@@ -43,8 +43,10 @@ const GREEN = "#2d5a3d";
  * `targetOwnerId` viaja hasta el insert porque la política de lectura lo
  * necesita en la fila (ver 0028_social_requests_comments.sql).
  */
-export function CommentThread({ user, targetType, targetId, targetOwnerId, count: initialCount = null }) {
-  const [open, setOpen] = useState(false);
+export function CommentThread({ user, targetType, targetId, targetOwnerId, count: initialCount = null, startOpen = false }) {
+  // Plegado en la corriente del feed (un hilo por tarjeta seria un muro de
+  // texto) y abierto en la ficha de un plato, donde ya has entrado a leer.
+  const [open, setOpen] = useState(startOpen);
   const [items, setItems] = useState(null);
   const [people, setPeople] = useState({});
   const [likes, setLikes] = useState({});

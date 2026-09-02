@@ -23,6 +23,8 @@ import { OnboardingProgressContext } from "./screens/onboardingProgressContext.j
 import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
 import { publishMenu, unpublishMenu, loadMyPublishedMenus } from "./lib/social.js";
 import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
+import { readIncomingLink } from "./lib/shareLink.js";
+import { searchProfiles } from "./lib/social.js";
 import { setFeedBadge } from "./lib/socialBadge.js";
 // Import normal, no lazy: es el paso 0 del asistente y `onbScreens` se pinta
 // sin <Suspense> alrededor. Además vive sobre OnboardingShell, que ya viene en
@@ -2831,6 +2833,28 @@ export default function App() {
     loadMyPublishedMenus(user.id).then((m) => { if (alive) setPublishedMenus(m); });
     return () => { alive = false; };
   }, [user?.id]);
+  // Quien llega desde un enlace compartido (?r= receta, ?u= perfil) entra
+  // directo a eso. Se lee una sola vez al arrancar: readIncomingLink limpia
+  // la barra, asi que recargar no repite la apertura.
+  const [deepLinkPerson, setDeepLinkPerson] = useState(null);
+  useEffect(() => {
+    const link = readIncomingLink();
+    if (!link) return;
+    if (link.kind === "recipe") {
+      handleOpenFeedRecipe({ id: link.id });
+      return;
+    }
+    // Del handle solo tenemos el texto: hay que resolverlo a una persona.
+    searchProfiles(link.username).then((rows) => {
+      const hit = rows.find((r) => r.username?.toLowerCase() === link.username.toLowerCase());
+      if (!hit) return;
+      setDeepLinkPerson(hit.user_id);
+      setScreen("feed");
+    });
+    // Solo al montar: un enlace se atiende una vez.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // El punto del tab Feed necesita saberse al ARRANCAR, no al entrar al Feed
   // (si hiciera falta entrar para verlo, no avisaria de nada). Una consulta
   // al iniciar sesion y ya: sin polling — el Feed refresca el punto solo
@@ -4504,6 +4528,8 @@ export default function App() {
                 onPublishRecipe={handlePublishRecipe}
                 onNav={handleNav}
                 onOpenRecipe={handleOpenFeedRecipe}
+                initialPersonId={deepLinkPerson}
+                onConsumedPerson={() => setDeepLinkPerson(null)}
                 onCopyRecipe={handleCopyRecipeFromFeed}
                 recipeFolders={data.recipeFolders}
                 onCreateFolder={householdReadOnly ? undefined : handleCreateFolder}

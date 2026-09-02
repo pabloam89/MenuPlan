@@ -12,6 +12,7 @@ import { NotificationsPopover } from "../components/NotificationsPopover.jsx";
 import { DiscoverPeopleSheet } from "../components/DiscoverPeopleSheet.jsx";
 import { loadNotifications, markNotificationsSeen, countUnread } from "../lib/socialNotifications.js";
 import { setFeedBadge } from "../lib/socialBadge.js";
+import { shareOut } from "../lib/shareLink.js";
 import { relativeTime } from "../lib/socialUi.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
@@ -86,6 +87,8 @@ export function FeedScreen({
   onUnpublishMenu,
   unsharedRecipes = [],
   myRecipes = [],
+  initialPersonId = null,
+  onConsumedPerson,
   onPublishRecipe,
   recipeFolders = [],
   onCreateFolder,
@@ -111,7 +114,14 @@ export function FeedScreen({
   const [stats, setStats] = useState({});
   const [folderPickerFor, setFolderPickerFor] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [personId, setPersonId] = useState(null);
+  const [personId, setPersonId] = useState(initialPersonId);
+  // Un enlace a un perfil abre esa ficha en cuanto la pantalla existe.
+  useEffect(() => {
+    if (!initialPersonId) return;
+    setPersonId(initialPersonId);
+    onConsumedPerson?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPersonId]);
   const [sharing, setSharing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareRecipeOpen, setShareRecipeOpen] = useState(false);
@@ -680,6 +690,14 @@ export function FeedScreen({
  */
 function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onCopy, onMeh, onDislike, onOpenPerson }) {
   const [reporting, setReporting] = useState(false);
+  // Aviso corto de que el enlace se copio: un boton que no confirma nada
+  // parece roto aunque haya funcionado.
+  const [shared, setShared] = useState(null);
+  useEffect(() => {
+    if (!shared) return;
+    const t = setTimeout(() => setShared(null), 2200);
+    return () => clearTimeout(t);
+  }, [shared]);
   const r = item.recipe;
   const poster = {
     id: r.id,
@@ -744,12 +762,32 @@ function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onC
           targetOwnerId={item.ownerId}
           count={stats?.comments ?? 0}
         />
+        {/* Mandarla fuera de la app. Sin esto, enseñarle a alguien lo que
+            cocinas exigia que ya estuviera dentro. */}
+        <button
+          type="button"
+          aria-label="Compartir receta"
+          onClick={async () => {
+            const res = await shareOut({
+              kind: "recipe", value: item.recipe.id,
+              title: item.recipe.name,
+              text: `Mira esta receta en HoMenu: ${item.recipe.name}`,
+            });
+            if (res === "copied") setShared("Enlace copiado");
+            else if (res === "error") setShared("No se ha podido compartir");
+          }}
+          style={{ ...reportLink, marginLeft: "auto" }}
+        >
+          <Share2 size={11} strokeWidth={2.5} />
+        </button>
         {!mine && (
-          <button type="button" onClick={() => setReporting(true)} aria-label="Reportar receta" style={{ ...reportLink, marginLeft: "auto" }}>
+          <button type="button" onClick={() => setReporting(true)} aria-label="Reportar receta" style={reportLink}>
             <Flag size={11} strokeWidth={2.5} />
           </button>
         )}
       </div>
+
+      {shared && <div style={sharedNote}>{shared}</div>}
 
       {reporting && (
         <ReportSheet user={user} targetType="recipe" targetId={item.recipe.id} onClose={() => setReporting(false)} />
@@ -1226,6 +1264,11 @@ const peekMenuItem = {
 
 // El icono de reportar una receta: discreto de serie (gris clarito), no
 // compite con los tres botones de decision que son la accion principal.
+const sharedNote = {
+  alignSelf: "center", padding: "5px 12px", borderRadius: 999,
+  background: "#eef6f4", color: TEAL, fontSize: 11.5, fontWeight: 800,
+};
+
 const reportLink = {
   display: "flex", alignItems: "center", justifyContent: "center",
   padding: 4, border: "none", background: "none", color: "#c2d2c8", cursor: "pointer",

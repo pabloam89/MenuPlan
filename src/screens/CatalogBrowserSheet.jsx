@@ -28,6 +28,8 @@ import {
   Heart,
   Globe,
   Users2,
+  ThumbsUp,
+  MessageCircle,
   Lock,
   ChevronDown,
   Trash2,
@@ -43,9 +45,12 @@ import {
   Droplets,
   Sun,
   Snowflake,
+  MilkOff,
 } from "lucide-react";
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
+import { loadRecipeStats } from "../lib/social.js";
 import { isMontaje } from "../data/recipeSchema.js";
+import { isCompatibleWith } from "../lib/substitutions.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import salsasData from "../data/recipes/salsas.json";
 import { dishImageUrl, dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -119,6 +124,15 @@ const FACET_META = {
   gourmet:  { label: "Platos gourmet", img: "/categories/faceta_gourmet.webp", wired: true, color: "#a97e21", Icon: Sparkles },
   verano:   { label: "De verano", img: "/categories/faceta_verano.webp", wired: true, color: "#e0a83a", Icon: Sun },
   invierno: { label: "De invierno", img: "/categories/faceta_invierno.webp", wired: true, color: "#4f5c78", Icon: Snowflake },
+  // Filtra por isCompatibleWith("lactosa_fina"): entran tanto los platos que ya
+  // no llevan lácteos como los que los llevan pero se pueden cambiar por su
+  // versión sin lactosa. La pregunta es "qué puedo comer", no "qué hay que
+  // tocar" — eso lo dice el distintivo de la ficha.
+  //
+  // OJO: es la INTOLERANCIA, no la alergia a la leche. Un producto sin lactosa
+  // conserva la proteína láctea, así que un alérgico no puede guiarse por este
+  // filtro; para él la receta se excluye en filterRecipes y no aparece.
+  sin_lactosa: { label: "Sin lactosa", wired: true, color: "#4a7ab8", Icon: MilkOff },
 };
 
 const DEFAULT_COLOR = "#5a7066";
@@ -329,6 +343,17 @@ export function CatalogBrowserSheet({
     return [...extraRecipes, ...favorited];
   }, [extraRecipes, recipeVotes]);
 
+  useEffect(() => {
+    if (!viewingMine) return;
+    const ids = mineRecipes
+      .filter((r) => r.source === "user" && (r.visibility ?? "private") !== "private")
+      .map((r) => r.id);
+    if (ids.length === 0) return;
+    let alive = true;
+    loadRecipeStats(ids).then((s) => { if (alive) setSocialStats(s); });
+    return () => { alive = false; };
+  }, [viewingMine, mineRecipes]);
+
   // Set version of the same "tuyas + favoritas" pool, para la tile "Mis
   // recetas" del grid de categorías (filtro por id, no por categoría).
   const mineIds = useMemo(() => new Set(mineRecipes.map((r) => r.id)), [mineRecipes]);
@@ -426,6 +451,9 @@ export function CatalogBrowserSheet({
   // La tile "Mis recetas" del grid de categorías filtra al vuelo por tuyas +
   // favoritas, mismo mecanismo que una categoría pero sin tocar `cats`.
   const [viewingMine, setViewingMine] = useState(false);
+  // Como le va a lo que publicaste: se pide UNA vez al entrar en Mis Recetas
+  // y solo para lo tuyo publicado. Fuera de ahi no se pregunta nada.
+  const [socialStats, setSocialStats] = useState({});
   // Carpeta de Inspíranos que se está viendo (o null). Un solo id en vez de un
   // booleano por carpeta: son mutuamente excluyentes al navegar.
   const [viewingCollection, setViewingCollection] = useState(null);
@@ -481,6 +509,7 @@ export function CatalogBrowserSheet({
   const gourmetOnly = activeFacets.has("gourmet");
   const rapidoOnly = activeFacets.has("rapido");
   const seasonFilter = activeFacets.has("verano") ? "verano" : activeFacets.has("invierno") ? "invierno" : null;
+  const sinLactosaOnly = activeFacets.has("sin_lactosa");
 
   const activeFilterCount =
     cats.size +
@@ -490,7 +519,8 @@ export function CatalogBrowserSheet({
     (kidOnly ? 1 : 0) +
     (gourmetOnly ? 1 : 0) +
     (rapidoOnly ? 1 : 0) +
-    (seasonFilter ? 1 : 0);
+    (seasonFilter ? 1 : 0) +
+    (sinLactosaOnly ? 1 : 0);
 
   const platoResults = useMemo(() => {
     const q = norm(query);
@@ -507,10 +537,11 @@ export function CatalogBrowserSheet({
       if (gourmetOnly && !r.apetecible) return false;
       if (rapidoOnly && !isMontaje(r)) return false;
       if (seasonFilter && r.season !== seasonFilter) return false;
+      if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, platoCatalog, restrictToIds, viewingMine, mineIds, collectionIds]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, platoCatalog, restrictToIds, viewingMine, mineIds, collectionIds]);
 
   const garnishResults = useMemo(() => {
     const q = norm(query);
@@ -553,6 +584,7 @@ export function CatalogBrowserSheet({
         if (gourmetOnly && !r.apetecible) return false;
         if (rapidoOnly && !isMontaje(r)) return false;
         if (seasonFilter && r.season !== seasonFilter) return false;
+        if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
         return true;
       });
       return sortByNameQuery(filtered, q);
@@ -580,6 +612,7 @@ export function CatalogBrowserSheet({
       if (gourmetOnly && !r.apetecible) return false;
       if (rapidoOnly && !isMontaje(r)) return false;
       if (seasonFilter && r.season !== seasonFilter) return false;
+      if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
       return true;
     };
 
@@ -605,7 +638,7 @@ export function CatalogBrowserSheet({
       }
     }
     return sortByNameQuery(out, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes, viewingMine, mineIds, collectionIds]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes, viewingMine, mineIds, collectionIds]);
 
   const gatePickMinePlatoCount = useMemo(
     () => mineRecipes.filter(isGatePickPlato).length,
@@ -763,6 +796,7 @@ export function CatalogBrowserSheet({
   const facetActive = {
     ninos: kidOnly,
     rapido: rapidoOnly,
+    sin_lactosa: sinLactosaOnly,
     gourmet: activeFacets.has("gourmet"),
     verano: activeFacets.has("verano"),
     invierno: activeFacets.has("invierno"),
@@ -1128,6 +1162,13 @@ export function CatalogBrowserSheet({
                     : undefined
                 }
                 animDelay={i < 12 ? i * 18 : 0}
+                // Lo social solo tiene sentido sobre lo TUYO: en el catalogo
+                // no hay nada que publicar ni retirar.
+                social={
+                  viewingMine && r.source === "user"
+                    ? { published: (r.visibility ?? "private") !== "private", visibility: r.visibility, stats: socialStats[r.id] ?? null }
+                    : null
+                }
               />
             ))
           : visible.map((r, i) => (
@@ -2405,9 +2446,28 @@ function formatDishTime(totalMin) {
 // el único catálogo que se navega aquí, así que toda receta que llega ya
 // tiene foto propia — sin guarnición, sin salsa, sin descarte: eso vivía en
 // la lista antigua y ya no aplica a este pool.
+const publishedPin = {
+  position: "absolute", top: 6, left: 6, zIndex: 2,
+  display: "flex", alignItems: "center", justifyContent: "center",
+  width: 20, height: 20, borderRadius: "50%",
+  background: "rgba(45,90,61,.92)", color: "#fff",
+};
+
+const socialPins = {
+  position: "absolute", top: 6, right: 6, zIndex: 2,
+  display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-end",
+};
+
+const socialPin = {
+  display: "inline-flex", alignItems: "center", gap: 3,
+  padding: "2px 6px", borderRadius: 999,
+  background: "rgba(255,255,255,.92)", color: "#42594c",
+  fontSize: 9.5, fontWeight: 800,
+};
+
 function RecipeGridCard({
   recipe, favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker, onOpenRecipe, onDelete,
-  onOpenFolders, inFolders = 0, animDelay = 0,
+  onOpenFolders, inFolders = 0, animDelay = 0, social = null,
 }) {
   const color = categoryColor(recipe.category);
   const photo = dishImageForRecipe(recipe);
@@ -2432,6 +2492,28 @@ function RecipeGridCard({
           boxShadow: "inset 0 0 0 1px #dce8e0",
         }}
       >
+        {/* Publicada o no, y como le va.
+            Solo en TUS recetas (social viene nulo en el catalogo): saber si
+            algo esta publicado importa cuando puedes cambiarlo. El candado no
+            se pinta — que algo sea privado es lo normal, y marcar lo normal
+            llena la rejilla de iconos que no dicen nada. */}
+        {social?.published && (
+          <span style={publishedPin} title={social.visibility === "public" ? "Publicada para cualquiera" : "Publicada para tus amigos"}>
+            {social.visibility === "public"
+              ? <Globe size={10} strokeWidth={2.8} />
+              : <Users2 size={10} strokeWidth={2.8} />}
+          </span>
+        )}
+        {social?.stats && (social.stats.likes > 0 || social.stats.comments > 0) && (
+          <span style={socialPins}>
+            {social.stats.likes > 0 && (
+              <span style={socialPin}><ThumbsUp size={9} strokeWidth={2.8} /> {social.stats.likes}</span>
+            )}
+            {social.stats.comments > 0 && (
+              <span style={socialPin}><MessageCircle size={9} strokeWidth={2.8} /> {social.stats.comments}</span>
+            )}
+          </span>
+        )}
         {photo ? (
           <img src={deckImg(photo, 280)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         ) : (
