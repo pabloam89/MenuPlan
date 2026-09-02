@@ -130,6 +130,35 @@ export function planAdaptations(recipe, restrictionIds) {
 }
 
 /**
+ * ¿Puede alguien con esta restricción comerse este plato?
+ *
+ * Verdadero tanto si el plato ya cumple (no lleva nada que choque) como si lo
+ * que lleva se puede cambiar. Es la pregunta del FILTRO del explorador: "qué
+ * puedo comer", no "qué hay que tocar".
+ *
+ * @param {Object} recipe
+ * @param {string} restrictionId
+ */
+export function isCompatibleWith(recipe, restrictionId) {
+  if (!isAdaptableRestriction(restrictionId)) return false;
+  return !planAdaptations(recipe, [restrictionId]).blocked;
+}
+
+/**
+ * Los cambios concretos que haría falta hacer, o [] si el plato ya cumple tal
+ * cual. Es la pregunta del BADGE: sin esto, una ensalada sin lácteos luciría
+ * "sin lactosa" igual que una lasaña adaptada, y el distintivo dejaría de
+ * significar nada.
+ *
+ * @returns {Array<{from: string, to: string}>}
+ */
+export function adaptationsNeededFor(recipe, restrictionId) {
+  if (!isAdaptableRestriction(restrictionId)) return [];
+  const { swaps, blocked } = planAdaptations(recipe, [restrictionId]);
+  return blocked ? [] : swaps.map(({ from, to }) => ({ from, to }));
+}
+
+/**
  * Build a Map<originalName, newName> for the swaps of a recipe, used when
  * rebuilding a recipe's ingredient list during hydration.
  * @param {Object} recipe
