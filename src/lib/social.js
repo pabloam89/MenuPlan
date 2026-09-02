@@ -66,8 +66,16 @@ export async function loadMyProfile(userId) {
 }
 
 /**
- * Crea o actualiza el perfil público. `visibility` por defecto 'private': el
- * opt-in tiene que ser un acto del usuario, no un efecto de guardar el nombre.
+ * Crea o actualiza el perfil público.
+ *
+ * `visibility` no se pone aquí: quien no la mande hereda el default de la
+ * columna ('followers' desde la migración 0038), y quien ya tenga perfil la
+ * conserva, porque un upsert solo escribe las columnas que viajan. Mandarla
+ * "por si acaso" desde el cliente es lo que hacía que todo perfil nuevo
+ * naciera en 'private' pese al default.
+ *
+ * Lo que sí sigue siendo un acto explícito del usuario es ABRIRSE: pasar a
+ * 'public' solo ocurre tocando la opción en Quién te ve.
  */
 export async function saveMyProfile(userId, patch) {
   if (!ok() || !userId) return null;
