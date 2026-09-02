@@ -9,6 +9,7 @@ import { ReportSheet } from "../components/ReportSheet.jsx";
 import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { ShareRecipeSheet } from "../components/ShareRecipeSheet.jsx";
 import { NotificationsPopover } from "../components/NotificationsPopover.jsx";
+import { DiscoverPeopleSheet } from "../components/DiscoverPeopleSheet.jsx";
 import { loadNotifications, markNotificationsSeen, countUnread } from "../lib/socialNotifications.js";
 import { setFeedBadge } from "../lib/socialBadge.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -143,6 +144,16 @@ export function FeedScreen({
    * ya tiene en memoria: si esa receta no esta cargada, la fila se queda sin
    * miniatura — mejor eso que una peticion por notificacion.
    */
+  // Quien publica en abierto, con cuanto. Es la unica sugerencia que le
+  // queda a quien acaba de llegar y no sigue a nadie todavia.
+  const feedAuthors = (() => {
+    const count = new Map();
+    for (const i of items) count.set(i.ownerId, (count.get(i.ownerId) ?? 0) + 1);
+    return [...count.entries()]
+      .map(([id, n]) => ({ id, count: n }))
+      .sort((a, b) => b.count - a.count);
+  })();
+
   const thumbForTarget = (type, id) => {
     if (type !== "recipe") return null;
     // Tu biblioteca primero: casi todas estas notificaciones hablan de algo
@@ -428,13 +439,15 @@ export function FeedScreen({
       </div>
 
       {searchOpen && (
-        <SearchSheet
+        <DiscoverPeopleSheet
           user={user}
           following={following}
+          pending={pendingIds}
+          feedAuthors={feedAuthors}
+          profiles={profiles}
           onClose={() => setSearchOpen(false)}
           onChanged={refresh}
           onOpenPerson={(id) => { setSearchOpen(false); setPersonId(id); }}
-          pending={pendingIds}
         />
       )}
 
@@ -946,93 +959,6 @@ function SaveToFolderDialog({ recipe, folders, onSave, onCreateFolder, onClose }
 
 // ── Buscar gente ────────────────────────────────────────────────────────────
 
-function SearchSheet({ user, following, pending = [], onClose, onChanged, onOpenPerson }) {
-  const [q, setQ] = useState("");
-  const [results, setResults] = useState([]);
-  const [busy, setBusy] = useState(false);
-  // none | pending | following por persona. followUser devuelve el estado en
-  // que quedo la solicitud ("pending" si esa cuenta pide aprobacion), y antes
-  // se trataba como booleano: una solicitud pendiente se pintaba "Siguiendo",
-  // que es mentira.
-  const [rel, setRel] = useState(() => {
-    const m = {};
-    for (const id of following) m[id] = "following";
-    for (const id of pending) m[id] = "pending";
-    return m;
-  });
-
-  useEffect(() => {
-    if (q.trim().length < 2) { setResults([]); return; }
-    let alive = true;
-    setBusy(true);
-    const t = setTimeout(async () => {
-      const r = await searchProfiles(q);
-      if (alive) { setResults(r); setBusy(false); }
-    }, 300);
-    return () => { alive = false; clearTimeout(t); };
-  }, [q]);
-
-  const toggle = async (target) => {
-    const cur = rel[target.user_id] ?? "none";
-    if (cur === "none") {
-      const status = await followUser(user?.id, target.user_id);
-      if (status) setRel((m) => ({ ...m, [target.user_id]: status === "pending" ? "pending" : "following" }));
-    } else {
-      // Dejar de seguir y retirar una solicitud son el mismo borrado.
-      const done = await unfollowUser(user?.id, target.user_id);
-      if (done) setRel((m) => ({ ...m, [target.user_id]: "none" }));
-    }
-    onChanged?.();
-  };
-
-  const LABEL = { none: "Seguir", pending: "Pendiente", following: "Siguiendo" };
-
-  return (
-    <div style={overlay} onClick={onClose}>
-      <div style={sheet} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <h2 style={{ margin: 0, flex: 1, fontSize: 16, fontWeight: 900, color: INK }}>Buscar gente</h2>
-          <button type="button" onClick={onClose} aria-label="Cerrar" style={iconBtn}><X size={16} strokeWidth={2.6} /></button>
-        </div>
-
-        <input
-          autoFocus
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Nombre o @usuario"
-          style={{ width: "100%", padding: "11px 13px", borderRadius: 12, border: "1.5px solid #dde7e0", fontSize: 16, outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
-        />
-
-        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6, maxHeight: 320, overflowY: "auto" }}>
-          {q.trim().length < 2 && <p style={hint}>Escribe al menos dos letras.</p>}
-          {q.trim().length >= 2 && busy && <p style={hint}>Buscando…</p>}
-          {q.trim().length >= 2 && !busy && results.length === 0 && (
-            <p style={hint}>Nadie con ese nombre. Solo aparece quien ha activado su perfil.</p>
-          )}
-          {results.filter((p) => p.user_id !== user?.id).map((p) => {
-            const state = rel[p.user_id] ?? "none";
-            return (
-              <div key={p.user_id} style={resultRow}>
-                <Avatar name={p.display_name ?? "?"} photo={p.avatar_url} size={34} color={TEAL} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {p.display_name || `@${p.username}`}
-                  </div>
-                  {p.username && <div style={{ fontSize: 11.5, color: "#8aa294", fontWeight: 700 }}>@{p.username}</div>}
-                </div>
-                <button type="button" onClick={() => onOpenPerson?.(p.user_id)} style={{ ...ghostLink }}>Ver</button>
-                <button type="button" onClick={() => toggle(p)} style={state === "none" ? followBtn : followingBtn}>
-                  {LABEL[state]}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Estilos ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_FOLDERS_KEY = "hm_feed_default_folders";
@@ -1369,18 +1295,5 @@ const sheet = {
   boxSizing: "border-box",
 };
 
-const resultRow = { display: "flex", alignItems: "center", gap: 10, padding: "7px 0" };
 
-const followBtn = {
-  padding: "8px 14px", borderRadius: 10, border: "none",
-  background: TEAL, color: "#fff", fontSize: 12.5, fontWeight: 800,
-  cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
-};
 
-const followingBtn = { ...followBtn, background: "#fff", color: TEAL, border: `1.5px solid ${TEAL}` };
-
-const ghostLink = {
-  flexShrink: 0, padding: "8px 10px", borderRadius: 10,
-  border: "none", background: "none", color: "#8aa294",
-  fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-};

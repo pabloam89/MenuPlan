@@ -211,3 +211,12 @@ export const FIXTURE_NOTIFICATIONS = [
   { key: "fx_n4", kind: "accepted", actorId: "fx_ana", at: day(2) },
   { key: "fx_n5", kind: "follower", actorId: "fx_pau", at: day(3) },
 ];
+
+/**
+ * Sugerencias de mentira, ya con la forma que devuelve suggested_profiles:
+ * perfil + por que se sugiere (cuantos conocidos en comun y el nombre de uno).
+ */
+export const FIXTURE_SUGGESTED = [
+  { ...FIXTURE_PROFILES.fx_pau, mutuals: 3, via_name: "Marta" },
+  { ...FIXTURE_PROFILES.fx_javi, mutuals: 1, via_name: "Ana y Ruben" },
+];

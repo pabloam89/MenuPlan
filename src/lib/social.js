@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 import { rowToRecipe } from "./userRecipesSync.js";
-import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, fixtureFeed } from "./socialFixtures.js";
+import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, FIXTURE_SUGGESTED, fixtureFeed } from "./socialFixtures.js";
 
 /**
  * Capa de datos del Feed social (ver supabase/migrations/0027_social_feed.sql).
@@ -443,6 +443,23 @@ export async function searchProfiles(query) {
   const { data, error } = await supabase.rpc("search_social_profiles", { p_query: query });
   if (warn("searchProfiles", error)) return [];
   return data ?? [];
+}
+
+/**
+ * A quién seguir: gente a la que sigue la gente que sigues (ver
+ * 0035_social_suggestions.sql). Trae el porqué — cuántos conocidos en común y
+ * el nombre de uno — porque una sugerencia sin motivo es una lista de
+ * desconocidos.
+ *
+ * Nunca sugiere perfiles privados, ni a quien ya sigues o has pedido seguir,
+ * ni a nadie con bloqueo de por medio: eso lo garantiza la propia función.
+ */
+export async function loadSuggestedProfiles(userId, { limit = 12 } = {}) {
+  if (!ok() || !userId) return FIXTURES_ENABLED ? FIXTURE_SUGGESTED : [];
+  const { data, error } = await supabase.rpc("suggested_profiles", { p_limit: limit });
+  if (warn("loadSuggestedProfiles", error)) return [];
+  const rows = data ?? [];
+  return rows.length === 0 && FIXTURES_ENABLED ? FIXTURE_SUGGESTED : rows;
 }
 
 export async function loadProfileCounts(userId) {
