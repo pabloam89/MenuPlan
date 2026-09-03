@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, UserPlus, Check, MessageCircle, Eye, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
+import { X, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -57,6 +57,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   const [sent, setSent] = useState([]);
   // A quien sigo YO. Sin esto, la pestana de seguidores no puede
   // distinguir a quien ya devolvi el seguimiento de quien no.
+  const [followers, setFollowers] = useState([]);
   const [followingIds, setFollowingIds] = useState([]);
   const [comments, setComments] = useState([]);
   const [myRecipes, setMyRecipes] = useState([]);
@@ -97,6 +98,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     setCounts(useFx && cts.followers === 0 ? { followers: 12, following: 8, recipes: 5, menus: 1 } : cts);
     setRequests(finalReqs);
     setSent(finalSent);
+    setFollowers(fols);
     setFollowingIds(fing);
     setComments(finalComs);
     setMyRecipes(useFx && mine.length === 0 ? FIXTURE_MY_RECIPES : mine);
@@ -205,6 +207,11 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   // Dos estados y ya: abierta o cerrada. El "private" legacy cuenta como
   // cerrada — dejo de existir como opcion en la 0046.
   const open = profile?.visibility === "public";
+  // Amigos = vinculo mutuo. Seguidores = te siguen y tu a ellos no, que solo
+  // pasa con la cuenta abierta. Salen de las listas que este cajon ya tiene
+  // cargadas, asi que el numero y la lista nunca se contradicen.
+  const amigos = followers.filter((f) => followingIds.includes(f.follower_id)).length;
+  const soloSeguidores = followers.length - amigos;
   // El nombre no se pregunta dos veces: ya lo diste al entrar (googleInfo lo
   // saca de la cuenta o del correo, igual que la pantalla de Mi perfil), así
   // que aquí se hereda y solo se edita si quieres otro de cara al feed.
@@ -263,9 +270,13 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
           {editing && user?.id && <ProfileForm profile={profile} inheritedName={inheritedName} onSave={async (fields) => { await patch(fields); setEditing(false); }} />}
 
           <div style={statsCard}>
-            <Stat n={counts.followers} label="Seguidores" onClick={() => setListKind("followers")} />
+            {/* Amigos (mutuo) es el vinculo que crea la app; "seguidores" a
+                secas solo existe alrededor de las cuentas abiertas. Antes
+                ponia Seguidores/Siguiendo, que era el vocabulario del modelo
+                direccional de antes de la 0046 y ya no describia nada. */}
+            <Stat n={amigos} label="Amigos" onClick={() => setListKind("friends")} />
             <span style={statDivider} />
-            <Stat n={counts.following} label="Siguiendo" onClick={() => setListKind("following")} />
+            <Stat n={soloSeguidores} label="Seguidores" onClick={() => setListKind("followers")} />
             <span style={statDivider} />
             <Stat n={counts.recipes} label="Recetas" onClick={() => setRecipesOpen(true)} />
             <span style={statDivider} />
@@ -285,7 +296,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
         <div style={{ padding: "14px 20px 20px" }}>
           {tab === "solicitudes" && (
             <>
-              <h4 style={groupTitle}>Quieren conectar contigo</h4>
+              <h4 style={groupTitle}>Quieren ser tus amigos</h4>
               {requests.length === 0
                 ? <p style={empty}>Nadie por ahora.</p>
                 : requests.map((r) => (
@@ -309,7 +320,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                 return (
                   <PersonRow key={id} p={people[id]} note="Aceptada">
                     {conectados
-                      ? <span style={stateNote}>Conectados</span>
+                      ? <span style={stateNote}>Amigos</span>
                       : (
                         <button
                           type="button"
@@ -317,7 +328,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                           disabled={pedido}
                           style={pedido ? ghostBtn : backBtn}
                         >
-                          {pedido ? "Pendiente" : "Conectar"}
+                          {pedido ? "Pendiente" : "Agregar"}
                         </button>
                       )}
                   </PersonRow>
@@ -437,24 +448,21 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
             onClick={() => patch({ visibility: open ? "followers" : "public" })}
             style={privacyHead}
           >
-            <span style={visAsk}>
-              <Eye size={14} strokeWidth={2.5} color="#8aa294" />
-              Quién ve lo que publicas
+            {/* Una sola franja y sin dibujo: la etiqueta ES el estado, asi
+                que ni hace falta preguntar aparte ni ilustrarlo. Las
+                miniaturas de la puerta y el globo no se leian a 22px — un
+                dibujo que no se distingue es ruido, no ayuda. */}
+            <span style={{ flex: 1, minWidth: 0, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: INK, fontSize: 13.5, fontWeight: 800 }}>
+              {open ? "Cuenta abierta" : "Cuenta para amigos"}
             </span>
-            <span style={visState}>
-              <img src={open ? VIS_ART.public : VIS_ART.followers} alt="" style={visBandArt} />
-              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: INK }}>
-                {open ? "Cualquiera" : "Tus conexiones"}
-              </span>
-              <span style={{ ...switchTrack, background: open ? GREEN : "#c3d3c8" }}>
-                <span style={{ ...switchKnob, transform: open ? "translateX(18px)" : "none" }} />
-              </span>
+            <span style={{ ...switchTrack, background: open ? GREEN : "#c3d3c8" }}>
+              <span style={{ ...switchKnob, transform: open ? "translateX(18px)" : "none" }} />
             </span>
           </button>
           <p style={switchHint}>
             {open
               ? "Tus recetas y menús publicados los ve cualquiera. Seguirte no necesita permiso."
-              : "Tus recetas y menús publicados los ven solo las conexiones que aceptes. Te encuentran por tu nombre."}
+              : "Tus recetas y menús publicados los ven solo tus amigos. Te encuentran por tu nombre y te piden ser amigos."}
           </p>
         </section>
 
@@ -796,38 +804,16 @@ const plainHead = {
 
 const privacyBlock = { padding: 0, borderTop: "1px solid #eef3f0", background: "#f7fbf8" };
 
-// La misma ilustracion de cada opcion, en miniatura: quien ya eligio
-// reconoce el candado, la puerta o el globo sin leer nada.
-const VIS_ART = {
-  private: "/avatares/cards/vis_nadie.png",
-  followers: "/avatares/cards/vis_seguidores.png",
-  public: "/avatares/cards/vis_cualquiera.png",
-};
 
 
 // La franja ocupa la fila entera y se sale del padding de la seccion para
 // llegar a los dos bordes: es una banda, no una tarjeta dentro de otra.
-const visAsk = {
-  display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
-  alignSelf: "stretch", padding: "13px 13px 13px 20px",
-  borderRight: "1px solid #d7e6e1",
-  color: "#6b7d70",
-};
 
-const visState = {
-  display: "flex", alignItems: "center", gap: 8,
-  flex: 1, minWidth: 0, alignSelf: "stretch",
-  padding: "11px 20px 11px 12px",
-  background: "#dcefeb",
-};
 
-const visBandArt = {
-  width: 22, height: 22, display: "block", flexShrink: 0,
-};
 
 const privacyHead = {
-  display: "flex", alignItems: "stretch", width: "100%",
-  margin: 0, padding: 0, border: "none",
+  display: "flex", alignItems: "center", gap: 10, width: "100%",
+  margin: 0, padding: "14px 20px", border: "none",
   background: "#eaf3f0", cursor: "pointer",
   fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#6b7d70",
   textAlign: "left",

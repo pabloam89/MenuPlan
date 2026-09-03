@@ -580,6 +580,34 @@ export async function loadFollowList(userId, kind = "followers") {
 }
 
 /**
+ * Las relaciones de alguien, ya separadas: amigos, seguidores y seguidos.
+ *
+ * "Amigos" es el vinculo MUTUO, que con el modelo de conexion (0046) es el
+ * normal: pides conectar, aceptan, y quedais los dos. Seguidores y seguidos
+ * a secas solo existen alrededor de las cuentas abiertas, donde seguir es
+ * suscribirse y no crea vuelta.
+ *
+ * Se derivan de las dos listas en vez de pedir un contador aparte para que
+ * el numero y la lista SIEMPRE cuadren: profile_follow_list se deja fuera a
+ * los privados y a los bloqueos, asi que un contador calculado en la base
+ * diria mas de lo que la lista puede ensenar.
+ */
+export async function loadRelations(userId) {
+  if (!userId) return { friends: [], followers: [], following: [] };
+  const [followers, following] = await Promise.all([
+    loadFollowList(userId, "followers"),
+    loadFollowList(userId, "following"),
+  ]);
+  const followingIds = new Set(following.map((p) => p.user_id));
+  const followerIds = new Set(followers.map((p) => p.user_id));
+  return {
+    friends: followers.filter((p) => followingIds.has(p.user_id)),
+    followers: followers.filter((p) => !followingIds.has(p.user_id)),
+    following: following.filter((p) => !followerIds.has(p.user_id)),
+  };
+}
+
+/**
  * Sumar uno al contador de copias de un menu ajeno. La copia en si pasa
  * entera en el cliente; esto es solo el contador, que la fila es de otro.
  */

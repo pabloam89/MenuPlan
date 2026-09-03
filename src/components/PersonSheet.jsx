@@ -4,7 +4,7 @@ import { Avatar } from "./ui.jsx";
 import { RecipePoster } from "./SwipeCard.jsx";
 import { personColor, relativeTime } from "../lib/socialUi.js";
 import {
-  loadProfileById, loadProfileCounts, loadPersonContent,
+  loadProfileById, loadProfileCounts, loadPersonContent, loadRelations,
   loadFollowing, loadSentRequests, followUser, unfollowUser,
   blockUser, loadRecipeStats,
 } from "../lib/social.js";
@@ -39,16 +39,20 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const [prof, cts, cont, following, sent] = await Promise.all([
+    const [prof, cts, cont, following, sent, rel] = await Promise.all([
       loadProfileById(userId),
       loadProfileCounts(userId),
       loadPersonContent(userId, { viewerId: user?.id }),
       loadFollowing(user?.id),
       loadSentRequests(user?.id),
+      loadRelations(userId),
     ]);
     const fxProfile = FIXTURES_ENABLED ? FIXTURE_PROFILES[userId] : null;
     setProfile(prof ?? seed ?? fxProfile ?? null);
-    setCounts(cts);
+    // Amigos y seguidores salen de las MISMAS listas que abre el numero, asi
+    // que nunca dicen mas de lo que la lista puede ensenar (profile_follow_list
+    // se deja fuera a privados y bloqueos).
+    setCounts({ ...cts, friends: rel.friends.length, onlyFollowers: rel.followers.length });
     // En dev, si no hay nada real que enseñar, se rellena con sintéticos de esa
     // persona para poder diseñar la pantalla. Ver socialFixtures.js.
     const fxRecipes = FIXTURES_ENABLED ? FIXTURE_RECIPES.filter((r) => r.owner_id === userId) : [];
@@ -104,7 +108,7 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
   const abierta = profile?.visibility === "public";
   const FOLLOW_LABEL = abierta
     ? { none: "Seguir", pending: "Pendiente", following: "Siguiendo" }
-    : { none: "Conectar", pending: "Pendiente", following: "Conectados" };
+    : { none: "Agregar", pending: "Pendiente", following: "Amigos" };
 
   return (
     <div style={backdrop} onClick={onClose}>
@@ -151,9 +155,9 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
           <div style={statsCard}>
             {/* El numero lleva a la lista: era el camino natural para
                 descubrir gente y no iba a ninguna parte. */}
-            <Stat n={counts.followers} label="Seguidores" onClick={() => setListKind("followers")} />
+            <Stat n={counts.friends ?? 0} label="Amigos" onClick={() => setListKind("friends")} />
             <span style={divider} />
-            <Stat n={counts.following} label="Siguiendo" onClick={() => setListKind("following")} />
+            <Stat n={counts.onlyFollowers ?? 0} label="Seguidores" onClick={() => setListKind("followers")} />
             <span style={divider} />
             <Stat n={counts.recipes} label="Recetas" />
             <span style={divider} />
@@ -178,8 +182,8 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
               <p style={{ margin: "8px 0 0", fontSize: 13, fontWeight: 800, color: INK }}>Esta cuenta es privada</p>
               <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "#6b7d70", lineHeight: 1.4 }}>
                 {rel === "pending"
-                  ? "Ya has pedido seguirle. Cuando acepte verás sus recetas y sus menús."
-                  : "Pídele seguirle para ver lo que cocina."}
+                  ? "Ya le has pedido ser amigos. Cuando acepte verás sus recetas y sus menús."
+                  : "Agrégale para ver lo que cocina."}
               </p>
             </div>
           )}

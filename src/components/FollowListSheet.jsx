@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { X, Users2, Trash2 } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { personColor } from "../lib/socialUi.js";
-import { loadFollowList, loadFollowing, loadSentRequests, followUser, rejectFollowRequest } from "../lib/social.js";
+import { loadRelations, loadFollowing, loadSentRequests, followUser, rejectFollowRequest } from "../lib/social.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -21,7 +21,7 @@ const INK = "#142f1d";
  * sea: el contador dice cuántos son, la lista solo puede enseñar a los que se
  * dejan ver.
  */
-export function FollowListSheet({ userId, kind = "followers", viewer = null, onChanged, onOpenPerson, onClose }) {
+export function FollowListSheet({ userId, kind = "friends", viewer = null, onChanged, onOpenPerson, onClose }) {
   const [people, setPeople] = useState(null);
   // La relacion del QUE MIRA con cada fila. Sin ella la lista era un
   // listin: nombres sin decir cuales son ya tuyos ni forma de sumar los que
@@ -32,12 +32,12 @@ export function FollowListSheet({ userId, kind = "followers", viewer = null, onC
   useEffect(() => {
     let alive = true;
     Promise.all([
-      loadFollowList(userId, kind),
+      loadRelations(userId),
       viewer ? loadFollowing(viewer) : [],
       viewer ? loadSentRequests(viewer) : [],
-    ]).then(([r, mine, sent]) => {
+    ]).then(([rel, mine, sent]) => {
       if (!alive) return;
-      setPeople(r);
+      setPeople(rel[kind] ?? []);
       setMyIds(mine);
       setPendingIds(sent.map((x) => x.followee_id));
     });
@@ -64,7 +64,21 @@ export function FollowListSheet({ userId, kind = "followers", viewer = null, onC
     onChanged?.();
   };
 
-  const title = kind === "following" ? "Sigue a" : "Seguidores";
+  // Tres relaciones, tres nombres. "Amigos" es el vinculo mutuo -el normal
+  // con el modelo de conexion-; seguidores y seguidos a secas solo aparecen
+  // alrededor de las cuentas abiertas.
+  const propio = viewer === userId;
+  const TITLE = {
+    friends: "Amigos",
+    followers: propio ? "Te siguen" : "Seguidores",
+    following: propio ? "Sigues a" : "Sigue a",
+  };
+  const EMPTY = {
+    friends: propio ? "Todavía no tienes amigos aquí." : "Todavía no tiene amigos aquí.",
+    followers: propio ? "Nadie te sigue sin ser amigo tuyo." : "Nadie le sigue sin ser amigo suyo.",
+    following: propio ? "No sigues a nadie que no sea amigo tuyo." : "No sigue a nadie que no sea amigo suyo.",
+  };
+  const title = TITLE[kind] ?? TITLE.friends;
 
   return (
     <div style={overlay} onClick={onClose} className="mp-overlay-in">
@@ -80,11 +94,7 @@ export function FollowListSheet({ userId, kind = "followers", viewer = null, onC
 
         <div style={{ padding: "0 14px 18px", overflowY: "auto", flex: 1 }}>
           {people === null && <p style={hint}>Cargando…</p>}
-          {people?.length === 0 && (
-            <p style={hint}>
-              {kind === "following" ? "Todavía no sigue a nadie." : "Todavía no le sigue nadie."}
-            </p>
-          )}
+          {people?.length === 0 && <p style={hint}>{EMPTY[kind] ?? EMPTY.friends}</p>}
           {(people ?? []).map((p) => {
             const name = p.display_name || (p.username ? `@${p.username}` : "Alguien");
             // Cada fila dice SIEMPRE en que punto estas con esa persona: tuya
@@ -109,10 +119,10 @@ export function FollowListSheet({ userId, kind = "followers", viewer = null, onC
                   state === "none" ? (
                     <button type="button" onClick={() => follow(p.user_id)} style={followBtn}>Seguir</button>
                   ) : (
-                    <span style={stateTag}>{state === "pending" ? "Pendiente" : "Siguiendo"}</span>
+                    <span style={stateTag}>{state === "pending" ? "Pendiente" : "Ya es tuyo"}</span>
                   )
                 )}
-                {viewer === userId && kind === "followers" && !isMe && (
+                {propio && kind === "followers" && !isMe && (
                   <button type="button" onClick={() => removeFollower(p.user_id)} style={removeBtn} aria-label="Quitar seguidor">
                     <Trash2 size={13} strokeWidth={2.6} />
                   </button>
