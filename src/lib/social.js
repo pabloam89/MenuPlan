@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { isoLocalDate } from "./weekCalendar.js";
 import { rowToRecipe } from "./userRecipesSync.js";
 import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, FIXTURE_SUGGESTED, fixtureFeed } from "./socialFixtures.js";
 
@@ -858,7 +859,7 @@ export async function loadSharedMenu(menuId) {
 export async function loadWeeklyMenus({ viewerId = null, scope = "all", followingIds = null, today = new Date() } = {}) {
   if (!ok()) return [];
   const blocked = viewerId ? new Set(await loadBlockedIds(viewerId)) : new Set();
-  const iso = today.toISOString().slice(0, 10);
+  const iso = isoLocalDate(today);
 
   // La fila de arriba obedece a la misma pestaña que el rio: estar en
   // "Siguiendo" y ver desconocidos ahi arriba contradecia la eleccion que
@@ -872,8 +873,13 @@ export async function loadWeeklyMenus({ viewerId = null, scope = "all", followin
     .from("shared_menus")
     .select("id, owner_id, title, week_start, week_end, payload, created_at")
     .neq("visibility", "private")
-    .lte("week_start", iso)
-    .gte("week_end", iso);
+    // Red de seguridad: un menu sin rango de fechas SE ENSEÑA, no se
+    // esconde. Un NULL no compara, asi que con el filtro a secas esos menus
+    // quedaban publicados y visibles para nadie — y encima el aviso si
+    // saltaba, porque la campana no filtra por fechas: te avisaba de algo
+    // que la pantalla no podia ensenarte. La 0047 los repara y pone la
+    // columna NOT NULL; esto cubre a quien aun no la haya aplicado.
+    .or(`and(week_start.lte.${iso},week_end.gte.${iso}),week_start.is.null,week_end.is.null`);
   if (mine) q = q.in("owner_id", mine);
   const { data, error } = await q.order("created_at", { ascending: false });
   // Ojo al orden: si la tabla no existe (migración sin aplicar) esto salía

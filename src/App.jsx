@@ -3332,7 +3332,9 @@ export default function App() {
       offset: data.menuWeek?.offset ?? 0,
       startDayIdx: data.menuWeek?.startDayIdx ?? 0,
     });
-    const iso = (d) => new Date(d).toISOString().slice(0, 10);
+    // Fecha LOCAL: con toISOString la medianoche del lunes en Espana es
+    // domingo 22:00 UTC y la semana entera salia corrida un dia.
+    const iso = isoLocalDate;
     // OJO: `dates` es un objeto POR NOMBRE DE DIA ({Lun: Date, Mar: Date...}),
     // no un array. Aqui se leia dates[0] y dates.length, que son undefined los
     // dos, asi que al compartir la SEMANA el rango salia null/null — y el
@@ -3346,7 +3348,7 @@ export default function App() {
     // fechas se estrecha a hoy — así en «Hoy cocinan» aparece hoy y mañana ya
     // no, que es exactamente lo que significa compartir solo el día.
     const todayLabel = DAYS[(new Date().getDay() + 6) % 7];
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const todayIso = isoLocalDate(new Date());
 
     const payload = buildSharedMenuPayload({
       menuPlan,

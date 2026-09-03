@@ -1,5 +1,21 @@
 import { DAYS } from "./planner.js";
 
+/**
+ * La fecha de un Date en formato ISO (YYYY-MM-DD), leida en HORA LOCAL.
+ *
+ * `toISOString().slice(0,10)` NO vale para esto: convierte a UTC primero, y
+ * en Espana (UTC+1/+2) la medianoche local del lunes es el domingo a las
+ * 22:00 UTC — asi que la fecha sale un dia antes. Toda la semana de un menu
+ * quedaba corrida un dia, y el domingo el menu de esa semana desaparecia del
+ * carrusel antes de tiempo.
+ */
+export function isoLocalDate(d) {
+  const x = new Date(d);
+  const mes = String(x.getMonth() + 1).padStart(2, "0");
+  const dia = String(x.getDate()).padStart(2, "0");
+  return `${x.getFullYear()}-${mes}-${dia}`;
+}
+
 /** Monday-based week containing `referenceDate`. */
 export function getWeekDates(referenceDate = new Date()) {
   const d = new Date(referenceDate);
