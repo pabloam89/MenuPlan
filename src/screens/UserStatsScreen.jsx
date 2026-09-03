@@ -321,9 +321,12 @@ function ResumenTab({ stats, onOpenBiblioteca }) {
       {stats.ownRecipes.length > 0 && (
         <FlatBlock title="Visibilidad de recetas" icon={NotebookPen}>
           <div style={{ display: "flex", gap: 8, marginBottom: onOpenBiblioteca ? 10 : 0 }}>
-            <VisibilityChip icon={Globe} label="Públicas" count={stats.visibility.public} bg="#e6f3ea" color={GREEN} />
-            <VisibilityChip icon={Users} label="Amigos" count={stats.visibility.friends} bg="#fff8e7" color="#7a4e00" />
-            <VisibilityChip icon={Lock} label="Privadas" count={stats.visibility.private} bg="#f5edfc" color="#5a2d7a" />
+            {/* Dos cajas, no tres (0046): una receta esta publicada o no, y a
+                quien llega lo decide tu cuenta. "Amigos" era una audiencia
+                propia que ya no existe — las viejas cuentan como publicadas,
+                que es lo que la base hace con ellas. */}
+            <VisibilityChip icon={Globe} label="Publicadas" count={stats.visibility.public} bg="#e6f3ea" color={GREEN} />
+            <VisibilityChip icon={Lock} label="Solo para mí" count={stats.visibility.private} bg="#f5edfc" color="#5a2d7a" />
           </div>
           {onOpenBiblioteca && (
             <button
@@ -452,12 +455,12 @@ export function UserStatsScreen({
       if (v === "up") votesUp += 1;
       if (v === "down") votesDown += 1;
     }
-    const visibility = { public: 0, friends: 0, private: 0 };
+    const visibility = { public: 0, private: 0 };
     for (const r of ownRecipes) {
-      const vis = r.visibility ?? "private";
-      if (vis === "public") visibility.public += 1;
-      else if (vis === "friends") visibility.friends += 1;
-      else visibility.private += 1;
+      // Todo lo que no sea 'private' esta publicado, incluido el 'friends'
+      // legacy: es exactamente el criterio de la RLS (visibility <> 'private').
+      if ((r.visibility ?? "private") === "private") visibility.private += 1;
+      else visibility.public += 1;
     }
     const savedMenus = Object.values(menus ?? {}).filter(menuHasContent).length;
 
