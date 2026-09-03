@@ -3709,6 +3709,33 @@ export default function App() {
   const handlePlaceRecipeInSlot = useCallback(async (recipeId, target) => {
     if (householdReadOnly || !recipeId || !target) return;
     const baseId = String(recipeId).split("__").pop();
+
+    // El plato viene de FUERA, asi que su receta nunca ha pasado por el
+    // catalogo en memoria (RECIPES_BY_ID), que es de donde las tarjetas del
+    // menu sacan foto, nombre y todo lo demas. Sin este paso el hueco recibia
+    // un id que nadie sabia resolver y la tarjeta devolvia null: el plato
+    // parecia BORRARSE en vez de colocarse. Se registra igual que un cambio de
+    // plato del catalogo -runtime + aiRecipes- para que tambien sobreviva a
+    // recargar la app, no solo a esta sesion.
+    if (!RECIPES_BY_ID[baseId]) {
+      const source = recipeCatalogById[baseId]
+        ?? (data.userRecipes ?? []).find((r) => r.id === baseId)
+        ?? null;
+      if (!source) {
+        showToast("Esa receta ya no está disponible");
+        setPendingDish(null);
+        return;
+      }
+      const eaters = Math.max(1, data.members?.length || 4);
+      const frontend = catalogToFrontendRecipe(source, eaters);
+      registerRecipes([frontend]);
+      setAiRecipes((cur) => {
+        const byId = new Map(cur.map((r) => [r.id, r]));
+        byId.set(frontend.id, frontend);
+        return Array.from(byId.values());
+      });
+    }
+
     const tGroup = target.groupId;
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";

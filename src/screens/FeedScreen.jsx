@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, Info } from "lucide-react";
-import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
+import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration, GroupAvatarStack } from "../components/ui.jsx";
 import { RecipePoster, PosterCorners, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
 import { PersonSheet } from "../components/PersonSheet.jsx";
@@ -19,6 +19,7 @@ import { relativeTime } from "../lib/socialUi.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { memberAvatarColor } from "../lib/stages.js";
 import { DAYS } from "../lib/planner.js";
 import { loadPublicRecipe } from "../lib/userRecipesSync.js";
 import { folderArt, ALL_ID } from "./CatalogBrowserSheet.jsx";
@@ -1068,7 +1069,7 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
             Ahora una fila de 52px con lo imprescindible, y el resto -el
             filtro por comensal- se despliega solo si lo pides. */}
         <div style={peekBar}>
-          <button type="button" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={peekBarIcon}>
+          <button type="button" className="mp-press" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={peekBarIcon}>
             <MoreVertical size={16} strokeWidth={2.6} />
           </button>
           {moreOpen && (
@@ -1086,8 +1087,8 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
             </div>
           )}
 
-          <button type="button" onClick={onOpenPerson} style={peekWho} aria-label={`Ver el perfil de ${name}`}>
-            <Avatar name={profile?.display_name ?? "?"} photo={profile?.avatar_url} size={30} color={TEAL} />
+          <button type="button" className="mp-press" onClick={onOpenPerson} style={peekWho} aria-label={`Ver el perfil de ${name}`}>
+            <Avatar name={profile?.display_name ?? "?"} photo={profile?.avatar_url} size={34} color={TEAL} />
             <span style={{ minWidth: 0 }}>
               <span style={peekWhoName}>{name}</span>
               {/* La fecha va aqui, bajo el nombre: "el menu de Alvaro, del 31
@@ -1097,7 +1098,7 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
             </span>
           </button>
 
-          <button type="button" onClick={onClose} aria-label="Cerrar" style={peekBarIcon}>
+          <button type="button" className="mp-press" onClick={onClose} aria-label="Cerrar" style={peekBarIcon}>
             <X size={16} strokeWidth={2.6} />
           </button>
         </div>
@@ -1187,17 +1188,17 @@ function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, on
           la esquina de cada plato, una por comensal, y ahi no elegian nada:
           eran un adorno que ademas repetia las mismas cuatro caras en todas
           las tarjetas. Aqui son un control, y encima liberan la esquina. */}
-      {(multi || scopes.groups.length > 0) && (
+      {(multi || scopes.all.length > 0) && (
         <div style={deckTopRow}>
           {multi && <ViewPicker week={week} onWeek={setWeek} />}
           {/* Las caras SIEMPRE se ven. Lo que depende de que haya diferencia es
               poder ELEGIR: si toda la casa come lo mismo no hay dos menus entre
               los que elegir, asi que la fila deja de ser un control y pasa a
               decir, sin mas, quien come esto. */}
-          {scopes.groups.length > 0 && (
+          {scopes.all.length > 0 && (
             scopes.splits
-              ? <EaterScope scopes={scopes.groups} value={roleFilter} onPick={onRole} />
-              : <EaterAll groups={scopes.groups} />
+              ? <EaterScope scopes={scopes.groups} all={scopes.all} value={roleFilter} onPick={onRole} />
+              : <EaterAll faces={scopes.all} />
           )}
         </div>
       )}
@@ -1219,6 +1220,7 @@ function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, on
                 key={d.day}
                 type="button"
                 role="tab"
+                className="mp-press"
                 onClick={() => setDayIdx(i)}
                 aria-selected={on}
                 style={{ ...deckDayCell, ...(on ? deckDayCellOn : null) }}
@@ -1233,6 +1235,13 @@ function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, on
         </div>
       )}
 
+      {/* La lista se repinta con la misma transicion de pestaña que usa el resto
+          de la app: al cambiar de dia, de vista o de comensal, los platos
+          entran deslizando en vez de aparecer de golpe — que es lo que hacia
+          dudar de si habias tocado algo. La `key` es lo que la dispara: cada
+          combinacion es un contenido distinto, asi que React lo remonta y la
+          animacion arranca sola. */}
+      <div key={`${week ? "s" : "d"}-${idx}-${roleFilter ?? "all"}`} className="mp-tab-fwd">
       {week
         ? days.map((d) => (
             <div key={d.day} style={{ marginBottom: 18 }}>
@@ -1268,6 +1277,7 @@ function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, on
               ))}
             </div>
           )}
+      </div>
     </>
   );
 }
@@ -1300,40 +1310,39 @@ function dayNumbers(days, weekStart) {
 /**
  * Para quien es el menu: adultos, ninos o bebes.
  *
- * Solo aparece SI HAY DIFERENCIA (ver eaterScopes): en una casa donde todos
- * comen lo mismo, un filtro que no cambia nada es un boton que miente. Y por
- * eso no hay chip por persona: el payload es anonimo, asi que "esta cara" no
- * se puede elegir a sabiendas, y de todos modos lo que parte un menu en dos
- * es la edad, no quien eres.
+ * Son los MISMOS circulos que filtran tu propio menu (ScopeCircle en Menu.jsx):
+ * la cara de cada uno recortada sobre un disco de su color, apiladas y
+ * creciendo hacia la derecha, con la etiqueta debajo. Seleccionado = discos
+ * llenos de color; sin seleccionar, el color se va al aro y el disco se queda
+ * hueco. Se reusa GroupAvatarStack tal cual, que es donde vive esa regla, para
+ * que filtrar el menu de otro se vea y se toque igual que filtrar el tuyo.
+ *
+ * No hay circulo por persona -que en tu menu si lo hay- porque el payload es
+ * anonimo: las caras van sin nombre, asi que elegir "esta persona" seria
+ * elegir a ciegas. Y de todos modos lo que parte un menu en dos es la edad.
  */
-function EaterScope({ scopes, value, onPick }) {
+function EaterScope({ scopes, all, value, onPick }) {
+  const opts = [{ role: null, label: "Todos", faces: all }, ...scopes];
   return (
     <div style={scopeRow} role="group" aria-label="Para quién es el menú">
-      <button
-        type="button"
-        aria-pressed={!value}
-        onClick={() => onPick(null)}
-        style={{ ...scopeChip, ...(value ? null : scopeChipOn) }}
-      >
-        Todos
-      </button>
-      {scopes.map((sc) => {
-        const on = value === sc.role;
+      {opts.map((opt, i) => {
+        const on = value === opt.role;
         return (
-          <button
-            key={sc.role}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onPick(on ? null : sc.role)}
-            style={{ ...scopeChip, ...(on ? scopeChipOn : null) }}
-          >
-            <span style={{ display: "flex", flexShrink: 0 }}>
-              {sc.faces.map((mem, i) => (
-                <MemberFace key={mem.id} mem={mem} size={20} ring stacked={i > 0} />
-              ))}
-            </span>
-            {sc.label}
-          </button>
+          <Fragment key={opt.role ?? "all"}>
+            {/* Barra fina entre "Todos" y los grupos: separa el conjunto de sus
+                partes, igual que en el selector de para-quien de la casa. */}
+            {i === 1 && <span style={scopeDivider} />}
+            <button
+              type="button"
+              className="mp-press"
+              aria-pressed={on}
+              onClick={() => onPick(opt.role)}
+              style={scopeOpt}
+            >
+              <GroupAvatarStack faces={opt.faces} size={SCOPE_FACE} active={on} max={3} />
+              <span style={{ ...scopeOptLabel, color: on ? GREEN : "#5f7568" }}>{opt.label}</span>
+            </button>
+          </Fragment>
         );
       })}
     </div>
@@ -1378,28 +1387,51 @@ function eaterScopes(members, days) {
     }
   }
 
+  // El color del disco sale del puesto que ocupa cada uno en la casa, igual
+  // que en tu menu (memberAvatarColor): asi dos personas seguidas nunca caen
+  // del mismo color y la pila se lee como personas distintas.
+  const roster = members ?? [];
+  const faceOf = (mem) => ({
+    src: scopeFaceSrc(mem),
+    color: memberAvatarColor(mem.id, roster),
+  });
+
+  const all = roster.filter((mem) => eating.has(mem.id));
   const groups = [];
   for (const role of ROLE_ORDER) {
-    const faces = (members ?? []).filter((mem) => mem.role === role && eating.has(mem.id));
-    if (faces.length > 0) groups.push({ role, label: ROLE_LABEL[role], faces: faces.slice(0, 2) });
+    const mine = all.filter((mem) => mem.role === role);
+    if (mine.length > 0) groups.push({ role, label: ROLE_LABEL[role], faces: mine.map(faceOf) });
   }
-  return { groups, splits: groups.length > 1 && shapes.size > 1 };
+  return { groups, all: all.map(faceOf), splits: groups.length > 1 && shapes.size > 1 };
 }
 
-/** Quien come, cuando no hay nada que elegir: solo las caras y de quien son. */
-function EaterAll({ groups }) {
-  const faces = groups.flatMap((g) => g.faces).slice(0, 3);
-  const label = groups.length === 1 ? groups[0].label : "Toda la casa";
-  return (
-    <span style={{ ...scopeRow, ...scopeStatic }}>
-      <span style={{ display: "flex", flexShrink: 0 }}>
-        {faces.map((mem, i) => (
-          <MemberFace key={mem.id} mem={mem} size={20} ring stacked={i > 0} />
-        ))}
-      </span>
-      <span style={{ fontSize: 11.5, fontWeight: 800, color: "#5f7568", whiteSpace: "nowrap" }}>{label}</span>
-    </span>
-  );
+/**
+ * El recorte de cabeza y hombros de un comensal.
+ *
+ * El payload trae la ruta del dibujo a tamaño completo (un PNG de 1024 px
+ * donde el muñeco es una columna estrecha en el centro) y esto se pinta en
+ * discos de 34: en ese tamaño la persona son cuatro pixeles, y ademas se
+ * bajaba medio mega por cara. La regla de la casa para los circulos pequeños
+ * es /avatares/thumbs/... (memberAvatarThumbSrc), y aqui se aplica igual.
+ *
+ * Sin dibujo propio -nadie eligio avatar, o el menu se publico antes de que
+ * existieran- se cae al generico del rol. Aqui SI se puede: el circulo va
+ * etiquetado por categoria -"Niños"- y no dice que esa sea la cara de nadie.
+ */
+function scopeFaceSrc(mem) {
+  const full = mem?.avatar ?? ROLE_AVATAR[mem?.role] ?? ROLE_AVATAR.adulto;
+  return full.replace("/avatares/", "/avatares/thumbs/");
+}
+
+/**
+ * Quien come, cuando no hay nada que elegir: las caras y ya.
+ *
+ * Sin etiqueta: "Toda la casa" era una frase para decir lo que las propias
+ * caras ya dicen. Y sin estado apagado -van llenas de color- porque aqui no
+ * hay nada seleccionado ni sin seleccionar: comen todos.
+ */
+function EaterAll({ faces }) {
+  return <GroupAvatarStack faces={faces} size={SCOPE_FACE} active max={4} />;
 }
 
 /**
@@ -1474,56 +1506,6 @@ function ViewPicker({ week, onWeek }) {
   );
 }
 
-/**
- * La cara de un comensal: su avatar si lo hay, y si no su inicial de rol.
- *
- * El payload publica la ruta del avatar ILUSTRADO a tamaño completo (un PNG de
- * 1024 px donde el muñeco es una columna estrecha en el centro), y aqui se
- * dibuja en circulos de 20 px: en ese tamaño la persona son cuatro pixeles y
- * ademas se bajaba medio mega por cara. Se pide primero el recorte de cabeza y
- * hombros -/avatares/thumbs/...-, que es la regla de la casa para los circulos
- * pequeños (memberAvatarThumbSrc); si ese archivo no existe se cae al original,
- * y si tampoco, al dibujo generico del rol. Sin esa cadena de respaldo una ruta
- * rota -o un menu publicado por alguien que nunca eligio avatar- dejaba una
- * letra suelta en un circulo gris donde tenia que haber una cara.
- */
-function MemberFace({ mem, size = 20, ring = false, stacked = false }) {
-  const [fallback, setFallback] = useState(0);
-  const candidates = [mem?.avatar, ROLE_AVATAR[mem?.role]].filter(Boolean);
-  const full = candidates[Math.min(fallback >> 1, candidates.length - 1)] ?? null;
-  const src = !full ? null : (fallback % 2 === 0 ? full.replace("/avatares/", "/avatares/thumbs/") : full);
-  const done = fallback >= candidates.length * 2;
-
-  if (src && !done) {
-    return (
-      <img
-        key={src}
-        src={src}
-        alt=""
-        loading="lazy"
-        onError={() => setFallback((f) => f + 1)}
-        style={{
-          width: size, height: size, borderRadius: 999, objectFit: "cover",
-          display: "block", flexShrink: 0, background: "#e8efe9",
-          border: ring ? "1.5px solid rgba(255,255,255,.85)" : "none",
-          // Apilados como el AvatarStack de la casa: se solapan y el borde
-          // blanco los separa, en vez de una fila de discos sueltos.
-          marginLeft: stacked ? -Math.round(size * 0.34) : 0,
-        }}
-      />
-    );
-  }
-  return (
-    <span style={{
-      ...memberDot, width: size, height: size, fontSize: Math.round(size * 0.42),
-      border: ring ? "1.5px solid rgba(255,255,255,.85)" : memberDot.border,
-      marginLeft: stacked ? -Math.round(size * 0.34) : 0,
-    }}>
-      {mem?.role === "adulto" ? "A" : mem?.role === "bebe" ? "B" : "N"}
-    </span>
-  );
-}
-
 /** Los platos de un dia, en orden, cada uno sabiendo de que comida sale. */
 function flattenDayDishes(day) {
   const out = [];
@@ -1550,6 +1532,7 @@ function SharedDishTile({ item, stats = null, onPick, onOpen, height, compact = 
   return (
     <button
       type="button"
+      className={locked ? undefined : "mp-press"}
       // La barra de acciones sale pegada al plato, asi que el toque tiene que
       // decir DONDE esta el plato — no solo cual es.
       onClick={locked ? undefined : (e) => {
@@ -1686,7 +1669,7 @@ function DishActionBar({ anchor, actions, onClose }) {
   const top = !tile ? vh / 2 : anchorFromBottom ? tile.top - 14 : tile.top + tile.height + 14;
 
   return (
-    <div onClick={onClose} className="mp-overlay-in" style={dishBarBackdrop}>
+    <div onClick={onClose} className="mp-overlay-in" style={dishBarBackdrop} role="dialog" aria-modal="true">
       {tile && (
         <div
           style={{
@@ -1705,11 +1688,12 @@ function DishActionBar({ anchor, actions, onClose }) {
           transform: !tile ? "translate(-50%, -50%)" : anchorFromBottom ? "translate(-50%, -100%)" : "translate(-50%, 0)",
         }}
       >
-        <div className="mp-sheet-up" onClick={(e) => e.stopPropagation()} style={dishBar}>
+        <div className="mp-pop" onClick={(e) => e.stopPropagation()} style={dishBar}>
           {actions.map((act) => (
             <button
               key={act.id}
               type="button"
+              className="mp-press"
               aria-label={act.label}
               onClick={act.onPick}
               style={{ ...dishBarBtn, width: BTN }}
@@ -1864,7 +1848,7 @@ function SaveToFolderDialog({ recipe, folders, onSave, onCreateFolder, onClose }
           </span>
         </label>
 
-        <button type="button" onClick={() => { onSave([...picked], remember); onClose(); }} style={{ ...primaryBtnFull, marginTop: 12 }}>
+        <button type="button" className="mp-press" onClick={() => { onSave([...picked], remember); onClose(); }} style={{ ...primaryBtnFull, marginTop: 12 }}>
           <Plus size={14} strokeWidth={2.8} /> Añadir a mis recetas
         </button>
       </div>
@@ -2019,27 +2003,28 @@ const deckTopRow = {
   flexWrap: "wrap", gap: 8, marginBottom: 12,
 };
 
+// El mismo tamaño de circulo que el filtro del mazo de tu menu, un punto por
+// debajo (42 alli) porque aqui comparten linea con el selector de vista.
+const SCOPE_FACE = 34;
+
 const scopeRow = {
-  display: "flex", alignItems: "center", gap: 4,
-  marginLeft: "auto", padding: 3, borderRadius: 999, background: "#f0f4f1",
+  display: "flex", alignItems: "flex-start", gap: 10,
+  marginLeft: "auto",
 };
 
-const scopeChip = {
-  display: "inline-flex", alignItems: "center", gap: 6,
-  padding: "4px 11px", borderRadius: 999, border: "none",
-  background: "none", color: "#5f7568",
-  fontSize: 11.5, fontWeight: 800, lineHeight: 1,
-  cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
-  transition: "background .15s ease, color .15s ease",
+const scopeOpt = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+  padding: 0, border: "none", background: "transparent",
+  cursor: "pointer", fontFamily: "inherit", minWidth: 40,
 };
 
-// Sin nada que elegir no es un control: sin pista de fondo y sin sombra, solo
-// las caras y su etiqueta.
-const scopeStatic = { background: "none", padding: "3px 2px", gap: 7 };
+const scopeOptLabel = {
+  fontSize: 10.5, fontWeight: 800, whiteSpace: "nowrap",
+  transition: "color .15s ease",
+};
 
-const scopeChipOn = {
-  background: "#fff", color: INK,
-  boxShadow: "0 1px 4px rgba(20,47,29,.14)",
+const scopeDivider = {
+  width: 1, height: 30, background: "#dde8e1", alignSelf: "center", flexShrink: 0,
 };
 
 const dishBarBackdrop = {
@@ -2076,22 +2061,29 @@ const peekScreen = {
   boxShadow: "0 0 60px rgba(0,0,0,.35)",
 };
 
-// La franja es compacta, no apretada: 9 px arriba dejaban la cara pegada a la
-// barra de estado del movil (o al borde de la ventana), que es lo que hacia
-// que la cabecera pareciera cortada en vez de terminada. El inset seguro se
-// suma al padding para que en un iPhone con notch tampoco se meta debajo.
+// Exactamente la misma caja que la cabecera de Inicio, Menú, Recetas o el
+// propio Feed: 20 px arriba, 14 abajo y 36 de alto por dentro. Entrar en la
+// cocina de alguien no es entrar en otra app, asi que la barra no puede medir
+// otra cosa — antes era mas baja y el salto se notaba al abrirla. El inset
+// seguro se suma al padding para que en un movil con notch tampoco se meta
+// debajo.
 const peekBar = {
   position: "relative",
   display: "flex", alignItems: "center", gap: 10,
-  padding: "14px 14px 13px",
-  paddingTop: "calc(14px + env(safe-area-inset-top, 0px))",
+  // La pantalla del asomo es una columna flex, asi que sin esto la cabecera
+  // ENCOGE cuando el menu es largo: pedia 70 px y se quedaba en 64, y por eso
+  // no acababa de cuadrar con la del resto de pestañas por mucho padding que
+  // se le pusiera.
+  flexShrink: 0,
+  padding: "20px 16px 14px",
+  paddingTop: "calc(20px + env(safe-area-inset-top, 0px))",
   background: HEADER_BAND,
   borderBottom: "1px solid #dfeae3",
 };
 
 const peekBarIcon = {
   display: "inline-flex", alignItems: "center", justifyContent: "center",
-  width: 32, height: 32, borderRadius: 999, flexShrink: 0,
+  width: 36, height: 36, borderRadius: 999, flexShrink: 0,
   border: "none", background: "#f0f4f1", color: GREEN, cursor: "pointer",
 };
 
@@ -2205,12 +2197,6 @@ const inspireLink = {
 
 const dayRow = { display: "flex", gap: 10, alignItems: "flex-start" };
 const dayName = { flexShrink: 0, width: 34, fontSize: 11.5, fontWeight: 900, color: "#7a9485", textTransform: "uppercase", paddingTop: 1 };
-
-const memberDot = {
-  width: 22, height: 22, borderRadius: 999, flexShrink: 0,
-  display: "flex", alignItems: "center", justifyContent: "center",
-  background: "#e8efe9", color: "#42594c", fontSize: 10, fontWeight: 900,
-};
 
 /**
  * La tarjeta de publicar.
