@@ -156,7 +156,7 @@ import {
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";
 import { filterOwnCreatedRecipes } from "./lib/userRecipes.js";
-import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
+import { suggestHomeRole, migrateHomeRole, resolveAccountMember, memberIllustratedAvatarSrc } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import {
   DEFAULT_ROSTER_ID,
@@ -2901,8 +2901,17 @@ export default function App() {
   // bloquear nada, como la migracion de fotos de arriba.
   useEffect(() => {
     if (!user?.id) return;
-    const t = setTimeout(() => { ensureSocialProfile(user.id, googleInfo(user).name); }, 2500);
+    const t = setTimeout(() => {
+      // El perfil hereda el DIBUJO que ya elegiste para ti en la app. La foto
+      // real no: publicar tu cara se hace a proposito, desde el cajon del
+      // perfil, no de oficio al iniciar sesion. Sin esto el perfil nacia sin
+      // imagen y toda la cabecera del feed eran iniciales sueltas.
+      const me = resolveAccountMember(data.members, data.accountMemberId, googleInfo(user).name);
+      ensureSocialProfile(user.id, googleInfo(user).name, memberIllustratedAvatarSrc(me));
+    }, 2500);
     return () => clearTimeout(t);
+    // Solo al iniciar sesion: la casa ya esta cargada de local para entonces.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   // El punto del tab Feed necesita saberse al ARRANCAR, no al entrar al Feed
@@ -3726,14 +3735,24 @@ export default function App() {
    *  · del catalogo -> ya la tienes; lo que falta es marcarla como favorita,
    *    que es exactamente lo que hace que salga en Mis Recetas.
    */
+  /**
+   * Guardar en tus recetas un plato del menu de otra persona.
+   *
+   * Devuelve el id BAJO EL QUE queda guardado, que no siempre es el que
+   * entro: la receta de otro nace como copia tuya con id propio, y la del
+   * catalogo se queda con el suyo. Quien llama lo necesita para archivarla en
+   * las carpetas que hayas elegido — antes no devolvia nada y por eso no se
+   * podia preguntar "¿en que carpeta?".
+   */
   const handleSaveDishToRecipes = useCallback(async (dish) => {
-    if (!dish?.recipeId) return;
+    if (!dish?.recipeId) return null;
     if (dish.source === "user") {
       const newId = await handleCopyRecipeFromFeed(dish.recipeId, dish.ownerId ?? null);
       if (newId) showToast("Guardada en tus recetas");
-      return;
+      return newId ?? null;
     }
     handlePersonalSetFavoriteScope(dish.recipeId, "all");
+    return dish.recipeId;
   }, [handleCopyRecipeFromFeed, handlePersonalSetFavoriteScope, showToast]);
 
   const handleDuplicateSlot = useCallback(async (source, target) => {

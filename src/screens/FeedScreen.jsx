@@ -387,6 +387,24 @@ export function FeedScreen({
   };
 
   /**
+   * Guardar un plato del menu de otra persona pasa por la MISMA hoja de
+   * carpetas que guardar una receta del rio: es la misma decision -"me la
+   * llevo, ¿donde la meto?"- sobre el mismo objeto, y sin ella el plato caia
+   * en el saco comun sin que hubiera forma de ordenarlo. Se respeta el
+   * "guardar siempre aqui" que ya hubieras contestado.
+   */
+  const saveDishInto = async (dish, folderIds) => {
+    const savedId = await onSaveDish?.(dish);
+    if (savedId && folderIds?.length) onSetRecipeFolders?.(savedId, folderIds);
+  };
+
+  const handleSaveDish = (dish) => {
+    const preset = readDefaultFolders();
+    if (preset) { saveDishInto(dish, preset); return; }
+    setFolderPickerFor({ dish, recipe: { id: dish.recipeId, name: dish.name } });
+  };
+
+  /**
    * Solo el "no" penaliza, y no como un descarte: la receta es de otro, no
    * está en tu biblioteca, así que no hay nada que mandar a Descartados. Se
    * apunta como "no me la vuelvas a enseñar" y desaparece del Feed y del mazo.
@@ -722,7 +740,7 @@ export function FeedScreen({
           onOpenPerson={() => { setMenuOpen(null); setPersonId(menuOpen.owner_id); }}
           onBlocked={handleBlocked}
           onClose={() => setMenuOpen(null)}
-          onSaveDish={onSaveDish}
+          onSaveDish={handleSaveDish}
           onPlaceDish={(dish) => { setMenuOpen(null); onPlaceDish?.(dish); }}
           onOpenDish={(dish) => onOpenRecipe?.({ id: dish.recipeId, name: dish.name })}
         />
@@ -815,7 +833,8 @@ export function FeedScreen({
           folders={allFolders(recipeFolders)}
           onSave={(ids, remember) => {
             if (remember) writeDefaultFolders(ids);
-            copyInto(folderPickerFor, ids);
+            if (folderPickerFor.dish) saveDishInto(folderPickerFor.dish, ids);
+            else copyInto(folderPickerFor, ids);
           }}
           onCreateFolder={onCreateFolder}
           onClose={() => setFolderPickerFor(null)}
@@ -1168,10 +1187,18 @@ function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, on
           la esquina de cada plato, una por comensal, y ahi no elegian nada:
           eran un adorno que ademas repetia las mismas cuatro caras en todas
           las tarjetas. Aqui son un control, y encima liberan la esquina. */}
-      {(multi || scopes.length > 0) && (
+      {(multi || scopes.groups.length > 0) && (
         <div style={deckTopRow}>
           {multi && <ViewPicker week={week} onWeek={setWeek} />}
-          {scopes.length > 0 && <EaterScope scopes={scopes} value={roleFilter} onPick={onRole} />}
+          {/* Las caras SIEMPRE se ven. Lo que depende de que haya diferencia es
+              poder ELEGIR: si toda la casa come lo mismo no hay dos menus entre
+              los que elegir, asi que la fila deja de ser un control y pasa a
+              decir, sin mas, quien come esto. */}
+          {scopes.groups.length > 0 && (
+            scopes.splits
+              ? <EaterScope scopes={scopes.groups} value={roleFilter} onPick={onRole} />
+              : <EaterAll groups={scopes.groups} />
+          )}
         </div>
       )}
 
@@ -1350,14 +1377,29 @@ function eaterScopes(members, days) {
       shapes.add([...ids].sort().join(","));
     }
   }
-  if (shapes.size < 2) return [];
 
-  const out = [];
+  const groups = [];
   for (const role of ROLE_ORDER) {
     const faces = (members ?? []).filter((mem) => mem.role === role && eating.has(mem.id));
-    if (faces.length > 0) out.push({ role, label: ROLE_LABEL[role], faces: faces.slice(0, 2) });
+    if (faces.length > 0) groups.push({ role, label: ROLE_LABEL[role], faces: faces.slice(0, 2) });
   }
-  return out.length > 1 ? out : [];
+  return { groups, splits: groups.length > 1 && shapes.size > 1 };
+}
+
+/** Quien come, cuando no hay nada que elegir: solo las caras y de quien son. */
+function EaterAll({ groups }) {
+  const faces = groups.flatMap((g) => g.faces).slice(0, 3);
+  const label = groups.length === 1 ? groups[0].label : "Toda la casa";
+  return (
+    <span style={{ ...scopeRow, ...scopeStatic }}>
+      <span style={{ display: "flex", flexShrink: 0 }}>
+        {faces.map((mem, i) => (
+          <MemberFace key={mem.id} mem={mem} size={20} ring stacked={i > 0} />
+        ))}
+      </span>
+      <span style={{ fontSize: 11.5, fontWeight: 800, color: "#5f7568", whiteSpace: "nowrap" }}>{label}</span>
+    </span>
+  );
 }
 
 /**
@@ -1990,6 +2032,10 @@ const scopeChip = {
   cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
   transition: "background .15s ease, color .15s ease",
 };
+
+// Sin nada que elegir no es un control: sin pista de fondo y sin sombra, solo
+// las caras y su etiqueta.
+const scopeStatic = { background: "none", padding: "3px 2px", gap: 7 };
 
 const scopeChipOn = {
   background: "#fff", color: INK,

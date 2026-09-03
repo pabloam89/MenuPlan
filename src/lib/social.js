@@ -190,15 +190,27 @@ export async function suggestUsername(name) {
  * Si el guardado falla (sin red, migracion sin aplicar) devuelve el derivado
  * marcado `unsaved`: quien llama decide si le vale para pintar, y el proximo
  * inicio de sesion lo reintenta solo.
+ *
+ * `avatar` es el DIBUJO del titular de la cuenta, nunca su foto: la foto se
+ * sube a mano desde el cajon del perfil y publicar la cara de nadie es algo
+ * que se hace a proposito, no de oficio. Sin esto el perfil nacia sin imagen
+ * y la cabecera de todo el feed -tu menu, el de los demas, los comentarios-
+ * enseñaba iniciales sueltas aunque en la app ya hubieras elegido tu avatar.
+ * Solo RELLENA el hueco: si ya hay imagen, no se toca.
  */
-export async function ensureSocialProfile(userId, fallbackName = "") {
+export async function ensureSocialProfile(userId, fallbackName = "", avatar = null) {
   if (!userId) return null;
   const current = ok() ? await loadMyProfile(userId) : null;
-  if (current?.username) return current;
+  if (current?.username) {
+    if (current.avatar_url || !avatar || !ok()) return current;
+    const filled = await saveMyProfile(userId, { avatar_url: avatar });
+    return filled?.error ? current : (filled ?? current);
+  }
   const display = current?.display_name || fallbackName || "";
   const username = await suggestUsername(display);
   if (!username) return current;
-  const saved = ok() ? await saveMyProfile(userId, { display_name: display, username }) : null;
+  const patch = { display_name: display, username, ...(avatar ? { avatar_url: avatar } : null) };
+  const saved = ok() ? await saveMyProfile(userId, patch) : null;
   if (!saved || saved.error) return { user_id: userId, display_name: display, username, unsaved: true };
   return saved;
 }
