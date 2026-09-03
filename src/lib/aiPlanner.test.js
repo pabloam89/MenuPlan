@@ -6,6 +6,7 @@ import {
   generateMenuWithAI,
   AIPlannerError,
   applyGarnishToRecipe,
+  mergeIngredientLines,
   pickCatalogReplacement,
   selectReplacementCandidates,
   callModel,
@@ -1209,5 +1210,46 @@ describe("poolForWeek — variedad multi-semana", () => {
     ).not.toThrow();
     const w0 = poolForWeek(small, { weekIndex: 0, weekCount: 2, varietyPref: "strict" }, slotCount);
     expect(w0.length).toBeGreaterThanOrEqual(slotCount);
+  });
+});
+
+describe("mergeIngredientLines", () => {
+  it("junta el mismo ingrediente en una sola linea y suma", () => {
+    // Un plato con guarnicion y salsa es la suma de tres recetas, y las tres
+    // llevan sal y aceite: la ficha salia con "Sal" tres veces.
+    const merged = mergeIngredientLines([
+      { id: "sal", name: "Sal", qty: 10, unit: "g" },
+      { id: "aceite", name: "Aceite de oliva", qty: 40, unit: "ml" },
+      { id: "garnish-sal", name: "sal", qty: 5, unit: "g" },
+      { id: "sauce-aceite", name: "Aceite de oliva", qty: 20, unit: "ml" },
+    ]);
+    expect(merged).toHaveLength(2);
+    expect(merged[0]).toMatchObject({ name: "Sal", qty: 15, unit: "g" });
+    expect(merged[1]).toMatchObject({ name: "Aceite de oliva", qty: 60, unit: "ml" });
+  });
+
+  it("entre 'al gusto' y una cantidad, manda la cantidad", () => {
+    const merged = mergeIngredientLines([
+      { name: "Sal", qty: null, unit: "al gusto" },
+      { name: "Sal", qty: 8, unit: "g" },
+    ]);
+    expect(merged).toEqual([expect.objectContaining({ name: "Sal", qty: 8, unit: "g" })]);
+  });
+
+  it("no suma unidades que no se pueden sumar", () => {
+    // Sumar 50 g con 30 ml seria inventarse una densidad.
+    const merged = mergeIngredientLines([
+      { name: "Nata", qty: 50, unit: "g" },
+      { name: "Nata", qty: 30, unit: "ml" },
+    ]);
+    expect(merged).toHaveLength(2);
+  });
+
+  it("deja en null lo que no tiene cantidad por ningun lado", () => {
+    const merged = mergeIngredientLines([
+      { name: "Pimienta", qty: null, unit: "al gusto" },
+      { name: "Pimienta", qty: null, unit: "al gusto" },
+    ]);
+    expect(merged).toEqual([expect.objectContaining({ name: "Pimienta", qty: null })]);
   });
 });

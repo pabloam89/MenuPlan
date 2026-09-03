@@ -1278,6 +1278,12 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
     };
   });
 
+  // Una receta puede nombrar el mismo ingrediente en dos sitios (el aceite de
+  // pochar y el de aliñar, la sal del agua y la del sofrito). Para cocinar da
+  // igual: lo que se quiere saber es cuanto aceite hace falta EN TOTAL, y dos
+  // lineas iguales con cantidades distintas solo obligan a sumarlas de cabeza.
+  const merged = mergeIngredientLines(ingredients);
+
   const mealTypes = r.mealRole.map((role) =>
     role === "cena" ? "cena" : "comida",
   );
@@ -1319,7 +1325,7 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
     stepsRich: r.stepsRich,
     image: r.photo ?? `/dishes/${r.id}.webp`,
     photo: r.photo ?? undefined,
-    ingredients,
+    ingredients: merged,
     // Appliance variants (airfryer, horno, thermomix…) — used to show the
     // best-fit method for the user's kitchen tools in the menu + dish detail.
     methods: r.methods ?? [],
@@ -1780,6 +1786,84 @@ export function selectReplacementCandidates(pool, matches, usedBaseIds, currentB
 }
 
 /**
+ * Escala los ingredientes de una guarnicion o una salsa al numero de comensales.
+ *
+ * Mismas reglas que el plato principal (catalogToFrontendRecipe): g y ml a
+ * multiplos de 5 con minimo 5, unidades hacia arriba, y las CUALITATIVAS -"al
+ * gusto", "pizca", "c/n"- se quedan sin numero. Esto ultimo faltaba aqui y por
+ * eso la sal de una guarnicion salia como "al gusto · 10 g": dos cosas que se
+ * contradicen en la misma linea.
+ */
+function scaleSideIngredients(side, eaters, renameByName, idPrefix) {
+  const perServing = side.baseServings ?? 1;
+  const factor = eaters / perServing;
+  return (side.ingredients ?? []).map((ing) => {
+    let qty = null;
+    if (!isQualitativeUnit(ing.unit)) {
+      qty = ing.amount * factor;
+      if (ing.unit === "g" || ing.unit === "ml") {
+        qty = Math.round(qty / 5) * 5;
+        if (qty < 5) qty = 5;
+      } else {
+        qty = Math.ceil(qty);
+      }
+    }
+    const name = renameByName.get(ing.name) ?? ing.name;
+    return {
+      id: `${idPrefix}-${name.toLowerCase().replace(/\s+/g, "-")}`,
+      name,
+      category: guessIngredientCategory(name),
+      qty,
+      unit: ing.unit,
+    };
+  });
+}
+
+const normIngredientName = (s) =>
+  String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
+
+/**
+ * Junta en una sola linea los ingredientes que son el mismo ingrediente.
+ *
+ * Un plato con guarnicion (y a veces salsa) es la suma de dos o tres recetas, y
+ * las tres llevan sal, aceite y ajo. Sin esto la lista salia con "Sal" tres
+ * veces y "Aceite de oliva virgen extra" dos, cada una con su cantidad — que
+ * ademas es inutil para cocinar: lo que quieres saber es cuanto aceite echas en
+ * total, no cuanto le tocaria a cada mitad del plato.
+ *
+ * Se suman solo las que comparten unidad. Una cuantificada y otra "al gusto"
+ * son el mismo ingrediente contado de dos formas: manda la que trae cantidad.
+ * Dos unidades reales distintas (g y ml del mismo nombre) no se pueden sumar
+ * sin inventarse una densidad, asi que esas se dejan en dos lineas.
+ */
+export function mergeIngredientLines(list) {
+  const out = [];
+  const slotByName = new Map();
+  for (const ing of list ?? []) {
+    const key = normIngredientName(ing.name);
+    const at = slotByName.get(key);
+    if (at == null) {
+      slotByName.set(key, out.length);
+      out.push({ ...ing });
+      continue;
+    }
+    const prev = out[at];
+    if (prev.unit === ing.unit) {
+      prev.qty = prev.qty == null && ing.qty == null ? null : (prev.qty ?? 0) + (ing.qty ?? 0);
+      continue;
+    }
+    if (isQualitativeUnit(prev.unit) && !isQualitativeUnit(ing.unit)) {
+      out[at] = { ...prev, qty: ing.qty, unit: ing.unit };
+      continue;
+    }
+    if (isQualitativeUnit(ing.unit)) continue;
+    // Unidades reales distintas: sumarlas seria inventarse una equivalencia.
+    out.push({ ...ing });
+  }
+  return out;
+}
+
+/**
  * Merge a garnish into a frontend recipe in place: name, time, macros, scaled
  * ingredients, prepSummary and steps. Shared by the generator and the swap flow
  * so a paired dish looks identical regardless of how it entered the menu.
@@ -1819,25 +1903,8 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   // *eligible*, not what to rename, so a garnish never needs to be dropped
   // just because it has a swappable ingredient (e.g. lactose-free milk).
   const { renameByName, adaptations: garnishAdaptations } = buildAdaptationMap(garnish, restrictions);
-  const gFactor = eaters / gPerServing;
-  const gIngredients = garnish.ingredients.map((ing) => {
-    let scaledQty = ing.amount * gFactor;
-    if (ing.unit === "g" || ing.unit === "ml") {
-      scaledQty = Math.round(scaledQty / 5) * 5;
-      if (scaledQty < 5) scaledQty = 5;
-    } else {
-      scaledQty = Math.ceil(scaledQty);
-    }
-    const name = renameByName.get(ing.name) ?? ing.name;
-    return {
-      id: `garnish-${name.toLowerCase().replace(/\s+/g, "-")}`,
-      name,
-      category: guessIngredientCategory(name),
-      qty: scaledQty,
-      unit: ing.unit,
-    };
-  });
-  fr.ingredients = [...fr.ingredients, ...gIngredients];
+  const gIngredients = scaleSideIngredients(garnish, eaters, renameByName, "garnish");
+  fr.ingredients = mergeIngredientLines([...fr.ingredients, ...gIngredients]);
 
   // Surface the garnish's own swaps in the same `adaptations` note the main
   // dish uses, so the UI shows "Adaptado: sin lactosa" regardless of which
@@ -1885,25 +1952,8 @@ export function applySauceToRecipe(fr, sauce, eaters, restrictions = []) {
 
   // Ingredientes: misma lógica de escalado + adaptaciones que la guarnición.
   const { renameByName, adaptations: sauceAdaptations } = buildAdaptationMap(sauce, restrictions);
-  const sFactor = eaters / sPerServing;
-  const sIngredients = sauce.ingredients.map((ing) => {
-    let scaledQty = ing.amount * sFactor;
-    if (ing.unit === "g" || ing.unit === "ml") {
-      scaledQty = Math.round(scaledQty / 5) * 5;
-      if (scaledQty < 5) scaledQty = 5;
-    } else {
-      scaledQty = Math.ceil(scaledQty);
-    }
-    const name = renameByName.get(ing.name) ?? ing.name;
-    return {
-      id: `sauce-${name.toLowerCase().replace(/\s+/g, "-")}`,
-      name,
-      category: guessIngredientCategory(name),
-      qty: scaledQty,
-      unit: ing.unit,
-    };
-  });
-  fr.ingredients = [...fr.ingredients, ...sIngredients];
+  const sIngredients = scaleSideIngredients(sauce, eaters, renameByName, "sauce");
+  fr.ingredients = mergeIngredientLines([...fr.ingredients, ...sIngredients]);
 
   if (sauceAdaptations.length > 0) {
     fr.adaptations = [...(fr.adaptations ?? []), ...sauceAdaptations];
