@@ -63,7 +63,14 @@ export function buildNotifications({ requests = [], accepted = [], followers = [
   // Lo tuyo no cuenta: enterarte de que has publicado tu no es una noticia.
   for (const m of menus) {
     if (meId && m.owner_id === meId) continue;
-    items.push({ key: `mnu_${m.id}`, kind: "menu", actorId: m.owner_id, at: m.created_at, targetType: "menu", targetId: m.id });
+    // updated_at y NO created_at: publicar un menu es un upsert sobre
+    // (owner_id, menu_id), asi que republicar la misma semana ACTUALIZA la
+    // fila y created_at se queda en la primera vez. Fechando el aviso con
+    // created_at, un menu republicado nacia ya por debajo de tu marca de
+    // "visto" y no avisaba a nadie — solo funcionaba si retirabas antes, que
+    // borra la fila y crea otra. Republicar es volver a compartir: es
+    // noticia, y la fecha que lo dice es updated_at.
+    items.push({ key: `mnu_${m.id}`, kind: "menu", actorId: m.owner_id, at: m.updated_at ?? m.created_at, targetType: "menu", targetId: m.id });
   }
   for (const f of followers) {
     if (f.responded_at != null) continue; // lo aceptaste tú: ya lo sabes
@@ -150,9 +157,9 @@ export async function loadNotifications(userId, { limit = 40 } = {}) {
     // tu lista de amistades — filtrar dos veces lo mismo es como acaban
     // desincronizandose el filtro y la politica.
     supabase.from("shared_menus")
-      .select("id, owner_id, created_at")
+      .select("id, owner_id, created_at, updated_at")
       .neq("visibility", "private")
-      .order("created_at", { ascending: false }).limit(15),
+      .order("updated_at", { ascending: false }).limit(15),
     supabase.from("social_profiles")
       .select("notifications_seen_at")
       .eq("user_id", userId).maybeSingle(),
