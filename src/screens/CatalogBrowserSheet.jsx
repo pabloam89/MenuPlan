@@ -986,11 +986,10 @@ export function CatalogBrowserSheet({
         const broken = isFacet && brokenFacetImgs.has(tile.id);
         const label = isMine ? "Mis recetas" : isFacet ? meta.label : categoryLabel(tile.id);
         const count = isMine ? mineIds.size : isFacet ? facetCounts[tile.id] ?? 0 : categoryCounts[tile.id] ?? 0;
-        // "Mis recetas" a 0 no lleva a ningún sitio útil — antes entrabas y
-        // caías en el mensaje genérico de "No encontramos platos con esos
-        // filtros", que confunde (parece que falló una búsqueda, no que aún
-        // no has creado/marcado nada). Mejor deshabilitar la tile entera.
-        const disabled = isMine && count === 0;
+        // "Mis recetas" siempre se puede abrir, aunque tengas 0: la raíz
+        // muestra las carpetas (Todas, Descartados...), no el mensaje
+        // genérico de "sin resultados" — ese solo sale fuera de inMineRoot.
+        const disabled = false;
         const onTileClick = () => {
           if (disabled) return;
           if (isMine) {

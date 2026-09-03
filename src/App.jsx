@@ -5626,6 +5626,27 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
           animation: "fadeUp .8s ease-out both",
         }}
       >
+        <div
+          role="img"
+          aria-hidden="true"
+          style={{
+            width: 84,
+            height: 84,
+            margin: "0 auto 6px",
+            backgroundColor: isMenu ? GREEN : WHITE,
+            WebkitMaskImage: "url(/logo-homenu.svg)",
+            maskImage: "url(/logo-homenu.svg)",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+            transition: "background-color .6s ease 150ms",
+            filter: "drop-shadow(0 4px 14px rgba(0,0,0,.4))",
+          }}
+        />
+
         <h1
           style={{
             fontSize: "clamp(58px, 17vw, 84px)",
