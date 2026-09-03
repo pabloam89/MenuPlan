@@ -1,5 +1,5 @@
 import { DAYS } from "./planner.js";
-import { stageForAge, resolveMemberAge } from "./stages.js";
+import { stageForAge, resolveMemberAge, memberIllustratedAvatarSrc } from "./stages.js";
 
 /**
  * Construye la proyección de un menú para publicarlo (contrato v1, definido en
@@ -91,9 +91,15 @@ export function buildSharedMenuPayload({
     // Dibujo y rol, nada más. El rol distingue adulto de niño para dar
     // contexto ("menú para dos adultos y un peque") sin decir quién es quién
     // ni qué edad tiene — que de un menor es justo lo que no se publica.
+    //
+    // El dibujo es el AVATAR ILUSTRADO, no la foto: aquí se mandaba `photo`,
+    // que casi nadie tiene, así que al otro lado salían iniciales sueltas —
+    // y el avatar cartoon, que sí tiene todo el mundo, se quedaba en casa.
+    // Además la ilustración es justo lo que se puede publicar de un menor:
+    // una foto real de un niño no sale de aquí ni queriendo.
     members: membersUsedIn(days, members).map((m) => ({
       id: m.id,
-      avatar: m.photo ?? null,
+      avatar: memberIllustratedAvatarSrc(m),
       role: isChild(m) ? "nino" : "adulto",
     })),
   };

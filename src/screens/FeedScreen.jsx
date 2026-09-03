@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon, ChefHat, Layers2, ChevronDown } from "lucide-react";
+import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, Users2 } from "lucide-react";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
 import { RecipePoster, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
@@ -982,7 +982,11 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
   // entera-, que es como se usa de verdad el menu de otra persona: te llevas
   // la idea suelta que te ha gustado.
   const [dishPick, setDishPick] = useState(null);
+  // El filtro por comensal, plegado: es util pero lo usa poca gente, y una
+  // fila de caras permanente era parte de lo que hinchaba la cabecera.
+  const [whoOpen, setWhoOpen] = useState(false);
   const days = m.payload?.weeks?.[0]?.days ?? [];
+  const rango = m.title || (m.week_start ? rangeLabel(m.week_start, m.week_end) : null);
   const members = m.payload?.members ?? [];
   const byId = Object.fromEntries(members.map((x) => [x.id, x]));
   const name = profile?.display_name || (profile?.username ? `@${profile.username}` : "Alguien");
@@ -993,87 +997,90 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
         {/* Entrar en la cocina de alguien: su cara arriba y su semana debajo,
             con la misma pinta que tiene la tuya. Pantalla completa y no una
             hoja, porque el gesto que la abre es "asomarse". */}
-        <div style={peekHeader}>
-          <button type="button" onClick={onClose} aria-label="Cerrar" style={peekClose}>
-            <X size={17} strokeWidth={2.6} />
-          </button>
-          {/* Fecha y "solo vista" viven ARRIBA, en la barra: son contexto de
-              la pantalla -de quien es y hasta cuando- y estorbaban entre la
-              cara y el menu, que es donde va el contenido. */}
-          <div style={peekTopMeta}>
-            <span style={peekDateChip}>
-              <CalendarDays size={12} strokeWidth={2.6} />
-              {m.title || rangeLabel(m.week_start, m.week_end)}
-            </span>
-            <span style={peekViewOnly}>
-              <Eye size={11} strokeWidth={2.6} /> Solo vista
-            </span>
-          </div>
-          <div style={{ position: "absolute", top: 14, left: 14 }}>
-            {/* peekClose trae su propio position:absolute (top/right) para
-                anclarse solo; aqui ya lo ancla el div padre, asi que se usa un
-                estilo sin esa parte o el boton se iria a la esquina opuesta. */}
-            <button type="button" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={peekMenuBtn}>
-              <MoreVertical size={17} strokeWidth={2.6} />
-            </button>
-            {moreOpen && (
-              <div style={peekMenu}>
-                <button type="button" onClick={() => { setMoreOpen(false); setReporting(true); }} style={peekMenuItem}>
-                  <Flag size={13} strokeWidth={2.5} /> Reportar menú
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => { setMoreOpen(false); await blockUser(user?.id, m.owner_id); onBlocked?.(m.owner_id); onClose(); }}
-                  style={{ ...peekMenuItem, color: "#c0392b" }}
-                >
-                  <BlockIcon size={13} strokeWidth={2.5} /> Bloquear
-                </button>
-              </div>
-            )}
-          </div>
-          <span style={ringOn}>
-            <span style={{ ...ringGap, background: "rgba(255,255,255,.92)" }}>
-              <Avatar name={profile?.display_name ?? "?"} photo={profile?.avatar_url} size={64} color={TEAL} />
-            </span>
-          </span>
-          <button type="button" onClick={onOpenPerson} style={{ padding: 0, border: "none", background: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 18, fontWeight: 900, color: INK, marginTop: 10 }}>
-            {name}
-          </button>
-          {profile?.username && profile?.display_name && (
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#8aa294" }}>@{profile.username}</div>
-          )}
+        {/* Franja compacta, no portada.
+            Antes era una cabecera centrada de ~200px -avatar de 64, nombre,
+            @handle, fila de comensales y dos pastillas- que se comia un
+            tercio de la pantalla en un movil: para ver el segundo plato ya
+            habia que hacer scroll. Y en una pantalla que existe para MIRAR
+            UN MENU, quien lo publica es contexto, no el contenido.
 
-          {members.length > 0 && (
-            <div style={{ display: "flex", gap: 5, marginTop: 10 }}>
-              {members.map((mem) => {
-                const on = eaterFilter === mem.id;
-                return (
-                  <button
-                    key={mem.id}
-                    type="button"
-                    title={mem.role === "nino" ? "Solo lo que come este peque" : "Solo lo que come esta persona"}
-                    aria-pressed={on}
-                    onClick={() => setEaterFilter(on ? null : mem.id)}
-                    style={{
-                      ...memberDot, width: 26, height: 26,
-                      border: on ? `2px solid ${TEAL}` : "2px solid transparent",
-                      background: on ? "#d9ece7" : "#e8efe9",
-                      cursor: "pointer", padding: 0, fontFamily: "inherit",
-                    }}
-                  >
-                    <MemberFace mem={mem} size={22} />
-                  </button>
-                );
-              })}
-              {eaterFilter && (
-                <button type="button" onClick={() => setEaterFilter(null)} style={clearFilterBtn}>
-                  Ver todo
-                </button>
-              )}
+            Ahora una fila de 52px con lo imprescindible, y el resto -el
+            filtro por comensal- se despliega solo si lo pides. */}
+        <div style={peekBar}>
+          <button type="button" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={peekBarIcon}>
+            <MoreVertical size={16} strokeWidth={2.6} />
+          </button>
+          {moreOpen && (
+            <div style={peekMenu}>
+              <button type="button" onClick={() => { setMoreOpen(false); setReporting(true); }} style={peekMenuItem}>
+                <Flag size={13} strokeWidth={2.5} /> Reportar menú
+              </button>
+              <button
+                type="button"
+                onClick={async () => { setMoreOpen(false); await blockUser(user?.id, m.owner_id); onBlocked?.(m.owner_id); onClose(); }}
+                style={{ ...peekMenuItem, color: "#c0392b" }}
+              >
+                <BlockIcon size={13} strokeWidth={2.5} /> Bloquear
+              </button>
             </div>
           )}
 
+          <button type="button" onClick={onOpenPerson} style={peekWho} aria-label={`Ver el perfil de ${name}`}>
+            <Avatar name={profile?.display_name ?? "?"} photo={profile?.avatar_url} size={30} color={TEAL} />
+            <span style={{ minWidth: 0 }}>
+              <span style={peekWhoName}>{name}</span>
+              {/* La fecha va aqui, bajo el nombre: "el menu de Alvaro, del 31
+                  al 6". Solo si la hay — un chip que pone "Menú" no dice
+                  nada, que es lo que salia cuando el menu no traia rango. */}
+              {rango && <span style={peekWhoWhen}>{rango}</span>}
+            </span>
+          </button>
+
+          {members.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setWhoOpen((v) => !v)}
+              aria-expanded={whoOpen}
+              aria-label="Filtrar por comensal"
+              style={{ ...peekBarIcon, background: eaterFilter ? "#d9ece7" : "#f0f4f1", color: eaterFilter ? TEAL : "#7a9485" }}
+            >
+              <Users2 size={15} strokeWidth={2.6} />
+            </button>
+          )}
+          <button type="button" onClick={onClose} aria-label="Cerrar" style={peekBarIcon}>
+            <X size={16} strokeWidth={2.6} />
+          </button>
         </div>
+
+        {whoOpen && members.length > 0 && (
+          <div style={peekWhoRow}>
+            {members.map((mem) => {
+              const on = eaterFilter === mem.id;
+              return (
+                <button
+                  key={mem.id}
+                  type="button"
+                  title={mem.role === "nino" ? "Solo lo que come este peque" : "Solo lo que come esta persona"}
+                  aria-pressed={on}
+                  onClick={() => setEaterFilter(on ? null : mem.id)}
+                  style={{
+                    ...memberDot, width: 30, height: 30, padding: 0,
+                    border: on ? `2px solid ${TEAL}` : "2px solid transparent",
+                    background: on ? "#d9ece7" : "#e8efe9",
+                    cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  <MemberFace mem={mem} size={26} />
+                </button>
+              );
+            })}
+            {eaterFilter && (
+              <button type="button" onClick={() => setEaterFilter(null)} style={clearFilterBtn}>
+                Ver todo
+              </button>
+            )}
+          </div>
+        )}
 
         <div style={{ padding: "4px 16px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
           <SharedMenuDeck
@@ -1575,7 +1582,10 @@ function writeSeenMenus(set) {
 }
 
 function rangeLabel(a, b) {
-  if (!a) return "Menú";
+  // Sin fecha no hay etiqueta. Antes devolvia "Menú", que en un chip junto a
+  // un menu no aporta nada: dice lo que ya se esta viendo. Quien llama
+  // decide si pinta algo o no.
+  if (!a) return null;
   const f = (s) => s.slice(8, 10) + "/" + s.slice(5, 7);
   return b ? `${f(a)} – ${f(b)}` : f(a);
 }
@@ -1642,19 +1652,24 @@ const pickerItem = {
   cursor: "pointer", fontFamily: "inherit",
 };
 
+// Los siete dias, repartidos y SIN scroll horizontal.
+//
+// Antes era una tira que se desbordaba: los ultimos dias quedaban fuera de
+// pantalla y habia que arrastrar para llegar al domingo, con la barra de
+// scroll cortando por la mitad. Siete elementos cortos caben de sobra en los
+// 420px de la columna — desbordar era gratis y molestaba.
 const deckDayStrip = {
-  display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 12,
+  display: "flex", gap: 4, marginBottom: 12,
 };
 const deckDayChip = {
-  flexShrink: 0, padding: "6px 13px", borderRadius: 999,
+  flex: 1, minWidth: 0, padding: "7px 2px", borderRadius: 999,
   border: "1px solid #dbe8df", background: "#fff", cursor: "pointer",
-  fontFamily: "inherit", fontSize: 12, fontWeight: 800, color: "#7a9485",
+  fontFamily: "inherit", fontSize: 11.5, fontWeight: 800, color: "#7a9485",
+  textAlign: "center",
 };
 const deckDayChipOn = { background: GREEN, borderColor: GREEN, color: "#fff" };
 
 const deckWeekHead = { display: "flex", alignItems: "center", gap: 8, marginBottom: 8 };
-
-
 
 const dishPickOverlay = {
   position: "fixed", inset: 0, zIndex: 340,
@@ -1693,44 +1708,40 @@ const peekScreen = {
   boxShadow: "0 0 60px rgba(0,0,0,.35)",
 };
 
-const peekHeader = {
+const peekBar = {
   position: "relative",
-  display: "flex", flexDirection: "column", alignItems: "center",
-  padding: "26px 20px 20px",
-  background: `linear-gradient(180deg, ${HEADER_BAND} 0%, #fff 100%)`,
+  display: "flex", alignItems: "center", gap: 8,
+  padding: "9px 12px",
+  background: HEADER_BAND,
+  borderBottom: "1px solid #dfeae3",
 };
 
-const peekClose = {
-  position: "absolute", top: 14, right: 14,
-  display: "flex", alignItems: "center", justifyContent: "center",
-  width: 36, height: 36, borderRadius: 12,
-  border: "1.5px solid #d5e6da", background: "#fff", color: GREEN, cursor: "pointer",
+const peekBarIcon = {
+  display: "inline-flex", alignItems: "center", justifyContent: "center",
+  width: 32, height: 32, borderRadius: 999, flexShrink: 0,
+  border: "none", background: "#f0f4f1", color: GREEN, cursor: "pointer",
 };
 
-const peekTopMeta = {
-  position: "absolute", top: 16, left: 0, right: 0, zIndex: 1,
-  display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-  pointerEvents: "none",
+const peekWho = {
+  display: "flex", alignItems: "center", gap: 9,
+  flex: 1, minWidth: 0, padding: 0, border: "none", background: "none",
+  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
 };
 
-const peekDateChip = {
-  display: "inline-flex", alignItems: "center", gap: 5,
-  padding: "5px 10px", borderRadius: 999,
-  background: "rgba(255,255,255,.9)", color: TEAL,
-  fontSize: 12, fontWeight: 800, whiteSpace: "nowrap",
+const peekWhoName = {
+  display: "block", fontSize: 14, fontWeight: 900, color: INK,
+  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
 };
 
-const peekViewOnly = {
-  display: "inline-flex", alignItems: "center", gap: 4,
-  padding: "5px 9px", borderRadius: 999,
-  background: "rgba(255,255,255,.9)", color: "#7a9485",
-  fontSize: 11, fontWeight: 800, whiteSpace: "nowrap",
+const peekWhoWhen = {
+  display: "block", fontSize: 11.5, fontWeight: 700, color: "#8aa294",
+  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
 };
 
-const peekMenuBtn = {
-  display: "flex", alignItems: "center", justifyContent: "center",
-  width: 36, height: 36, borderRadius: 12,
-  border: "1.5px solid #d5e6da", background: "#fff", color: GREEN, cursor: "pointer",
+const peekWhoRow = {
+  display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap",
+  padding: "10px 16px", background: "#f7fbf8",
+  borderBottom: "1px solid #eef3f0",
 };
 
 const peekMenu = {
@@ -1855,14 +1866,11 @@ const VIS_PROMPT_KEY = "hm_feed_visibility_asked";
 // La lengueta: a la altura de la fila de pestañas, redondeada solo por la
 // izquierda y mordida por el borde derecho de la columna.
 
-
 const publishClose = {
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   width: 24, height: 24, borderRadius: 999, marginLeft: 4,
   border: "none", background: "rgba(20,47,29,.07)", color: "#7a8a7f", cursor: "pointer",
 };
-
-
 
 // Plegada asoma por el borde izquierdo (margen negativo contra el padding de
 // la columna) y solo se redondea por la derecha, que es el lado que se ve.
@@ -1973,6 +1981,4 @@ const sheet = {
   paddingBottom: "calc(18px + env(safe-area-inset-bottom))",
   boxSizing: "border-box",
 };
-
-
 

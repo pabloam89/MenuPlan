@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { buildSharedMenuPayload } from "./sharedMenu.js";
 
 const members = [
-  { id: "a1", name: "Pablo", age: 38, photo: "/foto-pablo.jpg", allergies: ["frutos_secos"] },
+  { id: "a1", name: "Pablo", age: 38, photo: "/foto-pablo.jpg", avatarKey: "hija_3", allergies: ["frutos_secos"] },
   { id: "a2", name: "Marta", age: 36, photo: null },
-  { id: "n1", name: "Lucía", age: 7, photo: "/foto-lucia.jpg" },
+  { id: "n1", name: "Lucía", age: 7, photo: "/foto-lucia.jpg", avatarKey: "hijo_2" },
 ];
 
 const groups = [
@@ -67,6 +67,23 @@ describe("buildSharedMenuPayload", () => {
     expect(dish.name).toBe("Guiso de la abuela");
     expect(dish.readable).toBe(false);
     expect(dish.source).toBe("user");
+  });
+
+  it("manda el avatar ILUSTRADO, nunca la foto real", () => {
+    // Antes viajaba `photo`. Dos problemas: casi nadie tiene foto -así que al
+    // otro lado salían iniciales sueltas en vez del dibujo que sí tiene todo
+    // el mundo- y, sobre todo, la foto real de un menor no debe salir de
+    // aquí ni queriendo. El dibujo es justo lo que sí se puede publicar.
+    const { members: pub } = build();
+    const byId = Object.fromEntries(pub.map((x) => [x.id, x]));
+    expect(byId.a1.avatar).toBe("/avatares/hija/hija_3.png");
+    expect(byId.n1.avatar).toBe("/avatares/hijo/hijo_2.png");
+    // Sin avatarKey no se inventa nada.
+    expect(byId.a2.avatar).toBeNull();
+    // Y la foto real no aparece por ningún lado del payload.
+    const json = JSON.stringify(build());
+    expect(json).not.toContain("foto-pablo");
+    expect(json).not.toContain("foto-lucia");
   });
 
   it("los miembros salen anónimos: ni nombre, ni edad, ni alergias", () => {
