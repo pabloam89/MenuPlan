@@ -1220,21 +1220,12 @@ export default function App() {
             Object.keys(prunedData?.menus ?? {}).length < Object.keys(d.menus ?? {}).length;
           const obsShrunk = (prunedData?.priceObs?.length ?? 0) < (d.priceObs?.length ?? 0);
           const receiptsShrunk = (prunedData?.receipts?.length ?? 0) < (d.receipts?.length ?? 0);
-          // Heavy embedded recipe photos stripped by the "hard" compaction
-          // tier (see storage.js stripHeavyRecipePhotos) — without syncing
-          // this back too, React state keeps the full-size photo, the next
-          // autosave tick writes it again, and every single save silently
-          // re-strips from scratch instead of ever actually recovering.
-          const recipesShrunk = (prunedData?.userRecipes ?? []).some(
-            (r, i) => d.userRecipes?.[i]?.id === r.id && d.userRecipes[i].photo && !r.photo,
-          );
-          if (!menusShrunk && !obsShrunk && !receiptsShrunk && !recipesShrunk) return d;
+          if (!menusShrunk && !obsShrunk && !receiptsShrunk) return d;
           return {
             ...d,
             menus: prunedData.menus ?? d.menus,
             priceObs: prunedData.priceObs ?? d.priceObs,
             receipts: prunedData.receipts ?? d.receipts,
-            userRecipes: prunedData.userRecipes ?? d.userRecipes,
           };
         });
         const prunedAi = result.saved.aiRecipes ?? [];
@@ -3337,11 +3328,20 @@ export default function App() {
   const handlePublishMenu = useCallback(async (scope = "week", visibility = "followers") => {
     if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return false; }
     const menuId = data.activeMenuId ?? "actual";
-    const { dates } = getWeekDatesByMenuWeek({
+    const { dates, activeDays } = getWeekDatesByMenuWeek({
       offset: data.menuWeek?.offset ?? 0,
       startDayIdx: data.menuWeek?.startDayIdx ?? 0,
     });
     const iso = (d) => new Date(d).toISOString().slice(0, 10);
+    // OJO: `dates` es un objeto POR NOMBRE DE DIA ({Lun: Date, Mar: Date...}),
+    // no un array. Aqui se leia dates[0] y dates.length, que son undefined los
+    // dos, asi que al compartir la SEMANA el rango salia null/null — y el
+    // carrusel filtra por rango (week_start <= hoy <= week_end), donde un NULL
+    // no compara: el menu quedaba publicado y visible para nadie, para
+    // siempre. "Solo hoy" se salvaba porque usa la otra rama (todayIso).
+    const semana = activeDays?.length ? activeDays : DAYS;
+    const primerDia = dates?.[semana[0]] ?? null;
+    const ultimoDia = dates?.[semana[semana.length - 1]] ?? null;
     // "Solo hoy": el payload lleva únicamente el día de hoy, y el rango de
     // fechas se estrecha a hoy — así en «Hoy cocinan» aparece hoy y mañana ya
     // no, que es exactamente lo que significa compartir solo el día.
@@ -3354,7 +3354,7 @@ export default function App() {
       members: data.members ?? [],
       meals: getMeals(data),
       onlyDays: scope === "today" ? [todayLabel] : null,
-      weekStart: scope === "today" ? todayIso : (dates?.[0] ? iso(dates[0]) : null),
+      weekStart: scope === "today" ? todayIso : (primerDia ? iso(primerDia) : null),
       dishName: (id) => recipeCatalogById[id]?.name
         ?? (data.userRecipes ?? []).find((r) => r.id === id)?.name
         ?? null,
@@ -3377,7 +3377,7 @@ export default function App() {
       menuId,
       title: null,
       weekStart: payload.weeks[0].weekStart,
-      weekEnd: scope === "today" ? todayIso : (dates?.length ? iso(dates[dates.length - 1]) : null),
+      weekEnd: scope === "today" ? todayIso : (ultimoDia ? iso(ultimoDia) : null),
       payload,
       visibility,
     });

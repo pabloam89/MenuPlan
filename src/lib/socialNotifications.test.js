@@ -88,3 +88,29 @@ describe("countUnread", () => {
     expect(countUnread(items, new Date().toISOString())).toBe(0);
   });
 });
+
+describe("aviso de menú publicado", () => {
+  it("avisa del menú de otra persona", () => {
+    const items = buildNotifications({
+      menus: [{ id: "m1", owner_id: "otro", created_at: "2026-09-03T10:00:00Z" }],
+      meId: "yo",
+    });
+    expect(items).toHaveLength(1);
+    expect(items[0].kind).toBe("menu");
+    expect(items[0].actorId).toBe("otro");
+    expect(items[0].targetId).toBe("m1");
+  });
+
+  it("no te avisa de tu propio menú", () => {
+    // Enterarte de que has publicado tú no es una noticia.
+    const items = buildNotifications({
+      menus: [{ id: "m1", owner_id: "yo", created_at: "2026-09-03T10:00:00Z" }],
+      meId: "yo",
+    });
+    expect(items).toHaveLength(0);
+  });
+
+  it("no inventa avisos cuando no hay menús", () => {
+    expect(buildNotifications({ meId: "yo" })).toHaveLength(0);
+  });
+});
