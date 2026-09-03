@@ -18,11 +18,13 @@ import { shareOut } from "../lib/shareLink.js";
 import { relativeTime } from "../lib/socialUi.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
+import { loadPublicRecipe } from "../lib/userRecipesSync.js";
 import { folderArt, ALL_ID } from "./CatalogBrowserSheet.jsx";
 import { allFolders } from "../lib/recipeCollections.js";
 import {
   loadFeed,
   loadWeeklyMenus,
+  loadSharedMenu,
   loadProfilesByIds,
   loadFollowing,
   loadSentRequests,
@@ -99,6 +101,7 @@ export function FeedScreen({
   recipeFolders = [],
   onCreateFolder,
   onSetRecipeFolders,
+  onToast,
 }) {
   const [seenMenus, setSeenMenus] = useState(readSeenMenus);
   const [items, setItems] = useState([]);
@@ -199,14 +202,26 @@ export function FeedScreen({
     return img ? deckImg(img, 160) : null;
   };
 
-  const openTarget = (type, id) => {
+  // Abrir algo desde una notificacion o un comentario.
+  //
+  // Antes solo miraba lo que YA estaba cargado en pantalla y, si no lo
+  // encontraba, no hacia nada — en silencio. Y no encontrarlo es lo normal:
+  // el carrusel solo trae los menus de esta semana y el rio va paginado, asi
+  // que cualquier aviso sobre algo un poco viejo llevaba a ningun sitio y
+  // parecia que la app se habia colgado. Ahora, si no esta a mano, se pide
+  // por id; y si tampoco asi (borrado, o sin permiso), se dice.
+  const openTarget = async (type, id) => {
     if (type === "menu") {
-      const m = weekly.find((w) => w.id === id) ?? items.find((i) => i.kind === "menu" && i.id === id)?.menu;
+      const local = weekly.find((w) => w.id === id) ?? items.find((i) => i.kind === "menu" && i.id === id)?.menu;
+      const m = local ?? await loadSharedMenu(id);
       if (m) openMenu(m);
+      else onToast?.("Ese menú ya no está disponible");
       return;
     }
-    const it = items.find((i) => i.kind === "recipe" && i.recipe.id === id);
-    if (it) onOpenRecipe?.(it.recipe);
+    const local = items.find((i) => i.kind === "recipe" && i.recipe.id === id)?.recipe;
+    const r = local ?? await loadPublicRecipe(id);
+    if (r) onOpenRecipe?.(r);
+    else onToast?.("Esa receta ya no está disponible");
   };
 
   const refresh = useCallback(async () => {

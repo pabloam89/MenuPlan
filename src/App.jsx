@@ -4631,6 +4631,7 @@ export default function App() {
             <Suspense fallback={null}>
               <FeedScreen
                 user={user}
+                onToast={showToast}
                 menuShared={Boolean(publishedMenus[data.activeMenuId ?? "actual"])}
                 onPublishMenu={handlePublishMenu}
                 onUnpublishMenu={handleUnpublishMenu}

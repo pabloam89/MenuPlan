@@ -828,6 +828,29 @@ export async function loadProfilesByIds(ids) {
 }
 
 /**
+ * Un menu compartido concreto, por id.
+ *
+ * loadWeeklyMenus solo trae los de ESTA semana (filtra week_start <= hoy <=
+ * week_end), que es lo correcto para el carrusel pero deja fuera todo lo
+ * demas. Al abrir una notificacion o un comentario hay que poder llegar a un
+ * menu concreto aunque su semana no sea la de hoy — si no, el aviso lleva a
+ * ningun sitio y parece que la app se ha quedado colgada.
+ *
+ * Sin permiso no da error: devuelve null. Quien lo abre se entera de que ya
+ * no esta disponible, no de que existe.
+ */
+export async function loadSharedMenu(menuId) {
+  if (!ok() || !menuId) return null;
+  const { data, error } = await supabase
+    .from("shared_menus")
+    .select("id, owner_id, title, week_start, week_end, payload, created_at")
+    .eq("id", menuId)
+    .maybeSingle();
+  if (warn("loadSharedMenu", error)) return null;
+  return data ?? null;
+}
+
+/**
  * La fila de arriba: menús de esta semana, uno por autor (el más reciente).
  * Es lo único del feed que caduca de verdad — un menú semanal deja de tener
  * sentido el lunes siguiente — así que se filtra por fecha, no por antigüedad.
