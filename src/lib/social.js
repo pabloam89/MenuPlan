@@ -304,12 +304,19 @@ export async function loadFollowRequests(userId) {
 
 export async function acceptFollowRequest(userId, followerId) {
   if (!ok() || !userId || !followerId) return false;
-  const { error } = await supabase
+  // accept_follow (0046) acepta Y crea la vuelta: quien pidio conectar ya
+  // consintio la mutualidad al pedirla — el boton dice "Conectar", no
+  // "dejame mirarte". Una aceptacion, conexion completa.
+  const { error } = await supabase.rpc("accept_follow", { p_follower: followerId });
+  if (!error) return true;
+  // Migracion sin aplicar: se acepta a la antigua (sin vuelta automatica),
+  // que es mejor que dejar la solicitud colgada.
+  const legacy = await supabase
     .from("user_follows")
     .update({ status: "accepted", responded_at: new Date().toISOString() })
     .eq("followee_id", userId)
     .eq("follower_id", followerId);
-  return !warn("acceptFollowRequest", error);
+  return !warn("acceptFollowRequest", legacy.error);
 }
 
 /**

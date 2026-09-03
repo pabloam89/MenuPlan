@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, UserPlus, Check, MessageCircle, Eye, Globe, Lock, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff, Ban } from "lucide-react";
+import { X, UserPlus, Check, MessageCircle, Eye, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -66,6 +66,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   // como "aceptada + seguir de vuelta". En la proxima apertura seran
   // seguidores normales y no hara falta recordarlas.
   const [justAccepted, setJustAccepted] = useState([]);
+  const [recipesOpen, setRecipesOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [blockedOpen, setBlockedOpen] = useState(false);
   const [listKind, setListKind] = useState(null);
@@ -202,15 +203,15 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     refresh();
   };
 
-  const vis = profile?.visibility ?? "private";
+  // Dos estados y ya: abierta o cerrada. El "private" legacy cuenta como
+  // cerrada — dejo de existir como opcion en la 0046.
+  const open = profile?.visibility === "public";
   // El nombre no se pregunta dos veces: ya lo diste al entrar (googleInfo lo
   // saca de la cuenta o del correo, igual que la pantalla de Mi perfil), así
   // que aquí se hereda y solo se edita si quieres otro de cara al feed.
   const inheritedName = googleInfo(user).name;
   const name = profile?.display_name || inheritedName;
-  const VIS_LABEL = { private: "Nadie te ve", followers: "Solo quien te sigue", public: "Cualquiera" };
-  // Los tres colores de privacidad que el sistema ya tiene escritos.
-  const VIS_TINT = { private: "#5a2d7a", followers: "#7a4e00", public: "#2d5a3d" };
+
 
   return (
     <div style={backdrop} onClick={onClose}>
@@ -267,7 +268,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
             <span style={statDivider} />
             <Stat n={counts.following} label="Siguiendo" onClick={() => setListKind("following")} />
             <span style={statDivider} />
-            <Stat n={counts.recipes} label="Recetas" onClick={() => setTab("recetas")} />
+            <Stat n={counts.recipes} label="Recetas" onClick={() => setRecipesOpen(true)} />
             <span style={statDivider} />
             <Stat n={counts.menus} label="Menús" />
           </div>
@@ -280,13 +281,12 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
               otra riqueza, era lo que hacia raro el layout. */}
           <Tab id="solicitudes" tab={tab} setTab={setTab} Icon={UserPlus} label="Solicitudes" badge={requests.length + sent.length} />
           <Tab id="comentarios" tab={tab} setTab={setTab} Icon={MessageCircle} label="Comentarios" badge={comments.length} />
-          <Tab id="recetas" tab={tab} setTab={setTab} Icon={CookingPot} label="Recetas" badge={0} />
         </div>
 
         <div style={{ padding: "14px 20px 20px" }}>
           {tab === "solicitudes" && (
             <>
-              <h4 style={groupTitle}>Te han pedido seguirte</h4>
+              <h4 style={groupTitle}>Quieren conectar contigo</h4>
               {requests.length === 0
                 ? <p style={empty}>Nadie por ahora.</p>
                 : requests.map((r) => (
@@ -301,12 +301,16 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                   ))}
 
               {justAccepted.map((id) => {
-                const leSigo = followingIds.includes(id);
+                // Con la 0046 aceptar ya crea la vuelta, asi que lo normal es
+                // leer "Conectados". El boton solo aparece si la vuelta no
+                // existe (migracion sin aplicar): mejor un boton de repuesto
+                // que un "Conectados" mentiroso.
+                const conectados = followingIds.includes(id);
                 const pedido = sent.some((r) => r.followee_id === id);
                 return (
                   <PersonRow key={id} p={people[id]} note="Aceptada">
-                    {leSigo
-                      ? <span style={stateNote}>Siguiendo</span>
+                    {conectados
+                      ? <span style={stateNote}>Conectados</span>
                       : (
                         <button
                           type="button"
@@ -314,7 +318,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                           disabled={pedido}
                           style={pedido ? ghostBtn : backBtn}
                         >
-                          {pedido ? "Pendiente" : "Seguir"}
+                          {pedido ? "Pendiente" : "Conectar"}
                         </button>
                       )}
                   </PersonRow>
@@ -373,27 +377,45 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                 })
           )}
 
-          {tab === "recetas" && (
-            myRecipes.length === 0
-              ? <p style={empty}>No has publicado ninguna receta todavía.</p>
-              : myRecipes.map((r) => (
-                  <div key={r.id} style={{ ...row, gap: 10 }}>
-                    {/* Siempre con foto: una lista con huecos grises se lee
-                        como "algo ha fallado", no como "esta no tiene foto". */}
-                    <img src={r.photo || RECIPE_FALLBACK} alt="" loading="lazy" style={recipeThumb} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={rowName}>{r.name}</div>
-                      <div style={{ display: "flex", gap: 11, marginTop: 3, fontSize: 11, fontWeight: 700, color: "#6b7d70" }}>
-                        <span style={stat}><ThumbsUp size={11} strokeWidth={2.5} /> {r.likes}</span>
-                        <span style={stat}><ThumbsDown size={11} strokeWidth={2.5} /> {r.dislikes}</span>
-                        <span style={{ ...stat, color: TEAL }}><CookingPot size={12} strokeWidth={2.5} /> {r.used}</span>
-                        <span style={stat}><MessageCircle size={11} strokeWidth={2.5} /> {r.comments}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-          )}
         </div>
+
+        {/* Tus recetas publicadas, como hoja que abre el NUMERO de arriba —
+            la misma regla que seguidores y seguidos: los numeros abren, las
+            pestanas atienden. Tenerla de pestana ademas del numero era la
+            repeticion que hacia raro el layout. */}
+        {recipesOpen && (
+          <div style={sheetOverlay} onClick={() => setRecipesOpen(false)} className="mp-overlay-in">
+            <div style={sheetBody} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 18px 10px" }}>
+                <CookingPot size={16} strokeWidth={2.5} color={GREEN} />
+                <h2 style={{ margin: 0, flex: 1, fontSize: 16, fontWeight: 900, color: INK }}>Tus recetas publicadas</h2>
+                <button type="button" onClick={() => setRecipesOpen(false)} aria-label="Cerrar" style={sheetClose}>
+                  <X size={16} strokeWidth={2.6} />
+                </button>
+              </div>
+              <div style={{ padding: "0 14px 18px", overflowY: "auto", flex: 1 }}>
+                {myRecipes.length === 0
+                  ? <p style={empty}>No has publicado ninguna receta todavía.</p>
+                  : myRecipes.map((r) => (
+                      <div key={r.id} style={{ ...row, gap: 10 }}>
+                        {/* Siempre con foto: una lista con huecos grises se lee
+                            como "algo ha fallado", no como "esta no tiene foto". */}
+                        <img src={r.photo || RECIPE_FALLBACK} alt="" loading="lazy" style={recipeThumb} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={rowName}>{r.name}</div>
+                          <div style={{ display: "flex", gap: 11, marginTop: 3, fontSize: 11, fontWeight: 700, color: "#6b7d70" }}>
+                            <span style={stat}><ThumbsUp size={11} strokeWidth={2.5} /> {r.likes}</span>
+                            <span style={stat}><ThumbsDown size={11} strokeWidth={2.5} /> {r.dislikes}</span>
+                            <span style={{ ...stat, color: TEAL }}><CookingPot size={12} strokeWidth={2.5} /> {r.used}</span>
+                            <span style={stat}><MessageCircle size={11} strokeWidth={2.5} /> {r.comments}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Plegada abajo, pero con el estado siempre a la vista: quién te ve se
             decide una vez, y aun así nunca debe quedar en duda. */}
@@ -406,30 +428,43 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                 tono que su fondo es lo que convierte una franja en pegatina. */}
             <span style={visAsk}>
               <Eye size={14} strokeWidth={2.5} color="#8aa294" />
-              Quién te ve
+              Quién ve lo que publicas
             </span>
             <span style={visState}>
-              <img src={VIS_ART[vis]} alt="" style={visBandArt} />
+              <img src={open ? VIS_ART.public : VIS_ART.followers} alt="" style={visBandArt} />
               <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: INK }}>
-                {VIS_LABEL[vis]}
+                {open ? "Cualquiera" : "Tus conexiones"}
               </span>
               <ChevronDown size={15} strokeWidth={2.6} color="#5a8f86" style={{ flexShrink: 0, marginLeft: 10, transform: privacyOpen ? "rotate(180deg)" : "none", transition: "transform .18s ease" }} />
             </span>
           </button>
           {privacyOpen && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 7, padding: "12px 20px 20px" }}>
-              <VisOption on={vis === "private"} disabled={saving} Icon={Lock}
-                art="/avatares/cards/vis_nadie.png" tint={VIS_TINT.private}
-                title="Nadie" desc="No apareces en búsquedas ni en el feed."
-                onClick={() => patch({ visibility: "private" })} />
-              <VisOption on={vis === "followers"} disabled={saving} Icon={Eye}
-                art="/avatares/cards/vis_seguidores.png" tint={VIS_TINT.followers}
-                title="Solo quien te sigue" desc="Te encuentran por tu nombre, pero tienen que pedirte seguirte."
-                onClick={() => patch({ visibility: "followers" })} />
-              <VisOption on={vis === "public"} disabled={saving} Icon={Globe}
-                art="/avatares/cards/vis_cualquiera.png" tint={VIS_TINT.public}
-                title="Cualquiera" desc="Tus recetas y menús publicados los ve todo el mundo."
-                onClick={() => patch({ visibility: "public" })} />
+            <div style={{ padding: "12px 20px 20px" }}>
+              {/* UN interruptor, no un menu: la decision es binaria (0046) y
+                  pintarla como lista de opciones la hacia parecer mas grande
+                  de lo que es. El texto de debajo cuenta el estado ACTUAL,
+                  no el que tendrias si tocaras — describir el otro lado es
+                  como acaban los ajustes que nadie entiende. */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={open}
+                disabled={saving}
+                onClick={() => patch({ visibility: open ? "followers" : "public" })}
+                style={switchRow}
+              >
+                <span style={{ flex: 1, textAlign: "left", fontSize: 13.5, fontWeight: 800, color: INK }}>
+                  Cuenta abierta
+                </span>
+                <span style={{ ...switchTrack, background: open ? GREEN : "#d6e0d9" }}>
+                  <span style={{ ...switchKnob, transform: open ? "translateX(18px)" : "none" }} />
+                </span>
+              </button>
+              <p style={switchHint}>
+                {open
+                  ? "Tus recetas y menús publicados los ve cualquiera. Seguirte no necesita permiso."
+                  : "Tus recetas y menús publicados los ven solo las conexiones que aceptes. Te encuentran por tu nombre."}
+              </p>
             </div>
           )}
         </section>
@@ -557,50 +592,6 @@ function PersonRow({ p, note, children }) {
       </div>
       {children}
     </div>
-  );
-}
-
-/**
- * Cada nivel de privacidad, con su ilustracion y su color.
- *
- * Se queda en filas y no en tres tarjetas: aqui la explicacion ("tienen que
- * pedirte seguirte") es la mitad de la decision, y en una columna estrecha
- * como el cajon, tres tarjetas la dejarian en dos palabras cortadas.
- *
- * Los colores son los que el sistema ya tiene escritos para privacidad
- * (violeta privada / ambar amigos / verde publica): no invento tres nuevos
- * cuando la app ya habla de esto en otro sitio.
- *
- * Mientras no existan los png, cae al icono de siempre — asi esta pantalla
- * nunca se queda con un hueco roto.
- */
-function VisOption({ on, disabled, Icon, art, tint, title, desc, onClick }) {
-  const [noArt, setNoArt] = useState(false);
-  return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-pressed={on}
-      style={{
-        ...visRow,
-        borderColor: on ? tint : "#e0eae3",
-        background: on ? `${tint}12` : "#fff",
-        boxShadow: on ? `0 6px 16px -10px ${tint}99` : "none",
-      }}>
-      {art && !noArt ? (
-        <img
-          src={art}
-          alt=""
-          loading="lazy"
-          onError={() => setNoArt(true)}
-          style={{ ...visArt, filter: on ? "none" : "saturate(.55) opacity(.75)" }}
-        />
-      ) : (
-        <Icon size={15} strokeWidth={2.4} color={on ? tint : "#8aa294"} style={{ flexShrink: 0, marginTop: 1 }} />
-      )}
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK }}>{title}</span>
-        <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#6b7d70", marginTop: 1, lineHeight: 1.3 }}>{desc}</span>
-      </span>
-      {on && <Check size={13} color={tint} strokeWidth={3} style={{ flexShrink: 0 }} />}
-    </button>
   );
 }
 
@@ -744,6 +735,50 @@ const noBtn = {
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   width: 32, height: 32, borderRadius: 10,
   border: "1.5px solid #e6cfc9", background: "#fff", color: "#c0392b", cursor: "pointer",
+};
+
+const switchRow = {
+  display: "flex", alignItems: "center", gap: 12, width: "100%",
+  padding: "11px 14px", borderRadius: 14,
+  border: "1.5px solid #e0eae3", background: "#fff",
+  cursor: "pointer", fontFamily: "inherit",
+};
+
+const switchTrack = {
+  position: "relative", width: 40, height: 22, borderRadius: 999,
+  flexShrink: 0, transition: "background .18s ease",
+};
+
+const switchKnob = {
+  position: "absolute", top: 2, left: 2, width: 18, height: 18,
+  borderRadius: 999, background: "#fff",
+  boxShadow: "0 1px 3px rgba(20,47,29,.3)",
+  transition: "transform .18s ease",
+};
+
+const switchHint = {
+  margin: "9px 4px 0", fontSize: 12, fontWeight: 600,
+  color: "#6b7d70", lineHeight: 1.45,
+};
+
+const sheetOverlay = {
+  position: "fixed", inset: 0, zIndex: 320,
+  background: "rgba(20,47,29,.45)", backdropFilter: "blur(2px)",
+  display: "flex", alignItems: "flex-end", justifyContent: "center",
+};
+
+const sheetBody = {
+  width: "100%", maxWidth: 420, maxHeight: "72vh",
+  display: "flex", flexDirection: "column",
+  background: "#f5f9f6", borderRadius: "20px 20px 0 0",
+  paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
+  boxSizing: "border-box", overflow: "hidden",
+};
+
+const sheetClose = {
+  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+  width: 32, height: 32, borderRadius: "50%",
+  border: "none", background: "#f0f4f1", color: GREEN, cursor: "pointer",
 };
 
 const stateNote = {

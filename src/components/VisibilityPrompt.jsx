@@ -35,35 +35,31 @@ export function VisibilityPrompt({ current = "followers", onChoose, onClose }) {
   return (
     <WizardSheet
       icon={Eye}
-      title="¿Quién te puede encontrar?"
+      title="¿Quién ve lo que publicas?"
       onClose={onClose}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {/* El estado actual va PRIMERO y marcado: la pantalla existe para
             contarte donde estas, no para llevarte a otro sitio. */}
+        {/* Dos y solo dos (0046). El modo invisible murio: no participar es
+            no publicar, como en todas partes — una capa de invisibilidad era
+            lo que hacia el ajuste "mega raro". El private legacy cae en
+            cerrada, que es lo que siempre quiso decir. */}
         <Option
           art="/avatares/cards/vis_seguidores.png"
           tint="#7a4e00"
-          now={current === "followers"}
-          title="Solo quien yo acepte"
-          subtitle="Te encuentran por tu nombre, pero tienen que pedirte seguirte."
+          now={current !== "public"}
+          title="Cuenta cerrada"
+          subtitle="Lo que publicas lo ven solo las conexiones que aceptes. Te encuentran por tu nombre."
           onClick={() => onChoose("followers")}
         />
         <Option
           art="/avatares/cards/vis_cualquiera.png"
           tint="#2d5a3d"
           now={current === "public"}
-          title="Que me encuentre cualquiera"
-          subtitle="Tus recetas y menús publicados los ve todo el mundo."
+          title="Cuenta abierta"
+          subtitle="Tus recetas y menús publicados los ve cualquiera, sin seguirte."
           onClick={() => onChoose("public")}
-        />
-        <Option
-          art="/avatares/cards/vis_nadie.png"
-          tint="#5a2d7a"
-          now={current === "private"}
-          title="Nadie"
-          subtitle="Invisible en las búsquedas. Puedes mirar el feed igual."
-          onClick={() => onChoose("private")}
         />
       </div>
     </WizardSheet>

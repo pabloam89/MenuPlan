@@ -98,7 +98,13 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
   const name = profile?.display_name || (profile?.username ? `@${profile.username}` : "Alguien");
   const gated = !loading && content.recipes.length === 0 && content.menus.length === 0 && rel !== "following";
 
-  const FOLLOW_LABEL = { none: "Seguir", pending: "Pendiente", following: "Siguiendo" };
+  // El gesto depende de SU cuenta: a una abierta te suscribes ("Seguir",
+  // instantaneo); con una cerrada CONECTAS — pides, acepta, y la conexion
+  // queda hecha en los dos sentidos (accept_follow, 0046).
+  const abierta = profile?.visibility === "public";
+  const FOLLOW_LABEL = abierta
+    ? { none: "Seguir", pending: "Pendiente", following: "Siguiendo" }
+    : { none: "Conectar", pending: "Pendiente", following: "Conectados" };
 
   return (
     <div style={backdrop} onClick={onClose}>
