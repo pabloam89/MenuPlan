@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { X, Users2 } from "lucide-react";
+import { X, Users2, Trash2 } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { personColor } from "../lib/socialUi.js";
-import { loadFollowList, loadFollowing, loadSentRequests, followUser } from "../lib/social.js";
+import { loadFollowList, loadFollowing, loadSentRequests, followUser, rejectFollowRequest } from "../lib/social.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -43,6 +43,15 @@ export function FollowListSheet({ userId, kind = "followers", viewer = null, onC
     });
     return () => { alive = false; };
   }, [userId, kind, viewer]);
+
+  // Quitar a un seguidor TUYO: el mismo borrado que rechazar su solicitud.
+  // Antes vivia en una pestana propia del cajon; al quedarse esta lista como
+  // el unico sitio donde ves a tus seguidores, la accion viene con ella.
+  const removeFollower = async (followerId) => {
+    setPeople((prev) => (prev ?? []).filter((x) => x.user_id !== followerId));
+    await rejectFollowRequest(viewer, followerId);
+    onChanged?.();
+  };
 
   const follow = async (targetId) => {
     const status = await followUser(viewer, targetId);
@@ -103,6 +112,11 @@ export function FollowListSheet({ userId, kind = "followers", viewer = null, onC
                     <span style={stateTag}>{state === "pending" ? "Pendiente" : "Siguiendo"}</span>
                   )
                 )}
+                {viewer === userId && kind === "followers" && !isMe && (
+                  <button type="button" onClick={() => removeFollower(p.user_id)} style={removeBtn} aria-label="Quitar seguidor">
+                    <Trash2 size={13} strokeWidth={2.6} />
+                  </button>
+                )}
               </div>
             );
           })}
@@ -154,6 +168,12 @@ const followBtn = {
   flexShrink: 0, padding: "6px 13px", borderRadius: 999, border: "none",
   background: GREEN, color: "#fff", cursor: "pointer",
   fontFamily: "inherit", fontSize: 12, fontWeight: 800,
+};
+
+const removeBtn = {
+  flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+  width: 30, height: 30, borderRadius: 999, border: "none",
+  background: "#faf1ef", color: "#b3543f", cursor: "pointer",
 };
 
 const stateTag = {

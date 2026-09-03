@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  X, UserPlus, Check, MessageCircle, Users2, Eye, Globe, Lock, Trash2,
-  Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff, Ban,
-} from "lucide-react";
+import { X, UserPlus, Check, MessageCircle, Eye, Globe, Lock, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff, Ban } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -58,7 +55,6 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   const [counts, setCounts] = useState({ followers: 0, following: 0, recipes: 0, menus: 0 });
   const [requests, setRequests] = useState([]);
   const [sent, setSent] = useState([]);
-  const [followers, setFollowers] = useState([]);
   // A quien sigo YO. Sin esto, la pestana de seguidores no puede
   // distinguir a quien ya devolvi el seguimiento de quien no.
   const [followingIds, setFollowingIds] = useState([]);
@@ -66,6 +62,10 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   const [myRecipes, setMyRecipes] = useState([]);
   const [people, setPeople] = useState({});
   const [tab, setTab] = useState("solicitudes");
+  // Solicitudes aceptadas EN ESTA visita: siguen pintadas en su sitio, ya
+  // como "aceptada + seguir de vuelta". En la proxima apertura seran
+  // seguidores normales y no hara falta recordarlas.
+  const [justAccepted, setJustAccepted] = useState([]);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [blockedOpen, setBlockedOpen] = useState(false);
   const [listKind, setListKind] = useState(null);
@@ -97,7 +97,6 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     setCounts(useFx && cts.followers === 0 ? { followers: 12, following: 8, recipes: 5, menus: 1 } : cts);
     setRequests(finalReqs);
     setSent(finalSent);
-    setFollowers(fols);
     setFollowingIds(fing);
     setComments(finalComs);
     setMyRecipes(useFx && mine.length === 0 ? FIXTURE_MY_RECIPES : mine);
@@ -155,12 +154,13 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
 
   const resolve = async (followerId, accept) => {
     setRequests((prev) => prev.filter((r) => r.follower_id !== followerId));
+    // Aceptar se resuelve EN EL SITIO: la fila se queda, marcada como
+    // aceptada y con el boton de devolver el seguimiento al lado. Saltar a
+    // otra pestana (lo que haciamos antes) te sacaba del monton de
+    // solicitudes que estabas despachando para ensenarte una sola.
+    if (accept) setJustAccepted((prev) => (prev.includes(followerId) ? prev : [...prev, followerId]));
     if (accept) await acceptFollowRequest(user?.id, followerId);
     else await rejectFollowRequest(user?.id, followerId);
-    // Aceptar lleva a Seguidores, que es donde acaba de aparecer esa persona y
-    // donde esta el boton para devolverle el seguimiento. Dejarte en una lista
-    // ya vacia escondia justo la mitad que falta de la conexion.
-    if (accept) setTab("seguidores");
     refresh();
     onChanged?.();
   };
@@ -267,15 +267,18 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
             <span style={statDivider} />
             <Stat n={counts.following} label="Siguiendo" onClick={() => setListKind("following")} />
             <span style={statDivider} />
-            <Stat n={counts.recipes} label="Recetas" />
+            <Stat n={counts.recipes} label="Recetas" onClick={() => setTab("recetas")} />
             <span style={statDivider} />
             <Stat n={counts.menus} label="Menús" />
           </div>
         </div>
 
         <div style={tabBar}>
+          {/* Solo lo que pide tu atencion o es contenido tuyo. La gente
+              (seguidores, seguidos) vive en los NUMEROS de arriba, que abren
+              su lista — tener la misma lista tambien aqui, con otro nombre y
+              otra riqueza, era lo que hacia raro el layout. */}
           <Tab id="solicitudes" tab={tab} setTab={setTab} Icon={UserPlus} label="Solicitudes" badge={requests.length + sent.length} />
-          <Tab id="seguidores" tab={tab} setTab={setTab} Icon={Users2} label="Seguidores" badge={followers.length} />
           <Tab id="comentarios" tab={tab} setTab={setTab} Icon={MessageCircle} label="Comentarios" badge={comments.length} />
           <Tab id="recetas" tab={tab} setTab={setTab} Icon={CookingPot} label="Recetas" badge={0} />
         </div>
@@ -297,6 +300,27 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                     </PersonRow>
                   ))}
 
+              {justAccepted.map((id) => {
+                const leSigo = followingIds.includes(id);
+                const pedido = sent.some((r) => r.followee_id === id);
+                return (
+                  <PersonRow key={id} p={people[id]} note="Aceptada">
+                    {leSigo
+                      ? <span style={stateNote}>Siguiendo</span>
+                      : (
+                        <button
+                          type="button"
+                          onClick={pedido ? undefined : () => followBack(id)}
+                          disabled={pedido}
+                          style={pedido ? ghostBtn : backBtn}
+                        >
+                          {pedido ? "Pendiente" : "Seguir"}
+                        </button>
+                      )}
+                  </PersonRow>
+                );
+              })}
+
               <h4 style={{ ...groupTitle, marginTop: 16 }}>Has pedido tú</h4>
               {/* Solo las pendientes: rechazar borra la fila, así que una
                   solicitud rechazada no deja rastro. Es a propósito — guardar
@@ -310,39 +334,6 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                     </PersonRow>
                   ))}
             </>
-          )}
-
-          {tab === "seguidores" && (
-            followers.length === 0
-              ? <p style={empty}>Todavía no te sigue nadie.</p>
-              : followers.map((f) => {
-                  const yaLeSigo = followingIds.includes(f.follower_id);
-                  const pedido = sent.some((r) => r.followee_id === f.follower_id);
-                  return (
-                    <PersonRow key={f.follower_id} p={people[f.follower_id]}>
-                      {/* El seguimiento es de ida y vuelta por separado: que te
-                          sigan no te hace seguirles, y hasta que no les sigas
-                          tú, su menú no aparece en tu feed. El botón está aquí
-                          porque aquí es donde aterriza alguien justo después de
-                          que le aceptes. */}
-                      {!yaLeSigo && (
-                        <button
-                          type="button"
-                          onClick={pedido ? undefined : () => followBack(f.follower_id)}
-                          disabled={pedido}
-                          style={pedido ? ghostBtn : backBtn}
-                        >
-                          {pedido ? "Pendiente" : "Seguir"}
-                        </button>
-                      )}
-                      {/* Quitar a alguien es el mismo borrado que rechazar: se
-                          deshace el seguimiento y puede volver a pedirlo. */}
-                      <button type="button" onClick={() => resolve(f.follower_id, false)} style={noBtn} aria-label="Quitar seguidor">
-                        <Trash2 size={14} strokeWidth={2.6} />
-                      </button>
-                    </PersonRow>
-                  );
-                })
           )}
 
           {tab === "comentarios" && (
@@ -473,7 +464,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
         <FollowListSheet
           userId={user?.id}
           viewer={user?.id}
-          onChanged={onChanged}
+          onChanged={() => { refresh(); onChanged?.(); }}
           kind={listKind}
           onOpenPerson={(id) => { setListKind(null); onOpenPerson?.(id); }}
           onClose={() => setListKind(null)}
@@ -753,6 +744,11 @@ const noBtn = {
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   width: 32, height: 32, borderRadius: 10,
   border: "1.5px solid #e6cfc9", background: "#fff", color: "#c0392b", cursor: "pointer",
+};
+
+const stateNote = {
+  flexShrink: 0, padding: "6px 11px", borderRadius: 999,
+  background: "#f0f4f1", color: "#6b7d70", fontSize: 11.5, fontWeight: 800,
 };
 
 const backBtn = {
