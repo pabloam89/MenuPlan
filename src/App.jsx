@@ -25,7 +25,8 @@ import { publishMenu, unpublishMenu, loadMyPublishedMenus } from "./lib/social.j
 import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
 import { readIncomingLink } from "./lib/shareLink.js";
 import { migrateEmbeddedPhotos } from "./lib/recipePhotos.js";
-import { searchProfiles } from "./lib/social.js";
+import { searchProfiles, ensureSocialProfile } from "./lib/social.js";
+import { googleInfo } from "./screens/Settings.jsx";
 import { setFeedBadge } from "./lib/socialBadge.js";
 // Import normal, no lazy: es el paso 0 del asistente y `onbScreens` se pinta
 // sin <Suspense> alrededor. Además vive sobre OnboardingShell, que ya viene en
@@ -2898,6 +2899,18 @@ export default function App() {
   useEffect(() => {
     if (!user?.id) return;
     const t = setTimeout(() => { migrateEmbeddedPhotos(user.id); }, 4000);
+    return () => clearTimeout(t);
+  }, [user?.id]);
+
+  // La fila del perfil social nace al INICIAR SESION, no al abrir el cajon
+  // del Feed (donde nacia antes). El modelo es "cuenta activa = te pueden
+  // encontrar, salvo que elijas Nadie": quien usaba la app a diario sin pisar
+  // el Feed no existia para la busqueda, y "Encontrar gente" parecia rota
+  // estando perfecta — buscaba sobre un censo vacio. Con retardo y sin
+  // bloquear nada, como la migracion de fotos de arriba.
+  useEffect(() => {
+    if (!user?.id) return;
+    const t = setTimeout(() => { ensureSocialProfile(user.id, googleInfo(user).name); }, 2500);
     return () => clearTimeout(t);
   }, [user?.id]);
 

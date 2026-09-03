@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { X, Users2 } from "lucide-react";
+import { X, Users2, Trash2 } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { personColor } from "../lib/socialUi.js";
-import { loadFollowList } from "../lib/social.js";
+import { loadFollowList, loadFollowing, loadSentRequests, followUser, rejectFollowRequest } from "../lib/social.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -21,14 +21,48 @@ const INK = "#142f1d";
  * sea: el contador dice cuántos son, la lista solo puede enseñar a los que se
  * dejan ver.
  */
-export function FollowListSheet({ userId, kind = "followers", onOpenPerson, onClose }) {
+export function FollowListSheet({ userId, kind = "followers", viewer = null, onChanged, onOpenPerson, onClose }) {
   const [people, setPeople] = useState(null);
+  // La relacion del QUE MIRA con cada fila. Sin ella la lista era un
+  // listin: nombres sin decir cuales son ya tuyos ni forma de sumar los que
+  // no — y esta lista es el camino natural para descubrir gente.
+  const [myIds, setMyIds] = useState([]);
+  const [pendingIds, setPendingIds] = useState([]);
 
   useEffect(() => {
     let alive = true;
-    loadFollowList(userId, kind).then((r) => { if (alive) setPeople(r); });
+    Promise.all([
+      loadFollowList(userId, kind),
+      viewer ? loadFollowing(viewer) : [],
+      viewer ? loadSentRequests(viewer) : [],
+    ]).then(([r, mine, sent]) => {
+      if (!alive) return;
+      setPeople(r);
+      setMyIds(mine);
+      setPendingIds(sent.map((x) => x.followee_id));
+    });
     return () => { alive = false; };
-  }, [userId, kind]);
+  }, [userId, kind, viewer]);
+
+  // Quitar a un seguidor TUYO: el mismo borrado que rechazar su solicitud.
+  // Antes vivia en una pestana propia del cajon; al quedarse esta lista como
+  // el unico sitio donde ves a tus seguidores, la accion viene con ella.
+  const removeFollower = async (followerId) => {
+    setPeople((prev) => (prev ?? []).filter((x) => x.user_id !== followerId));
+    await rejectFollowRequest(viewer, followerId);
+    onChanged?.();
+  };
+
+  const follow = async (targetId) => {
+    const status = await followUser(viewer, targetId);
+    if (!status) return;
+    if (status === "accepted") setMyIds((ids) => [...ids, targetId]);
+    else setPendingIds((ids) => [...ids, targetId]);
+    // El feed de fuera tiene que enterarse: seguir a alguien desde aqui y que
+    // su menu no aparezca hasta recargar la app es la desconexion exacta que
+    // hacia parecer rota la publicacion de menus.
+    onChanged?.();
+  };
 
   const title = kind === "following" ? "Sigue a" : "Seguidores";
 
@@ -53,16 +87,37 @@ export function FollowListSheet({ userId, kind = "followers", onOpenPerson, onCl
           )}
           {(people ?? []).map((p) => {
             const name = p.display_name || (p.username ? `@${p.username}` : "Alguien");
+            // Cada fila dice SIEMPRE en que punto estas con esa persona: tuya
+            // ("Siguiendo"), esperando ("Pendiente") o por sumar ("Seguir").
+            // Sin la etiqueta, distinguirlo obligaba a abrir los perfiles de
+            // uno en uno. El propio va sin etiqueta: contigo no hay relacion
+            // que declarar.
+            const isMe = viewer && p.user_id === viewer;
+            const state = myIds.includes(p.user_id) ? "following" : pendingIds.includes(p.user_id) ? "pending" : "none";
             return (
-              <button key={p.user_id} type="button" onClick={() => onOpenPerson?.(p.user_id)} style={row}>
-                <Avatar name={name} photo={p.avatar_url} size={38} color={personColor(p.user_id)} />
-                <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                  <span style={oneLine}>{name}</span>
-                  {p.username && p.display_name && (
-                    <span style={{ ...oneLine, fontSize: 11.5, fontWeight: 700, color: "#8aa294" }}>@{p.username}</span>
-                  )}
-                </span>
-              </button>
+              <div key={p.user_id} style={row}>
+                <button type="button" onClick={() => onOpenPerson?.(p.user_id)} style={rowMain}>
+                  <Avatar name={name} photo={p.avatar_url} size={38} color={personColor(p.user_id)} />
+                  <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                    <span style={oneLine}>{name}</span>
+                    {p.username && p.display_name && (
+                      <span style={{ ...oneLine, fontSize: 11.5, fontWeight: 700, color: "#8aa294" }}>@{p.username}</span>
+                    )}
+                  </span>
+                </button>
+                {viewer && !isMe && (
+                  state === "none" ? (
+                    <button type="button" onClick={() => follow(p.user_id)} style={followBtn}>Seguir</button>
+                  ) : (
+                    <span style={stateTag}>{state === "pending" ? "Pendiente" : "Siguiendo"}</span>
+                  )
+                )}
+                {viewer === userId && kind === "followers" && !isMe && (
+                  <button type="button" onClick={() => removeFollower(p.user_id)} style={removeBtn} aria-label="Quitar seguidor">
+                    <Trash2 size={13} strokeWidth={2.6} />
+                  </button>
+                )}
+              </div>
             );
           })}
         </div>
@@ -97,10 +152,34 @@ const closeBtn = {
 };
 
 const row = {
-  display: "flex", alignItems: "center", gap: 10, width: "100%",
+  display: "flex", alignItems: "center", gap: 8, width: "100%",
   padding: "8px 10px", marginBottom: 4, borderRadius: 14,
   background: "#fff", border: "1px solid #eef3f0",
+  boxSizing: "border-box",
+};
+
+const rowMain = {
+  display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0,
+  padding: 0, border: "none", background: "none",
   cursor: "pointer", fontFamily: "inherit",
+};
+
+const followBtn = {
+  flexShrink: 0, padding: "6px 13px", borderRadius: 999, border: "none",
+  background: GREEN, color: "#fff", cursor: "pointer",
+  fontFamily: "inherit", fontSize: 12, fontWeight: 800,
+};
+
+const removeBtn = {
+  flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+  width: 30, height: 30, borderRadius: 999, border: "none",
+  background: "#faf1ef", color: "#b3543f", cursor: "pointer",
+};
+
+const stateTag = {
+  flexShrink: 0, padding: "6px 11px", borderRadius: 999,
+  background: "#f0f4f1", color: "#6b7d70",
+  fontSize: 11.5, fontWeight: 800,
 };
 
 const oneLine = {

@@ -25,7 +25,7 @@ const TEAL = "#0f766e";
  * su perfil pide seguimiento y no te ha aceptado, el contenido vuelve vacío y
  * aquí se explica por qué en vez de enseñar una lista en blanco.
  */
-export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpenRecipe, onOpenMenu, onOpenPerson, onBlocked }) {
+export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpenRecipe, onOpenMenu, onOpenPerson, onBlocked, onChanged }) {
   const [profile, setProfile] = useState(seed);
   const [counts, setCounts] = useState({ followers: 0, following: 0, recipes: 0, menus: 0 });
   const [content, setContent] = useState({ recipes: [], menus: [] });
@@ -78,6 +78,10 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
       setRel("none");
     }
     setBusy(false);
+    // Sin esto, el feed de detras seguia con la lista de seguidos VIEJA:
+    // seguias a alguien desde su perfil y su menu no aparecia hasta recargar
+    // la app entera. Parecia que publicar menus no funcionaba.
+    onChanged?.();
   };
 
   const doBlock = async () => {
@@ -142,6 +146,8 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
             {/* El numero lleva a la lista: era el camino natural para
                 descubrir gente y no iba a ninguna parte. */}
             <Stat n={counts.followers} label="Seguidores" onClick={() => setListKind("followers")} />
+            <span style={divider} />
+            <Stat n={counts.following} label="Siguiendo" onClick={() => setListKind("following")} />
             <span style={divider} />
             <Stat n={counts.recipes} label="Recetas" />
             <span style={divider} />
@@ -228,6 +234,8 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
         <FollowListSheet
           userId={userId}
           kind={listKind}
+          viewer={user?.id}
+          onChanged={onChanged}
           onOpenPerson={(id) => { setListKind(null); onOpenPerson?.(id); }}
           onClose={() => setListKind(null)}
         />

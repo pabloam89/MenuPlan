@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  X, UserPlus, Check, MessageCircle, Users2, Eye, Globe, Lock, Trash2,
-  Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff, Ban,
-} from "lucide-react";
+import { X, UserPlus, Check, MessageCircle, Eye, Globe, Lock, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff, Ban } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
 import { googleInfo } from "../screens/Settings.jsx";
 import {
+  ensureSocialProfile,
   loadMyProfile,
   saveMyProfile,
   loadProfileCounts,
@@ -19,10 +17,11 @@ import {
   acceptFollowRequest,
   rejectFollowRequest,
   loadFollowers,
+  loadFollowing,
+  followUser,
   loadCommentInbox,
   loadMyRecipeStats,
   usernameError,
-  suggestUsername,
   loadBlockedUsers,
   unblockUser,
 } from "../lib/social.js";
@@ -51,16 +50,22 @@ const TEAL = "#0f766e";
  * y se olvida, así que no merece el sitio de arriba, pero tampoco esconderse
  * en otra pantalla.
  */
-export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPerson }) {
+export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPerson, onChanged }) {
   const [profile, setProfile] = useState(null);
   const [counts, setCounts] = useState({ followers: 0, following: 0, recipes: 0, menus: 0 });
   const [requests, setRequests] = useState([]);
   const [sent, setSent] = useState([]);
-  const [followers, setFollowers] = useState([]);
+  // A quien sigo YO. Sin esto, la pestana de seguidores no puede
+  // distinguir a quien ya devolvi el seguimiento de quien no.
+  const [followingIds, setFollowingIds] = useState([]);
   const [comments, setComments] = useState([]);
   const [myRecipes, setMyRecipes] = useState([]);
   const [people, setPeople] = useState({});
   const [tab, setTab] = useState("solicitudes");
+  // Solicitudes aceptadas EN ESTA visita: siguen pintadas en su sitio, ya
+  // como "aceptada + seguir de vuelta". En la proxima apertura seran
+  // seguidores normales y no hara falta recordarlas.
+  const [justAccepted, setJustAccepted] = useState([]);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [blockedOpen, setBlockedOpen] = useState(false);
   const [listKind, setListKind] = useState(null);
@@ -71,12 +76,13 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
 
   const refresh = useCallback(async () => {
     const uid = user?.id;
-    const [prof, cts, reqs, snt, fols, coms, mine, blk] = await Promise.all([
+    const [prof, cts, reqs, snt, fols, fing, coms, mine, blk] = await Promise.all([
       loadMyProfile(uid),
       loadProfileCounts(uid),
       loadFollowRequests(uid),
       loadSentRequests(uid),
       loadFollowers(uid),
+      loadFollowing(uid),
       loadCommentInbox(uid),
       loadMyRecipeStats(uid),
       loadBlockedUsers(uid),
@@ -91,7 +97,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     setCounts(useFx && cts.followers === 0 ? { followers: 12, following: 8, recipes: 5, menus: 1 } : cts);
     setRequests(finalReqs);
     setSent(finalSent);
-    setFollowers(fols);
+    setFollowingIds(fing);
     setComments(finalComs);
     setMyRecipes(useFx && mine.length === 0 ? FIXTURE_MY_RECIPES : mine);
     setBlocked(blk);
@@ -119,19 +125,12 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     if (profile?.username || !user?.id) return;
     let alive = true;
     (async () => {
-      const display = profile?.display_name || googleInfo(user).name;
-      const username = await suggestUsername(display);
-      if (!alive || !username) return;
-      // OJO: aqui NO se manda `visibility`. En un upsert, la columna que no
-      // viaja ni se pisa al actualizar ni tapa el default al insertar, que es
-      // 'followers' desde la migracion 0038. Mandarla valia "private" porque
-      // este efecto corre justo cuando todavia no hay perfil que leer, asi
-      // que el `?? "private"` ganaba siempre y todo el mundo nacia invisible
-      // — anulando en el cliente la decision que habiamos tomado en la base.
-      const saved = await saveMyProfile(user.id, { display_name: display, username });
-      // Si no se pudo guardar (sin sesion, o migracion sin aplicar) igualmente
-      // se ensena el derivado: la alternativa es la pantalla incoherente.
-      if (alive) setProfile((p) => ({ ...(p ?? {}), display_name: display, username, ...(saved?.error ? {} : saved ?? {}) }));
+      // ensureSocialProfile ya corre al iniciar sesion (App.jsx), asi que lo
+      // normal es que esto solo LEA. Se mantiene por si aquel fallo (sin red
+      // en aquel momento): el resultado puede venir `unsaved`, y aun asi se
+      // pinta — la alternativa es la pantalla incoherente.
+      const prof = await ensureSocialProfile(user.id, googleInfo(user).name);
+      if (alive && prof) setProfile((p) => ({ ...(p ?? {}), ...prof }));
     })();
     return () => { alive = false; };
   }, [profile?.username, profile?.display_name, user]);
@@ -155,9 +154,41 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
 
   const resolve = async (followerId, accept) => {
     setRequests((prev) => prev.filter((r) => r.follower_id !== followerId));
+    // Aceptar se resuelve EN EL SITIO: la fila se queda, marcada como
+    // aceptada y con el boton de devolver el seguimiento al lado. Saltar a
+    // otra pestana (lo que haciamos antes) te sacaba del monton de
+    // solicitudes que estabas despachando para ensenarte una sola.
+    if (accept) setJustAccepted((prev) => (prev.includes(followerId) ? prev : [...prev, followerId]));
     if (accept) await acceptFollowRequest(user?.id, followerId);
     else await rejectFollowRequest(user?.id, followerId);
     refresh();
+    onChanged?.();
+  };
+
+  /**
+   * Devolver el seguimiento.
+   *
+   * Seguir va en UNA direccion: que alguien te siga no hace que tu le sigas, y
+   * por tanto su menu no aparece en tu feed hasta que tu le sigues a el. Es el
+   * modelo de siempre, pero nadie lo tiene en la cabeza cuando acaba de
+   * aceptar a alguien — y mandarle a buscar a esa persona en otra pantalla
+   * para completar la mitad que falta era pedir demasiado.
+   *
+   * Si el otro esta en "solo quien me sigue", esto deja una solicitud
+   * pendiente de SU respuesta: por eso el boton pasa a "Pendiente" y no a
+   * "Siguiendo". Decir "Siguiendo" cuando aun no lo eres es la clase de
+   * mentira que hace dudar de si la app funciona.
+   */
+  const followBack = async (followerId) => {
+    const status = await followUser(user?.id, followerId);
+    if (!status) return;
+    if (status === "accepted") setFollowingIds((ids) => [...ids, followerId]);
+    else setSent((prev) => (prev.some((r) => r.followee_id === followerId)
+      ? prev
+      : [...prev, { followee_id: followerId, created_at: new Date().toISOString() }]));
+    // El feed de detras tiene que recargar su lista de seguidos, o el menu de
+    // esta persona no aparece hasta reiniciar la app.
+    onChanged?.();
   };
 
   const unblock = async (id) => {
@@ -236,15 +267,18 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
             <span style={statDivider} />
             <Stat n={counts.following} label="Siguiendo" onClick={() => setListKind("following")} />
             <span style={statDivider} />
-            <Stat n={counts.recipes} label="Recetas" />
+            <Stat n={counts.recipes} label="Recetas" onClick={() => setTab("recetas")} />
             <span style={statDivider} />
             <Stat n={counts.menus} label="Menús" />
           </div>
         </div>
 
         <div style={tabBar}>
+          {/* Solo lo que pide tu atencion o es contenido tuyo. La gente
+              (seguidores, seguidos) vive en los NUMEROS de arriba, que abren
+              su lista — tener la misma lista tambien aqui, con otro nombre y
+              otra riqueza, era lo que hacia raro el layout. */}
           <Tab id="solicitudes" tab={tab} setTab={setTab} Icon={UserPlus} label="Solicitudes" badge={requests.length + sent.length} />
-          <Tab id="seguidores" tab={tab} setTab={setTab} Icon={Users2} label="Te siguen" badge={followers.length} />
           <Tab id="comentarios" tab={tab} setTab={setTab} Icon={MessageCircle} label="Comentarios" badge={comments.length} />
           <Tab id="recetas" tab={tab} setTab={setTab} Icon={CookingPot} label="Recetas" badge={0} />
         </div>
@@ -266,6 +300,27 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                     </PersonRow>
                   ))}
 
+              {justAccepted.map((id) => {
+                const leSigo = followingIds.includes(id);
+                const pedido = sent.some((r) => r.followee_id === id);
+                return (
+                  <PersonRow key={id} p={people[id]} note="Aceptada">
+                    {leSigo
+                      ? <span style={stateNote}>Siguiendo</span>
+                      : (
+                        <button
+                          type="button"
+                          onClick={pedido ? undefined : () => followBack(id)}
+                          disabled={pedido}
+                          style={pedido ? ghostBtn : backBtn}
+                        >
+                          {pedido ? "Pendiente" : "Seguir"}
+                        </button>
+                      )}
+                  </PersonRow>
+                );
+              })}
+
               <h4 style={{ ...groupTitle, marginTop: 16 }}>Has pedido tú</h4>
               {/* Solo las pendientes: rechazar borra la fila, así que una
                   solicitud rechazada no deja rastro. Es a propósito — guardar
@@ -279,20 +334,6 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                     </PersonRow>
                   ))}
             </>
-          )}
-
-          {tab === "seguidores" && (
-            followers.length === 0
-              ? <p style={empty}>Todavía no te sigue nadie.</p>
-              : followers.map((f) => (
-                  <PersonRow key={f.follower_id} p={people[f.follower_id]}>
-                    {/* Quitar a alguien es el mismo borrado que rechazar: se
-                        deshace el seguimiento y puede volver a pedirlo. */}
-                    <button type="button" onClick={() => resolve(f.follower_id, false)} style={noBtn} aria-label="Quitar seguidor">
-                      <Trash2 size={14} strokeWidth={2.6} />
-                    </button>
-                  </PersonRow>
-                ))
           )}
 
           {tab === "comentarios" && (
@@ -422,6 +463,8 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
       {listKind && (
         <FollowListSheet
           userId={user?.id}
+          viewer={user?.id}
+          onChanged={() => { refresh(); onChanged?.(); }}
           kind={listKind}
           onOpenPerson={(id) => { setListKind(null); onOpenPerson?.(id); }}
           onClose={() => setListKind(null)}
@@ -701,6 +744,17 @@ const noBtn = {
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   width: 32, height: 32, borderRadius: 10,
   border: "1.5px solid #e6cfc9", background: "#fff", color: "#c0392b", cursor: "pointer",
+};
+
+const stateNote = {
+  flexShrink: 0, padding: "6px 11px", borderRadius: 999,
+  background: "#f0f4f1", color: "#6b7d70", fontSize: 11.5, fontWeight: 800,
+};
+
+const backBtn = {
+  padding: "6px 13px", borderRadius: 999, border: "none",
+  background: GREEN, color: "#fff", cursor: "pointer",
+  fontFamily: "inherit", fontSize: 12, fontWeight: 800, flexShrink: 0,
 };
 
 const ghostBtn = {
