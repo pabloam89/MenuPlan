@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
-import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, Users2, Info } from "lucide-react";
+import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, Info } from "lucide-react";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
 import { RecipePoster, PosterCorners, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
@@ -990,17 +990,19 @@ function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onC
 function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish, onOpenDish }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
-  // Filtro por comensal: toca un avatar de la cabecera y ves solo lo que come
-  // esa persona ("que han comido los peques hoy"). Es una VISTA sobre lo ya
-  // publicado — no ensena nada que la semana entera no ensenara igual.
-  const [eaterFilter, setEaterFilter] = useState(null);
+  // Para quien es lo que estas mirando: adultos, ninos o bebes.
+  //
+  // Antes era un filtro por PERSONA -una fila de caras plegada tras un boton
+  // de la cabecera- y estaba mal por dos lados. Uno: las caras van sin nombre
+  // (el payload es anonimo a proposito), asi que elegir "esta persona" era
+  // elegir a ciegas. Dos: en una casa lo que cambia el menu no es quien eres
+  // sino que edad tienes — los dos adultos comen lo mismo. Asi que el filtro
+  // es por rol, que es la unica diferencia que el menu publicado conoce.
+  const [roleFilter, setRoleFilter] = useState(null);
   // El plato que estas mirando de cerca. Se copia PLATO a plato -no la semana
   // entera-, que es como se usa de verdad el menu de otra persona: te llevas
   // la idea suelta que te ha gustado.
   const [dishPick, setDishPick] = useState(null);
-  // El filtro por comensal, plegado: es util pero lo usa poca gente, y una
-  // fila de caras permanente era parte de lo que hinchaba la cabecera.
-  const [whoOpen, setWhoOpen] = useState(false);
   // Memorizado porque de el cuelga la peticion de estadisticas: sin esto el
   // `?? []` daria un array nuevo en cada pintada y se pediria una vez por
   // pintada en vez de una por menu.
@@ -1009,6 +1011,7 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
   const members = m.payload?.members ?? [];
   const byId = Object.fromEntries(members.map((x) => [x.id, x]));
   const name = profile?.display_name || (profile?.username ? `@${profile.username}` : "Alguien");
+  const scopes = eaterScopes(members, days);
 
   // Lo que ha pasado con cada plato ahi fuera: votos, veces cocinado y
   // comentarios. Va aparte y despues de pintar -igual que en el rio de
@@ -1075,62 +1078,24 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
             </span>
           </button>
 
-          {members.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setWhoOpen((v) => !v)}
-              aria-expanded={whoOpen}
-              aria-label="Filtrar por comensal"
-              style={{ ...peekBarIcon, background: eaterFilter ? "#d9ece7" : "#f0f4f1", color: eaterFilter ? TEAL : "#7a9485" }}
-            >
-              <Users2 size={15} strokeWidth={2.6} />
-            </button>
-          )}
           <button type="button" onClick={onClose} aria-label="Cerrar" style={peekBarIcon}>
             <X size={16} strokeWidth={2.6} />
           </button>
         </div>
-
-        {whoOpen && members.length > 0 && (
-          <div style={peekWhoRow}>
-            {members.map((mem) => {
-              const on = eaterFilter === mem.id;
-              return (
-                <button
-                  key={mem.id}
-                  type="button"
-                  title={mem.role === "nino" ? "Solo lo que come este peque" : "Solo lo que come esta persona"}
-                  aria-pressed={on}
-                  onClick={() => setEaterFilter(on ? null : mem.id)}
-                  style={{
-                    ...memberDot, width: 30, height: 30, padding: 0,
-                    border: on ? `2px solid ${TEAL}` : "2px solid transparent",
-                    background: on ? "#d9ece7" : "#e8efe9",
-                    cursor: "pointer", fontFamily: "inherit",
-                  }}
-                >
-                  <MemberFace mem={mem} size={26} />
-                </button>
-              );
-            })}
-            {eaterFilter && (
-              <button type="button" onClick={() => setEaterFilter(null)} style={clearFilterBtn}>
-                Ver todo
-              </button>
-            )}
-          </div>
-        )}
 
         <div style={{ padding: "16px 16px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
           <SharedMenuDeck
             days={days
               .map((d) => ({
                 ...d,
-                meals: (d.meals ?? []).filter((meal) => !eaterFilter || (meal.eaters ?? []).includes(eaterFilter)),
+                meals: (d.meals ?? []).filter((meal) =>
+                  !roleFilter || (meal.eaters ?? []).some((id) => byId[id]?.role === roleFilter)),
               }))
               .filter((d) => d.meals.length > 0)}
             weekStart={m.payload?.weeks?.[0]?.weekStart ?? m.week_start ?? null}
-            byId={byId}
+            scopes={scopes}
+            roleFilter={roleFilter}
+            onRole={setRoleFilter}
             stats={dishStats}
             onPickDish={setDishPick}
             onOpenDish={onOpenDish}
@@ -1153,9 +1118,12 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
       {dishPick && (
         <DishActionBar
           anchor={dishPick.anchor}
+          // Los dos copys empiezan por el verbo: lo que haces con el plato de
+          // otro es COPIARLO, y "A mi menú" describia el destino pero no la
+          // accion — que es lo unico que el boton tiene que prometer.
           actions={[
-            { id: "menu", label: "A mi menú", Icon: CalendarDays, color: "#4a6fd4", tint: "#eaf0fc", onPick: () => { onPlaceDish?.(dishPick.dish); setDishPick(null); } },
-            { id: "recetas", label: "A mis recetas", Icon: Heart, color: GREEN, tint: "#eaf6ee", onPick: () => { onSaveDish?.(dishPick.dish); setDishPick(null); } },
+            { id: "menu", label: "Copiar al menú", Icon: CalendarDays, onPick: () => { onPlaceDish?.(dishPick.dish); setDishPick(null); } },
+            { id: "recetas", label: "Copiar a recetas", Icon: Heart, onPick: () => { onSaveDish?.(dishPick.dish); setDishPick(null); } },
           ]}
           onClose={() => setDishPick(null)}
         />
@@ -1183,7 +1151,7 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
  * Un dia se ensena solo; varios traen el selector Dia/Semana, igual que Menu.
  * Con un unico dia el selector seria elegir entre una cosa y la misma.
  */
-function SharedMenuDeck({ days, weekStart, byId, stats, onPickDish, onOpenDish }) {
+function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, onPickDish, onOpenDish }) {
   const multi = days.length > 1;
   const [week, setWeek] = useState(false);
   const [dayIdx, setDayIdx] = useState(0);
@@ -1195,7 +1163,17 @@ function SharedMenuDeck({ days, weekStart, byId, stats, onPickDish, onOpenDish }
 
   return (
     <>
-      {multi && <ViewPicker week={week} onWeek={setWeek} />}
+      {/* Una sola franja de mando: a la izquierda COMO lo miras (dia o semana)
+          y a la derecha PARA QUIEN es lo que miras. Las caras vivian antes en
+          la esquina de cada plato, una por comensal, y ahi no elegian nada:
+          eran un adorno que ademas repetia las mismas cuatro caras en todas
+          las tarjetas. Aqui son un control, y encima liberan la esquina. */}
+      {(multi || scopes.length > 0) && (
+        <div style={deckTopRow}>
+          {multi && <ViewPicker week={week} onWeek={setWeek} />}
+          {scopes.length > 0 && <EaterScope scopes={scopes} value={roleFilter} onPick={onRole} />}
+        </div>
+      )}
 
       {/* La tira de dias es un CALENDARIO, no siete botones.
           Antes eran siete pastillas blancas con borde, todas iguales y con el
@@ -1243,7 +1221,7 @@ function SharedMenuDeck({ days, weekStart, byId, stats, onPickDish, onOpenDish }
               <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
                 {flattenDayDishes(d).map((item, i) => (
                   <div key={i} style={{ flex: "0 0 46%" }}>
-                    <SharedDishTile item={item} byId={byId} onPick={onPickDish} height={132} compact />
+                    <SharedDishTile item={item} onPick={onPickDish} height={132} compact />
                   </div>
                 ))}
               </div>
@@ -1255,7 +1233,6 @@ function SharedMenuDeck({ days, weekStart, byId, stats, onPickDish, onOpenDish }
                 <SharedDishTile
                   key={i}
                   item={item}
-                  byId={byId}
                   stats={stats}
                   onPick={onPickDish}
                   onOpen={onOpenDish}
@@ -1294,6 +1271,96 @@ function dayNumbers(days, weekStart) {
 }
 
 /**
+ * Para quien es el menu: adultos, ninos o bebes.
+ *
+ * Solo aparece SI HAY DIFERENCIA (ver eaterScopes): en una casa donde todos
+ * comen lo mismo, un filtro que no cambia nada es un boton que miente. Y por
+ * eso no hay chip por persona: el payload es anonimo, asi que "esta cara" no
+ * se puede elegir a sabiendas, y de todos modos lo que parte un menu en dos
+ * es la edad, no quien eres.
+ */
+function EaterScope({ scopes, value, onPick }) {
+  return (
+    <div style={scopeRow} role="group" aria-label="Para quién es el menú">
+      <button
+        type="button"
+        aria-pressed={!value}
+        onClick={() => onPick(null)}
+        style={{ ...scopeChip, ...(value ? null : scopeChipOn) }}
+      >
+        Todos
+      </button>
+      {scopes.map((sc) => {
+        const on = value === sc.role;
+        return (
+          <button
+            key={sc.role}
+            type="button"
+            aria-pressed={on}
+            onClick={() => onPick(on ? null : sc.role)}
+            style={{ ...scopeChip, ...(on ? scopeChipOn : null) }}
+          >
+            <span style={{ display: "flex", flexShrink: 0 }}>
+              {sc.faces.map((mem, i) => (
+                <MemberFace key={mem.id} mem={mem} size={20} ring stacked={i > 0} />
+              ))}
+            </span>
+            {sc.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// El orden en el que se lee una casa, y como se llama cada grupo por fuera.
+const ROLE_ORDER = ["adulto", "nino", "bebe"];
+const ROLE_LABEL = { adulto: "Adultos", nino: "Niños", bebe: "Bebés" };
+
+// El dibujo generico de cada grupo, para cuando ningun miembro publico el
+// suyo (nadie eligio avatar, o el menu se publico antes de que existieran).
+// Aqui SI se puede: el chip habla de una categoria -"Niños"- y no dice que
+// esta sea la cara de nadie. En la esquina de un plato eso mismo habria sido
+// ponerle cara inventada a una persona concreta.
+const ROLE_AVATAR = {
+  adulto: "/avatares/adulto/adulto_1.png",
+  nino: "/avatares/hijo/hijo_1.png",
+  bebe: "/avatares/bebe/bebe_1.png",
+};
+
+/**
+ * Los grupos de comensales que merece la pena poder filtrar.
+ *
+ * Dos condiciones, y las dos tienen que darse:
+ *  · Que haya mas de un rol comiendo. Con un solo grupo, elegirlo es elegir
+ *    entre una cosa y la misma.
+ *  · Que los platos NO sean los mismos para todos. Si toda la casa come igual
+ *    -que es lo normal-, el filtro no quitaria ni un plato de la pantalla.
+ *
+ * Es lo que pedia el "si hay diferencia": el control aparece cuando de verdad
+ * hay dos menus dentro de este menu, y no existe el resto del tiempo.
+ */
+function eaterScopes(members, days) {
+  const eating = new Set();
+  const shapes = new Set();
+  for (const d of days ?? []) {
+    for (const meal of d.meals ?? []) {
+      const ids = meal.eaters ?? [];
+      for (const id of ids) eating.add(id);
+      shapes.add([...ids].sort().join(","));
+    }
+  }
+  if (shapes.size < 2) return [];
+
+  const out = [];
+  for (const role of ROLE_ORDER) {
+    const faces = (members ?? []).filter((mem) => mem.role === role && eating.has(mem.id));
+    if (faces.length > 0) out.push({ role, label: ROLE_LABEL[role], faces: faces.slice(0, 2) });
+  }
+  return out.length > 1 ? out : [];
+}
+
+/**
  * Dia / Semana con la misma pinta que en tu menu: circulo de color con el
  * icono de la vista, su nombre y un chevron.
  *
@@ -1312,7 +1379,7 @@ function ViewPicker({ week, onWeek }) {
   const ActiveIcon = active.Icon;
 
   return (
-    <div style={{ position: "relative", marginBottom: 12 }}>
+    <div style={{ position: "relative" }}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -1370,22 +1437,22 @@ function ViewPicker({ week, onWeek }) {
  *
  * El payload publica la ruta del avatar ILUSTRADO a tamaño completo (un PNG de
  * 1024 px donde el muñeco es una columna estrecha en el centro), y aqui se
- * dibuja en circulos de 20-30 px: en ese tamaño la persona son cuatro pixeles
- * y ademas se bajaba medio mega por cara. Se pide primero el recorte de
- * cabeza y hombros -/avatares/thumbs/...-, que es la regla de la casa para los
- * circulos pequeños (memberAvatarThumbSrc); si ese archivo no existe se cae al
- * original, y si tampoco, a la inicial. Sin esa cadena de respaldo una ruta
- * rota dejaba un hueco gris en vez de una cara.
+ * dibuja en circulos de 20 px: en ese tamaño la persona son cuatro pixeles y
+ * ademas se bajaba medio mega por cara. Se pide primero el recorte de cabeza y
+ * hombros -/avatares/thumbs/...-, que es la regla de la casa para los circulos
+ * pequeños (memberAvatarThumbSrc); si ese archivo no existe se cae al original,
+ * y si tampoco, al dibujo generico del rol. Sin esa cadena de respaldo una ruta
+ * rota -o un menu publicado por alguien que nunca eligio avatar- dejaba una
+ * letra suelta en un circulo gris donde tenia que haber una cara.
  */
-function MemberFace({ mem, size = 20, ring = false }) {
+function MemberFace({ mem, size = 20, ring = false, stacked = false }) {
   const [fallback, setFallback] = useState(0);
-  const full = mem?.avatar ?? null;
-  const src = !full ? null
-    : fallback === 0 ? full.replace("/avatares/", "/avatares/thumbs/")
-    : fallback === 1 ? full
-    : null;
+  const candidates = [mem?.avatar, ROLE_AVATAR[mem?.role]].filter(Boolean);
+  const full = candidates[Math.min(fallback >> 1, candidates.length - 1)] ?? null;
+  const src = !full ? null : (fallback % 2 === 0 ? full.replace("/avatares/", "/avatares/thumbs/") : full);
+  const done = fallback >= candidates.length * 2;
 
-  if (src) {
+  if (src && !done) {
     return (
       <img
         key={src}
@@ -1397,6 +1464,9 @@ function MemberFace({ mem, size = 20, ring = false }) {
           width: size, height: size, borderRadius: 999, objectFit: "cover",
           display: "block", flexShrink: 0, background: "#e8efe9",
           border: ring ? "1.5px solid rgba(255,255,255,.85)" : "none",
+          // Apilados como el AvatarStack de la casa: se solapan y el borde
+          // blanco los separa, en vez de una fila de discos sueltos.
+          marginLeft: stacked ? -Math.round(size * 0.34) : 0,
         }}
       />
     );
@@ -1405,8 +1475,9 @@ function MemberFace({ mem, size = 20, ring = false }) {
     <span style={{
       ...memberDot, width: size, height: size, fontSize: Math.round(size * 0.42),
       border: ring ? "1.5px solid rgba(255,255,255,.85)" : memberDot.border,
+      marginLeft: stacked ? -Math.round(size * 0.34) : 0,
     }}>
-      {mem?.role === "nino" ? "N" : "A"}
+      {mem?.role === "adulto" ? "A" : mem?.role === "bebe" ? "B" : "N"}
     </span>
   );
 }
@@ -1421,8 +1492,8 @@ function flattenDayDishes(day) {
 }
 
 /** Un plato, con su foto llenando la tarjeta. */
-function SharedDishTile({ item, byId, stats = null, onPick, onOpen, height, compact = false }) {
-  const { dish, slot, eaters } = item;
+function SharedDishTile({ item, stats = null, onPick, onOpen, height, compact = false }) {
+  const { dish, slot } = item;
   const [failed, setFailed] = useState(false);
   const img = dish.recipeId ? dishImageForRecipe({ id: dish.recipeId }) : null;
   // Un plato cerrado no se puede abrir: no hay receta detras, solo su nombre.
@@ -1484,10 +1555,9 @@ function SharedDishTile({ item, byId, stats = null, onPick, onOpen, height, comp
           del titulo. Es la disposicion la que hace que se lea como la misma
           app, mas que la foto.
 
-          Las caras de quien come el plato van EN esa misma linea, a la
-          derecha: antes vivian en la esquina de arriba, que es donde ahora
-          estan los votos, y ademas ahi arriba no se sabia de que hablaban.
-          Junto al turno se leen como parte de la frase: "comida, para estos". */}
+          Sin caras: quien come cada plato se elige arriba, en la franja de
+          Dia/Semana. Repetirlas aqui era pintar las mismas cuatro caras en
+          todas las tarjetas del dia para no decir nada nuevo en ninguna. */}
       <span style={{ position: "absolute", left: compact ? 10 : 14, right: compact ? 10 : 14, bottom: compact ? 10 : 13 }}>
         <span style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: compact ? 4 : 7 }}>
           <span style={{
@@ -1502,13 +1572,6 @@ function SharedDishTile({ item, byId, stats = null, onPick, onOpen, height, comp
           }}>
             {slot}
           </span>
-          {eaters.length > 0 && !compact && (
-            <span style={{ display: "flex", gap: 3, marginLeft: "auto" }}>
-              {eaters.map((id) => (
-                <MemberFace key={id} mem={byId[id]} size={22} ring />
-              ))}
-            </span>
-          )}
         </span>
         <span style={{
           display: "block", color: "#fff", fontWeight: 900, lineHeight: 1.15,
@@ -1569,7 +1632,7 @@ function DishActionBar({ anchor, actions, onClose }) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const tile = anchor?.tile;
-  const BTN = 74;
+  const BTN = 86;
   const GAP = 8;
   const PAD = 12;
   const barW = actions.length * BTN + (actions.length - 1) * GAP + PAD * 2;
@@ -1907,6 +1970,32 @@ const deckDayNum = { fontSize: 14, fontWeight: 900, lineHeight: 1, fontVariantNu
 
 const deckWeekHead = { display: "flex", alignItems: "center", gap: 8, marginBottom: 8 };
 
+// Como lo miras a la izquierda, para quien a la derecha. Envuelve si la casa
+// tiene tres grupos y no caben en una linea de 420 px.
+const deckTopRow = {
+  display: "flex", alignItems: "center", justifyContent: "space-between",
+  flexWrap: "wrap", gap: 8, marginBottom: 12,
+};
+
+const scopeRow = {
+  display: "flex", alignItems: "center", gap: 4,
+  marginLeft: "auto", padding: 3, borderRadius: 999, background: "#f0f4f1",
+};
+
+const scopeChip = {
+  display: "inline-flex", alignItems: "center", gap: 6,
+  padding: "4px 11px", borderRadius: 999, border: "none",
+  background: "none", color: "#5f7568",
+  fontSize: 11.5, fontWeight: 800, lineHeight: 1,
+  cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+  transition: "background .15s ease, color .15s ease",
+};
+
+const scopeChipOn = {
+  background: "#fff", color: INK,
+  boxShadow: "0 1px 4px rgba(20,47,29,.14)",
+};
+
 const dishBarBackdrop = {
   position: "fixed", inset: 0, zIndex: 340,
   background: "rgba(9,18,12,.8)",
@@ -1974,12 +2063,6 @@ const peekWhoName = {
 const peekWhoWhen = {
   display: "block", fontSize: 11.5, fontWeight: 700, color: "#8aa294",
   whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-};
-
-const peekWhoRow = {
-  display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap",
-  padding: "10px 16px", background: "#f7fbf8",
-  borderBottom: "1px solid #eef3f0",
 };
 
 const peekMenu = {
@@ -2076,12 +2159,6 @@ const inspireLink = {
 
 const dayRow = { display: "flex", gap: 10, alignItems: "flex-start" };
 const dayName = { flexShrink: 0, width: 34, fontSize: 11.5, fontWeight: 900, color: "#7a9485", textTransform: "uppercase", paddingTop: 1 };
-
-const clearFilterBtn = {
-  marginLeft: 4, padding: "3px 10px", borderRadius: 999,
-  border: "1.5px solid #cfe6df", background: "#fff", color: TEAL,
-  fontSize: 10.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-};
 
 const memberDot = {
   width: 22, height: 22, borderRadius: 999, flexShrink: 0,

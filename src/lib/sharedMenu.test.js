@@ -100,6 +100,21 @@ describe("buildSharedMenuPayload", () => {
     expect(roles).toEqual({ a1: "adulto", a2: "adulto", n1: "nino" });
   });
 
+  it("el bebé sale como bebé, no como adulto", () => {
+    // Se comprobaba contra el id de etapa "bebe", que no existe: el de
+    // stages.js es "baby". Asi que un bebe se publicaba como ADULTO — y al
+    // otro lado, en una casa con bebe, "lo que comen los mayores" y "lo que
+    // come el bebe" salian mezclados en el mismo grupo.
+    const roles = Object.fromEntries(
+      build({
+        members: [...members, { id: "b1", name: "Nico", age: 1 }],
+        groups: [...groups, { id: "bebes", memberIds: ["b1"] }],
+        menuPlan: { ...menuPlan, bebes: { "Lun-Comida": { recipeId: "pasta_arroces_001" } } },
+      }).members.map((m) => [m.id, m.role]),
+    );
+    expect(roles.b1).toBe("bebe");
+  });
+
   it("solo incluye a quien aparece comiendo", () => {
     const payload = build({ groups: [{ id: "adultos", memberIds: ["a1", "a2"] }] });
     expect(payload.members.map((m) => m.id)).toEqual(["a1", "a2"]);
