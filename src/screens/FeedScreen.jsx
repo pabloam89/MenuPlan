@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState, useRef } from "react";
-import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, Users2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, Users2, Info } from "lucide-react";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
-import { RecipePoster, ActionButton } from "../components/SwipeCard.jsx";
+import { RecipePoster, PosterCorners, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
 import { PersonSheet } from "../components/PersonSheet.jsx";
 import { CommentThread } from "../components/CommentThread.jsx";
@@ -18,6 +18,8 @@ import { shareOut } from "../lib/shareLink.js";
 import { relativeTime } from "../lib/socialUi.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
+import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { DAYS } from "../lib/planner.js";
 import { loadPublicRecipe } from "../lib/userRecipesSync.js";
 import { folderArt, ALL_ID } from "./CatalogBrowserSheet.jsx";
 import { allFolders } from "../lib/recipeCollections.js";
@@ -708,8 +710,22 @@ export function FeedScreen({
         />
       )}
 
+      {/* Llevarte un plato del menu de otro (a tu semana o a tu recetario) y
+          abrir su receta: las tres llegaban ya como props de la pantalla y no
+          se pasaban, asi que los botones del plato no hacian NADA — ni fallo
+          ni aviso, simplemente no pasaba nada al tocarlos. */}
       {menuOpen && (
-        <MenuPeek menu={menuOpen} user={user} profile={profiles[menuOpen.owner_id]} onOpenPerson={() => { setMenuOpen(null); setPersonId(menuOpen.owner_id); }} onBlocked={handleBlocked} onClose={() => setMenuOpen(null)} />
+        <MenuPeek
+          menu={menuOpen}
+          user={user}
+          profile={profiles[menuOpen.owner_id]}
+          onOpenPerson={() => { setMenuOpen(null); setPersonId(menuOpen.owner_id); }}
+          onBlocked={handleBlocked}
+          onClose={() => setMenuOpen(null)}
+          onSaveDish={onSaveDish}
+          onPlaceDish={(dish) => { setMenuOpen(null); onPlaceDish?.(dish); }}
+          onOpenDish={(dish) => onOpenRecipe?.({ id: dish.recipeId, name: dish.name })}
+        />
       )}
 
       {/* La lengueta a medio asomar no se explica sola, pero una burbuja
@@ -971,7 +987,7 @@ function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onC
  * compra, ni presupuesto, ni horarios, ni nombres — aunque el menú original
  * los tenga, aquí no han llegado nunca.
  */
-function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish }) {
+function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish, onOpenDish }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   // Filtro por comensal: toca un avatar de la cabecera y ves solo lo que come
@@ -985,11 +1001,34 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
   // El filtro por comensal, plegado: es util pero lo usa poca gente, y una
   // fila de caras permanente era parte de lo que hinchaba la cabecera.
   const [whoOpen, setWhoOpen] = useState(false);
-  const days = m.payload?.weeks?.[0]?.days ?? [];
+  // Memorizado porque de el cuelga la peticion de estadisticas: sin esto el
+  // `?? []` daria un array nuevo en cada pintada y se pediria una vez por
+  // pintada en vez de una por menu.
+  const days = useMemo(() => m.payload?.weeks?.[0]?.days ?? [], [m]);
   const rango = m.title || (m.week_start ? rangeLabel(m.week_start, m.week_end) : null);
   const members = m.payload?.members ?? [];
   const byId = Object.fromEntries(members.map((x) => [x.id, x]));
   const name = profile?.display_name || (profile?.username ? `@${profile.username}` : "Alguien");
+
+  // Lo que ha pasado con cada plato ahi fuera: votos, veces cocinado y
+  // comentarios. Va aparte y despues de pintar -igual que en el rio de
+  // recetas- porque es adorno de la tarjeta, no contenido del menu.
+  const [dishStats, setDishStats] = useState({});
+  useEffect(() => {
+    const ids = [...new Set(
+      days.flatMap((d) => (d.meals ?? []).flatMap((meal) => (meal.dishes ?? []).map((x) => x.recipeId)))
+        .filter(Boolean),
+    )];
+    if (ids.length === 0) return undefined;
+    let alive = true;
+    loadRecipeStats(ids).then((real) => {
+      if (alive) setDishStats(FIXTURES_ENABLED ? { ...FIXTURE_STATS, ...real } : real);
+    });
+    return () => { alive = false; };
+    // `days` es la MISMA referencia mientras el menu este abierto (es un trozo
+    // del payload, que es una instantanea y no se toca), asi que esto se pide
+    // una vez por menu y no una vez por pintada.
+  }, [days]);
 
   return (
     <div style={peekBackdrop} onClick={onClose}>
@@ -1082,7 +1121,7 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
           </div>
         )}
 
-        <div style={{ padding: "4px 16px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+        <div style={{ padding: "16px 16px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
           <SharedMenuDeck
             days={days
               .map((d) => ({
@@ -1090,8 +1129,11 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
                 meals: (d.meals ?? []).filter((meal) => !eaterFilter || (meal.eaters ?? []).includes(eaterFilter)),
               }))
               .filter((d) => d.meals.length > 0)}
+            weekStart={m.payload?.weeks?.[0]?.weekStart ?? m.week_start ?? null}
             byId={byId}
+            stats={dishStats}
             onPickDish={setDishPick}
+            onOpenDish={onOpenDish}
           />
 
           <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eef3f0" }}>
@@ -1102,26 +1144,21 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
 
       {/* Dos acciones y ya: llevartelo al menu (lo colocas tu, en el hueco que
           quieras) o guardarlo para luego. Son los dos motivos por los que
-          alguien copia un plato ajeno, y no hay un tercero. */}
+          alguien copia un plato ajeno, y no hay un tercero.
+
+          Y salen PEGADAS AL PLATO, no en una tarjeta centrada: es la misma
+          barra que aparece al mantener pulsado un plato en tu propio menu.
+          Una ventana en mitad de la pantalla te obliga a volver a buscar de
+          que plato hablabas; el recuadro sobre la foto ya lo dice. */}
       {dishPick && (
-        <div style={dishPickOverlay} onClick={() => setDishPick(null)}>
-          <div style={dishPickCard} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <DishThumb dish={dishPick} />
-              <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 800, color: INK }}>{dishPick.name}</span>
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button type="button" onClick={() => { onPlaceDish?.(dishPick); setDishPick(null); }} style={dishPickAction}>
-                <CalendarDays size={19} strokeWidth={2.3} color="#4a6fd4" />
-                A mi menú
-              </button>
-              <button type="button" onClick={() => { onSaveDish?.(dishPick); setDishPick(null); }} style={dishPickAction}>
-                <Heart size={19} strokeWidth={2.3} color={GREEN} />
-                A mis recetas
-              </button>
-            </div>
-          </div>
-        </div>
+        <DishActionBar
+          anchor={dishPick.anchor}
+          actions={[
+            { id: "menu", label: "A mi menú", Icon: CalendarDays, color: "#4a6fd4", tint: "#eaf0fc", onPick: () => { onPlaceDish?.(dishPick.dish); setDishPick(null); } },
+            { id: "recetas", label: "A mis recetas", Icon: Heart, color: GREEN, tint: "#eaf6ee", onPick: () => { onSaveDish?.(dishPick.dish); setDishPick(null); } },
+          ]}
+          onClose={() => setDishPick(null)}
+        />
       )}
 
       {reporting && (
@@ -1146,12 +1183,13 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
  * Un dia se ensena solo; varios traen el selector Dia/Semana, igual que Menu.
  * Con un unico dia el selector seria elegir entre una cosa y la misma.
  */
-function SharedMenuDeck({ days, byId, onPickDish }) {
+function SharedMenuDeck({ days, weekStart, byId, stats, onPickDish, onOpenDish }) {
   const multi = days.length > 1;
   const [week, setWeek] = useState(false);
   const [dayIdx, setDayIdx] = useState(0);
   // Un filtro por comensal puede dejar el dia activo fuera de la lista.
   const idx = Math.min(dayIdx, Math.max(0, days.length - 1));
+  const nums = dayNumbers(days, weekStart);
 
   if (days.length === 0) return <p style={hint}>Este menu no trae dias.</p>;
 
@@ -1159,19 +1197,34 @@ function SharedMenuDeck({ days, byId, onPickDish }) {
     <>
       {multi && <ViewPicker week={week} onWeek={setWeek} />}
 
+      {/* La tira de dias es un CALENDARIO, no siete botones.
+          Antes eran siete pastillas blancas con borde, todas iguales y con el
+          nombre del dia en gris: la forma decia "elige una accion" cuando lo
+          que hay debajo es una semana. Ahora cada dia es su casilla -inicial
+          arriba, numero del mes debajo- sobre una pista verde clara, como el
+          resto de controles segmentados de la app: se lee de un vistazo en que
+          dia estas y que dia es. */}
       {multi && !week && (
-        <div style={deckDayStrip}>
-          {days.map((d, i) => (
-            <button
-              key={d.day}
-              type="button"
-              onClick={() => setDayIdx(i)}
-              aria-pressed={i === idx}
-              style={{ ...deckDayChip, ...(i === idx ? deckDayChipOn : null) }}
-            >
-              {d.day}
-            </button>
-          ))}
+        <div style={deckDayStrip} role="tablist" aria-label="Día del menú">
+          {days.map((d, i) => {
+            const on = i === idx;
+            const num = nums[d.day];
+            return (
+              <button
+                key={d.day}
+                type="button"
+                role="tab"
+                onClick={() => setDayIdx(i)}
+                aria-selected={on}
+                style={{ ...deckDayCell, ...(on ? deckDayCellOn : null) }}
+              >
+                <span style={{ ...deckDayName, color: on ? "rgba(255,255,255,.82)" : "#9ab0a1" }}>{d.day}</span>
+                {num != null && (
+                  <span style={{ ...deckDayNum, color: on ? "#fff" : INK }}>{num}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -1180,6 +1233,9 @@ function SharedMenuDeck({ days, byId, onPickDish }) {
             <div key={d.day} style={{ marginBottom: 18 }}>
               <div style={deckWeekHead}>
                 <span style={{ fontSize: 14, fontWeight: 900, color: INK }}>{d.day}</span>
+                {nums[d.day] != null && (
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "#4cba6e" }}>{nums[d.day]}</span>
+                )}
                 <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
               </div>
               {/* En semana los platos van en fila y compactos: esta vista sirve
@@ -1196,12 +1252,45 @@ function SharedMenuDeck({ days, byId, onPickDish }) {
         : (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {flattenDayDishes(days[idx]).map((item, i) => (
-                <SharedDishTile key={i} item={item} byId={byId} onPick={onPickDish} height={168} />
+                <SharedDishTile
+                  key={i}
+                  item={item}
+                  byId={byId}
+                  stats={stats}
+                  onPick={onPickDish}
+                  onOpen={onOpenDish}
+                  height={192}
+                />
               ))}
             </div>
           )}
     </>
   );
+}
+
+/**
+ * El numero del mes de cada dia del menu compartido.
+ *
+ * `weekStart` es la fecha del PRIMER dia publicado (ver handlePublishMenu), no
+ * necesariamente un lunes: compartir "solo hoy" arranca en el dia que sea. Asi
+ * que el desplazamiento se cuenta contra ese primer dia y no contra la semana.
+ * Sin fecha -o con un dia que no esta en DAYS- se devuelve nada y la casilla
+ * ensena solo la inicial: mejor eso que un numero inventado.
+ */
+function dayNumbers(days, weekStart) {
+  if (!weekStart || days.length === 0) return {};
+  const [y, mo, d] = String(weekStart).split("-").map(Number);
+  if (!y || !mo || !d) return {};
+  const baseIdx = DAYS.indexOf(days[0].day);
+  if (baseIdx < 0) return {};
+  const out = {};
+  for (const day of days) {
+    const i = DAYS.indexOf(day.day);
+    if (i < 0) continue;
+    const date = new Date(y, mo - 1, d + (i - baseIdx));
+    out[day.day] = date.getDate();
+  }
+  return out;
 }
 
 /**
@@ -1276,16 +1365,37 @@ function ViewPicker({ week, onWeek }) {
   );
 }
 
-/** La cara de un comensal: su foto si la hay, y si no su inicial de rol. */
+/**
+ * La cara de un comensal: su avatar si lo hay, y si no su inicial de rol.
+ *
+ * El payload publica la ruta del avatar ILUSTRADO a tamaño completo (un PNG de
+ * 1024 px donde el muñeco es una columna estrecha en el centro), y aqui se
+ * dibuja en circulos de 20-30 px: en ese tamaño la persona son cuatro pixeles
+ * y ademas se bajaba medio mega por cara. Se pide primero el recorte de
+ * cabeza y hombros -/avatares/thumbs/...-, que es la regla de la casa para los
+ * circulos pequeños (memberAvatarThumbSrc); si ese archivo no existe se cae al
+ * original, y si tampoco, a la inicial. Sin esa cadena de respaldo una ruta
+ * rota dejaba un hueco gris en vez de una cara.
+ */
 function MemberFace({ mem, size = 20, ring = false }) {
-  if (mem?.avatar) {
+  const [fallback, setFallback] = useState(0);
+  const full = mem?.avatar ?? null;
+  const src = !full ? null
+    : fallback === 0 ? full.replace("/avatares/", "/avatares/thumbs/")
+    : fallback === 1 ? full
+    : null;
+
+  if (src) {
     return (
       <img
-        src={mem.avatar}
+        key={src}
+        src={src}
         alt=""
+        loading="lazy"
+        onError={() => setFallback((f) => f + 1)}
         style={{
           width: size, height: size, borderRadius: 999, objectFit: "cover",
-          display: "block", flexShrink: 0,
+          display: "block", flexShrink: 0, background: "#e8efe9",
           border: ring ? "1.5px solid rgba(255,255,255,.85)" : "none",
         }}
       />
@@ -1311,16 +1421,28 @@ function flattenDayDishes(day) {
 }
 
 /** Un plato, con su foto llenando la tarjeta. */
-function SharedDishTile({ item, byId, onPick, height, compact = false }) {
+function SharedDishTile({ item, byId, stats = null, onPick, onOpen, height, compact = false }) {
   const { dish, slot, eaters } = item;
   const [failed, setFailed] = useState(false);
   const img = dish.recipeId ? dishImageForRecipe({ id: dish.recipeId }) : null;
   // Un plato cerrado no se puede abrir: no hay receta detras, solo su nombre.
   const locked = dish.readable === false;
+  // Lo que la receta ES sale del catalogo, que es el mismo para todos: no hace
+  // falta que el menu publicado cargue con la dificultad ni con los minutos.
+  const catalog = dish.recipeId ? recipeCatalogById[dish.recipeId] : null;
+  // Ceros explicitos, como en el rio: sin ellos la columna de la derecha no se
+  // pinta y parece que el plato no tiene datos, en vez de tener cero. Un plato
+  // cerrado no lleva ninguna: no hay receta de la que contar nada.
+  const dishStats = dish.recipeId ? (stats?.[dish.recipeId] ?? EMPTY_STATS) : null;
   return (
     <button
       type="button"
-      onClick={locked ? undefined : () => onPick(dish)}
+      // La barra de acciones sale pegada al plato, asi que el toque tiene que
+      // decir DONDE esta el plato — no solo cual es.
+      onClick={locked ? undefined : (e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        onPick({ dish, anchor: { tile: { top: r.top, left: r.left, width: r.width, height: r.height }, radius: compact ? 16 : 20 } });
+      }}
       disabled={locked}
       style={{
         position: "relative", width: "100%", height, display: "block",
@@ -1348,18 +1470,24 @@ function SharedDishTile({ item, byId, onPick, height, compact = false }) {
           foto clara se vuelve ilegible. */}
       <span style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,30,18,.78) 0%, rgba(10,30,18,0) 58%)" }} />
 
-      {eaters.length > 0 && !compact && (
-        <span style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 3 }}>
-          {eaters.map((id) => (
-            <MemberFace key={id} mem={byId[id]} size={20} ring />
-          ))}
-        </span>
+      {/* Las mismas dos esquinas que el cartel de una receta en el rio: a la
+          izquierda lo que el plato ES -dificultad y minutos-, a la derecha lo
+          que la gente ha hecho con el -votos, veces cocinado, comentarios-.
+          Solo en la vista de dia: en la de semana la tarjeta mide la mitad y
+          seis pastillas la taparian entera. */}
+      {!compact && (
+        <PosterCorners difficulty={catalog?.difficulty ?? null} time={catalog?.time ?? null} stats={dishStats} inset={10} />
       )}
 
       {/* Turno y nombre, abajo y en ese orden, exactamente donde los pone
           DeckTile en tu propio menu: el punto de color y el eyebrow encima
           del titulo. Es la disposicion la que hace que se lea como la misma
-          app, mas que la foto. */}
+          app, mas que la foto.
+
+          Las caras de quien come el plato van EN esa misma linea, a la
+          derecha: antes vivian en la esquina de arriba, que es donde ahora
+          estan los votos, y ademas ahi arriba no se sabia de que hablaban.
+          Junto al turno se leen como parte de la frase: "comida, para estos". */}
       <span style={{ position: "absolute", left: compact ? 10 : 14, right: compact ? 10 : 14, bottom: compact ? 10 : 13 }}>
         <span style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: compact ? 4 : 7 }}>
           <span style={{
@@ -1374,11 +1502,20 @@ function SharedDishTile({ item, byId, onPick, height, compact = false }) {
           }}>
             {slot}
           </span>
+          {eaters.length > 0 && !compact && (
+            <span style={{ display: "flex", gap: 3, marginLeft: "auto" }}>
+              {eaters.map((id) => (
+                <MemberFace key={id} mem={byId[id]} size={22} ring />
+              ))}
+            </span>
+          )}
         </span>
         <span style={{
           display: "block", color: "#fff", fontWeight: 900, lineHeight: 1.15,
           fontSize: compact ? 13 : 19, letterSpacing: "-.3px",
           textShadow: "0 2px 12px rgba(0,0,0,.45)",
+          // Hueco a la derecha para la ⓘ, para que el nombre no pase por debajo.
+          paddingRight: compact || locked || !onOpen ? 0 : 34,
         }}>
           {dish.name}
           {dish.source === "user" && (
@@ -1389,16 +1526,101 @@ function SharedDishTile({ item, byId, onPick, height, compact = false }) {
           )}
         </span>
       </span>
+
+      {/* La ⓘ abre la receta entera, como en el cartel del rio y en el mazo.
+          Va aparte del toque en la foto a proposito: mirar la receta y
+          llevartela son dos cosas distintas, y antes tocar el plato solo
+          ofrecia lo segundo — para leerla no habia por donde. Un plato cerrado
+          no la enseña: no hay nada que abrir. */}
+      {onOpen && !locked && !compact && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={`Ver la receta de ${dish.name}`}
+          title="Ver la receta"
+          onClick={(e) => { e.stopPropagation(); onOpen(dish); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onOpen(dish); } }}
+          style={{
+            position: "absolute", right: 12, bottom: 14,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#fff", cursor: "pointer",
+            filter: "drop-shadow(0 1px 3px rgba(0,0,0,.5))",
+          }}
+        >
+          <Info size={26} strokeWidth={2.2} />
+        </span>
+      )}
     </button>
   );
 }
 
-function DishThumb({ dish }) {
-  const img = dish.recipeId ? dishImageForRecipe({ id: dish.recipeId }) : null;
-  if (!img) {
-    return <span style={{ ...peekThumb, background: "#eef3f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#b6c7bd" }}><Lock size={13} strokeWidth={2.4} /></span>;
-  }
-  return <img src={deckImg(img, 160)} alt="" loading="lazy" style={peekThumb} />;
+/**
+ * Las acciones de un plato, pegadas al plato.
+ *
+ * Se replica el LENGUAJE de la barra que sale al mantener pulsado un plato en
+ * tu propio menu (DishActionBar en Menu.jsx) y no el componente: aquel arrastra
+ * el mazo entero -contexto de armado, anclas de regeneracion, portal- y aqui
+ * son dos botones dentro de una pantalla que ya esta abierta. Lo que se copia
+ * es lo que se ve: el fondo que apaga el resto, el recuadro claro sobre la
+ * foto que dice de que plato hablamos, y la fila de circulos con su copy
+ * debajo. Cae por debajo del plato si hay sitio, y por encima si no.
+ */
+function DishActionBar({ anchor, actions, onClose }) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const tile = anchor?.tile;
+  const BTN = 74;
+  const GAP = 8;
+  const PAD = 12;
+  const barW = actions.length * BTN + (actions.length - 1) * GAP + PAD * 2;
+  const cx = tile ? tile.left + tile.width / 2 : vw / 2;
+  const halfW = barW / 2 + 10;
+  const left = Math.min(Math.max(cx, halfW), vw - halfW);
+  const fitsBelow = !tile || tile.top + tile.height + 92 <= vh;
+  const anchorFromBottom = Boolean(tile) && !fitsBelow;
+  const top = !tile ? vh / 2 : anchorFromBottom ? tile.top - 14 : tile.top + tile.height + 14;
+
+  return (
+    <div onClick={onClose} className="mp-overlay-in" style={dishBarBackdrop}>
+      {tile && (
+        <div
+          style={{
+            position: "fixed",
+            top: tile.top, left: tile.left, width: tile.width, height: tile.height,
+            boxSizing: "border-box", borderRadius: anchor.radius,
+            border: "2px solid rgba(255,255,255,.55)",
+            pointerEvents: "none", zIndex: 341,
+          }}
+        />
+      )}
+
+      <div
+        style={{
+          position: "fixed", top, left, zIndex: 342,
+          transform: !tile ? "translate(-50%, -50%)" : anchorFromBottom ? "translate(-50%, -100%)" : "translate(-50%, 0)",
+        }}
+      >
+        <div className="mp-sheet-up" onClick={(e) => e.stopPropagation()} style={dishBar}>
+          {actions.map((act) => (
+            <button
+              key={act.id}
+              type="button"
+              aria-label={act.label}
+              onClick={act.onPick}
+              style={{ ...dishBarBtn, width: BTN }}
+            >
+              <span style={{ ...dishBarIcon, background: act.tint ?? "#eef5f0" }}>
+                <act.Icon size={18} strokeWidth={2.3} color={act.color ?? GREEN} />
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: INK, textAlign: "center", lineHeight: 1.15 }}>
+                {act.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── Guardar en carpetas ─────────────────────────────────────────────────────
@@ -1658,42 +1880,53 @@ const pickerItem = {
 // pantalla y habia que arrastrar para llegar al domingo, con la barra de
 // scroll cortando por la mitad. Siete elementos cortos caben de sobra en los
 // 420px de la columna — desbordar era gratis y molestaba.
+//
+// Y son CASILLAS de calendario, no pastillas: siete pildoras blancas con borde
+// y texto gris tenian la forma de siete botones de accion, cuando lo que hay
+// debajo es una semana. La pista verde clara es la misma de los controles
+// segmentados de la app (§6.2), asi que la tira se lee como un selector y no
+// como una fila de botones sueltos.
 const deckDayStrip = {
-  display: "flex", gap: 4, marginBottom: 12,
+  display: "flex", gap: 2, marginBottom: 14,
+  padding: 4, borderRadius: 16,
+  background: "#f0f4f1", border: "1px solid #e6efe9",
 };
-const deckDayChip = {
-  flex: 1, minWidth: 0, padding: "7px 2px", borderRadius: 999,
-  border: "1px solid #dbe8df", background: "#fff", cursor: "pointer",
-  fontFamily: "inherit", fontSize: 11.5, fontWeight: 800, color: "#7a9485",
-  textAlign: "center",
+const deckDayCell = {
+  flex: 1, minWidth: 0,
+  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+  padding: "6px 0 7px", borderRadius: 12,
+  border: "none", background: "none", cursor: "pointer",
+  fontFamily: "inherit", transition: "background .15s ease",
 };
-const deckDayChipOn = { background: GREEN, borderColor: GREEN, color: "#fff" };
+const deckDayCellOn = { background: GREEN, boxShadow: "0 4px 12px rgba(45,90,61,.28)" };
+const deckDayName = {
+  fontSize: 9.5, fontWeight: 800, letterSpacing: ".5px",
+  textTransform: "uppercase", lineHeight: 1,
+};
+const deckDayNum = { fontSize: 14, fontWeight: 900, lineHeight: 1, fontVariantNumeric: "tabular-nums" };
 
 const deckWeekHead = { display: "flex", alignItems: "center", gap: 8, marginBottom: 8 };
 
-const dishPickOverlay = {
+const dishBarBackdrop = {
   position: "fixed", inset: 0, zIndex: 340,
-  background: "rgba(20,47,29,.45)", backdropFilter: "blur(2px)",
-  display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+  background: "rgba(9,18,12,.8)",
 };
 
-const dishPickCard = {
-  width: "100%", maxWidth: 330, padding: 14,
-  borderRadius: 20, background: "#fff",
-  boxShadow: "0 24px 60px rgba(0,0,0,.25)", boxSizing: "border-box",
+const dishBar = {
+  display: "flex", gap: 8, padding: 12, borderRadius: 20,
+  background: "rgba(250,252,251,.98)",
+  boxShadow: "0 14px 34px rgba(9,18,12,.42)",
 };
 
-const dishPickAction = {
-  flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-  padding: "14px 8px", borderRadius: 16,
-  border: "1.5px solid #e0eae3", background: "#fbfcfb",
-  fontSize: 12, fontWeight: 800, color: INK,
+const dishBarBtn = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+  padding: "8px 2px", border: "none", background: "none", borderRadius: 12,
   cursor: "pointer", fontFamily: "inherit",
 };
 
-const peekThumb = {
-  width: 38, height: 38, borderRadius: 10, objectFit: "cover",
-  flexShrink: 0, display: "block", background: "#f4f7f5",
+const dishBarIcon = {
+  width: 38, height: 38, borderRadius: "50%",
+  display: "grid", placeItems: "center",
 };
 
 const peekBackdrop = {
@@ -1708,10 +1941,15 @@ const peekScreen = {
   boxShadow: "0 0 60px rgba(0,0,0,.35)",
 };
 
+// La franja es compacta, no apretada: 9 px arriba dejaban la cara pegada a la
+// barra de estado del movil (o al borde de la ventana), que es lo que hacia
+// que la cabecera pareciera cortada en vez de terminada. El inset seguro se
+// suma al padding para que en un iPhone con notch tampoco se meta debajo.
 const peekBar = {
   position: "relative",
-  display: "flex", alignItems: "center", gap: 8,
-  padding: "9px 12px",
+  display: "flex", alignItems: "center", gap: 10,
+  padding: "14px 14px 13px",
+  paddingTop: "calc(14px + env(safe-area-inset-top, 0px))",
   background: HEADER_BAND,
   borderBottom: "1px solid #dfeae3",
 };
@@ -1745,7 +1983,7 @@ const peekWhoRow = {
 };
 
 const peekMenu = {
-  position: "absolute", top: 40, left: 0, zIndex: 3,
+  position: "absolute", top: "calc(100% - 4px)", left: 12, zIndex: 3,
   width: 168, padding: 5, borderRadius: 13,
   background: "#fff", border: "1.5px solid #e0eae3",
   boxShadow: "0 10px 30px rgba(20,47,29,.18)",

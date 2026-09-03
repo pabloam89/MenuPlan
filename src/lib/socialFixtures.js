@@ -82,7 +82,7 @@ export const FIXTURE_MENUS = [
       M("Comida", [dish("pescados_002", "Salmon al horno con patatas")], ADULTOS),
       M("Cena", [dish("ensaladas_verduras_001", "Ensalada mixta")], FAMILIA),
     ]),
-    D("Mie", [
+    D("Mié", [
       M("Comida", [dish("carnes_001", "Pollo al horno con patatas")], FAMILIA),
       M("Cena", [dish("sopas_cremas_003", "Crema de calabaza")], ADULTOS),
     ]),
@@ -94,7 +94,7 @@ export const FIXTURE_MENUS = [
       M("Comida", [dish("pasta_arroces_002", "Espaguetis a la bolonesa")], FAMILIA),
       M("Cena", [dish("cenas_rapidas_001", "Sandwich mixto")], FAMILIA),
     ]),
-    D("Sab", [
+    D("Sáb", [
       M("Comida", [dish("pasta_arroces_004", "Arroz al horno")], FAMILIA),
       M("Cena", [dish("cenas_rapidas_002", "Tosta de tomate con jamon")], ADULTOS),
     ]),
@@ -103,9 +103,14 @@ export const FIXTURE_MENUS = [
       M("Cena", [dish("huevos_001", "Tortilla de patatas")], FAMILIA),
     ]),
   ], [
-    { id: "a1", avatar: null, role: "adulto" },
-    { id: "a2", avatar: null, role: "adulto" },
-    { id: "n1", avatar: null, role: "nino" },
+    // Con `avatar: null` la fila de comensales eran tres circulos grises con
+    // una letra: el demo no ensenaba el aspecto real de un menu compartido,
+    // que lleva el avatar ILUSTRADO de cada uno (nunca su foto — ver
+    // buildSharedMenuPayload). Rutas del dibujo a tamaño completo, igual que
+    // las que publica la app; quien las pinta ya pide el recorte pequeño.
+    { id: "a1", avatar: "/avatares/mama/mama_2.png", role: "adulto" },
+    { id: "a2", avatar: "/avatares/papa/papa_2.png", role: "adulto" },
+    { id: "n1", avatar: "/avatares/hijo/hijo_4.png", role: "nino" },
   ]),
 
   menu("fx_menu_2", "fx_ana", "Semana sin horno", [
@@ -117,7 +122,7 @@ export const FIXTURE_MENUS = [
       M("Comida", [dish("legumbres_003", "Garbanzos con espinacas")], ADULTOS),
       M("Cena", [dish("cenas_rapidas_002", "Tosta de tomate con jamon")], ADULTOS),
     ]),
-    D("Mie", [
+    D("Mié", [
       M("Comida", [dish("pasta_arroces_001", "Macarrones con tomate")], ADULTOS),
       M("Cena", [dish("sopas_cremas_001", "Crema de calabacin")], ADULTOS),
     ]),
@@ -130,8 +135,8 @@ export const FIXTURE_MENUS = [
       M("Cena", [dish("huevos_002", "Tortilla francesa")], ADULTOS),
     ]),
   ], [
-    { id: "a1", avatar: null, role: "adulto" },
-    { id: "a2", avatar: null, role: "adulto" },
+    { id: "a1", avatar: "/avatares/mama/mama_5.png", role: "adulto" },
+    { id: "a2", avatar: "/avatares/papa/papa_7.png", role: "adulto" },
   ]),
 ];
 

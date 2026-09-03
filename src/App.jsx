@@ -3299,6 +3299,15 @@ export default function App() {
    */
   const handleOpenFeedRecipe = useCallback(async (row) => {
     if (!row?.id) return;
+    // Del catalogo se abre el catalogo, sin pasar por la red. Importa desde que
+    // se puede abrir un plato del menu de otra persona: esos ids son de
+    // catalogo, loadPublicRecipe (que solo mira recetas publicadas por gente)
+    // devolvia null y la ficha se pintaba con el respaldo de abajo — nombre y
+    // foto, cero ingredientes y cero pasos, o sea una receta vacia.
+    if (recipeCatalogById[row.id]) {
+      handleOpenCatalogRecipe(recipeCatalogById[row.id]);
+      return;
+    }
     const full = (await loadPublicRecipe(row.id)) ?? {
       id: row.id,
       name: row.name,

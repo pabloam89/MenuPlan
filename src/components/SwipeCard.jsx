@@ -30,6 +30,61 @@ const reduceMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /**
+ * Las dos esquinas de un cartel de receta.
+ *
+ * Izquierda, apiladas: lo que la receta ES — cuánto cuesta hacerla y cuánto
+ * tarda. Derecha: lo que la GENTE dice de ella. Dos columnas, dos naturalezas,
+ * y ninguna pelea con el nombre de abajo.
+ *
+ * Vive suelto porque lo pintan dos carteles distintos —el de una receta del
+ * feed y el de un plato dentro del menú de otra persona— y son los mismos
+ * datos sobre el mismo objeto: si cada pantalla se los dibujara por su lado,
+ * el mismo plato acabaría con dos fichas distintas según por dónde llegaras.
+ */
+export function PosterCorners({ difficulty = null, time = null, stats = null, inset = 12, statsTop = null }) {
+  const diffLabel = DIFFICULTY_LABEL[difficulty];
+  const timeLabel = formatTime(time);
+  return (
+    <>
+      {(diffLabel || timeLabel) && (
+        <div style={{ ...cornerStack, top: inset, left: inset, alignItems: "flex-start" }}>
+          {diffLabel && (
+            <span style={{ ...cornerBadge, color: DIFFICULTY_COLOR[difficulty] ?? "#2d5a3d" }}>
+              {diffLabel}
+            </span>
+          )}
+          {timeLabel && (
+            <span style={{ ...cornerBadge, color: "#42594c", gap: 4 }}>
+              <Clock size={11} strokeWidth={2.6} /> {timeLabel}
+            </span>
+          )}
+        </div>
+      )}
+
+      {stats && (
+        <div style={{ ...cornerStack, top: statsTop ?? inset, right: inset, alignItems: "flex-end" }}>
+          <span style={{ ...cornerBadge, color: "#42594c", gap: 7 }}>
+            <span style={statPair}><ThumbsUp size={11} strokeWidth={2.6} /> {stats.likes ?? 0}</span>
+            <span style={statPair}><ThumbsDown size={11} strokeWidth={2.6} /> {stats.dislikes ?? 0}</span>
+          </span>
+          {/* Veces que alguien la ha cocinado de verdad. Cuesta más que un
+              aplauso, así que es la señal que más dice — de ahí el teal. */}
+          <span style={{ ...cornerBadge, color: "#0f766e", gap: 4 }}>
+            <CookingPot size={12} strokeWidth={2.6} /> {stats.used ?? 0}
+          </span>
+          {/* Debajo de las veces cocinada: los dos son "que ha pasado con esta
+              receta ahi fuera", frente a la columna izquierda, que es lo que
+              la receta es. */}
+          <span style={{ ...cornerBadge, color: "#42594c", gap: 4 }}>
+            <MessageCircle size={12} strokeWidth={2.6} /> {stats.comments ?? 0}
+          </span>
+        </div>
+      )}
+    </>
+  );
+}
+
+/**
  * El aspecto de una receta como cartel: foto a sangre, dificultad arriba a la
  * izquierda, tiempo arriba a la derecha, y el nombre sobre un degradado.
  *
@@ -44,8 +99,6 @@ const reduceMotion = () =>
 export function RecipePoster({ recipe, onInfo, onOwner = null, showOwner = true, when = null, stats = null, style, children }) {
   const photo = dishImageForRecipe(recipe);
   const color = categoryColor(recipe.category);
-  const diffLabel = DIFFICULTY_LABEL[recipe.difficulty];
-  const time = formatTime(recipe.time);
 
   return (
     <div
@@ -76,41 +129,7 @@ export function RecipePoster({ recipe, onInfo, onOwner = null, showOwner = true,
         }}
       />
 
-      {/* Izquierda, apiladas: lo que la receta ES — cuánto cuesta hacerla y
-          cuánto tarda. Derecha: lo que la GENTE dice de ella. Dos columnas,
-          dos naturalezas, y ninguna pelea con el nombre de abajo. */}
-      <div style={{ ...cornerStack, top: 12, left: 12, alignItems: "flex-start" }}>
-        {diffLabel && (
-          <span style={{ ...cornerBadge, color: DIFFICULTY_COLOR[recipe.difficulty] ?? "#2d5a3d" }}>
-            {diffLabel}
-          </span>
-        )}
-        {time && (
-          <span style={{ ...cornerBadge, color: "#42594c", gap: 4 }}>
-            <Clock size={11} strokeWidth={2.6} /> {time}
-          </span>
-        )}
-      </div>
-
-      {stats && (
-        <div style={{ ...cornerStack, top: 12, right: 12, alignItems: "flex-end" }}>
-          <span style={{ ...cornerBadge, color: "#42594c", gap: 7 }}>
-            <span style={statPair}><ThumbsUp size={11} strokeWidth={2.6} /> {stats.likes ?? 0}</span>
-            <span style={statPair}><ThumbsDown size={11} strokeWidth={2.6} /> {stats.dislikes ?? 0}</span>
-          </span>
-          {/* Veces que alguien la ha cocinado de verdad. Cuesta más que un
-              aplauso, así que es la señal que más dice — de ahí el teal. */}
-          <span style={{ ...cornerBadge, color: "#0f766e", gap: 4 }}>
-            <CookingPot size={12} strokeWidth={2.6} /> {stats.used ?? 0}
-          </span>
-          {/* Debajo de las veces cocinada: los dos son "que ha pasado con esta
-              receta ahi fuera", frente a la columna izquierda, que es lo que
-              la receta es. */}
-          <span style={{ ...cornerBadge, color: "#42594c", gap: 4 }}>
-            <MessageCircle size={12} strokeWidth={2.6} /> {stats.comments ?? 0}
-          </span>
-        </div>
-      )}
+      <PosterCorners difficulty={recipe.difficulty} time={recipe.time} stats={stats} />
 
       {children}
 
