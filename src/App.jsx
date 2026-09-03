@@ -155,7 +155,7 @@ import {
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";
-import { filterOwnCreatedRecipes } from "./lib/userRecipes.js";
+import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole, resolveAccountMember, memberIllustratedAvatarSrc } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import {
@@ -1203,7 +1203,11 @@ export default function App() {
     if (householdReadOnly && activeHousehold?.ownerUserId) {
       return data.userRecipes ?? [];
     }
-    return filterOwnCreatedRecipes(data.userRecipes, user);
+    // Tu recetario entero, copias del Feed incluidas: de aqui salen las fichas
+    // que se registran para poder abrirlas y los platos que se ofrecen al
+    // llenar un hueco del menu. Con el filtro estrecho, una receta copiada se
+    // guardaba pero no se podia ni ver ni usar.
+    return filterMyLibraryRecipes(data.userRecipes, user);
   }, [data.userRecipes, user, householdReadOnly, activeHousehold?.ownerUserId]);
 
   // User-created recipes must live in RECIPES_BY_ID for DishDetail — but in the

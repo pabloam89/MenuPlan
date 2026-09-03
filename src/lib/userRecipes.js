@@ -262,6 +262,31 @@ export function filterOwnCreatedRecipes(userRecipes, user) {
 }
 
 /**
+ * Una receta que te has traido del Feed. La fila es TUYA (se guarda con tu
+ * owner_id), pero `owner` sigue firmando al autor original a proposito: es su
+ * plato y la carta lo acredita. Por eso no pasa por isOwnCreatedRecipe, que
+ * compara esa firma con tu id.
+ */
+export function isCopiedRecipe(recipe) {
+  return Boolean(recipe?.copiedFromRecipeId);
+}
+
+/**
+ * Todo lo que vive en TU recetario: lo que has escrito y lo que te has
+ * copiado. Es lo que toca enseñar en "Mis recetas", registrar para abrir la
+ * ficha y ofrecer al llenar un hueco del menu.
+ *
+ * Distinto de filterOwnCreatedRecipes, que responde "¿lo escribiste tu?" —
+ * esa es la pregunta de las estadisticas y de que puedes publicar, y ahi una
+ * copia NO cuenta (republicarla seria firmar como tuyo el plato de otro).
+ *
+ * @param {object[]} userRecipes @param {{ id?: string } | null} user
+ */
+export function filterMyLibraryRecipes(userRecipes, user) {
+  return (userRecipes ?? []).filter((r) => isOwnCreatedRecipe(r, user) || isCopiedRecipe(r));
+}
+
+/**
  * Recompute catalog fields after the owner edits Tipo / Aplica inline.
  * Mirrors RecipePlannerScreen#saveRecipe classification logic.
  */
