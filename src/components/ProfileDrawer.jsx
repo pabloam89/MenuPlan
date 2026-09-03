@@ -9,6 +9,7 @@ import { relativeTime, personColor } from "../lib/socialUi.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
 import { googleInfo } from "../screens/Settings.jsx";
 import {
+  ensureSocialProfile,
   loadMyProfile,
   saveMyProfile,
   loadProfileCounts,
@@ -19,6 +20,8 @@ import {
   acceptFollowRequest,
   rejectFollowRequest,
   loadFollowers,
+  loadFollowing,
+  followUser,
   loadCommentInbox,
   loadMyRecipeStats,
   usernameError,
@@ -56,6 +59,9 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   const [requests, setRequests] = useState([]);
   const [sent, setSent] = useState([]);
   const [followers, setFollowers] = useState([]);
+  // A quien sigo YO. Sin esto, la pestana de seguidores no puede
+  // distinguir a quien ya devolvi el seguimiento de quien no.
+  const [followingIds, setFollowingIds] = useState([]);
   const [comments, setComments] = useState([]);
   const [myRecipes, setMyRecipes] = useState([]);
   const [people, setPeople] = useState({});
@@ -70,12 +76,13 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
 
   const refresh = useCallback(async () => {
     const uid = user?.id;
-    const [prof, cts, reqs, snt, fols, coms, mine, blk] = await Promise.all([
+    const [prof, cts, reqs, snt, fols, fing, coms, mine, blk] = await Promise.all([
       loadMyProfile(uid),
       loadProfileCounts(uid),
       loadFollowRequests(uid),
       loadSentRequests(uid),
       loadFollowers(uid),
+      loadFollowing(uid),
       loadCommentInbox(uid),
       loadMyRecipeStats(uid),
       loadBlockedUsers(uid),
@@ -91,6 +98,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     setRequests(finalReqs);
     setSent(finalSent);
     setFollowers(fols);
+    setFollowingIds(fing);
     setComments(finalComs);
     setMyRecipes(useFx && mine.length === 0 ? FIXTURE_MY_RECIPES : mine);
     setBlocked(blk);
@@ -149,7 +157,34 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     setRequests((prev) => prev.filter((r) => r.follower_id !== followerId));
     if (accept) await acceptFollowRequest(user?.id, followerId);
     else await rejectFollowRequest(user?.id, followerId);
+    // Aceptar lleva a Seguidores, que es donde acaba de aparecer esa persona y
+    // donde esta el boton para devolverle el seguimiento. Dejarte en una lista
+    // ya vacia escondia justo la mitad que falta de la conexion.
+    if (accept) setTab("seguidores");
     refresh();
+  };
+
+  /**
+   * Devolver el seguimiento.
+   *
+   * Seguir va en UNA direccion: que alguien te siga no hace que tu le sigas, y
+   * por tanto su menu no aparece en tu feed hasta que tu le sigues a el. Es el
+   * modelo de siempre, pero nadie lo tiene en la cabeza cuando acaba de
+   * aceptar a alguien — y mandarle a buscar a esa persona en otra pantalla
+   * para completar la mitad que falta era pedir demasiado.
+   *
+   * Si el otro esta en "solo quien me sigue", esto deja una solicitud
+   * pendiente de SU respuesta: por eso el boton pasa a "Pendiente" y no a
+   * "Siguiendo". Decir "Siguiendo" cuando aun no lo eres es la clase de
+   * mentira que hace dudar de si la app funciona.
+   */
+  const followBack = async (followerId) => {
+    const status = await followUser(user?.id, followerId);
+    if (!status) return;
+    if (status === "accepted") setFollowingIds((ids) => [...ids, followerId]);
+    else setSent((prev) => (prev.some((r) => r.followee_id === followerId)
+      ? prev
+      : [...prev, { followee_id: followerId, created_at: new Date().toISOString() }]));
   };
 
   const unblock = async (id) => {
@@ -276,15 +311,34 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
           {tab === "seguidores" && (
             followers.length === 0
               ? <p style={empty}>Todavía no te sigue nadie.</p>
-              : followers.map((f) => (
-                  <PersonRow key={f.follower_id} p={people[f.follower_id]}>
-                    {/* Quitar a alguien es el mismo borrado que rechazar: se
-                        deshace el seguimiento y puede volver a pedirlo. */}
-                    <button type="button" onClick={() => resolve(f.follower_id, false)} style={noBtn} aria-label="Quitar seguidor">
-                      <Trash2 size={14} strokeWidth={2.6} />
-                    </button>
-                  </PersonRow>
-                ))
+              : followers.map((f) => {
+                  const yaLeSigo = followingIds.includes(f.follower_id);
+                  const pedido = sent.some((r) => r.followee_id === f.follower_id);
+                  return (
+                    <PersonRow key={f.follower_id} p={people[f.follower_id]}>
+                      {/* El seguimiento es de ida y vuelta por separado: que te
+                          sigan no te hace seguirles, y hasta que no les sigas
+                          tú, su menú no aparece en tu feed. El botón está aquí
+                          porque aquí es donde aterriza alguien justo después de
+                          que le aceptes. */}
+                      {!yaLeSigo && (
+                        <button
+                          type="button"
+                          onClick={pedido ? undefined : () => followBack(f.follower_id)}
+                          disabled={pedido}
+                          style={pedido ? ghostBtn : backBtn}
+                        >
+                          {pedido ? "Pendiente" : "Seguir"}
+                        </button>
+                      )}
+                      {/* Quitar a alguien es el mismo borrado que rechazar: se
+                          deshace el seguimiento y puede volver a pedirlo. */}
+                      <button type="button" onClick={() => resolve(f.follower_id, false)} style={noBtn} aria-label="Quitar seguidor">
+                        <Trash2 size={14} strokeWidth={2.6} />
+                      </button>
+                    </PersonRow>
+                  );
+                })
           )}
 
           {tab === "comentarios" && (
@@ -693,6 +747,12 @@ const noBtn = {
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   width: 32, height: 32, borderRadius: 10,
   border: "1.5px solid #e6cfc9", background: "#fff", color: "#c0392b", cursor: "pointer",
+};
+
+const backBtn = {
+  padding: "6px 13px", borderRadius: 999, border: "none",
+  background: GREEN, color: "#fff", cursor: "pointer",
+  fontFamily: "inherit", fontSize: 12, fontWeight: 800, flexShrink: 0,
 };
 
 const ghostBtn = {
