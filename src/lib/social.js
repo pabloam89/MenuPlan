@@ -542,6 +542,22 @@ export async function loadSuggestedProfiles(userId, { limit = 12 } = {}) {
   return rows.length === 0 && FIXTURES_ENABLED ? FIXTURE_SUGGESTED : rows;
 }
 
+
+/**
+ * Los ultimos en llegar a HoMenu que puedes encontrar y aun no sigues.
+ *
+ * Es la pata de ARRANQUE del descubridor: las otras tres secciones dependen
+ * de un grafo (follows, feed publico) que en una red recien estrenada no
+ * existe, y sin esto la unica forma de descubrir a alguien era saberse su
+ * nombre y escribirlo. Exclusiones y tope en el SQL (0045), no aqui.
+ */
+export async function loadRecentProfiles(userId, { limit = 12 } = {}) {
+  if (!ok() || !userId) return [];
+  const { data, error } = await supabase.rpc("recent_profiles", { p_limit: limit });
+  if (warn("loadRecentProfiles", error)) return [];
+  return data ?? [];
+}
+
 /**
  * La lista de seguidores (o de seguidos) de alguien. Por RPC porque las
  * politicas de user_follows solo dejan ver tus propias filas.

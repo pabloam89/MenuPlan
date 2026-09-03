@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { X, Search, UserPlus, Users2, Sparkles, Check } from "lucide-react";
+import { X, Search, UserPlus, Users2, Sparkles, Check, Sprout } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import {
   searchProfiles, followUser, unfollowUser,
-  loadSuggestedProfiles, loadFollowers, loadProfilesByIds,
+  loadSuggestedProfiles, loadRecentProfiles, loadFollowers, loadProfilesByIds,
 } from "../lib/social.js";
 import { personColor } from "../lib/socialUi.js";
 
@@ -43,6 +43,7 @@ export function DiscoverPeopleSheet({
   const [results, setResults] = useState([]);
   const [busy, setBusy] = useState(false);
   const [suggested, setSuggested] = useState([]);
+  const [newcomers, setNewcomers] = useState([]);
   const [backFollows, setBackFollows] = useState([]);
   const [people, setPeople] = useState({});
   const [loading, setLoading] = useState(true);
@@ -60,15 +61,20 @@ export function DiscoverPeopleSheet({
   // ── Sugerencias ───────────────────────────────────────────────────────────
   const loadSuggestions = useCallback(async () => {
     setLoading(true);
-    const [sug, followers] = await Promise.all([
+    const [sug, followers, recent] = await Promise.all([
       loadSuggestedProfiles(user?.id),
       loadFollowers(user?.id),
+      loadRecentProfiles(user?.id),
     ]);
     // Quien te sigue y tú no: el bloque de "devolver el seguimiento".
     const backIds = followers.map((f) => f.follower_id).filter((id) => !following.includes(id));
     const authorIds = feedAuthors.slice(0, 6).map((a) => a.id);
     const sugIds = sug.map((p) => p.user_id);
-    const shownIds = [...new Set([...backIds, ...sugIds, ...authorIds])];
+    // Recien llegados que no esten ya en otra seccion: cada cara sale UNA
+    // vez, en la seccion con el motivo mas fuerte (conocido > nuevo).
+    const dupes = new Set([...backIds, ...sugIds, ...authorIds]);
+    const fresh = recent.filter((p) => !dupes.has(p.user_id));
+    const shownIds = [...new Set([...backIds, ...sugIds, ...authorIds, ...fresh.map((p) => p.user_id)])];
 
     // Las caras que faltan (la lista y los conocidos en comun), de una vez.
     const profs = await loadProfilesByIds([...shownIds, ...sug.flatMap((p) => p.via_ids ?? [])]);
@@ -76,6 +82,7 @@ export function DiscoverPeopleSheet({
     setPeople(profs);
     setBackFollows(backIds.map((id) => profs[id]).filter(Boolean));
     setSuggested(sug);
+    setNewcomers(fresh);
     setLoading(false);
   }, [user?.id, following, feedAuthors]);
 
@@ -113,7 +120,7 @@ export function DiscoverPeopleSheet({
     .slice(0, 6);
 
   const searching = q.trim().length >= 2;
-  const nothingToSuggest = !loading && backFollows.length === 0 && suggested.length === 0 && openCooks.length === 0;
+  const nothingToSuggest = !loading && backFollows.length === 0 && suggested.length === 0 && openCooks.length === 0 && newcomers.length === 0;
 
   return (
     <div style={overlay} onClick={onClose} className="mp-overlay-in">
@@ -206,6 +213,20 @@ export function DiscoverPeopleSheet({
                       state={rel[a.id] ?? "none"}
                       onFollow={() => toggle(a.id)}
                       onOpen={() => onOpenPerson?.(a.id)}
+                    />
+                  ))}
+                </Section>
+              )}
+
+              {newcomers.length > 0 && (
+                <Section Icon={Sprout} tint="#3d9b5f" title="Nuevos en HoMenu" note="Acaban de llegar">
+                  {newcomers.map((p) => (
+                    <PersonCard
+                      key={p.user_id}
+                      person={p}
+                      state={rel[p.user_id] ?? "none"}
+                      onFollow={() => toggle(p.user_id)}
+                      onOpen={() => onOpenPerson?.(p.user_id)}
                     />
                   ))}
                 </Section>
