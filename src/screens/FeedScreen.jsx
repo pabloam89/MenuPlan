@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState, useRef } from "react";
-import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, Info } from "lucide-react";
+import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, ChevronLeft, Info } from "lucide-react";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration, GroupAvatarStack } from "../components/ui.jsx";
 import { RecipePoster, PosterCorners, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
@@ -1069,7 +1069,16 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
             Ahora una fila de 52px con lo imprescindible, y el resto -el
             filtro por comensal- se despliega solo si lo pides. */}
         <div style={peekBar}>
-          <button type="button" className="mp-press" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={peekBarIcon}>
+          {/* Atras, no cerrar. Una X dice "esto es una ventana y la descartas";
+              una flecha dice "has entrado en un sitio y vuelves por donde
+              viniste", que es exactamente lo que pasa: el menu de alguien se
+              abre desde el feed y se vuelve al feed. Y va la primera, a la
+              izquierda, que es donde la busca el pulgar. */}
+          <button type="button" className="mp-press" onClick={onClose} aria-label="Volver" style={peekBarIcon}>
+            <ChevronLeft size={20} strokeWidth={2.6} />
+          </button>
+
+          <button type="button" className="mp-press" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={{ ...peekBarIcon, order: 3 }}>
             <MoreVertical size={16} strokeWidth={2.6} />
           </button>
           {moreOpen && (
@@ -1098,9 +1107,6 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
             </span>
           </button>
 
-          <button type="button" className="mp-press" onClick={onClose} aria-label="Cerrar" style={peekBarIcon}>
-            <X size={16} strokeWidth={2.6} />
-          </button>
         </div>
 
         <div style={{ padding: "16px 16px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
@@ -1191,14 +1197,12 @@ function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, on
       {(multi || scopes.all.length > 0) && (
         <div style={deckTopRow}>
           {multi && <ViewPicker week={week} onWeek={setWeek} />}
-          {/* Las caras SIEMPRE se ven. Lo que depende de que haya diferencia es
-              poder ELEGIR: si toda la casa come lo mismo no hay dos menus entre
-              los que elegir, asi que la fila deja de ser un control y pasa a
-              decir, sin mas, quien come esto. */}
+          {/* Los GRUPOS de la casa, siempre: todos, adultos, niños y bebés —
+              los que haya. Antes solo salian cuando el menu se partia en dos, y
+              entonces la franja se quedaba vacia en la mayoria de casas, que es
+              justo donde mas se quiere ver quien come. */}
           {scopes.all.length > 0 && (
-            scopes.splits
-              ? <EaterScope scopes={scopes.groups} all={scopes.all} value={roleFilter} onPick={onRole} />
-              : <EaterAll faces={scopes.all} />
+            <EaterScope scopes={scopes.groups} all={scopes.all} value={roleFilter} onPick={onRole} />
           )}
         </div>
       )}
@@ -1322,6 +1326,21 @@ function dayNumbers(days, weekStart) {
  * elegir a ciegas. Y de todos modos lo que parte un menu en dos es la edad.
  */
 function EaterScope({ scopes, all, value, onPick }) {
+  // Con un solo grupo, "Todos" y ese grupo son el mismo conjunto: enseñar los
+  // dos seria pintar dos veces a la misma gente y ofrecer una eleccion que no
+  // elige nada. Se queda la pila, sin ser boton.
+  if (scopes.length < 2) {
+    const only = scopes[0];
+    return (
+      <span style={scopeRow}>
+        <span style={scopeOpt}>
+          <GroupAvatarStack faces={only?.faces ?? all} size={SCOPE_FACE} active max={SCOPE_MAX} />
+          {only && <span style={{ ...scopeOptLabel, color: "#5f7568" }}>{only.label}</span>}
+        </span>
+      </span>
+    );
+  }
+
   const opts = [{ role: null, label: "Todos", faces: all }, ...scopes];
   return (
     <div style={scopeRow} role="group" aria-label="Para quién es el menú">
@@ -1339,7 +1358,7 @@ function EaterScope({ scopes, all, value, onPick }) {
               onClick={() => onPick(opt.role)}
               style={scopeOpt}
             >
-              <GroupAvatarStack faces={opt.faces} size={SCOPE_FACE} active={on} max={3} />
+              <GroupAvatarStack faces={opt.faces} size={SCOPE_FACE} active={on} max={SCOPE_MAX} />
               <span style={{ ...scopeOptLabel, color: on ? GREEN : "#5f7568" }}>{opt.label}</span>
             </button>
           </Fragment>
@@ -1367,23 +1386,15 @@ const ROLE_AVATAR = {
 /**
  * Los grupos de comensales que merece la pena poder filtrar.
  *
- * Dos condiciones, y las dos tienen que darse:
- *  · Que haya mas de un rol comiendo. Con un solo grupo, elegirlo es elegir
- *    entre una cosa y la misma.
- *  · Que los platos NO sean los mismos para todos. Si toda la casa come igual
- *    -que es lo normal-, el filtro no quitaria ni un plato de la pantalla.
- *
- * Es lo que pedia el "si hay diferencia": el control aparece cuando de verdad
- * hay dos menus dentro de este menu, y no existe el resto del tiempo.
+ * Un grupo por rol que aparezca comiendo, mas la casa entera. Elegir solo
+ * significa algo cuando hay mas de un grupo -con uno, "Todos" y ese grupo son
+ * la misma gente-, y eso lo decide quien pinta; aqui solo se cuenta quien hay.
  */
 function eaterScopes(members, days) {
   const eating = new Set();
-  const shapes = new Set();
   for (const d of days ?? []) {
     for (const meal of d.meals ?? []) {
-      const ids = meal.eaters ?? [];
-      for (const id of ids) eating.add(id);
-      shapes.add([...ids].sort().join(","));
+      for (const id of meal.eaters ?? []) eating.add(id);
     }
   }
 
@@ -1402,7 +1413,7 @@ function eaterScopes(members, days) {
     const mine = all.filter((mem) => mem.role === role);
     if (mine.length > 0) groups.push({ role, label: ROLE_LABEL[role], faces: mine.map(faceOf) });
   }
-  return { groups, all: all.map(faceOf), splits: groups.length > 1 && shapes.size > 1 };
+  return { groups, all: all.map(faceOf) };
 }
 
 /**
@@ -1421,17 +1432,6 @@ function eaterScopes(members, days) {
 function scopeFaceSrc(mem) {
   const full = mem?.avatar ?? ROLE_AVATAR[mem?.role] ?? ROLE_AVATAR.adulto;
   return full.replace("/avatares/", "/avatares/thumbs/");
-}
-
-/**
- * Quien come, cuando no hay nada que elegir: las caras y ya.
- *
- * Sin etiqueta: "Toda la casa" era una frase para decir lo que las propias
- * caras ya dicen. Y sin estado apagado -van llenas de color- porque aqui no
- * hay nada seleccionado ni sin seleccionar: comen todos.
- */
-function EaterAll({ faces }) {
-  return <GroupAvatarStack faces={faces} size={SCOPE_FACE} active max={4} />;
 }
 
 /**
@@ -2007,6 +2007,11 @@ const deckTopRow = {
 // debajo (42 alli) porque aqui comparten linea con el selector de vista.
 const SCOPE_FACE = 34;
 
+// Tres caras y a partir de ahi un contador. Sin tope, la casa entera se pinta
+// entera en "Todos" y una familia de seis empuja los demas grupos fuera de la
+// linea; con el contador, cada grupo mide siempre lo mismo.
+const SCOPE_MAX = 3;
+
 const scopeRow = {
   display: "flex", alignItems: "flex-start", gap: 10,
   marginLeft: "auto",
@@ -2104,7 +2109,7 @@ const peekWhoWhen = {
 };
 
 const peekMenu = {
-  position: "absolute", top: "calc(100% - 4px)", left: 12, zIndex: 3,
+  position: "absolute", top: "calc(100% - 4px)", right: 16, zIndex: 3,
   width: 168, padding: 5, borderRadius: 13,
   background: "#fff", border: "1.5px solid #e0eae3",
   boxShadow: "0 10px 30px rgba(20,47,29,.18)",

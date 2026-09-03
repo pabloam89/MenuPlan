@@ -69,18 +69,25 @@ const M = (slot, dishes, eaters) => ({ slot, dishes, eaters });
 // privado — se ve el nombre y no se abre.
 const dish = (recipeId, name, readable = true) => ({ recipeId, name, source: "catalog", readable });
 
+// Una casa de cinco a proposito: es la que hace visible todo lo que la franja
+// de comensales tiene que saber hacer — los tres grupos (adultos, niños,
+// bebés) y el contador a partir de la tercera cara en "Todos".
 const ADULTOS = ["a1", "a2"];
-const FAMILIA = ["a1", "a2", "n1"];
+const PEQUES = ["n1", "n2"];
+const FAMILIA = ["a1", "a2", "n1", "n2"];
+const TODOS = ["a1", "a2", "n1", "n2", "b1"];
 
 export const FIXTURE_MENUS = [
   menu("fx_menu_1", "fx_marta", null, [
     D("Lun", [
       M("Comida", [dish("legumbres_001", "Lentejas con verduras")], FAMILIA),
+      M("Comida", [dish("bebes_001", "Puré de calabacín con pollo y cuscús")], ["b1"]),
       M("Cena", [dish("sopas_cremas_001", "Crema de calabacin"), dish("huevos_002", "Tortilla francesa")], ADULTOS),
     ]),
     D("Mar", [
       M("Comida", [dish("pescados_002", "Salmon al horno con patatas")], ADULTOS),
-      M("Cena", [dish("ensaladas_verduras_001", "Ensalada mixta")], FAMILIA),
+      M("Comida", [dish("pasta_arroces_001", "Macarrones con tomate")], PEQUES),
+      M("Cena", [dish("ensaladas_verduras_001", "Ensalada mixta")], TODOS),
     ]),
     D("Mié", [
       M("Comida", [dish("carnes_001", "Pollo al horno con patatas")], FAMILIA),
@@ -111,6 +118,8 @@ export const FIXTURE_MENUS = [
     { id: "a1", avatar: "/avatares/mama/mama_2.png", role: "adulto" },
     { id: "a2", avatar: "/avatares/papa/papa_2.png", role: "adulto" },
     { id: "n1", avatar: "/avatares/hijo/hijo_4.png", role: "nino" },
+    { id: "n2", avatar: "/avatares/hija/hija_5.png", role: "nino" },
+    { id: "b1", avatar: "/avatares/bebe/bebe_2.png", role: "bebe" },
   ]),
 
   menu("fx_menu_2", "fx_ana", "Semana sin horno", [
