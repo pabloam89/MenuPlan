@@ -8026,7 +8026,8 @@
         "prepSummary": "Introduce el bogavante entero o partido en la olla express con un poco de agua y cocina 5-7 minutos desde que sube la válvula. Los huevos se pueden cocinar 5-6 minutos a presión para pelarlos fácilmente, pero ten cuidado de no sobrecocer el bogavante."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "ensaladas_verduras_054",
@@ -13626,8 +13627,7 @@
         "difficulty": "facil",
         "prepSummary": "Cocina el orzo en el vaso de la Thermomix siguiendo las instrucciones para pasta. Una vez cocido y escurrido, añade el resto de los ingredientes frescos y el aliño, mezclando suavemente para integrar."
       }
-    ],
-    "estrella": true
+    ]
   },
   {
     "id": "ensaladas_verduras_090",

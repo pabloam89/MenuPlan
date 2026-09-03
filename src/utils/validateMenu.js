@@ -62,6 +62,9 @@ export function getCarbType(recipe) {
 // prev/next main meal, including across a day boundary (cena day N ->
 // comida day N+1).
 const DAY_ORDER = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
+// De lunes a viernes se come lo de diario; el fin de semana es donde caben la
+// paella de marisco y el arroz de bogavante (ver la regla 3f).
+const WEEKDAY_SLUGS = new Set(["lun", "mar", "mie", "jue", "vie"]);
 
 // Coarse protein grouping shared by the school-conflict rule (4), the new
 // same-day clash rule (3c) and applyFallback, so "no repetir carne/pescado el
@@ -157,6 +160,29 @@ function isPlatoCuchara(recipe) {
 const ENSALADA_NAME_RE = /^ensalada/i;
 function isEnsalada(recipe) {
   return recipe ? ENSALADA_NAME_RE.test(recipe.name.trim()) : false;
+}
+
+/**
+ * La "familia" de un plato: la primera palabra de su nombre, que es la que
+ * dice QUE ES antes de decir de que va. Hummus, quesadilla, tortilla, wrap,
+ * tosta, crema, ensalada, bowl…
+ *
+ * Name-based por la misma razon que isPlatoCuchara e isEnsalada: lo que el
+ * usuario percibe como "otra vez lo mismo" no vive en ningun campo
+ * estructurado. Dos quesadillas seguidas son "Quesadillas de queso y jamon"
+ * (category carnes, mainProtein cerdo) y "Quesadilla de champiñones y queso"
+ * (category ensaladas_verduras, mainProtein none): ids distintos, categorias
+ * distintas y proteinas distintas, asi que NINGUNA regla de las que habia las
+ * veia — ni la de receta repetida (son dos recetas) ni la de proteina.
+ *
+ * El plural se recorta a lo bruto (quesadillas -> quesadilla, navajas ->
+ * navaja). No busca el singular correcto: solo que dos nombres de la misma
+ * familia caigan en la misma cadena, y para eso "hummus" -> "hummu" vale
+ * igual mientras los dos lo hagan.
+ */
+function dishFamily(recipe) {
+  const first = normName(recipe?.name).trim().split(/\s+/)[0] ?? "";
+  return first.length > 3 ? first.replace(/(es|s)$/, "") : first;
 }
 
 function buildMealOrder(slotAssignments) {
@@ -504,6 +530,71 @@ export function validateMenu(
         message: `"${r1.name}" (primero) y "${r2.name}" (segundo) son ambas ensaladas en la misma comida (${daySlug})`,
       });
     }
+  }
+
+  // 3e. El MISMO PLATO dos días seguidos (o dos veces el mismo día), aunque
+  //     sean recetas distintas.
+  //
+  //     Reportado: hummus el lunes y el martes de primero, y quesadillas el
+  //     martes y el miércoles. La regla 6 ("no repetir recipeId") no lo veía:
+  //     las quesadillas son DOS recetas distintas (carnes_120 y
+  //     ensaladas_verduras_035), con categorías y proteínas distintas, así que
+  //     tampoco la veían las reglas 3x. Y el catálogo tiene familias enteras
+  //     -seis hummus de primero, tres quesadillas- donde "otra receta" y "otro
+  //     plato" no son lo mismo para quien se lo come.
+  //
+  //     Se mira día a día contra el día anterior, y dentro del propio día,
+  //     sobre TODOS los huecos (los primeros incluidos, que mainMealsOf deja
+  //     fuera a propósito para las reglas de proteína).
+  {
+    const byDay = new Map();
+    for (const m of mealOrder) {
+      if (m.dayIdx < 0) continue;
+      if (!byDay.has(m.dayIdx)) byDay.set(m.dayIdx, []);
+      byDay.get(m.dayIdx).push(m);
+    }
+    const days = [...byDay.keys()].sort((a, b) => a - b);
+    for (const dayIdx of days) {
+      const today = byDay.get(dayIdx);
+      const yesterday = byDay.get(dayIdx - 1) ?? [];
+      for (let i = 0; i < today.length; i++) {
+        const recipe = poolById[today[i].recipeId];
+        if (!recipe) continue;
+        const family = dishFamily(recipe);
+        if (!family) continue;
+        const earlier = [...yesterday, ...today.slice(0, i)];
+        const clash = earlier.find((m) => {
+          const r = poolById[m.recipeId];
+          return r && dishFamily(r) === family;
+        });
+        if (!clash) continue;
+        violations.push({
+          rule: "mismo_plato_seguido",
+          slotId: today[i].slotId,
+          message: `"${recipe.name}" repite el mismo plato que "${poolById[clash.recipeId].name}" (${clash.slotId})`,
+        });
+      }
+    }
+  }
+
+  // 3f. Los platos de OCASIÓN no caen entre semana.
+  //
+  //     Reportado tal cual: "nadie en España toma cigalas a la plancha un
+  //     puñetero martes para comer" y "nadie toma navajas de segundo, NADIE".
+  //     Y era verdad que el generador no podía saberlo: para él unas navajas
+  //     a la plancha son un segundo de pescado de 10 minutos y fácil — igual
+  //     que un filete. Lo que las distingue no es tiempo ni dificultad, es la
+  //     ocasión, así que ahora eso se declara en la receta (campo `occasion`)
+  //     y aquí solo se respeta. Sábado y domingo sí: ahí es donde vive.
+  for (const { slotId, recipeId, daySlug } of mealOrder) {
+    if (!WEEKDAY_SLUGS.has(daySlug)) continue;
+    const recipe = poolById[recipeId];
+    if (recipe?.occasion !== "especial") continue;
+    violations.push({
+      rule: "plato_ocasion_entre_semana",
+      slotId,
+      message: `"${recipe.name}" es plato de ocasión y ${daySlug} es día de diario`,
+    });
   }
 
   // 4. schoolProteinsToAvoid respected in cena
@@ -864,6 +955,8 @@ export const GUARD_FOR_RULE = {
   proteina_consecutiva: "protein",
   proteina_repetida_en_comida: "sibling",
   dos_ensaladas_en_comida: "ensaladaClash",
+  mismo_plato_seguido: "familiaPlato",
+  plato_ocasion_entre_semana: "ocasion",
   proteina_repetida_en_dia: "primeroGroup",
   proteina_cena_consecutiva: "cenaConsecutiva",
   dos_fritos_seguidos: "frito",
@@ -962,6 +1055,23 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     if (!candidate) {
       const timesUsed = new Map();
       for (const s of result) timesUsed.set(s.recipeId, (timesUsed.get(s.recipeId) ?? 0) + 1);
+      // A qué distancia (en días) está el uso más cercano de este plato. Si un
+      // plato se va a repetir por narices, que se repita LEJOS: repetir el
+      // jueves lo que ya hubo el lunes pasa desapercibido; repetirlo al día
+      // siguiente es exactamente lo que la gente ve y comenta ("hummus el
+      // lunes y el martes"). Antes solo se miraba cuántas veces aparecía, no
+      // dónde, así que el repetido caía tan a menudo en la puerta de al lado.
+      const thisDayIdx = DAY_ORDER.indexOf(daySlug);
+      const nearestUse = (recipeId) => {
+        let best = Infinity;
+        for (const s of result) {
+          if (s.recipeId !== recipeId) continue;
+          const d = DAY_ORDER.indexOf(s.slotId.split("_")[0]);
+          if (d < 0 || thisDayIdx < 0) continue;
+          best = Math.min(best, Math.abs(d - thisDayIdx));
+        }
+        return best;
+      };
       const reusable = filteredPool
         .filter((r) => {
           const wasUsed = usedIds.has(r.id);
@@ -970,8 +1080,13 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
           if (wasUsed) usedIds.add(r.id);
           return ok;
         })
-        // Spread repeats: pick whichever compatible dish appears least so far.
-        .sort((a, b) => (timesUsed.get(a.id) ?? 0) - (timesUsed.get(b.id) ?? 0));
+        // Spread repeats: primero el que esté más lejos en el calendario, y a
+        // igual distancia el que menos veces haya salido.
+        .sort((a, b) => {
+          const far = nearestUse(b.id) - nearestUse(a.id);
+          if (far !== 0) return far;
+          return (timesUsed.get(a.id) ?? 0) - (timesUsed.get(b.id) ?? 0);
+        });
       candidate = reusable[0];
       if (candidate) repeatedForCompleteness.push({ slotId: v.slotId, recipeId: candidate.id });
     }
@@ -1093,6 +1208,23 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       }
     }
 
+    // Familias de plato del día anterior, del día siguiente y del propio día
+    // (rule 3e): el reemplazo no puede volver a ser "otro hummus" cuando lo
+    // que se está arreglando es justo que hay hummus dos días seguidos.
+    const nearbyFamilies = new Set();
+    {
+      const dayIdx = DAY_ORDER.indexOf(daySlug);
+      for (const s2 of result) {
+        if (s2.slotId === slot.slotId) continue;
+        const otherDay = DAY_ORDER.indexOf(s2.slotId.split("_")[0]);
+        if (otherDay < 0 || Math.abs(otherDay - dayIdx) > 1) continue;
+        const r = poolById[s2.recipeId];
+        if (!r) continue;
+        const f = dishFamily(r);
+        if (f) nearbyFamilies.add(f);
+      }
+    }
+
     // Same-day comida_1 primero protein GROUP — mirrors rule 3c: when replacing
     // a cena, never reintroduce the protein group already carried by that day's
     // primero (e.g. don't pick a legumbre cena when the comida_1 is a lentil
@@ -1143,6 +1275,8 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       protein: (r) => ![...proteinTokensOf(r)].some((p) => neighborProteins.has(p)),
       sibling: (r) => !(siblingProtein && r.mainProtein === siblingProtein),
       ensaladaClash: (r) => !(siblingIsEnsalada && isEnsalada(r)),
+      familiaPlato: (r) => !nearbyFamilies.has(dishFamily(r)),
+      ocasion: (r) => r.occasion !== "especial" || !WEEKDAY_SLUGS.has(daySlug),
       primeroGroup: (r) =>
         !(sameDayPrimeroGroups && [...proteinGroupsOf(r)].some((g) => sameDayPrimeroGroups.has(g))),
       cenaConsecutiva: (r) =>
@@ -1167,7 +1301,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // dropped first and `weight` last. Every extra guard kept while a better
     // candidate exists is fine; dropping the important ones first is what
     // produced visibly-bad menus.
-    const RELAX_ORDER = ["weight", "cenaRapida", "frito", "cuchara", "primeroGroup", "cenaConsecutiva", "ensaladaClash", "sibling", "protein", "carb"];
+    const RELAX_ORDER = ["weight", "cenaRapida", "frito", "cuchara", "primeroGroup", "cenaConsecutiva", "familiaPlato", "ensaladaClash", "sibling", "protein", "ocasion", "carb"];
     const guardTiers = [];
     for (let drop = 0; drop <= RELAX_ORDER.length; drop++) {
       const dropped = new Set(RELAX_ORDER.slice(0, drop));

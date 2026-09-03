@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CalendarDays, Camera, Check, ChevronDown, ChevronLeft, ChevronUp, Clock, Layers, Loader2, Package, Plus, Receipt, Refrigerator, Salad, Search, Snowflake, Soup, Utensils, UtensilsCrossed, X } from "lucide-react";
+import { CalendarDays, Camera, Check, ChevronDown, ChevronLeft, ChevronUp, Clock, Layers, Loader2, Package, Pencil, Plus, Receipt, Refrigerator, Salad, Search, Snowflake, Soup, Utensils, UtensilsCrossed, X } from "lucide-react";
 import { useAuth } from "../lib/useAuth.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { addPantryItems, addLocalPantryItems } from "../lib/pantry.js";
