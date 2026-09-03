@@ -17,4 +17,10 @@
 // encurtidos y desecados, huevo de la pasta al huevo, apio, mostaza, pescado y
 // lactosa. Médicamente relevante: hasta que la seed llegue a Supabase, este
 // número es lo único que impide que la BD sirva las declaraciones viejas.
-export const BUNDLED_CATALOG_VERSION = 19;
+// v20 (2026-09-03): campo `occasion` en 15 platos de ocasión (marisco de
+// ración, arroces de bogavante, paella de marisco, ragú de pato) y las dos
+// recetas de orzo fuera del Recetario Estrella. Sin subir este número no
+// habrían llegado a producción: Supabase estaba ya en 19, o sea EMPATADO con
+// el bundle, así que la nube ganaba y el JSON editado no se leía. Es
+// exactamente el caso para el que existe esta puerta.
+export const BUNDLED_CATALOG_VERSION = 20;

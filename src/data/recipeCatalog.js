@@ -94,6 +94,13 @@ function rowToRecipe(row) {
     // servida desde Supabase y el pool principal del generador se queda a 0
     // para cualquier grupo sin bebés. Ver 0025_recipe_estrella.sql.
     ...(row.estrella != null ? { estrella: row.estrella } : {}),
+    // Plato de OCASIÓN (marisco de ración, arroces de bogavante, paellas):
+    // la regla 3f de validateMenu.js lo saca de lunes a viernes. Mismo mapeo
+    // que faltó en su día para apetecible/montaje/estrella/extraProteins — sin
+    // esta línea el campo existe en el JSON, existe en el schema y se pierde
+    // en el viaje para cualquier receta servida desde Supabase, que es lo que
+    // producción sirve cuando catalog_meta.version alcanza a la del bundle.
+    ...(row.occasion ? { occasion: row.occasion } : {}),
     ...(row.can_be_garnish != null ? { canBeGarnish: row.can_be_garnish } : {}),
     ...(row.main_ingredients?.length ? { mainIngredients: row.main_ingredients } : {}),
     // Proteínas animales secundarias (jamón en una ensalada, atún en un

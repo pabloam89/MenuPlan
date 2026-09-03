@@ -48,7 +48,7 @@ const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").t
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
-import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, mergeIngredientLines, activeDiscardIds } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds } from "./lib/aiPlanner.js";
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
@@ -1158,16 +1158,13 @@ export default function App() {
   //
   // Las guardadas ANTES del arreglo de la fusion traen el mismo ingrediente
   // repetido una vez por pieza del plato ("Sal" tres veces, el aceite dos).
-  // Se juntan al rehidratar: el menu de esta semana ya esta escrito y no se va
-  // a regenerar solo, y una lista con la sal tres veces no se puede usar para
-  // cocinar. El nombre combinado se queda como esta -eso no se puede deshacer
-  // sin inventar- hasta que se regenere la semana.
+  // Las junta registerRecipes, que es por donde pasan TODOS los caminos (este,
+  // el de la nube al iniciar sesion, y el de la generacion): el menu de esta
+  // semana ya esta escrito y no se va a regenerar solo. El nombre combinado se
+  // queda como esta -deshacerlo seria inventar- hasta que se regenere.
   useEffect(() => {
     const dyn = persisted?.aiRecipes;
-    if (!Array.isArray(dyn) || dyn.length === 0) return;
-    registerRecipes(dyn.map((r) => (
-      Array.isArray(r?.ingredients) ? { ...r, ingredients: mergeIngredientLines(r.ingredients) } : r
-    )));
+    if (Array.isArray(dyn) && dyn.length > 0) registerRecipes(dyn);
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 

@@ -47,31 +47,11 @@ export function normalizeName(name) {
     .trim();
 }
 
-// Units that don't carry a fixed numeric amount — how much to use depends on
-// taste or on the process, not on a weighable/countable quantity. Kept here
-// (rather than in userRecipes.js) so aiPlanner.js / Menu.jsx / shoppingBuilder.js
-// / shoppingListUtils.js can all import it without creating an import cycle
-// with userRecipes.js (which itself imports from aiPlanner.js).
-//   - "al gusto": personal preference (sal, pimienta, aliño)
-//   - "pizca": a pinch, traditionally never weighed (sal, azafrán, canela)
-//   - "c/n" ("cantidad necesaria"): whatever the process needs, not taste
-//     (aceite para freír, agua para cubrir, harina para espolvorear)
-export const QUALITATIVE_INGREDIENT_UNITS = ["al gusto", "pizca", "c/n"];
-
-export function isQualitativeUnit(unit) {
-  return QUALITATIVE_INGREDIENT_UNITS.includes(unit);
-}
-
-const QUALITATIVE_UNIT_LABELS = {
-  "al gusto": "Al gusto",
-  "pizca": "Pizca",
-  "c/n": "C/N",
-};
-
-/** Display label for a qualitative unit on its own (no number attached). */
-export function qualitativeUnitLabel(unit) {
-  return QUALITATIVE_UNIT_LABELS[unit] ?? unit;
-}
+// Las unidades cualitativas se mudaron a lib/ingredientUnits.js (modulo hoja):
+// data/recipes.js tambien las necesita, y este fichero importa DE data/recipes.js,
+// asi que dejarlas aqui cerraba un ciclo. Se re-exportan para que los ocho
+// sitios que ya las importaban desde aqui sigan funcionando igual.
+export { QUALITATIVE_INGREDIENT_UNITS, isQualitativeUnit, qualitativeUnitLabel } from "./ingredientUnits.js";
 
 // Already-singular words that happen to end in -s. Stripping the s would
 // turn "cuscús" into "cuscu" and break catalog keys.

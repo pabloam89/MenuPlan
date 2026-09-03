@@ -23,7 +23,8 @@ import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { pairSauces } from "../utils/pairSauces.js";
-import { guessIngredientCategory, isQualitativeUnit } from "./ingredientCategories.js";
+import { guessIngredientCategory } from "./ingredientCategories.js";
+import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
 import { buildAdaptationMap } from "./substitutions.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
@@ -1819,55 +1820,17 @@ function scaleSideIngredients(side, eaters, renameByName, idPrefix) {
   });
 }
 
-const normIngredientName = (s) =>
-  String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
-
-/**
- * Junta en una sola linea los ingredientes que son el mismo ingrediente.
- *
- * Un plato con guarnicion (y a veces salsa) es la suma de dos o tres recetas, y
- * las tres llevan sal, aceite y ajo. Sin esto la lista salia con "Sal" tres
- * veces y "Aceite de oliva virgen extra" dos, cada una con su cantidad — que
- * ademas es inutil para cocinar: lo que quieres saber es cuanto aceite echas en
- * total, no cuanto le tocaria a cada mitad del plato.
- *
- * Se suman solo las que comparten unidad. Una cuantificada y otra "al gusto"
- * son el mismo ingrediente contado de dos formas: manda la que trae cantidad.
- * Dos unidades reales distintas (g y ml del mismo nombre) no se pueden sumar
- * sin inventarse una densidad, asi que esas se dejan en dos lineas.
- */
-export function mergeIngredientLines(list) {
-  const out = [];
-  const slotByName = new Map();
-  for (const ing of list ?? []) {
-    const key = normIngredientName(ing.name);
-    const at = slotByName.get(key);
-    if (at == null) {
-      slotByName.set(key, out.length);
-      out.push({ ...ing });
-      continue;
-    }
-    const prev = out[at];
-    if (prev.unit === ing.unit) {
-      prev.qty = prev.qty == null && ing.qty == null ? null : (prev.qty ?? 0) + (ing.qty ?? 0);
-      continue;
-    }
-    if (isQualitativeUnit(prev.unit) && !isQualitativeUnit(ing.unit)) {
-      out[at] = { ...prev, qty: ing.qty, unit: ing.unit };
-      continue;
-    }
-    if (isQualitativeUnit(ing.unit)) continue;
-    // Unidades reales distintas: sumarlas seria inventarse una equivalencia.
-    out.push({ ...ing });
-  }
-  return out;
-}
 
 /**
  * Merge a garnish into a frontend recipe in place: name, time, macros, scaled
  * ingredients, prepSummary and steps. Shared by the generator and the swap flow
  * so a paired dish looks identical regardless of how it entered the menu.
  */
+// Re-exportado desde aqui porque es donde vivia y donde lo buscan sus
+// llamantes; la implementacion esta en el modulo hoja para que
+// data/recipes.js pueda usarla sin cerrar un ciclo de imports.
+export { mergeIngredientLines };
+
 export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   if (!fr || !garnish) return fr;
 
