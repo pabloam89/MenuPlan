@@ -67,7 +67,6 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   // seguidores normales y no hara falta recordarlas.
   const [justAccepted, setJustAccepted] = useState([]);
   const [recipesOpen, setRecipesOpen] = useState(false);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [blockedOpen, setBlockedOpen] = useState(false);
   const [listKind, setListKind] = useState(null);
   const [blocked, setBlocked] = useState([]);
@@ -419,13 +418,25 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
 
         {/* Plegada abajo, pero con el estado siempre a la vista: quién te ve se
             decide una vez, y aun así nunca debe quedar en duda. */}
+        {/* La franja ES el interruptor.
+            Antes eran dos capas para una decision binaria: una franja que se
+            desplegaba y, dentro, otra fila con el toggle y su etiqueta fija
+            "Cuenta abierta" — fija porque nombraba el interruptor, no su
+            estado, asi que leias lo mismo estuviera como estuviera. Aqui la
+            respuesta y el mando son la misma cosa: el estado se lee ("Tus
+            conexiones" / "Cualquiera") y se cambia en el sitio, sin abrir
+            nada. La linea de debajo describe el estado ACTUAL y no el otro
+            lado, que es como acaban los ajustes que nadie entiende. */}
         <section style={privacyBlock}>
-          <button type="button" onClick={() => setPrivacyOpen((v) => !v)} style={privacyHead}>
-            {/* Dos zonas de la MISMA franja, separadas por un divisor: a la
-                izquierda la pregunta, a la derecha la respuesta, en un teal
-                un punto mas fuerte y hasta el borde. El texto del estado va
-                en tinta y no en el color del tinte: teñir la letra del mismo
-                tono que su fondo es lo que convierte una franja en pegatina. */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={open}
+            aria-label="Cuenta abierta"
+            disabled={saving}
+            onClick={() => patch({ visibility: open ? "followers" : "public" })}
+            style={privacyHead}
+          >
             <span style={visAsk}>
               <Eye size={14} strokeWidth={2.5} color="#8aa294" />
               Quién ve lo que publicas
@@ -435,38 +446,16 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
               <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: INK }}>
                 {open ? "Cualquiera" : "Tus conexiones"}
               </span>
-              <ChevronDown size={15} strokeWidth={2.6} color="#5a8f86" style={{ flexShrink: 0, marginLeft: 10, transform: privacyOpen ? "rotate(180deg)" : "none", transition: "transform .18s ease" }} />
+              <span style={{ ...switchTrack, background: open ? GREEN : "#c3d3c8" }}>
+                <span style={{ ...switchKnob, transform: open ? "translateX(18px)" : "none" }} />
+              </span>
             </span>
           </button>
-          {privacyOpen && (
-            <div style={{ padding: "12px 20px 20px" }}>
-              {/* UN interruptor, no un menu: la decision es binaria (0046) y
-                  pintarla como lista de opciones la hacia parecer mas grande
-                  de lo que es. El texto de debajo cuenta el estado ACTUAL,
-                  no el que tendrias si tocaras — describir el otro lado es
-                  como acaban los ajustes que nadie entiende. */}
-              <button
-                type="button"
-                role="switch"
-                aria-checked={open}
-                disabled={saving}
-                onClick={() => patch({ visibility: open ? "followers" : "public" })}
-                style={switchRow}
-              >
-                <span style={{ flex: 1, textAlign: "left", fontSize: 13.5, fontWeight: 800, color: INK }}>
-                  Cuenta abierta
-                </span>
-                <span style={{ ...switchTrack, background: open ? GREEN : "#d6e0d9" }}>
-                  <span style={{ ...switchKnob, transform: open ? "translateX(18px)" : "none" }} />
-                </span>
-              </button>
-              <p style={switchHint}>
-                {open
-                  ? "Tus recetas y menús publicados los ve cualquiera. Seguirte no necesita permiso."
-                  : "Tus recetas y menús publicados los ven solo las conexiones que aceptes. Te encuentran por tu nombre."}
-              </p>
-            </div>
-          )}
+          <p style={switchHint}>
+            {open
+              ? "Tus recetas y menús publicados los ve cualquiera. Seguirte no necesita permiso."
+              : "Tus recetas y menús publicados los ven solo las conexiones que aceptes. Te encuentran por tu nombre."}
+          </p>
         </section>
 
         {blocked.length > 0 && (
@@ -737,16 +726,9 @@ const noBtn = {
   border: "1.5px solid #e6cfc9", background: "#fff", color: "#c0392b", cursor: "pointer",
 };
 
-const switchRow = {
-  display: "flex", alignItems: "center", gap: 12, width: "100%",
-  padding: "11px 14px", borderRadius: 14,
-  border: "1.5px solid #e0eae3", background: "#fff",
-  cursor: "pointer", fontFamily: "inherit",
-};
-
 const switchTrack = {
   position: "relative", width: 40, height: 22, borderRadius: 999,
-  flexShrink: 0, transition: "background .18s ease",
+  flexShrink: 0, marginLeft: 12, transition: "background .18s ease",
 };
 
 const switchKnob = {
@@ -757,7 +739,7 @@ const switchKnob = {
 };
 
 const switchHint = {
-  margin: "9px 4px 0", fontSize: 12, fontWeight: 600,
+  margin: 0, padding: "11px 20px 18px", fontSize: 12, fontWeight: 600,
   color: "#6b7d70", lineHeight: 1.45,
 };
 
@@ -849,18 +831,6 @@ const privacyHead = {
   background: "#eaf3f0", cursor: "pointer",
   fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#6b7d70",
   textAlign: "left",
-};
-
-const visArt = {
-  width: 40, height: 40, display: "block", flexShrink: 0,
-  transition: "filter .18s ease",
-};
-
-const visRow = {
-  transition: "background .18s ease, border-color .18s ease, box-shadow .18s ease",
-  display: "flex", alignItems: "flex-start", gap: 9, width: "100%",
-  padding: "9px 11px", borderRadius: 12, border: "1.5px solid #e0eae3",
-  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
 };
 
 const empty = { margin: "8px 0 4px", fontSize: 12, fontWeight: 600, color: "#8aa294" };
