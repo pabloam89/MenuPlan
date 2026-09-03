@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon, ChefHat } from "lucide-react";
+import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon, ChefHat, Layers2, ChevronDown } from "lucide-react";
 import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
 import { RecipePoster, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
@@ -997,6 +997,18 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
           <button type="button" onClick={onClose} aria-label="Cerrar" style={peekClose}>
             <X size={17} strokeWidth={2.6} />
           </button>
+          {/* Fecha y "solo vista" viven ARRIBA, en la barra: son contexto de
+              la pantalla -de quien es y hasta cuando- y estorbaban entre la
+              cara y el menu, que es donde va el contenido. */}
+          <div style={peekTopMeta}>
+            <span style={peekDateChip}>
+              <CalendarDays size={12} strokeWidth={2.6} />
+              {m.title || rangeLabel(m.week_start, m.week_end)}
+            </span>
+            <span style={peekViewOnly}>
+              <Eye size={11} strokeWidth={2.6} /> Solo vista
+            </span>
+          </div>
           <div style={{ position: "absolute", top: 14, left: 14 }}>
             {/* peekClose trae su propio position:absolute (top/right) para
                 anclarse solo; aqui ya lo ancla el div padre, asi que se usa un
@@ -1030,10 +1042,7 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
           {profile?.username && profile?.display_name && (
             <div style={{ fontSize: 12, fontWeight: 700, color: "#8aa294" }}>@{profile.username}</div>
           )}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: 12.5, fontWeight: 800, color: TEAL }}>
-            <CalendarDays size={14} strokeWidth={2.5} />
-            {m.title || rangeLabel(m.week_start, m.week_end)}
-          </div>
+
           {members.length > 0 && (
             <div style={{ display: "flex", gap: 5, marginTop: 10 }}>
               {members.map((mem) => {
@@ -1052,9 +1061,7 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
                       cursor: "pointer", padding: 0, fontFamily: "inherit",
                     }}
                   >
-                    {mem.avatar
-                      ? <img src={mem.avatar} alt="" style={{ width: 22, height: 22, borderRadius: 999, objectFit: "cover" }} />
-                      : (mem.role === "nino" ? "N" : "A")}
+                    <MemberFace mem={mem} size={22} />
                   </button>
                 );
               })}
@@ -1065,12 +1072,7 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
               )}
             </div>
           )}
-          {/* Se dice en voz alta: esto es la semana de otra persona y desde
-              aqui no se toca nada. Sin el aviso, una pantalla identica a la
-              tuya invita a editarla. */}
-          <div style={readOnlyPill}>
-            <Eye size={12} strokeWidth={2.6} /> Solo vista
-          </div>
+
         </div>
 
         <div style={{ padding: "4px 16px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
@@ -1148,21 +1150,7 @@ function SharedMenuDeck({ days, byId, onPickDish }) {
 
   return (
     <>
-      {multi && (
-        <div style={deckSwitch}>
-          {[["Dia", false], ["Semana", true]].map(([label, val]) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => setWeek(val)}
-              aria-pressed={week === val}
-              style={{ ...deckSwitchBtn, ...(week === val ? deckSwitchOn : null) }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
+      {multi && <ViewPicker week={week} onWeek={setWeek} />}
 
       {multi && !week && (
         <div style={deckDayStrip}>
@@ -1206,6 +1194,103 @@ function SharedMenuDeck({ days, byId, onPickDish }) {
             </div>
           )}
     </>
+  );
+}
+
+/**
+ * Dia / Semana con la misma pinta que en tu menu: circulo de color con el
+ * icono de la vista, su nombre y un chevron.
+ *
+ * Se replica el LENGUAJE de DeckNav (Menu.jsx) y no el componente: aquel abre
+ * un modal a pantalla completa con tres vistas y su propio estado; aqui son
+ * dos opciones dentro de una hoja que ya esta abierta, y un modal encima de
+ * otro modal es una pantalla de mas para elegir entre dos cosas.
+ */
+function ViewPicker({ week, onWeek }) {
+  const [open, setOpen] = useState(false);
+  const OPTS = [
+    { id: false, label: "Día", Icon: CalendarDays, color: "#c9820a" },
+    { id: true, label: "Semana", Icon: Layers2, color: "#2e7d75" },
+  ];
+  const active = OPTS.find((o) => o.id === week) ?? OPTS[0];
+  const ActiveIcon = active.Icon;
+
+  return (
+    <div style={{ position: "relative", marginBottom: 12 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Vista del menú (${active.label})`}
+        style={pickerBtn}
+      >
+        <span style={{ ...pickerCircle, background: active.color }}>
+          <ActiveIcon size={14} strokeWidth={2.6} color="#fff" />
+        </span>
+        <span style={{ fontSize: 13.5, fontWeight: 800, color: active.color, letterSpacing: "-.2px" }}>
+          {active.label}
+        </span>
+        <ChevronDown size={15} strokeWidth={2.8} color="#9db3a6" />
+      </button>
+
+      {open && (
+        <>
+          {/* Capa invisible para cerrar tocando fuera: sin ella el desplegable
+              se queda abierto y tapa el primer plato. */}
+          <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 1 }} />
+          <div role="listbox" style={pickerMenu}>
+            {OPTS.map((o) => {
+              const OptIcon = o.Icon;
+              const on = o.id === week;
+              return (
+                <button
+                  key={o.label}
+                  type="button"
+                  role="option"
+                  aria-selected={on}
+                  onClick={() => { onWeek(o.id); setOpen(false); }}
+                  style={{ ...pickerItem, background: on ? "#eef4f0" : "transparent" }}
+                >
+                  <span style={{ ...pickerCircle, background: o.color, width: 24, height: 24 }}>
+                    <OptIcon size={13} strokeWidth={2.6} color="#fff" />
+                  </span>
+                  <span style={{ flex: 1, textAlign: "left", fontSize: 13, fontWeight: on ? 900 : 700, color: INK }}>
+                    {o.label}
+                  </span>
+                  {on && <Check size={14} strokeWidth={3} color={o.color} />}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** La cara de un comensal: su foto si la hay, y si no su inicial de rol. */
+function MemberFace({ mem, size = 20, ring = false }) {
+  if (mem?.avatar) {
+    return (
+      <img
+        src={mem.avatar}
+        alt=""
+        style={{
+          width: size, height: size, borderRadius: 999, objectFit: "cover",
+          display: "block", flexShrink: 0,
+          border: ring ? "1.5px solid rgba(255,255,255,.85)" : "none",
+        }}
+      />
+    );
+  }
+  return (
+    <span style={{
+      ...memberDot, width: size, height: size, fontSize: Math.round(size * 0.42),
+      border: ring ? "1.5px solid rgba(255,255,255,.85)" : memberDot.border,
+    }}>
+      {mem?.role === "nino" ? "N" : "A"}
+    </span>
   );
 }
 
@@ -1259,9 +1344,7 @@ function SharedDishTile({ item, byId, onPick, height, compact = false }) {
       {eaters.length > 0 && !compact && (
         <span style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 3 }}>
           {eaters.map((id) => (
-            <span key={id} style={{ ...memberDot, width: 20, height: 20, fontSize: 9, border: "1.5px solid rgba(255,255,255,.85)" }}>
-              {byId[id]?.role === "nino" ? "N" : "A"}
-            </span>
+            <MemberFace key={id} mem={byId[id]} size={20} ring />
           ))}
         </span>
       )}
@@ -1532,19 +1615,32 @@ const glassPane = {
 // Los mismos colores de comida/cena que usa el asistente.
 const SLOT_COLOR = { Desayuno: "#a9762a", Comida: "#c9820a", Cena: "#5a7a9a" };
 
-// Selector Dia/Semana: pista tintada y pastilla blanca, el mismo segmented
-// control que ya usa el resto de la app.
-const deckSwitch = {
-  display: "flex", gap: 3, padding: 3, marginBottom: 12,
-  background: "#f0f4f1", borderRadius: 999,
+// Selector de vista: el mismo lenguaje que DeckNav en tu menu — circulo de
+// color con el icono, el nombre y un chevron.
+const pickerBtn = {
+  display: "inline-flex", alignItems: "center", gap: 7,
+  padding: 0, border: "none", background: "none",
+  cursor: "pointer", fontFamily: "inherit",
 };
-const deckSwitchBtn = {
-  flex: 1, padding: "7px 0", border: "none", borderRadius: 999,
-  background: "none", cursor: "pointer", fontFamily: "inherit",
-  fontSize: 12.5, fontWeight: 800, color: "#7a9485",
-  transition: "background .18s ease, color .18s ease",
+
+const pickerCircle = {
+  width: 28, height: 28, borderRadius: 999, flexShrink: 0,
+  display: "inline-flex", alignItems: "center", justifyContent: "center",
 };
-const deckSwitchOn = { background: "#fff", color: GREEN, boxShadow: "0 1px 3px rgba(20,47,29,.12)" };
+
+const pickerMenu = {
+  position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 2,
+  minWidth: 170, padding: 5, borderRadius: 14,
+  background: "#fff", border: "1px solid #e0eae3",
+  boxShadow: "0 10px 28px rgba(20,47,29,.16)",
+  display: "flex", flexDirection: "column", gap: 2,
+};
+
+const pickerItem = {
+  display: "flex", alignItems: "center", gap: 9, width: "100%",
+  padding: "7px 9px", borderRadius: 10, border: "none",
+  cursor: "pointer", fontFamily: "inherit",
+};
 
 const deckDayStrip = {
   display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 12,
@@ -1559,11 +1655,6 @@ const deckDayChipOn = { background: GREEN, borderColor: GREEN, color: "#fff" };
 const deckWeekHead = { display: "flex", alignItems: "center", gap: 8, marginBottom: 8 };
 
 
-const readOnlyPill = {
-  display: "inline-flex", alignItems: "center", gap: 5, marginTop: 12,
-  padding: "5px 11px", borderRadius: 999,
-  background: "#eef3f0", color: "#5c6b60", fontSize: 11, fontWeight: 800,
-};
 
 const dishPickOverlay = {
   position: "fixed", inset: 0, zIndex: 340,
@@ -1614,6 +1705,26 @@ const peekClose = {
   display: "flex", alignItems: "center", justifyContent: "center",
   width: 36, height: 36, borderRadius: 12,
   border: "1.5px solid #d5e6da", background: "#fff", color: GREEN, cursor: "pointer",
+};
+
+const peekTopMeta = {
+  position: "absolute", top: 16, left: 0, right: 0, zIndex: 1,
+  display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+  pointerEvents: "none",
+};
+
+const peekDateChip = {
+  display: "inline-flex", alignItems: "center", gap: 5,
+  padding: "5px 10px", borderRadius: 999,
+  background: "rgba(255,255,255,.9)", color: TEAL,
+  fontSize: 12, fontWeight: 800, whiteSpace: "nowrap",
+};
+
+const peekViewOnly = {
+  display: "inline-flex", alignItems: "center", gap: 4,
+  padding: "5px 9px", borderRadius: 999,
+  background: "rgba(255,255,255,.9)", color: "#7a9485",
+  fontSize: 11, fontWeight: 800, whiteSpace: "nowrap",
 };
 
 const peekMenuBtn = {
