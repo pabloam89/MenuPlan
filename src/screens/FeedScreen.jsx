@@ -122,6 +122,14 @@ export function FeedScreen({
   const [loading, setLoading] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [copied, setCopied] = useState(() => new Set());
+  // Ya copiadas antes de abrir el Feed: la copia guarda de quién venía
+  // (copiedFromRecipeId), así que la marca sobrevive a cerrar sesión y volver
+  // — antes vivía solo en el estado de la pantalla y se perdía al salir.
+  const copiedIds = useMemo(() => {
+    const ids = new Set(copied);
+    for (const r of myRecipes) if (r.copiedFromRecipeId) ids.add(r.copiedFromRecipeId);
+    return ids;
+  }, [copied, myRecipes]);
   const [menuOpen, setMenuOpen] = useState(null);
   const [stats, setStats] = useState({});
   const [folderPickerFor, setFolderPickerFor] = useState(null);
@@ -484,7 +492,7 @@ export function FeedScreen({
                 menú que ya han publicado, así que la fila cuenta algo vivo
                 sin pedir un tipo de contenido nuevo. Al tocar, la semana. */}
             <h2 style={sectionTitle}>Hoy cocinan…</h2>
-            <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 2, marginInline: -14, paddingInline: 14 }}>
+            <div className="deck-scroller" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 2, marginInline: -14, paddingInline: 14 }}>
               {/* Tu hueco, el primero de la fila — el patron de "tu historia"
                   de toda red: anillo punteado con + si no has publicado, un
                   check si si. Sustituye al banner con parrafo que habia
@@ -691,7 +699,7 @@ export function FeedScreen({
                 user={user}
                 profile={profiles[item.ownerId]}
                 mine={item.ownerId === user?.id}
-                copied={copied.has(item.recipe.id)}
+                copied={copiedIds.has(item.recipe.id)}
                 meh={meh.has(item.recipe.id)}
                 onMeh={() => setMeh((prev) => new Set(prev).add(item.recipe.id))}
                 onDislike={() => handleDislike(item)}
@@ -2290,9 +2298,12 @@ const ringOn = {
 // Ya abierto: gris plano. La diferencia entre "hay algo nuevo" y "ya lo has
 // visto" es lo único que la fila necesita comunicar.
 // El hueco de "tu menu" sin publicar: anillo punteado, la invitacion clasica.
+// Mismo diametro exterior que ringOn/ringOff (58): el borde de 2px se come
+// parte del aire en vez de sumarse, o "Tu menu" quedaba mas gordo y mas
+// pegado a su vecino que el resto de la fila.
 const ringDashed = {
-  display: "flex", padding: 2.5, borderRadius: "50%",
-  border: "2px dashed #9ab5a6", margin: -2,
+  display: "flex", padding: 0.5, borderRadius: "50%",
+  border: "2px dashed #9ab5a6",
 };
 
 const shareCircle = {

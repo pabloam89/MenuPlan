@@ -62,6 +62,11 @@ textarea::placeholder {
   animation: rotate 1s linear infinite;
 }
 
+/* Carruseles horizontales (fila de menus del Feed, mazos de platos): se
+   arrastran con el dedo, y la barra nativa solo estorba. */
+.deck-scroller { scrollbar-width: none; -ms-overflow-style: none; }
+.deck-scroller::-webkit-scrollbar { display: none; }
+
 /* Discrete motion utilities */
 @keyframes mpFadeIn {
   from { opacity: 0; }

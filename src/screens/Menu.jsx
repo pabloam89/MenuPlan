@@ -4083,8 +4083,6 @@ export const MenuScreen = memo(function MenuScreen({
           color: #fff;
           transform: scale(1.12);
         }
-        .deck-scroller { scrollbar-width: none; -ms-overflow-style: none; }
-        .deck-scroller::-webkit-scrollbar { display: none; }
         @keyframes deckNavMenuIn {
           from { opacity: 0; transform: translateY(-8px) scale(.98); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
