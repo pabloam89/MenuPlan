@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
+import { X, Lock, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -442,26 +442,30 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
           <button
             type="button"
             role="switch"
-            aria-checked={open}
-            aria-label="Cuenta abierta"
+            aria-checked={!open}
+            aria-label="Solo mis amigos"
             disabled={saving}
             onClick={() => patch({ visibility: open ? "followers" : "public" })}
             style={privacyHead}
           >
-            {/* Una sola franja y sin dibujo: la etiqueta ES el estado, asi
-                que ni hace falta preguntar aparte ni ilustrarlo. Las
-                miniaturas de la puerta y el globo no se leian a 22px — un
-                dibujo que no se distingue es ruido, no ayuda. */}
+            {/* El interruptor nombra la RESTRICCION, y encendido es el estado
+                protegido — el patron de "Cuenta privada" de iOS.
+                Antes nombraba el estado excepcional ("Cuenta abierta"), asi
+                que apagado significaba el modo POR DEFECTO: un apagado que
+                quiere decir "lo normal" no se entiende. Con la restriccion
+                por nombre, la etiqueta es fija y la posicion dice si esta
+                activa, que es lo unico que un switch sabe comunicar. */}
+            <Lock size={14} strokeWidth={2.6} color={open ? "#a8b8ad" : GREEN} style={{ flexShrink: 0 }} />
             <span style={{ flex: 1, minWidth: 0, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: INK, fontSize: 13.5, fontWeight: 800 }}>
-              {open ? "Cuenta abierta" : "Cuenta para amigos"}
+              Solo mis amigos
             </span>
-            <span style={{ ...switchTrack, background: open ? GREEN : "#c3d3c8" }}>
-              <span style={{ ...switchKnob, transform: open ? "translateX(18px)" : "none" }} />
+            <span style={{ ...switchTrack, background: open ? "#c3d3c8" : GREEN }}>
+              <span style={{ ...switchKnob, transform: open ? "none" : "translateX(18px)" }} />
             </span>
           </button>
           <p style={switchHint}>
             {open
-              ? "Tus recetas y menús publicados los ve cualquiera. Seguirte no necesita permiso."
+              ? "Cuenta abierta: tus recetas y menús publicados los ve cualquiera, y seguirte no necesita permiso."
               : "Tus recetas y menús publicados los ven solo tus amigos. Te encuentran por tu nombre y te piden ser amigos."}
           </p>
         </section>
