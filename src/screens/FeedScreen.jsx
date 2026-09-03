@@ -1057,68 +1057,16 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
         </div>
 
         <div style={{ padding: "4px 16px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
-          {days.length === 0 && <p style={hint}>Este menu no trae dias.</p>}
-          {days
-            .map((d) => ({
-              ...d,
-              meals: (d.meals ?? []).filter((meal) => !eaterFilter || (meal.eaters ?? []).includes(eaterFilter)),
-            }))
-            .filter((d) => d.meals.length > 0)
-            .map((d) => (
-            <div key={d.day} style={peekDayCard}>
-              <div style={peekDayName}>{d.day}</div>
-              {d.meals.map((meal, mi) => (
-                <div key={meal.slot} style={{ ...peekSlotRow, borderTop: mi === 0 ? "none" : "1px solid #eef3f0" }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ ...peekSlotLabel, color: SLOT_COLOR[meal.slot] ?? "#7a9485" }}>{meal.slot}</div>
-                    {(meal.dishes ?? []).map((dish, di) => (
-                      <button
-                        key={di}
-                        type="button"
-                        // Un plato cerrado no se puede copiar: no hay receta
-                        // detras, solo su nombre. Se deja quieto en vez de
-                        // ofrecer algo que acabaria en un hueco vacio.
-                        onClick={dish.readable === false ? undefined : () => setDishPick(dish)}
-                        disabled={dish.readable === false}
-                        style={{
-                          display: "flex", alignItems: "center", gap: 9, width: "100%",
-                          marginTop: di === 0 ? 5 : 7, padding: 0, border: "none",
-                          background: "none", textAlign: "left", fontFamily: "inherit",
-                          cursor: dish.readable === false ? "default" : "pointer",
-                        }}
-                      >
-                        <DishThumb dish={dish} />
-                        <span style={{ fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.25, minWidth: 0 }}>
-                          {dish.name}
-                          {/* De quien es la receta: las del catalogo las tiene
-                              cualquiera, asi que solo se marca lo que es SUYO
-                              -que es lo que tiene merito y lo que no puedes
-                              encontrar buscando en HoMenu. */}
-                          {dish.source === "user" && (
-                            <ChefHat size={11} strokeWidth={2.6} style={{ verticalAlign: "-1px", marginLeft: 4, color: "#cf7833" }} />
-                          )}
-                          {/* El nombre se ve siempre; la receta solo si su
-                              autor la tiene en publico o de amigos. */}
-                          {dish.readable === false && (
-                            <Lock size={11} strokeWidth={2.6} style={{ verticalAlign: "-1px", marginLeft: 4, color: "#9aa8a0" }} />
-                          )}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  {(meal.eaters ?? []).length > 0 && (
-                    <div style={{ display: "flex", gap: 3, flexShrink: 0, paddingTop: 2 }}>
-                      {meal.eaters.map((id) => (
-                        <span key={id} title={byId[id]?.role} style={{ ...memberDot, width: 20, height: 20, fontSize: 9 }}>
-                          {byId[id]?.role === "nino" ? "N" : "A"}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ))}
+          <SharedMenuDeck
+            days={days
+              .map((d) => ({
+                ...d,
+                meals: (d.meals ?? []).filter((meal) => !eaterFilter || (meal.eaters ?? []).includes(eaterFilter)),
+              }))
+              .filter((d) => d.meals.length > 0)}
+            byId={byId}
+            onPickDish={setDishPick}
+          />
 
           <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eef3f0" }}>
             <CommentThread user={user} targetType="menu" targetId={m.id} targetOwnerId={m.owner_id} />
@@ -1158,6 +1106,186 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
 }
 
 /** Miniatura del plato. Se resuelve igual que en tu menu: por id de catalogo. */
+/**
+ * El menu de otra persona, con la misma cara que el tuyo.
+ *
+ * Antes era una lista de nombres con miniaturas de 34px: legible, pero no se
+ * parecia en nada a la pantalla de Menu y los platos eran casi imposibles de
+ * acertar con el dedo. Aqui se reusa el LENGUAJE de DeckTile -foto a sangre,
+ * degradado abajo, nombre en blanco- pero no el componente: DeckTile arrastra
+ * long-press, ArmedContext, regeneracion y badges de grupo, maquinaria de
+ * EDICION que en un menu ajeno no solo sobra, sino que invita a tocar lo que
+ * no se puede tocar.
+ *
+ * Un dia se ensena solo; varios traen el selector Dia/Semana, igual que Menu.
+ * Con un unico dia el selector seria elegir entre una cosa y la misma.
+ */
+function SharedMenuDeck({ days, byId, onPickDish }) {
+  const multi = days.length > 1;
+  const [week, setWeek] = useState(false);
+  const [dayIdx, setDayIdx] = useState(0);
+  // Un filtro por comensal puede dejar el dia activo fuera de la lista.
+  const idx = Math.min(dayIdx, Math.max(0, days.length - 1));
+
+  if (days.length === 0) return <p style={hint}>Este menu no trae dias.</p>;
+
+  return (
+    <>
+      {multi && (
+        <div style={deckSwitch}>
+          {[["Dia", false], ["Semana", true]].map(([label, val]) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setWeek(val)}
+              aria-pressed={week === val}
+              style={{ ...deckSwitchBtn, ...(week === val ? deckSwitchOn : null) }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {multi && !week && (
+        <div style={deckDayStrip}>
+          {days.map((d, i) => (
+            <button
+              key={d.day}
+              type="button"
+              onClick={() => setDayIdx(i)}
+              aria-pressed={i === idx}
+              style={{ ...deckDayChip, ...(i === idx ? deckDayChipOn : null) }}
+            >
+              {d.day}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {week
+        ? days.map((d) => (
+            <div key={d.day} style={{ marginBottom: 18 }}>
+              <div style={deckWeekHead}>
+                <span style={{ fontSize: 14, fontWeight: 900, color: INK }}>{d.day}</span>
+                <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
+              </div>
+              {/* En semana los platos van en fila y compactos: esta vista sirve
+                  para abarcar, no para mirar de cerca — eso es la de dia. */}
+              <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
+                {flattenDayDishes(d).map((item, i) => (
+                  <div key={i} style={{ flex: "0 0 46%" }}>
+                    <SharedDishTile item={item} byId={byId} onPick={onPickDish} height={132} compact />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {flattenDayDishes(days[idx]).map((item, i) => (
+                <SharedDishTile key={i} item={item} byId={byId} onPick={onPickDish} height={168} />
+              ))}
+            </div>
+          )}
+    </>
+  );
+}
+
+/** Los platos de un dia, en orden, cada uno sabiendo de que comida sale. */
+function flattenDayDishes(day) {
+  const out = [];
+  for (const meal of day?.meals ?? []) {
+    for (const dish of meal.dishes ?? []) out.push({ dish, slot: meal.slot, eaters: meal.eaters ?? [] });
+  }
+  return out;
+}
+
+/** Un plato, con su foto llenando la tarjeta. */
+function SharedDishTile({ item, byId, onPick, height, compact = false }) {
+  const { dish, slot, eaters } = item;
+  const [failed, setFailed] = useState(false);
+  const img = dish.recipeId ? dishImageForRecipe({ id: dish.recipeId }) : null;
+  // Un plato cerrado no se puede abrir: no hay receta detras, solo su nombre.
+  const locked = dish.readable === false;
+  return (
+    <button
+      type="button"
+      onClick={locked ? undefined : () => onPick(dish)}
+      disabled={locked}
+      style={{
+        position: "relative", width: "100%", height, display: "block",
+        padding: 0, border: "none", borderRadius: compact ? 16 : 20,
+        overflow: "hidden", background: "#eef3f0",
+        cursor: locked ? "default" : "pointer", fontFamily: "inherit",
+        textAlign: "left", WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      {img && !failed ? (
+        <img
+          src={deckImg(img, compact ? 360 : 720)}
+          alt=""
+          loading="lazy"
+          onError={() => setFailed(true)}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#b6c7bd" }}>
+          <Lock size={compact ? 18 : 24} strokeWidth={2.2} />
+        </span>
+      )}
+
+      {/* El degradado no es decoracion: sin el, un nombre en blanco sobre una
+          foto clara se vuelve ilegible. */}
+      <span style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,30,18,.78) 0%, rgba(10,30,18,0) 58%)" }} />
+
+      {eaters.length > 0 && !compact && (
+        <span style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 3 }}>
+          {eaters.map((id) => (
+            <span key={id} style={{ ...memberDot, width: 20, height: 20, fontSize: 9, border: "1.5px solid rgba(255,255,255,.85)" }}>
+              {byId[id]?.role === "nino" ? "N" : "A"}
+            </span>
+          ))}
+        </span>
+      )}
+
+      {/* Turno y nombre, abajo y en ese orden, exactamente donde los pone
+          DeckTile en tu propio menu: el punto de color y el eyebrow encima
+          del titulo. Es la disposicion la que hace que se lea como la misma
+          app, mas que la foto. */}
+      <span style={{ position: "absolute", left: compact ? 10 : 14, right: compact ? 10 : 14, bottom: compact ? 10 : 13 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: compact ? 4 : 7 }}>
+          <span style={{
+            width: compact ? 7 : 9, height: compact ? 7 : 9, borderRadius: 999,
+            background: SLOT_COLOR[slot] ?? "#7a9485", flexShrink: 0,
+            boxShadow: "0 0 0 2px rgba(255,255,255,.6)",
+          }} />
+          <span style={{
+            color: "rgba(255,255,255,.95)", fontSize: compact ? 9 : 10.5, fontWeight: 800,
+            letterSpacing: ".7px", textTransform: "uppercase",
+            textShadow: "0 1px 6px rgba(0,0,0,.5)", whiteSpace: "nowrap",
+          }}>
+            {slot}
+          </span>
+        </span>
+        <span style={{
+          display: "block", color: "#fff", fontWeight: 900, lineHeight: 1.15,
+          fontSize: compact ? 13 : 19, letterSpacing: "-.3px",
+          textShadow: "0 2px 12px rgba(0,0,0,.45)",
+        }}>
+          {dish.name}
+          {dish.source === "user" && (
+            <ChefHat size={compact ? 11 : 14} strokeWidth={2.6} style={{ verticalAlign: "-2px", marginLeft: 6, color: "#ffc98a" }} />
+          )}
+          {locked && (
+            <Lock size={compact ? 11 : 14} strokeWidth={2.6} style={{ verticalAlign: "-2px", marginLeft: 6, color: "#dbe6df" }} />
+          )}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 function DishThumb({ dish }) {
   const img = dish.recipeId ? dishImageForRecipe({ id: dish.recipeId }) : null;
   if (!img) {
@@ -1387,6 +1515,33 @@ const glassPane = {
 // Los mismos colores de comida/cena que usa el asistente.
 const SLOT_COLOR = { Desayuno: "#a9762a", Comida: "#c9820a", Cena: "#5a7a9a" };
 
+// Selector Dia/Semana: pista tintada y pastilla blanca, el mismo segmented
+// control que ya usa el resto de la app.
+const deckSwitch = {
+  display: "flex", gap: 3, padding: 3, marginBottom: 12,
+  background: "#f0f4f1", borderRadius: 999,
+};
+const deckSwitchBtn = {
+  flex: 1, padding: "7px 0", border: "none", borderRadius: 999,
+  background: "none", cursor: "pointer", fontFamily: "inherit",
+  fontSize: 12.5, fontWeight: 800, color: "#7a9485",
+  transition: "background .18s ease, color .18s ease",
+};
+const deckSwitchOn = { background: "#fff", color: GREEN, boxShadow: "0 1px 3px rgba(20,47,29,.12)" };
+
+const deckDayStrip = {
+  display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 12,
+};
+const deckDayChip = {
+  flexShrink: 0, padding: "6px 13px", borderRadius: 999,
+  border: "1px solid #dbe8df", background: "#fff", cursor: "pointer",
+  fontFamily: "inherit", fontSize: 12, fontWeight: 800, color: "#7a9485",
+};
+const deckDayChipOn = { background: GREEN, borderColor: GREEN, color: "#fff" };
+
+const deckWeekHead = { display: "flex", alignItems: "center", gap: 8, marginBottom: 8 };
+
+
 const readOnlyPill = {
   display: "inline-flex", alignItems: "center", gap: 5, marginTop: 12,
   padding: "5px 11px", borderRadius: 999,
@@ -1412,23 +1567,6 @@ const dishPickAction = {
   fontSize: 12, fontWeight: 800, color: INK,
   cursor: "pointer", fontFamily: "inherit",
 };
-
-const peekDayCard = {
-  border: "1.5px solid #e0eae3", borderRadius: 16, background: "#fff",
-  padding: "10px 12px 12px", marginTop: 10,
-  boxShadow: "0 2px 8px rgba(20,47,29,.04)",
-};
-
-const peekDayName = {
-  fontSize: 11, fontWeight: 900, color: "#7a9485",
-  letterSpacing: ".6px", textTransform: "uppercase", marginBottom: 6,
-};
-
-const peekSlotRow = {
-  display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 0 2px",
-};
-
-const peekSlotLabel = { fontSize: 10.5, fontWeight: 900, letterSpacing: ".4px", textTransform: "uppercase" };
 
 const peekThumb = {
   width: 38, height: 38, borderRadius: 10, objectFit: "cover",
