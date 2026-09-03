@@ -53,7 +53,7 @@ const TEAL = "#0f766e";
  * y se olvida, así que no merece el sitio de arriba, pero tampoco esconderse
  * en otra pantalla.
  */
-export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPerson }) {
+export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPerson, onChanged }) {
   const [profile, setProfile] = useState(null);
   const [counts, setCounts] = useState({ followers: 0, following: 0, recipes: 0, menus: 0 });
   const [requests, setRequests] = useState([]);
@@ -162,6 +162,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     // ya vacia escondia justo la mitad que falta de la conexion.
     if (accept) setTab("seguidores");
     refresh();
+    onChanged?.();
   };
 
   /**
@@ -185,6 +186,9 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     else setSent((prev) => (prev.some((r) => r.followee_id === followerId)
       ? prev
       : [...prev, { followee_id: followerId, created_at: new Date().toISOString() }]));
+    // El feed de detras tiene que recargar su lista de seguidos, o el menu de
+    // esta persona no aparece hasta reiniciar la app.
+    onChanged?.();
   };
 
   const unblock = async (id) => {
@@ -271,7 +275,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
 
         <div style={tabBar}>
           <Tab id="solicitudes" tab={tab} setTab={setTab} Icon={UserPlus} label="Solicitudes" badge={requests.length + sent.length} />
-          <Tab id="seguidores" tab={tab} setTab={setTab} Icon={Users2} label="Te siguen" badge={followers.length} />
+          <Tab id="seguidores" tab={tab} setTab={setTab} Icon={Users2} label="Seguidores" badge={followers.length} />
           <Tab id="comentarios" tab={tab} setTab={setTab} Icon={MessageCircle} label="Comentarios" badge={comments.length} />
           <Tab id="recetas" tab={tab} setTab={setTab} Icon={CookingPot} label="Recetas" badge={0} />
         </div>
@@ -468,6 +472,8 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
       {listKind && (
         <FollowListSheet
           userId={user?.id}
+          viewer={user?.id}
+          onChanged={onChanged}
           kind={listKind}
           onOpenPerson={(id) => { setListKind(null); onOpenPerson?.(id); }}
           onClose={() => setListKind(null)}
