@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
+import { X, Users, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -444,32 +444,37 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
             frase afirmable, y ninguna sonaba a lo que de verdad eliges.
             Con dos opciones a la vista se ve el estado Y la alternativa de un
             golpe, que es lo que pide una decision de privacidad. */}
+        {/* "Modo Amigo" es lo que hacia funcionar el interruptor: un MODO
+            CON NOMBRE se activa o se desactiva y se lee solo, igual que el
+            modo avion. Los intentos anteriores fallaban por nombrar un
+            estado ("Cuenta abierta") o una restriccion suelta ("Solo mis
+            amigos"): ninguna de las dos es algo que puedas activar, asi que
+            la posicion del boton no tenia a que referirse.
+
+            Activado por defecto: es el estado protegido y el que trae toda
+            cuenta nueva. Apagarlo es el acto deliberado de abrirse. */}
         <section style={privacyBlock}>
-          <div style={segWrap} role="radiogroup" aria-label="Quién ve lo que publicas">
-            {[
-              ["Solo amigos", false, "followers"],
-              ["Cuenta abierta", true, "public"],
-            ].map(([label, esAbierta, value]) => {
-              const on = open === esAbierta;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  disabled={saving}
-                  onClick={() => { if (!on) patch({ visibility: value }); }}
-                  style={{ ...segBtn, ...(on ? segOn : null) }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={!open}
+            disabled={saving}
+            onClick={() => patch({ visibility: open ? "followers" : "public" })}
+            style={modeRow}
+          >
+            <Users size={15} strokeWidth={2.6} color={open ? "#a8b8ad" : GREEN} style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, minWidth: 0, textAlign: "left", color: open ? "#6b7d70" : INK, fontSize: 13.5, fontWeight: 800 }}>
+              Modo Amigo
+            </span>
+            <span style={{ ...switchTrack, background: open ? "#c3d3c8" : GREEN }}>
+              <span style={{ ...switchKnob, transform: open ? "none" : "translateX(18px)" }} />
+            </span>
+          </button>
+          {/* La explicacion cuenta el estado ACTUAL, nunca el otro lado. */}
           <p style={switchHint}>
             {open
-              ? "Cualquiera ve tus recetas y menús publicados, y puede seguirte sin permiso."
-              : "Te encuentran por tu nombre, pero para ver lo que publicas tienen que pedirte ser amigos."}
+              ? "Cualquiera ve tus recetas y menús publicados, y puede seguirte sin pedirte permiso."
+              : "Solo tus amigos ven tus recetas y menús publicados. Te encuentran por tu nombre y te piden ser amigos."}
           </p>
         </section>
 
@@ -741,21 +746,22 @@ const noBtn = {
   border: "1.5px solid #e6cfc9", background: "#fff", color: "#c0392b", cursor: "pointer",
 };
 
-const segWrap = {
-  display: "flex", gap: 4, margin: "14px 20px 0", padding: 4,
-  background: "#e8efea", borderRadius: 999,
+const modeRow = {
+  display: "flex", alignItems: "center", gap: 10, width: "100%",
+  margin: 0, padding: "14px 20px", border: "none", background: "none",
+  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
 };
 
-const segBtn = {
-  flex: 1, padding: "9px 6px", borderRadius: 999, border: "none",
-  background: "none", cursor: "pointer", fontFamily: "inherit",
-  fontSize: 12.5, fontWeight: 800, color: "#6b7d70",
-  transition: "background .18s ease, color .18s ease",
+const switchTrack = {
+  position: "relative", width: 40, height: 22, borderRadius: 999,
+  flexShrink: 0, marginLeft: 12, transition: "background .18s ease",
 };
 
-const segOn = {
-  background: GREEN, color: "#fff", fontWeight: 900,
-  boxShadow: "0 2px 7px rgba(45,90,61,.3)",
+const switchKnob = {
+  position: "absolute", top: 2, left: 2, width: 18, height: 18,
+  borderRadius: 999, background: "#fff",
+  boxShadow: "0 1px 3px rgba(20,47,29,.3)",
+  transition: "transform .18s ease",
 };
 
 const switchHint = {
