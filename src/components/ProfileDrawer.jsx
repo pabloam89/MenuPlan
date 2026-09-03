@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, Lock, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
+import { X, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -217,7 +217,6 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   // que aquí se hereda y solo se edita si quieres otro de cara al feed.
   const inheritedName = googleInfo(user).name;
   const name = profile?.display_name || inheritedName;
-
 
   return (
     <div style={backdrop} onClick={onClose}>
@@ -438,35 +437,39 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
             conexiones" / "Cualquiera") y se cambia en el sitio, sin abrir
             nada. La linea de debajo describe el estado ACTUAL y no el otro
             lado, que es como acaban los ajustes que nadie entiende. */}
+        {/* Segmented control y no un switch.
+            Un interruptor responde "¿esto es verdad, si o no?", y aqui no hay
+            proposicion: hay DOS estados con nombre propio, ninguno de los
+            cuales es "apagado". Forzarlo a switch obligaba a inventar una
+            frase afirmable, y ninguna sonaba a lo que de verdad eliges.
+            Con dos opciones a la vista se ve el estado Y la alternativa de un
+            golpe, que es lo que pide una decision de privacidad. */}
         <section style={privacyBlock}>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={!open}
-            aria-label="Solo mis amigos"
-            disabled={saving}
-            onClick={() => patch({ visibility: open ? "followers" : "public" })}
-            style={privacyHead}
-          >
-            {/* El interruptor nombra la RESTRICCION, y encendido es el estado
-                protegido — el patron de "Cuenta privada" de iOS.
-                Antes nombraba el estado excepcional ("Cuenta abierta"), asi
-                que apagado significaba el modo POR DEFECTO: un apagado que
-                quiere decir "lo normal" no se entiende. Con la restriccion
-                por nombre, la etiqueta es fija y la posicion dice si esta
-                activa, que es lo unico que un switch sabe comunicar. */}
-            <Lock size={14} strokeWidth={2.6} color={open ? "#a8b8ad" : GREEN} style={{ flexShrink: 0 }} />
-            <span style={{ flex: 1, minWidth: 0, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: INK, fontSize: 13.5, fontWeight: 800 }}>
-              Solo mis amigos
-            </span>
-            <span style={{ ...switchTrack, background: open ? "#c3d3c8" : GREEN }}>
-              <span style={{ ...switchKnob, transform: open ? "none" : "translateX(18px)" }} />
-            </span>
-          </button>
+          <div style={segWrap} role="radiogroup" aria-label="Quién ve lo que publicas">
+            {[
+              ["Solo amigos", false, "followers"],
+              ["Cuenta abierta", true, "public"],
+            ].map(([label, esAbierta, value]) => {
+              const on = open === esAbierta;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  disabled={saving}
+                  onClick={() => { if (!on) patch({ visibility: value }); }}
+                  style={{ ...segBtn, ...(on ? segOn : null) }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
           <p style={switchHint}>
             {open
-              ? "Cuenta abierta: tus recetas y menús publicados los ve cualquiera, y seguirte no necesita permiso."
-              : "Tus recetas y menús publicados los ven solo tus amigos. Te encuentran por tu nombre y te piden ser amigos."}
+              ? "Cualquiera ve tus recetas y menús publicados, y puede seguirte sin permiso."
+              : "Te encuentran por tu nombre, pero para ver lo que publicas tienen que pedirte ser amigos."}
           </p>
         </section>
 
@@ -738,16 +741,21 @@ const noBtn = {
   border: "1.5px solid #e6cfc9", background: "#fff", color: "#c0392b", cursor: "pointer",
 };
 
-const switchTrack = {
-  position: "relative", width: 40, height: 22, borderRadius: 999,
-  flexShrink: 0, marginLeft: 12, transition: "background .18s ease",
+const segWrap = {
+  display: "flex", gap: 4, margin: "14px 20px 0", padding: 4,
+  background: "#e8efea", borderRadius: 999,
 };
 
-const switchKnob = {
-  position: "absolute", top: 2, left: 2, width: 18, height: 18,
-  borderRadius: 999, background: "#fff",
-  boxShadow: "0 1px 3px rgba(20,47,29,.3)",
-  transition: "transform .18s ease",
+const segBtn = {
+  flex: 1, padding: "9px 6px", borderRadius: 999, border: "none",
+  background: "none", cursor: "pointer", fontFamily: "inherit",
+  fontSize: 12.5, fontWeight: 800, color: "#6b7d70",
+  transition: "background .18s ease, color .18s ease",
+};
+
+const segOn = {
+  background: GREEN, color: "#fff", fontWeight: 900,
+  boxShadow: "0 2px 7px rgba(45,90,61,.3)",
 };
 
 const switchHint = {
@@ -807,20 +815,5 @@ const plainHead = {
 };
 
 const privacyBlock = { padding: 0, borderTop: "1px solid #eef3f0", background: "#f7fbf8" };
-
-
-
-// La franja ocupa la fila entera y se sale del padding de la seccion para
-// llegar a los dos bordes: es una banda, no una tarjeta dentro de otra.
-
-
-
-const privacyHead = {
-  display: "flex", alignItems: "center", gap: 10, width: "100%",
-  margin: 0, padding: "14px 20px", border: "none",
-  background: "#eaf3f0", cursor: "pointer",
-  fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#6b7d70",
-  textAlign: "left",
-};
 
 const empty = { margin: "8px 0 4px", fontSize: 12, fontWeight: 600, color: "#8aa294" };
