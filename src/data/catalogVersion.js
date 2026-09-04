@@ -27,8 +27,12 @@
 // recetas a 398 con verdura, 279 con lácteo, 67 fruta, 52 frutos secos, 45
 // setas y 32 encurtidos — derivado de la cantidad POR RACIÓN de cada
 // ingrediente, no de su presencia (scripts/derive-main-ingredients.mjs).
-// `montaje` 58 → 110, `occasion` 15 → 45, y dos ejes nuevos: `kidFavourite`
-// con 62 y `plancha` con 109 (scripts/mark-catalog-axes.mjs). Sin subir este
-// número no llegan a producción: Supabase está en 20 y empate significa que
-// gana la nube.
+// `montaje` 58 → 110, `occasion` 15 → 45, y tres ejes nuevos: `kidFavourite`
+// (62), `tecnica` (olla 298 / sartén 225 / horno 156 / crudo 110 / plancha 82)
+// y `cocina` (italiana 74, mediterránea 20, mexicana 9, asiática 8; ausente =
+// española). Ver scripts/mark-catalog-axes.mjs y, para saber si cada eje da
+// para servir una petición sin repetir plato, scripts/axis-coverage.mjs.
+//
+// Sin subir este número no llegan a producción: Supabase está en 20 y empate
+// significa que gana la nube.
 export const BUNDLED_CATALOG_VERSION = 21;

@@ -193,7 +193,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_002",
@@ -397,7 +398,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_003",
@@ -589,7 +591,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_004",
@@ -812,7 +815,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_005",
@@ -1018,7 +1022,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_006",
@@ -1223,7 +1228,8 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_007",
@@ -1457,7 +1463,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_008",
@@ -1646,7 +1653,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_009",
@@ -1825,7 +1833,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_010",
@@ -1984,7 +1993,9 @@
         "kind": "emplatado"
       }
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_011",
@@ -2203,7 +2214,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_012",
@@ -2332,7 +2344,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "legumbres_013",
@@ -2522,7 +2535,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_014",
@@ -2719,7 +2733,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_015",
@@ -2852,7 +2867,8 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_016",
@@ -3059,7 +3075,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_017",
@@ -3263,7 +3280,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_018",
@@ -3433,7 +3451,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_019",
@@ -3632,7 +3651,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_020",
@@ -3780,7 +3800,8 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_021",
@@ -3945,7 +3966,8 @@
     "mainIngredients": [
       "verdura",
       "encurtido"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "legumbres_022",
@@ -4113,7 +4135,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "crudo",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_023",
@@ -4295,7 +4318,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_024",
@@ -4474,7 +4499,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_025",
@@ -4738,7 +4765,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_026",
@@ -4893,7 +4921,9 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "crudo",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_027",
@@ -5040,7 +5070,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_028",
@@ -5271,7 +5303,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_029",
@@ -5510,7 +5544,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_030",
@@ -5689,7 +5724,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_031",
@@ -5884,7 +5920,8 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_032",
@@ -6106,7 +6143,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_033",
@@ -6294,7 +6332,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_034",
@@ -6514,7 +6554,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "legumbres_035",
@@ -6688,7 +6729,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_036",
@@ -6943,7 +6985,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_037",
@@ -7166,7 +7209,8 @@
     "estrella": true,
     "mainIngredients": [
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_038",
@@ -7374,7 +7418,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_039",
@@ -7616,7 +7661,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_040",
@@ -7857,7 +7903,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_041",
@@ -8119,7 +8166,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_042",
@@ -8339,7 +8387,8 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_043",
@@ -8492,7 +8541,8 @@
     "mainIngredients": [
       "verdura",
       "encurtido"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "legumbres_044",
@@ -8720,7 +8770,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_045",
@@ -8875,7 +8926,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_046",
@@ -9090,7 +9143,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_047",
@@ -9287,7 +9341,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_048",
@@ -9518,7 +9573,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_049",
@@ -9669,7 +9725,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_050",
@@ -9790,7 +9847,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "legumbres_051",
@@ -9974,7 +10032,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_052",
@@ -10217,7 +10276,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_053",
@@ -10407,7 +10467,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_054",
@@ -10632,7 +10693,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_055",
@@ -10858,7 +10920,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_056",
@@ -11047,7 +11110,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "legumbres_057",
@@ -11270,7 +11334,8 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_058",
@@ -11467,7 +11532,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_059",
@@ -11676,7 +11742,8 @@
       }
     ],
     "estrella": true,
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_060",
@@ -11848,7 +11915,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_061",
@@ -12050,7 +12119,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_062",
@@ -12221,7 +12291,8 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "legumbres_063",
@@ -12481,7 +12552,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_064",
@@ -12591,7 +12663,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_065",
@@ -12795,7 +12868,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_066",
@@ -13046,7 +13120,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_067",
@@ -13236,7 +13311,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "mediterranea"
   },
   {
     "id": "legumbres_068",
@@ -13303,7 +13380,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_069",
@@ -13374,7 +13452,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_070",
@@ -13439,7 +13518,8 @@
       "Servir caliente."
     ],
     "description": "Guiso de judías blancas con arroz y chorizo.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_071",
@@ -13506,7 +13586,8 @@
       "Rectificar de sal y servir."
     ],
     "description": "Garbanzos guisados con patatas en una salsa de pimentón.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_072",
@@ -13574,7 +13655,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "legumbres_073",
@@ -13636,6 +13718,7 @@
       "Mezclar con el arroz y servir."
     ],
     "description": "Garbanzos salteados con verduras y arroz blanco.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   }
 ]

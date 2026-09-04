@@ -169,7 +169,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_002",
@@ -318,7 +319,8 @@
     "saturated_fat_g": 5,
     "sodium_mg": 220,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_003",
@@ -478,7 +480,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_004",
@@ -608,7 +611,7 @@
     "sodium_mg": 380,
     "freezable": false,
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_005",
@@ -749,7 +752,8 @@
     "saturated_fat_g": 2,
     "sodium_mg": 120,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_006",
@@ -858,7 +862,7 @@
     "sodium_mg": 210,
     "freezable": false,
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_007",
@@ -990,7 +994,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_008",
@@ -1146,7 +1151,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_009",
@@ -1254,7 +1260,7 @@
     "sodium_mg": 280,
     "freezable": false,
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_010",
@@ -1365,7 +1371,8 @@
     "sugar_g": 0,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_011",
@@ -1486,7 +1493,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 280,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_012",
@@ -1585,7 +1593,8 @@
         "prepSummary": "En un recipiente pequeño apto para airfryer (tipo ramekin o cazuelita), mezcla las gambas, ajo laminado, guindilla y aceite. Cocina en la airfryer precalentada a 190°C durante 8-10 minutos, agitando a mitad, hasta que las gambas estén hechas y el ajo fragante. Añade perejil al se"
       }
     ],
-    "freezable": false
+    "freezable": false,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_013",
@@ -1753,7 +1762,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_014",
@@ -1879,7 +1889,8 @@
     "saturated_fat_g": 4,
     "sodium_mg": 520,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_015",
@@ -2024,7 +2035,8 @@
     "saturated_fat_g": 5,
     "sodium_mg": 780,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_016",
@@ -2177,7 +2189,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_017",
@@ -2342,7 +2355,8 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_018",
@@ -2533,7 +2547,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_019",
@@ -2693,7 +2708,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_020",
@@ -2831,7 +2847,7 @@
     "sodium_mg": 320,
     "freezable": false,
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_021",
@@ -3008,7 +3024,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_022",
@@ -3149,7 +3166,8 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_023",
@@ -3274,7 +3292,7 @@
     "sodium_mg": 85,
     "freezable": false,
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_024",
@@ -3427,7 +3445,8 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_025",
@@ -3612,7 +3631,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_026",
@@ -3821,7 +3841,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_027",
@@ -4042,7 +4063,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo",
+    "cocina": "asiatica"
   },
   {
     "id": "pescados_028",
@@ -4177,7 +4200,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_029",
@@ -4370,7 +4394,8 @@
     "mainIngredients": [
       "verdura",
       "fruta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pescados_030",
@@ -4524,7 +4549,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_031",
@@ -4647,7 +4673,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_032",
@@ -4838,7 +4865,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_033",
@@ -5025,7 +5052,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_034",
@@ -5217,7 +5244,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_035",
@@ -5395,7 +5423,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_036",
@@ -5555,7 +5584,8 @@
         "prepSummary": "Precalienta el horno a 200°C. Cubre la lubina con la mezcla de sal gruesa y claras, y hornea durante 55 minutos hasta que la costra esté dura y dorada, cocinándose en su propio jugo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_037",
@@ -5749,7 +5779,7 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_038",
@@ -5913,7 +5943,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_039",
@@ -6102,7 +6133,8 @@
       }
     ],
     "estrella": true,
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_040",
@@ -6306,7 +6338,8 @@
     "occasion": "especial",
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pescados_041",
@@ -6490,7 +6523,8 @@
         "prepSummary": "Sofríe el ajo y perejil, añade el vino y el caldo. Incorpora la merluza y las kokotxas para una cocción suave y controlada. Al final, añade las almejas para que se abran y emulsiona la salsa para lograr la textura perfecta."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_042",
@@ -6637,7 +6671,8 @@
         "prepSummary": "La Thermomix es excelente para el pil-pil. Primero, sofríe el ajo y la guindilla en el aceite. Luego, añade las kokotxas y cocina a baja temperatura (80-90°C) con giro inverso y velocidad cuchara, batiendo suavemente para emulsionar la gelatina con el aceite hasta lograr la textu"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_043",
@@ -6796,7 +6831,7 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_044",
@@ -7008,7 +7043,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "pescados_045",
@@ -7201,7 +7237,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_046",
@@ -7405,7 +7442,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pescados_047",
@@ -7628,7 +7666,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_048",
@@ -7781,7 +7820,8 @@
         "prepSummary": "Trocea el ajo y la guindilla. Sofríelos con el aceite en la Thermomix a 120°C, velocidad cuchara, durante 5 min. Añade las gambas, el jerez y la sal, y cocina 6-8 min a 100°C, giro inverso, velocidad cuchara."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_049",
@@ -7919,7 +7959,7 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_050",
@@ -8119,7 +8159,7 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "plancha": true
+    "tecnica": "horno"
   },
   {
     "id": "pescados_051",
@@ -8284,7 +8324,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_052",
@@ -8510,7 +8551,8 @@
         "prepSummary": "Prepara el sofrito en la olla sin presión. Añade las patatas, vino, caldo y azafrán, cierra la olla y cocina 10-12 minutos desde que sube la válvula. Libera la presión, incorpora el pescado, gambas y mejillones, y cocina 3-5 minutos más sin presión hasta que estén hechos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_053",
@@ -8779,7 +8821,8 @@
         "prepSummary": "Realiza los sofritos y la salsa directamente en la olla. Tras rellenar y sellar los calamares, cocínalos en la salsa a presión durante 15-20 minutos desde que sube la válvula, logrando una ternura excepcional en mucho menos tiempo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_054",
@@ -8918,7 +8961,7 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_055",
@@ -9102,7 +9145,7 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_056",
@@ -9256,7 +9299,7 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_057",
@@ -9429,7 +9472,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_058",
@@ -9566,7 +9609,8 @@
         "prepSummary": "La Thermomix es ideal para preparar la 'leche de tigre': tritura el ají amarillo, cebolla morada, cilantro y zumo de lima con el aceite de oliva. Luego, lamina la corvina muy fina y vierte la salsa para marinar, manteniendo el carácter crudo del tiradito."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_059",
@@ -9724,7 +9768,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_060",
@@ -9889,7 +9934,8 @@
     "sodium_mg": 820,
     "freezable": false,
     "methods": [],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_061",
@@ -10036,7 +10082,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_062",
@@ -10257,7 +10303,8 @@
       }
     ],
     "estrella": true,
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_063",
@@ -10444,7 +10491,8 @@
         "prepSummary": "Precalienta el horno a 200°C. Corta las patatas en gajos, rocíalas con aceite y ásalas durante 30-35 min. Enharina el bacalao, úntalo con un poco de aceite y hornéalo junto a las patatas los últimos 15-20 min, hasta que esté dorado y jugoso."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_064",
@@ -10603,7 +10651,7 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_065",
@@ -10792,7 +10840,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_066",
@@ -10953,7 +11001,9 @@
         "prepSummary": "Marina el salmón en la salsa teriyaki. Hornea a 200°C durante 15-20 minutos, pincelando varias veces con la salsa para lograr un glaseado brillante y una carne tierna."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten",
+    "cocina": "asiatica"
   },
   {
     "id": "pescados_067",
@@ -11119,7 +11169,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_068",
@@ -11326,7 +11377,8 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_069",
@@ -11509,7 +11561,7 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_070",
@@ -11707,7 +11759,8 @@
         "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta. Agrega los chipirones, el vino y el laurel, cierra la olla y cocina a presión alta durante 4-5 minutos. Deja despresurizar naturalmente para una textura perfecta."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_071",
@@ -11838,7 +11891,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_072",
@@ -12014,7 +12067,8 @@
         "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta. Añade el resto de ingredientes y los mejillones. Cierra la olla y cocina a presión alta 2-3 minutos desde que sube la válvula. Despresuriza y sirve."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_073",
@@ -12181,7 +12235,8 @@
         "prepSummary": "Sofríe el ajo picado, añade la harina, el vino blanco y el caldo de pescado. Incorpora las almejas y cocina a 100°C con giro inverso y velocidad cuchara durante 6-8 minutos, o hasta que se abran, finalizando con perejil picado."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_074",
@@ -12337,7 +12392,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_075",
@@ -12518,7 +12574,8 @@
         "prepSummary": "Precalienta el horno a 200°C (con ventilador si es posible). Enharina el pescado, rocía con aceite y distribúyelo en una bandeja con papel de horno. Hornea durante 20-25 minutos, volteando a mitad, hasta que esté dorado y crujiente."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_076",
@@ -12807,7 +12864,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_077",
@@ -13007,7 +13065,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_078",
@@ -13261,7 +13320,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "olla"
   },
   {
     "id": "pescados_079",
@@ -13420,7 +13479,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_080",
@@ -13609,7 +13669,8 @@
       }
     ],
     "estrella": true,
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_081",
@@ -13774,7 +13835,8 @@
     "estrella": true,
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_082",
@@ -13920,7 +13982,8 @@
         "prepSummary": "Precalienta la airfryer a 185°C. Dispón las sardinas en una sola capa, rocía con la mezcla de aderezo y cocina por 12-15 minutos, volteándolas a mitad de cocción para un dorado uniforme y piel crujiente."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_083",
@@ -14115,7 +14178,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "horno"
   },
   {
     "id": "pescados_084",
@@ -14295,7 +14359,7 @@
     "mainIngredients": [
       "fruta"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_085",
@@ -14481,7 +14545,8 @@
         "prepSummary": "Sofríe la cebolla, pimientos y ajo en la olla abierta. Añade el tomate triturado y cocina a presión durante 5-7 minutos. Despresuriza, incorpora los lomos de bacalao y cocina sin presión unos 3-5 minutos más hasta que el pescado esté hecho, evitando que se deshaga."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_086",
@@ -14650,7 +14715,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_087",
@@ -14875,7 +14941,8 @@
         "prepSummary": "Sofríe las verduras en la olla express. Incorpora los calamares, tintas, vino y caldo. Cierra la olla y cocina a presión durante 15-20 minutos. Despresuriza y sirve con arroz blanco cocido aparte."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_088",
@@ -15038,7 +15105,7 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_089",
@@ -15213,7 +15280,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_090",
@@ -15421,7 +15489,8 @@
         "prepSummary": "Sofríe las verduras en la olla. Añade las patatas, tomate, pimentón y caldo. Cierra y cocina 10-12 minutos desde que sube la presión. Despresuriza, añade el bonito y deja reposar 5 minutos con el calor residual."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_091",
@@ -15628,7 +15697,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "pescados_092",
@@ -15850,7 +15920,8 @@
         "prepSummary": "Sofríe las verduras en la olla abierta. Añade el caldo y los fideos, cierra la olla y cocina a presión durante 3-5 minutos. Despresuriza, añade el rape y las gambas, y cocina unos minutos más sin presión hasta que estén hechos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_093",
@@ -16014,7 +16085,8 @@
     "occasion": "especial",
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pescados_094",
@@ -16205,7 +16277,7 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "plancha": true
+    "tecnica": "horno"
   },
   {
     "id": "pescados_095",
@@ -16379,7 +16451,8 @@
         "prepSummary": "Pica el ajo y perejil. Prepara la salsa verde en el vaso, sofriendo el ajo y luego añadiendo la harina, vino y caldo para cocinarla. Incorpora el congrio y las almejas y cocina a 90-100°C, velocidad cuchara inversa, durante 15-20 minutos, hasta que el pescado esté hecho y las alm"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pescados_096",
@@ -16576,7 +16649,7 @@
       "verdura",
       "frutos_secos"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_097",
@@ -16774,7 +16847,9 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten",
+    "cocina": "mexicana"
   },
   {
     "id": "pescados_098",
@@ -16977,7 +17052,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pescados_099",
@@ -17186,7 +17262,7 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_100",
@@ -17398,7 +17474,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pescados_101",
@@ -17646,7 +17723,7 @@
       "lacteo",
       "encurtido"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_102",
@@ -17847,7 +17924,8 @@
         "prepSummary": "Precalienta el horno a 200°C. Hornea la pescadilla enharinada y rociada con un hilo de aceite durante 15-20 minutos. Las patatas cortadas finas, con un poco de aceite y sal, hornéalas en una sola capa por 25-35 minutos, volteándolas a mitad, hasta que estén doradas y crujientes."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_103",
@@ -18109,7 +18187,8 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha",
+    "cocina": "asiatica"
   },
   {
     "id": "pescados_104",
@@ -18362,7 +18441,7 @@
     "sodium_mg": 520,
     "freezable": false,
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_105",
@@ -18582,7 +18661,8 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_106",
@@ -18811,7 +18891,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha",
+    "cocina": "asiatica"
   },
   {
     "id": "pescados_107",
@@ -19037,7 +19118,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_108",
@@ -19250,7 +19332,8 @@
     "estrella": true,
     "mainIngredients": [
       "encurtido"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_109",
@@ -19535,7 +19618,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "horno"
   },
   {
     "id": "pescados_110",
@@ -19700,7 +19784,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_111",
@@ -19874,7 +19958,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_112",
@@ -20084,7 +20169,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "horno"
   },
   {
     "id": "pescados_113",
@@ -20381,7 +20467,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_114",
@@ -20659,7 +20746,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_115",
@@ -20853,7 +20941,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_116",
@@ -21078,7 +21167,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_117",
@@ -21270,7 +21360,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pescados_118",
@@ -21483,7 +21574,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_119",
@@ -21663,7 +21755,8 @@
     "saturated_fat_g": 5,
     "sodium_mg": 820,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_120",
@@ -21742,7 +21835,8 @@
       "fruta",
       "encurtido"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_121",
@@ -21801,7 +21895,8 @@
       "Hornear 12-15 min hasta que esté hecho por dentro."
     ],
     "description": "Lomos de salmón al horno aromatizados con limón, ajo y eneldo fresco.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_122",
@@ -21860,7 +21955,8 @@
       "Servir caliente con la salsa por encima."
     ],
     "description": "Atún fresco cocinado con una salsa de cebolla pochada y tomate.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_123",
@@ -21931,7 +22027,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_124",
@@ -21991,7 +22088,7 @@
     ],
     "description": "Filetes de merluza a la plancha con una ajada de ajo, pimentón y vinagre.",
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_125",
@@ -22060,7 +22157,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pescados_126",
@@ -22115,7 +22212,8 @@
       "Napar el bacalao con la salsa y servir con el ajo dorado y la guindilla."
     ],
     "description": "Bacalao confitado a fuego suave con una salsa emulsionada de su propio aceite y ajo.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pescados_127",
@@ -22175,7 +22273,8 @@
       "Hornear 20-25 min más hasta que esté hecha."
     ],
     "description": "Lubina entera al horno sobre una cama de patatas panadera con limón.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "pescados_128",
@@ -22239,6 +22338,6 @@
     "mainIngredients": [
       "frutos_secos"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   }
 ]

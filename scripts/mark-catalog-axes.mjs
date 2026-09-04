@@ -1,8 +1,8 @@
 /**
  * mark-catalog-axes.mjs
  *
- * Marca cuatro ejes de curación en src/data/recipes/*.json: `montaje`,
- * `plancha`, `occasion` y `kidFavourite`.
+ * Marca cinco ejes en src/data/recipes/*.json: `montaje`, `occasion`,
+ * `kidFavourite`, `tecnica` y `cocina`.
  *
  * ── Por qué listas de ids y no reglas ─────────────────────────────────────
  * `mainIngredients` se DERIVA (ver derive-main-ingredients.mjs) porque la
@@ -31,6 +31,8 @@ const FILES = [
   "desayunos", "meriendas", "postres",
 ];
 
+const norm = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+
 // ── montaje ───────────────────────────────────────────────────────────────
 // "Se monta, no se cocina": tostas, bocadillos, wraps, tartares, ceviches,
 // gazpachos y sopas frías, y la ensalada de asamblaje. Fuera quedan dos que el
@@ -54,49 +56,65 @@ const MONTAJE = [
 ];
 
 
-// ── plancha ───────────────────────────────────────────────────────────────
-// La técnica que faltaba, y la única que faltaba.
+// ── tecnica ───────────────────────────────────────────────────────────────
+// La técnica DOMINANTE del plato: la que decide cómo se cocina, no las que se
+// mencionan.
 //
-// Se probó a derivar el eje de técnica ENTERO de los pasos y no sale: sartén
-// dispara en el 73% del catálogo y olla en el 55%, porque casi todo sofríe
-// cebolla — un filtro que acepta a tres de cada cuatro no filtra nada. Es la
-// misma trampa del ajo en mainIngredients.
+// Contar menciones en los pasos no sirve: "sartén" aparece en el 73% del
+// catálogo y "olla" en el 55%, porque casi todo empieza sofriendo cebolla. Un
+// filtro que acepta a tres de cada cuatro no filtra nada — la misma trampa del
+// ajo en mainIngredients.
 //
-// Mirando técnica por técnica, resulta que las demás YA tienen quien las
-// represente: horno es requiredAppliance, frito es un healthFlag derivado,
-// guiso es isPlatoCuchara (nombre + categoría) y crudo es montaje. La plancha
-// no tenía nada, y en una casa española es de lo que más se dice.
+// Lo que sí funciona es una PRIORIDAD: gana lo que define el plato sobre lo
+// que solo aparece. Primero el nombre (que es donde la gente pone la técnica:
+// "a la plancha", "al horno"), después el electrodoméstico declarado, y solo
+// al final los pasos. `sarten` es el resto por descarte y nunca el primer
+// candidato, que es exactamente su papel: lo que se hace en una sartén sin más.
 //
-// Sale del nombre o de los pasos: 57 la llevan en el título ("Pechugas de
-// pollo a la plancha") y el resto solo por dentro (hamburguesas, filetes
-// rusos, brochetas, entrecot). Para quien pide "algo a la plancha" son lo
-// mismo.
-const PLANCHA = [
-  "legumbres_022", "carnes_002", "carnes_007", "carnes_009", "carnes_014",
-  "carnes_018", "carnes_024", "carnes_027", "carnes_030", "carnes_045", "carnes_047",
-  "carnes_054", "carnes_056", "carnes_057", "carnes_058", "carnes_059", "carnes_060",
-  "carnes_061", "carnes_062", "carnes_063", "carnes_064", "carnes_074", "carnes_082",
-  "carnes_083", "carnes_091", "carnes_092", "carnes_101", "carnes_102", "carnes_104",
-  "carnes_106", "carnes_109", "carnes_110", "carnes_115", "carnes_120", "carnes_121",
-  "carnes_122", "carnes_125", "carnes_129", "carnes_131", "carnes_132", "carnes_133",
-  "carnes_134", "carnes_149", "carnes_150", "carnes_151", "carnes_153", "carnes_156",
-  "pescados_004", "pescados_006", "pescados_009", "pescados_020", "pescados_023",
-  "pescados_032", "pescados_033", "pescados_037", "pescados_043", "pescados_049",
-  "pescados_050", "pescados_054", "pescados_055", "pescados_056", "pescados_057",
-  "pescados_061", "pescados_064", "pescados_065", "pescados_069", "pescados_071",
-  "pescados_078", "pescados_084", "pescados_088", "pescados_094", "pescados_096",
-  "pescados_099", "pescados_101", "pescados_103", "pescados_104", "pescados_106",
-  "pescados_110", "pescados_124", "pescados_125", "pescados_128", "huevos_069",
-  "pasta_arroces_021", "sopas_cremas_030", "sopas_cremas_061",
-  "ensaladas_verduras_008", "ensaladas_verduras_018", "ensaladas_verduras_024",
-  "ensaladas_verduras_031", "ensaladas_verduras_032", "ensaladas_verduras_048",
-  "ensaladas_verduras_052", "ensaladas_verduras_087", "ensaladas_verduras_095",
-  "ensaladas_verduras_096", "ensaladas_verduras_100", "ensaladas_verduras_109",
-  "ensaladas_verduras_112", "ensaladas_verduras_116", "ensaladas_verduras_119",
-  "ensaladas_verduras_123", "platos_unicos_009", "platos_unicos_014",
-  "cenas_rapidas_002", "cenas_rapidas_004", "cenas_rapidas_005", "cenas_rapidas_006",
-  "cenas_rapidas_008", "cenas_rapidas_017",
-];
+// Da un reparto que discrimina: olla 36%, sartén 23%, horno 18%, crudo 13%,
+// plancha 10%. Ninguno se come el catálogo.
+const CUCHARA_RE = /\b(guiso|estofad|potaje|cocido|caldo|fabada|marmitako|puchero|olla|sopa|crema|pisto|alubiada)/;
+const HORNO_RE = /\b(al horno|asad[oa]|gratinad|empanada|coca|lasan|pastel|tarta|calzone|pizza|papillote|hornead)/;
+const PLANCHA_RE = /\b(a la plancha|plancha|parrilla|a la brasa|brasead|grill|entrecot|chuleton|tataki|brocheta|hamburgues|filete ruso|steak)/;
+const FRITO_RE = /\b(frit|rebozad|empanad|bu[nñ]uel|croquet|tempura|nugget|varitas|torrezno|churro)/;
+
+function tecnicaDe(recipe) {
+  const name = norm(recipe.name);
+  const steps = norm((recipe.steps ?? []).join(" "));
+  if (recipe.montaje === true) return "crudo";
+  if (PLANCHA_RE.test(name)) return "plancha";
+  if (HORNO_RE.test(name) || recipe.requiredAppliance === "horno") return "horno";
+  if (FRITO_RE.test(name)) return "sarten";
+  if (CUCHARA_RE.test(name) || recipe.category === "sopas_cremas" || recipe.category === "legumbres") return "olla";
+  if (PLANCHA_RE.test(steps)) return "plancha";
+  if (HORNO_RE.test(steps)) return "horno";
+  if (CUCHARA_RE.test(steps)) return "olla";
+  return "sarten";
+}
+
+// ── cocina ────────────────────────────────────────────────────────────────
+// De dónde es el plato. Ausente = española, que es lo que este catálogo es de
+// serie: marcar 580 recetas como "espanola" sería ruido para decir lo obvio.
+//
+// Sale SOLO del nombre, nunca de los ingredientes. Derivarlo de la despensa es
+// una trampa doble que se comprobó y falla: la salsa de soja convertía en
+// "asiáticas" a unas costillas BBQ y a un pollo a la naranja, y "tortilla" en
+// España es una cosa y en México otra — etiquetaba de mexicanas la tortilla de
+// jamón y queso y hasta el marmitako. El nombre del plato sí dice de dónde es.
+const COCINA_RE = {
+  italiana: /\b(espagueti|macarron|rigatoni|tagliatelle|risotto|lasan|canelones|pizza|calzone|pesto|carbonara|bolo[nñ]esa|caprese|bruschetta|gnocchi|focaccia|ravioli|fettuccine|penne|linguine|tortellini|vongole|amatriciana|puttanesca|cacio e pepe|parmigiana|saltimbocca|pasta)/,
+  asiatica: /\b(teriyaki|wok|noodles|udon|ramen|poke|tataki|edamame|hoisin|gochujang|pad thai|gyoza|yakisoba|estilo asiatico|salteado oriental|curry (rojo|verde|tailandes)|katsu|bibimbap|dumpling)/,
+  mexicana: /\b(guacamole|quesadilla|nachos|tacos? de|fajitas?|burrito|chipotle|cochinita|pico de gallo|rancheros|chili con carne|enchilada)/,
+  mediterranea: /\b(hummus|falafel|tahini|cuscus|tabule|shakshuka|tzatziki|kebab|baba ganoush|halloumi|labneh|moussaka|pita)/,
+};
+
+function cocinaDe(recipe) {
+  const name = norm(recipe.name);
+  for (const [cocina, re] of Object.entries(COCINA_RE)) {
+    if (re.test(name)) return cocina;
+  }
+  return null;
+}
 
 // ── occasion: "especial" ──────────────────────────────────────────────────
 // Pieza de CELEBRACIÓN, no "plato que tarda". Una fabada tarda dos horas y se
@@ -131,7 +149,6 @@ const KID_SHAPES = /\b(empanad[oa]|rebozad|escalope|san jacobo|nugget|croqueta|a
 // enteras o asadas).
 const KID_NOPE = /\b(cabra|brie|roquefort|azul|curado|gorgonzola|jengibre|especiad|curry|picante|guindilla|mostaza|coliflor|esparrago|pimientos asados|alcaparra|anchoa|nueces|almendra|pistacho|salvia|cacio e pepe|tres quesos|gourmet|teriyaki|ajada|romero)/;
 
-const norm = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 
 function isKidFavourite(recipe) {
   if (!recipe.estrella || !recipe.kidFriendly) return false;
@@ -143,8 +160,9 @@ function isKidFavourite(recipe) {
 const write = process.argv.includes("--write");
 const montajeSet = new Set(MONTAJE);
 const especialSet = new Set(ESPECIAL);
-const planchaSet = new Set(PLANCHA);
-const counts = { montaje: 0, especial: 0, kid: 0, plancha: 0 };
+const counts = { montaje: 0, especial: 0, kid: 0 };
+const tecnicas = {};
+const cocinas = {};
 const kidNames = [];
 
 for (const file of FILES) {
@@ -153,7 +171,7 @@ for (const file of FILES) {
   for (const recipe of recipes) {
     if (montajeSet.has(recipe.id)) recipe.montaje = true;
     if (especialSet.has(recipe.id)) recipe.occasion = "especial";
-    if (planchaSet.has(recipe.id)) recipe.plancha = true;
+
     if (isKidFavourite(recipe)) {
       recipe.kidFavourite = true;
       kidNames.push(`  ${recipe.id.padEnd(22)}${recipe.name.slice(0, 54)}`);
@@ -161,7 +179,14 @@ for (const file of FILES) {
     if (recipe.montaje === true) counts.montaje++;
     if (recipe.occasion === "especial") counts.especial++;
     if (recipe.kidFavourite === true) counts.kid++;
-    if (recipe.plancha === true) counts.plancha++;
+    // El booleano `plancha` de la pasada anterior se subsume en `tecnica`:
+    // dos campos para el mismo concepto se contradicen a la primera.
+    delete recipe.plancha;
+    recipe.tecnica = tecnicaDe(recipe);
+    tecnicas[recipe.tecnica] = (tecnicas[recipe.tecnica] ?? 0) + 1;
+    const cocina = cocinaDe(recipe);
+    if (cocina) { recipe.cocina = cocina; cocinas[cocina] = (cocinas[cocina] ?? 0) + 1; }
+    else delete recipe.cocina;
   }
   if (write) writeFileSync(path, JSON.stringify(recipes, null, 2) + "\n", "utf8");
 }
@@ -169,7 +194,8 @@ for (const file of FILES) {
 console.log(`montaje:       ${counts.montaje}`);
 console.log(`occasion=esp:  ${counts.especial}`);
 console.log(`kidFavourite:  ${counts.kid}`);
-console.log(`plancha:       ${counts.plancha}`);
+console.log(`tecnica:       ${JSON.stringify(tecnicas)}`);
+console.log(`cocina:        ${JSON.stringify(cocinas)} (el resto, española)`);
 console.log("\nkidFavourite:");
 console.log(kidNames.join("\n"));
 console.log(write ? "\n✅ Escrito." : "\n(informe: nada escrito — pasa --write para aplicar)");

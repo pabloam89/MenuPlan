@@ -164,7 +164,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_002",
@@ -282,7 +283,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 1,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_003",
@@ -476,7 +478,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_004",
@@ -624,7 +627,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_005",
@@ -764,7 +768,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_006",
@@ -946,7 +951,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_007",
@@ -1152,7 +1158,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_008",
@@ -1297,7 +1304,8 @@
     "freezable": false,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_009",
@@ -1454,7 +1462,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_010",
@@ -1638,7 +1647,8 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "sopas_cremas_011",
@@ -1831,7 +1841,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_012",
@@ -2028,7 +2039,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_013",
@@ -2175,7 +2187,8 @@
     "freezable": false,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "sopas_cremas_014",
@@ -2346,7 +2359,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_015",
@@ -2494,7 +2508,8 @@
       "fruta",
       "frutos_secos"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_016",
@@ -2665,7 +2680,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_017",
@@ -2830,7 +2846,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_018",
@@ -2962,7 +2979,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 2,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_019",
@@ -3134,7 +3152,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_020",
@@ -3309,7 +3328,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_021",
@@ -3454,7 +3474,8 @@
     "sodium_mg": 820,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_022",
@@ -3662,7 +3683,8 @@
       "verdura",
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "sopas_cremas_023",
@@ -3883,7 +3905,8 @@
       "verdura",
       "lacteo"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_024",
@@ -4054,7 +4077,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_025",
@@ -4191,7 +4215,8 @@
     "mainIngredients": [
       "verdura",
       "fruta"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_026",
@@ -4351,7 +4376,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_027",
@@ -4532,7 +4558,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_028",
@@ -4688,7 +4715,8 @@
       "verdura",
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_029",
@@ -4871,7 +4899,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_030",
@@ -5039,7 +5068,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "horno"
   },
   {
     "id": "sopas_cremas_031",
@@ -5211,7 +5240,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "sopas_cremas_032",
@@ -5375,7 +5405,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_033",
@@ -5529,7 +5560,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_034",
@@ -5679,7 +5711,8 @@
       "verdura",
       "lacteo"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_035",
@@ -5832,7 +5865,8 @@
     "mainIngredients": [
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_036",
@@ -5955,7 +5989,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_037",
@@ -6111,7 +6146,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_038",
@@ -6288,7 +6324,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_039",
@@ -6489,7 +6526,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_040",
@@ -6660,7 +6698,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_041",
@@ -6855,7 +6894,8 @@
     "saturated_fat_g": 2,
     "sodium_mg": 620,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_042",
@@ -7047,7 +7087,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "horno"
   },
   {
     "id": "sopas_cremas_043",
@@ -7245,7 +7286,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_044",
@@ -7475,7 +7517,8 @@
     "saturated_fat_g": 2,
     "sodium_mg": 720,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_045",
@@ -7663,7 +7706,8 @@
       "verdura",
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_046",
@@ -7836,7 +7880,8 @@
     "mainIngredients": [
       "verdura",
       "fruta"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_047",
@@ -8023,7 +8068,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_048",
@@ -8183,7 +8229,8 @@
     "estrella": true,
     "mainIngredients": [
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_049",
@@ -8361,7 +8408,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_050",
@@ -8536,7 +8584,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_051",
@@ -8725,7 +8774,8 @@
       "verdura",
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_052",
@@ -8929,7 +8979,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_053",
@@ -9145,7 +9196,8 @@
       "verdura",
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_054",
@@ -9336,7 +9388,8 @@
       "verdura",
       "lacteo",
       "fruta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_055",
@@ -9535,7 +9588,8 @@
       "verdura",
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_056",
@@ -9666,7 +9720,8 @@
       "lacteo",
       "fruta"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_057",
@@ -9852,7 +9907,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "sopas_cremas_058",
@@ -10063,7 +10119,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_059",
@@ -10287,7 +10344,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_060",
@@ -10426,7 +10484,8 @@
     "saturated_fat_g": 4,
     "sodium_mg": 620,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_061",
@@ -10679,7 +10738,7 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "sopas_cremas_062",
@@ -10850,7 +10909,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_063",
@@ -11028,7 +11088,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_064",
@@ -11197,7 +11258,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_065",
@@ -11363,7 +11425,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_066",
@@ -11543,7 +11606,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_067",
@@ -11686,7 +11750,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_068",
@@ -11848,7 +11913,8 @@
     "mainIngredients": [
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_069",
@@ -12077,7 +12143,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_070",
@@ -12234,7 +12301,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_071",
@@ -12429,7 +12497,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "sopas_cremas_072",
@@ -12630,7 +12699,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "sopas_cremas_073",
@@ -12773,7 +12843,8 @@
     "mainIngredients": [
       "verdura",
       "fruta"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_074",
@@ -12937,7 +13008,8 @@
       "verdura",
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_075",
@@ -13124,7 +13196,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "sopas_cremas_076",
@@ -13299,7 +13372,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_077",
@@ -13475,7 +13549,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_078",
@@ -13652,7 +13727,8 @@
       "verdura",
       "seta",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_079",
@@ -13796,7 +13872,8 @@
       "verdura",
       "fruta"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_080",
@@ -13971,7 +14048,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_081",
@@ -14193,7 +14271,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_082",
@@ -14261,7 +14340,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_083",
@@ -14324,7 +14404,8 @@
       "Servir espolvoreado con perejil."
     ],
     "description": "Sopa de fideos con jamón y huevo duro picado, la sopa de toda la vida.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_084",
@@ -14392,7 +14473,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_085",
@@ -14462,7 +14544,8 @@
       "Tostar el pan en dados y servir la sopa con los picatostes por encima."
     ],
     "description": "Sopa de pescado sencilla con fideos y picatostes, sin mariscos caros.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_086",
@@ -14527,6 +14610,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   }
 ]

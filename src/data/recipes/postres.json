@@ -115,7 +115,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_002",
@@ -197,7 +198,8 @@
     "mainIngredients": [
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_003",
@@ -269,7 +271,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_004",
@@ -399,7 +402,8 @@
     "freezable": false,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "postres_005",
@@ -543,7 +547,8 @@
     "freezable": false,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "postres_006",
@@ -652,7 +657,8 @@
     "freezable": false,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_007",
@@ -773,7 +779,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_008",
@@ -819,7 +826,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_009",
@@ -900,7 +908,8 @@
     "mainIngredients": [
       "lacteo",
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_013",
@@ -950,7 +959,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_014",
@@ -1071,7 +1081,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_015",
@@ -1184,7 +1195,8 @@
     "freezable": false,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "postres_016",
@@ -1383,7 +1395,8 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_017",
@@ -1563,7 +1576,8 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_018",
@@ -1733,7 +1747,8 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_019",
@@ -1890,7 +1905,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_020",
@@ -2082,7 +2098,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_021",
@@ -2278,7 +2295,8 @@
     "estrella": true,
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_022",
@@ -2544,7 +2562,8 @@
     "saturated_fat_g": 9,
     "sodium_mg": 80,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "postres_023",
@@ -2711,7 +2730,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "postres_024",
@@ -2823,7 +2843,8 @@
     "saturated_fat_g": 12,
     "sodium_mg": 95,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "postres_025",
@@ -3010,7 +3031,8 @@
     "mainIngredients": [
       "lacteo",
       "fruta"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_026",
@@ -3214,7 +3236,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_027",
@@ -3426,7 +3449,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_028",
@@ -3664,7 +3688,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_029",
@@ -3902,7 +3927,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_030",
@@ -4058,7 +4084,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_031",
@@ -4184,7 +4211,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "postres_032",
@@ -4322,7 +4350,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "postres_033",
@@ -4495,7 +4524,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_034",
@@ -4698,7 +4728,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "postres_035",
@@ -4865,7 +4896,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "postres_036",
@@ -5057,6 +5089,7 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   }
 ]

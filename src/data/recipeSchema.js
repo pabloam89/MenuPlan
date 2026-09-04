@@ -179,15 +179,21 @@ export const RecipeSchema = z
     // kidFriendly + dificultad, que es justo la aproximación que se quedaba
     // corta (ver utils/recipeIntents.js).
     kidFavourite: z.boolean().optional(),
-    // ¿Se hace A LA PLANCHA? La única técnica que no tenía quien la
-    // representara, y en una casa española de lo que más se dice.
+    // Cómo se cocina, en una palabra: la técnica DOMINANTE, no las que se
+    // mencionan de paso.
     //
-    // No hay eje de "técnica" completo a propósito: derivarlo de los pasos no
-    // sale (sartén dispara en el 73% del catálogo y olla en el 55%, porque
-    // casi todo sofríe cebolla), y las demás técnicas ya tienen su señal —
-    // horno es `requiredAppliance`, frito es un healthFlag derivado, guiso es
-    // isPlatoCuchara y crudo es `montaje`. Faltaba esta y solo esta.
-    plancha: z.boolean().optional(),
+    // Contar menciones no sirve — "sartén" aparece en el 73% de los pasos del
+    // catálogo y "olla" en el 55%, porque casi todo empieza sofriendo cebolla.
+    // Se resuelve con una prioridad (nombre → electrodoméstico → pasos), que
+    // da un reparto que sí distingue: olla 38%, sartén 29%, horno 20%, crudo
+    // 14%, plancha 10%. Ver scripts/mark-catalog-axes.mjs.
+    tecnica: z.enum(["horno", "plancha", "sarten", "olla", "crudo"]).optional(),
+    // De dónde es el plato. AUSENTE = española, que es lo que este catálogo es
+    // de serie: marcar 580 recetas como "espanola" sería ruido para decir lo
+    // obvio. Sale solo del NOMBRE — derivarlo de los ingredientes hacía
+    // "asiáticas" a unas costillas BBQ por llevar salsa de soja, y mexicana a
+    // la tortilla de jamón y queso.
+    cocina: z.enum(["italiana", "asiatica", "mexicana", "mediterranea"]).optional(),
     // "Cena rápida" de verdad: se monta, no se cocina (sándwich, tostas, tabla,
     // ensalada de asamblaje). Sustituye a category "cenas_rapidas".
     //

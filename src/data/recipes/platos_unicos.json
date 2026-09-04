@@ -178,7 +178,8 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "platos_unicos_002",
@@ -358,7 +359,9 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "platos_unicos_003",
@@ -567,7 +570,8 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "platos_unicos_004",
@@ -829,7 +833,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "platos_unicos_005",
@@ -1017,7 +1022,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "platos_unicos_006",
@@ -1171,7 +1177,8 @@
     "freezable": false,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "platos_unicos_007",
@@ -1385,7 +1392,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "platos_unicos_008",
@@ -1564,7 +1572,8 @@
     "freezable": false,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "platos_unicos_009",
@@ -1713,7 +1722,7 @@
       "lacteo"
     ],
     "montaje": true,
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "platos_unicos_010",
@@ -1932,7 +1941,8 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "platos_unicos_011",
@@ -2085,7 +2095,8 @@
     "freezable": false,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "platos_unicos_012",
@@ -2289,7 +2300,8 @@
     "mainIngredients": [
       "verdura",
       "seta"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "platos_unicos_013",
@@ -2488,7 +2500,9 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "platos_unicos_014",
@@ -2627,7 +2641,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "platos_unicos_015",
@@ -2774,7 +2788,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 4,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "sarten"
   },
   {
     "id": "platos_unicos_016",
@@ -2941,7 +2956,8 @@
     "saturated_fat_g": 5,
     "sodium_mg": 420,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "platos_unicos_017",
@@ -3122,7 +3138,9 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "mexicana"
   },
   {
     "id": "platos_unicos_018",
@@ -3300,7 +3318,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "olla"
   },
   {
     "id": "platos_unicos_019",
@@ -3449,7 +3468,9 @@
     "montaje": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "crudo",
+    "cocina": "mexicana"
   },
   {
     "id": "platos_unicos_020",
@@ -3623,6 +3644,7 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   }
 ]

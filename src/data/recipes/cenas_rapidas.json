@@ -111,7 +111,8 @@
     "montaje": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_002",
@@ -231,7 +232,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_003",
@@ -416,7 +417,8 @@
       "verdura",
       "lacteo",
       "fruta"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_004",
@@ -533,7 +535,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_005",
@@ -661,7 +663,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_006",
@@ -788,7 +790,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_007",
@@ -903,7 +905,9 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo",
+    "cocina": "mexicana"
   },
   {
     "id": "cenas_rapidas_008",
@@ -1037,7 +1041,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "crudo",
+    "cocina": "italiana"
   },
   {
     "id": "cenas_rapidas_009",
@@ -1132,7 +1137,8 @@
     "mainIngredients": [
       "lacteo",
       "encurtido"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_010",
@@ -1233,7 +1239,8 @@
     "mainIngredients": [
       "lacteo",
       "encurtido"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_012",
@@ -1377,7 +1384,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_013",
@@ -1534,7 +1542,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_016",
@@ -1663,7 +1672,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_017",
@@ -1786,7 +1796,7 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_014",
@@ -1914,7 +1924,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_015",
@@ -2026,6 +2037,7 @@
     "mainIngredients": [
       "lacteo",
       "fruta"
-    ]
+    ],
+    "tecnica": "crudo"
   }
 ]

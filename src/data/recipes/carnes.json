@@ -187,7 +187,8 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_002",
@@ -310,7 +311,7 @@
     "sodium_mg": 95,
     "freezable": false,
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_003",
@@ -506,7 +507,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_004",
@@ -631,7 +633,8 @@
     "saturated_fat_g": 6,
     "sodium_mg": 380,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_005",
@@ -839,7 +842,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_006",
@@ -997,7 +1001,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_007",
@@ -1112,7 +1117,7 @@
     "saturated_fat_g": 6,
     "sodium_mg": 180,
     "freezable": false,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_008",
@@ -1310,7 +1315,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_009",
@@ -1505,7 +1511,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_010",
@@ -1696,7 +1702,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_011",
@@ -1895,7 +1902,8 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_012",
@@ -2104,7 +2112,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_013",
@@ -2270,7 +2279,8 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_014",
@@ -2458,7 +2468,7 @@
       }
     ],
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_015",
@@ -2667,7 +2677,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_016",
@@ -2872,7 +2883,8 @@
     ],
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_017",
@@ -3039,7 +3051,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_018",
@@ -3163,7 +3176,7 @@
     "sodium_mg": 180,
     "freezable": false,
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_019",
@@ -3346,7 +3359,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_020",
@@ -3535,7 +3549,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_021",
@@ -3744,7 +3759,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_022",
@@ -3954,7 +3970,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_023",
@@ -4088,7 +4105,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 7,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_024",
@@ -4205,7 +4223,7 @@
     "sodium_mg": 95,
     "freezable": false,
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_025",
@@ -4392,7 +4410,8 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_026",
@@ -4590,7 +4609,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_027",
@@ -4713,7 +4733,7 @@
     "sodium_mg": 320,
     "freezable": false,
     "canReceiveSauce": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_028",
@@ -4929,7 +4949,8 @@
     ],
     "mainIngredients": [
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_029",
@@ -5131,7 +5152,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_030",
@@ -5291,7 +5313,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_031",
@@ -5482,7 +5504,8 @@
     ],
     "mainIngredients": [
       "seta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_032",
@@ -5612,7 +5635,8 @@
     "saturated_fat_g": 4,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_033",
@@ -5809,7 +5833,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_034",
@@ -5988,7 +6013,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_035",
@@ -6175,7 +6201,8 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_036",
@@ -6339,7 +6366,8 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_037",
@@ -6650,7 +6678,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_038",
@@ -6920,7 +6949,8 @@
     "mainIngredients": [
       "seta"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "horno"
   },
   {
     "id": "carnes_039",
@@ -7164,7 +7194,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "horno"
   },
   {
     "id": "carnes_040",
@@ -7365,7 +7396,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "carnes_041",
@@ -7569,7 +7601,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_042",
@@ -7916,7 +7949,8 @@
       "verdura",
       "lacteo"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "carnes_043",
@@ -8145,7 +8179,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "horno"
   },
   {
     "id": "carnes_044",
@@ -8380,7 +8415,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_045",
@@ -8560,7 +8596,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_046",
@@ -8746,7 +8782,8 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_047",
@@ -8944,7 +8981,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_048",
@@ -9263,7 +9300,8 @@
         "prepSummary": "Sella el ossobuco y sofríe las verduras en la propia olla. Añade el resto de ingredientes líquidos, cierra y cocina a presión alta durante 45-60 minutos. La olla express reduce drásticamente el tiempo de cocción, obteniendo una carne muy tierna y una salsa concentrada."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "carnes_049",
@@ -9462,7 +9500,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_050",
@@ -9706,7 +9745,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_051",
@@ -9927,7 +9967,8 @@
         "prepSummary": "Cocina las costillas marinadas en la olla express con un poco de líquido durante 35-40 minutos a alta presión para ablandarlas. Luego, pásalas a una bandeja de horno o airfryer, píntalas con la salsa y hornea/fríe a 200°C durante 15-20 minutos hasta que estén bien glaseadas y car"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_052",
@@ -10184,7 +10225,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_053",
@@ -10402,7 +10444,8 @@
       "lacteo",
       "fruta"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "carnes_054",
@@ -10533,7 +10576,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_055",
@@ -10781,7 +10824,8 @@
         "prepSummary": "Sella la carrillada y sofríe las verduras en la olla express. Incorpora el resto de ingredientes, cierra la olla y cocina a presión durante 45-60 minutos. La cocción a alta presión reduce drásticamente el tiempo, logrando una carne extremadamente tierna y una salsa concentrada."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "carnes_056",
@@ -10966,7 +11010,8 @@
     "mainIngredients": [
       "frutos_secos"
     ],
-    "plancha": true
+    "tecnica": "plancha",
+    "cocina": "asiatica"
   },
   {
     "id": "carnes_057",
@@ -11117,7 +11162,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_058",
@@ -11285,7 +11330,7 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_059",
@@ -11437,7 +11482,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_060",
@@ -11561,7 +11606,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_061",
@@ -11721,7 +11766,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_062",
@@ -11937,7 +11982,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_063",
@@ -12181,7 +12226,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_064",
@@ -12408,7 +12453,7 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_065",
@@ -12602,7 +12647,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_066",
@@ -12857,7 +12903,8 @@
         "prepSummary": "Cocinar las costillas sazonadas en la olla express con un poco de líquido durante 25-30 minutos a presión para tiernizarlas. Finalizar en el horno o airfryer a 200°C, untando con la salsa casera, por 15-20 minutos hasta dorar y caramelizar."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_067",
@@ -13082,7 +13129,8 @@
       }
     ],
     "estrella": true,
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_068",
@@ -13254,7 +13302,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_069",
@@ -13405,7 +13454,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_070",
@@ -13572,7 +13622,8 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_071",
@@ -13822,7 +13873,8 @@
     "estrella": true,
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_072",
@@ -14024,7 +14076,8 @@
       }
     ],
     "estrella": true,
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_073",
@@ -14214,7 +14267,8 @@
         "prepSummary": "Precalienta la airfryer a 180°C. Cocina los muslos marinados durante 25-30 minutos, volteándolos a mitad de cocción y pincelando con más salsa para asegurar un exterior crujiente y jugoso."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_074",
@@ -14429,7 +14483,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_075",
@@ -14630,7 +14684,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_076",
@@ -14850,7 +14905,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_077",
@@ -15140,7 +15196,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_078",
@@ -15402,7 +15459,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_079",
@@ -15596,7 +15654,9 @@
         "prepSummary": "Hornea el pollo empanizado a 200°C durante 20-25 minutos, volteándolo a mitad de cocción, para que quede dorado. Un truco es usar una rejilla sobre una bandeja para que el aire circule y el pollo quede más crujiente. La salsa se elabora en un cazo aparte y se añade al servir."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "asiatica"
   },
   {
     "id": "carnes_080",
@@ -15793,7 +15853,8 @@
         "prepSummary": "Marinar las alitas. Cocinar en la airfryer a 190°C durante 25-30 minutos, volteando cada 8-10 minutos. Pincela con la salsa en las últimas pasadas para un glaseado crujiente y delicioso."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_081",
@@ -16035,7 +16096,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_082",
@@ -16264,7 +16326,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_083",
@@ -16404,7 +16466,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_084",
@@ -16626,7 +16688,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "horno"
   },
   {
     "id": "carnes_085",
@@ -16838,7 +16901,8 @@
     "estrella": true,
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_086",
@@ -17059,7 +17123,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_087",
@@ -17244,7 +17309,8 @@
       }
     ],
     "estrella": true,
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_088",
@@ -17485,7 +17551,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_089",
@@ -17653,7 +17720,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_090",
@@ -17814,7 +17882,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_091",
@@ -18012,7 +18081,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_092",
@@ -18160,7 +18229,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_093",
@@ -18396,7 +18465,8 @@
         "prepSummary": "Reboza el pollo y colócalo en una bandeja con rejilla para que circule el aire. Hornea a 200°C (con función ventilador si es posible) durante 25-30 minutos, dándole la vuelta una vez, hasta que esté bien dorado y crujiente. La salsa se elabora en paralelo en una cacerola."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_094",
@@ -18608,7 +18678,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_095",
@@ -18905,7 +18976,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_096",
@@ -19187,7 +19259,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_097",
@@ -19327,7 +19400,8 @@
         "prepSummary": "Tras marinar los filetes, colocarlos en una fuente de horno. Hornear a 200°C durante 20-25 minutos, volteándolos una vez y rociando con la salsa para asegurar que queden tiernos y con un buen glaseado."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_098",
@@ -19594,7 +19668,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "horno"
   },
   {
     "id": "carnes_099",
@@ -19794,7 +19869,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_100",
@@ -20046,7 +20122,8 @@
     "estrella": true,
     "mainIngredients": [
       "encurtido"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_101",
@@ -20278,7 +20355,7 @@
       "lacteo",
       "seta"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_102",
@@ -20515,7 +20592,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_103",
@@ -20771,7 +20848,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_104",
@@ -21001,7 +21079,7 @@
       "verdura",
       "frutos_secos"
     ],
-    "plancha": true
+    "tecnica": "horno"
   },
   {
     "id": "carnes_105",
@@ -21190,7 +21268,8 @@
       "verdura",
       "lacteo"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "carnes_106",
@@ -21414,7 +21493,7 @@
       }
     ],
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_107",
@@ -21662,7 +21741,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_108",
@@ -21911,7 +21991,8 @@
       }
     ],
     "estrella": true,
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_109",
@@ -22127,7 +22208,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_110",
@@ -22344,7 +22425,7 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_111",
@@ -22566,7 +22647,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_112",
@@ -22777,7 +22859,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_113",
@@ -22963,7 +23046,9 @@
         "prepSummary": "Tras marinar las alitas, hornear a 200°C (con ventilador si es posible) durante 45-50 minutos. Voltear las alitas una o dos veces y pincelar con la salsa durante los últimos minutos para un glaseado perfecto."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno",
+    "cocina": "asiatica"
   },
   {
     "id": "carnes_114",
@@ -23187,7 +23272,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_115",
@@ -23398,7 +23484,7 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_116",
@@ -23663,7 +23749,8 @@
         "prepSummary": "Se realiza un sofrito en la propia olla, se incorporan el resto de ingredientes con el vino y se cocinan a presión alta durante 45-60 minutos. Luego se despresuriza y se deja reducir a fuego lento unos minutos para espesar la salsa."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "carnes_117",
@@ -23845,7 +23932,8 @@
         "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta hasta que estén tiernos. Dora el hígado enharinado rápidamente, añade el vino y cierra la olla. Cocina 1-2 minutos desde que sube la presión. Libera la presión, rectifica la salsa y termina con perejil."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_118",
@@ -24092,7 +24180,8 @@
         "prepSummary": "Sella las manitas y sofríe las verduras en la olla. Añade el resto de ingredientes y cocina a presión durante 45-60 minutos desde que sube la válvula, logrando una ternura perfecta en una fracción del tiempo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "carnes_119",
@@ -24310,7 +24399,8 @@
       "verdura",
       "lacteo"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_120",
@@ -24506,7 +24596,8 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "crudo",
+    "cocina": "mexicana"
   },
   {
     "id": "carnes_121",
@@ -24738,7 +24829,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_122",
@@ -24944,7 +25035,7 @@
       "verdura"
     ],
     "montaje": true,
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_123",
@@ -25113,7 +25204,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_124",
@@ -25325,7 +25417,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten",
+    "cocina": "mexicana"
   },
   {
     "id": "carnes_125",
@@ -25439,7 +25533,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_126",
@@ -25571,7 +25665,8 @@
     "estrella": true,
     "mainIngredients": [
       "encurtido"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_127",
@@ -25718,7 +25813,8 @@
       "verdura",
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_128",
@@ -25842,7 +25938,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_129",
@@ -26029,7 +26126,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "horno"
   },
   {
     "id": "carnes_130",
@@ -26195,7 +26292,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_131",
@@ -26376,7 +26474,7 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_132",
@@ -26523,7 +26621,7 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_133",
@@ -26712,7 +26810,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_134",
@@ -26859,7 +26957,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_135",
@@ -27069,7 +27167,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "carnes_136",
@@ -27263,7 +27362,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_137",
@@ -27510,7 +27610,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_138",
@@ -27751,7 +27852,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_139",
@@ -27943,7 +28045,8 @@
     "estrella": true,
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_140",
@@ -28178,7 +28281,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_141",
@@ -28476,7 +28580,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_142",
@@ -28679,7 +28784,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "carnes_143",
@@ -28841,7 +28948,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_144",
@@ -29076,7 +29184,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_145",
@@ -29328,7 +29437,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten",
+    "cocina": "asiatica"
   },
   {
     "id": "carnes_146",
@@ -29410,7 +29521,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_147",
@@ -29476,7 +29588,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "carnes_148",
@@ -29539,7 +29652,8 @@
       "Hornear 45-50 min hasta que el pollo esté dorado y las patatas tiernas."
     ],
     "description": "Muslos de pollo al horno sobre una cama de patatas aromatizadas con romero y limón.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_149",
@@ -29598,7 +29712,7 @@
     ],
     "description": "Filetes de lomo de cerdo a la plancha con una generosa cebolla caramelizada al vino blanco.",
     "estrella": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_150",
@@ -29661,7 +29775,7 @@
       "seta"
     ],
     "kidFavourite": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_151",
@@ -29730,7 +29844,7 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_152",
@@ -29793,7 +29907,8 @@
       "Hornear 55-60 min hasta que las costillas estén doradas y las patatas tiernas."
     ],
     "description": "Costillas de cerdo al horno sobre patatas panadera con ajo y pimentón.",
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "carnes_153",
@@ -29864,7 +29979,7 @@
       "lacteo",
       "fruta"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "carnes_154",
@@ -29925,7 +30040,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_155",
@@ -30007,7 +30123,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "carnes_156",
@@ -30081,6 +30198,6 @@
       "verdura",
       "seta"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   }
 ]

@@ -166,7 +166,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_002",
@@ -373,7 +375,9 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_003",
@@ -501,7 +505,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 1,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "sarten"
   },
   {
     "id": "pasta_arroces_004",
@@ -662,7 +667,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 7,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "horno"
   },
   {
     "id": "pasta_arroces_005",
@@ -807,7 +813,9 @@
     "freezable": false,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_006",
@@ -982,7 +990,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_007",
@@ -1175,7 +1185,8 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pasta_arroces_008",
@@ -1358,7 +1369,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_009",
@@ -1501,7 +1513,8 @@
     "freezable": false,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_010",
@@ -1642,7 +1655,9 @@
     "freezable": false,
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_011",
@@ -1806,7 +1821,8 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "pasta_arroces_012",
@@ -1952,7 +1968,9 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_013",
@@ -2128,7 +2146,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_014",
@@ -2297,7 +2316,9 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_015",
@@ -2473,7 +2494,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_016",
@@ -2641,7 +2663,8 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_017",
@@ -2861,7 +2884,9 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_018",
@@ -3121,7 +3146,8 @@
     ],
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pasta_arroces_019",
@@ -3273,7 +3299,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 2,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_020",
@@ -3422,7 +3449,9 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_021",
@@ -3617,7 +3646,7 @@
     "saturated_fat_g": 2,
     "sodium_mg": 520,
     "freezable": false,
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "pasta_arroces_022",
@@ -3742,7 +3771,9 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 290,
-    "freezable": false
+    "freezable": false,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_023",
@@ -3939,7 +3970,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_024",
@@ -4068,7 +4100,9 @@
       "verdura",
       "lacteo",
       "encurtido"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_025",
@@ -4237,7 +4271,9 @@
     "mainIngredients": [
       "verdura",
       "seta"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_026",
@@ -4398,7 +4434,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_027",
@@ -4547,7 +4585,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_028",
@@ -4675,7 +4715,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_029",
@@ -4825,7 +4867,9 @@
     "estrella": true,
     "mainIngredients": [
       "encurtido"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_030",
@@ -5022,7 +5066,9 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_031",
@@ -5202,7 +5248,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_032",
@@ -5430,7 +5477,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_033",
@@ -5624,7 +5672,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_034",
@@ -5827,7 +5876,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_035",
@@ -6068,7 +6118,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_036",
@@ -6292,7 +6344,9 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_037",
@@ -6482,7 +6536,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_038",
@@ -6643,7 +6699,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_039",
@@ -6812,7 +6869,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_040",
@@ -7130,7 +7188,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_041",
@@ -7306,7 +7366,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_042",
@@ -7506,7 +7568,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_043",
@@ -7723,7 +7787,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "horno"
   },
   {
     "id": "pasta_arroces_044",
@@ -7958,7 +8023,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_045",
@@ -8104,7 +8170,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_046",
@@ -8238,7 +8306,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_047",
@@ -8410,7 +8480,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_048",
@@ -8577,7 +8649,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_049",
@@ -8794,7 +8868,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_050",
@@ -8938,7 +9014,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_051",
@@ -9138,7 +9215,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_052",
@@ -9326,7 +9405,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_053",
@@ -9508,7 +9589,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_054",
@@ -9622,7 +9705,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_055",
@@ -9817,7 +9902,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_056",
@@ -10121,7 +10208,9 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_057",
@@ -10426,7 +10515,9 @@
       "verdura",
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_058",
@@ -10705,7 +10796,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_059",
@@ -10994,7 +11087,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_060",
@@ -11135,7 +11230,9 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_061",
@@ -11282,7 +11379,9 @@
     "mainIngredients": [
       "verdura",
       "encurtido"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_062",
@@ -11443,7 +11542,9 @@
     "mainIngredients": [
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_063",
@@ -11613,7 +11714,9 @@
       }
     ],
     "estrella": true,
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_064",
@@ -11766,7 +11869,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_065",
@@ -11941,7 +12046,9 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_066",
@@ -12102,7 +12209,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_067",
@@ -12245,7 +12353,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_068",
@@ -12417,7 +12527,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_069",
@@ -12665,7 +12777,9 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_070",
@@ -12914,7 +13028,9 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_071",
@@ -13055,7 +13171,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_072",
@@ -13222,7 +13340,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_073",
@@ -13398,7 +13518,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_074",
@@ -13594,7 +13715,8 @@
     "mainIngredients": [
       "verdura",
       "seta"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_075",
@@ -13772,7 +13894,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_076",
@@ -13950,7 +14073,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_077",
@@ -14180,7 +14304,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_078",
@@ -14361,7 +14486,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "pasta_arroces_079",
@@ -14535,7 +14661,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_080",
@@ -14709,7 +14837,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_081",
@@ -14877,7 +15007,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_082",
@@ -15079,7 +15210,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_083",
@@ -15278,7 +15410,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_084",
@@ -15422,7 +15555,9 @@
     "estrella": true,
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_085",
@@ -15609,7 +15744,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_086",
@@ -15854,7 +15991,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_087",
@@ -16025,7 +16164,9 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_088",
@@ -16182,7 +16323,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_089",
@@ -16343,7 +16485,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_090",
@@ -16512,7 +16656,9 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_091",
@@ -16680,7 +16826,9 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_092",
@@ -16846,7 +16994,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "pasta_arroces_093",
@@ -17002,7 +17151,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_094",
@@ -17145,7 +17296,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_095",
@@ -17216,7 +17369,9 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "sarten",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_096",
@@ -17280,7 +17435,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "sarten"
   },
   {
     "id": "pasta_arroces_097",
@@ -17350,7 +17506,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_098",
@@ -17420,7 +17578,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "sarten",
+    "cocina": "italiana"
   },
   {
     "id": "pasta_arroces_099",
@@ -17491,6 +17651,7 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   }
 ]

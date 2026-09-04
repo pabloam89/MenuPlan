@@ -129,7 +129,8 @@
       "lacteo",
       "encurtido"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_002",
@@ -319,7 +320,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_003",
@@ -597,7 +599,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_004",
@@ -789,7 +792,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_005",
@@ -910,7 +914,8 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_006",
@@ -1103,7 +1108,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_007",
@@ -1332,7 +1338,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_008",
@@ -1498,7 +1505,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_009",
@@ -1635,7 +1642,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_010",
@@ -1775,7 +1783,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_011",
@@ -1944,7 +1953,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_012",
@@ -2095,7 +2105,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_013",
@@ -2265,7 +2276,8 @@
     "mainIngredients": [
       "verdura",
       "encurtido"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_015",
@@ -2458,7 +2470,8 @@
     "mainIngredients": [
       "verdura",
       "encurtido"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_016",
@@ -2614,7 +2627,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_017",
@@ -2860,7 +2874,8 @@
     ],
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_018",
@@ -2961,7 +2976,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_020",
@@ -3143,7 +3158,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_021",
@@ -3269,7 +3285,8 @@
       "lacteo",
       "encurtido"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_022",
@@ -3421,7 +3438,8 @@
     "mainIngredients": [
       "verdura",
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_023",
@@ -3573,7 +3591,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_024",
@@ -3760,7 +3779,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_025",
@@ -3902,7 +3921,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_026",
@@ -4036,7 +4056,8 @@
       "lacteo",
       "frutos_secos"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_027",
@@ -4140,7 +4161,9 @@
       "verdura",
       "lacteo"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo",
+    "cocina": "italiana"
   },
   {
     "id": "ensaladas_verduras_028",
@@ -4259,7 +4282,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_029",
@@ -4395,7 +4419,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_030",
@@ -4496,7 +4521,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_031",
@@ -4649,7 +4675,8 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "crudo",
+    "cocina": "italiana"
   },
   {
     "id": "ensaladas_verduras_032",
@@ -4841,7 +4868,8 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "crudo",
+    "cocina": "mexicana"
   },
   {
     "id": "ensaladas_verduras_033",
@@ -5036,7 +5064,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_034",
@@ -5181,7 +5210,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_035",
@@ -5362,7 +5392,9 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "crudo",
+    "cocina": "mexicana"
   },
   {
     "id": "ensaladas_verduras_036",
@@ -5539,7 +5571,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_037",
@@ -5663,7 +5696,8 @@
     "mainIngredients": [
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_038",
@@ -5784,7 +5818,8 @@
     "mainIngredients": [
       "lacteo",
       "fruta"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_039",
@@ -5931,7 +5966,8 @@
       "lacteo",
       "frutos_secos"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_040",
@@ -6118,7 +6154,8 @@
       "verdura",
       "fruta"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_041",
@@ -6302,7 +6339,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_042",
@@ -6444,7 +6482,8 @@
       "fruta",
       "frutos_secos"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_043",
@@ -6566,7 +6605,8 @@
       "lacteo",
       "fruta",
       "encurtido"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_044",
@@ -6749,7 +6789,8 @@
     "mainIngredients": [
       "lacteo",
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_045",
@@ -6890,7 +6931,8 @@
       "fruta",
       "frutos_secos"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_046",
@@ -7050,7 +7092,8 @@
         "prepSummary": "Cocina las patatas troceadas en la olla express con un vaso de agua y una hoja de laurel durante 8-10 minutos desde que sube la válvula. Despresuriza, añade el pulpo troceado y calienta 2 minutos más."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_047",
@@ -7199,7 +7242,8 @@
       }
     ],
     "estrella": true,
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_048",
@@ -7360,7 +7404,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_049",
@@ -7487,7 +7531,8 @@
     "mainIngredients": [
       "verdura",
       "encurtido"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_050",
@@ -7632,7 +7677,8 @@
       "verdura",
       "lacteo",
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_051",
@@ -7784,7 +7830,8 @@
       "verdura",
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_052",
@@ -8012,7 +8059,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_053",
@@ -8227,7 +8274,8 @@
     "occasion": "especial",
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_054",
@@ -8456,7 +8504,8 @@
     "mainIngredients": [
       "verdura",
       "encurtido"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_055",
@@ -8576,7 +8625,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_056",
@@ -8718,7 +8768,8 @@
       "lacteo",
       "fruta",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_057",
@@ -8908,7 +8959,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten",
+    "cocina": "mediterranea"
   },
   {
     "id": "ensaladas_verduras_058",
@@ -9076,7 +9129,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "mediterranea"
   },
   {
     "id": "ensaladas_verduras_059",
@@ -9264,7 +9319,8 @@
     "mainIngredients": [
       "verdura",
       "encurtido"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_060",
@@ -9432,7 +9488,8 @@
     "mainIngredients": [
       "verdura",
       "seta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_061",
@@ -9578,7 +9635,8 @@
       "verdura",
       "fruta",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_062",
@@ -9714,7 +9772,8 @@
       "fruta",
       "frutos_secos"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_063",
@@ -9819,7 +9878,9 @@
       "verdura",
       "lacteo"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo",
+    "cocina": "italiana"
   },
   {
     "id": "ensaladas_verduras_064",
@@ -9969,7 +10030,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_065",
@@ -10158,7 +10220,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_066",
@@ -10323,7 +10386,8 @@
       "verdura",
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_067",
@@ -10569,7 +10633,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_068",
@@ -10708,7 +10773,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_069",
@@ -10817,7 +10883,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_070",
@@ -11007,7 +11074,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_071",
@@ -11178,7 +11246,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_072",
@@ -11367,7 +11436,8 @@
     "estrella": true,
     "mainIngredients": [
       "encurtido"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_073",
@@ -11503,7 +11573,8 @@
       "verdura",
       "lacteo"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_074",
@@ -11632,7 +11703,8 @@
       "fruta",
       "encurtido"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_075",
@@ -11771,7 +11843,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_076",
@@ -11900,7 +11973,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_077",
@@ -12057,7 +12131,8 @@
       "verdura",
       "fruta",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_078",
@@ -12200,7 +12275,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_079",
@@ -12382,7 +12458,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "mediterranea"
   },
   {
     "id": "ensaladas_verduras_080",
@@ -12557,7 +12635,8 @@
       "verdura",
       "encurtido"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_081",
@@ -12760,7 +12839,9 @@
       "verdura",
       "lacteo",
       "encurtido"
-    ]
+    ],
+    "tecnica": "olla",
+    "cocina": "italiana"
   },
   {
     "id": "ensaladas_verduras_082",
@@ -12889,7 +12970,8 @@
     "mainIngredients": [
       "verdura",
       "fruta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_083",
@@ -13017,7 +13099,8 @@
       "verdura",
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_084",
@@ -13183,7 +13266,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_085",
@@ -13334,7 +13418,8 @@
       "fruta",
       "encurtido"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_086",
@@ -13468,7 +13553,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_087",
@@ -13662,7 +13748,7 @@
       "verdura",
       "fruta"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_088",
@@ -13790,7 +13876,8 @@
       "verdura",
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_089",
@@ -13980,7 +14067,8 @@
       "verdura",
       "lacteo",
       "encurtido"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_090",
@@ -14234,7 +14322,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_091",
@@ -14444,7 +14533,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_092",
@@ -14634,7 +14724,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "mediterranea"
   },
   {
     "id": "ensaladas_verduras_093",
@@ -14899,7 +14991,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_094",
@@ -15038,7 +15131,8 @@
     "estrella": true,
     "mainIngredients": [
       "seta"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_095",
@@ -15259,7 +15353,7 @@
       "verdura",
       "frutos_secos"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_096",
@@ -15433,7 +15527,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_097",
@@ -15622,7 +15716,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_098",
@@ -15778,7 +15873,8 @@
         "prepSummary": "En la Thermomix, trocea los puerros y confítalos con el aceite de oliva a 90-100°C, velocidad cuchara y giro inverso, durante unos 50 minutos. Esto asegura una cocción suave y homogénea, ideal para el confitado."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_099",
@@ -15961,7 +16057,9 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno",
+    "cocina": "mediterranea"
   },
   {
     "id": "ensaladas_verduras_100",
@@ -16134,7 +16232,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "plancha": true
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_101",
@@ -16289,7 +16387,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_102",
@@ -16431,7 +16530,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_103",
@@ -16628,7 +16728,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_104",
@@ -16835,7 +16936,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_105",
@@ -17010,7 +17112,8 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_106",
@@ -17193,7 +17296,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_107",
@@ -17406,7 +17510,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_108",
@@ -17600,7 +17705,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_109",
@@ -17725,7 +17831,7 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_110",
@@ -17884,7 +17990,8 @@
       "verdura",
       "lacteo",
       "frutos_secos"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_111",
@@ -18037,7 +18144,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "tecnica": "olla"
   },
   {
     "id": "ensaladas_verduras_112",
@@ -18175,7 +18283,7 @@
       "fruta",
       "frutos_secos"
     ],
-    "plancha": true
+    "tecnica": "plancha"
   },
   {
     "id": "ensaladas_verduras_113",
@@ -18303,7 +18411,8 @@
     "estrella": true,
     "mainIngredients": [
       "seta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_114",
@@ -18512,7 +18621,8 @@
       "verdura",
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_115",
@@ -18744,7 +18854,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_116",
@@ -18909,7 +19020,7 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_117",
@@ -19102,7 +19213,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_118",
@@ -19366,7 +19478,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "tecnica": "sarten"
   },
   {
     "id": "ensaladas_verduras_119",
@@ -19708,7 +19821,8 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "horno",
+    "cocina": "mediterranea"
   },
   {
     "id": "ensaladas_verduras_120",
@@ -19885,7 +19999,9 @@
       "verdura",
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "tecnica": "horno",
+    "cocina": "italiana"
   },
   {
     "id": "ensaladas_verduras_121",
@@ -20103,7 +20219,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "tecnica": "horno"
   },
   {
     "id": "ensaladas_verduras_122",
@@ -20235,7 +20352,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_123",
@@ -20446,6 +20564,6 @@
       "verdura",
       "lacteo"
     ],
-    "plancha": true
+    "tecnica": "horno"
   }
 ]
