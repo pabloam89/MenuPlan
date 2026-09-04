@@ -1,550 +1,288 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, ShoppingCart, MapPin, GraduationCap, Baby, Salad, UtensilsCrossed, Coffee, Package, ChefHat, CookingPot, Timer, Check, LayoutGrid, Rows3 } from "lucide-react";
+import { Check } from "lucide-react";
 import { OnboardingShell } from "./Onboarding.jsx";
 import { hasChildMember } from "../lib/groups.js";
-import { householdHasSchoolMenu } from "../lib/schoolMenu.js";
 
-const GREEN = "#2d5a3d";
-// Teal, no el verde de marca: mismo tono que ya usan las tarjetas de
-// Onboarding (CARD_ACCENT_TEAL) para "esto lo has elegido tú" — distinguir
-// "marcado para ajustar" del verde que ya es el color base de toda la app.
+// Teal, no el verde de marca: es el color del CTA de OnboardingShell, así que
+// la tarjeta elegida y el botón que la ejecuta hablan el mismo idioma.
 const SELECTED = "#0f766e";
 
-
 /**
- * Los temas del asistente, con el valor que usaríamos si no tocas nada.
- * `onlyKids` marca los que solo aplican con niños en casa — por eso la
- * rejilla pasa de 5 filas a 6 en cuanto hay un peque.
+ * Los temas del asistente. `steps` son los índices de `onbScreens` (App.jsx)
+ * que se abren si el modo elegido incluye el tema; el mapa vive aquí, junto a
+ * la pregunta que representa, para que no se desincronice.
  *
- * El valor por defecto va DENTRO de la tarjeta a propósito, en vez de la
- * lista de sub-temas que incluye: la pregunta que responde esta pantalla es
- * "¿esto me vale?", y para eso «Lun a Vie» decide, «incluye 3 ajustes» no.
- *
- * `steps` son los índices de `onbScreens` (App.jsx) que se abren si marcas la
- * tarjeta. El mapa vive aquí, junto a la pregunta que representa, para que no
- * se desincronice de las tarjetas al tocar una de las dos.
+ * `onlyKids` marca los que solo aplican con niños en casa.
  */
 const TOPICS = [
-  // ── Cuándo y cuánto ──────────────────────────────────────────────────────
-  {
-    id: "semana", group: "Cuándo y cuánto",
-    Icon: CalendarDays,
-    title: "¿Para qué días quieres el menú?",
-    img: () => "/avatares/cards/aun_no_menu_generado.jpg",
-    value: (d) => weekLabel(d),
-    steps: [5],
-  },
-  {
-    id: "compra", group: "Cuándo y cuánto",
-    Icon: ShoppingCart,
-    title: "¿Cuánto quieres gastarte en la compra?",
-    img: (d) => (d.hasBudget ? "/budget-cards/yes-prices.jpg" : "/budget-cards/no-prices.jpg"),
-    value: (d) => (d.hasBudget ? `${d.budget ?? 80} € por semana` : "No miro el presupuesto"),
-    steps: [6],
-  },
+  { id: "semana",     title: "¿Para qué días quieres el menú?",          steps: [5] },
+  { id: "compra",     title: "¿Cuánto quieres gastarte en la compra?",   steps: [6] },
+  { id: "horario",    title: "¿Qué días coméis en casa?",                steps: [7] },
+  { id: "cole",       title: "¿Tienes el menú del cole de tus hijos?",   steps: [4],    onlyKids: true },
+  // 3 (modelo de menú) casi siempre está oculto cuando hay niños — se deriva
+  // de 8 (¿cómo comen los niños?). Se listan los dos y que decida App.jsx.
+  { id: "ninos",      title: "¿Comen tus hijos igual que vosotros?",     steps: [3, 8], onlyKids: true },
+  { id: "estilo",     title: "¿Qué estilo de comida preferís?",          steps: [9] },
+  { id: "estructura", title: "¿Cuántos platos por comida?",              steps: [10] },
+  // Ojo: el ON/OFF del desayuno sigue viviendo en "¿Dónde coméis?" (7); aquí
+  // solo se afina la variedad (10) y merienda/postre (11).
+  { id: "extras",     title: "¿Queréis desayunos?",                      steps: [10, 11] },
+  { id: "despensa",   title: "¿Queréis usar lo que hay en casa?",        steps: [12] },
+  { id: "cocina",     title: "¿Cuánto os gusta cocinar?",                steps: [13] },
+  { id: "electros",   title: "¿Qué tenéis en la cocina?",                steps: [14] },
+  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [15] },
+];
 
-  // ── Quién come qué ───────────────────────────────────────────────────────
-  {
-    id: "horario", group: "Quién come qué",
-    Icon: MapPin,
-    title: "¿Qué días coméis en casa?",
-    img: () => "/avatares/cards/comidas.jpg",
-    value: (d, kids) => scheduleLabel(d, kids),
-    steps: [7],
-  },
-  {
-    id: "cole", group: "Quién come qué",
-    Icon: GraduationCap,
-    title: "¿Tienes el menú del cole de tus hijos?",
-    img: () => "/avatares/cards/ninos_cenan_mediodia.jpg",
-    // Sin menú subido no es un hueco a rellenar: el generador ya planifica su
-    // comida aparte (ver scheduleLabel), así que no hace falta cuadrar nada.
-    // Con uno subido sí hay algo que contar: la tarjeta era un texto fijo y
-    // seguía diciendo "no hace falta" después de cargarlo.
-    value: (d) => (householdHasSchoolMenu(d.schoolMenus)
-      ? "Menú del comedor cargado"
-      : "No hace falta calcular el menú con el de mis hijos"),
-    onlyKids: true,
-    steps: [4],
-  },
-  {
-    id: "ninos", group: "Quién come qué",
-    Icon: Baby,
-    title: "¿Comen tus hijos igual que vosotros?",
-    img: (d) => (d.menuModel === "separate"
-      ? "/avatares/cards/distinto_menu_ninos.png"
-      : "/avatares/cards/mismo_menu_ninos.png"),
-    value: (d) => (d.menuModel === "separate" ? "Tienen su propio menú" : "Cenan lo mismo que nosotros"),
-    onlyKids: true,
-    // 3 (modelo de menú) casi siempre está oculto cuando hay niños — se deriva
-    // de 8 (¿cómo comen los niños?). Se listan los dos y que decida App.jsx.
-    steps: [3, 8],
-  },
+/**
+ * Pasos de `onbScreens` que abre cada tema. Lo consume App.jsx para decidir
+ * qué se ve después del picker; sin nada elegido, no se ve ninguno.
+ */
+export const SCOPE_TOPIC_STEPS = Object.fromEntries(TOPICS.map((t) => [t.id, t.steps]));
 
-  // ── Cómo coméis ──────────────────────────────────────────────────────────
-  {
-    id: "estilo", group: "Cómo coméis",
-    Icon: Salad,
-    title: "¿Qué estilo de comida preferís?",
-    img: () => "/avatares/cards/cook_salud_sano.jpg",
-    value: (d) => (d.goals?.length ? `${d.goals.length} objetivos` : "Equilibrado: de todo, sin repetir"),
-    steps: [9],
-  },
-  {
-    id: "estructura", group: "Cómo coméis",
-    Icon: UtensilsCrossed,
-    title: "¿Cuántos platos por comida?",
-    img: (d) => (d.mealStructure === "1_plato"
-      ? "/avatares/cards/estructura_plato_combinado.png"
-      : "/avatares/cards/estructura_primero_segundo.png"),
-    value: (d) => (d.mealStructure === "1_plato" ? "Plato combinado" : "Primero y segundo"),
-    steps: [10],
-  },
-  {
-    id: "extras", group: "Cómo coméis",
-    Icon: Coffee,
-    title: "¿Queréis desayunos?",
-    img: (d) => DESAYUNO_ART[d.extraMeals?.desayuno] ?? "/avatares/cards/desayuno_variado.jpg",
-    value: (d) => extrasLabel(d),
-    // Ojo: el ON/OFF del desayuno sigue viviendo en "¿Dónde coméis?" (7); aquí
-    // solo se afina la variedad (10) y merienda/postre (11).
-    steps: [10, 11],
-  },
+const IMG = (slug) => `/avatares/cards/wizard_picker/${slug}.webp`;
 
-  // ── Cómo cocináis ────────────────────────────────────────────────────────
+/**
+ * Los tres modos. `topics` son los temas que abre cada uno — de ahí sale tanto
+ * el routing como el "N preguntas" de la tarjeta, así que el número nunca
+ * miente aunque cambien los temas.
+ *
+ * `expert` no es "cuántos pasos ves" sino cómo se comportan: con él apagado,
+ * "¿Dónde coméis?" no pregunta por desayunos, el editor de tiempos es el
+ * simple y `resolveModeData` (App.jsx) descarta las cenas rápidas que vengan
+ * del asistente. Por eso lo declara cada modo en vez de deducirse de si has
+ * marcado algo: "Lo básico" abre tres pasos y aun así quiere los defaults
+ * simplificados.
+ *
+ * Etiqueta por tiempo y no por nivel: "sencillo/avanzado" pedía juzgar tu
+ * propia implicación sin haber visto nada de la app todavía; el tiempo es
+ * concreto y no juzga. (Aprendizaje del picker anterior, 2026-08-29.)
+ */
+const MODES = [
   {
-    id: "despensa", group: "Cómo cocináis",
-    Icon: Package,
-    title: "¿Queréis usar lo que hay en casa?",
-    // Ojo con el valor: pantryMode es "strict"|"only"|"prefer"|"off", nunca
-    // "ignore" — comparando contra eso la tarjeta decía "Aprovechamos lo que
-    // hay" siempre, también con la despensa apagada, que es el default.
-    img: (d) => (d.pantryMode === "off"
-      ? "/avatares/cards/despensa_sin.jpg"
-      : "/avatares/cards/despensa_usar.jpg"),
-    value: (d) => (d.pantryMode === "off" ? "No contamos con lo que haya en casa" : "Aprovechamos lo que hay"),
-    steps: [12],
+    id: "basico",
+    img: IMG("nivel_basico"),
+    // La ilustración es 4:5 y la tarjeta la recorta a cuadrado, así que cada
+    // una dice qué franja conserva: aquí el personaje manda y está centrado.
+    focus: "center 45%",
+    time: "1 minuto",
+    title: "Lo básico",
+    subtitle: "Dinos cuándo coméis en casa y del resto nos encargamos nosotros.",
+    topics: ["semana", "horario", "ninos"],
+    expert: false,
   },
   {
-    id: "cocina", group: "Cómo cocináis",
-    Icon: ChefHat,
-    title: "¿Cuánto os gusta cocinar?",
-    img: (d) => COCINA_ART[d.cookLevel] ?? "/avatares/cards/cook_nivel_normal.png",
-    value: (d) => cookLevelLabel(d.cookLevel),
-    steps: [13],
+    id: "medio",
+    img: IMG("nivel_medio"),
+    // Baja el encuadre: las dos sartenes humeando son la mitad del mensaje.
+    focus: "center 60%",
+    time: "3 minutos",
+    title: "A tu gusto",
+    subtitle: "Lo básico y, además, cómo os gusta comer y cómo cocináis.",
+    topics: ["semana", "horario", "ninos", "estilo", "cocina", "electros"],
+    expert: true,
   },
   {
-    id: "electros", group: "Cómo cocináis",
-    Icon: CookingPot,
-    title: "¿Qué tenéis en la cocina?",
-    // La ilustración sigue al primer aparato marcado: si tienes Thermomix,
-    // la tarjeta enseña la Thermomix, no un horno genérico.
-    img: (d) => ELECTRO_ART[(d.kitchenTools ?? [])[0]] ?? "/avatares/cards/electrodomesticos/horno.webp",
-    value: (d) => appliancesLabel(d),
-    steps: [14],
-  },
-  {
-    id: "tiempos", group: "Cómo cocináis",
-    Icon: Timer,
-    title: "¿Cuánto tiempo tenéis para cocinar?",
-    // Ojo con el null: `null <= 20` es true, así que sin dato caería en
-    // "con prisa" sin que nadie lo haya dicho.
-    img: (d) => {
-      const min = cookTimeMinutes(d);
-      return min !== null && min <= 20
-        ? "/avatares/cards/cook_con_prisa.png"
-        : "/avatares/cards/cook_con_tiempo.png";
-    },
-    value: (d) => cookTimeLabel(d),
-    steps: [15],
+    id: "avanzado",
+    img: IMG("nivel_avanzado"),
+    // Sube para no decapitar el gorro, que es lo que la distingue.
+    focus: "center 40%",
+    time: "5 minutos",
+    title: "Al detalle",
+    subtitle: "Repasamos todas las preguntas contigo, sin saltarnos ninguna.",
+    // Todos: se resuelve contra TOPICS para no tener que mantener la lista.
+    topics: TOPICS.map((t) => t.id),
+    expert: true,
   },
 ];
 
 /**
- * Pasos de `onbScreens` que abre cada tarjeta. Lo consume App.jsx para decidir
- * qué se ve después del picker; sin nada marcado, no se ve ninguno.
- */
-export const SCOPE_TOPIC_STEPS = Object.fromEntries(TOPICS.map((t) => [t.id, t.steps]));
-
-// El orden en que se pintan los grupos.
-const GROUPS = ["Cuándo y cuánto", "Quién come qué", "Cómo coméis", "Cómo cocináis"];
-
-// Arte reusado tal cual de las opciones del asistente (Onboarding.jsx), para
-// que la tarjeta enseñe la MISMA ilustración que verías al editar ese paso —
-// y que cambie cuando cambie el valor, en vez de ser un adorno fijo.
-const COCINA_ART = {
-  basic: "/avatares/cards/cook_nivel_basico.png",
-  normal: "/avatares/cards/cook_nivel_normal.png",
-  pro: "/avatares/cards/cook_nivel_pro.png",
-};
-const DESAYUNO_ART = {
-  variado: "/avatares/cards/desayuno_variado.jpg",
-  findes: "/avatares/cards/desayuno_lunes_viernes.jpg",
-  igual: "/avatares/cards/desayuno_igual.jpg",
-};
-const ELECTRO_ART = {
-  Airfryer: "/avatares/cards/electrodomesticos/airfryer.webp",
-  Horno: "/avatares/cards/electrodomesticos/horno.webp",
-  Microondas: "/avatares/cards/electrodomesticos/microondas.webp",
-  "Olla rápida": "/avatares/cards/electrodomesticos/olla_rapida.webp",
-  Thermomix: "/avatares/cards/electrodomesticos/thermomix.webp",
-  Vaporera: "/avatares/cards/electrodomesticos/vaporera.webp",
-};
-
-// El icono de cada fila: el mismo objeto en 3D sobre su propio color
-// (scripts/make_scope_picker_icons.py). En la rejilla el tema se reconoce por
-// la ilustración de la tarjeta; en filas no había ilustración, y doce lucide
-// monocromos del mismo verde se leían todos igual. Con un color por tema la
-// fila se encuentra sin llegar a leer el título.
-const ROW_ICON = {
-  semana: "/avatares/cards/scope_picker/semana.webp",
-  compra: "/avatares/cards/scope_picker/compra.webp",
-  horario: "/avatares/cards/scope_picker/horario.webp",
-  cole: "/avatares/cards/scope_picker/cole.webp",
-  ninos: "/avatares/cards/scope_picker/ninos.webp",
-  estilo: "/avatares/cards/scope_picker/estilo.webp",
-  estructura: "/avatares/cards/scope_picker/estructura.webp",
-  extras: "/avatares/cards/scope_picker/extras.webp",
-  despensa: "/avatares/cards/scope_picker/despensa.webp",
-  cocina: "/avatares/cards/scope_picker/cocina.webp",
-  tiempos: "/avatares/cards/scope_picker/tiempos.webp",
-  // El único sin render propio: la Thermomix del juego de aparatos, que ya
-  // está en el mismo estilo, pesa poco y comparte caché con el paso 14.
-  electros: "/avatares/cards/electrodomesticos/thermomix.webp",
-};
-
-// Con 3 o menos caben los nombres; a partir de ahí, el número. Sin nada
-// marcado, el mismo supuesto que enseña el paso del asistente: lo básico.
-function appliancesLabel(d) {
-  const on = d.kitchenTools ?? [];
-  if (on.length === 0) return "Fuegos y sartenes";
-  if (on.length <= 3) return on.join(" · ");
-  return `${on.length} aparatos`;
-}
-
-function extrasLabel(d) {
-  const on = ["desayuno", "merienda", "postre"].filter((k) => (d.extraMeals?.[k] ?? "off") !== "off");
-  if (on.length === 0) return "Sin desayunos ni postres";
-  return on.map((k) => (k === "desayuno" ? "Desayuno" : k === "merienda" ? "Merienda" : "Postre")).join(" · ");
-}
-
-function weekLabel(d) {
-  const n = d.menuWeekOffsets?.length ?? 1;
-  return n > 1 ? `${n} semanas` : "Para esta semana";
-}
-
-// De septiembre a julio hay cole o, si no, campamento — los niños comen
-// fuera casi todo el año. Agosto es el único mes que se puede dar por
-// "todos en casa" sin preguntar. (Antes cortaba en junio, pero eso ignoraba
-// los campamentos de julio.)
-function isSchoolSeason(date = new Date()) {
-  const m = date.getMonth() + 1;
-  return m !== 8;
-}
-
-function scheduleLabel(d, kids) {
-  const days = Object.keys(d.schedule ?? {}).length;
-  if (days > 0) return `${days} días ajustados`;
-  return kids && isSchoolSeason()
-    ? "Comemos todos en casa, salvo los niños en el cole"
-    : "Comemos todos en casa";
-}
-
-// Nivel + matiz, en dos líneas: el nivel solo ("Normal") no dice nada, y el
-// matiz solo ("Sin complicarnos") no dice cuál de los tres es. El salto es
-// explícito (con white-space: pre-line en la franja) porque el ancho de la
-// tarjeta cambia con el grid fluido y no se puede confiar en que parta ahí.
-function cookLevelLabel(level) {
-  if (level === "basic") return "Básico,\nlo más fácil posible";
-  if (level === "pro") return "Nos encanta,\ndadnos guerra";
-  return "Normal,\nsin complicarnos";
-}
-
-// cookTime.weekday es { Comida, Cena }, no un número: mostramos la comida,
-// que es la que marca el tono ("tengo X minutos entre semana").
-function cookTimeMinutes(d) {
-  const v = d.cookTime?.weekday?.Comida ?? d.cookTime?.weekday?.Cena;
-  return typeof v === "number" ? v : null;
-}
-
-function cookTimeLabel(d) {
-  const v = cookTimeMinutes(d);
-  return v ? `${v} min entre semana` : "Sin prisa";
-}
-
-/**
- * "¿Qué quieres ajustar de tu menú?" — primer paso del asistente. Enseña de
- * una vez todo lo que decidiríamos por ti y deja marcar solo lo que quieras
- * tocar; lo que no marques se queda con el valor que se ve en la tarjeta.
+ * "¿Qué quieres ajustar de tu menú?" — primer paso del asistente. Tres modos,
+ * una tarjeta vertical cada uno, y lo que no entra en el modo elegido se queda
+ * con el valor por defecto sin preguntarte.
  *
- * Sustituye a la vieja pregunta Sencillo/Avanzado (OnboardingMode): era la
- * misma decisión — "¿hasta dónde me quiero meter?" — pero en binario y a
- * ciegas, sin enseñar qué preguntas te ahorrabas.
+ * Sustituye a la rejilla de 12 temas marcables (2026-09-01 – 2026-09-04): daba
+ * el control más fino posible, pero pedía leer y decidir doce veces antes de
+ * empezar. Y antes de aquella, al binario Sencillo/Avanzado (OnboardingMode,
+ * aún en Onboarding.jsx): misma pregunta, pero sin enseñar qué te ahorrabas.
+ * El modo intermedio es lo que faltaba en los dos.
  *
  * Va dentro de OnboardingShell (no con BottomNav) para heredar la cabecera del
  * resto de pasos: Atrás, puntos de progreso, Salir, y el CTA pegado abajo.
  */
 export function ScopePickerScreen({ data, onBack, onReset, onContinue, initialPicked = [] }) {
   const kids = hasChildMember(data.members ?? []);
-  const topics = useMemo(() => TOPICS.filter((t) => !t.onlyKids || kids), [kids]);
+  const allowed = useMemo(
+    () => new Set(TOPICS.filter((t) => !t.onlyKids || kids).map((t) => t.id)),
+    [kids],
+  );
+  const modes = useMemo(
+    () =>
+      MODES.map((m) => {
+        const topics = m.topics.filter((id) => allowed.has(id));
+        return {
+          ...m,
+          topics,
+          count: topics.length,
+        };
+      }),
+    [allowed],
+  );
+
   // Se siembra con lo elegido la vez anterior: volver atrás desde un paso del
-  // asistente no debe borrar la selección que trajo hasta aquí.
-  const [picked, setPicked] = useState(() => new Set(initialPicked));
-  // Pista de "esto se toca": la primera tarjeta se levanta y vuelve a su sitio
-  // un par de veces al entrar. Es un one-shot — al primer toque se apaga y no
-  // vuelve, ni siquiera si desmarcas todo: ya has entendido el mecanismo.
-  const [nudge, setNudge] = useState(() => initialPicked.length === 0);
-  const firstTopicId = topics[0]?.id;
-  // EXPERIMENTO A/B (2026-09-01): comparar el grid de cards ilustradas de
-  // siempre contra una batería de filas compactas (icono + pregunta/valor,
-  // sin imagen) — mismo picked/toggle/CTA por debajo, solo cambia cómo se
-  // pinta cada tema. Quitar el toggle y quedarse con el modo ganador en
-  // cuanto decidamos cuál es.
-  const [mode, setMode] = useState("cards");
+  // asistente no debe perder el modo que trajo hasta aquí. Se reconoce por el
+  // conjunto exacto de temas, que es lo único que App.jsx guarda.
+  const [picked, setPicked] = useState(() => {
+    const prev = new Set(initialPicked);
+    if (prev.size === 0) return null;
+    const match = modes.find(
+      (m) => m.topics.length === prev.size && m.topics.every((id) => prev.has(id)),
+    );
+    return match?.id ?? null;
+  });
 
-  const toggle = (id) => {
-    setNudge(false);
-    setPicked((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const n = picked.size;
-  // Sin nada marcado el botón de ajustar no puede quedarse muerto: pasa a ser
-  // "Ajusta todo" y mete el asistente entero. `topics` ya viene filtrado por
-  // si hay niños, así que no cuela pasos que no aplican.
-  const go = () => onContinue?.(n > 0 ? [...picked] : topics.map((t) => t.id));
+  const chosen = modes.find((m) => m.id === picked) ?? null;
 
   return (
     <OnboardingShell
-      title="¿Qué quieres ajustar de tu menú?"
-      subtitle="Marca los campos que quieras que revisemos. En los que no nos digas nada, asumiremos lo que ves debajo de la pregunta."
+      title="¿Qué quieres ajustar?"
+      subtitle="Elige cuánto quieres contarnos. Lo que no nos digas, lo decidimos nosotros por ti."
       onBack={onBack}
-      onReset={onReset}
       // Aquí el asistente aún no ha empezado: no hay nada que abandonar, solo
       // se vuelve por donde has venido. De ahí un chevron de "atrás" y no el
       // "Salir" del resto de pasos — que además deja sitio al título.
+      onReset={onReset}
       resetAsChevron
-      // Título arriba, en la fila del botón: esta pantalla es la portada del
-      // asistente, no un paso suyo, y no lleva barra de progreso que ocupe
-      // ese hueco.
-      inlineTitle
       // Doble CTA: la vía rápida (generar ya, sin contestar nada) siempre está
-      // ahí en secundario, y el principal es meterse a ajustar — todo si no
-      // has marcado nada, o solo lo marcado si sí.
-      onNext={go}
-      onFinish={() => onContinue?.([])}
-      nextLabel={n > 0 ? `Ajustar ${n} ${n === 1 ? "paso" : "pasos"}` : "Ajusta todo"}
+      // ahí en secundario, y el principal arranca el modo elegido.
+      onNext={() => chosen && onContinue?.(chosen.topics, chosen.expert)}
+      onFinish={() => onContinue?.([], false)}
+      nextDisabled={!chosen}
+      nextLabel={chosen ? "Empezar" : "Elige uno"}
       finishLabel="Genera el menú ya"
     >
-      {/* Toggle del experimento — ver comentario junto a `mode` más arriba. */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
-        <div style={{ display: "flex", background: "#eef3ef", borderRadius: 10, padding: 2, gap: 2 }}>
-          {[
-            { id: "cards", label: "Cards", Icon: LayoutGrid },
-            { id: "rows", label: "Filas", Icon: Rows3 },
-          ].map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => setMode(opt.id)}
-              style={{
-                display: "flex", alignItems: "center", gap: 5,
-                padding: "6px 10px", borderRadius: 8, border: "none",
-                background: mode === opt.id ? "#fff" : "transparent",
-                boxShadow: mode === opt.id ? "0 1px 4px rgba(20,47,29,.18)" : "none",
-                color: mode === opt.id ? GREEN : "#7a9485",
-                fontSize: 11.5, fontWeight: 800, fontFamily: "inherit", cursor: "pointer",
-              }}
-            >
-              <opt.Icon size={13} strokeWidth={2.6} />
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {GROUPS.map((groupName) => {
-        const inGroup = topics.filter((t) => t.group === groupName);
-        if (inGroup.length === 0) return null;
-        if (mode === "rows") {
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {modes.map((m) => {
+          const on = picked === m.id;
           return (
-            <section key={groupName} style={{ marginBottom: 18 }}>
-              <h2 style={groupTitle}>{groupName}</h2>
-              <div style={rowList}>
-                {inGroup.map(({ id, title, value }, i) => {
-                  const on = picked.has(id);
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => toggle(id)}
-                      aria-pressed={on}
-                      className={nudge && id === firstTopicId ? "mp-nudge" : undefined}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 12,
-                        width: "100%", padding: "12px 14px", border: "none",
-                        borderTop: i === 0 ? "none" : "1px solid #eef2ef",
-                        background: on ? `${SELECTED}0f` : "transparent",
-                        cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-                      }}
-                    >
-                      {/* Marcado ya no puede pintar el icono de blanco como
-                          hacía el lucide, así que lo dice el aro de fuera. */}
-                      <span
-                        style={{
-                          flexShrink: 0, width: 34, height: 34, borderRadius: 10,
-                          overflow: "hidden", background: "#f4f7f5",
-                          boxShadow: on ? `0 0 0 2px ${SELECTED}` : "none",
-                        }}
-                      >
-                        <img
-                          src={ROW_ICON[id]}
-                          alt=""
-                          loading="lazy"
-                          style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
-                        />
-                      </span>
-                      <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: "block", fontSize: 13, fontWeight: 800, color: "#142f1d", lineHeight: 1.25 }}>
-                          {title}
-                        </span>
-                        <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.3, marginTop: 1 }}>
-                          {value(data, kids).replace("\n", " ")}
-                        </span>
-                      </span>
-                      <span
-                        style={{
-                          flexShrink: 0, width: 21, height: 21, borderRadius: "50%",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          border: `2px solid ${on ? SELECTED : "#d7e4dc"}`,
-                          background: on ? SELECTED : "transparent",
-                        }}
-                      >
-                        {on && <Check size={12} color="#fff" strokeWidth={3.2} />}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        }
-        return (
-          <section key={groupName} style={{ marginBottom: 18 }}>
-            <h2 style={groupTitle}>{groupName}</h2>
-            <div style={grid}>
-              {inGroup.map(({ id, img, Icon, title, value, accent }) => {
-                const on = picked.has(id);
-                const tone = accent ?? GREEN;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => toggle(id)}
-                    aria-pressed={on}
-                    className={nudge && id === firstTopicId ? "mp-nudge" : undefined}
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => setPicked(m.id)}
+              aria-pressed={on}
+              style={{
+                position: "relative",
+                display: "block",
+                width: "100%",
+                padding: 0,
+                borderRadius: 16,
+                overflow: "hidden",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textAlign: "left",
+                background: "#fff",
+                border: `2px solid ${on ? SELECTED : "#e0eae3"}`,
+                boxShadow: on
+                  ? `0 6px 18px ${SELECTED}2e`
+                  : "0 1px 3px rgba(20,47,29,.05)",
+                transform: on ? "translateY(-2px)" : "none",
+                transition:
+                  "transform .2s cubic-bezier(.25,.46,.45,.94), border-color .15s ease, box-shadow .2s ease",
+              }}
+              onPointerDown={(e) => { e.currentTarget.style.transform = "scale(.97)"; }}
+              onPointerUp={(e) => { e.currentTarget.style.transform = ""; }}
+              onPointerLeave={(e) => { e.currentTarget.style.transform = ""; }}
+            >
+              {/* La ilustración es vertical (4:5) y la tarjeta la recorta a
+                  cuadrado: tres tarjetas a 4:5 completas son tres pantallas de
+                  scroll antes de poder comparar. Cada modo elige su franja con
+                  `focus` para no perder lo que cuenta su nivel. */}
+              <span style={{ position: "relative", display: "block", width: "100%" }}>
+                <img
+                  src={m.img}
+                  alt=""
+                  loading="lazy"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    aspectRatio: "1 / 1",
+                    objectFit: "cover",
+                    objectPosition: m.focus,
+                    background: "#f4f7f5",
+                  }}
+                />
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    // Llega hasta media imagen porque ahora sostiene título y
+                    // subtítulo (antes vivían en una franja blanca debajo),
+                    // pero cae rápido para no tapar la encimera, que es donde
+                    // se ve el nivel: una sartén, dos, o la cocina entera.
+                    background:
+                      "linear-gradient(to top, rgba(20,47,29,.94) 0%, rgba(20,47,29,.55) 22%, rgba(20,47,29,0) 58%)",
+                  }}
+                />
+                {/* Las dos cifras que comparas entre tarjetas, una en cada
+                    esquina de arriba: cuánto te cuesta y cuánto te preguntamos.
+                    En píldora blanca porque el degradado solo cubre la mitad
+                    de abajo y arriba la cocina es clara y con detalle. */}
+                <span style={{ ...pill, left: 11 }}>{m.time}</span>
+                <span style={{ ...pill, right: 11 }}>
+                  {m.count} {m.count === 1 ? "pregunta" : "preguntas"}
+                </span>
+                <span style={{ position: "absolute", left: 14, right: 46, bottom: 12, color: "#fff" }}>
+                  <span style={{ display: "block", fontSize: 21, fontWeight: 900, letterSpacing: "-.4px", lineHeight: 1.1 }}>
+                    {m.title}
+                  </span>
+                  <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, lineHeight: 1.35, marginTop: 3, opacity: 0.92 }}>
+                    {m.subtitle}
+                  </span>
+                </span>
+                {/* Abajo a la derecha, no arriba: esa esquina la ocupa ya la
+                    píldora de "N preguntas". Queda enfrente del título. */}
+                {on && (
+                  <span
                     style={{
-                      position: "relative", display: "flex", flexDirection: "column",
-                      padding: 0, borderRadius: 16, overflow: "hidden", cursor: "pointer",
-                      fontFamily: "inherit", textAlign: "left", minWidth: 0,
-                      border: `2px solid ${on ? SELECTED : "#e0eae3"}`,
-                      background: on ? SELECTED : "#fff",
-                      boxShadow: on ? `0 4px 14px ${SELECTED}33` : "0 2px 8px rgba(20,47,29,.05)",
-                      // Microinteracción: se hunde un pelo al pulsar y sube al
-                      // soltar con una curva con rebote. Sin librería.
-                      transform: on ? "translateY(-2px)" : "none",
-                      transition: "transform .22s cubic-bezier(.34,1.56,.64,1), background .15s ease, border-color .15s ease, box-shadow .2s ease",
+                      position: "absolute",
+                      bottom: 11,
+                      right: 11,
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      background: SELECTED,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 2px 6px rgba(0,0,0,.25)",
                     }}
-                    onPointerDown={(e) => { e.currentTarget.style.transform = "scale(.96)"; }}
-                    onPointerUp={(e) => { e.currentTarget.style.transform = ""; }}
-                    onPointerLeave={(e) => { e.currentTarget.style.transform = ""; }}
                   >
-                    {/* La pregunta va sobre la ilustración, con su icono; la
-                        respuesta en la franja de abajo. Así la tarjeta se lee de
-                        un vistazo: arriba qué se decide, abajo qué haríamos. */}
-                    <span style={{ position: "relative", display: "block", width: "100%" }}>
-                      <img
-                        src={img(data)}
-                        alt=""
-                        loading="lazy"
-                        style={{ display: "block", width: "100%", aspectRatio: "1 / 1", objectFit: "cover", background: "#f4f7f5" }}
-                      />
-                      {/* Degradado desde abajo, donde vive la pregunta. Arriba
-                          tapaba la cara de los personajes de las ilustraciones. */}
-                      <span
-                        style={{
-                          position: "absolute", inset: 0,
-                          background: "linear-gradient(to top, rgba(20,47,29,.88) 0%, rgba(20,47,29,.45) 45%, rgba(20,47,29,.05) 100%)",
-                        }}
-                      />
-                      {/* Icono en la misma línea que la pregunta, delante: la
-                          primera línea del texto arranca a su lado y las
-                          siguientes fluyen debajo. */}
-                      {/* Sin text-wrap:balance a propósito: reparte el texto entre
-                          líneas y empujaba palabras clave («presupuesto») a la
-                          segunda. Llenando la primera línea entran antes. */}
-                      <span style={{ position: "absolute", left: 10, right: 10, bottom: 9, color: "#fff", fontSize: 12.5, fontWeight: 800, lineHeight: 1.3 }}>
-                        <Icon size={14} strokeWidth={2.6} style={{ verticalAlign: "-2px", marginRight: 5 }} />
-                        {title}
-                      </span>
-                    </span>
-                    <span
-                      style={{
-                        // flex:1 para que la franja llegue hasta abajo: la
-                        // rejilla estira todas las tarjetas de una fila a la
-                        // misma altura, y con la respuesta en una sola línea
-                        // quedaba un hueco blanco bajo la franja.
-                        display: "block", flex: 1, padding: "9px 11px 10px",
-                        fontSize: 11.5, fontWeight: 800, lineHeight: 1.3,
-                        whiteSpace: "pre-line",
-                        color: on ? "#fff" : tone,
-                        background: on ? "transparent" : `${tone}12`,
-                        borderTop: on ? "1px solid rgba(255,255,255,.25)" : `1px solid ${tone}22`,
-                      }}
-                    >
-                      {value(data, kids)}
-                    </span>
-                    {on && (
-                      <span style={checkBadge}><Check size={11} color={SELECTED} strokeWidth={3.2} /></span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
+                    <Check size={14} color="#fff" strokeWidth={3.2} />
+                  </span>
+                )}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </OnboardingShell>
   );
 }
 
-const groupTitle = {
-  margin: "0 0 9px", fontSize: 11, fontWeight: 900, color: "#7a9485",
-  letterSpacing: ".6px", textTransform: "uppercase",
-};
-
-// auto-fill en vez de 2 columnas fijas: en móvil salen 2, y en pantallas
-// anchas se rellena solo con 3 o 4 sin tocar nada.
-const grid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-  gap: 10,
-};
-
-// Lista tipo ajustes: un solo bloque blanco redondeado con filas separadas
-// por una línea fina, en vez de una tarjeta suelta por tema.
-const rowList = {
-  background: "#fff", borderRadius: 14, overflow: "hidden",
-  border: "1px solid #e0eae3", boxShadow: "0 2px 8px rgba(20,47,29,.05)",
-};
-
-const checkBadge = {
-  position: "absolute", top: 9, right: 9,
-  width: 19, height: 19, borderRadius: "50%", background: "#fff",
-  display: "flex", alignItems: "center", justifyContent: "center",
-  boxShadow: "0 1px 3px rgba(0,0,0,.2)",
+// Las dos cifras de la esquina de arriba. Blanca casi opaca en vez de
+// translúcida: van sobre la cocina, que es clara pero con detalle, y a 10px
+// el texto se pierde en cuanto se transparenta.
+const pill = {
+  position: "absolute",
+  top: 11,
+  padding: "4px 9px",
+  borderRadius: 999,
+  background: "rgba(255,255,255,.94)",
+  color: "#142f1d",
+  fontSize: 10,
+  fontWeight: 800,
+  textTransform: "uppercase",
+  letterSpacing: ".6px",
+  lineHeight: 1,
+  boxShadow: "0 2px 6px rgba(20,47,29,.18)",
 };
