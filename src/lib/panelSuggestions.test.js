@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { sugerenciasDelMenu, contextoParaElModelo, MAX_SUGERENCIAS } from "./panelSuggestions.js";
+import { existsSync } from "fs";
+import { join } from "path";
 import { libretaVacia, poner } from "./notepad.js";
 
 const conObjetivos = (freqs) =>
@@ -123,12 +125,29 @@ describe("la rejilla de cuatro", () => {
     expect(new Set(s.map((x) => x.id)).size).toBe(s.length);
   });
 
-  it("cada una trae icono y su tono de color", () => {
+  // La ilustracion 3D del catalogo, no un icono de linea: es lo que separa
+  // esto de cualquier otra app, y ya estaba pagado.
+  it("cada una trae su ilustracion y su tono de color", () => {
     for (const s of sugerenciasDelMenu({ familias: { pescado: 4 }, huecos: 14 }, conObjetivos({ pescado: 2 }))) {
-      expect(typeof s.icono).toBe("string");
+      expect(s.arte).toMatch(/^\/categories\/.+\.(png|webp)$/);
       expect(s.tono.fondo).toMatch(/^#/);
       expect(s.tono.tinta).toMatch(/^#/);
     }
+  });
+
+  // Una ruta mal escrita da un hueco mudo en la rejilla: la tarjeta se pinta,
+  // la imagen no carga y nadie se entera hasta que lo ve un usuario.
+  it("todas las ilustraciones que nombra existen en public/", () => {
+    const rutas = new Set();
+    const casos = [
+      [{ familias: { pescado: 4, carne: 4, verdura: 4, legumbres: 4, pasta_arroz: 4, huevos: 4 }, huecos: 14 },
+       conObjetivos({ pescado: 1, carne: 1, verdura: 1, legumbres: 1, pasta_arroz: 1, huevos: 1 })],
+      [{ tecnicas: { horno: 8 }, cocinas: {}, huecos: 14 }, libretaVacia()],
+      [{}, libretaVacia()],
+    ];
+    for (const [r, n] of casos) for (const s of sugerenciasDelMenu(r, n)) rutas.add(s.arte);
+    expect(rutas.size).toBeGreaterThan(5);
+    for (const r of rutas) expect(existsSync(join("public", r.slice(1))), `falta ${r}`).toBe(true);
   });
 
   // Los colores van por POSICION, no por contenido: la rejilla tiene siempre

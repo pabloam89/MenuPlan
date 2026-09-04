@@ -23,9 +23,17 @@ const FAMILIA_LABEL = {
   pasta_arroz: "pasta o arroz", huevos: "huevo", verdura: "verdura",
 };
 
-const ICONO_FAMILIA = {
-  pescado: "pez", carne: "carne", verdura: "hoja",
-  legumbres: "cuchara", pasta_arroz: "trigo", huevos: "huevo",
+// Nuestras ilustraciones 3D. Hermana de FAMILY_ART en screens/Analytics.jsx:
+// mismas rutas, mismo criterio (pasta y arroz comparten bol). Se duplica en vez
+// de importarse porque aquella vive dentro de una pantalla de 900 lineas y
+// sacarla de ahi es otra faena; si un dia se mueven, se mueven las dos.
+const ARTE_FAMILIA = {
+  pescado: "/categories/cut/pescado.png",
+  carne: "/categories/cut/carne.png",
+  verdura: "/categories/cut/verduras.png",
+  legumbres: "/categories/cut/legumbres.png",
+  pasta_arroz: "/categories/cut/pasta_arroz.png",
+  huevos: "/categories/cut/huevos.png",
 };
 
 const veces = (n) => (n === 1 ? "una vez" : n === 2 ? "dos veces" : `${n} veces`);
@@ -54,7 +62,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
         texto: `Menos ${FAMILIA_LABEL[familia] ?? familia}`,
         frase: `menos ${FAMILIA_LABEL[familia] ?? familia}`,
         porque: `Hay ${veces(cuantas)} y pediste ${objetivo}`,
-        icono: ICONO_FAMILIA[familia] ?? "plato",
+        arte: ARTE_FAMILIA[familia] ?? "/categories/platos_unicos.png",
       });
     }
   }
@@ -69,7 +77,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
       texto: "Más variedad de estilos",
       frase: `menos ${tecnicaTop}`,
       porque: `${tecnicaN} platos ${preposicion(tecnicaTop)} ${tecnicaTop}`,
-      icono: "chispa",
+      arte: "/categories/faceta_gourmet.webp",
     });
   }
 
@@ -86,7 +94,9 @@ export function sugerenciasDelMenu(recuento, notepad) {
       texto: `Cocina ${cual}`,
       frase: `más comida ${cual}`,
       porque: "Esta semana no hay nada de fuera",
-      icono: "mundo",
+      // Provisional hasta que existan las banderas de cocina: las especias
+      // son lo mas parecido a "de fuera" que hay hoy en el catalogo.
+      arte: "/categories/especias.png",
     });
   }
 
@@ -105,10 +115,10 @@ export function sugerenciasDelMenu(recuento, notepad) {
 // Siempre servibles: no dependen de cómo esté el menú, así que valen de
 // relleno sin mentir. Ordenados por lo que más pide la gente.
 const COMODINES = [
-  { id: "mas-rapido", texto: "Algo más rápido", frase: "algo más rápido", porque: "Para las noches con prisa", icono: "reloj" },
-  { id: "mas-verdura", texto: "Más verdura", frase: "más verdura", porque: "Sin que parezca un castigo", icono: "hoja" },
-  { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil", porque: "Platos de un cacharro", icono: "chef" },
-  { id: "mas-salsa", texto: "Platos con salsa", frase: "más platos con salsa", porque: "De los que mojan pan", icono: "cuchara" },
+  { id: "mas-rapido", texto: "Algo más rápido", frase: "algo más rápido", porque: "Para las noches con prisa", arte: "/categories/faceta_rapido.webp" },
+  { id: "mas-verdura", texto: "Más verdura", frase: "más verdura", porque: "Sin que parezca un castigo", arte: "/categories/cut/verduras.png" },
+  { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil", porque: "Platos de un cacharro", arte: "/categories/platos_unicos.png" },
+  { id: "mas-salsa", texto: "Platos con salsa", frase: "más platos con salsa", porque: "De los que mojan pan", arte: "/categories/salsas.png" },
 ];
 
 // Cuatro parejas de color, una por posición en la rejilla. Van por posición y

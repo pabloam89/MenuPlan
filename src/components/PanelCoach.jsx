@@ -4,7 +4,7 @@
  * Spotlight que apaga la pantalla y deja la burbuja encendida, como los coach
  * marks (HomeCoachTour). Encima, una tarjeta con:
  *
- *   · cuatro ideas en rejilla 2×2, cada una con su color y su icono
+ *   · cuatro ideas en rejilla 2×2, cada una con su ilustración 3D y su color
  *   · las respuestas como frases apiladas con divisoria y casilla
  *
  * Las casillas permiten marcar VARIAS cuando el modelo ha entendido varias
@@ -18,16 +18,8 @@
  */
 
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
-import {
-  Sparkles, X, ArrowUp, Check, Fish, Beef, Leaf, Soup, Wheat, Egg,
-  Globe, Clock, ChefHat, Utensils, UtensilsCrossed,
-} from "lucide-react";
+import { Sparkles, X, ArrowUp, Check } from "lucide-react";
 import { resumirAjuste } from "../lib/panelParser.js";
-
-const ICONOS = {
-  pez: Fish, carne: Beef, hoja: Leaf, cuchara: Soup, trigo: Wheat, huevo: Egg,
-  mundo: Globe, reloj: Clock, chef: ChefHat, chispa: Sparkles, plato: Utensils,
-};
 
 const ANCHO_MAX = 330;
 const HUECO = 14;
@@ -137,23 +129,22 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
               <>
                 <div style={S.titulo}>¿Qué necesitas?</div>
                 <div style={S.rejilla}>
-                  {sugerencias.slice(0, 4).map((s, i) => {
-                    const Icono = ICONOS[s.icono] ?? UtensilsCrossed;
-                    return (
-                      <button key={s.id} type="button" className="mp-press"
-                        onClick={() => preguntar(s.frase)}
-                        style={{
-                          ...S.card, background: s.tono.fondo, borderColor: s.tono.borde,
-                          animation: `panelCard .38s cubic-bezier(.34,1.4,.5,1) both ${i * 55}ms`,
-                        }}>
-                        <span style={{ ...S.cardIcono, boxShadow: `0 4px 12px ${s.tono.glow}` }}>
-                          <Icono size={15} color={s.tono.tinta} />
-                        </span>
-                        <span style={{ ...S.cardTexto, color: s.tono.tinta }}>{s.texto}</span>
-                        <span style={S.cardPorque}>{s.porque}</span>
-                      </button>
-                    );
-                  })}
+                  {sugerencias.slice(0, 4).map((s, i) => (
+                    <button key={s.id} type="button" className="mp-press"
+                      onClick={() => preguntar(s.frase)}
+                      style={{
+                        ...S.card, background: s.tono.fondo, borderColor: s.tono.borde,
+                        animation: `panelCard .38s cubic-bezier(.34,1.4,.5,1) both ${i * 55}ms`,
+                      }}>
+                      {/* La ilustracion 3D del catalogo, no un icono de linea:
+                          es lo que separa esto de cualquier app y ya estaba
+                          pagado. Sale del flujo con margen negativo para que
+                          respire y se salga un poco de la tarjeta. */}
+                      <img src={s.arte} alt="" style={S.cardArte} loading="lazy" />
+                      <span style={{ ...S.cardTexto, color: s.tono.tinta }}>{s.texto}</span>
+                      <span style={S.cardPorque}>{s.porque}</span>
+                    </button>
+                  ))}
                 </div>
                 <Entrada texto={texto} setTexto={setTexto} onEnviar={() => preguntar()} />
               </>
@@ -283,13 +274,15 @@ const S = {
 
   rejilla: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 11 },
   card: {
-    display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 3,
-    border: "1.5px solid", borderRadius: 15, padding: "11px 10px 10px", cursor: "pointer",
-    textAlign: "left", minHeight: 96,
+    position: "relative", display: "flex", flexDirection: "column",
+    alignItems: "flex-start", gap: 2, border: "1.5px solid", borderRadius: 16,
+    padding: "44px 10px 10px", cursor: "pointer", textAlign: "left",
+    minHeight: 104, overflow: "hidden",
   },
-  cardIcono: {
-    width: 26, height: 26, borderRadius: 9, background: "rgba(255,255,255,.85)",
-    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 3,
+  cardArte: {
+    position: "absolute", top: -6, right: -8, width: 60, height: 60,
+    objectFit: "contain", pointerEvents: "none",
+    filter: "drop-shadow(0 4px 10px rgba(20,47,29,.18))",
   },
   cardTexto: { fontSize: 13, fontWeight: 900, lineHeight: 1.2, letterSpacing: "-.2px" },
   cardPorque: { fontSize: 10.5, fontWeight: 500, color: "#7d8f85", lineHeight: 1.3 },
