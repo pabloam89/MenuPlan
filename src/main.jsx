@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { InstallPwaBanner } from './components/InstallPwaBanner.jsx'
+import { PanelPlayground } from './dev/PanelPlayground.jsx'
 import './index.css'
 
 // A tab left open across a deploy still holds the OLD index.html, which
@@ -21,11 +22,19 @@ window.addEventListener('vite:preloadError', () => {
   window.location.reload()
 })
 
+// Dev/support helper: abre la app con ?panel=1 para ver el panel del menú
+// SUELTO — sin pasar por Menu.jsx y sin llamar al modelo, con respuestas de
+// guion. Mismo patrón que ?demo=1 / ?tour=1 en App.jsx, y por el mismo motivo:
+// poder recorrer una pantalla entera, casos raros incluidos, sin montar medio
+// producto detrás. Fuera de dev la rama no existe.
+const PANEL_SUELTO =
+  import.meta.env.DEV &&
+  new URLSearchParams(window.location.search).get('panel') === '1'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <App />
-      <InstallPwaBanner />
+      {PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
     </ErrorBoundary>
   </React.StrictMode>,
 )
