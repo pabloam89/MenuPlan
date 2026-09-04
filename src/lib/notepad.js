@@ -1,18 +1,20 @@
 /**
  * La libreta (notepad).
  *
- * Lo que la app sabe de esta casa, y —esto es lo importante— DE DÓNDE lo sabe.
+ * Lo que la app sabe de esta casa: el valor de cada eje y —esto es lo que la
+ * hace distinta de un objeto de config— DE DÓNDE salió ese valor.
  *
- * ── Por qué no guarda valores ─────────────────────────────────────────────
- * La tentación era copiar aquí `freqs`, `allergies` y compañía y declarar la
- * libreta "fuente de la verdad". Eso crea dos sitios con el mismo dato, y dos
- * sitios con el mismo dato siempre acaban diciendo cosas distintas.
+ * ── Una sola casa ─────────────────────────────────────────────────────────
+ * Todo eje vive aquí. La primera versión de este módulo guardaba solo los
+ * metadatos y dejaba los valores donde ya estaban (`data.freqs`), para no
+ * duplicar. Era peor: obligaba a decidir, eje por eje, en cuál de los dos
+ * sitios vivía cada cosa. Esa regla no escala — a la tercera pregunta nueva ya
+ * no te acuerdas de dónde estaba `cocina`.
  *
- * Así que la libreta es un ACOMPAÑANTE: guarda, por campo, quién puso ese
- * valor y si está confirmado. El valor sigue viviendo donde ya vivía
- * (`data.freqs`, `data.allergies`…). Para los ejes que no existían todavía
- * —sesgo de cocina, de técnica— sí es su casa, porque no hay nada que duplicar.
- * Cada fila del registro dice cuál de los dos casos es.
+ * El miedo a duplicar se resuelve sin partir nada: `data.freqs` y compañía
+ * pasan a ser una PROYECCIÓN (ver `proyectar`), calculada desde aquí. Hay un
+ * único sitio donde se escribe y un único sitio donde está la verdad; lo que
+ * leen `aiPlanner` y `filterRecipes` es una vista, no una copia.
  *
  * ── Los cuatro estados ────────────────────────────────────────────────────
  * No es "relleno o vacío". El mismo 2 en `pescado` significa cuatro cosas:
@@ -23,40 +25,37 @@
  *   delegado   "Lo que tú veas". No es un hueco: es permiso.
  *   vacío      No sabemos nada. Se pregunta, o cae a un default visible.
  *
- * `bloqueado` es aparte y es más fuerte que todo: un tema descartado a mano no
- * vuelve a preguntarse nunca, que es distinto de saltárselo hoy.
+ * `bloqueado` es aparte y más fuerte: un tema descartado a mano no vuelve a
+ * preguntarse nunca, que es distinto de saltárselo hoy.
  *
  * ── Procedencia ───────────────────────────────────────────────────────────
  * Cada escritura del panel guarda la FRASE que la causó y su fecha. Sirve para
- * tres cosas a la vez: deshacer, explicar ("está así porque dijiste…") y que
- * el usuario pueda desmentirlo. Es casi todo el trabajo de confianza del panel
- * por muy poco código.
+ * deshacer, para explicar ("está así porque dijiste…") y para que el usuario
+ * pueda desmentirlo: casi todo el trabajo de confianza del panel por muy poco
+ * código.
  */
 
 import { z } from "zod";
 
-/** De dónde salió un valor. */
 export const ORIGENES = ["texto", "pregunta", "default", "perfil", "arquetipo"];
-
-/** Los cuatro estados de un campo, tal y como los ve el resto de la app. */
 export const ESTADOS = ["vacio", "inferido", "delegado", "fijado"];
-
 export const NOTEPAD_VERSION = 1;
 
 const ProcedenciaSchema = z.object({
-  // La frase literal del usuario. Se guarda entera y sin tocar: es lo que se
-  // le enseña de vuelta, y reescribirla sería justo lo que rompe la confianza.
+  // La frase literal del usuario, entera y sin tocar: es lo que se le enseña
+  // de vuelta, y reescribirla sería justo lo que rompe la confianza.
   frase: z.string().max(500),
-  fecha: z.string(),          // ISO local, YYYY-MM-DD
+  fecha: z.string(),
 });
 
 const CampoSchema = z.object({
+  valor: z.unknown(),
   origen: z.enum(["texto", "pregunta", "default", "perfil", "arquetipo"]),
   confirmado: z.boolean().default(false),
   delegado: z.boolean().default(false),
   bloqueado: z.boolean().default(false),
   procedencia: ProcedenciaSchema.optional(),
-  // El valor anterior, para poder deshacer mañana y no solo en los dos
+  // El valor original, para poder deshacer mañana y no solo en los dos
   // segundos que dura un toast.
   anterior: z.unknown().optional(),
 });
@@ -66,26 +65,27 @@ export const NotepadSchema = z.object({
   campos: z.record(z.string(), CampoSchema),
 });
 
-/** Una libreta vacía. Vacía no es rota: es el estado inicial de todos. */
 export function libretaVacia() {
   return { v: NOTEPAD_VERSION, campos: {} };
 }
 
-/**
- * El estado de un campo, que es la pregunta que se hace la UI.
- *
- * Necesita el valor actual además de la libreta porque "vacío" no es una
- * anotación: es la ausencia de una. Un campo del que la libreta no sabe nada
- * pero que tiene valor está en `default` — hay algo que enseñar, y hay que
- * enseñarlo como suposición, no como decisión del usuario.
- */
-export function estadoDe(notepad, path, valorActual) {
+const base = (n) => (n?.v === NOTEPAD_VERSION ? n : libretaVacia());
+
+/** El valor de un eje, o `porDefecto` si la libreta no sabe nada de él. */
+export function valorDe(notepad, path, porDefecto = undefined) {
   const campo = notepad?.campos?.[path];
-  if (!campo) return valorActual == null ? "vacio" : "inferido";
+  return campo && campo.valor !== undefined ? campo.valor : porDefecto;
+}
+
+/** El estado de un campo, que es la pregunta que se hace la UI. */
+export function estadoDe(notepad, path) {
+  const campo = notepad?.campos?.[path];
+  if (!campo) return "vacio";
   if (campo.bloqueado) return "fijado";
   if (campo.delegado) return "delegado";
   if (campo.origen === "pregunta" || campo.confirmado) return "fijado";
-  if (campo.origen === "default") return valorActual == null ? "vacio" : "inferido";
+  // Un default es algo que enseñar, pero como suposición: darlo por dicho sería
+  // atribuirle al usuario una decisión que no tomó.
   return "inferido";
 }
 
@@ -97,31 +97,31 @@ export function sePuedePreguntar(notepad, path) {
 }
 
 /**
- * Anota una escritura. Devuelve una libreta NUEVA — nunca muta la que recibe,
+ * Escribe un valor. Devuelve una libreta NUEVA — nunca muta la que recibe,
  * porque estas llegan del estado de React y mutarlas se traga los re-renders.
  */
-export function anotar(notepad, path, { origen, frase, fecha, anterior, confirmado = false }) {
-  const base = notepad?.v === NOTEPAD_VERSION ? notepad : libretaVacia();
-  const previo = base.campos[path];
+export function poner(notepad, path, valor, { origen, frase, fecha, confirmado = false } = {}) {
+  const b = base(notepad);
+  const previo = b.campos[path];
   return {
-    ...base,
+    ...b,
     campos: {
-      ...base.campos,
+      ...b.campos,
       [path]: {
-        origen,
+        valor,
+        origen: origen ?? "texto",
         confirmado,
         delegado: false,
-        // Un campo bloqueado sigue bloqueado: escribir no desbloquea. Para eso
-        // está `desbloquear`, que es un gesto explícito del usuario.
+        // Escribir no desbloquea: si no, cualquier frase del panel reabriría un
+        // tema que el usuario cerró a propósito.
         bloqueado: previo?.bloqueado ?? false,
         ...(frase ? { procedencia: { frase, fecha } } : {}),
-        // Solo se guarda el valor anterior de la PRIMERA escritura de una
-        // tanda: si no, dos cambios seguidos dejarían "anterior" apuntando al
-        // penúltimo y el deshacer no volvería al principio.
-        ...(anterior !== undefined && previo?.anterior === undefined
-          ? { anterior }
-          : previo?.anterior !== undefined
-            ? { anterior: previo.anterior }
+        // Solo se guarda el valor de la PRIMERA escritura de una tanda: si no,
+        // dos cambios seguidos dejarían el deshacer a medio camino.
+        ...(previo?.anterior !== undefined
+          ? { anterior: previo.anterior }
+          : previo?.valor !== undefined
+            ? { anterior: previo.valor }
             : {}),
       },
     },
@@ -130,24 +130,26 @@ export function anotar(notepad, path, { origen, frase, fecha, anterior, confirma
 
 /** "Lo que tú veas": resuelto, no vacío. Es lo único que acorta el wizard. */
 export function delegar(notepad, path) {
-  const base = notepad?.v === NOTEPAD_VERSION ? notepad : libretaVacia();
+  const b = base(notepad);
+  const previo = b.campos[path];
   return {
-    ...base,
+    ...b,
     campos: {
-      ...base.campos,
-      [path]: { ...base.campos[path], origen: "pregunta", confirmado: false, delegado: true, bloqueado: false },
+      ...b.campos,
+      [path]: { ...previo, valor: previo?.valor, origen: "pregunta", confirmado: false, delegado: true, bloqueado: false },
     },
   };
 }
 
 /** Un no-go: no se vuelve a preguntar. Distinto de saltárselo hoy. */
 export function bloquear(notepad, path) {
-  const base = notepad?.v === NOTEPAD_VERSION ? notepad : libretaVacia();
+  const b = base(notepad);
+  const previo = b.campos[path];
   return {
-    ...base,
+    ...b,
     campos: {
-      ...base.campos,
-      [path]: { ...base.campos[path], origen: base.campos[path]?.origen ?? "pregunta", bloqueado: true, delegado: false, confirmado: true },
+      ...b.campos,
+      [path]: { ...previo, origen: previo?.origen ?? "pregunta", bloqueado: true, delegado: false, confirmado: true },
     },
   };
 }
@@ -159,7 +161,17 @@ export function confirmar(notepad, path) {
   return { ...notepad, campos: { ...notepad.campos, [path]: { ...campo, confirmado: true } } };
 }
 
-/** Olvidar una anotación — el deshacer del panel. El valor lo repone quien llama. */
+/** El deshacer del panel: vuelve al valor original y quita la anotación. */
+export function deshacer(notepad, path) {
+  const campo = notepad?.campos?.[path];
+  if (!campo) return notepad;
+  const campos = { ...notepad.campos };
+  if (campo.anterior === undefined) delete campos[path];
+  else campos[path] = { ...campo, valor: campo.anterior, anterior: undefined, procedencia: undefined };
+  return { ...notepad, campos };
+}
+
+/** Olvidar del todo, sin reponer nada. */
 export function olvidar(notepad, path) {
   if (!notepad?.campos?.[path]) return notepad;
   const campos = { ...notepad.campos };
@@ -167,20 +179,85 @@ export function olvidar(notepad, path) {
   return { ...notepad, campos };
 }
 
-/**
- * La frase que explica por qué un campo está como está, o null si no hay nada
- * que contar. Es el "recibo" del panel, y sale gratis de la procedencia.
- */
+/** Por qué un campo está como está, o null. Es el recibo, y sale gratis. */
 export function porQue(notepad, path) {
   const p = notepad?.campos?.[path]?.procedencia;
   return p ? `Porque dijiste «${p.frase}» el ${p.fecha}` : null;
+}
+
+/**
+ * La vista que esperan los consumidores de siempre.
+ *
+ * `aiPlanner` lee `data.freqs` y `data.freqsByGroup` desde antes de que la
+ * libreta existiera, y no hace falta migrarlos: se calculan de aquí. Así hay
+ * un único sitio donde se escribe, y lo que leen los demás es una proyección,
+ * nunca una copia que se pueda desincronizar.
+ *
+ * Lo `delegado` NO se proyecta: "lo que tú veas" es permiso para que decida el
+ * planner, no un número que imponerle.
+ */
+export function proyectar(notepad) {
+  const freqs = {};
+  const freqsByGroup = {};
+  const sesgos = {};
+  const excluidos = [];
+
+  for (const [path, campo] of Object.entries(notepad?.campos ?? {})) {
+    if (campo.delegado || campo.valor === undefined) continue;
+    const [campoId, valorId, ...resto] = path.split(".");
+    const grupo = resto.find((p) => p.startsWith("@"))?.slice(1);
+
+    if (campoId === "freqs") {
+      if (grupo) {
+        (freqsByGroup[grupo] ??= {})[valorId] = campo.valor;
+      } else {
+        freqs[valorId] = campo.valor;
+      }
+    } else if (campoId === "excluidos") {
+      if (campo.valor) excluidos.push(valorId);
+    } else {
+      // base, cocina, tecnica, salsa, esfuerzo — ejes de sesgo, sin consumidor
+      // todavía: los estrenará el panel.
+      (sesgos[campoId] ??= {})[valorId] = campo.valor;
+    }
+  }
+
+  return { freqs, freqsByGroup, sesgos, excluidos };
+}
+
+/**
+ * Migración de un solo sentido: mete en la libreta lo que el usuario ya
+ * contestó en el wizard antes de que esto existiera.
+ *
+ * Entran como `pregunta` porque eso es literalmente lo que pasó — las
+ * contestó en una pantalla. Marcarlas `default` las dejaría a merced de que el
+ * panel las pisara sin avisar, y no serían suyas.
+ *
+ * El valor no cambia: `proyectar()` sobre el resultado devuelve exactamente
+ * los mismos `freqs` que había. Para el usuario, cero diferencia.
+ */
+export function importarDeData(data, notepad = libretaVacia()) {
+  let n = base(notepad);
+  for (const [familia, valor] of Object.entries(data?.freqs ?? {})) {
+    const path = `freqs.${familia}`;
+    if (n.campos[path]) continue;   // la libreta manda: no se pisa lo ya escrito
+    n = poner(n, path, valor, { origen: "pregunta", confirmado: true });
+  }
+  for (const [grupo, freqs] of Object.entries(data?.freqsByGroup ?? {})) {
+    for (const [familia, valor] of Object.entries(freqs ?? {})) {
+      const path = `freqs.${familia}.@${grupo}`;
+      if (n.campos[path]) continue;
+      n = poner(n, path, valor, { origen: "pregunta", confirmado: true });
+    }
+  }
+  return n;
 }
 
 /** Migra o descarta una libreta de versión desconocida. */
 export function normalizar(raw) {
   if (!raw || typeof raw !== "object") return libretaVacia();
   const parsed = NotepadSchema.safeParse(raw);
-  // Una libreta corrupta se tira entera: son metadatos: perderlos degrada la
-  // explicación, no los datos. Arrastrar basura sería peor.
+  // Una libreta corrupta se tira entera. Duele menos de lo que parece: se
+  // reconstruye con `importarDeData` desde lo que el wizard ya guardó.
   return parsed.success ? parsed.data : libretaVacia();
 }

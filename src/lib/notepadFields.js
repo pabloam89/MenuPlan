@@ -11,12 +11,11 @@
  * tabla — así que añadir una acción añade su ejemplo, y no hay documentación
  * que se quede vieja.
  *
- * ── `en`: dónde vive el valor ─────────────────────────────────────────────
- * La libreta NO guarda valores, guarda de dónde salieron (ver notepad.js). Por
- * eso cada fila dice dónde está el suyo:
- *
- *   "data.freqs"     ya existía en el estado de la app → la libreta acompaña
- *   "notepad"        eje nuevo, sin nada que duplicar → vive en la libreta
+ * ── Una sola casa ─────────────────────────────────────────────────────────
+ * Todo eje vive en la libreta, tenga consumidor viejo o no. `data.freqs` y
+ * `data.freqsByGroup` se calculan de ella con `proyectar()` (ver notepad.js),
+ * así que no hay dos sitios donde escribir ni una regla que recordar sobre
+ * cuál toca. `proyecta` dice, para cada fila, en qué parte de esa vista cae.
  *
  * ── Lo que deliberadamente NO está ────────────────────────────────────────
  * Nada con persona con nombre, fecha o textura. Todo eso necesita la zona de
@@ -54,8 +53,8 @@ export const CAMPOS = [
     grupo: "familia",
     etiqueta: "Cuánto de cada cosa",
     dominio: FAMILIAS,
-    en: "data.freqs",
-    porGrupo: "data.freqsByGroup",   // ya existe: freqsByGroup[grupo][familia]
+    proyecta: "freqs",
+    // Con ámbito de grupo cae en `freqsByGroup`, que aiPlanner ya consulta.
     unidad: "veces por semana",
     rango: [0, 7],
     ejemplo: "menos pescado",
@@ -67,7 +66,7 @@ export const CAMPOS = [
     // Consume `mainBase` del catálogo (46 %). Es el único eje que separa la
     // pasta del arroz, que `freqs.pasta_arroz` mete en el mismo saco.
     dominio: ["pasta", "arroz", "patatas", "legumbre", "quinoa", "cuscus", "pan", "avena"],
-    en: "notepad",
+    proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "echo de menos más pasta",
   },
@@ -78,7 +77,7 @@ export const CAMPOS = [
     // Consume `cocina`. Ausente = española, así que "española" no está en el
     // dominio: pedir más española es pedir menos de todo lo demás.
     dominio: ["italiana", "asiatica", "mexicana", "mediterranea", "francesa", "americana", "india", "peruana"],
-    en: "notepad",
+    proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "más comida mexicana",
   },
@@ -87,7 +86,7 @@ export const CAMPOS = [
     grupo: "estilo",
     etiqueta: "Cómo está hecho",
     dominio: ["horno", "plancha", "sarten", "olla", "crudo"],
-    en: "notepad",
+    proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "más cosas al horno",
   },
@@ -98,7 +97,7 @@ export const CAMPOS = [
     // Consume `llevaSalsa` (172 recetas). Aquí NO se combinan platos con
     // salsas: pedir "más salsa" devuelve los platos que ya la traen escrita.
     dominio: ["si", "no"],
-    en: "notepad",
+    proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "más platos con salsa",
   },
@@ -107,7 +106,7 @@ export const CAMPOS = [
     grupo: "esfuerzo",
     etiqueta: "Lo que cuesta cocinarlo",
     dominio: ["facil", "rapido", "elaborado"],
-    en: "notepad",
+    proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "algo más rápido",
   },
@@ -119,7 +118,7 @@ export const CAMPOS = [
     // NUNCA recibe alergias — esas van a `data.allergies` por su propio
     // camino, con confirmación. Un alérgeno no puede entrar como preferencia.
     dominio: null,
-    en: "notepad",
+    proyecta: "excluidos",
     unidad: "lista",
     ejemplo: "no me pongas cilantro",
   },
