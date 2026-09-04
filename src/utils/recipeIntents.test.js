@@ -16,10 +16,21 @@ function recipe(overrides) {
 }
 
 describe("matchesIntent", () => {
-  it("'hijos' requires kidFriendly AND easy — kidFriendly alone covers 84% of the catalog", () => {
-    expect(matchesIntent(recipe({ kidFriendly: true, difficulty: "facil" }), "hijos")).toBe(true);
+  it("'hijos' manda el eje curado `kidFavourite`, no kidFriendly", () => {
+    // kidFriendly dice lo que un niño PUEDE comer y está al 88% del catálogo:
+    // como filtro no distinguía nada, y "+ dificultad fácil" era un apaño que
+    // acotaba sin llegar a significar.
+    expect(matchesIntent(recipe({ kidFavourite: true }), "hijos")).toBe(true);
+    expect(matchesIntent(recipe({ kidFriendly: true, difficulty: "facil" }), "hijos")).toBe(false);
     expect(matchesIntent(recipe({ kidFriendly: true, difficulty: "normal" }), "hijos")).toBe(false);
-    expect(matchesIntent(recipe({ kidFriendly: false, difficulty: "facil" }), "hijos")).toBe(false);
+  });
+
+  it("...salvo en las recetas propias, que nunca traen el eje curado", () => {
+    // El catálogo se marca a mano; lo que escribe el usuario no pasa por ahí,
+    // así que ahí sigue valiendo la aproximación de antes.
+    const mia = recipe({ source: "user", kidFriendly: true, difficulty: "facil" });
+    expect(matchesIntent(mia, "hijos")).toBe(true);
+    expect(matchesIntent({ ...mia, difficulty: "normal" }, "hijos")).toBe(false);
   });
 
   it("'ocasion_especial' is the same `apetecible` flag behind the 'Platos gourmet' facet", () => {
@@ -48,7 +59,7 @@ describe("matchesIntent", () => {
   });
 
   it("'dia_a_dia' does not exclude kid food — the two axes are orthogonal", () => {
-    const kidWeeknight = recipe({ kidFriendly: true, difficulty: "facil", time: 35 });
+    const kidWeeknight = recipe({ kidFavourite: true, time: 35 });
     expect(matchesIntent(kidWeeknight, "hijos")).toBe(true);
     expect(matchesIntent(kidWeeknight, "dia_a_dia")).toBe(true);
   });
@@ -62,7 +73,7 @@ describe("matchesIntent", () => {
 describe("intentsForRecipe", () => {
   it("reports only the intents the user actually picked", () => {
     // Qualifies for both hijos and cena_rapida, but the user only asked for dinners.
-    const r = recipe({ kidFriendly: true, difficulty: "facil", mealRole: ["cena"], time: 12 });
+    const r = recipe({ kidFavourite: true, mealRole: ["cena"], difficulty: "facil", time: 12 });
     expect(intentsForRecipe(r, ["hijos", "cena_rapida"])).toEqual(["hijos", "cena_rapida"]);
     expect(intentsForRecipe(r, ["cena_rapida"])).toEqual(["cena_rapida"]);
   });
@@ -70,13 +81,13 @@ describe("intentsForRecipe", () => {
 
 describe("buildInspireDeck", () => {
   it("deduplicates a recipe that satisfies two of the picked intents", () => {
-    const both = recipe({ id: "both", kidFriendly: true, difficulty: "facil", mealRole: ["cena"], time: 10 });
+    const both = recipe({ id: "both", kidFavourite: true, mealRole: ["cena"], difficulty: "facil", time: 10 });
     const deck = buildInspireDeck([both], ["hijos", "cena_rapida"]);
     expect(deck).toHaveLength(1);
   });
 
   it("unions the intents rather than intersecting them", () => {
-    const kid = recipe({ id: "kid", kidFriendly: true, difficulty: "facil", time: 40 });
+    const kid = recipe({ id: "kid", kidFavourite: true, time: 40 });
     const quick = recipe({ id: "quick", mealRole: ["cena"], difficulty: "facil", time: 10 });
     const deck = buildInspireDeck([kid, quick], ["hijos", "cena_rapida"]);
     expect(deck.map((r) => r.id).sort()).toEqual(["kid", "quick"]);

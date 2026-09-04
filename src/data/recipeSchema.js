@@ -168,6 +168,17 @@ export const RecipeSchema = z
     // precio (no está en el catálogo), ni de tiempo (las navajas son 10 min),
     // ni de dificultad (son fáciles). Ausente = plato de diario.
     occasion: z.enum(["diario", "especial"]).optional(),
+    // ¿Es de los que un niño PIDE? `kidFriendly` dice lo que PUEDE comer, y
+    // por eso está al 88% del catálogo: como filtro no distingue nada. Esto es
+    // lo otro — los míticos (filetes empanados, macarrones con tomate,
+    // tortilla, salchichas) y lo sano que entra con esa misma forma: las
+    // cremas dulces de calabaza o zanahoria, las lentejas con salchichas, la
+    // merluza rebozada. Sirve para colar verdura, no para rendirse.
+    //
+    // Se marca a MANO, como `apetecible` y `montaje`: NO se deriva de
+    // kidFriendly + dificultad, que es justo la aproximación que se quedaba
+    // corta (ver utils/recipeIntents.js).
+    kidFavourite: z.boolean().optional(),
     // "Cena rápida" de verdad: se monta, no se cocina (sándwich, tostas, tabla,
     // ensalada de asamblaje). Sustituye a category "cenas_rapidas".
     //

@@ -804,7 +804,10 @@
     "sugar_g": 1,
     "saturated_fat_g": 9,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_006",
@@ -1169,7 +1172,10 @@
     "sugar_g": 6,
     "saturated_fat_g": 3,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_008",
@@ -1492,7 +1498,10 @@
     "sugar_g": 9,
     "saturated_fat_g": 4,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "pasta_arroces_010",
@@ -1630,7 +1639,10 @@
     "sugar_g": 2,
     "saturated_fat_g": 5,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "frutos_secos"
+    ]
   },
   {
     "id": "pasta_arroces_011",
@@ -1791,7 +1803,10 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_012",
@@ -2278,7 +2293,11 @@
     "sugar_g": 4,
     "saturated_fat_g": 6,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "pasta_arroces_015",
@@ -2619,7 +2638,10 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_017",
@@ -2836,6 +2858,9 @@
         "minutes": 3,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo"
     ]
   },
   {
@@ -3093,6 +3118,9 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo"
     ]
   },
   {
@@ -3391,7 +3419,10 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_021",
@@ -3904,6 +3935,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -4028,7 +4062,12 @@
     "sugar_g": 4,
     "saturated_fat_g": 6,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura",
+      "lacteo",
+      "encurtido"
+    ]
   },
   {
     "id": "pasta_arroces_025",
@@ -4193,7 +4232,11 @@
     "sugar_g": 3,
     "saturated_fat_g": 8,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura",
+      "seta"
+    ]
   },
   {
     "id": "pasta_arroces_026",
@@ -4351,7 +4394,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_027",
@@ -4496,7 +4542,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "pasta_arroces_028",
@@ -4621,7 +4671,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_029",
@@ -4768,7 +4821,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "encurtido"
+    ]
   },
   {
     "id": "pasta_arroces_030",
@@ -4796,6 +4852,8 @@
       "lactosa"
     ],
     "mainIngredients": [
+      "verdura",
+      "lacteo",
       "seta"
     ],
     "ingredients": [
@@ -4962,7 +5020,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_031",
@@ -5766,7 +5825,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_035",
@@ -5796,7 +5856,7 @@
       "lactosa"
     ],
     "mainIngredients": [
-      "seta"
+      "lacteo"
     ],
     "ingredients": [
       {
@@ -6230,7 +6290,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_037",
@@ -6258,7 +6319,8 @@
       "lactosa"
     ],
     "mainIngredients": [
-      "verdura"
+      "verdura",
+      "lacteo"
     ],
     "ingredients": [
       {
@@ -7063,7 +7125,11 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_041",
@@ -8034,7 +8100,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_046",
@@ -8165,7 +8234,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_047",
@@ -8334,7 +8406,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_048",
@@ -8498,7 +8573,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_049",
@@ -8712,7 +8790,10 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_050",
@@ -9053,7 +9134,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_052",
@@ -9238,7 +9322,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_053",
@@ -9725,7 +9812,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "pasta_arroces_056",
@@ -10025,7 +10116,11 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_057",
@@ -10325,7 +10420,12 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo",
+      "frutos_secos"
+    ]
   },
   {
     "id": "pasta_arroces_058",
@@ -10601,7 +10701,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_059",
@@ -10887,7 +10990,10 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_060",
@@ -11024,7 +11130,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_061",
@@ -11167,7 +11277,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "encurtido"
+    ]
   },
   {
     "id": "pasta_arroces_062",
@@ -11324,7 +11438,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "frutos_secos"
+    ]
   },
   {
     "id": "pasta_arroces_063",
@@ -11493,7 +11611,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   },
   {
     "id": "pasta_arroces_064",
@@ -11817,7 +11936,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "pasta_arroces_066",
@@ -11975,7 +12098,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_067",
@@ -12534,7 +12660,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_070",
@@ -12779,7 +12909,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_071",
@@ -12917,7 +13051,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_072",
@@ -13081,7 +13218,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_073",
@@ -13449,7 +13589,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "seta"
+    ]
   },
   {
     "id": "pasta_arroces_075",
@@ -13624,7 +13768,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_076",
@@ -14210,7 +14357,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_079",
@@ -14381,7 +14531,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_080",
@@ -14924,7 +15077,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_083",
@@ -15264,7 +15418,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "frutos_secos"
+    ]
   },
   {
     "id": "pasta_arroces_085",
@@ -15448,7 +15605,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_086",
@@ -15690,7 +15850,10 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_087",
@@ -16176,7 +16339,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_090",
@@ -16341,7 +16507,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_091",
@@ -16506,7 +16676,10 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pasta_arroces_092",
@@ -16668,6 +16841,10 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
     ]
   },
   {
@@ -16821,7 +16998,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pasta_arroces_094",
@@ -16960,7 +17140,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "pasta_arroces_095",
@@ -17027,7 +17211,11 @@
       "Mezclar con la pasta y servir."
     ],
     "description": "Pasta cremosa con champiñones salteados y bacon crujiente.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "pasta_arroces_096",
@@ -17087,7 +17275,11 @@
       "Servir el arroz con el tomate frito por encima, el huevo y el plátano al lado."
     ],
     "description": "El clásico arroz blanco a la cubana, con tomate frito, huevo y plátano.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "pasta_arroces_097",
@@ -17153,7 +17345,11 @@
       "Cubrir con queso rallado y gratinar en el horno 5 min hasta dorar."
     ],
     "description": "Macarrones con chorizo y tomate, gratinados con queso al horno.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "pasta_arroces_098",
@@ -17219,7 +17415,11 @@
       "Añadir albahaca fresca picada y parmesano rallado al servir."
     ],
     "description": "Espaguetis con una salsa de tomate casera, albahaca fresca y parmesano.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "pasta_arroces_099",
@@ -17287,6 +17487,9 @@
       "Rectificar de sal y servir."
     ],
     "description": "Arroz meloso con verduras de temporada, cocinado con caldo.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   }
 ]

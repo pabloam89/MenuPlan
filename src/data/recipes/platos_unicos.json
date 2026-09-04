@@ -175,7 +175,10 @@
     "sugar_g": 5,
     "saturated_fat_g": 4,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "platos_unicos_002",
@@ -352,6 +355,9 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo"
     ]
   },
   {
@@ -558,6 +564,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo"
     ]
   },
   {
@@ -817,6 +826,9 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -1156,7 +1168,10 @@
     "sugar_g": 5,
     "saturated_fat_g": 10,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "platos_unicos_007",
@@ -1366,6 +1381,10 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
     ]
   },
   {
@@ -1542,7 +1561,10 @@
     "sugar_g": 5,
     "saturated_fat_g": 9,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "platos_unicos_009",
@@ -1685,7 +1707,12 @@
     "sugar_g": 5,
     "saturated_fat_g": 4,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "montaje": true
   },
   {
     "id": "platos_unicos_010",
@@ -1901,6 +1928,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo"
     ]
   },
   {
@@ -2051,7 +2081,10 @@
     "sugar_g": 6,
     "saturated_fat_g": 8,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "platos_unicos_012",
@@ -2251,6 +2284,10 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura",
+      "seta"
     ]
   },
   {
@@ -2447,6 +2484,9 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo"
     ]
   },
   {
@@ -2582,7 +2622,10 @@
     "saturated_fat_g": 4,
     "sodium_mg": 280,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "platos_unicos_015",
@@ -2895,7 +2938,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "platos_unicos_017",
@@ -3073,7 +3117,10 @@
     "sugar_g": 4,
     "saturated_fat_g": 6,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "platos_unicos_018",
@@ -3397,7 +3444,10 @@
     "saturated_fat_g": 9,
     "sodium_mg": 680,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "platos_unicos_020",
@@ -3568,6 +3618,9 @@
     "sugar_g": 6,
     "saturated_fat_g": 7,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   }
 ]

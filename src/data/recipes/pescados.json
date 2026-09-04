@@ -1141,7 +1141,10 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_009",
@@ -1744,7 +1747,10 @@
     "saturated_fat_g": 2,
     "sodium_mg": 120,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_014",
@@ -2521,7 +2527,10 @@
     "saturated_fat_g": 5,
     "sodium_mg": 95,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_019",
@@ -3804,7 +3813,10 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_027",
@@ -4021,7 +4033,11 @@
         "prepSummary": "Cocina el arroz de sushi en la olla a presión (aprox. 5-7 min de cocción + 15 min de reposo natural), lo que acelera el proceso. El edamame también se puede cocer al vapor rápidamente en un cestillo (aprox. 2-3 min)."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "montaje": true
   },
   {
     "id": "pescados_028",
@@ -4153,7 +4169,10 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_029",
@@ -4342,7 +4361,11 @@
         "prepSummary": "Cocina el arroz en un recipiente apto para microondas con la proporción de agua y sal (aprox. 18 min a máxima potencia). El resto de la preparación es montar el bowl con los ingredientes frescos y la salsa."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "fruta"
+    ]
   },
   {
     "id": "pescados_030",
@@ -4492,7 +4515,11 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "pescados_031",
@@ -4612,7 +4639,10 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_032",
@@ -4799,7 +4829,10 @@
         "prepSummary": "Coloca el salmón sazonado en la cesta de la vaporera y cocina al vapor durante 12-15 minutos para obtener una textura tierna y jugosa, ideal para una comida ligera."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_033",
@@ -4982,7 +5015,10 @@
         "prepSummary": "Precalienta el horno a 220°C. Coloca el lomo de atún en una bandeja con un poco de aceite y hornea durante 10-12 minutos, asegurando que quede cocido pero sin resecarse, para una textura tierna."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_034",
@@ -5171,7 +5207,10 @@
         "prepSummary": "Extiende las gambas marinadas con ajo, aceite y sal en una bandeja de horno. Hornea a 220°C (con función grill si es posible) durante 8-10 minutos hasta que estén rosadas. Un truco es precalentar bien la bandeja para un mejor sellado."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_035",
@@ -5346,7 +5385,10 @@
         "prepSummary": "Asa los langostinos en una bandeja con un poco de aceite a 200°C (con función ventilador si es posible) durante 10-12 minutos, hasta que estén rosados y ligeramente dorados. Aprovecha el tiempo para montar la ensalada."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_036",
@@ -5695,7 +5737,11 @@
     "sodium_mg": 520,
     "freezable": false,
     "methods": [],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "occasion": "especial"
   },
   {
     "id": "pescados_038",
@@ -5855,7 +5901,11 @@
         "prepSummary": "Utiliza la función de picado a pulsos para el atún y el resto de ingredientes, asegurando una textura homogénea sin triturar. Mezcla suavemente en el vaso para integrar los sabores y emulsionar la vinagreta."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "montaje": true
   },
   {
     "id": "pescados_039",
@@ -6043,7 +6093,8 @@
         "prepSummary": "Utiliza la Thermomix para picar finamente la cebolla, el cilantro, el ají, el jengibre y el apio. Luego, mezcla estos ingredientes con el zumo de lima y la sal para crear la leche de tigre en pocos segundos. Finalmente, incorpora la corvina cortada y deja marinar."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "montaje": true
   },
   {
     "id": "pescados_040",
@@ -6244,7 +6295,10 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_041",
@@ -7137,7 +7191,8 @@
         "prepSummary": "La Thermomix es ideal para picar finamente el eneldo y machacar la pimienta en grano para la mezcla de curado. También permite emulsionar la salsa de mostaza y miel de forma rápida y homogénea, facilitando la preparación de los componentes de la receta."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pescados_046",
@@ -7338,7 +7393,10 @@
         "prepSummary": "Sofríe las verduras en la olla abierta hasta que estén tiernas. Añade el tomate y cocina unos minutos. Incorpora el bacalao desmigado y cocina a fuego suave sin tapar durante 5-7 minutos, permitiendo que los sabores se mezclen sin sobrecocer el pescado."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_047",
@@ -7558,7 +7616,10 @@
         "prepSummary": "Pica y sofríe la cebolla y el ajo en la Thermomix. Añade el tomate, los pimientos choriceros rehidratados y el pan frito, tritura y cocina la salsa. Finalmente, incorpora el bacalao y cocínalo a 90°C en giro inverso durante 15-20 minutos para que quede jugoso y la salsa ligada."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_048",
@@ -8208,7 +8269,11 @@
         "prepSummary": "Utiliza la función de picado para el salmón, mango, cebolleta y cilantro, ajustando la velocidad para obtener la textura deseada. Luego, mezcla suavemente todos los ingredientes con la salsa de soja, aceite de sésamo y zumo de lima para un tartar homogéneo y rápido."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ],
+    "montaje": true
   },
   {
     "id": "pescados_052",
@@ -8840,7 +8905,8 @@
         "prepSummary": "Precalienta el horno a 200°C. Coloca los lomos de merluza en una bandeja con papel de horno, rocíalos con un poco de aceite y hornea durante 15-20 minutos hasta que estén cocidos y ligeramente dorados. La salsa se puede hacer mientras."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   },
   {
     "id": "pescados_055",
@@ -9019,7 +9085,11 @@
         "prepSummary": "Precalienta el horno a 200°C con función de aire si es posible. Hornea los lomos de salmón en una bandeja con papel de horno durante 15-18 minutos hasta que estén cocidos y ligeramente dorados. La ensalada se prepara aparte."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_056",
@@ -9168,7 +9238,11 @@
         "prepSummary": "Hornea los filetes enharinados y ligeramente aceitados a 180-200°C durante 12-15 minutos, hasta que estén cocidos y ligeramente dorados. La salsa de mantequilla y limón se prepara aparte y se vierte al servir."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "pescados_057",
@@ -9632,7 +9706,10 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "pescados_060",
@@ -9940,7 +10017,10 @@
         "prepSummary": "Cocina el salmón al vapor en la vaporera durante 10-15 minutos hasta que esté tierno. Mientras, mezcla la mostaza, eneldo, nata y miel en un bol o sartén a fuego bajo para la salsa. Sirve el salmón con la salsa por encima."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_062",
@@ -10160,7 +10240,8 @@
         "prepSummary": "Hornea las patatas cortadas en bastones con un chorrito de aceite a 200°C durante unos 35-40 minutos, dándoles la vuelta. Añade la merluza rebozada, rociada con un poco de aceite, y hornea 15-20 minutos más hasta que esté dorada. El alioli se prepara aparte."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   },
   {
     "id": "pescados_063",
@@ -10502,7 +10583,10 @@
         "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca los filetes de lubina en una bandeja de horno con papel de hornear, rocíalos con aceite de oliva y hornea durante 12-15 minutos hasta que estén cocidos y ligeramente dorados. Sirve con la salsa de mantequilla, limón y "
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "encurtido"
+    ]
   },
   {
     "id": "pescados_065",
@@ -11014,7 +11098,10 @@
         "prepSummary": "Sofríe las verduras en la olla abierta. Incorpora el tomate, vino y laurel, cierra y cocina 5-7 minutos desde que sube la válvula. Despresuriza, añade el atún y cocina 2-3 minutos más sin presión hasta que esté hecho."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_068",
@@ -11217,7 +11304,11 @@
         "prepSummary": "Para la dorada, cubre el pescado con la sal gruesa y hornea a 190-200°C durante 45 minutos. Mientras, asa los tomates y ajos para la salsa romesco en el mismo horno, luego tritúralos con las ñoras, almendras, pan frito, vinagre y aceite hasta obtener una salsa homogénea."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "frutos_secos"
+    ]
   },
   {
     "id": "pescados_069",
@@ -11396,7 +11487,10 @@
         "prepSummary": "Precalienta la airfryer a 190°C. Rocía las rodajas de emperador con un poco de aceite de oliva y cocínalas durante 10-12 minutos, volteándolas a mitad, hasta que estén doradas por fuera y jugosas por dentro. Prepara la salsa tártara mientras el pescado se cocina."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "encurtido"
+    ]
   },
   {
     "id": "pescados_070",
@@ -12690,7 +12784,10 @@
         "prepSummary": "Para una alternativa horneada, precalienta el horno a 200°C. Hornea las croquetas durante 20-25 minutos, o hasta que estén doradas, dándoles la vuelta a mitad. Pulverízalas con un poco de aceite para mejorar la capa exterior."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_077",
@@ -12887,7 +12984,10 @@
         "prepSummary": "Sofríe la cebolla, ajo y manzana en la olla. Añade la sidra, la merluza y las almejas. Cierra la olla y cocina a presión durante 3-4 minutos desde que sube la válvula. Despresuriza y sirve."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "pescados_078",
@@ -13295,7 +13395,11 @@
         "prepSummary": "La Thermomix es ideal para picar finamente la cebolleta y el cilantro, así como para emulsionar la vinagreta de soja y sésamo. El salmón se puede picar con golpes de turbo muy cortos para mantener su textura, mientras que el aguacate se corta a cuchillo para preservar su forma."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "montaje": true
   },
   {
     "id": "pescados_080",
@@ -13483,7 +13587,8 @@
         "prepSummary": "La Thermomix es excelente para picar finamente la cebolla morada, el cilantro, el chile, el jengibre y el apio. Además, permite emulsionar rápidamente la leche de tigre, mezclando los jugos de lima con los aromáticos para una base homogénea y llena de sabor."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "montaje": true
   },
   {
     "id": "pescados_081",
@@ -13645,7 +13750,10 @@
         "prepSummary": "Precalienta el horno a 180°C. Coloca la trucha en una bandeja con papel de horno y un chorrito de aceite. Hornea durante 15-20 minutos y añade el jamón y las almendras laminadas los últimos 5-7 minutos para que se tuesten y el jamón quede crujiente."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "frutos_secos"
+    ]
   },
   {
     "id": "pescados_082",
@@ -13985,7 +14093,8 @@
         "prepSummary": "Precalienta el horno a 180-200°C. Dispón las patatas y verduras laminadas en una bandeja, coloca el rodaballo encima, riega con aceite y vino, y hornea hasta que el pescado esté en su punto y las patatas tiernas y doradas."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pescados_084",
@@ -14161,7 +14270,10 @@
         "prepSummary": "Precalienta el horno a 200°C. Coloca el pez espada en una bandeja con un chorrito de aceite y hornea durante 15-20 minutos, o hasta que esté cocido y ligeramente dorado. Prepara la salsa fresca de mango mientras el pescado está en el horno."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "pescados_085",
@@ -14513,7 +14625,10 @@
         "prepSummary": "Enharina el lenguado y colócalo en una bandeja de horno con papel de hornear, rociando con mantequilla derretida. Hornea a 200°C durante 15-20 minutos, hasta que esté dorado y cocido, luego añade el limón y perejil."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_087",
@@ -15072,7 +15187,10 @@
         "prepSummary": "La Thermomix es ideal para preparar la masa de los buñuelos. Pica el ajo y perejil, añade el resto de ingredientes y mezcla a velocidad media hasta obtener una masa homogénea en pocos minutos. Luego, fríe los buñuelos en sartén como de costumbre."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_090",
@@ -15870,7 +15988,10 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_094",
@@ -16426,7 +16547,11 @@
         "prepSummary": "Para el romesco, asa los tomates, pimiento y ajo en el horno a 200°C durante 20-25 minutos. Luego, hornea los salmonetes a 210°C por 15-18 minutos hasta que estén dorados, pudiendo usar el grill al final. Tritura los ingredientes asados con el resto para la salsa."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "frutos_secos"
+    ]
   },
   {
     "id": "pescados_097",
@@ -16620,7 +16745,11 @@
         "prepSummary": "Reboza los filetes de merluza y colócalos en una bandeja de horno con papel de hornear, rociando con un poco de aceite. Hornea a 200°C (con calor arriba y abajo) durante 20-25 minutos, o hasta que estén dorados y cocidos, volteando una vez. Las tortillas se pueden calentar en el "
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_098",
@@ -16820,7 +16949,10 @@
         "prepSummary": "Cocina el arroz en un recipiente apto para vaporera y el salmón (y edamame) en las bandejas superiores durante unos 20-25 minutos. El salmón quedará muy jugoso y saludable, manteniendo todos sus nutrientes."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_099",
@@ -17024,7 +17156,11 @@
     "sodium_mg": 420,
     "freezable": false,
     "methods": [],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "occasion": "especial"
   },
   {
     "id": "pescados_100",
@@ -17232,7 +17368,11 @@
         "prepSummary": "La Thermomix permite confitar el bacalao a baja temperatura (90°C, velocidad cuchara) en el vaso. La coliflor se cuece al vapor en el Varoma y se tritura en el vaso para el puré, y el pil-pil se emulsiona fácilmente con el aceite del confitado y los ajos, controlando temperatura "
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_101",
@@ -17475,7 +17615,11 @@
         "prepSummary": "Para las patatas panadera, corta las patatas y cebolla en rodajas finas, mézclalas con aceite de oliva y sal, y hornea en una fuente a 180°C durante 30-35 minutos. Añade los filetes de lubina sobre las patatas o en una bandeja aparte y hornea 10-12 minutos más hasta que estén coc"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "encurtido"
+    ]
   },
   {
     "id": "pescados_102",
@@ -17933,7 +18077,11 @@
         "prepSummary": "Cuece el boniato en la olla express con un poco de agua hasta que esté muy tierno (aprox. 5-7 min desde que sube la válvula) para el puré. El salmón se cocina al vapor en la misma olla en una cesta, muy rápidamente (3-5 min). La salsa se prepara en un cazo aparte."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_104",
@@ -18401,7 +18549,11 @@
     "saturated_fat_g": 5,
     "sodium_mg": 420,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "frutos_secos"
+    ]
   },
   {
     "id": "pescados_106",
@@ -18626,7 +18778,10 @@
     "saturated_fat_g": 4,
     "sodium_mg": 820,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_107",
@@ -18849,7 +19004,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_108",
@@ -19059,7 +19217,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "encurtido"
+    ]
   },
   {
     "id": "pescados_109",
@@ -19343,7 +19504,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pescados_110",
@@ -19504,7 +19666,10 @@
     "sodium_mg": 720,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_111",
@@ -19675,7 +19840,10 @@
     "saturated_fat_g": 7,
     "sodium_mg": 620,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_112",
@@ -19881,7 +20049,11 @@
     "saturated_fat_g": 12,
     "sodium_mg": 520,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "occasion": "especial"
   },
   {
     "id": "pescados_113",
@@ -20453,7 +20625,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_115",
@@ -20643,7 +20818,11 @@
     "sodium_mg": 520,
     "freezable": false,
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "pescados_116",
@@ -20865,7 +21044,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_117",
@@ -21054,7 +21236,10 @@
     "saturated_fat_g": 16,
     "sodium_mg": 420,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_118",
@@ -21264,7 +21449,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_119",
@@ -21518,7 +21706,12 @@
       "Servir la merluza con la ensalada al lado."
     ],
     "description": "Merluza rebozada a la romana con una ensalada fresca de naranja, hinojo y aceitunas negras.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta",
+      "encurtido"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "pescados_121",
@@ -21703,7 +21896,11 @@
       "Servir los boquerones con la ensalada de pepino al lado."
     ],
     "description": "Boquerones fritos crujientes con una ensalada refrescante de pepino, yogur y menta.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "pescados_124",
@@ -21827,7 +22024,10 @@
       "Hornear 12-15 min más hasta que el salmón esté hecho."
     ],
     "description": "Salmón al horno servido sobre una parrillada de verduras asadas.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "pescados_126",
@@ -22002,6 +22202,9 @@
       "Servir caliente."
     ],
     "description": "Truchas a la plancha con una guarnición crujiente de almendras tostadas al ajo.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "frutos_secos"
+    ]
   }
 ]

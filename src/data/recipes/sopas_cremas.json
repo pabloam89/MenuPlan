@@ -161,6 +161,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -470,6 +473,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -615,7 +621,10 @@
     "saturated_fat_g": 1,
     "sodium_mg": 85,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_005",
@@ -752,7 +761,10 @@
     "saturated_fat_g": 3,
     "sodium_mg": 420,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_006",
@@ -931,6 +943,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -1279,7 +1294,10 @@
     "sugar_g": 5,
     "saturated_fat_g": 4,
     "sodium_mg": 95,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_009",
@@ -1617,6 +1635,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo"
     ]
   },
   {
@@ -1807,6 +1828,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -2000,6 +2024,10 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo",
+      "seta"
     ]
   },
   {
@@ -2144,7 +2172,10 @@
     "sugar_g": 3,
     "saturated_fat_g": 6,
     "sodium_mg": 55,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_014",
@@ -2312,6 +2343,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -2455,7 +2489,12 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 120,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "fruta",
+      "frutos_secos"
+    ],
+    "montaje": true
   },
   {
     "id": "sopas_cremas_016",
@@ -2623,6 +2662,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -2785,6 +2827,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -3086,6 +3131,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -3258,6 +3306,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -3606,7 +3657,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "sopas_cremas_023",
@@ -3822,7 +3878,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "occasion": "especial"
   },
   {
     "id": "sopas_cremas_024",
@@ -3989,7 +4050,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_025",
@@ -4122,7 +4187,11 @@
     "sodium_mg": 320,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "fruta"
+    ]
   },
   {
     "id": "sopas_cremas_026",
@@ -4279,7 +4348,10 @@
     "sodium_mg": 620,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_027",
@@ -4456,7 +4528,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_028",
@@ -4607,7 +4683,12 @@
     "saturated_fat_g": 3,
     "sodium_mg": 380,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_029",
@@ -4786,7 +4867,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "sopas_cremas_030",
@@ -4950,7 +5035,10 @@
     "saturated_fat_g": 10,
     "sodium_mg": 780,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_031",
@@ -5118,7 +5206,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_032",
@@ -5278,7 +5370,11 @@
     "saturated_fat_g": 3,
     "sodium_mg": 420,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_033",
@@ -5429,7 +5525,10 @@
     "sodium_mg": 420,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_034",
@@ -5574,7 +5673,12 @@
     "saturated_fat_g": 2,
     "sodium_mg": 390,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "montaje": true
   },
   {
     "id": "sopas_cremas_035",
@@ -5723,7 +5827,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "frutos_secos"
+    ]
   },
   {
     "id": "sopas_cremas_036",
@@ -5842,7 +5950,11 @@
     "saturated_fat_g": 2,
     "sodium_mg": 390,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "montaje": true
   },
   {
     "id": "sopas_cremas_037",
@@ -5995,7 +6107,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_038",
@@ -6168,7 +6283,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_039",
@@ -6536,7 +6655,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_041",
@@ -6919,7 +7042,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_043",
@@ -7113,7 +7240,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_044",
@@ -7526,7 +7657,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_046",
@@ -7695,7 +7831,11 @@
     "sodium_mg": 390,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "fruta"
+    ]
   },
   {
     "id": "sopas_cremas_047",
@@ -7878,7 +8018,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_048",
@@ -8035,7 +8179,10 @@
     "saturated_fat_g": 1,
     "sodium_mg": 980,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "seta"
+    ]
   },
   {
     "id": "sopas_cremas_049",
@@ -8210,7 +8357,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_050",
@@ -8382,7 +8532,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_051",
@@ -8566,7 +8719,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_052",
@@ -8767,7 +8925,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_053",
@@ -8978,7 +9139,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "sopas_cremas_054",
@@ -9164,7 +9330,12 @@
     "saturated_fat_g": 14,
     "sodium_mg": 520,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "sopas_cremas_055",
@@ -9358,7 +9529,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo",
+      "frutos_secos"
+    ]
   },
   {
     "id": "sopas_cremas_056",
@@ -9484,7 +9660,12 @@
     "saturated_fat_g": 3,
     "sodium_mg": 520,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ],
+    "montaje": true
   },
   {
     "id": "sopas_cremas_057",
@@ -9667,7 +9848,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_058",
@@ -9877,7 +10061,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "sopas_cremas_059",
@@ -10098,7 +10283,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_060",
@@ -10485,7 +10673,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_062",
@@ -10652,7 +10844,11 @@
     "saturated_fat_g": 11,
     "sodium_mg": 520,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_063",
@@ -10826,7 +11022,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_064",
@@ -10991,7 +11191,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_065",
@@ -11153,7 +11357,11 @@
     "sodium_mg": 80,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_066",
@@ -11329,7 +11537,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_067",
@@ -11469,7 +11681,10 @@
     "saturated_fat_g": 2,
     "sodium_mg": 420,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_068",
@@ -11627,7 +11842,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "frutos_secos"
+    ]
   },
   {
     "id": "sopas_cremas_069",
@@ -11853,7 +12072,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_070",
@@ -12006,7 +12228,11 @@
     "saturated_fat_g": 2,
     "sodium_mg": 420,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_071",
@@ -12198,7 +12424,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_072",
@@ -12395,7 +12624,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_073",
@@ -12534,7 +12767,11 @@
     "sodium_mg": 30,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "fruta"
+    ]
   },
   {
     "id": "sopas_cremas_074",
@@ -12693,7 +12930,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo",
+      "frutos_secos"
+    ]
   },
   {
     "id": "sopas_cremas_075",
@@ -12876,7 +13118,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_076",
@@ -13048,7 +13294,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_077",
@@ -13221,7 +13470,10 @@
     "saturated_fat_g": 4,
     "sodium_mg": 480,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "sopas_cremas_078",
@@ -13393,7 +13645,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "seta",
+      "frutos_secos"
+    ]
   },
   {
     "id": "sopas_cremas_079",
@@ -13532,7 +13789,12 @@
     "saturated_fat_g": 1,
     "sodium_mg": 15,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "fruta"
+    ],
+    "montaje": true
   },
   {
     "id": "sopas_cremas_080",
@@ -13703,7 +13965,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_081",
@@ -13989,7 +14255,11 @@
       "Servir el puré con los picatostes por encima."
     ],
     "description": "Puré casero de verduras de siempre, con picatostes crujientes.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "sopas_cremas_083",
@@ -14117,7 +14387,10 @@
       "Servir caliente."
     ],
     "description": "Caldo casero de pollo con verduras y fideos.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "sopas_cremas_085",
@@ -14249,6 +14522,9 @@
       "Servir caliente."
     ],
     "description": "Sopa ligera de verduras con pasta pequeña y jamón serrano.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   }
 ]

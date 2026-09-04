@@ -18,12 +18,20 @@ import { BUILT_IN_IDS } from "../lib/recipeCollections.js";
 export const INTENT_IDS = BUILT_IN_IDS;
 
 /**
- * `kidFriendly` a secas cubre el 84% del catálogo curado, así que como filtro
- * de mazo no filtraba nada: "para mis hijos" añade dificultad fácil, que es
- * lo que la gente quiere decir en la práctica (entre semana, sin líos).
+ * `kidFriendly` a secas cubre el 88% del catálogo, así que como filtro de mazo
+ * no filtraba nada: dice lo que un niño PUEDE comer, no lo que pide. Se le
+ * añadía "dificultad fácil" como apaño, que acotaba sin llegar a significar.
+ *
+ * Ahora manda `kidFavourite`, que es ese eje escrito a mano: los míticos
+ * (filetes empanados, macarrones con tomate, tortilla, salchichas) y lo sano
+ * que entra con esa misma forma (cremas de calabaza, lentejas con salchichas,
+ * merluza rebozada). El apaño se queda de respaldo para las recetas propias
+ * del usuario, que nunca traen el campo.
  */
 function matchesHijos(recipe) {
-  return recipe.kidFriendly === true && recipe.difficulty === "facil";
+  if (recipe.kidFavourite === true) return true;
+  if (recipe.source === "user") return recipe.kidFriendly === true && recipe.difficulty === "facil";
+  return false;
 }
 
 function matchesOcasionEspecial(recipe) {

@@ -112,7 +112,10 @@
     "saturated_fat_g": 0,
     "sodium_mg": 5,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "postres_002",
@@ -190,7 +193,11 @@
     "saturated_fat_g": 3,
     "sodium_mg": 55,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "frutos_secos"
+    ]
   },
   {
     "id": "postres_003",
@@ -259,7 +266,10 @@
     "saturated_fat_g": 0,
     "sodium_mg": 2,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "postres_004",
@@ -386,7 +396,10 @@
     "sugar_g": 28,
     "saturated_fat_g": 3,
     "sodium_mg": 75,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_005",
@@ -527,7 +540,10 @@
     "sugar_g": 28,
     "saturated_fat_g": 3,
     "sodium_mg": 95,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_006",
@@ -633,7 +649,10 @@
     "sugar_g": 32,
     "saturated_fat_g": 4,
     "sodium_mg": 80,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_007",
@@ -751,7 +770,10 @@
     "saturated_fat_g": 0,
     "sodium_mg": 4,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "postres_008",
@@ -794,7 +816,10 @@
     "saturated_fat_g": 2,
     "sodium_mg": 50,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_009",
@@ -871,7 +896,11 @@
     "saturated_fat_g": 1,
     "sodium_mg": 55,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "postres_013",
@@ -918,7 +947,10 @@
     "saturated_fat_g": 1,
     "sodium_mg": 55,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_014",
@@ -1036,7 +1068,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "postres_015",
@@ -1146,7 +1181,10 @@
     "sugar_g": 22,
     "saturated_fat_g": 7,
     "sodium_mg": 55,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_016",
@@ -1342,6 +1380,9 @@
         "minutes": 3,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo"
     ]
   },
   {
@@ -1519,6 +1560,9 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "lacteo"
     ]
   },
   {
@@ -1843,7 +1887,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_020",
@@ -2032,7 +2079,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "postres_021",
@@ -2225,7 +2275,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "frutos_secos"
+    ]
   },
   {
     "id": "postres_022",
@@ -2655,7 +2708,10 @@
     "saturated_fat_g": 24,
     "sodium_mg": 95,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_024",
@@ -2950,7 +3006,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "postres_026",
@@ -3151,7 +3211,10 @@
     "saturated_fat_g": 34,
     "sodium_mg": 130,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_027",
@@ -3360,7 +3423,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_028",
@@ -3595,7 +3661,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_029",
@@ -3830,7 +3899,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_030",
@@ -3983,7 +4055,10 @@
     "saturated_fat_g": 22,
     "sodium_mg": 45,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_031",
@@ -4106,7 +4181,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_032",
@@ -4414,7 +4492,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_034",
@@ -4781,7 +4862,10 @@
     "saturated_fat_g": 17,
     "sodium_mg": 110,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "postres_036",

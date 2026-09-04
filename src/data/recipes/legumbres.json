@@ -190,6 +190,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -391,6 +394,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -580,6 +586,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -800,6 +809,9 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -1003,6 +1015,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -1439,6 +1454,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -1804,6 +1822,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -2307,7 +2328,11 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_013",
@@ -2494,6 +2519,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -2688,6 +2716,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -2818,7 +2849,10 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 310,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_016",
@@ -3022,6 +3056,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -3223,6 +3260,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -3737,7 +3777,10 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_021",
@@ -3898,7 +3941,11 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "encurtido"
+    ]
   },
   {
     "id": "legumbres_022",
@@ -4062,7 +4109,10 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_023",
@@ -4241,7 +4291,10 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_024",
@@ -4417,7 +4470,10 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_025",
@@ -4678,7 +4734,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_026",
@@ -4829,7 +4888,11 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "frutos_secos"
+    ]
   },
   {
     "id": "legumbres_027",
@@ -4973,7 +5036,10 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_028",
@@ -5201,7 +5267,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "legumbres_029",
@@ -5616,7 +5685,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "legumbres_031",
@@ -5807,7 +5879,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "frutos_secos"
+    ]
   },
   {
     "id": "legumbres_032",
@@ -6214,7 +6290,10 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_034",
@@ -6431,7 +6510,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "legumbres_035",
@@ -6602,7 +6684,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_036",
@@ -7077,7 +7162,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "seta"
+    ]
   },
   {
     "id": "legumbres_038",
@@ -7282,7 +7370,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_039",
@@ -7521,7 +7612,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_040",
@@ -8240,7 +8334,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "frutos_secos"
+    ]
   },
   {
     "id": "legumbres_043",
@@ -8389,7 +8487,11 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "encurtido"
+    ]
   },
   {
     "id": "legumbres_044",
@@ -8769,7 +8871,10 @@
       }
     ],
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_046",
@@ -8981,7 +9086,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_047",
@@ -9175,7 +9283,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_048",
@@ -9554,7 +9665,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_050",
@@ -9856,7 +9970,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_052",
@@ -10511,7 +10628,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "legumbres_055",
@@ -10922,7 +11042,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "legumbres_057",
@@ -11339,7 +11463,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_059",
@@ -11547,7 +11674,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   },
   {
     "id": "legumbres_060",
@@ -11715,7 +11843,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_061",
@@ -11913,7 +12045,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "legumbres_062",
@@ -12340,7 +12476,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "occasion": "especial"
   },
   {
     "id": "legumbres_064",
@@ -12902,7 +13042,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_067",
@@ -13089,7 +13232,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_068",
@@ -13153,7 +13299,10 @@
       "Rectificar de sal y servir."
     ],
     "description": "Alubias blancas guisadas con verduras y jamón serrano.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_069",
@@ -13221,7 +13370,10 @@
       "Rectificar de sal y servir."
     ],
     "description": "Potaje sencillo de garbanzos con verduras de temporada.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_070",
@@ -13418,7 +13570,10 @@
       "Rectificar de sal y servir."
     ],
     "description": "Alubias blancas guisadas con costilla de cerdo y verduras.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "legumbres_073",

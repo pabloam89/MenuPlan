@@ -83,7 +83,11 @@
     "saturated_fat_g": 2,
     "sodium_mg": 70,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "meriendas_002",
@@ -159,7 +163,10 @@
     "saturated_fat_g": 1,
     "sodium_mg": 180,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "meriendas_003",
@@ -248,7 +255,11 @@
     "sugar_g": 3,
     "saturated_fat_g": 3,
     "sodium_mg": 920,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "montaje": true
   },
   {
     "id": "meriendas_004",
@@ -327,7 +338,11 @@
     "sugar_g": 3,
     "saturated_fat_g": 4,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "montaje": true
   },
   {
     "id": "meriendas_005",
@@ -402,7 +417,11 @@
     "saturated_fat_g": 1,
     "sodium_mg": 5,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta",
+      "frutos_secos"
+    ]
   },
   {
     "id": "meriendas_006",
@@ -464,6 +483,9 @@
     "sugar_g": 18,
     "saturated_fat_g": 3,
     "sodium_mg": 110,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   }
 ]

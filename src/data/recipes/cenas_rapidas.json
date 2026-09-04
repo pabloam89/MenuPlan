@@ -108,7 +108,10 @@
     "saturated_fat_g": 8,
     "sodium_mg": 780,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "cenas_rapidas_002",
@@ -224,7 +227,10 @@
     "saturated_fat_g": 4,
     "sodium_mg": 820,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "cenas_rapidas_003",
@@ -404,7 +410,12 @@
     "saturated_fat_g": 6,
     "sodium_mg": 420,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "cenas_rapidas_004",
@@ -517,7 +528,10 @@
     "saturated_fat_g": 6,
     "sodium_mg": 620,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "cenas_rapidas_005",
@@ -641,7 +655,10 @@
     "saturated_fat_g": 3,
     "sodium_mg": 210,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "cenas_rapidas_006",
@@ -764,7 +781,10 @@
     "saturated_fat_g": 11,
     "sodium_mg": 580,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "cenas_rapidas_007",
@@ -876,7 +896,10 @@
     "saturated_fat_g": 4,
     "sodium_mg": 280,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "cenas_rapidas_008",
@@ -1006,7 +1029,10 @@
     "saturated_fat_g": 2,
     "sodium_mg": 320,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "cenas_rapidas_009",
@@ -1097,7 +1123,11 @@
     "saturated_fat_g": 8,
     "sodium_mg": 920,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "lacteo",
+      "encurtido"
+    ]
   },
   {
     "id": "cenas_rapidas_010",
@@ -1194,7 +1224,11 @@
     "saturated_fat_g": 14,
     "sodium_mg": 980,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "lacteo",
+      "encurtido"
+    ]
   },
   {
     "id": "cenas_rapidas_012",
@@ -1335,7 +1369,10 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "cenas_rapidas_013",
@@ -1489,7 +1526,10 @@
     "saturated_fat_g": 4,
     "sodium_mg": 280,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "cenas_rapidas_016",
@@ -1614,7 +1654,11 @@
     "saturated_fat_g": 6,
     "sodium_mg": 820,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "cenas_rapidas_017",
@@ -1732,7 +1776,11 @@
     "saturated_fat_g": 9,
     "sodium_mg": 380,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "cenas_rapidas_014",
@@ -1857,7 +1905,10 @@
     "saturated_fat_g": 3,
     "sodium_mg": 520,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "cenas_rapidas_015",
@@ -1965,6 +2016,10 @@
     "saturated_fat_g": 2,
     "sodium_mg": 420,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   }
 ]

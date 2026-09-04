@@ -87,6 +87,7 @@ alter table recipes add column if not exists freezable boolean;
 alter table recipes add column if not exists steps_rich jsonb;
 alter table recipes add column if not exists estrella boolean;
 alter table recipes add column if not exists occasion text;
+alter table recipes add column if not exists kid_favourite boolean;
 
 -- user_recipes: mismas columnas nuevas que recipes en 0024/0025 (mismo motivo:
 -- este seed no escribe filas de user_recipes, pero si algún entorno depende

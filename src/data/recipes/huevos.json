@@ -421,7 +421,10 @@
     "sugar_g": 1,
     "saturated_fat_g": 5,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "seta"
+    ]
   },
   {
     "id": "huevos_005",
@@ -654,7 +657,10 @@
     "sugar_g": 4,
     "saturated_fat_g": 4,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_007",
@@ -845,7 +851,10 @@
     "sugar_g": 2,
     "saturated_fat_g": 4,
     "sodium_mg": 140,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_009",
@@ -1358,7 +1367,10 @@
     "sugar_g": 1,
     "saturated_fat_g": 4,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_013",
@@ -1525,7 +1537,10 @@
     "sugar_g": 6,
     "saturated_fat_g": 7,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_014",
@@ -1669,7 +1684,11 @@
     "sugar_g": 4,
     "saturated_fat_g": 4,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "verdura",
+      "encurtido"
+    ]
   },
   {
     "id": "huevos_015",
@@ -1797,7 +1816,10 @@
     "sugar_g": 1,
     "saturated_fat_g": 4,
     "sodium_mg": 210,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "seta"
+    ]
   },
   {
     "id": "huevos_016",
@@ -1980,6 +2002,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "mainIngredients": [
+      "verdura"
     ]
   },
   {
@@ -2187,7 +2212,10 @@
     "saturated_fat_g": 6,
     "sodium_mg": 210,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_018",
@@ -2305,7 +2333,12 @@
     "saturated_fat_g": 8,
     "sodium_mg": 380,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "huevos_019",
@@ -2739,7 +2772,10 @@
     "saturated_fat_g": 10,
     "sodium_mg": 680,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_022",
@@ -2901,7 +2937,11 @@
     "saturated_fat_g": 10,
     "sodium_mg": 420,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_023",
@@ -3044,7 +3084,11 @@
     "saturated_fat_g": 8,
     "sodium_mg": 620,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "huevos_024",
@@ -3193,7 +3237,11 @@
     "saturated_fat_g": 6,
     "sodium_mg": 280,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "fruta"
+    ]
   },
   {
     "id": "huevos_025",
@@ -3353,7 +3401,13 @@
     "saturated_fat_g": 13,
     "sodium_mg": 420,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo",
+      "fruta",
+      "frutos_secos"
+    ]
   },
   {
     "id": "huevos_026",
@@ -3475,7 +3529,10 @@
     "saturated_fat_g": 11,
     "sodium_mg": 620,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_027",
@@ -3643,7 +3700,12 @@
     "saturated_fat_g": 9,
     "sodium_mg": 480,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "huevos_028",
@@ -3790,7 +3852,11 @@
     "saturated_fat_g": 8,
     "sodium_mg": 320,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "seta"
+    ]
   },
   {
     "id": "huevos_029",
@@ -3928,7 +3994,10 @@
     "saturated_fat_g": 8,
     "sodium_mg": 780,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_030",
@@ -4109,7 +4178,10 @@
     "saturated_fat_g": 22,
     "sodium_mg": 780,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_031",
@@ -4398,7 +4470,8 @@
     "saturated_fat_g": 14,
     "sodium_mg": 820,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "huevos_033",
@@ -4561,7 +4634,10 @@
     "saturated_fat_g": 13,
     "sodium_mg": 520,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_034",
@@ -4684,7 +4760,10 @@
     "saturated_fat_g": 6,
     "sodium_mg": 280,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "seta"
+    ]
   },
   {
     "id": "huevos_035",
@@ -4973,7 +5052,10 @@
     "saturated_fat_g": 5,
     "sodium_mg": 220,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "seta"
+    ]
   },
   {
     "id": "huevos_037",
@@ -5259,7 +5341,11 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_039",
@@ -5356,7 +5442,8 @@
     "saturated_fat_g": 7,
     "sodium_mg": 680,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   },
   {
     "id": "huevos_040",
@@ -5515,7 +5602,10 @@
     "saturated_fat_g": 8,
     "sodium_mg": 520,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_041",
@@ -5653,7 +5743,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   },
   {
     "id": "huevos_042",
@@ -5843,7 +5934,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_043",
@@ -6029,7 +6123,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_044",
@@ -6333,7 +6430,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_046",
@@ -6631,7 +6731,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "huevos_048",
@@ -6920,7 +7024,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_050",
@@ -7084,7 +7191,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_051",
@@ -7291,7 +7401,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   },
   {
     "id": "huevos_052",
@@ -7444,7 +7555,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_053",
@@ -7587,7 +7701,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_054",
@@ -7713,7 +7830,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "huevos_055",
@@ -7847,7 +7968,8 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   },
   {
     "id": "huevos_056",
@@ -7962,7 +8084,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "frutos_secos"
+    ]
   },
   {
     "id": "huevos_057",
@@ -8093,7 +8218,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_058",
@@ -8265,7 +8393,10 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_059",
@@ -8418,7 +8549,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "huevos_060",
@@ -8591,7 +8727,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_061",
@@ -8733,7 +8872,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_062",
@@ -8904,7 +9046,12 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "frutos_secos"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "huevos_063",
@@ -9067,7 +9214,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "huevos_064",
@@ -9236,7 +9384,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_065",
@@ -9409,7 +9560,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_066",
@@ -9780,7 +9934,11 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "seta"
+    ]
   },
   {
     "id": "huevos_068",
@@ -10166,7 +10324,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_070",
@@ -10322,7 +10483,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "frutos_secos"
+    ]
   },
   {
     "id": "huevos_071",
@@ -10482,7 +10647,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_072",
@@ -10663,7 +10831,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_073",
@@ -10830,7 +11002,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "huevos_074",
@@ -11190,7 +11366,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_076",
@@ -11339,7 +11519,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_077",
@@ -11509,7 +11692,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_078",
@@ -11664,7 +11851,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_079",
@@ -11872,7 +12062,11 @@
         "part": "combinado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "huevos_080",
@@ -12251,7 +12445,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "seta"
+    ]
   },
   {
     "id": "huevos_082",
@@ -12470,7 +12668,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ]
   },
   {
     "id": "huevos_083",
@@ -12528,7 +12730,10 @@
       "Servir caliente."
     ],
     "description": "Revuelto de huevo con bacon crujiente y champiñones salteados.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "seta"
+    ]
   },
   {
     "id": "huevos_084",
@@ -12583,7 +12788,10 @@
       "Servir en porciones."
     ],
     "description": "Tortilla cuajada de espárragos trigueros y cebolla.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "huevos_085",
@@ -12699,7 +12907,11 @@
       "Cuajar por el otro lado y servir en porciones."
     ],
     "description": "Tortilla redonda cuajada con jamón en tacos y queso curado.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "huevos_087",
@@ -12756,7 +12968,11 @@
       "Servir todo junto."
     ],
     "description": "Huevos fritos con chorizo y pimiento verde salteado.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "huevos_088",
@@ -12819,7 +13035,11 @@
       "Servir en porciones."
     ],
     "description": "Tortilla cuajada con atún y un sofrito ligero de tomate.",
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "huevos_089",
@@ -12876,6 +13096,7 @@
       "Servir todo junto."
     ],
     "description": "Huevos fritos, salchichas y patatas fritas, plato de siempre para los peques y no tan peques.",
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   }
 ]

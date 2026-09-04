@@ -165,7 +165,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_002",
@@ -293,7 +297,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_003",
@@ -431,7 +439,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_004",
@@ -556,7 +568,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_005",
@@ -675,7 +691,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_006",
@@ -820,7 +840,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_007",
@@ -955,7 +979,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "bebes_008",
@@ -1085,7 +1112,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_009",
@@ -1228,7 +1259,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_010",
@@ -1390,7 +1425,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "kidFavourite": true
   },
   {
     "id": "bebes_012",
@@ -1521,7 +1557,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_013",
@@ -1663,7 +1703,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "bebes_014",
@@ -1795,7 +1838,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "bebes_015",
@@ -1930,7 +1976,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_016",
@@ -2077,7 +2127,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "bebes_018",
@@ -2208,7 +2261,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_019",
@@ -2347,7 +2404,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_021",
@@ -2466,7 +2527,11 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   },
   {
     "id": "bebes_022",
@@ -2585,6 +2650,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "kidFavourite": true
   }
 ]

@@ -23,4 +23,11 @@
 // habrían llegado a producción: Supabase estaba ya en 19, o sea EMPATADO con
 // el bundle, así que la nube ganaba y el JSON editado no se leía. Es
 // exactamente el caso para el que existe esta puerta.
-export const BUNDLED_CATALOG_VERSION = 20;
+// v21 (2026-09-04): cuatro ejes rellenados. `mainIngredients` pasa de 6
+// recetas a 398 con verdura, 279 con lácteo, 67 fruta, 52 frutos secos, 45
+// setas y 32 encurtidos — derivado de la cantidad POR RACIÓN de cada
+// ingrediente, no de su presencia (scripts/derive-main-ingredients.mjs).
+// `montaje` 58 → 110, `occasion` 15 → 45, y un eje nuevo `kidFavourite` con 62
+// (scripts/mark-catalog-axes.mjs). Sin subir este número no llegan a
+// producción: Supabase está en 20 y empate significa que gana la nube.
+export const BUNDLED_CATALOG_VERSION = 21;

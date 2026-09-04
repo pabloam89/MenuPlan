@@ -101,6 +101,9 @@ function rowToRecipe(row) {
     // en el viaje para cualquier receta servida desde Supabase, que es lo que
     // producción sirve cuando catalog_meta.version alcanza a la del bundle.
     ...(row.occasion ? { occasion: row.occasion } : {}),
+    // Mismo motivo que occasion/estrella: sin esta línea el campo existe en el
+    // JSON y se pierde en el viaje para toda receta servida desde Supabase.
+    ...(row.kid_favourite != null ? { kidFavourite: row.kid_favourite } : {}),
     ...(row.can_be_garnish != null ? { canBeGarnish: row.can_be_garnish } : {}),
     ...(row.main_ingredients?.length ? { mainIngredients: row.main_ingredients } : {}),
     // Proteínas animales secundarias (jamón en una ensalada, atún en un

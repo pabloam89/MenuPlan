@@ -96,7 +96,11 @@
     "saturated_fat_g": 2,
     "sodium_mg": 55,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_002",
@@ -177,7 +181,10 @@
     "saturated_fat_g": 1,
     "sodium_mg": 280,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "desayunos_003",
@@ -338,7 +345,10 @@
     "saturated_fat_g": 3,
     "sodium_mg": 820,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "desayunos_005",
@@ -428,7 +438,10 @@
     "saturated_fat_g": 4,
     "sodium_mg": 520,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "desayunos_006",
@@ -521,7 +534,10 @@
     "saturated_fat_g": 3,
     "sodium_mg": 280,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   },
   {
     "id": "desayunos_007",
@@ -585,7 +601,10 @@
     "sugar_g": 14,
     "saturated_fat_g": 2,
     "sodium_mg": 120,
-    "freezable": false
+    "freezable": false,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "desayunos_008",
@@ -667,7 +686,11 @@
     "saturated_fat_g": 2,
     "sodium_mg": 85,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_009",
@@ -759,7 +782,11 @@
     "saturated_fat_g": 2,
     "sodium_mg": 55,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_010",
@@ -860,7 +887,10 @@
     "saturated_fat_g": 0,
     "sodium_mg": 35,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_011",
@@ -940,7 +970,10 @@
     "saturated_fat_g": 2,
     "sodium_mg": 65,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "desayunos_012",
@@ -1031,7 +1064,12 @@
     "saturated_fat_g": 3,
     "sodium_mg": 55,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta",
+      "frutos_secos"
+    ]
   },
   {
     "id": "desayunos_013",
@@ -1114,7 +1152,10 @@
     "saturated_fat_g": 12,
     "sodium_mg": 15,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_014",
@@ -1195,7 +1236,10 @@
     "saturated_fat_g": 4,
     "sodium_mg": 55,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "desayunos_015",
@@ -1299,7 +1343,11 @@
     "saturated_fat_g": 3,
     "sodium_mg": 85,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_016",
@@ -1387,7 +1435,11 @@
     "saturated_fat_g": 3,
     "sodium_mg": 60,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_017",
@@ -1489,7 +1541,10 @@
     "saturated_fat_g": 6,
     "sodium_mg": 20,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_018",
@@ -1600,7 +1655,10 @@
     "saturated_fat_g": 5,
     "sodium_mg": 280,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "desayunos_019",
@@ -1690,7 +1748,11 @@
     "sodium_mg": 210,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_020",
@@ -1796,7 +1858,11 @@
     "saturated_fat_g": 4,
     "sodium_mg": 980,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ],
+    "montaje": true
   },
   {
     "id": "desayunos_021",
@@ -1922,7 +1988,10 @@
     "saturated_fat_g": 6,
     "sodium_mg": 310,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo"
+    ]
   },
   {
     "id": "desayunos_022",
@@ -2086,7 +2155,11 @@
     "saturated_fat_g": 17,
     "sodium_mg": 210,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "fruta"
+    ]
   },
   {
     "id": "desayunos_023",
@@ -2275,7 +2348,11 @@
     "saturated_fat_g": 6,
     "sodium_mg": 90,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "lacteo",
+      "frutos_secos"
+    ]
   },
   {
     "id": "desayunos_025",
@@ -2392,6 +2469,9 @@
     "sodium_mg": 320,
     "freezable": false,
     "montaje": true,
-    "estrella": true
+    "estrella": true,
+    "mainIngredients": [
+      "verdura"
+    ]
   }
 ]
