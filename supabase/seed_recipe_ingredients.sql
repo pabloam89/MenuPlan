@@ -755,7 +755,7 @@ insert into recipe_ingredients (
   ('carnes_045', 7, 'sal', 'Sal', 6, 'g'),
   ('carnes_045', 8, 'pimienta', 'Pimienta negra', 2, 'g'),
   ('carnes_046', 0, 'solomillo', 'Solomillo de ternera muy fresco', 300, 'g'),
-  ('carnes_046', 1, 'huevos', 'Yema de huevo', 2, 'ud'),
+  ('carnes_046', 1, 'yema-de-huevo', 'Yema de huevo', 2, 'ud'),
   ('carnes_046', 2, 'alcaparras', 'Alcaparras', 20, 'g'),
   ('carnes_046', 3, 'pepinillos', 'Pepinillos en vinagre', 30, 'g'),
   ('carnes_046', 4, 'cebolla-morada', 'Cebolla morada', 30, 'g')
@@ -1192,7 +1192,7 @@ insert into recipe_ingredients (
   ('carnes_069', 5, 'sal-escamas', 'Sal en escamas', 2, 'g'),
   ('carnes_069', 6, 'pimienta', 'Pimienta negra', 2, 'g'),
   ('carnes_070', 0, 'solomillo', 'Solomillo de ternera', 300, 'g'),
-  ('carnes_070', 1, 'huevos', 'Yema de huevo', 2, 'ud'),
+  ('carnes_070', 1, 'yema-de-huevo', 'Yema de huevo', 2, 'ud'),
   ('carnes_070', 2, 'mostaza', 'Mostaza de Dijon', 15, 'g'),
   ('carnes_070', 3, 'alcaparras', 'Alcaparras', 15, 'g'),
   ('carnes_070', 4, 'pepinillos', 'Pepinillos en vinagre', 20, 'g')
@@ -1781,7 +1781,7 @@ insert into recipe_ingredients (
   ('carnes_099', 10, 'limon', 'Zumo de limón', 5, 'ml'),
   ('carnes_099', 11, 'aceite-oliva', 'Aceite de oliva', 15, 'ml'),
   ('carnes_100', 0, 'solomillo', 'Solomillo de ternera (para tartar)', 300, 'g'),
-  ('carnes_100', 1, 'huevos', 'Yema de huevo', 2, 'ud'),
+  ('carnes_100', 1, 'yema-de-huevo', 'Yema de huevo', 2, 'ud'),
   ('carnes_100', 2, 'alcaparras', 'Alcaparras', 20, 'g'),
   ('carnes_100', 3, 'pepinillos', 'Pepinillos encurtidos', 30, 'g'),
   ('carnes_100', 4, 'cebolla-morada', 'Cebolla morada', 30, 'g')
@@ -4170,7 +4170,7 @@ insert into recipe_ingredients (
   recipe_id, position, ingredient_id, raw_name, amount, unit
 ) values
   ('ensaladas_verduras_082', 5, 'vinagre-balsamico', 'Reducción de vinagre balsámico', 10, 'ml'),
-  ('ensaladas_verduras_083', 0, 'lechuga', 'Endivias', 300, 'g'),
+  ('ensaladas_verduras_083', 0, 'endivia', 'Endivias', 300, 'g'),
   ('ensaladas_verduras_083', 1, 'roquefort', 'Queso roquefort', 60, 'g'),
   ('ensaladas_verduras_083', 2, 'nueces', 'Nueces', 40, 'g'),
   ('ensaladas_verduras_083', 3, 'aceite-oliva', 'Aceite de oliva', 20, 'ml'),
@@ -4615,7 +4615,7 @@ insert into recipe_ingredients (
   ('ensaladas_verduras_111', 6, 'aceite-oliva', 'Aceite de oliva', 30, 'ml'),
   ('ensaladas_verduras_111', 7, 'mostaza', 'Mostaza', 5, 'g'),
   ('ensaladas_verduras_111', 8, 'miel', 'Miel', 5, 'g'),
-  ('ensaladas_verduras_112', 0, 'lechuga', 'Endivias', 4, 'ud')
+  ('ensaladas_verduras_112', 0, 'endivia', 'Endivias', 4, 'ud')
 on conflict (recipe_id, position) do update set
   ingredient_id = excluded.ingredient_id,
   raw_name = excluded.raw_name,
@@ -5062,7 +5062,7 @@ on conflict (recipe_id, position) do update set
 insert into recipe_ingredients (
   recipe_id, position, ingredient_id, raw_name, amount, unit
 ) values
-  ('guarniciones_043', 0, 'lechuga', 'Endivia', 4, 'ud'),
+  ('guarniciones_043', 0, 'endivia', 'Endivia', 4, 'ud'),
   ('guarniciones_043', 1, 'jamon-york', 'Jamón cocido', 4, 'ud'),
   ('guarniciones_043', 2, 'mantequilla', 'Mantequilla', 25, 'g'),
   ('guarniciones_043', 3, 'harina', 'Harina de trigo', 20, 'g'),
@@ -7878,7 +7878,7 @@ insert into recipe_ingredients (
   ('pasta_arroces_026', 6, 'parmesano', 'Queso parmesano', 20, 'g'),
   ('pasta_arroces_027', 0, 'espaguetis', 'Espaguetis', 180, 'g'),
   ('pasta_arroces_027', 1, 'huevos', 'Huevo', 120, 'g'),
-  ('pasta_arroces_027', 2, 'huevos', 'Yema de huevo', 20, 'g'),
+  ('pasta_arroces_027', 2, 'yema-de-huevo', 'Yema de huevo', 20, 'g'),
   ('pasta_arroces_027', 3, 'parmesano', 'Queso parmesano', 50, 'g'),
   ('pasta_arroces_027', 4, 'bacon', 'Bacon en taquitos', 80, 'g'),
   ('pasta_arroces_027', 5, 'pimienta', 'Pimienta negra', 2, 'g'),
@@ -8224,7 +8224,7 @@ insert into recipe_ingredients (
   ('pasta_arroces_046', 3, 'sal', 'Sal', 3, 'g'),
   ('pasta_arroces_047', 0, 'espaguetis', 'Espaguetis', 180, 'g'),
   ('pasta_arroces_047', 1, 'guanciale', 'Guanciale', 120, 'g'),
-  ('pasta_arroces_047', 2, 'huevos', 'Yema de huevo', 80, 'g'),
+  ('pasta_arroces_047', 2, 'yema-de-huevo', 'Yema de huevo', 80, 'g'),
   ('pasta_arroces_047', 3, 'huevos', 'Huevo', 60, 'g')
 on conflict (recipe_id, position) do update set
   ingredient_id = excluded.ingredient_id,
@@ -9436,7 +9436,7 @@ insert into recipe_ingredients (
   ('pescados_035', 7, 'pimienta', 'Pimienta negra', 1, 'g'),
   ('pescados_036', 0, 'lubina', 'Lubina entera limpia', 800, 'g'),
   ('pescados_036', 1, 'sal-gruesa', 'Sal gruesa', 1500, 'g'),
-  ('pescados_036', 2, 'huevos', 'Clara de huevo', 2, 'ud'),
+  ('pescados_036', 2, 'clara-de-huevo', 'Clara de huevo', 2, 'ud'),
   ('pescados_036', 3, 'romero', 'Romero fresco', 10, 'g'),
   ('pescados_036', 4, 'tomillo', 'Tomillo fresco', 10, 'g'),
   ('pescados_036', 5, 'limon', 'Limón', 1, 'ud'),
@@ -9611,7 +9611,7 @@ insert into recipe_ingredients (
   ('pescados_046', 7, 'aceite-oliva-virgen', 'Aceite de oliva virgen extra', 40, 'ml'),
   ('pescados_046', 8, 'perejil', 'Perejil', 8, 'g'),
   ('pescados_047', 0, 'bacalao', 'Bacalao desalado en lomos', 350, 'g'),
-  ('pescados_047', 1, 'pimiento-verde', 'Pimientos choriceros', 4, 'ud'),
+  ('pescados_047', 1, 'pimiento-choricero', 'Pimientos choriceros', 4, 'ud'),
   ('pescados_047', 2, 'cebolla', 'Cebolla', 200, 'g')
 on conflict (recipe_id, position) do update set
   ingredient_id = excluded.ingredient_id,
@@ -10003,7 +10003,7 @@ insert into recipe_ingredients (
   recipe_id, position, ingredient_id, raw_name, amount, unit
 ) values
   ('pescados_075', 1, 'calamar', 'Calamar en anillas', 150, 'g'),
-  ('pescados_075', 2, 'salmon', 'Salmonetes pequeños', 150, 'g'),
+  ('pescados_075', 2, 'salmonete', 'Salmonetes pequeños', 150, 'g'),
   ('pescados_075', 3, 'harina', 'Harina fina de trigo', 100, 'g'),
   ('pescados_075', 4, 'aceite-oliva', 'Aceite de oliva suave', 400, 'ml'),
   ('pescados_075', 5, 'limon', 'Limón', 1, 'ud'),
@@ -11223,8 +11223,8 @@ insert into recipe_ingredients (
   ('postres_022', 6, 'limon', 'Ralladura de limón', 10, 'g'),
   ('postres_022', 7, 'maicena', 'Maicena', 40, 'g'),
   ('postres_022', 8, 'agua', 'Agua', 250, 'ml'),
-  ('postres_022', 9, 'huevos', 'Yema de huevo', 4, 'ud'),
-  ('postres_022', 10, 'huevos', 'Clara de huevo', 4, 'ud'),
+  ('postres_022', 9, 'yema-de-huevo', 'Yema de huevo', 4, 'ud'),
+  ('postres_022', 10, 'clara-de-huevo', 'Clara de huevo', 4, 'ud'),
   ('postres_023', 0, 'bizcocho-de-soletilla', 'Bizcochos de soletilla', 200, 'g'),
   ('postres_023', 1, 'cafe-espresso', 'Café espresso', 300, 'ml'),
   ('postres_023', 2, 'mascarpone', 'Mascarpone', 500, 'g')
@@ -11237,8 +11237,8 @@ on conflict (recipe_id, position) do update set
 insert into recipe_ingredients (
   recipe_id, position, ingredient_id, raw_name, amount, unit
 ) values
-  ('postres_023', 3, 'huevos', 'Yema de huevo', 4, 'ud'),
-  ('postres_023', 4, 'huevos', 'Clara de huevo', 4, 'ud'),
+  ('postres_023', 3, 'yema-de-huevo', 'Yema de huevo', 4, 'ud'),
+  ('postres_023', 4, 'clara-de-huevo', 'Clara de huevo', 4, 'ud'),
   ('postres_023', 5, 'azucar', 'Azúcar', 100, 'g'),
   ('postres_023', 6, 'cacao', 'Cacao en polvo', 15, 'g'),
   ('postres_023', 7, 'licor-de-cafe', 'Licor de café', 30, 'ml'),
@@ -11379,7 +11379,7 @@ insert into recipe_ingredients (
   ('postres_033', 1, 'mantequilla', 'Mantequilla', 150, 'g'),
   ('postres_033', 2, 'azucar', 'Azúcar', 80, 'g'),
   ('postres_033', 3, 'huevos', 'Huevo', 3, 'ud'),
-  ('postres_033', 4, 'huevos', 'Yema de huevo', 2, 'ud')
+  ('postres_033', 4, 'yema-de-huevo', 'Yema de huevo', 2, 'ud')
 on conflict (recipe_id, position) do update set
   ingredient_id = excluded.ingredient_id,
   raw_name = excluded.raw_name,
@@ -11414,7 +11414,7 @@ insert into recipe_ingredients (
   ('postres_035', 3, 'huevos', 'Huevo', 1, 'ud'),
   ('postres_035', 4, 'extracto-de-vainilla', 'Extracto de vainilla', 5, 'ml'),
   ('postres_035', 5, 'sal', 'Sal', 2, 'g'),
-  ('postres_035', 6, 'huevos', 'Clara de huevo', 1, 'ud'),
+  ('postres_035', 6, 'clara-de-huevo', 'Clara de huevo', 1, 'ud'),
   ('postres_035', 7, 'limon', 'Zumo de limón', 5, 'ml'),
   ('postres_036', 0, 'yogur', 'Yogur natural', 125, 'g'),
   ('postres_036', 1, 'azucar', 'Azúcar', 200, 'g')
@@ -11682,7 +11682,7 @@ insert into recipe_ingredients (
   ('salsas_027', 2, 'parmesano', 'Queso parmesano', 20, 'g'),
   ('salsas_027', 3, 'ajo', 'Ajo', 5, 'g'),
   ('salsas_027', 4, 'aceite-oliva', 'Aceite de oliva', 80, 'ml'),
-  ('salsas_028', 0, 'huevos', 'Yema de huevo', 2, 'ud'),
+  ('salsas_028', 0, 'yema-de-huevo', 'Yema de huevo', 2, 'ud'),
   ('salsas_028', 1, 'mantequilla', 'Mantequilla', 100, 'g')
 on conflict (recipe_id, position) do update set
   ingredient_id = excluded.ingredient_id,
@@ -12549,7 +12549,7 @@ insert into recipe_ingredients (
   recipe_id, position, ingredient_id, raw_name, amount, unit
 ) values
   ('sopas_cremas_058', 8, 'jerez-seco', 'Jerez seco', 40, 'ml'),
-  ('sopas_cremas_058', 9, 'huevos', 'Clara de huevo', 1, 'ud'),
+  ('sopas_cremas_058', 9, 'clara-de-huevo', 'Clara de huevo', 1, 'ud'),
   ('sopas_cremas_058', 10, 'sal', 'Sal', 3, 'g'),
   ('sopas_cremas_059', 0, 'langostinos', 'Langostinos', 400, 'g'),
   ('sopas_cremas_059', 1, 'cebolla', 'Cebolla', 80, 'g'),
