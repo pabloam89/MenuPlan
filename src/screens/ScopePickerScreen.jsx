@@ -67,7 +67,14 @@ const MODES = [
     time: "1 minuto",
     title: "Lo básico",
     subtitle: "Dinos cuándo coméis en casa y del resto nos encargamos nosotros.",
-    topics: ["semana", "horario", "ninos"],
+    // `cole` va en los tres modos: si los niños comen en el comedor, cuadrar
+    // las cenas con lo que han comido allí no es un refinamiento, es lo que
+    // hace que el menú no repita. Se cae solo cuando no hay niños (onlyKids).
+    //
+    // Sin `ninos` (¿comen lo mismo que vosotros?): esa es de las que este modo
+    // decide por ti. De paso, 4-5-7 ya salen en el orden que se quiere leer
+    // —cole, cuándo, dónde— sin tener que tocar los índices de onbScreens.
+    topics: ["cole", "semana", "horario"],
     expert: false,
   },
   {
@@ -78,7 +85,7 @@ const MODES = [
     time: "3 minutos",
     title: "A tu gusto",
     subtitle: "Lo básico y, además, cómo os gusta comer y cómo cocináis.",
-    topics: ["semana", "horario", "ninos", "estilo", "cocina", "electros"],
+    topics: ["semana", "horario", "ninos", "cole", "estilo", "cocina", "electros"],
     expert: true,
   },
   {

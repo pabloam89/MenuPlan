@@ -4084,10 +4084,7 @@ export default function App() {
       (i === 3 && skipMenuModel) ||
       (i === 4 && skipSchoolMenu) ||
       (i === 6 && skipBudgetStep) ||
-      // Sin `basicMode` en la puerta: "Lo básico" es ahora un modo del picker
-      // que SÍ incluye el menú de los niños (lo promete su tarjeta) y aun así
-      // va con expertMode apagado. Quién ve este paso lo decide el scope.
-      (i === 8 && skipKidsDinner) ||
+      (i === 8 && (skipKidsDinner || basicMode)) ||
       (basicMode && (i === 9 || i === 10 || i === 11)) ||
       // Avatares (1) y alergias (2) son perfil, no asistente: se rellenan en el
       // alta y no se vuelven a preguntar cada vez que generas un menú. La
