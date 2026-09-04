@@ -194,7 +194,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_002",
@@ -399,7 +400,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_003",
@@ -592,7 +594,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_004",
@@ -816,7 +819,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_005",
@@ -1023,7 +1027,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_006",
@@ -1464,7 +1469,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_008",
@@ -1654,7 +1660,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_009",
@@ -1995,7 +2002,8 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_011",
@@ -2215,7 +2223,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_012",
@@ -2345,7 +2354,8 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_013",
@@ -2536,7 +2546,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_014",
@@ -2868,7 +2879,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_016",
@@ -3076,7 +3088,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_017",
@@ -3281,7 +3294,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_018",
@@ -3452,7 +3466,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_019",
@@ -3652,7 +3667,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_020",
@@ -3801,7 +3817,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_021",
@@ -3967,7 +3984,8 @@
       "verdura",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_022",
@@ -4502,7 +4520,8 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_025",
@@ -4767,7 +4786,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_026",
@@ -4924,7 +4944,8 @@
       "frutos_secos"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_027",
@@ -5073,7 +5094,8 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_028",
@@ -5307,7 +5329,8 @@
     ],
     "tecnica": "olla",
     "cocina": "mediterranea",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_029",
@@ -5727,7 +5750,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_031",
@@ -5923,7 +5947,8 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_032",
@@ -6148,7 +6173,8 @@
     "estrella": true,
     "tecnica": "olla",
     "llevaSalsa": true,
-    "cocina": "india"
+    "cocina": "india",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_033",
@@ -6338,7 +6364,8 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_034",
@@ -6559,7 +6586,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_035",
@@ -6734,7 +6762,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_036",
@@ -6990,7 +7019,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_037",
@@ -7214,7 +7244,8 @@
     "mainIngredients": [
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_038",
@@ -7426,7 +7457,8 @@
     "tecnica": "olla",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_039",
@@ -7669,7 +7701,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_040",
@@ -8177,7 +8210,8 @@
     "tecnica": "olla",
     "extraProteins": [
       "cerdo"
-    ]
+    ],
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_042",
@@ -8398,7 +8432,8 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_043",
@@ -8552,7 +8587,8 @@
       "verdura",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_044",
@@ -8781,7 +8817,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_045",
@@ -8938,7 +8975,8 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_046",
@@ -9154,7 +9192,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_047",
@@ -9352,7 +9391,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_048",
@@ -9584,7 +9624,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_049",
@@ -9736,7 +9777,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_050",
@@ -9858,7 +9900,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_051",
@@ -10043,7 +10086,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_052",
@@ -10287,7 +10331,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_053",
@@ -10478,7 +10523,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_054",
@@ -10704,7 +10750,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_055",
@@ -11121,7 +11168,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_057",
@@ -11545,7 +11593,8 @@
     ],
     "tecnica": "olla",
     "llevaSalsa": true,
-    "cocina": "india"
+    "cocina": "india",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_059",
@@ -11755,7 +11804,8 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_060",
@@ -11929,7 +11979,8 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_061",
@@ -12132,7 +12183,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_062",
@@ -12304,7 +12356,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_063",
@@ -12565,7 +12618,8 @@
       "verdura"
     ],
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_064",
@@ -12881,7 +12935,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_066",
@@ -13133,7 +13188,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_067",
@@ -13393,7 +13449,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_069",
@@ -13465,7 +13522,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_070",
@@ -13670,7 +13728,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "legumbres_073",
@@ -13820,7 +13879,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "mainBase": "legumbre"
   },
   {
     "type": "completo",
@@ -13909,6 +13969,7 @@
     ],
     "tecnica": "olla",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "mainBase": "legumbre"
   }
 ]

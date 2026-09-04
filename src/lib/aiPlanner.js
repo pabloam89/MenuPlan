@@ -1858,6 +1858,15 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
     protein: (fr.macros.protein ?? 0) + Math.round(garnish.protein_g / gPerServing),
     carbs: (fr.macros.carbs ?? 0) + Math.round(garnish.carbs_g / gPerServing),
     fat: (fr.macros.fat ?? 0) + Math.round(garnish.fat_g / gPerServing),
+    // Fibra y sodio se cargaban en el plato pero NO se sumaban aquí, así que un
+    // plato con guarnición declaraba la fibra del plato solo. Con unas judías
+    // verdes al lado eso no es un redondeo: es la mitad. Las 40 guarniciones y
+    // las 28 salsas traen los dos datos, pero se suma con `?? 0` para que una
+    // guarnición futura sin ellos reste precisión en vez de borrar el campo.
+    ...(fr.macros.fiber != null
+      ? { fiber: fr.macros.fiber + Math.round((garnish.fiber_g ?? 0) / gPerServing) } : {}),
+    ...(fr.macros.sodium != null
+      ? { sodium: fr.macros.sodium + Math.round((garnish.sodium_mg ?? 0) / gPerServing) } : {}),
   };
 
   // Ingredients: scale garnish to actual number of eaters. Compute the swap
@@ -1911,6 +1920,12 @@ export function applySauceToRecipe(fr, sauce, eaters, restrictions = []) {
     protein: (fr.macros.protein ?? 0) + Math.round(sauce.protein_g / sPerServing),
     carbs: (fr.macros.carbs ?? 0) + Math.round(sauce.carbs_g / sPerServing),
     fat: (fr.macros.fat ?? 0) + Math.round(sauce.fat_g / sPerServing),
+    // Mismo arreglo que en la guarnición: el sodio de una salsa no es un
+    // detalle — es justo donde está.
+    ...(fr.macros.fiber != null
+      ? { fiber: fr.macros.fiber + Math.round((sauce.fiber_g ?? 0) / sPerServing) } : {}),
+    ...(fr.macros.sodium != null
+      ? { sodium: fr.macros.sodium + Math.round((sauce.sodium_mg ?? 0) / sPerServing) } : {}),
   };
 
   // Ingredientes: misma lógica de escalado + adaptaciones que la guarnición.

@@ -56,6 +56,13 @@ const BASES = [
   // PANceta y convertía una fabada asturiana en un plato de pan.
   ["pan", /\b(pan\b|tortillas? de (trigo|maiz)|masa de pizza|base de pizza|hojaldre)/, 40],
   ["avena", /\b(avena|copos)/, 30],
+  // La legumbre es base de su plato tanto como el arroz del suyo: unas
+  // lentejas no piden guarnición de hidrato, la traen puesta. Estaba fuera
+  // porque `getCarbType` no la conoce — pero `getCarbType` ni siquiera lee
+  // este campo (deriva del texto), así que no había tal dependencia.
+  // Comprobado que no toca al planner de bebés: sus 19 recetas ya traen
+  // mainBase a mano y ninguna cambia.
+  ["legumbre", /\b(lenteja|garbanzo|alubia|judia blanca|judion|frijol|haba seca)/, 40],
 ];
 
 // Proteína animal secundaria: la que está en el plato pero no manda. El
@@ -91,6 +98,8 @@ function baseDe(recipe) {
     const name = norm(ing.name);
     // El pan rallado de un empanado no es la base del plato, es el rebozado.
     if (/^pan rallado/.test(name)) continue;
+    // Y el vinagre de arroz de un tataki no hace que el plato sea de arroz.
+    if (/^vinagre/.test(name)) continue;
     for (const [base, re, min] of BASES) {
       if (re.test(name) && porRacion(ing, servings) >= min) return base;
     }

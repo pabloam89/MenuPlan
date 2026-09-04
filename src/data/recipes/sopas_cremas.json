@@ -3335,7 +3335,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "sopas_cremas_021",
@@ -8427,7 +8428,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "legumbre"
   },
   {
     "id": "sopas_cremas_050",
