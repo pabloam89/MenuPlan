@@ -4084,7 +4084,10 @@ export default function App() {
       (i === 3 && skipMenuModel) ||
       (i === 4 && skipSchoolMenu) ||
       (i === 6 && skipBudgetStep) ||
-      (i === 8 && (skipKidsDinner || basicMode)) ||
+      // Sin `basicMode` en la puerta: "Lo básico" es ahora un modo del picker
+      // que SÍ incluye el menú de los niños (lo promete su tarjeta) y aun así
+      // va con expertMode apagado. Quién ve este paso lo decide el scope.
+      (i === 8 && skipKidsDinner) ||
       (basicMode && (i === 9 || i === 10 || i === 11)) ||
       // Avatares (1) y alergias (2) son perfil, no asistente: se rellenan en el
       // alta y no se vuelven a preguntar cada vez que generas un menú. La
@@ -4171,12 +4174,13 @@ export default function App() {
   // `isStepHidden` de ESTE render, que todavía no conoce el scope que acabamos
   // de marcar. Así que el primer paso se calcula aquí a mano, aplicando solo
   // los saltos "duros" (los que dependen de la familia, no del picker).
-  const handleScopeContinue = (topicIds) => {
-    // Marcar algo = querer meter mano, así que se reactiva el modo avanzado:
-    // las secciones de estilo/extras están gated por `expertMode` y sin él el
-    // paso al que te manda saldría vacío. Sin nada marcado, básico — que es
-    // exactamente lo que decidía el viejo paso Sencillo/Avanzado.
-    setData((d) => ({ ...d, expertMode: topicIds.length > 0, modePrompted: true }));
+  const handleScopeContinue = (topicIds, expert) => {
+    // `expertMode` lo declara el modo elegido en el picker, no el número de
+    // temas: "Lo básico" abre tres pasos y aun así quiere los defaults
+    // simplificados (sin desayunos en "¿Dónde coméis?", tiempos compartidos,
+    // sin cenas rápidas del asistente — ver resolveModeData). Sin modo (vía
+    // rápida, sin ajustar nada), básico.
+    setData((d) => ({ ...d, expertMode: expert ?? topicIds.length > 0, modePrompted: true }));
     setMenuScope(topicIds);
     const steps = [...new Set(topicIds.flatMap((id) => SCOPE_TOPIC_STEPS[id] ?? []))]
       .sort((a, b) => a - b)
