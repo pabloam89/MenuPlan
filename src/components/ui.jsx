@@ -1600,3 +1600,95 @@ export function WizardOptionCard({ icon: Icon, iconColor, iconBg, img, title, su
     </button>
   );
 }
+
+// ── Selector de semanas ──────────────────────────────────────────────────────
+//
+// Nació en Compra y vive aquí para que no haya dos selectores de semana con
+// dos aspectos distintos: el asistente del menú del cole usaba una pila de
+// barras verde oscuro a lo ancho que se comía la pantalla para decir lo mismo.
+//
+// Tonto a propósito: cada pantalla guarda su selección como quiera (Compra por
+// `offset`, el asistente por índice) y aquí solo llegan chips ya resueltos.
+const WEEK_CHIP = {
+  idleBg: "#eef7f8",
+  idleLetter: "#3a9aa8",
+  idleNum: "#2a7a86",
+  activeGradient: "linear-gradient(180deg, #55c8d8 0%, #2e9faf 100%)",
+  activeShadow: "#2e9faf55",
+};
+const WEEK_CHIP_W = 36;
+const WEEK_CHIP_H = 52;
+const WEEK_CHIP_GAP = 4;
+
+/**
+ * @param {{ items: Array<{ key: string|number, n: number|string, selected?: boolean,
+ *   disabled?: boolean, title?: string, onToggle?: () => void }>, ariaLabel?: string }} props
+ */
+export function WeekChips({ items, ariaLabel }) {
+  return (
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      // Con muchas semanas la fila se arrastra en vez de encoger los chips:
+      // .deck-scroller le quita la barra nativa (ver index.css).
+      className="deck-scroller"
+      style={{ display: "flex", alignItems: "stretch", gap: WEEK_CHIP_GAP, overflowX: "auto", flexShrink: 0 }}
+    >
+      {items.map((it) => {
+        const sel = Boolean(it.selected) && !it.disabled;
+        return (
+          <button
+            key={it.key}
+            type="button"
+            onClick={it.disabled ? undefined : it.onToggle}
+            disabled={it.disabled}
+            aria-pressed={sel}
+            aria-label={it.title ?? `Semana ${it.n}`}
+            title={it.title}
+            style={{
+              flex: "0 0 auto",
+              width: WEEK_CHIP_W,
+              minHeight: WEEK_CHIP_H,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              padding: sel ? "7px 0 6px" : "6px 0",
+              borderRadius: 9,
+              border: "none",
+              background: it.disabled ? "#f1f4f2" : sel ? WEEK_CHIP.activeGradient : WEEK_CHIP.idleBg,
+              color: it.disabled ? "#aebbb2" : sel ? "#fff" : WEEK_CHIP.idleNum,
+              cursor: it.disabled ? "default" : "pointer",
+              fontFamily: "inherit",
+              boxShadow: sel ? `0 2px 8px ${WEEK_CHIP.activeShadow}` : "none",
+              transition: "all .15s ease",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: 0.2,
+                textTransform: "uppercase",
+                lineHeight: 1,
+                color: it.disabled ? "#c2cdc7" : sel ? "rgba(255,255,255,.88)" : WEEK_CHIP.idleLetter,
+              }}
+            >
+              Sem
+            </span>
+            <span style={{ fontSize: sel ? 14 : 13, fontWeight: 900, lineHeight: 1 }}>{it.n}</span>
+            <span
+              style={{
+                width: 3.5,
+                height: 3.5,
+                borderRadius: 999,
+                background: sel ? "rgba(255,255,255,.65)" : "transparent",
+              }}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
+}

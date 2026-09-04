@@ -50,6 +50,7 @@ import {
   SegmentedControl,
   WizardOptionCard,
   WizardSheet,
+  WeekChips,
   bottomNavSpacer,
 } from "../components/ui.jsx";
 import { ShoppingCoachTour } from "../components/HomeCoachTour.jsx";
@@ -120,22 +121,6 @@ const DAY_FULL = {
   Sáb: "Sábado",
   Dom: "Domingo",
 };
-
-const WEEK_CHIP_THEMES = [
-  {
-    idleBg: "#eef7f8",
-    idleLetter: "#3a9aa8",
-    idleNum: "#2a7a86",
-    activeGradient: "linear-gradient(180deg, #55c8d8 0%, #2e9faf 100%)",
-    activeShadow: "#2e9faf55",
-  },
-];
-
-/** Tamaño del selector de semanas (S1–S4) — sin la tira de días al lado
- * (2026-08-27, compra siempre por semana completa), puede ir más holgado. */
-const WEEK_CHIP_W = 36;
-const WEEK_CHIP_H = 52;
-const STRIP_CHIP_GAP = 4;
 
 const MEAL_BADGE = {
   Desayuno: { Icon: Coffee, color: "#a16207" },
@@ -1189,73 +1174,21 @@ export function ShoppingScreen({
   const showMercadonaStrip =
     mercadonaSelected && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
   const weekSelectorEl = orderedAll.length > 1 && !isEmpty && (
-    <div
-      role="group"
-      aria-label="Semanas incluidas en la compra — marca varias para combinar"
-      style={{ flexShrink: 0, display: "flex", alignItems: "stretch", gap: STRIP_CHIP_GAP }}
-    >
-      {orderedAll.map((w, i) => {
+    <WeekChips
+      ariaLabel="Semanas incluidas en la compra — marca varias para combinar"
+      items={orderedAll.map((w, i) => {
         const sel = selectedOffsets?.has(w.offset);
-        const theme = WEEK_CHIP_THEMES[0];
-        return (
-          <button
-            key={w.weekStart}
-            type="button"
-            onClick={() => toggleWeek(w.offset)}
-            aria-pressed={sel}
-            aria-label={`Semana ${i + 1}`}
-            title={
-              sel
-                ? `Quitar semana ${i + 1} de la lista combinada`
-                : `Incluir semana ${i + 1} en la lista combinada`
-            }
-            style={{
-              flex: "0 0 auto",
-              width: WEEK_CHIP_W,
-              minHeight: WEEK_CHIP_H,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 2,
-              padding: sel ? "7px 0 6px" : "6px 0",
-              borderRadius: 9,
-              border: "none",
-              background: sel ? theme.activeGradient : theme.idleBg,
-              color: sel ? "#fff" : theme.idleNum,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              boxShadow: sel ? `0 2px 8px ${theme.activeShadow}` : "none",
-              transition: "all .15s ease",
-            }}
-          >
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 800,
-                letterSpacing: 0.2,
-                textTransform: "uppercase",
-                lineHeight: 1,
-                color: sel ? "rgba(255,255,255,.88)" : theme.idleLetter,
-              }}
-            >
-              Sem
-            </span>
-            <span style={{ fontSize: sel ? 14 : 13, fontWeight: 900, lineHeight: 1 }}>
-              {i + 1}
-            </span>
-            <span
-              style={{
-                width: 3.5,
-                height: 3.5,
-                borderRadius: 999,
-                background: sel ? "rgba(255,255,255,.65)" : "transparent",
-              }}
-            />
-          </button>
-        );
+        return {
+          key: w.weekStart,
+          n: i + 1,
+          selected: sel,
+          title: sel
+            ? `Quitar semana ${i + 1} de la lista combinada`
+            : `Incluir semana ${i + 1} en la lista combinada`,
+          onToggle: () => toggleWeek(w.offset),
+        };
       })}
-    </div>
+    />
   );
 
   return (

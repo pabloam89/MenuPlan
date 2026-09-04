@@ -84,6 +84,7 @@ import {
   GroupAvatarStack,
   groupAvatarFaces,
   ToggleSwitch,
+  WeekChips,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
@@ -6832,58 +6833,29 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         {/* Multi-select of every detected week: tick the ones you want to use.
             Each ticked week becomes a distinct week of your menú. Unticking them
             all is how you "don't use" a menú — no explicit empty button needed.
-            Stacked full-width rows, each showing its date range (Mon–Fri). */}
+            Chips compactos, los mismos que Compra (ui.jsx#WeekChips). */}
         {parsedWeeks.length > 1 && !importing && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
-            {parsedWeeks.map((w, i) => {
-              const sel = selectedWeekIdxs.has(i);
-              const dishes = Object.keys(w.entries ?? {}).length;
-              const disabled = dishes === 0;
-              const { title, range } = weekChipLabel(w.weekLabel, i);
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => !disabled && toggleWeek(i)}
-                  disabled={disabled}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    width: "100%",
-                    padding: "10px 14px",
-                    borderRadius: 12,
-                    border: `1.5px solid ${sel ? "#2d5a3d" : "#d7e5dc"}`,
-                    background: disabled ? "#f1f4f2" : sel ? "#2d5a3d" : "#fff",
-                    color: disabled ? "#aebbb2" : sel ? "#fff" : "#2d5a3d",
-                    fontFamily: "inherit",
-                    cursor: disabled ? "default" : "pointer",
-                    textAlign: "left",
-                    transition: "all .15s ease",
-                  }}
-                >
-                  <span style={{ width: 82, flexShrink: 0, fontSize: 13.5, fontWeight: 800 }}>{title}</span>
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: disabled ? "#b9c4bd" : sel ? "rgba(255,255,255,.82)" : "#7a9080", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {range || ""}
-                  </span>
-                  <span
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: 6,
-                      flexShrink: 0,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      border: `1.5px solid ${sel ? "rgba(255,255,255,.85)" : "#c5d4cb"}`,
-                      background: sel ? "rgba(255,255,255,.2)" : "#fff",
-                    }}
-                  >
-                    {sel && <Check size={12} strokeWidth={3.4} color="#fff" />}
-                  </span>
-                </button>
-              );
-            })}
+          <div style={{ marginBottom: 8 }}>
+            <WeekChips
+              ariaLabel="Semanas detectadas — marca las que quieras usar"
+              items={parsedWeeks.map((w, i) => {
+                const dishes = Object.keys(w.entries ?? {}).length;
+                const { title, range } = weekChipLabel(w.weekLabel, i);
+                return {
+                  key: i,
+                  n: i + 1,
+                  selected: selectedWeekIdxs.has(i),
+                  // Sin platos no hay nada que traerse: el chip se apaga en vez
+                  // de dejarte marcar una semana vacia.
+                  disabled: dishes === 0,
+                  // El rango de fechas ya no cabe en el chip, pero tampoco se
+                  // pierde: el paginador de revision de aqui debajo lo enseña
+                  // para la semana que estes viendo.
+                  title: range ? `${title} · ${range}` : title,
+                  onToggle: () => toggleWeek(i),
+                };
+              })}
+            />
           </div>
         )}
       </div>
