@@ -8,6 +8,7 @@ import {
   BookOpen,
   BookOpenCheck,
   CalendarDays,
+  CalendarRange,
   Check,
   ChefHat,
   ChevronDown,
@@ -129,7 +130,6 @@ import { MenuPdfExportModal } from "../components/MenuPdfExportModal.jsx";
 import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtrasComidas, OnboardingMealExtrasOtros } from "./Onboarding.jsx";
 import { downloadMenuPdf, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps, catalogToFrontendRecipe } from "../lib/aiPlanner.js";
-import bundledApplianceSteps from "../data/recipeStepsByAppliance.json";
 import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
 import { dishAvailabilityMap, formatDisplay } from "../lib/shoppingListUtils.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
@@ -159,9 +159,26 @@ import {
   calendarDayNumber,
   formatWeekRangeLabel,
   getWeekDatesByMenuWeek,
+  getWeekDatesFromStartISO,
+  isoLocalDate,
   todayDayIdx,
 } from "../lib/weekCalendar.js";
 import { orderedWeeks } from "../lib/menuArchive.js";
+
+// Los 1,7 MB de pasos precomputados por electrodomestico se cargan BAJO DEMANDA.
+// Antes viajaban como import estatico, o sea dentro del chunk de Menu -- el mas
+// pesado de la app y el que todo el mundo abre -- para algo que solo hace falta
+// si abres una ficha Y eliges electrodomestico. La promesa se memoiza: se paga
+// una vez por sesion y las siguientes fichas ya lo tienen resuelto.
+let applianceStepsPromise = null;
+function loadBundledApplianceSteps() {
+  applianceStepsPromise ??= import("../data/recipeStepsByAppliance.json")
+    .then((m) => m.default)
+    // Si la descarga falla no se rompe la ficha: se sigue por /api/recipe-steps,
+    // que es el camino que ya existia para lo que no esta precomputado.
+    .catch(() => ({}));
+  return applianceStepsPromise;
+}
 
 const ICONS_BY_TYPE = {
   fish: Fish,
@@ -1917,11 +1934,12 @@ export function DishCard({
 const DECK_VIEW_OPTIONS = [
   { id: "dia", label: "Día" },
   { id: "semana", label: "Semana" },
+  { id: "mes", label: "Mes" },
   { id: "lista", label: "Resumen" },
 ];
 
-const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers2, lista: LayoutGrid };
-const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", lista: "#5a5fc8" };
+const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers2, mes: CalendarRange, lista: LayoutGrid };
+const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", mes: "#8a5cc4", lista: "#5a5fc8" };
 
 /** Flatten a day into photo tiles (one per dish/course, across visible groups).
  *  When the same dish (recipe + course) is planned for several groups in the
@@ -3900,17 +3918,17 @@ export const MenuScreen = memo(function MenuScreen({
   // branches are gated on `uiMode === "clasico"` and simply never activate.)
   const uiMode = "deck";
   const [deckView, setDeckView] = useState(() => {
-    if (initialDeckView === "semana" || initialDeckView === "lista" || initialDeckView === "dia") {
+    if (["semana", "lista", "dia", "mes"].includes(initialDeckView)) {
       return initialDeckView;
     }
     try {
       const saved = localStorage.getItem("menuDeckView");
       // "lista" (Resumen) está oculta por ahora: un valor guardado antiguo cae a "día".
-      return saved === "semana" ? "semana" : "dia";
+      return saved === "semana" || saved === "mes" ? saved : "dia";
     } catch {
       return "dia";
     }
-  }); // "dia" | "semana" | "lista"
+  }); // "dia" | "semana" | "mes" | "lista"
   useEffect(() => {
     // In demo mode we must not clobber the real user's saved deck preference.
     if (autoDemo) return;
@@ -5731,46 +5749,52 @@ export function DishDetail({
     // el bundle (one-off, generados con Sonnet por scripts/enrich-recipe-steps.mjs).
     // Solo si no hay precomputados se recurre a /api/recipe-steps (recetas de
     // usuario o combinaciones aún sin hornear), que a su vez cachea en Redis.
-    const preComputed = bundledApplianceSteps?.[recipe.id]?.[activeAppliance];
-    if (Array.isArray(preComputed) && preComputed.length > 0) {
-      stepsCacheRef.current[activeAppliance] = preComputed;
-      setSteps(preComputed);
-      setStepsLoading(false);
-      return undefined;
-    }
-
     setStepsLoading(true);
     const method = (recipe.methods ?? []).find((m) => m.appliance === activeAppliance);
-    fetch("/api/recipe-steps", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        recipeId: recipe.id,
-        appliance: activeAppliance,
-        name: recipe.name,
-        ingredients: (recipe.ingredients ?? []).map((i) => i.name),
-        baseSteps: recipe.steps ?? [],
-        prepSummary: method?.prepSummary ?? "",
-        time: method?.time,
-      }),
-      signal: ctrl.signal,
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then((data) => {
+
+    (async () => {
+      const bundledApplianceSteps = await loadBundledApplianceSteps();
+      if (!active) return;
+
+      const preComputed = bundledApplianceSteps?.[recipe.id]?.[activeAppliance];
+      if (Array.isArray(preComputed) && preComputed.length > 0) {
+        stepsCacheRef.current[activeAppliance] = preComputed;
+        setSteps(preComputed);
+        setStepsLoading(false);
+        return;
+      }
+
+      try {
+        const r = await fetch("/api/recipe-steps", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            recipeId: recipe.id,
+            appliance: activeAppliance,
+            name: recipe.name,
+            ingredients: (recipe.ingredients ?? []).map((i) => i.name),
+            baseSteps: recipe.steps ?? [],
+            prepSummary: method?.prepSummary ?? "",
+            time: method?.time,
+          }),
+          signal: ctrl.signal,
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
         const s = Array.isArray(data?.steps) ? data.steps : [];
         if (s.length > 0) stepsCacheRef.current[activeAppliance] = s;
         if (active) {
           setSteps(s.length > 0 ? s : recipe.steps ?? []);
           setStepsLoading(false);
         }
-      })
-      .catch(() => {
+      } catch {
         // Fallback: muestra los pasos tradicionales si la generación falla.
         if (active) {
           setSteps(mainPlainSteps.length > 0 ? mainPlainSteps : (recipe.steps ?? []));
           setStepsLoading(false);
         }
-      });
+      }
+    })();
 
     return () => {
       active = false;

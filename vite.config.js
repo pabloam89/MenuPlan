@@ -143,7 +143,7 @@ export default defineConfig(({ mode }) => {
           id: '/',
           name: 'HoMenu',
           short_name: 'HoMenu',
-          description: 'El menú familiar de la semana, resuelto con IA.',
+          description: 'El menú familiar de la semana, resuelto.',
           theme_color: '#7e14ff',
           background_color: '#ffffff',
           display: 'standalone',
