@@ -8782,7 +8782,6 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "montaje": true,
     "tecnica": "crudo"
   },
   {
@@ -13622,7 +13621,6 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "montaje": true,
     "tecnica": "crudo"
   },
   {
@@ -20123,7 +20121,7 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "horno"
+    "tecnica": "crudo"
   },
   {
     "id": "carnes_101",

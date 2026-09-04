@@ -194,8 +194,18 @@ export const RecipeSchema = z
     // "asiáticas" a unas costillas BBQ por llevar salsa de soja, y mexicana a
     // la tortilla de jamón y queso.
     cocina: z.enum(["italiana", "asiatica", "mexicana", "mediterranea"]).optional(),
-    // "Cena rápida" de verdad: se monta, no se cocina (sándwich, tostas, tabla,
-    // ensalada de asamblaje). Sustituye a category "cenas_rapidas".
+    // "Cena rápida" de verdad: se MONTA con cosas ya listas (sándwich, tostas,
+    // tabla, ensalada de asamblaje). Sustituye a category "cenas_rapidas".
+    //
+    // NO es lo mismo que "no pasa por el fuego" — eso lo dice `tecnica:
+    // "crudo"`. La diferencia tiene consecuencia: recipeMatchesPreferType()
+    // acepta como cena rápida cualquier plato de montaje SALTÁNDOSE el filtro
+    // de dificultad y de tiempo (utils/filterRecipes.js). Eso vale para una
+    // tosta de tomate y no vale para un tartar de solomillo al cuchillo ni para
+    // un ceviche con su leche de tigre: no llevan fuego, pero son técnica y
+    // cuchillo, y de hecho están catalogados como dificultad "normal". Los
+    // tartares, ceviches y carpaccios se quedan fuera de este eje y dentro de
+    // `tecnica: "crudo"`.
     //
     // Se marca a MANO y no se deriva de time+difficulty a propósito: medido
     // contra el catálogo, las 16 recetas curadas como cenas_rapidas caen en

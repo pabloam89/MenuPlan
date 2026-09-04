@@ -34,14 +34,28 @@ const FILES = [
 const norm = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 
 // ── montaje ───────────────────────────────────────────────────────────────
-// "Se monta, no se cocina": tostas, bocadillos, wraps, tartares, ceviches,
-// gazpachos y sopas frías, y la ensalada de asamblaje. Fuera quedan dos que el
-// nombre sugería y el plato desmiente: el "pincho moruno" (que es brocheta a la
-// brasa, no pincho de barra) y la "tostada francesa" (que es una torrija).
+// "Se MONTA con cosas ya listas": tostas, bocadillos, wraps, tablas, gazpachos
+// y la ensalada de asamblaje.
+//
+// Y OJO: montaje no es lo mismo que "no pasa por el fuego". Eso lo dice
+// `tecnica: "crudo"`, que es otro eje. La diferencia importa porque `montaje`
+// abre una puerta: recipeMatchesPreferType() acepta como CENA RÁPIDA cualquier
+// plato de montaje SALTÁNDOSE el filtro de dificultad y de tiempo (ver
+// utils/filterRecipes.js). Eso vale para una tosta de tomate; no vale para un
+// tartar de solomillo al cuchillo ni para un ceviche con su leche de tigre,
+// que no llevan fuego pero son técnica, cuchillo y punto — de hecho los siete
+// están catalogados como dificultad "normal", no "fácil".
+//
+// Así que los tartares, ceviches, carpaccios y tatakis se quedan FUERA de este
+// eje y dentro de `tecnica: "crudo"`, que es lo que de verdad son.
+//
+// Fuera quedan también dos que el nombre sugería y el plato desmiente: el
+// "pincho moruno" (brocheta a la brasa, no pincho de barra) y la "tostada
+// francesa" (una torrija).
 const MONTAJE = [
   "legumbres_012", "legumbres_060",
-  "carnes_046", "carnes_070", "carnes_119", "carnes_122",
-  "pescados_027", "pescados_038", "pescados_039", "pescados_051", "pescados_079", "pescados_080",
+  "carnes_119", "carnes_122",
+  "pescados_027",
   "sopas_cremas_015", "sopas_cremas_034", "sopas_cremas_036", "sopas_cremas_056", "sopas_cremas_079",
   "ensaladas_verduras_001", "ensaladas_verduras_021", "ensaladas_verduras_026",
   "ensaladas_verduras_027", "ensaladas_verduras_028", "ensaladas_verduras_029",
@@ -53,6 +67,15 @@ const MONTAJE = [
   "ensaladas_verduras_122",
   "platos_unicos_009", "platos_unicos_016",
   "desayunos_020", "meriendas_003", "meriendas_004",
+];
+
+// Los que YA estaban marcados y no debieron estarlo. No basta con sacarlos de
+// la lista de arriba: el script solo añade -para no pisar los 58 que venían
+// curados de antes- así que retirarlos hay que decirlo.
+const NO_MONTAJE = [
+  "carnes_046", "carnes_070",                                   // steak tartare, tartar al cuchillo
+  "pescados_038", "pescados_051", "pescados_079",               // tartares de atún y salmón
+  "pescados_039", "pescados_080",                               // ceviches
 ];
 
 
@@ -76,11 +99,19 @@ const MONTAJE = [
 const CUCHARA_RE = /\b(guiso|estofad|potaje|cocido|caldo|fabada|marmitako|puchero|olla|sopa|crema|pisto|alubiada)/;
 const HORNO_RE = /\b(al horno|asad[oa]|gratinad|empanada|coca|lasan|pastel|tarta|calzone|pizza|papillote|hornead)/;
 const PLANCHA_RE = /\b(a la plancha|plancha|parrilla|a la brasa|brasead|grill|entrecot|chuleton|tataki|brocheta|hamburgues|filete ruso|steak)/;
+const CRUDO_RE = /\b(tartar|tartare|ceviche|carpaccio|gazpacho|salmorejo|ajoblanco|sopa fria|crema fria|poke bowl)/;
 const FRITO_RE = /\b(frit|rebozad|empanad|bu[nñ]uel|croquet|tempura|nugget|varitas|torrezno|churro)/;
 
 function tecnicaDe(recipe) {
   const name = norm(recipe.name);
   const steps = norm((recipe.steps ?? []).join(" "));
+  // El crudo se mira ANTES que la plancha, y por una razón tonta pero real:
+  // "Steak tartare" lleva la palabra "steak" y se iba derecho a plancha.
+  //
+  // El tataki NO entra aquí a propósito: se marca por fuera y se queda crudo
+  // por dentro, así que su técnica es la plancha — que es justo lo que hay que
+  // saber hacer para que salga.
+  if (CRUDO_RE.test(name)) return "crudo";
   if (recipe.montaje === true) return "crudo";
   if (PLANCHA_RE.test(name)) return "plancha";
   if (HORNO_RE.test(name) || recipe.requiredAppliance === "horno") return "horno";
@@ -159,6 +190,7 @@ function isKidFavourite(recipe) {
 
 const write = process.argv.includes("--write");
 const montajeSet = new Set(MONTAJE);
+const noMontajeSet = new Set(NO_MONTAJE);
 const especialSet = new Set(ESPECIAL);
 const counts = { montaje: 0, especial: 0, kid: 0 };
 const tecnicas = {};
@@ -170,6 +202,7 @@ for (const file of FILES) {
   const recipes = JSON.parse(readFileSync(path, "utf8"));
   for (const recipe of recipes) {
     if (montajeSet.has(recipe.id)) recipe.montaje = true;
+    if (noMontajeSet.has(recipe.id)) delete recipe.montaje;
     if (especialSet.has(recipe.id)) recipe.occasion = "especial";
 
     if (isKidFavourite(recipe)) {

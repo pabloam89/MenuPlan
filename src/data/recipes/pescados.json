@@ -5943,7 +5943,6 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true,
     "tecnica": "crudo"
   },
   {
@@ -6133,7 +6132,6 @@
       }
     ],
     "estrella": true,
-    "montaje": true,
     "tecnica": "crudo"
   },
   {
@@ -8324,7 +8322,6 @@
     "mainIngredients": [
       "fruta"
     ],
-    "montaje": true,
     "tecnica": "crudo"
   },
   {
@@ -11561,7 +11558,7 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "plancha"
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_070",
@@ -13479,7 +13476,6 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true,
     "tecnica": "crudo"
   },
   {
@@ -13669,7 +13665,6 @@
       }
     ],
     "estrella": true,
-    "montaje": true,
     "tecnica": "crudo"
   },
   {
