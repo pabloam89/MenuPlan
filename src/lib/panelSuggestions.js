@@ -23,6 +23,11 @@ const FAMILIA_LABEL = {
   pasta_arroz: "pasta o arroz", huevos: "huevo", verdura: "verdura",
 };
 
+const ICONO_FAMILIA = {
+  pescado: "pez", carne: "carne", verdura: "hoja",
+  legumbres: "cuchara", pasta_arroz: "trigo", huevos: "huevo",
+};
+
 const veces = (n) => (n === 1 ? "una vez" : n === 2 ? "dos veces" : `${n} veces`);
 
 /**
@@ -49,6 +54,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
         texto: `Menos ${FAMILIA_LABEL[familia] ?? familia}`,
         frase: `menos ${FAMILIA_LABEL[familia] ?? familia}`,
         porque: `Hay ${veces(cuantas)} y pediste ${objetivo}`,
+        icono: ICONO_FAMILIA[familia] ?? "plato",
       });
     }
   }
@@ -63,6 +69,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
       texto: "Más variedad de estilos",
       frase: `menos ${tecnicaTop}`,
       porque: `${tecnicaN} platos ${preposicion(tecnicaTop)} ${tecnicaTop}`,
+      icono: "chispa",
     });
   }
 
@@ -73,25 +80,47 @@ export function sugerenciasDelMenu(recuento, notepad) {
     const cual = dominio[Math.floor(Date.now() / 86400000) % dominio.length];
     out.push({
       id: `probar-${cual}`,
-      texto: `Prueba algo ${cual}`,
+      // "Prueba algo francesa" es lo que sale si se concatena sin pensar, y
+      // canta a máquina. Los nombres de cocina son adjetivos femeninos porque
+      // concuerdan con "cocina": la frase tiene que llevar el sustantivo.
+      texto: `Cocina ${cual}`,
       frase: `más comida ${cual}`,
       porque: "Esta semana no hay nada de fuera",
+      icono: "mundo",
     });
   }
 
-  // 4. Comodín: siempre queda algo que ofrecer, para que el panel nunca abra
-  //    vacío ni siquiera con un menú recién generado y perfecto.
-  if (out.length < 2) {
-    out.push({
-      id: "mas-rapido",
-      texto: "Algo más rápido",
-      frase: "algo más rápido",
-      porque: "Para las noches con prisa",
-    });
+  // 4. Comodines. La rejilla es de CUATRO y se rellena siempre: una rejilla de
+  //    2×2 con un hueco se lee como que algo ha fallado, no como que no había
+  //    nada que decir. Se añaden por orden y sin repetir lo ya propuesto.
+  for (const c of COMODINES) {
+    if (out.length >= MAX_SUGERENCIAS) break;
+    if (out.some((s) => s.id === c.id)) continue;
+    out.push(c);
   }
 
-  return out.slice(0, MAX_SUGERENCIAS);
+  return out.slice(0, MAX_SUGERENCIAS).map((s, i) => ({ ...s, tono: TONOS[i % TONOS.length] }));
 }
+
+// Siempre servibles: no dependen de cómo esté el menú, así que valen de
+// relleno sin mentir. Ordenados por lo que más pide la gente.
+const COMODINES = [
+  { id: "mas-rapido", texto: "Algo más rápido", frase: "algo más rápido", porque: "Para las noches con prisa", icono: "reloj" },
+  { id: "mas-verdura", texto: "Más verdura", frase: "más verdura", porque: "Sin que parezca un castigo", icono: "hoja" },
+  { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil", porque: "Platos de un cacharro", icono: "chef" },
+  { id: "mas-salsa", texto: "Platos con salsa", frase: "más platos con salsa", porque: "De los que mojan pan", icono: "cuchara" },
+];
+
+// Cuatro parejas de color, una por posición en la rejilla. Van por posición y
+// no por contenido a propósito: así la rejilla siempre tiene los mismos cuatro
+// colores en el mismo sitio y se reconoce de un vistazo, aunque el texto de
+// cada tarjeta cambie cada semana.
+const TONOS = [
+  { fondo: "#eaf6ee", borde: "#c9e6d4", tinta: "#1e5233", glow: "rgba(76,186,110,.28)" },
+  { fondo: "#fdf1e3", borde: "#f3ddc0", tinta: "#8a4f00", glow: "rgba(224,165,94,.28)" },
+  { fondo: "#e9f1fb", borde: "#cfe0f2", tinta: "#20456e", glow: "rgba(90,140,200,.26)" },
+  { fondo: "#f6edf8", borde: "#e6d4ea", tinta: "#5c2f66", glow: "rgba(150,95,165,.24)" },
+];
 
 function mayor(obj) {
   let clave = null, max = 0;

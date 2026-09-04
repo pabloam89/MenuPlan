@@ -1,39 +1,45 @@
 /**
  * El panel del menú: una burbuja que se despliega en tarjeta.
  *
- * Mismo lenguaje visual que los coach marks (HomeCoachTour): spotlight que
- * apaga la pantalla, la burbuja se queda encendida, y una tarjeta pequeña sale
- * encima con su flecha apuntándola.
+ * Spotlight que apaga la pantalla y deja la burbuja encendida, como los coach
+ * marks (HomeCoachTour). Encima, una tarjeta con:
  *
- * La tarjeta es PEQUEÑA y no crece: dos o tres filas y fuera. Esto no es un
- * formulario ni un chat — es un globo que te pregunta qué necesitas, te da
- * ideas, y al pulsar o cambia el menú o te hace UNA pregunta con opciones.
+ *   · cuatro ideas en rejilla 2×2, cada una con su color y su icono
+ *   · las respuestas como frases apiladas con divisoria y casilla
+ *
+ * Las casillas permiten marcar VARIAS cuando el modelo ha entendido varias
+ * cosas ("menos pescado y más mexicana"), que era el agujero que dejaba la
+ * versión de tarjetas-alternativa: obligaba a elegir entre cambios que no se
+ * excluyen. Cuando sí son alternativas (2, 3 o 4 veces por semana), marcar una
+ * desmarca las demás — lo dice `modo` en la respuesta.
  *
  * Deliberadamente tonto: no llama a nadie ni guarda nada. Recibe `onConsultar`
- * y `onAplicar` de fuera, así que se puede recorrer entero sin gastar API.
+ * y `onAplicar` de fuera, así que se recorre entero sin gastar API.
  */
 
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
-import { Sparkles, X, ArrowUp } from "lucide-react";
+import {
+  Sparkles, X, ArrowUp, Check, Fish, Beef, Leaf, Soup, Wheat, Egg,
+  Globe, Clock, ChefHat, Utensils, UtensilsCrossed,
+} from "lucide-react";
 import { resumirAjuste } from "../lib/panelParser.js";
 
-const ANCHO_MAX = 320;
+const ICONOS = {
+  pez: Fish, carne: Beef, hoja: Leaf, cuchara: Soup, trigo: Wheat, huevo: Egg,
+  mundo: Globe, reloj: Clock, chef: ChefHat, chispa: Sparkles, plato: Utensils,
+};
+
+const ANCHO_MAX = 330;
 const HUECO = 14;
 
-export function PanelCoach({
-  sugerencias = [],
-  notepad,
-  onConsultar,
-  onAplicar,
-  primeraVez = false,
-}) {
+export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, primeraVez = false }) {
   const [abierto, setAbierto] = useState(false);
   const [paso, setPaso] = useState(primeraVez ? "intro" : "ideas");
   const [texto, setTexto] = useState("");
   const [respuesta, setRespuesta] = useState(null);
+  const [marcadas, setMarcadas] = useState([]);
   const [rect, setRect] = useState(null);
   const fabRef = useRef(null);
-  const inputRef = useRef(null);
 
   const medir = useCallback(() => {
     const r = fabRef.current?.getBoundingClientRect();
@@ -48,121 +54,142 @@ export function PanelCoach({
   }, [abierto, medir]);
 
   const cerrar = () => {
-    setAbierto(false);
-    setTexto("");
-    setRespuesta(null);
+    setAbierto(false); setTexto(""); setRespuesta(null); setMarcadas([]);
     setPaso(primeraVez ? "intro" : "ideas");
   };
 
   const preguntar = async (frase) => {
     const q = (frase ?? texto).trim();
     if (!q) return;
-    setTexto(q);
-    setPaso("pensando");
+    setTexto(q); setPaso("pensando");
     const r = await onConsultar?.(q);
     setRespuesta(r ?? null);
+    // La primera viene marcada: en el caso normal —una sola propuesta— el
+    // usuario solo tiene que pulsar Aplicar, sin un paso de selección de más.
+    setMarcadas(r?.opciones?.length ? [0] : []);
     setPaso("respuesta");
   };
 
-  const aplicar = (opcion) => {
-    onAplicar?.(opcion, texto);
+  const alternar = (i) => {
+    const unaSola = respuesta?.modo !== "varias";
+    setMarcadas((prev) =>
+      unaSola ? [i] : prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]);
+  };
+
+  const aplicar = () => {
+    const elegidas = marcadas.map((i) => respuesta.opciones[i]).filter(Boolean);
+    if (!elegidas.length) return;
+    onAplicar?.({ ajustes: elegidas.flatMap((o) => o.ajustes), etiqueta: elegidas.map((o) => o.etiqueta).join(" · ") }, texto);
     setPaso("hecho");
-    setTimeout(cerrar, 1400);
+    setTimeout(cerrar, 1500);
   };
 
   const vw = typeof window !== "undefined" ? window.innerWidth : 375;
   const ancho = Math.min(ANCHO_MAX, vw - 24);
   const left = rect ? Math.max(12, Math.min(rect.left + rect.width / 2 - ancho / 2, vw - ancho - 12)) : 12;
-  const flechaX = rect ? Math.max(18, Math.min(rect.left + rect.width / 2 - left, ancho - 18)) : ancho / 2;
+  const flechaX = rect ? Math.max(20, Math.min(rect.left + rect.width / 2 - left, ancho - 20)) : ancho / 2;
   const bottom = rect ? window.innerHeight - rect.top + HUECO : 100;
 
   return (
     <>
-      <button
-        ref={fabRef}
-        type="button"
-        onClick={() => (abierto ? cerrar() : setAbierto(true))}
-        style={{ ...S.fab, zIndex: abierto ? 310 : 150 }}
-        aria-label="Ajustar el menú"
-      >
-        <Sparkles size={21} color="#fff" />
+      <style>{ANIM}</style>
+      <button ref={fabRef} type="button" onClick={() => (abierto ? cerrar() : setAbierto(true))}
+        style={{ ...S.fab, zIndex: abierto ? 310 : 150 }} aria-label="Ajustar el menú">
+        <span style={S.fabHalo} />
+        <Sparkles size={21} color="#fff" style={{ position: "relative" }} />
       </button>
 
       {abierto && (
         <div style={S.capa}>
-          <style>{ANIM}</style>
-
-          {/* El spotlight: una caja transparente cuya sombra gigante apaga todo
-              lo de alrededor y deja la burbuja encendida. */}
           {rect && (
             <div style={{
               position: "fixed", top: rect.top - 6, left: rect.left - 6,
               width: rect.width + 12, height: rect.height + 12, borderRadius: 20,
-              boxShadow: "0 0 0 9999px rgba(11,28,18,.66)",
+              boxShadow: "0 0 0 9999px rgba(11,28,18,.7)",
               border: "2px solid rgba(255,255,255,.85)", pointerEvents: "none",
             }} />
           )}
           <div style={{ position: "fixed", inset: 0 }} onClick={cerrar} />
 
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{ ...S.tarjeta, left, width: ancho, bottom }}
-          >
+          <div onClick={(e) => e.stopPropagation()} style={{ ...S.tarjeta, left, width: ancho, bottom }}>
             <div style={{ ...S.flecha, left: flechaX - 9 }} />
-
             <button type="button" onClick={cerrar} style={S.cerrar} aria-label="Cerrar">
               <X size={14} color="#5a7a66" />
             </button>
 
             {paso === "intro" && (
-              <Cuerpo
-                titulo="Puedo ajustarte el menú"
-                texto="Dime lo que echas de menos. Cambio cuánto hay de cada cosa, cocinas, estilos y lo que no queréis ver. Lo de días concretos o personas con nombre, todavía no."
-                cta="Vale"
-                onCta={() => setPaso("ideas")}
-              />
+              <>
+                <div style={S.titulo}>Puedo ajustarte el menú</div>
+                <p style={S.parrafo}>
+                  Dime lo que echas de menos. Cambio cuánto hay de cada cosa,
+                  cocinas, estilos y lo que no queréis ver.
+                </p>
+                <p style={{ ...S.parrafo, color: "#8a9c91" }}>
+                  Días concretos, personas con nombre o alergias, todavía no.
+                </p>
+                <button type="button" onClick={() => setPaso("ideas")} className="mp-press" style={S.cta}>
+                  Vale, vamos
+                </button>
+              </>
             )}
 
             {paso === "ideas" && (
               <>
                 <div style={S.titulo}>¿Qué necesitas?</div>
-                <div style={S.ideas}>
-                  {sugerencias.slice(0, 3).map((s) => (
-                    <button key={s.id} type="button" className="mp-press" style={S.idea}
-                      onClick={() => preguntar(s.frase)}>
-                      <span style={S.ideaTexto}>{s.texto}</span>
-                      <span style={S.ideaPorque}>{s.porque}</span>
-                    </button>
-                  ))}
+                <div style={S.rejilla}>
+                  {sugerencias.slice(0, 4).map((s, i) => {
+                    const Icono = ICONOS[s.icono] ?? UtensilsCrossed;
+                    return (
+                      <button key={s.id} type="button" className="mp-press"
+                        onClick={() => preguntar(s.frase)}
+                        style={{
+                          ...S.card, background: s.tono.fondo, borderColor: s.tono.borde,
+                          animation: `panelCard .38s cubic-bezier(.34,1.4,.5,1) both ${i * 55}ms`,
+                        }}>
+                        <span style={{ ...S.cardIcono, boxShadow: `0 4px 12px ${s.tono.glow}` }}>
+                          <Icono size={15} color={s.tono.tinta} />
+                        </span>
+                        <span style={{ ...S.cardTexto, color: s.tono.tinta }}>{s.texto}</span>
+                        <span style={S.cardPorque}>{s.porque}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <Entrada
-                  inputRef={inputRef} texto={texto} setTexto={setTexto} onEnviar={() => preguntar()}
-                />
+                <Entrada texto={texto} setTexto={setTexto} onEnviar={() => preguntar()} />
               </>
             )}
 
             {paso === "pensando" && (
               <div style={S.pensando}>
-                <span style={S.pulso} />
-                Mirando tu menú…
+                <span style={S.pulso} /><span style={{ ...S.pulso, animationDelay: ".15s" }} />
+                <span style={{ ...S.pulso, animationDelay: ".3s" }} />
+                <span style={S.pensandoTexto}>Mirando tu menú…</span>
               </div>
             )}
 
             {paso === "respuesta" && respuesta && (
-              <div className="mp-pop">
+              <div style={{ animation: "panelPop .3s ease both" }}>
                 <div style={S.reply}>{respuesta.reply}</div>
 
                 {respuesta.opciones.length > 0 && (
-                  <div style={S.opciones}>
-                    {respuesta.opciones.map((o, i) => (
-                      <button key={i} type="button" className="mp-press" style={S.opcion}
-                        onClick={() => aplicar(o)}>
-                        <span style={S.opcionTitulo}>{o.etiqueta}</span>
-                        <span style={S.opcionCambio}>
-                          {o.ajustes.map((a) => resumirAjuste(notepad, a)).filter(Boolean).join(" · ")}
-                        </span>
-                      </button>
-                    ))}
+                  <div style={S.lista}>
+                    {respuesta.opciones.map((o, i) => {
+                      const on = marcadas.includes(i);
+                      return (
+                        <button key={i} type="button" onClick={() => alternar(i)}
+                          style={{ ...S.fila, borderTop: i ? "1px solid #eef3f0" : "none" }}>
+                          <span style={{ ...S.casilla, ...(on ? S.casillaOn : null) }}>
+                            {on && <Check size={13} color="#fff" strokeWidth={3.2} />}
+                          </span>
+                          <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                            <span style={{ ...S.filaTitulo, color: on ? "#142f1d" : "#4a6355" }}>{o.etiqueta}</span>
+                            <span style={S.filaCambio}>
+                              {o.ajustes.map((a) => resumirAjuste(notepad, a)).filter(Boolean).join(" · ")}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -170,16 +197,22 @@ export function PanelCoach({
                   <div style={S.pendiente}>{respuesta.pendiente.join(" ")}</div>
                 )}
 
-                {respuesta.kind !== "propuestas" && (
-                  <Entrada
-                    inputRef={inputRef} texto={texto} setTexto={setTexto} onEnviar={() => preguntar()}
-                  />
+                {respuesta.opciones.length > 0 ? (
+                  <button type="button" onClick={aplicar} disabled={!marcadas.length} className="mp-press"
+                    style={{ ...S.cta, ...S.ctaAncho, ...(marcadas.length ? null : S.ctaOff) }}>
+                    {marcadas.length > 1 ? `Aplicar los ${marcadas.length} cambios` : "Aplicar"}
+                  </button>
+                ) : (
+                  <Entrada texto={texto} setTexto={setTexto} onEnviar={() => preguntar()} />
                 )}
               </div>
             )}
 
             {paso === "hecho" && (
-              <div style={S.hecho}>Hecho ✓</div>
+              <div style={S.hecho}>
+                <span style={S.hechoCirculo}><Check size={20} color="#fff" strokeWidth={3.2} /></span>
+                <span style={S.hechoTexto}>Menú actualizado</span>
+              </div>
             )}
           </div>
         </div>
@@ -188,27 +221,12 @@ export function PanelCoach({
   );
 }
 
-function Cuerpo({ titulo, texto, cta, onCta }) {
-  return (
-    <>
-      <div style={S.titulo}>{titulo}</div>
-      <p style={S.parrafo}>{texto}</p>
-      <button type="button" onClick={onCta} className="mp-press" style={S.cta}>{cta}</button>
-    </>
-  );
-}
-
-function Entrada({ inputRef, texto, setTexto, onEnviar }) {
+function Entrada({ texto, setTexto, onEnviar }) {
   return (
     <div style={S.entrada}>
-      <input
-        ref={inputRef}
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
+      <input value={texto} onChange={(e) => setTexto(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") onEnviar(); }}
-        placeholder="o dímelo tú…"
-        style={S.input}
-      />
+        placeholder="o dímelo tú…" style={S.input} />
       <button type="button" onClick={onEnviar} disabled={!texto.trim()}
         style={{ ...S.enviar, ...(texto.trim() ? null : S.enviarOff) }} aria-label="Enviar">
         <ArrowUp size={15} color="#fff" />
@@ -218,77 +236,101 @@ function Entrada({ inputRef, texto, setTexto, onEnviar }) {
 }
 
 const ANIM = `
-@keyframes panelPop {
-  0%   { opacity: 0; transform: translateY(10px) scale(.96); }
-  60%  { transform: translateY(-2px) scale(1.01); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes panelPulso { 0%,100% { opacity:.35 } 50% { opacity:1 } }
+@keyframes panelPop { 0% { opacity:0; transform:translateY(10px) scale(.96) } 60% { transform:translateY(-2px) scale(1.01) } 100% { opacity:1; transform:none } }
+@keyframes panelCard { 0% { opacity:0; transform:translateY(14px) scale(.92) } 100% { opacity:1; transform:none } }
+@keyframes panelPulso { 0%,100% { opacity:.25; transform:scale(.8) } 50% { opacity:1; transform:scale(1) } }
+@keyframes panelHalo { 0%,100% { opacity:.5; transform:scale(1) } 50% { opacity:0; transform:scale(1.5) } }
+@keyframes panelHecho { 0% { transform:scale(.4); opacity:0 } 60% { transform:scale(1.12) } 100% { transform:scale(1); opacity:1 } }
+@media (prefers-reduced-motion: reduce) { [style*="panelCard"], [style*="panelPop"] { animation: none !important } }
 `;
 
 const S = {
   fab: {
     position: "fixed", right: 18, bottom: "calc(96px + env(safe-area-inset-bottom, 0px))",
-    width: 48, height: 48, borderRadius: 16, border: "none", background: "#2d5a3d",
+    width: 52, height: 52, borderRadius: 18, border: "none",
+    background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-    boxShadow: "0 4px 16px rgba(20,47,29,.3)",
+    boxShadow: "0 6px 20px rgba(45,90,61,.42)",
+  },
+  fabHalo: {
+    position: "absolute", inset: -2, borderRadius: 20,
+    border: "2px solid rgba(76,186,110,.6)", animation: "panelHalo 2.6s ease-in-out infinite",
   },
   capa: { position: "fixed", inset: 0, zIndex: 300 },
   tarjeta: {
-    position: "fixed", background: "#fff", borderRadius: 20, padding: "16px 15px 14px",
-    boxShadow: "0 18px 50px rgba(20,47,29,.34)",
-    animation: "panelPop .34s cubic-bezier(.34,1.56,.5,1) both",
+    position: "fixed", background: "#fff", borderRadius: 22, padding: "17px 15px 15px",
+    boxShadow: "0 20px 56px rgba(20,47,29,.4)",
+    animation: "panelPop .36s cubic-bezier(.34,1.56,.5,1) both",
   },
   flecha: {
     position: "absolute", bottom: -9, width: 18, height: 18, background: "#fff",
-    transform: "rotate(45deg)", borderRadius: 3, boxShadow: "2px 2px 4px rgba(20,47,29,.06)",
+    transform: "rotate(45deg)", borderRadius: 3,
   },
   cerrar: {
-    position: "absolute", top: 12, right: 12, width: 24, height: 24, borderRadius: 999,
+    position: "absolute", top: 13, right: 13, width: 24, height: 24, borderRadius: 999,
     border: "none", background: "#f0f4f1", cursor: "pointer",
-    display: "flex", alignItems: "center", justifyContent: "center",
+    display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2,
   },
-  titulo: { fontSize: 16, fontWeight: 900, color: "#142f1d", letterSpacing: "-.3px", marginBottom: 10, paddingRight: 26 },
-  parrafo: { margin: "0 0 12px", fontSize: 12.5, color: "#5a7a66", lineHeight: 1.45 },
+  titulo: { fontSize: 17, fontWeight: 900, color: "#142f1d", letterSpacing: "-.35px", marginBottom: 12, paddingRight: 28 },
+  parrafo: { margin: "0 0 9px", fontSize: 12.5, color: "#5a7a66", lineHeight: 1.5 },
   cta: {
-    background: "#2d5a3d", color: "#fff", border: "none", borderRadius: 11,
-    padding: "9px 18px", fontSize: 13.5, fontWeight: 800, cursor: "pointer",
+    background: "linear-gradient(135deg, #2d5a3d, #4cba6e)", color: "#fff", border: "none",
+    borderRadius: 12, padding: "10px 20px", fontSize: 13.5, fontWeight: 800, cursor: "pointer",
+    boxShadow: "0 4px 16px rgba(76,186,110,.32)",
   },
-  ideas: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 },
-  idea: {
-    display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1,
-    background: "#f4f8f5", border: "1px solid #e3ede7", borderRadius: 12,
-    padding: "9px 11px", cursor: "pointer", width: "100%", textAlign: "left",
+  ctaAncho: { width: "100%", marginTop: 12, padding: "12px 20px", fontSize: 14 },
+  ctaOff: { background: "#c8d9ce", boxShadow: "none", cursor: "default" },
+
+  rejilla: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 11 },
+  card: {
+    display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 3,
+    border: "1.5px solid", borderRadius: 15, padding: "11px 10px 10px", cursor: "pointer",
+    textAlign: "left", minHeight: 96,
   },
-  ideaTexto: { fontSize: 13.5, fontWeight: 800, color: "#142f1d" },
-  ideaPorque: { fontSize: 11.5, fontWeight: 500, color: "#8a9c91" },
+  cardIcono: {
+    width: 26, height: 26, borderRadius: 9, background: "rgba(255,255,255,.85)",
+    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 3,
+  },
+  cardTexto: { fontSize: 13, fontWeight: 900, lineHeight: 1.2, letterSpacing: "-.2px" },
+  cardPorque: { fontSize: 10.5, fontWeight: 500, color: "#7d8f85", lineHeight: 1.3 },
+
   entrada: { display: "flex", gap: 7, alignItems: "center" },
   input: {
     flex: 1, minWidth: 0, background: "#f7faf8", border: "1.5px solid #e8efe9",
-    borderRadius: 11, padding: "9px 11px", fontSize: 16, color: "#1a3a24", outline: "none",
+    borderRadius: 12, padding: "10px 12px", fontSize: 16, color: "#1a3a24", outline: "none",
   },
   enviar: {
-    width: 34, height: 34, borderRadius: 11, border: "none", background: "#2d5a3d",
+    width: 36, height: 36, borderRadius: 12, border: "none",
+    background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
   },
   enviarOff: { background: "#c8d9ce", cursor: "default" },
-  pensando: {
-    display: "flex", alignItems: "center", gap: 8, fontSize: 13,
-    fontWeight: 600, color: "#8a9c91", padding: "6px 0 4px",
+
+  pensando: { display: "flex", alignItems: "center", gap: 5, padding: "10px 0 8px" },
+  pulso: { width: 7, height: 7, borderRadius: 999, background: "#4cba6e", animation: "panelPulso 1.1s ease-in-out infinite" },
+  pensandoTexto: { fontSize: 12.5, fontWeight: 600, color: "#8a9c91", marginLeft: 5 },
+
+  reply: { fontSize: 13.5, fontWeight: 600, color: "#142f1d", lineHeight: 1.5, marginBottom: 12, paddingRight: 28 },
+  lista: { background: "#f7faf8", border: "1px solid #e8efe9", borderRadius: 14, overflow: "hidden" },
+  fila: {
+    display: "flex", alignItems: "center", gap: 10, width: "100%",
+    background: "none", border: "none", padding: "11px 12px", cursor: "pointer",
   },
-  pulso: {
-    width: 8, height: 8, borderRadius: 999, background: "#4cba6e",
-    animation: "panelPulso 1s ease-in-out infinite",
+  casilla: {
+    width: 21, height: 21, borderRadius: 7, border: "1.5px solid #cdd8d0", background: "#fff",
+    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+    transition: "background .16s, border-color .16s, transform .16s",
   },
-  reply: { fontSize: 13.5, fontWeight: 600, color: "#142f1d", lineHeight: 1.45, marginBottom: 11, paddingRight: 26 },
-  opciones: { display: "flex", flexDirection: "column", gap: 6 },
-  opcion: {
-    display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1,
-    background: "#fff", border: "1.5px solid #dae7de", borderRadius: 12,
-    padding: "9px 11px", cursor: "pointer", width: "100%", textAlign: "left",
-  },
-  opcionTitulo: { fontSize: 13.5, fontWeight: 800, color: "#142f1d" },
-  opcionCambio: { fontSize: 11.5, fontWeight: 600, color: "#2d5a3d" },
+  casillaOn: { background: "#2d5a3d", borderColor: "#2d5a3d", transform: "scale(1.06)" },
+  filaTitulo: { display: "block", fontSize: 13.5, fontWeight: 800, lineHeight: 1.25 },
+  filaCambio: { display: "block", fontSize: 11.5, fontWeight: 600, color: "#2d5a3d", marginTop: 1 },
   pendiente: { fontSize: 11.5, color: "#8a9c91", lineHeight: 1.4, marginTop: 10 },
-  hecho: { fontSize: 14.5, fontWeight: 800, color: "#2f7d4a", padding: "6px 0 4px" },
+
+  hecho: { display: "flex", flexDirection: "column", alignItems: "center", gap: 9, padding: "14px 0 10px" },
+  hechoCirculo: {
+    width: 44, height: 44, borderRadius: 999, background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    boxShadow: "0 6px 18px rgba(76,186,110,.4)", animation: "panelHecho .42s cubic-bezier(.34,1.56,.5,1) both",
+  },
+  hechoTexto: { fontSize: 14, fontWeight: 800, color: "#2f7d4a" },
 };

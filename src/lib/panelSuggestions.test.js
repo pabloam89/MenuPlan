@@ -104,3 +104,46 @@ describe("contexto para el modelo", () => {
     expect(ctx.length).toBeLessThan(600);
   });
 });
+
+// La rejilla es de 2x2 y se rellena siempre: un hueco se lee como que algo ha
+// fallado, no como que no habia nada que decir.
+describe("la rejilla de cuatro", () => {
+  it("devuelve siempre cuatro, con menu perfecto o con menu horrible", () => {
+    const perfecto = sugerenciasDelMenu({ familias: { pescado: 2 }, cocinas: { italiana: 2 }, huecos: 14 }, conObjetivos({ pescado: 2 }));
+    expect(perfecto).toHaveLength(4);
+    const horrible = sugerenciasDelMenu(
+      { familias: { pescado: 5, carne: 6, verdura: 7 }, tecnicas: { horno: 8 }, cocinas: {}, huecos: 14 },
+      conObjetivos({ pescado: 1, carne: 1, verdura: 1 }),
+    );
+    expect(horrible).toHaveLength(4);
+  });
+
+  it("no repite la misma sugerencia dos veces", () => {
+    const s = sugerenciasDelMenu({}, libretaVacia());
+    expect(new Set(s.map((x) => x.id)).size).toBe(s.length);
+  });
+
+  it("cada una trae icono y su tono de color", () => {
+    for (const s of sugerenciasDelMenu({ familias: { pescado: 4 }, huecos: 14 }, conObjetivos({ pescado: 2 }))) {
+      expect(typeof s.icono).toBe("string");
+      expect(s.tono.fondo).toMatch(/^#/);
+      expect(s.tono.tinta).toMatch(/^#/);
+    }
+  });
+
+  // Los colores van por POSICION, no por contenido: la rejilla tiene siempre
+  // los mismos cuatro en el mismo sitio aunque el texto cambie cada semana.
+  it("los tonos son estables por posicion", () => {
+    const a = sugerenciasDelMenu({ familias: { pescado: 4 }, huecos: 14 }, conObjetivos({ pescado: 2 }));
+    const b = sugerenciasDelMenu({ familias: { carne: 9 }, huecos: 14 }, conObjetivos({ carne: 1 }));
+    expect(a.map((x) => x.tono.tinta)).toEqual(b.map((x) => x.tono.tinta));
+  });
+
+  // "Prueba algo francesa" es lo que sale al concatenar sin pensar.
+  it("la sugerencia de cocina esta bien escrita en castellano", () => {
+    const s = sugerenciasDelMenu({ cocinas: {}, huecos: 14 }, libretaVacia());
+    const c = s.find((x) => x.id.startsWith("probar-"));
+    expect(c.texto).not.toMatch(/algo (francesa|italiana|asiatica|mexicana)/);
+    expect(c.texto).toMatch(/^Cocina /);
+  });
+});

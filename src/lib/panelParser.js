@@ -57,6 +57,12 @@ export const RespuestaSchema = z.object({
   // El cubo del medio: lo que entendió pero no sabe hacer. Enseñarlo convierte
   // un fallo silencioso en una expectativa bien puesta.
   pendiente: z.array(z.string().max(120)).max(3).default([]),
+  // "una": las opciones son ALTERNATIVAS y marcar una desmarca las demás
+  // (¿tres veces o cuatro?). "varias": son cambios independientes que se
+  // pueden marcar a la vez ("menos pescado" Y "más mexicana"). Sin esta
+  // distinción, una petición compuesta obligaba a elegir entre dos cosas que
+  // no se excluyen, y la otra mitad se perdía sin que nadie lo dijera.
+  modo: z.enum(["una", "varias"]).default("una"),
   opciones: z.array(OpcionSchema).max(MAX_OPCIONES).default([]),
 });
 

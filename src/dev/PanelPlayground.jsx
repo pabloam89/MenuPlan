@@ -49,19 +49,18 @@ const GUIONES = {
       ],
     },
   },
-  pendiente: {
-    etiqueta: "Con pendiente",
+  varias: {
+    etiqueta: "Marca varias",
     respuesta: {
-      reply: "Vale: bajo el pescado y meto algo de mexicana.",
+      reply: "He pillado tres cosas. Marca las que quieras.",
       kind: "propuestas",
+      modo: "varias",
       pendiente: ["Lo de los jueves todavía no sé hacerlo."],
-      opciones: [{
-        etiqueta: "Las dos cosas",
-        ajustes: [
-          { campo: "freqs", valor: "pescado", op: "menos", n: 2 },
-          { campo: "cocina", valor: "mexicana", op: "mas" },
-        ],
-      }],
+      opciones: [
+        { etiqueta: "Menos pescado", ajustes: [{ campo: "freqs", valor: "pescado", op: "menos", n: 2 }] },
+        { etiqueta: "Algo de mexicana", ajustes: [{ campo: "cocina", valor: "mexicana", op: "mas" }] },
+        { etiqueta: "Sin cilantro", ajustes: [{ campo: "excluidos", valor: "cilantro", op: "nunca" }] },
+      ],
     },
   },
   limite: {
