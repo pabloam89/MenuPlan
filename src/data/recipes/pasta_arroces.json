@@ -5369,7 +5369,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_033",
@@ -6747,7 +6748,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_040",
@@ -7888,7 +7890,8 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_045",
@@ -16665,8 +16668,7 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ],
-    "estrella": true
+    ]
   },
   {
     "id": "pasta_arroces_093",

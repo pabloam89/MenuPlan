@@ -155,8 +155,8 @@ import {
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";
-import { filterOwnCreatedRecipes } from "./lib/userRecipes.js";
-import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
+import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
+import { suggestHomeRole, migrateHomeRole, resolveAccountMember, memberIllustratedAvatarSrc } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import {
   DEFAULT_ROSTER_ID,
@@ -1155,6 +1155,13 @@ export default function App() {
 
   // Re-hydrate AI-generated recipes from persisted state so DishCard
   // can resolve ids after a reload.
+  //
+  // Las guardadas ANTES del arreglo de la fusion traen el mismo ingrediente
+  // repetido una vez por pieza del plato ("Sal" tres veces, el aceite dos).
+  // Las junta registerRecipes, que es por donde pasan TODOS los caminos (este,
+  // el de la nube al iniciar sesion, y el de la generacion): el menu de esta
+  // semana ya esta escrito y no se va a regenerar solo. El nombre combinado se
+  // queda como esta -deshacerlo seria inventar- hasta que se regenere.
   useEffect(() => {
     const dyn = persisted?.aiRecipes;
     if (Array.isArray(dyn) && dyn.length > 0) registerRecipes(dyn);
@@ -1193,7 +1200,11 @@ export default function App() {
     if (householdReadOnly && activeHousehold?.ownerUserId) {
       return data.userRecipes ?? [];
     }
-    return filterOwnCreatedRecipes(data.userRecipes, user);
+    // Tu recetario entero, copias del Feed incluidas: de aqui salen las fichas
+    // que se registran para poder abrirlas y los platos que se ofrecen al
+    // llenar un hueco del menu. Con el filtro estrecho, una receta copiada se
+    // guardaba pero no se podia ni ver ni usar.
+    return filterMyLibraryRecipes(data.userRecipes, user);
   }, [data.userRecipes, user, householdReadOnly, activeHousehold?.ownerUserId]);
 
   // User-created recipes must live in RECIPES_BY_ID for DishDetail — but in the
@@ -1220,21 +1231,12 @@ export default function App() {
             Object.keys(prunedData?.menus ?? {}).length < Object.keys(d.menus ?? {}).length;
           const obsShrunk = (prunedData?.priceObs?.length ?? 0) < (d.priceObs?.length ?? 0);
           const receiptsShrunk = (prunedData?.receipts?.length ?? 0) < (d.receipts?.length ?? 0);
-          // Heavy embedded recipe photos stripped by the "hard" compaction
-          // tier (see storage.js stripHeavyRecipePhotos) — without syncing
-          // this back too, React state keeps the full-size photo, the next
-          // autosave tick writes it again, and every single save silently
-          // re-strips from scratch instead of ever actually recovering.
-          const recipesShrunk = (prunedData?.userRecipes ?? []).some(
-            (r, i) => d.userRecipes?.[i]?.id === r.id && d.userRecipes[i].photo && !r.photo,
-          );
-          if (!menusShrunk && !obsShrunk && !receiptsShrunk && !recipesShrunk) return d;
+          if (!menusShrunk && !obsShrunk && !receiptsShrunk) return d;
           return {
             ...d,
             menus: prunedData.menus ?? d.menus,
             priceObs: prunedData.priceObs ?? d.priceObs,
             receipts: prunedData.receipts ?? d.receipts,
-            userRecipes: prunedData.userRecipes ?? d.userRecipes,
           };
         });
         const prunedAi = result.saved.aiRecipes ?? [];
@@ -2910,8 +2912,17 @@ export default function App() {
   // bloquear nada, como la migracion de fotos de arriba.
   useEffect(() => {
     if (!user?.id) return;
-    const t = setTimeout(() => { ensureSocialProfile(user.id, googleInfo(user).name); }, 2500);
+    const t = setTimeout(() => {
+      // El perfil hereda el DIBUJO que ya elegiste para ti en la app. La foto
+      // real no: publicar tu cara se hace a proposito, desde el cajon del
+      // perfil, no de oficio al iniciar sesion. Sin esto el perfil nacia sin
+      // imagen y toda la cabecera del feed eran iniciales sueltas.
+      const me = resolveAccountMember(data.members, data.accountMemberId, googleInfo(user).name);
+      ensureSocialProfile(user.id, googleInfo(user).name, memberIllustratedAvatarSrc(me));
+    }, 2500);
     return () => clearTimeout(t);
+    // Solo al iniciar sesion: la casa ya esta cargada de local para entonces.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   // El punto del tab Feed necesita saberse al ARRANCAR, no al entrar al Feed
@@ -3308,6 +3319,15 @@ export default function App() {
    */
   const handleOpenFeedRecipe = useCallback(async (row) => {
     if (!row?.id) return;
+    // Del catalogo se abre el catalogo, sin pasar por la red. Importa desde que
+    // se puede abrir un plato del menu de otra persona: esos ids son de
+    // catalogo, loadPublicRecipe (que solo mira recetas publicadas por gente)
+    // devolvia null y la ficha se pintaba con el respaldo de abajo — nombre y
+    // foto, cero ingredientes y cero pasos, o sea una receta vacia.
+    if (recipeCatalogById[row.id]) {
+      handleOpenCatalogRecipe(recipeCatalogById[row.id]);
+      return;
+    }
     const full = (await loadPublicRecipe(row.id)) ?? {
       id: row.id,
       name: row.name,
@@ -3337,16 +3357,27 @@ export default function App() {
   const handlePublishMenu = useCallback(async (scope = "week", visibility = "followers") => {
     if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return false; }
     const menuId = data.activeMenuId ?? "actual";
-    const { dates } = getWeekDatesByMenuWeek({
+    const { dates, activeDays } = getWeekDatesByMenuWeek({
       offset: data.menuWeek?.offset ?? 0,
       startDayIdx: data.menuWeek?.startDayIdx ?? 0,
     });
-    const iso = (d) => new Date(d).toISOString().slice(0, 10);
+    // Fecha LOCAL: con toISOString la medianoche del lunes en Espana es
+    // domingo 22:00 UTC y la semana entera salia corrida un dia.
+    const iso = isoLocalDate;
+    // OJO: `dates` es un objeto POR NOMBRE DE DIA ({Lun: Date, Mar: Date...}),
+    // no un array. Aqui se leia dates[0] y dates.length, que son undefined los
+    // dos, asi que al compartir la SEMANA el rango salia null/null — y el
+    // carrusel filtra por rango (week_start <= hoy <= week_end), donde un NULL
+    // no compara: el menu quedaba publicado y visible para nadie, para
+    // siempre. "Solo hoy" se salvaba porque usa la otra rama (todayIso).
+    const semana = activeDays?.length ? activeDays : DAYS;
+    const primerDia = dates?.[semana[0]] ?? null;
+    const ultimoDia = dates?.[semana[semana.length - 1]] ?? null;
     // "Solo hoy": el payload lleva únicamente el día de hoy, y el rango de
     // fechas se estrecha a hoy — así en «Hoy cocinan» aparece hoy y mañana ya
     // no, que es exactamente lo que significa compartir solo el día.
     const todayLabel = DAYS[(new Date().getDay() + 6) % 7];
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const todayIso = isoLocalDate(new Date());
 
     const payload = buildSharedMenuPayload({
       menuPlan,
@@ -3354,7 +3385,7 @@ export default function App() {
       members: data.members ?? [],
       meals: getMeals(data),
       onlyDays: scope === "today" ? [todayLabel] : null,
-      weekStart: scope === "today" ? todayIso : (dates?.[0] ? iso(dates[0]) : null),
+      weekStart: scope === "today" ? todayIso : (primerDia ? iso(primerDia) : null),
       dishName: (id) => recipeCatalogById[id]?.name
         ?? (data.userRecipes ?? []).find((r) => r.id === id)?.name
         ?? null,
@@ -3377,7 +3408,7 @@ export default function App() {
       menuId,
       title: null,
       weekStart: payload.weeks[0].weekStart,
-      weekEnd: scope === "today" ? todayIso : (dates?.length ? iso(dates[dates.length - 1]) : null),
+      weekEnd: scope === "today" ? todayIso : (ultimoDia ? iso(ultimoDia) : null),
       payload,
       visibility,
     });
@@ -3689,6 +3720,33 @@ export default function App() {
   const handlePlaceRecipeInSlot = useCallback(async (recipeId, target) => {
     if (householdReadOnly || !recipeId || !target) return;
     const baseId = String(recipeId).split("__").pop();
+
+    // El plato viene de FUERA, asi que su receta nunca ha pasado por el
+    // catalogo en memoria (RECIPES_BY_ID), que es de donde las tarjetas del
+    // menu sacan foto, nombre y todo lo demas. Sin este paso el hueco recibia
+    // un id que nadie sabia resolver y la tarjeta devolvia null: el plato
+    // parecia BORRARSE en vez de colocarse. Se registra igual que un cambio de
+    // plato del catalogo -runtime + aiRecipes- para que tambien sobreviva a
+    // recargar la app, no solo a esta sesion.
+    if (!RECIPES_BY_ID[baseId]) {
+      const source = recipeCatalogById[baseId]
+        ?? (data.userRecipes ?? []).find((r) => r.id === baseId)
+        ?? null;
+      if (!source) {
+        showToast("Esa receta ya no está disponible");
+        setPendingDish(null);
+        return;
+      }
+      const eaters = Math.max(1, data.members?.length || 4);
+      const frontend = catalogToFrontendRecipe(source, eaters);
+      registerRecipes([frontend]);
+      setAiRecipes((cur) => {
+        const byId = new Map(cur.map((r) => [r.id, r]));
+        byId.set(frontend.id, frontend);
+        return Array.from(byId.values());
+      });
+    }
+
     const tGroup = target.groupId;
     const tKey = `${target.day}-${target.meal}`;
     const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
@@ -3715,14 +3773,24 @@ export default function App() {
    *  · del catalogo -> ya la tienes; lo que falta es marcarla como favorita,
    *    que es exactamente lo que hace que salga en Mis Recetas.
    */
+  /**
+   * Guardar en tus recetas un plato del menu de otra persona.
+   *
+   * Devuelve el id BAJO EL QUE queda guardado, que no siempre es el que
+   * entro: la receta de otro nace como copia tuya con id propio, y la del
+   * catalogo se queda con el suyo. Quien llama lo necesita para archivarla en
+   * las carpetas que hayas elegido — antes no devolvia nada y por eso no se
+   * podia preguntar "¿en que carpeta?".
+   */
   const handleSaveDishToRecipes = useCallback(async (dish) => {
-    if (!dish?.recipeId) return;
+    if (!dish?.recipeId) return null;
     if (dish.source === "user") {
       const newId = await handleCopyRecipeFromFeed(dish.recipeId, dish.ownerId ?? null);
       if (newId) showToast("Guardada en tus recetas");
-      return;
+      return newId ?? null;
     }
     handlePersonalSetFavoriteScope(dish.recipeId, "all");
+    return dish.recipeId;
   }, [handleCopyRecipeFromFeed, handlePersonalSetFavoriteScope, showToast]);
 
   const handleDuplicateSlot = useCallback(async (source, target) => {
@@ -3852,8 +3920,24 @@ export default function App() {
   const handleDeleteAccount = useCallback(() => setResetConfirm("delete"), []);
   const handleAbandonOnboarding = useCallback(() => setResetConfirm("abandon"), []);
 
-  const doReset = useCallback(() => {
+  const doReset = useCallback(async () => {
     setResetConfirm(null);
+    // Lo que tuvieras PUBLICADO se retira del feed antes de borrar nada.
+    //
+    // publishedMenus va indexado por menu_id y el reinicio estrena id, asi que
+    // en cuanto se limpia el estado ya no hay forma de saber cual de los menus
+    // de shared_menus era el tuyo: se quedaba publicado, visible para todo el
+    // mundo, y sin boton para retirarlo. Para siempre.
+    //
+    // Se espera (a diferencia de clearUserState, que va suelto a proposito):
+    // esto toca lo que OTROS ven, y hacerlo a ciegas significaria fallar en
+    // silencio justo en lo unico que ya no se puede deshacer despues.
+    const publishedIds = Object.keys(publishedMenus ?? {});
+    if (user?.id && publishedIds.length > 0) {
+      await Promise.allSettled(publishedIds.map((menuId) => unpublishMenu(user.id, menuId)));
+    }
+    setPublishedMenus({});
+
     clearState();
     // Fired immediately (not the 1200ms debounced profile push) so a quick
     // reload right after "Reiniciar" can't race the stale cloud snapshot back
@@ -3867,7 +3951,7 @@ export default function App() {
     setAiRecipes([]);
     setMenuError(null);
     setScreen("splash");
-  }, [user]);
+  }, [user, publishedMenus]);
 
   // Soft reset — the profile lives in the account, so "reiniciar" only clears
   // the current week's menu, shopping list and week selection, then lands back
@@ -4087,12 +4171,13 @@ export default function App() {
   // `isStepHidden` de ESTE render, que todavía no conoce el scope que acabamos
   // de marcar. Así que el primer paso se calcula aquí a mano, aplicando solo
   // los saltos "duros" (los que dependen de la familia, no del picker).
-  const handleScopeContinue = (topicIds) => {
-    // Marcar algo = querer meter mano, así que se reactiva el modo avanzado:
-    // las secciones de estilo/extras están gated por `expertMode` y sin él el
-    // paso al que te manda saldría vacío. Sin nada marcado, básico — que es
-    // exactamente lo que decidía el viejo paso Sencillo/Avanzado.
-    setData((d) => ({ ...d, expertMode: topicIds.length > 0, modePrompted: true }));
+  const handleScopeContinue = (topicIds, expert) => {
+    // `expertMode` lo declara el modo elegido en el picker, no el número de
+    // temas: "Lo básico" abre tres pasos y aun así quiere los defaults
+    // simplificados (sin desayunos en "¿Dónde coméis?", tiempos compartidos,
+    // sin cenas rápidas del asistente — ver resolveModeData). Sin modo (vía
+    // rápida, sin ajustar nada), básico.
+    setData((d) => ({ ...d, expertMode: expert ?? topicIds.length > 0, modePrompted: true }));
     setMenuScope(topicIds);
     const steps = [...new Set(topicIds.flatMap((id) => SCOPE_TOPIC_STEPS[id] ?? []))]
       .sort((a, b) => a - b)
@@ -4631,6 +4716,7 @@ export default function App() {
             <Suspense fallback={null}>
               <FeedScreen
                 user={user}
+                onToast={showToast}
                 menuShared={Boolean(publishedMenus[data.activeMenuId ?? "actual"])}
                 onPublishMenu={handlePublishMenu}
                 onUnpublishMenu={handleUnpublishMenu}
@@ -5118,6 +5204,25 @@ export default function App() {
               Tienes una configuración guardada. Elige cómo seguir.
             </p>
 
+            {/* Dos caminos, no tres. Aquí había un "Empezar de cero del todo" que
+                borraba la familia, los menús y la configuración, y estaba mal
+                por tres motivos:
+
+                · Esta hoja pregunta CÓMO GENERAR UN MENÚ. Borrar la cuenta
+                  entera no es una forma de generar un menú, y estaba a un toque
+                  de la opción que casi todo el mundo quiere.
+                · Sin confirmación. La MISMA acción en Ajustes pasa por un
+                  diálogo de "¿seguro?"; aquí se ejecutaba en el acto.
+                · Y para quien tiene cuenta ni siquiera cumplía lo que promete:
+                  las recetas propias vuelven solas de la nube al recargar
+                  (mergeUserRecipesAfterCloudLoad), y el menú que tuvieras
+                  publicado se quedaba HUÉRFANO — sigue en el feed de todo el
+                  mundo, pero como publishedMenus va indexado por menu_id y el
+                  reinicio estrena id, la app ya no sabía que era tuyo y perdías
+                  el botón de retirarlo.
+
+                Sigue existiendo en Ajustes, con su confirmación, para quien de
+                verdad quiera empezar de cero. */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
                 {
@@ -5161,29 +5266,6 @@ export default function App() {
                       }),
                     );
                     startQuickMenu();
-                  },
-                },
-                {
-                  key: "hard",
-                  Icon: Trash2,
-                  iconColor: "#a8402b",
-                  iconBg: "#fdecea",
-                  img: "/avatares/cards/empezar_de_cero_todo.jpg",
-                  primary: false,
-                  title: "Empezar de cero del todo",
-                  subtitle: "Borra familia, menús y configuración.",
-                  onClick: () => {
-                    setOnbResumeOpen(false);
-                    clearState();
-                    if (user?.id) clearUserState(user.id);
-                    setData(ensureRosters(INITIAL_DATA));
-                    setMenuPlan({});
-                    setShopping({ items: [] });
-                    setSelectedSlot(null);
-                    setAiRecipes([]);
-                    setMenuError(null);
-                    setQuickMenu(false);
-                    _doGoToOnboardingStep(0);
                   },
                 },
               ].map(({ key, Icon, iconColor, iconBg, img, primary, title, subtitle, onClick }) => (
@@ -5626,6 +5708,27 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
           animation: "fadeUp .8s ease-out both",
         }}
       >
+        <div
+          role="img"
+          aria-hidden="true"
+          style={{
+            width: 84,
+            height: 84,
+            margin: "0 auto 6px",
+            backgroundColor: isMenu ? GREEN : WHITE,
+            WebkitMaskImage: "url(/logo-homenu.svg)",
+            maskImage: "url(/logo-homenu.svg)",
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+            transition: "background-color .6s ease 150ms",
+            filter: "drop-shadow(0 4px 14px rgba(0,0,0,.4))",
+          }}
+        />
+
         <h1
           style={{
             fontSize: "clamp(58px, 17vw, 84px)",

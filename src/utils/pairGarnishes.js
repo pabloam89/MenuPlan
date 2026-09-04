@@ -201,6 +201,20 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
     if (pinnedId) {
       garnish = guarniciones.find((g) => g.id === pinnedId) ?? null;
     }
+
+    // Una receta del Recetario Estrella NO se combina con nada. Viene escrita
+    // como un plato entero -"Lenguado meunière con mantequilla y limón" ya
+    // trae su salsa y su punto-, asi que pegarle una guarnicion de la
+    // combinatoria del catalogo viejo producia titulos imposibles ("...con
+    // alcachofas confitadas con jamon"), platos de 20 ingredientes y la misma
+    // sal y el mismo aceite repetidos tres veces. La combinatoria se diseño
+    // para el fondo de armario, donde los platos SI son piezas sueltas; el
+    // recetario estrella no es eso y no hay que "completarlo".
+    //
+    // Lo elegido a mano se respeta igual: fijar una guarnicion es una decision
+    // de quien cocina, no algo que la app se invente.
+    if (!garnish && recipe.estrella) return slot;
+
     if (!garnish) {
       // A fried side (patatas fritas) only pairs with meat/fish — never a
       // tortilla, salad or pasta plate. Applied before every pass below so no

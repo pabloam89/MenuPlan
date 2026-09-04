@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, UserPlus, Check, MessageCircle, Eye, Globe, Lock, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff, Ban } from "lucide-react";
+import { X, Users, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -57,6 +57,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   const [sent, setSent] = useState([]);
   // A quien sigo YO. Sin esto, la pestana de seguidores no puede
   // distinguir a quien ya devolvi el seguimiento de quien no.
+  const [followers, setFollowers] = useState([]);
   const [followingIds, setFollowingIds] = useState([]);
   const [comments, setComments] = useState([]);
   const [myRecipes, setMyRecipes] = useState([]);
@@ -66,7 +67,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   // como "aceptada + seguir de vuelta". En la proxima apertura seran
   // seguidores normales y no hara falta recordarlas.
   const [justAccepted, setJustAccepted] = useState([]);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [recipesOpen, setRecipesOpen] = useState(false);
   const [blockedOpen, setBlockedOpen] = useState(false);
   const [listKind, setListKind] = useState(null);
   const [blocked, setBlocked] = useState([]);
@@ -97,6 +98,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     setCounts(useFx && cts.followers === 0 ? { followers: 12, following: 8, recipes: 5, menus: 1 } : cts);
     setRequests(finalReqs);
     setSent(finalSent);
+    setFollowers(fols);
     setFollowingIds(fing);
     setComments(finalComs);
     setMyRecipes(useFx && mine.length === 0 ? FIXTURE_MY_RECIPES : mine);
@@ -202,15 +204,19 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
     refresh();
   };
 
-  const vis = profile?.visibility ?? "private";
+  // Dos estados y ya: abierta o cerrada. El "private" legacy cuenta como
+  // cerrada — dejo de existir como opcion en la 0046.
+  const open = profile?.visibility === "public";
+  // Amigos = vinculo mutuo. Seguidores = te siguen y tu a ellos no, que solo
+  // pasa con la cuenta abierta. Salen de las listas que este cajon ya tiene
+  // cargadas, asi que el numero y la lista nunca se contradicen.
+  const amigos = followers.filter((f) => followingIds.includes(f.follower_id)).length;
+  const soloSeguidores = followers.length - amigos;
   // El nombre no se pregunta dos veces: ya lo diste al entrar (googleInfo lo
   // saca de la cuenta o del correo, igual que la pantalla de Mi perfil), así
   // que aquí se hereda y solo se edita si quieres otro de cara al feed.
   const inheritedName = googleInfo(user).name;
   const name = profile?.display_name || inheritedName;
-  const VIS_LABEL = { private: "Nadie te ve", followers: "Solo quien te sigue", public: "Cualquiera" };
-  // Los tres colores de privacidad que el sistema ya tiene escritos.
-  const VIS_TINT = { private: "#5a2d7a", followers: "#7a4e00", public: "#2d5a3d" };
 
   return (
     <div style={backdrop} onClick={onClose}>
@@ -263,11 +269,15 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
           {editing && user?.id && <ProfileForm profile={profile} inheritedName={inheritedName} onSave={async (fields) => { await patch(fields); setEditing(false); }} />}
 
           <div style={statsCard}>
-            <Stat n={counts.followers} label="Seguidores" onClick={() => setListKind("followers")} />
+            {/* Amigos (mutuo) es el vinculo que crea la app; "seguidores" a
+                secas solo existe alrededor de las cuentas abiertas. Antes
+                ponia Seguidores/Siguiendo, que era el vocabulario del modelo
+                direccional de antes de la 0046 y ya no describia nada. */}
+            <Stat n={amigos} label="Amigos" onClick={() => setListKind("friends")} />
             <span style={statDivider} />
-            <Stat n={counts.following} label="Siguiendo" onClick={() => setListKind("following")} />
+            <Stat n={soloSeguidores} label="Seguidores" onClick={() => setListKind("followers")} />
             <span style={statDivider} />
-            <Stat n={counts.recipes} label="Recetas" onClick={() => setTab("recetas")} />
+            <Stat n={counts.recipes} label="Recetas" onClick={() => setRecipesOpen(true)} />
             <span style={statDivider} />
             <Stat n={counts.menus} label="Menús" />
           </div>
@@ -280,13 +290,12 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
               otra riqueza, era lo que hacia raro el layout. */}
           <Tab id="solicitudes" tab={tab} setTab={setTab} Icon={UserPlus} label="Solicitudes" badge={requests.length + sent.length} />
           <Tab id="comentarios" tab={tab} setTab={setTab} Icon={MessageCircle} label="Comentarios" badge={comments.length} />
-          <Tab id="recetas" tab={tab} setTab={setTab} Icon={CookingPot} label="Recetas" badge={0} />
         </div>
 
         <div style={{ padding: "14px 20px 20px" }}>
           {tab === "solicitudes" && (
             <>
-              <h4 style={groupTitle}>Te han pedido seguirte</h4>
+              <h4 style={groupTitle}>Quieren ser tus amigos</h4>
               {requests.length === 0
                 ? <p style={empty}>Nadie por ahora.</p>
                 : requests.map((r) => (
@@ -301,12 +310,16 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                   ))}
 
               {justAccepted.map((id) => {
-                const leSigo = followingIds.includes(id);
+                // Con la 0046 aceptar ya crea la vuelta, asi que lo normal es
+                // leer "Conectados". El boton solo aparece si la vuelta no
+                // existe (migracion sin aplicar): mejor un boton de repuesto
+                // que un "Conectados" mentiroso.
+                const conectados = followingIds.includes(id);
                 const pedido = sent.some((r) => r.followee_id === id);
                 return (
                   <PersonRow key={id} p={people[id]} note="Aceptada">
-                    {leSigo
-                      ? <span style={stateNote}>Siguiendo</span>
+                    {conectados
+                      ? <span style={stateNote}>Amigos</span>
                       : (
                         <button
                           type="button"
@@ -314,7 +327,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                           disabled={pedido}
                           style={pedido ? ghostBtn : backBtn}
                         >
-                          {pedido ? "Pendiente" : "Seguir"}
+                          {pedido ? "Pendiente" : "Agregar"}
                         </button>
                       )}
                   </PersonRow>
@@ -373,65 +386,96 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
                 })
           )}
 
-          {tab === "recetas" && (
-            myRecipes.length === 0
-              ? <p style={empty}>No has publicado ninguna receta todavía.</p>
-              : myRecipes.map((r) => (
-                  <div key={r.id} style={{ ...row, gap: 10 }}>
-                    {/* Siempre con foto: una lista con huecos grises se lee
-                        como "algo ha fallado", no como "esta no tiene foto". */}
-                    <img src={r.photo || RECIPE_FALLBACK} alt="" loading="lazy" style={recipeThumb} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={rowName}>{r.name}</div>
-                      <div style={{ display: "flex", gap: 11, marginTop: 3, fontSize: 11, fontWeight: 700, color: "#6b7d70" }}>
-                        <span style={stat}><ThumbsUp size={11} strokeWidth={2.5} /> {r.likes}</span>
-                        <span style={stat}><ThumbsDown size={11} strokeWidth={2.5} /> {r.dislikes}</span>
-                        <span style={{ ...stat, color: TEAL }}><CookingPot size={12} strokeWidth={2.5} /> {r.used}</span>
-                        <span style={stat}><MessageCircle size={11} strokeWidth={2.5} /> {r.comments}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-          )}
         </div>
+
+        {/* Tus recetas publicadas, como hoja que abre el NUMERO de arriba —
+            la misma regla que seguidores y seguidos: los numeros abren, las
+            pestanas atienden. Tenerla de pestana ademas del numero era la
+            repeticion que hacia raro el layout. */}
+        {recipesOpen && (
+          <div style={sheetOverlay} onClick={() => setRecipesOpen(false)} className="mp-overlay-in">
+            <div style={sheetBody} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 18px 10px" }}>
+                <CookingPot size={16} strokeWidth={2.5} color={GREEN} />
+                <h2 style={{ margin: 0, flex: 1, fontSize: 16, fontWeight: 900, color: INK }}>Tus recetas publicadas</h2>
+                <button type="button" onClick={() => setRecipesOpen(false)} aria-label="Cerrar" style={sheetClose}>
+                  <X size={16} strokeWidth={2.6} />
+                </button>
+              </div>
+              <div style={{ padding: "0 14px 18px", overflowY: "auto", flex: 1 }}>
+                {myRecipes.length === 0
+                  ? <p style={empty}>No has publicado ninguna receta todavía.</p>
+                  : myRecipes.map((r) => (
+                      <div key={r.id} style={{ ...row, gap: 10 }}>
+                        {/* Siempre con foto: una lista con huecos grises se lee
+                            como "algo ha fallado", no como "esta no tiene foto". */}
+                        <img src={r.photo || RECIPE_FALLBACK} alt="" loading="lazy" style={recipeThumb} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={rowName}>{r.name}</div>
+                          <div style={{ display: "flex", gap: 11, marginTop: 3, fontSize: 11, fontWeight: 700, color: "#6b7d70" }}>
+                            <span style={stat}><ThumbsUp size={11} strokeWidth={2.5} /> {r.likes}</span>
+                            <span style={stat}><ThumbsDown size={11} strokeWidth={2.5} /> {r.dislikes}</span>
+                            <span style={{ ...stat, color: TEAL }}><CookingPot size={12} strokeWidth={2.5} /> {r.used}</span>
+                            <span style={stat}><MessageCircle size={11} strokeWidth={2.5} /> {r.comments}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Plegada abajo, pero con el estado siempre a la vista: quién te ve se
             decide una vez, y aun así nunca debe quedar en duda. */}
+        {/* La franja ES el interruptor.
+            Antes eran dos capas para una decision binaria: una franja que se
+            desplegaba y, dentro, otra fila con el toggle y su etiqueta fija
+            "Cuenta abierta" — fija porque nombraba el interruptor, no su
+            estado, asi que leias lo mismo estuviera como estuviera. Aqui la
+            respuesta y el mando son la misma cosa: el estado se lee ("Tus
+            conexiones" / "Cualquiera") y se cambia en el sitio, sin abrir
+            nada. La linea de debajo describe el estado ACTUAL y no el otro
+            lado, que es como acaban los ajustes que nadie entiende. */}
+        {/* Segmented control y no un switch.
+            Un interruptor responde "¿esto es verdad, si o no?", y aqui no hay
+            proposicion: hay DOS estados con nombre propio, ninguno de los
+            cuales es "apagado". Forzarlo a switch obligaba a inventar una
+            frase afirmable, y ninguna sonaba a lo que de verdad eliges.
+            Con dos opciones a la vista se ve el estado Y la alternativa de un
+            golpe, que es lo que pide una decision de privacidad. */}
+        {/* "Modo Amigo" es lo que hacia funcionar el interruptor: un MODO
+            CON NOMBRE se activa o se desactiva y se lee solo, igual que el
+            modo avion. Los intentos anteriores fallaban por nombrar un
+            estado ("Cuenta abierta") o una restriccion suelta ("Solo mis
+            amigos"): ninguna de las dos es algo que puedas activar, asi que
+            la posicion del boton no tenia a que referirse.
+
+            Activado por defecto: es el estado protegido y el que trae toda
+            cuenta nueva. Apagarlo es el acto deliberado de abrirse. */}
         <section style={privacyBlock}>
-          <button type="button" onClick={() => setPrivacyOpen((v) => !v)} style={privacyHead}>
-            {/* Dos zonas de la MISMA franja, separadas por un divisor: a la
-                izquierda la pregunta, a la derecha la respuesta, en un teal
-                un punto mas fuerte y hasta el borde. El texto del estado va
-                en tinta y no en el color del tinte: teñir la letra del mismo
-                tono que su fondo es lo que convierte una franja en pegatina. */}
-            <span style={visAsk}>
-              <Eye size={14} strokeWidth={2.5} color="#8aa294" />
-              Quién te ve
+          <button
+            type="button"
+            role="switch"
+            aria-checked={!open}
+            disabled={saving}
+            onClick={() => patch({ visibility: open ? "followers" : "public" })}
+            style={modeRow}
+          >
+            <Users size={15} strokeWidth={2.6} color={open ? "#a8b8ad" : GREEN} style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, minWidth: 0, textAlign: "left", color: open ? "#6b7d70" : INK, fontSize: 13.5, fontWeight: 800 }}>
+              Modo Amigo
             </span>
-            <span style={visState}>
-              <img src={VIS_ART[vis]} alt="" style={visBandArt} />
-              <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: INK }}>
-                {VIS_LABEL[vis]}
-              </span>
-              <ChevronDown size={15} strokeWidth={2.6} color="#5a8f86" style={{ flexShrink: 0, marginLeft: 10, transform: privacyOpen ? "rotate(180deg)" : "none", transition: "transform .18s ease" }} />
+            <span style={{ ...switchTrack, background: open ? "#c3d3c8" : GREEN }}>
+              <span style={{ ...switchKnob, transform: open ? "none" : "translateX(18px)" }} />
             </span>
           </button>
-          {privacyOpen && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 7, padding: "12px 20px 20px" }}>
-              <VisOption on={vis === "private"} disabled={saving} Icon={Lock}
-                art="/avatares/cards/vis_nadie.png" tint={VIS_TINT.private}
-                title="Nadie" desc="No apareces en búsquedas ni en el feed."
-                onClick={() => patch({ visibility: "private" })} />
-              <VisOption on={vis === "followers"} disabled={saving} Icon={Eye}
-                art="/avatares/cards/vis_seguidores.png" tint={VIS_TINT.followers}
-                title="Solo quien te sigue" desc="Te encuentran por tu nombre, pero tienen que pedirte seguirte."
-                onClick={() => patch({ visibility: "followers" })} />
-              <VisOption on={vis === "public"} disabled={saving} Icon={Globe}
-                art="/avatares/cards/vis_cualquiera.png" tint={VIS_TINT.public}
-                title="Cualquiera" desc="Tus recetas y menús publicados los ve todo el mundo."
-                onClick={() => patch({ visibility: "public" })} />
-            </div>
-          )}
+          {/* La explicacion cuenta el estado ACTUAL, nunca el otro lado. */}
+          <p style={switchHint}>
+            {open
+              ? "Cualquiera ve tus recetas y menús publicados, y puede seguirte sin pedirte permiso."
+              : "Solo tus amigos ven tus recetas y menús publicados. Te encuentran por tu nombre y te piden ser amigos."}
+          </p>
         </section>
 
         {blocked.length > 0 && (
@@ -557,50 +601,6 @@ function PersonRow({ p, note, children }) {
       </div>
       {children}
     </div>
-  );
-}
-
-/**
- * Cada nivel de privacidad, con su ilustracion y su color.
- *
- * Se queda en filas y no en tres tarjetas: aqui la explicacion ("tienen que
- * pedirte seguirte") es la mitad de la decision, y en una columna estrecha
- * como el cajon, tres tarjetas la dejarian en dos palabras cortadas.
- *
- * Los colores son los que el sistema ya tiene escritos para privacidad
- * (violeta privada / ambar amigos / verde publica): no invento tres nuevos
- * cuando la app ya habla de esto en otro sitio.
- *
- * Mientras no existan los png, cae al icono de siempre — asi esta pantalla
- * nunca se queda con un hueco roto.
- */
-function VisOption({ on, disabled, Icon, art, tint, title, desc, onClick }) {
-  const [noArt, setNoArt] = useState(false);
-  return (
-    <button type="button" onClick={onClick} disabled={disabled} aria-pressed={on}
-      style={{
-        ...visRow,
-        borderColor: on ? tint : "#e0eae3",
-        background: on ? `${tint}12` : "#fff",
-        boxShadow: on ? `0 6px 16px -10px ${tint}99` : "none",
-      }}>
-      {art && !noArt ? (
-        <img
-          src={art}
-          alt=""
-          loading="lazy"
-          onError={() => setNoArt(true)}
-          style={{ ...visArt, filter: on ? "none" : "saturate(.55) opacity(.75)" }}
-        />
-      ) : (
-        <Icon size={15} strokeWidth={2.4} color={on ? tint : "#8aa294"} style={{ flexShrink: 0, marginTop: 1 }} />
-      )}
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK }}>{title}</span>
-        <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#6b7d70", marginTop: 1, lineHeight: 1.3 }}>{desc}</span>
-      </span>
-      {on && <Check size={13} color={tint} strokeWidth={3} style={{ flexShrink: 0 }} />}
-    </button>
   );
 }
 
@@ -746,6 +746,49 @@ const noBtn = {
   border: "1.5px solid #e6cfc9", background: "#fff", color: "#c0392b", cursor: "pointer",
 };
 
+const modeRow = {
+  display: "flex", alignItems: "center", gap: 10, width: "100%",
+  margin: 0, padding: "14px 20px", border: "none", background: "none",
+  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+};
+
+const switchTrack = {
+  position: "relative", width: 40, height: 22, borderRadius: 999,
+  flexShrink: 0, marginLeft: 12, transition: "background .18s ease",
+};
+
+const switchKnob = {
+  position: "absolute", top: 2, left: 2, width: 18, height: 18,
+  borderRadius: 999, background: "#fff",
+  boxShadow: "0 1px 3px rgba(20,47,29,.3)",
+  transition: "transform .18s ease",
+};
+
+const switchHint = {
+  margin: 0, padding: "11px 20px 18px", fontSize: 12, fontWeight: 600,
+  color: "#6b7d70", lineHeight: 1.45,
+};
+
+const sheetOverlay = {
+  position: "fixed", inset: 0, zIndex: 320,
+  background: "rgba(20,47,29,.45)", backdropFilter: "blur(2px)",
+  display: "flex", alignItems: "flex-end", justifyContent: "center",
+};
+
+const sheetBody = {
+  width: "100%", maxWidth: 420, maxHeight: "72vh",
+  display: "flex", flexDirection: "column",
+  background: "#f5f9f6", borderRadius: "20px 20px 0 0",
+  paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
+  boxSizing: "border-box", overflow: "hidden",
+};
+
+const sheetClose = {
+  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+  width: 32, height: 32, borderRadius: "50%",
+  border: "none", background: "#f0f4f1", color: GREEN, cursor: "pointer",
+};
+
 const stateNote = {
   flexShrink: 0, padding: "6px 11px", borderRadius: 999,
   background: "#f0f4f1", color: "#6b7d70", fontSize: 11.5, fontWeight: 800,
@@ -778,54 +821,5 @@ const plainHead = {
 };
 
 const privacyBlock = { padding: 0, borderTop: "1px solid #eef3f0", background: "#f7fbf8" };
-
-// La misma ilustracion de cada opcion, en miniatura: quien ya eligio
-// reconoce el candado, la puerta o el globo sin leer nada.
-const VIS_ART = {
-  private: "/avatares/cards/vis_nadie.png",
-  followers: "/avatares/cards/vis_seguidores.png",
-  public: "/avatares/cards/vis_cualquiera.png",
-};
-
-
-// La franja ocupa la fila entera y se sale del padding de la seccion para
-// llegar a los dos bordes: es una banda, no una tarjeta dentro de otra.
-const visAsk = {
-  display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
-  alignSelf: "stretch", padding: "13px 13px 13px 20px",
-  borderRight: "1px solid #d7e6e1",
-  color: "#6b7d70",
-};
-
-const visState = {
-  display: "flex", alignItems: "center", gap: 8,
-  flex: 1, minWidth: 0, alignSelf: "stretch",
-  padding: "11px 20px 11px 12px",
-  background: "#dcefeb",
-};
-
-const visBandArt = {
-  width: 22, height: 22, display: "block", flexShrink: 0,
-};
-
-const privacyHead = {
-  display: "flex", alignItems: "stretch", width: "100%",
-  margin: 0, padding: 0, border: "none",
-  background: "#eaf3f0", cursor: "pointer",
-  fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#6b7d70",
-  textAlign: "left",
-};
-
-const visArt = {
-  width: 40, height: 40, display: "block", flexShrink: 0,
-  transition: "filter .18s ease",
-};
-
-const visRow = {
-  transition: "background .18s ease, border-color .18s ease, box-shadow .18s ease",
-  display: "flex", alignItems: "flex-start", gap: 9, width: "100%",
-  padding: "9px 11px", borderRadius: 12, border: "1.5px solid #e0eae3",
-  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-};
 
 const empty = { margin: "8px 0 4px", fontSize: 12, fontWeight: 600, color: "#8aa294" };

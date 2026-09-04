@@ -128,6 +128,11 @@ export function pairSauces(slotAssignments, poolById, pinnedByRecipeId = {}, opt
       continue; // Fijado a mano: siempre se respeta, no cuenta contra el tope.
     }
 
+    // Igual que con las guarniciones: una receta del Recetario Estrella ya
+    // viene entera y no se le añade nada. Ver el comentario largo en
+    // pairGarnishes.js — misma razon, misma regla.
+    if (recipe.estrella) continue;
+
     if (autoAssigned >= maxPerWeek) continue;
 
     const daySlug = slot.slotId.split("_")[0];

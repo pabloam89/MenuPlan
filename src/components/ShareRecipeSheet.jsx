@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, CookingPot, Users2, Globe, Check, Share2 } from "lucide-react";
+import { X, CookingPot, Check, Share2 } from "lucide-react";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 
@@ -20,7 +20,6 @@ const TEAL = "#0f766e";
  */
 export function ShareRecipeSheet({ recipes = [], signedIn = true, sharing = false, onPublish, onClose }) {
   const [pickedId, setPickedId] = useState(null);
-  const [visibility, setVisibility] = useState("public");
 
   return (
     <div style={overlay} onClick={onClose}>
@@ -69,17 +68,18 @@ export function ShareRecipeSheet({ recipes = [], signedIn = true, sharing = fals
               })}
             </div>
 
-            {/* Para quién. "Amigos" es el 'friends' de siempre: seguimiento
-                MUTUO, no basta con que te sigan. */}
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <VisBox on={visibility === "friends"} Icon={Users2} title="Amigos" desc="Solo con seguimiento mutuo" onClick={() => setVisibility("friends")} />
-              <VisBox on={visibility === "public"} Icon={Globe} title="Cualquiera" desc="Todo el mundo la ve" onClick={() => setVisibility("public")} />
-            </div>
+            {/* Sin escala por receta (0046): publicada o no, y la audiencia
+                la decide TU CUENTA — cerrada, tus conexiones; abierta,
+                cualquiera. Elegir publico aqui receta a receta era la
+                tercera escala de audiencia del sistema, y dos ya sobraban. */}
+            <p style={audienceHint}>
+              La verán tus conexiones — o cualquiera, si tu cuenta está abierta.
+            </p>
 
             <button
               type="button"
               disabled={!pickedId || sharing}
-              onClick={() => onPublish?.(pickedId, visibility)}
+              onClick={() => onPublish?.(pickedId, "public")}
               style={{ ...publishBtn, opacity: pickedId ? 1 : .5 }}
             >
               <Share2 size={14} strokeWidth={2.6} /> Publicar en el feed
@@ -88,17 +88,6 @@ export function ShareRecipeSheet({ recipes = [], signedIn = true, sharing = fals
         )}
       </div>
     </div>
-  );
-}
-
-function VisBox({ on, Icon, title, desc, onClick }) {
-  return (
-    <button type="button" onClick={onClick} aria-pressed={on}
-      style={{ ...visBox, borderColor: on ? TEAL : "#e0eae3", background: on ? "#eef6f4" : "#fff" }}>
-      <Icon size={16} strokeWidth={2.4} color={on ? TEAL : "#8aa294"} />
-      <span style={{ fontSize: 12.5, fontWeight: 800, color: INK, marginTop: 4 }}>{title}</span>
-      <span style={{ fontSize: 10.5, fontWeight: 600, color: "#6b7d70", marginTop: 1, lineHeight: 1.3 }}>{desc}</span>
-    </button>
   );
 }
 
@@ -135,6 +124,11 @@ const visBox = {
   flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start",
   padding: "10px 11px", borderRadius: 13, border: "2px solid #e0eae3",
   cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+};
+
+const audienceHint = {
+  margin: "12px 2px 0", fontSize: 12, fontWeight: 600,
+  color: "#6b7d70", lineHeight: 1.45,
 };
 
 const publishBtn = {

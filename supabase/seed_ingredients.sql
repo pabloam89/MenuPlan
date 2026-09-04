@@ -259,12 +259,12 @@ insert into ingredients (
   ('cilantro', 'Cilantro fresco', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 5),
   ('cinta-de-lomo', 'Filetes de lomo de cerdo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 350),
   ('ciruelas-pasas', 'Ciruelas pasas', 'Frutas', 'Verduras y frutas', '{"sulfitos"}', '{}', '{}', true, true, 'g', 50),
+  ('clara-de-huevo', 'Clara de huevo', 'Huevos', 'Lácteos y huevos', '{"huevos"}', '{}', '{}', true, false, 'ud', 2),
   ('coco', 'Coco rallado', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 15),
   ('codorniz', 'Codorniz', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'ud', 8),
   ('cointreau', 'Cointreau', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 50),
   ('col', 'Col china', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 150),
-  ('coles-de-bruselas', 'Coles de Bruselas', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 350),
-  ('coliflor', 'Coliflor', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 500)
+  ('coles-de-bruselas', 'Coles de Bruselas', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 350)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -280,6 +280,7 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('coliflor', 'Coliflor', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 500),
   ('colorante', 'Colorante rojo alimentario', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 10),
   ('comino', 'Comino molido', 'Especias', 'Despensa', '{}', '{}', '{}', true, true, 'g', 3),
   ('conejo', 'Conejo troceado', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 300),
@@ -288,8 +289,7 @@ insert into ingredients (
   ('cordero', 'Chuletillas de cordero', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 600),
   ('corvina', 'Corvina', 'Pescado', 'Verduras y frutas', '{"pescado"}', '{}', '{}', false, false, 'g', 300),
   ('costilla', 'Costillas de cerdo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 400),
-  ('curcuma', 'Cúrcuma', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 3),
-  ('curry', 'Curry en polvo', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 8)
+  ('curcuma', 'Cúrcuma', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 3)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -305,16 +305,16 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('curry', 'Curry en polvo', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 8),
   ('cuscus', 'Cuscús', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 100),
   ('dorada', 'Dorada (limpia, entera)', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 700),
   ('edamame', 'Edamame', 'Legumbres', 'Verduras y frutas', '{"soja"}', '{}', '{}', true, true, 'g', 80),
+  ('endivia', 'Endivia', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ud', 4),
   ('eneldo', 'Eneldo fresco', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 5),
   ('entrania-de-ternera', 'Entraña de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 400),
   ('entrecot', 'Entrecot de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 400),
   ('escalopines-de-ternera', 'Escalopines de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 325),
-  ('espaguetis', 'Espaguetis', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 200),
-  ('esparragos', 'Espárragos trigueros', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 300),
-  ('esparragos-blancos', 'Espárragos blancos en conserva', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 300)
+  ('espaguetis', 'Espaguetis', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 200)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -330,6 +330,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('esparragos', 'Espárragos trigueros', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 300),
+  ('esparragos-blancos', 'Espárragos blancos en conserva', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 300),
   ('especia-cajun', 'Especias cajún', 'Especias', 'Despensa', '{}', '{}', '{}', true, true, 'g', 8),
   ('espinacas', 'Espinacas frescas', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 175),
   ('extracto-de-vainilla', 'Extracto de vainilla', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 5),
@@ -337,9 +339,7 @@ insert into ingredients (
   ('falafel-congelado', 'Falafel congelado', 'Legumbres', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 200),
   ('farfalle', 'Farfalle', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 200),
   ('fettuccine', 'Fettuccine', 'Pasta y arroz', 'Verduras y frutas', '{"gluten","huevos"}', '{}', '{}', true, true, 'g', 200),
-  ('fideo-mediano', 'Fideos n°2', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 180),
-  ('fideos', 'Fideos finos', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 80),
-  ('filete-de-cerdo', 'Filetes de cerdo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 400)
+  ('fideo-mediano', 'Fideos n°2', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 180)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -355,6 +355,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('fideos', 'Fideos finos', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 80),
+  ('filete-de-cerdo', 'Filetes de cerdo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 400),
   ('filete-de-pez-espada', 'Filetes de pez espada', 'Pescado', 'Verduras y frutas', '{"pescado"}', '{}', '{}', true, true, 'g', 350),
   ('filete-de-ternera', 'Filetes de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 375),
   ('filetes-finos-de-ternera', 'Filetes finos de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 300),
@@ -362,9 +364,7 @@ insert into ingredients (
   ('fresa', 'Fresas', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 150),
   ('frutos-rojos', 'Frutos rojos', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 150),
   ('fuet', 'Fuet', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 60),
-  ('fusilli', 'Fusilli', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 200),
-  ('galletas-maria', 'Galletas María', 'Panadería', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 190),
-  ('gambas', 'Gambas peladas', 'Pescado', 'Carnes y pescados', '{"crustaceos"}', '{}', '{}', false, false, 'g', 150)
+  ('fusilli', 'Fusilli', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 200)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -380,6 +380,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('galletas-maria', 'Galletas María', 'Panadería', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 190),
+  ('gambas', 'Gambas peladas', 'Pescado', 'Carnes y pescados', '{"crustaceos"}', '{}', '{}', false, false, 'g', 150),
   ('garbanzos', 'Garbanzos cocidos', 'Legumbres', 'Legumbres y pasta', '{}', '{}', '{}', true, true, 'g', 300),
   ('garrofon', 'Garrofón', 'Legumbres', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 60),
   ('gazpacho-de-bote', 'Gazpacho de bote', 'Aceites y conservas', 'Verduras y frutas', '{"sulfitos"}', '{}', '{}', true, true, 'ml', 500),
@@ -387,9 +389,7 @@ insert into ingredients (
   ('granada', 'Granada', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80),
   ('granola', 'Granola', 'Panadería', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 40),
   ('grelo', 'Grelos', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 300),
-  ('guanciale', 'Guanciale', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 120),
-  ('guindilla', 'Guindilla', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 2),
-  ('guisantes', 'Guisantes', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80)
+  ('guanciale', 'Guanciale', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 120)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -405,6 +405,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('guindilla', 'Guindilla', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 2),
+  ('guisantes', 'Guisantes', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80),
   ('hamburguesa', 'Pan de hamburguesa', 'Panadería', 'Panadería y cereales', '{"gluten"}', '{}', '{}', false, false, 'ud', 2),
   ('harina', 'Harina', 'Panadería', 'Panadería y cereales', '{"gluten"}', '{}', '{}', true, true, 'g', 30),
   ('harissa', 'Harissa', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 20),
@@ -412,9 +414,7 @@ insert into ingredients (
   ('higo', 'Higos', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ud', 102),
   ('hinojo', 'Hinojo', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 150),
   ('hoja-de-gelatina', 'Hojas de gelatina', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 6),
-  ('hojaldre', 'Hojaldre', 'Panadería', 'Verduras y frutas', '{"gluten","leche"}', '{}', '{}', true, true, 'g', 230),
-  ('hojas-verdes', 'Hojas verdes variadas', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 100),
-  ('hueso-de-ternera', 'Hueso de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 400)
+  ('hojaldre', 'Hojaldre', 'Panadería', 'Verduras y frutas', '{"gluten","leche"}', '{}', '{}', true, true, 'g', 230)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -430,6 +430,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('hojas-verdes', 'Hojas verdes variadas', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 100),
+  ('hueso-de-ternera', 'Hueso de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 400),
   ('huevos', 'Huevo', 'Huevos', 'Lácteos y huevos', '{"huevos"}', '{}', '{}', true, false, 'ud', 3),
   ('jamon', 'Jamón serrano', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 60),
   ('jamon-york', 'Jamón cocido', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 80),
@@ -437,9 +439,7 @@ insert into ingredients (
   ('jengibre', 'Jengibre fresco', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 10),
   ('jerez-seco', 'Jerez seco', 'Aceites y conservas', 'Verduras y frutas', '{}', '{"sulfitos"}', '{}', true, true, 'ml', 40),
   ('judia-blanca', 'Judías blancas cocidas', 'Legumbres', 'Legumbres y pasta', '{}', '{}', '{}', true, true, 'g', 300),
-  ('judia-negra', 'Judías negras cocidas', 'Legumbres', 'Legumbres y pasta', '{}', '{}', '{}', true, true, 'g', 100),
-  ('judia-verde', 'Judías verdes', 'Verduras', 'Legumbres y pasta', '{}', '{}', '{}', true, true, 'g', 100),
-  ('judias-pintas', 'Frijoles negros cocidos', 'Legumbres', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 200)
+  ('judia-negra', 'Judías negras cocidas', 'Legumbres', 'Legumbres y pasta', '{}', '{}', '{}', true, true, 'g', 100)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -455,6 +455,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('judia-verde', 'Judías verdes', 'Verduras', 'Legumbres y pasta', '{}', '{}', '{}', true, true, 'g', 100),
+  ('judias-pintas', 'Frijoles negros cocidos', 'Legumbres', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 200),
   ('kefir', 'Kéfir', 'Lácteos', 'Verduras y frutas', '{"leche"}', '{}', '{}', true, false, 'ml', 300),
   ('ketchup', 'Ketchup', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 40),
   ('lacon', 'Lacón', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 115),
@@ -462,9 +464,7 @@ insert into ingredients (
   ('lasana', 'Láminas de lasaña', 'Pasta y arroz', 'Verduras y frutas', '{"gluten","huevos"}', '{}', '{}', true, true, 'g', 300),
   ('laurel', 'Laurel', 'Especias', 'Despensa', '{}', '{}', '{}', true, true, 'ud', 1),
   ('leche', 'Leche', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'ml', 230),
-  ('leche-coco', 'Leche de coco', 'Lácteos', 'Lácteos y huevos', '{}', '{}', '{}', true, false, 'ml', 200),
-  ('leche-condensada', 'Leche condensada', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'g', 400),
-  ('lechuga', 'Lechuga', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 60)
+  ('leche-coco', 'Leche de coco', 'Lácteos', 'Lácteos y huevos', '{}', '{}', '{}', true, false, 'ml', 200)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -480,6 +480,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('leche-condensada', 'Leche condensada', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'g', 400),
+  ('lechuga', 'Lechuga', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 60),
   ('lenguado', 'Lenguado', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 161),
   ('lentejas', 'Lentejas', 'Legumbres', 'Legumbres y pasta', '{}', '{}', '{}', true, true, 'g', 200),
   ('lentejas-rojas', 'Lentejas rojas', 'Legumbres', 'Legumbres y pasta', '{}', '{}', '{}', true, true, 'g', 90),
@@ -487,9 +489,7 @@ insert into ingredients (
   ('levadura-quimica', 'Levadura química', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'g', 6),
   ('licor-de-cafe', 'Licor de café', 'Aceites y conservas', 'Verduras y frutas', '{}', '{"sulfitos"}', '{"alcohol_cocina"}', true, true, 'ml', 30),
   ('lima', 'Lima', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ud', 4),
-  ('limon', 'Limón', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 5),
-  ('linguine', 'Linguine', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 180),
-  ('lombarda', 'Lombarda', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 400)
+  ('limon', 'Limón', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 5)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -505,6 +505,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('linguine', 'Linguine', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 180),
+  ('lombarda', 'Lombarda', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 400),
   ('lomo-de-cerdo-en-filetes', 'Lomo de cerdo en filetes', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 300),
   ('lubina', 'Lubina entera limpia', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 410),
   ('macarrones', 'Macarrones', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 200),
@@ -512,9 +514,7 @@ insert into ingredients (
   ('maicena', 'Maicena', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'g', 20),
   ('maiz', 'Maíz', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80),
   ('mango', 'Mango', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 150),
-  ('manitas-de-cerdo', 'Manitas de cerdo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 1200),
-  ('manteca-de-cerdo', 'Manteca de cerdo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 155),
-  ('mantequilla', 'Mantequilla', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 20)
+  ('manitas-de-cerdo', 'Manitas de cerdo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 1200)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -530,6 +530,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('manteca-de-cerdo', 'Manteca de cerdo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 155),
+  ('mantequilla', 'Mantequilla', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 20),
   ('mantequilla-de-cacahuete', 'Mantequilla de cacahuete', 'Lácteos', 'Lácteos y huevos', '{"cacahuetes"}', '{}', '{}', true, false, 'g', 40),
   ('manzana', 'Manzana', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 120),
   ('masa-de-pizza', 'Masa de pizza', 'Panadería', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 300),
@@ -537,9 +539,7 @@ insert into ingredients (
   ('mascarpone', 'Mascarpone', 'Lácteos', 'Verduras y frutas', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'g', 500),
   ('mayonesa', 'Mayonesa', 'Aceites y conservas', 'Verduras y frutas', '{"huevos"}', '{}', '{}', true, false, 'g', 40),
   ('medio-cochinillo', 'Medio cochinillo', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 2500),
-  ('mejillones', 'Mejillones', 'Pescado', 'Carnes y pescados', '{"moluscos"}', '{}', '{}', false, false, 'g', 150),
-  ('melocoton', 'Melocotón', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 200),
-  ('melon', 'Melón', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 400)
+  ('mejillones', 'Mejillones', 'Pescado', 'Carnes y pescados', '{"moluscos"}', '{}', '{}', false, false, 'g', 150)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -555,6 +555,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('melocoton', 'Melocotón', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 200),
+  ('melon', 'Melón', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 400),
   ('menta', 'Menta fresca', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 8),
   ('merluza', 'Merluza', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 200),
   ('merluza-lomos', 'Merluza en lomos', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 335),
@@ -562,9 +564,7 @@ insert into ingredients (
   ('miel', 'Miel', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, false, 'g', 20),
   ('mirin', 'Mirin', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 20),
   ('miso', 'Miso', 'Aceites y conservas', 'Verduras y frutas', '{"soja"}', '{}', '{}', true, true, 'g', 40),
-  ('monkfish', 'Rape', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 250),
-  ('morcilla', 'Morcilla', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 150),
-  ('morcillo', 'Carne para mechar (morcillo de ternera)', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 400)
+  ('monkfish', 'Rape', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 250)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -580,6 +580,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('morcilla', 'Morcilla', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 150),
+  ('morcillo', 'Carne para mechar (morcillo de ternera)', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 400),
   ('morcillo-de-ternera', 'Morcillo de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 200),
   ('mostaza', 'Mostaza de Dijon', 'Aceites y conservas', 'Despensa', '{"mostaza"}', '{}', '{}', true, true, 'g', 15),
   ('mozzarella', 'Mozzarella fresca', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'g', 150),
@@ -587,9 +589,7 @@ insert into ingredients (
   ('muslo-de-pollo', 'Muslos de pollo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 500),
   ('nabo', 'Nabo', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 55),
   ('nachos', 'Nachos de maíz', 'Panadería', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 135),
-  ('naranja', 'Naranja', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ud', 60),
-  ('nata', 'Nata para cocinar', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'ml', 80),
-  ('nata-para-montar', 'Nata para montar', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'ml', 400)
+  ('naranja', 'Naranja', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ud', 60)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -605,6 +605,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('nata', 'Nata para cocinar', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'ml', 80),
+  ('nata-para-montar', 'Nata para montar', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'ml', 400),
   ('navaja', 'Navajas frescas', 'Pescado', 'Verduras y frutas', '{"moluscos"}', '{}', '{}', true, true, 'g', 500),
   ('nueces', 'Nueces', 'Aceites y conservas', 'Verduras y frutas', '{"frutos_cascara"}', '{}', '{}', true, true, 'g', 40),
   ('nuez-moscada', 'Nuez moscada', 'Especias', 'Despensa', '{}', '{}', '{}', true, true, 'g', 1),
@@ -612,9 +614,7 @@ insert into ingredients (
   ('orecchiette', 'Orecchiette', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 180),
   ('oregano', 'Orégano', 'Especias', 'Despensa', '{}', '{}', '{}', true, true, 'g', 2),
   ('oreja-de-cerdo', 'Oreja de cerdo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 80),
-  ('orzo', 'Orzo', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 155),
-  ('pan', 'Pan', 'Panadería', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 80),
-  ('pan-de-payes', 'Pan de payés', 'Panadería', 'Panadería y cereales', '{"gluten"}', '{}', '{}', true, true, 'g', 135)
+  ('orzo', 'Orzo', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 155)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -630,6 +630,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('pan', 'Pan', 'Panadería', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 80),
+  ('pan-de-payes', 'Pan de payés', 'Panadería', 'Panadería y cereales', '{"gluten"}', '{}', '{}', true, true, 'g', 135),
   ('pan-molde', 'Pan de molde', 'Panadería', 'Panadería y cereales', '{"gluten"}', '{}', '{}', true, true, 'ud', 18),
   ('pan-rallado', 'Pan rallado', 'Panadería', 'Panadería y cereales', '{"gluten"}', '{}', '{}', true, true, 'g', 60),
   ('panceta', 'Panceta', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 80),
@@ -637,9 +639,7 @@ insert into ingredients (
   ('pasas', 'Pasas', 'Aceites y conservas', 'Verduras y frutas', '{"sulfitos"}', '{}', '{}', true, true, 'g', 30),
   ('pasta', 'Pasta pequeña', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 60),
   ('pasta-corta', 'Pasta corta', 'Pasta y arroz', 'Legumbres y pasta', '{"gluten"}', '{}', '{}', true, true, 'g', 180),
-  ('pastrami-de-ternera-en-loncha', 'Pastrami de ternera en lonchas', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 200),
-  ('pata-de-ternera', 'Pata de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 300),
-  ('patata', 'Patata', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 300)
+  ('pastrami-de-ternera-en-loncha', 'Pastrami de ternera en lonchas', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 200)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -655,6 +655,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('pata-de-ternera', 'Pata de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 300),
+  ('patata', 'Patata', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 300),
   ('pate', 'Paté de cerdo', 'Carne', 'Carnes y pescados', '{"leche"}', '{}', '{}', false, false, 'g', 120),
   ('pato', 'Magret de pato', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 400),
   ('pavo', 'Filete de pavo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 350),
@@ -662,9 +664,7 @@ insert into ingredients (
   ('pechuga-de-pollo', 'Pechuga de pollo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 300),
   ('pedro-ximenez', 'Pedro Ximénez', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 80),
   ('penne', 'Penne', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 200),
-  ('pepinillos', 'Pepinillos', 'Aceites y conservas', 'Verduras y frutas', '{"sulfitos"}', '{}', '{}', true, true, 'g', 30),
-  ('pepino', 'Pepino', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80),
-  ('pera', 'Pera', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 125)
+  ('pepinillos', 'Pepinillos', 'Aceites y conservas', 'Verduras y frutas', '{"sulfitos"}', '{}', '{}', true, true, 'g', 30)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -680,6 +680,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('pepino', 'Pepino', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80),
+  ('pera', 'Pera', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 125),
   ('perdiz', 'Perdiz', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'ud', 2),
   ('perejil', 'Perejil', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 5),
   ('pescadilla', 'Pescadilla (filetes)', 'Pescado', 'Verduras y frutas', '{"pescado"}', '{}', '{}', false, false, 'g', 335),
@@ -687,9 +689,7 @@ insert into ingredients (
   ('pimenton', 'Pimentón dulce', 'Especias', 'Despensa', '{}', '{}', '{}', true, true, 'g', 4),
   ('pimienta', 'Pimienta negra', 'Especias', 'Despensa', '{}', '{}', '{}', true, true, 'g', 2),
   ('pimienta-blanca', 'Pimienta blanca', 'Especias', 'Despensa', '{}', '{}', '{}', true, true, 'g', 1),
-  ('pimiento-choricero', 'Pimiento choricero', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 15),
-  ('pimiento-rojo', 'Pimiento rojo', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80),
-  ('pimiento-verde', 'Pimiento verde', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 60)
+  ('pimiento-choricero', 'Pimiento choricero', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 15)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -705,6 +705,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('pimiento-rojo', 'Pimiento rojo', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80),
+  ('pimiento-verde', 'Pimiento verde', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 60),
   ('pimientos-del-piquillo', 'Pimientos del piquillo', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 104),
   ('pina', 'Piña natural', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 250),
   ('pinones', 'Piñones', 'Aceites y conservas', 'Verduras y frutas', '{"frutos_cascara"}', '{}', '{}', true, true, 'g', 20),
@@ -712,9 +714,7 @@ insert into ingredients (
   ('placas-de-cannelones', 'Placas de cannelones', 'Pasta y arroz', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 100),
   ('platano', 'Plátano', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ud', 1),
   ('platano-macho', 'Plátano macho', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ud', 1),
-  ('pluma-iberica', 'Pluma ibérica', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 400),
-  ('pollo', 'Pollo troceado', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 350),
-  ('pomelo', 'Pomelo', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 101)
+  ('pluma-iberica', 'Pluma ibérica', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 400)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -730,6 +730,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('pollo', 'Pollo troceado', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 350),
+  ('pomelo', 'Pomelo', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 101),
   ('presa-iberica', 'Presa ibérica', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 375),
   ('puerro', 'Puerro', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80),
   ('pulpa-de-acai-congelada', 'Pulpa de açaí congelada', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 200),
@@ -737,9 +739,7 @@ insert into ingredients (
   ('quesito', 'Quesito en porciones', 'Lácteos', 'Verduras y frutas', '{"leche"}', '{}', '{}', true, false, 'g', 30),
   ('queso', 'Queso rallado', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 50),
   ('queso-azul', 'Queso azul', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 60),
-  ('queso-brie', 'Queso brie', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 60),
-  ('queso-cabra', 'Queso de cabra', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 80),
-  ('queso-crema', 'Queso crema', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 180)
+  ('queso-brie', 'Queso brie', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 60)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -755,6 +755,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('queso-cabra', 'Queso de cabra', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 80),
+  ('queso-crema', 'Queso crema', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 180),
   ('queso-en-lonchas', 'Queso en lonchas', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 60),
   ('queso-feta', 'Queso feta', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 80),
   ('queso-fresco', 'Queso fresco', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'g', 80),
@@ -762,9 +764,7 @@ insert into ingredients (
   ('quinoa', 'Quinoa', 'Pasta y arroz', 'Legumbres y pasta', '{}', '{}', '{}', true, true, 'g', 100),
   ('rabo-de-toro', 'Rabo de toro troceado', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 800),
   ('ravioli', 'Tortellini frescos rellenos de carne', 'Carne', 'Carnes y pescados', '{"gluten","huevos"}', '{}', '{}', false, false, 'g', 300),
-  ('redondo-de-ternera', 'Redondo de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 425),
-  ('remolacha', 'Remolacha cocida', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 200),
-  ('repollo', 'Repollo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 150)
+  ('redondo-de-ternera', 'Redondo de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 425)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -780,6 +780,8 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('remolacha', 'Remolacha cocida', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 200),
+  ('repollo', 'Repollo', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 150),
   ('requeson', 'Requesón', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'g', 300),
   ('ricotta', 'Ricotta', 'Lácteos', 'Verduras y frutas', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'g', 175),
   ('rigatoni', 'Rigatoni', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 200),
@@ -787,9 +789,7 @@ insert into ingredients (
   ('rodajas-de-emperador', 'Rodajas de emperador', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 320),
   ('romero', 'Romero', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 3),
   ('ron', 'Ron', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{"alcohol_cocina"}', true, true, 'ml', 80),
-  ('roquefort', 'Queso roquefort', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 60),
-  ('rucula', 'Rúcula', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 40),
-  ('sal', 'Sal', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'g', 3)
+  ('roquefort', 'Queso roquefort', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{}', true, false, 'g', 60)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -805,16 +805,16 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('rucula', 'Rúcula', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 40),
+  ('sal', 'Sal', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'g', 3),
   ('sal-escamas', 'Sal en escamas', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'g', 2),
   ('sal-gruesa', 'Sal gorda', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'g', 25),
   ('salchicha', 'Salchichas frescas', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 200),
   ('salmon', 'Lomos de salmón', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 310),
   ('salmon-ahumado', 'Salmón ahumado', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 100),
   ('salmon-fresco', 'Salmón fresco', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 220),
-  ('salsa-barbacoa', 'Salsa barbacoa', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'g', 150),
-  ('salsa-cesar', 'Salsa César', 'Aceites y conservas', 'Despensa', '{"huevos","mostaza","pescado"}', '{}', '{}', true, true, 'g', 60),
-  ('salsa-soja', 'Salsa de soja', 'Legumbres', 'Despensa', '{"gluten","soja"}', '{}', '{}', true, true, 'ml', 20),
-  ('salsa-worcestershire', 'Salsa Worcestershire', 'Aceites y conservas', 'Despensa', '{"pescado"}', '{}', '{}', false, false, 'ml', 10)
+  ('salmonete', 'Salmonete', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 310),
+  ('salsa-barbacoa', 'Salsa barbacoa', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'g', 150)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -830,16 +830,16 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('salsa-cesar', 'Salsa César', 'Aceites y conservas', 'Despensa', '{"huevos","mostaza","pescado"}', '{}', '{}', true, true, 'g', 60),
+  ('salsa-soja', 'Salsa de soja', 'Legumbres', 'Despensa', '{"gluten","soja"}', '{}', '{}', true, true, 'ml', 20),
+  ('salsa-worcestershire', 'Salsa Worcestershire', 'Aceites y conservas', 'Despensa', '{"pescado"}', '{}', '{}', false, false, 'ml', 10),
   ('salvia', 'Salvia fresca', 'Especias', 'Despensa', '{}', '{}', '{}', true, true, 'g', 6),
   ('sandia', 'Sandía', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 300),
   ('sardinas', 'Sardinas', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 400),
   ('secreto-iberico', 'Secreto ibérico', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 350),
   ('semola-de-trigo', 'Sémola de trigo', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 15),
   ('sepia', 'Sepia', 'Pescado', 'Carnes y pescados', '{"moluscos"}', '{}', '{}', false, false, 'g', 150),
-  ('sesamo', 'Semillas de sésamo', 'Especias', 'Verduras y frutas', '{"sesamo"}', '{}', '{}', true, true, 'g', 6),
-  ('setas', 'Setas variadas', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 250),
-  ('sidra', 'Sidra natural', 'Aceites y conservas', 'Verduras y frutas', '{}', '{"sulfitos"}', '{"alcohol_cocina"}', true, true, 'ml', 150),
-  ('sirope-de-arce', 'Sirope de arce', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 30)
+  ('sesamo', 'Semillas de sésamo', 'Especias', 'Verduras y frutas', '{"sesamo"}', '{}', '{}', true, true, 'g', 6)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -855,16 +855,16 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('setas', 'Setas variadas', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 250),
+  ('sidra', 'Sidra natural', 'Aceites y conservas', 'Verduras y frutas', '{}', '{"sulfitos"}', '{"alcohol_cocina"}', true, true, 'ml', 150),
+  ('sirope-de-arce', 'Sirope de arce', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 30),
   ('sobrasada', 'Sobrasada', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 150),
   ('solomillo', 'Solomillo de ternera', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 350),
   ('sriracha', 'Sriracha', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 15),
   ('surimi', 'Palitos de cangrejo o surimi', 'Pescado', 'Verduras y frutas', '{"crustaceos","huevos","pescado"}', '{}', '{}', false, false, 'g', 80),
   ('tabasco', 'Tabasco', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ml', 2),
   ('tahini', 'Tahini', 'Aceites y conservas', 'Verduras y frutas', '{"sesamo"}', '{}', '{}', true, true, 'g', 25),
-  ('tallarines', 'Tagliatelle', 'Pasta y arroz', 'Verduras y frutas', '{"gluten","huevos"}', '{}', '{}', true, true, 'g', 200),
-  ('ternera-magra', 'Ternera magra', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 30),
-  ('tinta-de-calamar', 'Tinta de calamar', 'Pescado', 'Carnes y pescados', '{"moluscos","sulfitos"}', '{}', '{}', false, false, 'g', 8),
-  ('tocino', 'Tocino', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 80)
+  ('tallarines', 'Tagliatelle', 'Pasta y arroz', 'Verduras y frutas', '{"gluten","huevos"}', '{}', '{}', true, true, 'g', 200)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -880,16 +880,16 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('ternera-magra', 'Ternera magra', 'Carne', 'Carnes y pescados', '{}', '{}', '{}', false, false, 'g', 30),
+  ('tinta-de-calamar', 'Tinta de calamar', 'Pescado', 'Carnes y pescados', '{"moluscos","sulfitos"}', '{}', '{}', false, false, 'g', 8),
+  ('tocino', 'Tocino', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 80),
   ('tofu', 'Tofu firme', 'Legumbres', 'Verduras y frutas', '{"soja"}', '{}', '{}', true, true, 'g', 100),
   ('tomate', 'Tomate', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 150),
   ('tomate-cherry', 'Tomate cherry', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 110),
   ('tomate-concentrado', 'Tomate concentrado', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 18),
   ('tomate-frito', 'Tomate frito', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 100),
   ('tomate-seco', 'Tomate seco en aceite', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'g', 50),
-  ('tomate-triturado', 'Tomate triturado', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'ml', 100),
-  ('tomillo', 'Tomillo', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 2),
-  ('tortilla-de-maiz', 'Tortillas de maíz', 'Panadería', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ud', 4),
-  ('tortilla-de-trigo', 'Tortillas de trigo', 'Panadería', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'ud', 2)
+  ('tomate-triturado', 'Tomate triturado', 'Aceites y conservas', 'Despensa', '{}', '{}', '{}', true, true, 'ml', 100)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -905,16 +905,16 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('tomillo', 'Tomillo', 'Especias', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 2),
+  ('tortilla-de-maiz', 'Tortillas de maíz', 'Panadería', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'ud', 4),
+  ('tortilla-de-trigo', 'Tortillas de trigo', 'Panadería', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'ud', 2),
   ('trofie', 'Trofie', 'Pasta y arroz', 'Verduras y frutas', '{"gluten"}', '{}', '{}', true, true, 'g', 200),
   ('truchas-enteras', 'Trucha limpia sin espinas', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 400),
   ('trufa-negra', 'Trufa negra', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 9),
   ('unto', 'Unto', 'Carne', 'Verduras y frutas', '{}', '{}', '{}', false, false, 'g', 30),
   ('uvas', 'Uvas', 'Frutas', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 60),
   ('ventresca', 'Ventresca de atún en aceite', 'Pescado', 'Carnes y pescados', '{"pescado"}', '{}', '{}', false, false, 'g', 120),
-  ('vieira', 'Vieiras (sin concha)', 'Pescado', 'Verduras y frutas', '{"moluscos"}', '{}', '{}', false, false, 'ud', 8),
-  ('vinagre', 'Vinagre', 'Aceites y conservas', 'Despensa', '{}', '{"sulfitos"}', '{}', true, true, 'ml', 10),
-  ('vinagre-balsamico', 'Vinagre balsámico', 'Aceites y conservas', 'Despensa', '{}', '{"sulfitos"}', '{}', true, true, 'ml', 10),
-  ('vinagre-de-jerez', 'Vinagre de Jerez', 'Aceites y conservas', 'Despensa', '{}', '{"sulfitos"}', '{}', true, true, 'ml', 10)
+  ('vieira', 'Vieiras (sin concha)', 'Pescado', 'Verduras y frutas', '{"moluscos"}', '{}', '{}', false, false, 'ud', 8)
 on conflict (id) do update set
   name = excluded.name,
   aisle = excluded.aisle,
@@ -930,12 +930,31 @@ on conflict (id) do update set
 insert into ingredients (
   id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
 ) values
+  ('vinagre', 'Vinagre', 'Aceites y conservas', 'Despensa', '{}', '{"sulfitos"}', '{}', true, true, 'ml', 10),
+  ('vinagre-balsamico', 'Vinagre balsámico', 'Aceites y conservas', 'Despensa', '{}', '{"sulfitos"}', '{}', true, true, 'ml', 10),
+  ('vinagre-de-jerez', 'Vinagre de Jerez', 'Aceites y conservas', 'Despensa', '{}', '{"sulfitos"}', '{}', true, true, 'ml', 10),
   ('vinagre-de-manzana', 'Vinagre de manzana', 'Aceites y conservas', 'Despensa', '{}', '{"sulfitos"}', '{}', true, true, 'ml', 15),
   ('vino-blanco', 'Vino blanco', 'Aceites y conservas', 'Despensa', '{}', '{"sulfitos"}', '{"alcohol_cocina"}', true, true, 'ml', 60),
   ('vino-tinto', 'Vino tinto', 'Aceites y conservas', 'Despensa', '{}', '{"sulfitos"}', '{"alcohol_cocina"}', true, true, 'ml', 100),
   ('vodka', 'Vodka', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{"alcohol_cocina"}', true, true, 'ml', 50),
   ('vol-au-vent', 'Vol-au-vent de hojaldre', 'Panadería', 'Verduras y frutas', '{"gluten","leche"}', '{}', '{}', true, true, 'ud', 5),
   ('whisky', 'Whisky', 'Aceites y conservas', 'Verduras y frutas', '{}', '{}', '{"alcohol_cocina"}', true, true, 'ml', 60),
+  ('yema-de-huevo', 'Yema de huevo', 'Huevos', 'Lácteos y huevos', '{"huevos"}', '{}', '{}', true, false, 'ud', 2)
+on conflict (id) do update set
+  name = excluded.name,
+  aisle = excluded.aisle,
+  category = excluded.category,
+  allergens = excluded.allergens,
+  cooking_allergens = excluded.cooking_allergens,
+  restriction_conflicts = excluded.restriction_conflicts,
+  is_vegetarian = excluded.is_vegetarian,
+  is_vegan = excluded.is_vegan,
+  default_unit = excluded.default_unit,
+  median_amount = excluded.median_amount;
+
+insert into ingredients (
+  id, name, aisle, category, allergens, cooking_allergens, restriction_conflicts, is_vegetarian, is_vegan, default_unit, median_amount
+) values
   ('yogur', 'Yogur natural', 'Lácteos', 'Lácteos y huevos', '{"leche"}', '{}', '{"lactosa_fina"}', true, false, 'g', 125),
   ('zamburina', 'Carne de zamburiña', 'Pescado', 'Carnes y pescados', '{"moluscos"}', '{}', '{}', false, false, 'g', 240),
   ('zanahoria', 'Zanahoria', 'Verduras', 'Verduras y frutas', '{}', '{}', '{}', true, true, 'g', 80)
@@ -1129,6 +1148,7 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
+  ('claras de huevo', 'Claras de huevo', 'clara-de-huevo'),
   ('codorniz limpia entera', 'Codorniz limpia entera', 'codorniz'),
   ('col kale', 'Col kale', 'col'),
   ('coliflor entera', 'Coliflor entera', 'coliflor'),
@@ -1137,8 +1157,7 @@ insert into ingredient_aliases (
   ('contramuslos de pollo deshuesados', 'Contramuslos de pollo deshuesados', 'contramuslos-de-pollo'),
   ('muslos y contramuslos de pollo', 'Muslos y contramuslos de pollo', 'contramuslos-de-pollo'),
   ('paletilla de cordero', 'Paletilla de cordero', 'cordero'),
-  ('corvina fresca', 'Corvina fresca', 'corvina'),
-  ('corvina fresca en lomo limpio', 'Corvina fresca en lomo limpio', 'corvina')
+  ('corvina fresca', 'Corvina fresca', 'corvina')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1146,6 +1165,7 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
+  ('corvina fresca en lomo limpio', 'Corvina fresca en lomo limpio', 'corvina'),
   ('costillar de cerdo', 'Costillar de cerdo', 'costilla'),
   ('costilla de cerdo', 'Costilla de cerdo', 'costilla'),
   ('costillas de cerdo troceadas', 'Costillas de cerdo troceadas', 'costilla'),
@@ -1154,8 +1174,7 @@ insert into ingredient_aliases (
   ('dorada entera', 'Dorada entera', 'dorada'),
   ('dorada entera limpia sin escamar', 'Dorada entera limpia sin escamar', 'dorada'),
   ('edamame desvainado', 'Edamame desvainado', 'edamame'),
-  ('eneldo', 'Eneldo', 'eneldo'),
-  ('esparragos verdes', 'Espárragos verdes', 'esparragos')
+  ('endivias', 'Endivias', 'endivia')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1163,6 +1182,8 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
+  ('eneldo', 'Eneldo', 'eneldo'),
+  ('esparragos verdes', 'Espárragos verdes', 'esparragos'),
   ('espinacas', 'Espinacas', 'espinacas'),
   ('espinacas baby', 'Espinacas baby', 'espinacas'),
   ('espinaca fresca', 'Espinaca fresca', 'espinacas'),
@@ -1170,9 +1191,7 @@ insert into ingredient_aliases (
   ('fideos gordos', 'Fideos gordos', 'fideos'),
   ('fideos huecos nº 2', 'Fideos huecos nº 2', 'fideos'),
   ('filete de ternera', 'Filete de ternera', 'filete-de-ternera'),
-  ('filete de ternera para milanesa', 'Filete de ternera para milanesa', 'filete-de-ternera'),
-  ('foie fresco o mi-cuit', 'Foie fresco o mi-cuit', 'foie'),
-  ('frutos rojos (frambuesa, mora, arandano)', 'Frutos rojos (frambuesa, mora, arándano)', 'frutos-rojos')
+  ('filete de ternera para milanesa', 'Filete de ternera para milanesa', 'filete-de-ternera')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1180,6 +1199,8 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
+  ('foie fresco o mi-cuit', 'Foie fresco o mi-cuit', 'foie'),
+  ('frutos rojos (frambuesa, mora, arandano)', 'Frutos rojos (frambuesa, mora, arándano)', 'frutos-rojos'),
   ('frutos rojos congelados', 'Frutos rojos congelados', 'frutos-rojos'),
   ('gambas', 'Gambas', 'gambas'),
   ('cabezas y cascaras de gamba', 'Cabezas y cáscaras de gamba', 'gambas'),
@@ -1187,9 +1208,7 @@ insert into ingredient_aliases (
   ('gambas frescas o congeladas', 'Gambas frescas o congeladas', 'gambas'),
   ('gambas peladas congeladas', 'Gambas peladas congeladas', 'gambas'),
   ('garbanzos', 'Garbanzos', 'garbanzos'),
-  ('garbanzos cocidos de bote', 'Garbanzos cocidos de bote', 'garbanzos'),
-  ('garbanzos secos crudos (en remojo)', 'Garbanzos secos crudos (en remojo)', 'garbanzos'),
-  ('granada (arilos)', 'Granada (arilos)', 'granada')
+  ('garbanzos cocidos de bote', 'Garbanzos cocidos de bote', 'garbanzos')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1197,6 +1216,8 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
+  ('garbanzos secos crudos (en remojo)', 'Garbanzos secos crudos (en remojo)', 'garbanzos'),
+  ('granada (arilos)', 'Granada (arilos)', 'granada'),
   ('guindilla en copos', 'Guindilla en copos', 'guindilla'),
   ('guindilla fresca', 'Guindilla fresca', 'guindilla'),
   ('guindilla seca', 'Guindilla seca', 'guindilla'),
@@ -1204,9 +1225,7 @@ insert into ingredient_aliases (
   ('cayena', 'Cayena', 'guindilla'),
   ('cayena molida', 'Cayena molida', 'guindilla'),
   ('copos de guindilla', 'Copos de guindilla', 'guindilla'),
-  ('guindilla roja', 'Guindilla roja', 'guindilla'),
-  ('guisantes congelados', 'Guisantes congelados', 'guisantes'),
-  ('guisantes cocidos', 'Guisantes cocidos', 'guisantes')
+  ('guindilla roja', 'Guindilla roja', 'guindilla')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1214,6 +1233,8 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
+  ('guisantes congelados', 'Guisantes congelados', 'guisantes'),
+  ('guisantes cocidos', 'Guisantes cocidos', 'guisantes'),
   ('pan de hamburguesa brioche', 'Pan de hamburguesa brioche', 'hamburguesa'),
   ('harina de trigo', 'Harina de trigo', 'harina'),
   ('harina de fuerza', 'Harina de fuerza', 'harina'),
@@ -1221,9 +1242,7 @@ insert into ingredient_aliases (
   ('higos frescos', 'Higos frescos', 'higo'),
   ('masa de hojaldre', 'Masa de hojaldre', 'hojaldre'),
   ('mezclum de hojas', 'Mezclum de hojas', 'hojas-verdes'),
-  ('lechuga o mezclum', 'Lechuga o mezclum', 'hojas-verdes'),
-  ('mezcla de hojas verdes', 'Mezcla de hojas verdes', 'hojas-verdes'),
-  ('mezclum de lechugas', 'Mezclum de lechugas', 'hojas-verdes')
+  ('lechuga o mezclum', 'Lechuga o mezclum', 'hojas-verdes')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1231,9 +1250,9 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('yema de huevo', 'Yema de huevo', 'huevos'),
+  ('mezcla de hojas verdes', 'Mezcla de hojas verdes', 'hojas-verdes'),
+  ('mezclum de lechugas', 'Mezclum de lechugas', 'hojas-verdes'),
   ('huevo cocido', 'Huevo cocido', 'huevos'),
-  ('clara de huevo', 'Clara de huevo', 'huevos'),
   ('jamon serrano en lonchas finas', 'Jamón serrano en lonchas finas', 'jamon'),
   ('jamon serrano en tacos', 'Jamón serrano en tacos', 'jamon'),
   ('hueso de jamon', 'Hueso de jamón', 'jamon'),
@@ -1286,12 +1305,12 @@ insert into ingredient_aliases (
   ('suero de leche', 'Suero de leche', 'leche'),
   ('canonigos', 'Canónigos', 'lechuga'),
   ('lechuga romana', 'Lechuga romana', 'lechuga'),
-  ('endivias', 'Endivias', 'lechuga'),
-  ('endivia', 'Endivia', 'lechuga'),
   ('lechuga variada', 'Lechuga variada', 'lechuga'),
   ('lechugas variadas', 'Lechugas variadas', 'lechuga'),
   ('filetes de lenguado', 'Filetes de lenguado', 'lenguado'),
-  ('lenguado limpio', 'Lenguado limpio', 'lenguado')
+  ('lenguado limpio', 'Lenguado limpio', 'lenguado'),
+  ('lentejas cocidas', 'Lentejas cocidas', 'lentejas'),
+  ('lentejas pardinas', 'Lentejas pardinas', 'lentejas')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1299,8 +1318,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('lentejas cocidas', 'Lentejas cocidas', 'lentejas'),
-  ('lentejas pardinas', 'Lentejas pardinas', 'lentejas'),
   ('lentejas pardinas cocidas', 'Lentejas pardinas cocidas', 'lentejas'),
   ('lentejas rojas peladas', 'Lentejas rojas peladas', 'lentejas-rojas'),
   ('levadura fresca', 'Levadura fresca', 'levadura'),
@@ -1308,7 +1325,9 @@ insert into ingredient_aliases (
   ('lima (zumo)', 'Lima (zumo)', 'lima'),
   ('zumo de limon', 'Zumo de limón', 'limon'),
   ('ralladura de limon', 'Ralladura de limón', 'limon'),
-  ('filetes de lubina', 'Filetes de lubina', 'lubina')
+  ('filetes de lubina', 'Filetes de lubina', 'lubina'),
+  ('lomo de lubina fresca', 'Lomo de lubina fresca', 'lubina'),
+  ('lubina (filetes)', 'Lubina (filetes)', 'lubina')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1316,8 +1335,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('lomo de lubina fresca', 'Lomo de lubina fresca', 'lubina'),
-  ('lubina (filetes)', 'Lubina (filetes)', 'lubina'),
   ('lubina entera', 'Lubina entera', 'lubina'),
   ('maiz dulce', 'Maíz dulce', 'maiz'),
   ('maiz dulce cocido', 'Maíz dulce cocido', 'maiz'),
@@ -1325,7 +1342,9 @@ insert into ingredient_aliases (
   ('maiz tostado', 'Maíz tostado', 'maiz'),
   ('mango maduro', 'Mango maduro', 'mango'),
   ('mango congelado', 'Mango congelado', 'mango'),
-  ('manitas de cerdo partidas por la mitad', 'Manitas de cerdo partidas por la mitad', 'manitas-de-cerdo')
+  ('manitas de cerdo partidas por la mitad', 'Manitas de cerdo partidas por la mitad', 'manitas-de-cerdo'),
+  ('manzana acida', 'Manzana ácida', 'manzana'),
+  ('manzana golden', 'Manzana Golden', 'manzana')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1333,8 +1352,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('manzana acida', 'Manzana ácida', 'manzana'),
-  ('manzana golden', 'Manzana Golden', 'manzana'),
   ('manzana reineta', 'Manzana reineta', 'manzana'),
   ('manzana verde', 'Manzana verde', 'manzana'),
   ('mejillones (sin concha)', 'Mejillones (sin concha)', 'mejillones'),
@@ -1342,7 +1359,9 @@ insert into ingredient_aliases (
   ('mejillones frescos', 'Mejillones frescos', 'mejillones'),
   ('hierbabuena fresca', 'Hierbabuena fresca', 'menta'),
   ('menta', 'Menta', 'menta'),
-  ('merluza en rodajas', 'Merluza en rodajas', 'merluza')
+  ('merluza en rodajas', 'Merluza en rodajas', 'merluza'),
+  ('filetes de merluza', 'Filetes de merluza', 'merluza'),
+  ('kokotxas de merluza', 'Kokotxas de merluza', 'merluza')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1350,8 +1369,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('filetes de merluza', 'Filetes de merluza', 'merluza'),
-  ('kokotxas de merluza', 'Kokotxas de merluza', 'merluza'),
   ('merluza en trozos', 'Merluza en trozos', 'merluza'),
   ('merluza o pescado blanco', 'Merluza o pescado blanco', 'merluza'),
   ('rosada en lomos', 'Rosada en lomos', 'merluza'),
@@ -1359,7 +1376,9 @@ insert into ingredient_aliases (
   ('miel de cana', 'Miel de caña', 'miel'),
   ('miso blanco', 'Miso blanco', 'miso'),
   ('colas de rape en trozos', 'Colas de rape en trozos', 'monkfish'),
-  ('medallones de rape', 'Medallones de rape', 'monkfish')
+  ('medallones de rape', 'Medallones de rape', 'monkfish'),
+  ('rape (cola, en medallones)', 'Rape (cola, en medallones)', 'monkfish'),
+  ('morcilla de burgos', 'Morcilla de Burgos', 'morcilla')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1367,8 +1386,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('rape (cola, en medallones)', 'Rape (cola, en medallones)', 'monkfish'),
-  ('morcilla de burgos', 'Morcilla de Burgos', 'morcilla'),
   ('morcilla asturiana', 'Morcilla asturiana', 'morcilla'),
   ('mostaza', 'Mostaza', 'mostaza'),
   ('mostaza a la antigua', 'Mostaza a la antigua', 'mostaza'),
@@ -1376,7 +1393,9 @@ insert into ingredient_aliases (
   ('mozzarella', 'Mozzarella', 'mozzarella'),
   ('queso mozzarella rallado', 'Queso mozzarella rallado', 'mozzarella'),
   ('mozzarella (bocconcini)', 'Mozzarella (bocconcini)', 'mozzarella'),
-  ('mozzarella rallada', 'Mozzarella rallada', 'mozzarella')
+  ('mozzarella rallada', 'Mozzarella rallada', 'mozzarella'),
+  ('queso mozzarella', 'Queso mozzarella', 'mozzarella'),
+  ('muslo de pollo deshuesado', 'Muslo de pollo deshuesado', 'muslo-de-pollo')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1384,8 +1403,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('queso mozzarella', 'Queso mozzarella', 'mozzarella'),
-  ('muslo de pollo deshuesado', 'Muslo de pollo deshuesado', 'muslo-de-pollo'),
   ('muslos de pollo deshuesados', 'Muslos de pollo deshuesados', 'muslo-de-pollo'),
   ('zumo de naranja', 'Zumo de naranja', 'naranja'),
   ('ralladura de naranja', 'Ralladura de naranja', 'naranja'),
@@ -1393,7 +1410,9 @@ insert into ingredient_aliases (
   ('nata liquida', 'Nata líquida', 'nata'),
   ('nuez', 'Nuez', 'nueces'),
   ('nuez moscada molida', 'Nuez moscada molida', 'nuez-moscada'),
-  ('obleas de empanadilla', 'Obleas de empanadilla', 'obleas')
+  ('obleas de empanadilla', 'Obleas de empanadilla', 'obleas'),
+  ('obleas para empanadillas', 'Obleas para empanadillas', 'obleas'),
+  ('obleas para gyoza', 'Obleas para gyoza', 'obleas')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1401,8 +1420,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('obleas para empanadillas', 'Obleas para empanadillas', 'obleas'),
-  ('obleas para gyoza', 'Obleas para gyoza', 'obleas'),
   ('oregano seco', 'Orégano seco', 'oregano'),
   ('pan rustico', 'Pan rústico', 'pan'),
   ('pan del dia anterior', 'Pan del día anterior', 'pan'),
@@ -1410,7 +1427,9 @@ insert into ingredient_aliases (
   ('pan frito', 'Pan frito', 'pan'),
   ('pan de barra', 'Pan de barra', 'pan'),
   ('pan tostado', 'Pan tostado', 'pan'),
-  ('pan de masa madre', 'Pan de masa madre', 'pan')
+  ('pan de masa madre', 'Pan de masa madre', 'pan'),
+  ('pan de centeno', 'Pan de centeno', 'pan'),
+  ('pan duro', 'Pan duro', 'pan')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1418,8 +1437,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('pan de centeno', 'Pan de centeno', 'pan'),
-  ('pan duro', 'Pan duro', 'pan'),
   ('pan de pueblo', 'Pan de pueblo', 'pan'),
   ('pan payes del dia anterior', 'Pan payés del día anterior', 'pan-de-payes'),
   ('pan de molde para picatostes', 'Pan de molde para picatostes', 'pan-molde'),
@@ -1427,7 +1444,9 @@ insert into ingredient_aliases (
   ('panceta ahumada en lonchas finas', 'Panceta ahumada en lonchas finas', 'panceta'),
   ('panceta ahumada en taquitos', 'Panceta ahumada en taquitos', 'panceta'),
   ('parmesano', 'Parmesano', 'parmesano'),
-  ('queso parmesano rallado', 'Queso parmesano rallado', 'parmesano')
+  ('queso parmesano rallado', 'Queso parmesano rallado', 'parmesano'),
+  ('parmesano rallado', 'Parmesano rallado', 'parmesano'),
+  ('parmesano en virutas', 'Parmesano en virutas', 'parmesano')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1435,8 +1454,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('parmesano rallado', 'Parmesano rallado', 'parmesano'),
-  ('parmesano en virutas', 'Parmesano en virutas', 'parmesano'),
   ('queso parmesano en virutas', 'Queso parmesano en virutas', 'parmesano'),
   ('queso pecorino', 'Queso pecorino', 'parmesano'),
   ('uvas pasas', 'Uvas pasas', 'pasas'),
@@ -1444,7 +1461,9 @@ insert into ingredient_aliases (
   ('patata baby', 'Patata baby', 'patata'),
   ('patata grande', 'Patata grande', 'patata'),
   ('muslos de pato', 'Muslos de pato', 'pato'),
-  ('pechuga de pato', 'Pechuga de pato', 'pato')
+  ('pechuga de pato', 'Pechuga de pato', 'pato'),
+  ('filetes de pavo', 'Filetes de pavo', 'pavo'),
+  ('pechuga de pavo en lonchas', 'Pechuga de pavo en lonchas', 'pechuga-de-pavo')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1452,8 +1471,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('filetes de pavo', 'Filetes de pavo', 'pavo'),
-  ('pechuga de pavo en lonchas', 'Pechuga de pavo en lonchas', 'pechuga-de-pavo'),
   ('pechuga de pollo asada', 'Pechuga de pollo asada', 'pechuga-de-pollo'),
   ('pepinillos en vinagre', 'Pepinillos en vinagre', 'pepinillos'),
   ('pepinillos encurtidos', 'Pepinillos encurtidos', 'pepinillos'),
@@ -1461,7 +1478,9 @@ insert into ingredient_aliases (
   ('perejil fresco', 'Perejil fresco', 'perejil'),
   ('perejil picado', 'Perejil picado', 'perejil'),
   ('pescadilla en lomos', 'Pescadilla en lomos', 'pescadilla'),
-  ('pesto de albahaca', 'Pesto de albahaca', 'pesto')
+  ('pesto de albahaca', 'Pesto de albahaca', 'pesto'),
+  ('pimenton', 'Pimentón', 'pimenton'),
+  ('pimenton picante', 'Pimentón picante', 'pimenton')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1469,8 +1488,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('pimenton', 'Pimentón', 'pimenton'),
-  ('pimenton picante', 'Pimentón picante', 'pimenton'),
   ('pimenton ahumado', 'Pimentón ahumado', 'pimenton'),
   ('pimienta', 'Pimienta', 'pimienta'),
   ('pimienta negra en grano', 'Pimienta negra en grano', 'pimienta'),
@@ -1478,7 +1495,9 @@ insert into ingredient_aliases (
   ('pimienta negra en grano machacada', 'Pimienta negra en grano machacada', 'pimienta'),
   ('pimienta negra molida', 'Pimienta negra molida', 'pimienta'),
   ('pimiento choricero (nora)', 'Pimiento choricero (ñora)', 'pimiento-choricero'),
-  ('nora hidratada', 'Ñora hidratada', 'pimiento-choricero')
+  ('nora hidratada', 'Ñora hidratada', 'pimiento-choricero'),
+  ('pimiento choricero (pulpa de nora)', 'Pimiento choricero (pulpa de ñora)', 'pimiento-choricero'),
+  ('pimiento choricero (pulpa)', 'Pimiento choricero (pulpa)', 'pimiento-choricero')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1486,16 +1505,16 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('pimiento choricero (pulpa de nora)', 'Pimiento choricero (pulpa de ñora)', 'pimiento-choricero'),
-  ('pimiento choricero (pulpa)', 'Pimiento choricero (pulpa)', 'pimiento-choricero'),
   ('pimiento choricero o nora hidratado', 'Pimiento choricero o ñora hidratado', 'pimiento-choricero'),
+  ('pimientos choriceros', 'Pimientos choriceros', 'pimiento-choricero'),
   ('pimiento rojo asado', 'Pimiento rojo asado', 'pimiento-rojo'),
   ('pimientos rojos', 'Pimientos rojos', 'pimiento-rojo'),
   ('pimiento morron', 'Pimiento morrón', 'pimiento-verde'),
   ('pimiento amarillo', 'Pimiento amarillo', 'pimiento-verde'),
   ('pimiento de padron', 'Pimiento de padrón', 'pimiento-verde'),
   ('pimiento verde italiano', 'Pimiento verde italiano', 'pimiento-verde'),
-  ('pimientos choriceros', 'Pimientos choriceros', 'pimiento-verde')
+  ('pistachos', 'Pistachos', 'pistacho'),
+  ('pistachos pelados', 'Pistachos pelados', 'pistacho')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1503,8 +1522,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('pistachos', 'Pistachos', 'pistacho'),
-  ('pistachos pelados', 'Pistachos pelados', 'pistacho'),
   ('platano congelado', 'Plátano congelado', 'platano'),
   ('pollo', 'Pollo', 'pollo'),
   ('pollo asado de bolsa', 'Pollo asado de bolsa', 'pollo'),
@@ -1512,7 +1529,9 @@ insert into ingredient_aliases (
   ('pollo asado desmenuzado', 'Pollo asado desmenuzado', 'pollo'),
   ('pollo entero', 'Pollo entero', 'pollo'),
   ('pulpo congelado limpio', 'Pulpo congelado limpio', 'pulpo'),
-  ('queso gruyere rallado', 'Queso gruyère rallado', 'queso')
+  ('queso gruyere rallado', 'Queso gruyère rallado', 'queso'),
+  ('queso curado', 'Queso curado', 'queso'),
+  ('queso en porciones', 'Queso en porciones', 'queso')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1520,8 +1539,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('queso curado', 'Queso curado', 'queso'),
-  ('queso en porciones', 'Queso en porciones', 'queso'),
   ('queso rallado para fundir', 'Queso rallado para fundir', 'queso'),
   ('queso cheddar (lonchas)', 'Queso cheddar (lonchas)', 'queso'),
   ('queso cheddar curado en lonchas', 'Queso cheddar curado en lonchas', 'queso'),
@@ -1529,7 +1546,9 @@ insert into ingredient_aliases (
   ('queso curado rallado', 'Queso curado rallado', 'queso'),
   ('queso emmental', 'Queso Emmental', 'queso'),
   ('queso emmental en lonchas', 'Queso emmental en lonchas', 'queso'),
-  ('queso gruyere', 'Queso gruyère', 'queso')
+  ('queso gruyere', 'Queso gruyère', 'queso'),
+  ('queso para fundir en lonchas', 'Queso para fundir en lonchas', 'queso'),
+  ('queso rallado curado', 'Queso rallado curado', 'queso')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1537,8 +1556,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('queso para fundir en lonchas', 'Queso para fundir en lonchas', 'queso'),
-  ('queso rallado curado', 'Queso rallado curado', 'queso'),
   ('queso de cabra en rulo', 'Queso de cabra en rulo', 'queso-cabra'),
   ('remolacha', 'Remolacha', 'remolacha'),
   ('repollo morado', 'Repollo morado', 'repollo'),
@@ -1546,7 +1563,9 @@ insert into ingredient_aliases (
   ('lomos de rodaballo', 'Lomos de rodaballo', 'rodaballo'),
   ('rodaballo (filetes)', 'Rodaballo (filetes)', 'rodaballo'),
   ('rodaballo entero limpio', 'Rodaballo entero limpio', 'rodaballo'),
-  ('romero fresco', 'Romero fresco', 'romero')
+  ('romero fresco', 'Romero fresco', 'romero'),
+  ('sal gruesa', 'Sal gruesa', 'sal-gruesa'),
+  ('salchicha fresca italiana', 'Salchicha fresca italiana', 'salchicha')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1554,16 +1573,16 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('sal gruesa', 'Sal gruesa', 'sal-gruesa'),
-  ('salchicha fresca italiana', 'Salchicha fresca italiana', 'salchicha'),
   ('salmon (lomos)', 'Salmón (lomos)', 'salmon'),
   ('salmon', 'Salmón', 'salmon'),
   ('salmonetes limpios', 'Salmonetes limpios', 'salmon'),
-  ('salmonetes pequenos', 'Salmonetes pequeños', 'salmon'),
   ('salmon fresco calidad sashimi', 'Salmón fresco calidad sashimi', 'salmon-fresco'),
   ('lomo de salmon fresco con piel', 'Lomo de salmón fresco con piel', 'salmon-fresco'),
   ('lomo de salmon fresco de calidad sashimi', 'Lomo de salmón fresco de calidad sashimi', 'salmon-fresco'),
-  ('salmon fresco para sushi', 'Salmón fresco para sushi', 'salmon-fresco')
+  ('salmon fresco para sushi', 'Salmón fresco para sushi', 'salmon-fresco'),
+  ('salmonetes pequenos', 'Salmonetes pequeños', 'salmonete'),
+  ('salmonetes', 'Salmonetes', 'salmonete'),
+  ('salsa de pescado', 'Salsa de pescado', 'salsa-worcestershire')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1571,7 +1590,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('salsa de pescado', 'Salsa de pescado', 'salsa-worcestershire'),
   ('salsa perrins', 'Salsa Perrins', 'salsa-worcestershire'),
   ('hojas de salvia fresca', 'Hojas de salvia fresca', 'salvia'),
   ('sardinas ahumadas', 'Sardinas ahumadas', 'sardinas'),
@@ -1580,7 +1598,8 @@ insert into ingredient_aliases (
   ('sesamo tostado', 'Sésamo tostado', 'sesamo'),
   ('semillas de sesamo tostado', 'Semillas de sésamo tostado', 'sesamo'),
   ('sesamo blanco y negro', 'Sésamo blanco y negro', 'sesamo'),
-  ('setas', 'Setas', 'setas')
+  ('setas', 'Setas', 'setas'),
+  ('setas (champinones portobello)', 'Setas (champiñones portobello)', 'setas')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1588,7 +1607,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('setas (champinones portobello)', 'Setas (champiñones portobello)', 'setas'),
   ('setas silvestres variadas', 'Setas silvestres variadas', 'setas'),
   ('solomillo de cerdo', 'Solomillo de cerdo', 'solomillo'),
   ('filete de solomillo de ternera', 'Filete de solomillo de ternera', 'solomillo'),
@@ -1597,7 +1615,8 @@ insert into ingredient_aliases (
   ('solomillo de ternera muy fresco', 'Solomillo de ternera muy fresco', 'solomillo'),
   ('solomillo de ternera picado', 'Solomillo de ternera picado', 'solomillo'),
   ('nidos de tallarines', 'Nidos de tallarines', 'tallarines'),
-  ('pappardelle', 'Pappardelle', 'tallarines')
+  ('pappardelle', 'Pappardelle', 'tallarines'),
+  ('tallarines', 'Tallarines', 'tallarines')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1605,7 +1624,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('tallarines', 'Tallarines', 'tallarines'),
   ('bolsas de tinta de calamar', 'Bolsas de tinta de calamar', 'tinta-de-calamar'),
   ('bolsitas de tinta de calamar', 'Bolsitas de tinta de calamar', 'tinta-de-calamar'),
   ('tomate maduro', 'Tomate maduro', 'tomate'),
@@ -1614,7 +1632,8 @@ insert into ingredient_aliases (
   ('tomate rallado', 'Tomate rallado', 'tomate'),
   ('tomates grandes', 'Tomates grandes', 'tomate'),
   ('tomates cherry', 'Tomates cherry', 'tomate-cherry'),
-  ('salsa de tomate', 'Salsa de tomate', 'tomate-frito')
+  ('salsa de tomate', 'Salsa de tomate', 'tomate-frito'),
+  ('tomates secos en aceite', 'Tomates secos en aceite', 'tomate-seco')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1622,7 +1641,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('tomates secos en aceite', 'Tomates secos en aceite', 'tomate-seco'),
   ('tomate triturado de bote', 'Tomate triturado de bote', 'tomate-triturado'),
   ('tomillo fresco', 'Tomillo fresco', 'tomillo'),
   ('tortilla de maiz', 'Tortilla de maíz', 'tortilla-de-maiz'),
@@ -1631,7 +1649,8 @@ insert into ingredient_aliases (
   ('tortillas de trigo pequenas', 'Tortillas de trigo pequeñas', 'tortilla-de-trigo'),
   ('truchas enteras', 'Truchas enteras', 'truchas-enteras'),
   ('truchas limpias', 'Truchas limpias', 'truchas-enteras'),
-  ('trufa negra fresca', 'Trufa negra fresca', 'trufa-negra')
+  ('trufa negra fresca', 'Trufa negra fresca', 'trufa-negra'),
+  ('vieiras limpias', 'Vieiras limpias', 'vieira')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1639,7 +1658,6 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('vieiras limpias', 'Vieiras limpias', 'vieira'),
   ('vieiras limpias en su concha', 'Vieiras limpias en su concha', 'vieira'),
   ('vinagre de vino', 'Vinagre de vino', 'vinagre'),
   ('vinagre de vino blanco', 'Vinagre de vino blanco', 'vinagre'),
@@ -1648,7 +1666,8 @@ insert into ingredient_aliases (
   ('jalapenos en vinagre', 'Jalapeños en vinagre', 'vinagre'),
   ('vinagre de modena', 'Vinagre de Módena', 'vinagre-balsamico'),
   ('crema de vinagre balsamico', 'Crema de vinagre balsámico', 'vinagre-balsamico'),
-  ('reduccion de vinagre balsamico', 'Reducción de vinagre balsámico', 'vinagre-balsamico')
+  ('reduccion de vinagre balsamico', 'Reducción de vinagre balsámico', 'vinagre-balsamico'),
+  ('vino pedro ximenez', 'Vino Pedro Ximénez', 'vino-blanco')
 on conflict (alias_normalized) do update set
   alias = excluded.alias,
   ingredient_id = excluded.ingredient_id;
@@ -1656,12 +1675,12 @@ on conflict (alias_normalized) do update set
 insert into ingredient_aliases (
   alias_normalized, alias, ingredient_id
 ) values
-  ('vino pedro ximenez', 'Vino Pedro Ximénez', 'vino-blanco'),
   ('vino de jerez', 'Vino de Jerez', 'vino-blanco'),
   ('vino oloroso', 'Vino oloroso', 'vino-blanco'),
   ('vino de oporto', 'Vino de Oporto', 'vino-blanco'),
   ('vino rancio', 'Vino rancio', 'vino-blanco'),
   ('vol-au-vent de hojaldre (cestas precocidas)', 'Vol-au-vent de hojaldre (cestas precocidas)', 'vol-au-vent'),
+  ('yemas de huevo', 'Yemas de huevo', 'yema-de-huevo'),
   ('yogur griego', 'Yogur griego', 'yogur'),
   ('yogur griego natural', 'Yogur griego natural', 'yogur'),
   ('yogur de sabores', 'Yogur de sabores', 'yogur')

@@ -5822,11 +5822,6 @@ function QuickActionCards({ actions, onToggle }) {
               >
                 {a.label}
               </div>
-              {partial && (
-                <div style={{ fontSize: 9, fontWeight: 700, color: "#9ab0a1", marginTop: 2 }}>
-                  A medias · toca para completar
-                </div>
-              )}
             </div>
           </button>
         );

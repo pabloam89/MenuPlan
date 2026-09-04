@@ -157,6 +157,17 @@ export const RecipeSchema = z
     // resto del catálogo ("fondo de armario") solo entra si el pool principal
     // se queda corto para las restricciones del grupo.
     estrella: z.boolean().optional(),
+    // ¿Es plato de OCASIÓN? Marisco de ración (cigalas, navajas, percebes),
+    // arroces de bogavante, paellas de marisco… Cocina real y del catálogo,
+    // pero que nadie se hace un martes para comer: se comen un fin de semana,
+    // en familia o con invitados. Sin este campo el generador no tenía forma
+    // de distinguirlos de un filete a la plancha -mismo tiempo, misma
+    // dificultad, misma categoría- y los repartía por el diario.
+    //
+    // Se marca a MANO, como `estrella` y `montaje`: no se puede derivar de
+    // precio (no está en el catálogo), ni de tiempo (las navajas son 10 min),
+    // ni de dificultad (son fáciles). Ausente = plato de diario.
+    occasion: z.enum(["diario", "especial"]).optional(),
     // "Cena rápida" de verdad: se monta, no se cocina (sándwich, tostas, tabla,
     // ensalada de asamblaje). Sustituye a category "cenas_rapidas".
     //

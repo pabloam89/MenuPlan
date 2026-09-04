@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { isoLocalDate } from "./weekCalendar.js";
 import { rowToRecipe } from "./userRecipesSync.js";
 import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, FIXTURE_SUGGESTED, fixtureFeed } from "./socialFixtures.js";
 
@@ -189,15 +190,27 @@ export async function suggestUsername(name) {
  * Si el guardado falla (sin red, migracion sin aplicar) devuelve el derivado
  * marcado `unsaved`: quien llama decide si le vale para pintar, y el proximo
  * inicio de sesion lo reintenta solo.
+ *
+ * `avatar` es el DIBUJO del titular de la cuenta, nunca su foto: la foto se
+ * sube a mano desde el cajon del perfil y publicar la cara de nadie es algo
+ * que se hace a proposito, no de oficio. Sin esto el perfil nacia sin imagen
+ * y la cabecera de todo el feed -tu menu, el de los demas, los comentarios-
+ * enseñaba iniciales sueltas aunque en la app ya hubieras elegido tu avatar.
+ * Solo RELLENA el hueco: si ya hay imagen, no se toca.
  */
-export async function ensureSocialProfile(userId, fallbackName = "") {
+export async function ensureSocialProfile(userId, fallbackName = "", avatar = null) {
   if (!userId) return null;
   const current = ok() ? await loadMyProfile(userId) : null;
-  if (current?.username) return current;
+  if (current?.username) {
+    if (current.avatar_url || !avatar || !ok()) return current;
+    const filled = await saveMyProfile(userId, { avatar_url: avatar });
+    return filled?.error ? current : (filled ?? current);
+  }
   const display = current?.display_name || fallbackName || "";
   const username = await suggestUsername(display);
   if (!username) return current;
-  const saved = ok() ? await saveMyProfile(userId, { display_name: display, username }) : null;
+  const patch = { display_name: display, username, ...(avatar ? { avatar_url: avatar } : null) };
+  const saved = ok() ? await saveMyProfile(userId, patch) : null;
   if (!saved || saved.error) return { user_id: userId, display_name: display, username, unsaved: true };
   return saved;
 }
@@ -304,12 +317,19 @@ export async function loadFollowRequests(userId) {
 
 export async function acceptFollowRequest(userId, followerId) {
   if (!ok() || !userId || !followerId) return false;
-  const { error } = await supabase
+  // accept_follow (0046) acepta Y crea la vuelta: quien pidio conectar ya
+  // consintio la mutualidad al pedirla — el boton dice "Conectar", no
+  // "dejame mirarte". Una aceptacion, conexion completa.
+  const { error } = await supabase.rpc("accept_follow", { p_follower: followerId });
+  if (!error) return true;
+  // Migracion sin aplicar: se acepta a la antigua (sin vuelta automatica),
+  // que es mejor que dejar la solicitud colgada.
+  const legacy = await supabase
     .from("user_follows")
     .update({ status: "accepted", responded_at: new Date().toISOString() })
     .eq("followee_id", userId)
     .eq("follower_id", followerId);
-  return !warn("acceptFollowRequest", error);
+  return !warn("acceptFollowRequest", legacy.error);
 }
 
 /**
@@ -573,6 +593,34 @@ export async function loadFollowList(userId, kind = "followers") {
 }
 
 /**
+ * Las relaciones de alguien, ya separadas: amigos, seguidores y seguidos.
+ *
+ * "Amigos" es el vinculo MUTUO, que con el modelo de conexion (0046) es el
+ * normal: pides conectar, aceptan, y quedais los dos. Seguidores y seguidos
+ * a secas solo existen alrededor de las cuentas abiertas, donde seguir es
+ * suscribirse y no crea vuelta.
+ *
+ * Se derivan de las dos listas en vez de pedir un contador aparte para que
+ * el numero y la lista SIEMPRE cuadren: profile_follow_list se deja fuera a
+ * los privados y a los bloqueos, asi que un contador calculado en la base
+ * diria mas de lo que la lista puede ensenar.
+ */
+export async function loadRelations(userId) {
+  if (!userId) return { friends: [], followers: [], following: [] };
+  const [followers, following] = await Promise.all([
+    loadFollowList(userId, "followers"),
+    loadFollowList(userId, "following"),
+  ]);
+  const followingIds = new Set(following.map((p) => p.user_id));
+  const followerIds = new Set(followers.map((p) => p.user_id));
+  return {
+    friends: followers.filter((p) => followingIds.has(p.user_id)),
+    followers: followers.filter((p) => !followingIds.has(p.user_id)),
+    following: following.filter((p) => !followerIds.has(p.user_id)),
+  };
+}
+
+/**
  * Sumar uno al contador de copias de un menu ajeno. La copia en si pasa
  * entera en el cliente; esto es solo el contador, que la fila es de otro.
  */
@@ -793,6 +841,29 @@ export async function loadProfilesByIds(ids) {
 }
 
 /**
+ * Un menu compartido concreto, por id.
+ *
+ * loadWeeklyMenus solo trae los de ESTA semana (filtra week_start <= hoy <=
+ * week_end), que es lo correcto para el carrusel pero deja fuera todo lo
+ * demas. Al abrir una notificacion o un comentario hay que poder llegar a un
+ * menu concreto aunque su semana no sea la de hoy — si no, el aviso lleva a
+ * ningun sitio y parece que la app se ha quedado colgada.
+ *
+ * Sin permiso no da error: devuelve null. Quien lo abre se entera de que ya
+ * no esta disponible, no de que existe.
+ */
+export async function loadSharedMenu(menuId) {
+  if (!ok() || !menuId) return null;
+  const { data, error } = await supabase
+    .from("shared_menus")
+    .select("id, owner_id, title, week_start, week_end, payload, created_at")
+    .eq("id", menuId)
+    .maybeSingle();
+  if (warn("loadSharedMenu", error)) return null;
+  return data ?? null;
+}
+
+/**
  * La fila de arriba: menús de esta semana, uno por autor (el más reciente).
  * Es lo único del feed que caduca de verdad — un menú semanal deja de tener
  * sentido el lunes siguiente — así que se filtra por fecha, no por antigüedad.
@@ -800,7 +871,7 @@ export async function loadProfilesByIds(ids) {
 export async function loadWeeklyMenus({ viewerId = null, scope = "all", followingIds = null, today = new Date() } = {}) {
   if (!ok()) return [];
   const blocked = viewerId ? new Set(await loadBlockedIds(viewerId)) : new Set();
-  const iso = today.toISOString().slice(0, 10);
+  const iso = isoLocalDate(today);
 
   // La fila de arriba obedece a la misma pestaña que el rio: estar en
   // "Siguiendo" y ver desconocidos ahi arriba contradecia la eleccion que
@@ -814,8 +885,13 @@ export async function loadWeeklyMenus({ viewerId = null, scope = "all", followin
     .from("shared_menus")
     .select("id, owner_id, title, week_start, week_end, payload, created_at")
     .neq("visibility", "private")
-    .lte("week_start", iso)
-    .gte("week_end", iso);
+    // Red de seguridad: un menu sin rango de fechas SE ENSEÑA, no se
+    // esconde. Un NULL no compara, asi que con el filtro a secas esos menus
+    // quedaban publicados y visibles para nadie — y encima el aviso si
+    // saltaba, porque la campana no filtra por fechas: te avisaba de algo
+    // que la pantalla no podia ensenarte. La 0047 los repara y pone la
+    // columna NOT NULL; esto cubre a quien aun no la haya aplicado.
+    .or(`and(week_start.lte.${iso},week_end.gte.${iso}),week_start.is.null,week_end.is.null`);
   if (mine) q = q.in("owner_id", mine);
   const { data, error } = await q.order("created_at", { ascending: false });
   // Ojo al orden: si la tabla no existe (migración sin aplicar) esto salía

@@ -4,6 +4,7 @@
 // Ingredient categories must match the ones used in shoppingBuilder.js.
 
 import { ensureHealthFlags } from "../lib/healthFlags.js";
+import { mergeIngredientLines } from "../lib/ingredientUnits.js";
 
 export const INGREDIENT_CATEGORIES = [
   "Verduras y frutas",
@@ -767,7 +768,16 @@ export function registerRecipes(extra) {
     // RECIPES_BY_ID (dish cards, dish detail) can show an honest health-profile
     // badge, regardless of which caller registered it (own recipe, AI-generated,
     // remote merge...).
-    const stored = ensureHealthFlags({ ...recipe });
+    // Y se juntan las lineas de ingrediente repetidas. Aqui y no en quien
+    // genera porque por aqui pasa TODO lo que la app puede llegar a pintar:
+    // lo que genera la IA, lo que se rehidrata de local, lo que baja de la
+    // nube al iniciar sesion y las recetas propias. Estaba solo en el camino
+    // local, asi que a quien tenia sesion le seguian saliendo "Aceite de
+    // oliva 50 ml" y "Aceite de oliva 60 ml" en dos lineas.
+    const stored = ensureHealthFlags({
+      ...recipe,
+      ...(Array.isArray(recipe.ingredients) ? { ingredients: mergeIngredientLines(recipe.ingredients) } : null),
+    });
     RECIPES_BY_ID[recipe.id] = stored;
     const idx = RECIPES_INDEX.get(recipe.id);
     if (idx === undefined) {

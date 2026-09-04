@@ -62,6 +62,11 @@ textarea::placeholder {
   animation: rotate 1s linear infinite;
 }
 
+/* Carruseles horizontales (fila de menus del Feed, mazos de platos): se
+   arrastran con el dedo, y la barra nativa solo estorba. */
+.deck-scroller { scrollbar-width: none; -ms-overflow-style: none; }
+.deck-scroller::-webkit-scrollbar { display: none; }
+
 /* Discrete motion utilities */
 @keyframes mpFadeIn {
   from { opacity: 0; }
@@ -132,6 +137,41 @@ textarea::placeholder {
 
 .mp-toast-in {
   animation: mpToastIn .2s ease both;
+}
+
+/* Los 300 ms que el navegador se guarda por si el toque fuera un doble-tap de
+   zoom hacen que CUALQUIER boton parezca que no ha respondido, y lo que se
+   hace entonces es tocarlo otra vez. Va aqui, para todos, y no boton a boton:
+   en esta app no hay nada donde el doble-tap signifique algo. Lo inline manda,
+   asi que los sitios con gesto propio (arrastrar el mazo del menu) conservan
+   su touch-action. */
+button {
+  touch-action: manipulation;
+}
+
+/* Algo que aparece PEGADO a lo que acabas de tocar (la barra de acciones de un
+   plato): entra creciendo desde su sitio, con un rebote corto al final, para
+   que se lea como que sale de ahi y no como una ventana que cae encima. */
+@keyframes mpPop {
+  from { opacity: 0; transform: scale(.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.mp-pop {
+  animation: mpPop .22s cubic-bezier(.34,1.4,.64,1) both;
+}
+
+/* "Te he oido": todo lo tocable se hunde un pelin bajo el dedo. Y
+   `touch-action: manipulation` quita los 300 ms que el navegador se guarda por
+   si el toque fuera un doble-tap de zoom — sin eso un boton parece que no
+   responde y se acaba tocando dos veces. */
+.mp-press {
+  touch-action: manipulation;
+  transition: transform .15s ease;
+}
+
+.mp-press:active {
+  transform: scale(.96);
 }
 
 /* Pista de "esto se toca": la primera tarjeta del picker de ajustes se levanta
@@ -220,8 +260,16 @@ textarea::placeholder {
   .mp-toast-in,
   .mp-peek-in,
   .mp-drawer-in,
-  .mp-pop-bell {
+  .mp-pop-bell,
+  .mp-pop {
     animation: mpFadeIn .12s ease both;
+  }
+
+  /* El hundido al pulsar es movimiento: sin movimiento, no se hunde. */
+  .mp-press,
+  .mp-press:active {
+    transform: none;
+    transition: none;
   }
 
   /* Sin movimiento no hay badazo: la campana se queda quieta. */

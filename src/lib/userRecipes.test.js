@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import {
+  filterMyLibraryRecipes,
   generateUserRecipeDraft,
   isOwnCreatedRecipe,
   patchUserRecipeClassification,
@@ -304,5 +305,27 @@ describe("isOwnCreatedRecipe", () => {
       linkedCatalogId: "carnes_003",
       pinnedGarnishId: "guarniciones_001",
     }, user)).toBe(false);
+  });
+});
+
+describe("filterMyLibraryRecipes", () => {
+  const user = { id: "u1" };
+  const mine = { id: "user_mia", source: "user", owner: { id: "u1", name: "Pablo" } };
+  // Copiada del Feed: la fila es tuya, pero sigue firmada por su autor.
+  const copied = {
+    id: "user_copia",
+    source: "user",
+    owner: { id: "u2", name: "Marta" },
+    copiedFromRecipeId: "user_original",
+  };
+
+  it("incluye las copiadas del Feed, que isOwnCreatedRecipe deja fuera", () => {
+    expect(isOwnCreatedRecipe(copied, user)).toBe(false);
+    expect(filterMyLibraryRecipes([mine, copied], user)).toEqual([mine, copied]);
+  });
+
+  it("sigue dejando fuera lo que ni escribiste ni copiaste", () => {
+    const ajena = { id: "user_otra", source: "user", owner: { id: "u2" } };
+    expect(filterMyLibraryRecipes([mine, ajena], user)).toEqual([mine]);
   });
 });

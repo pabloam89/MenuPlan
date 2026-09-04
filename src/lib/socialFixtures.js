@@ -69,20 +69,27 @@ const M = (slot, dishes, eaters) => ({ slot, dishes, eaters });
 // privado — se ve el nombre y no se abre.
 const dish = (recipeId, name, readable = true) => ({ recipeId, name, source: "catalog", readable });
 
+// Una casa de cinco a proposito: es la que hace visible todo lo que la franja
+// de comensales tiene que saber hacer — los tres grupos (adultos, niños,
+// bebés) y el contador a partir de la tercera cara en "Todos".
 const ADULTOS = ["a1", "a2"];
-const FAMILIA = ["a1", "a2", "n1"];
+const PEQUES = ["n1", "n2"];
+const FAMILIA = ["a1", "a2", "n1", "n2"];
+const TODOS = ["a1", "a2", "n1", "n2", "b1"];
 
 export const FIXTURE_MENUS = [
   menu("fx_menu_1", "fx_marta", null, [
     D("Lun", [
       M("Comida", [dish("legumbres_001", "Lentejas con verduras")], FAMILIA),
+      M("Comida", [dish("bebes_001", "Puré de calabacín con pollo y cuscús")], ["b1"]),
       M("Cena", [dish("sopas_cremas_001", "Crema de calabacin"), dish("huevos_002", "Tortilla francesa")], ADULTOS),
     ]),
     D("Mar", [
       M("Comida", [dish("pescados_002", "Salmon al horno con patatas")], ADULTOS),
-      M("Cena", [dish("ensaladas_verduras_001", "Ensalada mixta")], FAMILIA),
+      M("Comida", [dish("pasta_arroces_001", "Macarrones con tomate")], PEQUES),
+      M("Cena", [dish("ensaladas_verduras_001", "Ensalada mixta")], TODOS),
     ]),
-    D("Mie", [
+    D("Mié", [
       M("Comida", [dish("carnes_001", "Pollo al horno con patatas")], FAMILIA),
       M("Cena", [dish("sopas_cremas_003", "Crema de calabaza")], ADULTOS),
     ]),
@@ -94,7 +101,7 @@ export const FIXTURE_MENUS = [
       M("Comida", [dish("pasta_arroces_002", "Espaguetis a la bolonesa")], FAMILIA),
       M("Cena", [dish("cenas_rapidas_001", "Sandwich mixto")], FAMILIA),
     ]),
-    D("Sab", [
+    D("Sáb", [
       M("Comida", [dish("pasta_arroces_004", "Arroz al horno")], FAMILIA),
       M("Cena", [dish("cenas_rapidas_002", "Tosta de tomate con jamon")], ADULTOS),
     ]),
@@ -103,9 +110,16 @@ export const FIXTURE_MENUS = [
       M("Cena", [dish("huevos_001", "Tortilla de patatas")], FAMILIA),
     ]),
   ], [
-    { id: "a1", avatar: null, role: "adulto" },
-    { id: "a2", avatar: null, role: "adulto" },
-    { id: "n1", avatar: null, role: "nino" },
+    // Con `avatar: null` la fila de comensales eran tres circulos grises con
+    // una letra: el demo no ensenaba el aspecto real de un menu compartido,
+    // que lleva el avatar ILUSTRADO de cada uno (nunca su foto — ver
+    // buildSharedMenuPayload). Rutas del dibujo a tamaño completo, igual que
+    // las que publica la app; quien las pinta ya pide el recorte pequeño.
+    { id: "a1", avatar: "/avatares/mama/mama_2.png", role: "adulto" },
+    { id: "a2", avatar: "/avatares/papa/papa_2.png", role: "adulto" },
+    { id: "n1", avatar: "/avatares/hijo/hijo_4.png", role: "nino" },
+    { id: "n2", avatar: "/avatares/hija/hija_5.png", role: "nino" },
+    { id: "b1", avatar: "/avatares/bebe/bebe_2.png", role: "bebe" },
   ]),
 
   menu("fx_menu_2", "fx_ana", "Semana sin horno", [
@@ -117,7 +131,7 @@ export const FIXTURE_MENUS = [
       M("Comida", [dish("legumbres_003", "Garbanzos con espinacas")], ADULTOS),
       M("Cena", [dish("cenas_rapidas_002", "Tosta de tomate con jamon")], ADULTOS),
     ]),
-    D("Mie", [
+    D("Mié", [
       M("Comida", [dish("pasta_arroces_001", "Macarrones con tomate")], ADULTOS),
       M("Cena", [dish("sopas_cremas_001", "Crema de calabacin")], ADULTOS),
     ]),
@@ -130,8 +144,8 @@ export const FIXTURE_MENUS = [
       M("Cena", [dish("huevos_002", "Tortilla francesa")], ADULTOS),
     ]),
   ], [
-    { id: "a1", avatar: null, role: "adulto" },
-    { id: "a2", avatar: null, role: "adulto" },
+    { id: "a1", avatar: "/avatares/mama/mama_5.png", role: "adulto" },
+    { id: "a2", avatar: "/avatares/papa/papa_7.png", role: "adulto" },
   ]),
 ];
 

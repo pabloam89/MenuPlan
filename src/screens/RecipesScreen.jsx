@@ -3,7 +3,7 @@ import { BookOpen, Plus, SlidersHorizontal, Sparkles } from "lucide-react";
 import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
-import { filterOwnCreatedRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
+import { filterMyLibraryRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -42,7 +42,7 @@ export function RecipesScreen({
   const [showIconCoach, setShowIconCoach] = useState(false);
 
   const ownRecipes = useMemo(
-    () => (readOnly ? userRecipes : filterOwnCreatedRecipes(userRecipes, user)),
+    () => (readOnly ? userRecipes : filterMyLibraryRecipes(userRecipes, user)),
     [userRecipes, user, readOnly],
   );
 

@@ -1,5 +1,5 @@
 import { DAYS } from "./planner.js";
-import { stageForAge, resolveMemberAge } from "./stages.js";
+import { stageForAge, resolveMemberAge, memberIllustratedAvatarSrc } from "./stages.js";
 
 /**
  * Construye la proyección de un menú para publicarlo (contrato v1, definido en
@@ -88,13 +88,25 @@ export function buildSharedMenuPayload({
   return {
     v: 1,
     weeks: [{ weekStart, days }],
-    // Dibujo y rol, nada más. El rol distingue adulto de niño para dar
+    // Dibujo y rol, nada más. El rol distingue adulto, niño y bebé para dar
     // contexto ("menú para dos adultos y un peque") sin decir quién es quién
     // ni qué edad tiene — que de un menor es justo lo que no se publica.
+    //
+    // El bebé va aparte del niño desde que quien mira el menú puede filtrar
+    // por "para quién": en una casa con bebé, lo que come el bebé y lo que
+    // comen los mayores son dos menús distintos, y meterlos en el mismo cajón
+    // era juntar justo lo que se quiere separar. Sigue sin decirse la edad:
+    // "bebé" es exactamente igual de vago que "niño".
+    //
+    // El dibujo es el AVATAR ILUSTRADO, no la foto: aquí se mandaba `photo`,
+    // que casi nadie tiene, así que al otro lado salían iniciales sueltas —
+    // y el avatar cartoon, que sí tiene todo el mundo, se quedaba en casa.
+    // Además la ilustración es justo lo que se puede publicar de un menor:
+    // una foto real de un niño no sale de aquí ni queriendo.
     members: membersUsedIn(days, members).map((m) => ({
       id: m.id,
-      avatar: m.photo ?? null,
-      role: isChild(m) ? "nino" : "adulto",
+      avatar: memberIllustratedAvatarSrc(m),
+      role: roleOf(m),
     })),
   };
 }
@@ -106,9 +118,11 @@ function membersUsedIn(days, members) {
   return members.filter((m) => used.has(m.id));
 }
 
-function isChild(member) {
+/** "bebe" | "nino" | "adulto" — el único contexto de quién come que se publica. */
+function roleOf(member) {
   const stage = stageForAge(resolveMemberAge(member)).id;
-  return stage === "infantil" || stage === "primaria" || stage === "bebe";
+  if (stage === "baby") return "bebe";
+  return stage === "infantil" || stage === "primaria" ? "nino" : "adulto";
 }
 
 /**

@@ -88,3 +88,56 @@ describe("countUnread", () => {
     expect(countUnread(items, new Date().toISOString())).toBe(0);
   });
 });
+
+describe("aviso de menú publicado", () => {
+  it("avisa del menú de otra persona", () => {
+    const items = buildNotifications({
+      menus: [{ id: "m1", owner_id: "otro", created_at: "2026-09-03T10:00:00Z" }],
+      meId: "yo",
+    });
+    expect(items).toHaveLength(1);
+    expect(items[0].kind).toBe("menu");
+    expect(items[0].actorId).toBe("otro");
+    expect(items[0].targetId).toBe("m1");
+  });
+
+  it("no te avisa de tu propio menú", () => {
+    // Enterarte de que has publicado tú no es una noticia.
+    const items = buildNotifications({
+      menus: [{ id: "m1", owner_id: "yo", created_at: "2026-09-03T10:00:00Z" }],
+      meId: "yo",
+    });
+    expect(items).toHaveLength(0);
+  });
+
+  it("no inventa avisos cuando no hay menús", () => {
+    expect(buildNotifications({ meId: "yo" })).toHaveLength(0);
+  });
+});
+
+describe("republicar un menú vuelve a ser noticia", () => {
+  it("fecha el aviso con updated_at, no con created_at", () => {
+    // publishMenu es un upsert: republicar la misma semana ACTUALIZA la fila
+    // y created_at se queda en la primera vez. Con created_at, el aviso nacía
+    // por debajo de la marca de "visto" y no avisaba a nadie.
+    const items = buildNotifications({
+      menus: [{
+        id: "m1", owner_id: "otro",
+        created_at: "2026-09-01T10:00:00Z",
+        updated_at: "2026-09-03T18:00:00Z",
+      }],
+      meId: "yo",
+    });
+    expect(items[0].at).toBe("2026-09-03T18:00:00Z");
+    // Y con la marca puesta ANTES de republicar, cuenta como no leído.
+    expect(countUnread(items, "2026-09-02T00:00:00Z")).toBe(1);
+  });
+
+  it("cae a created_at si no hay updated_at", () => {
+    const items = buildNotifications({
+      menus: [{ id: "m1", owner_id: "otro", created_at: "2026-09-01T10:00:00Z" }],
+      meId: "yo",
+    });
+    expect(items[0].at).toBe("2026-09-01T10:00:00Z");
+  });
+});

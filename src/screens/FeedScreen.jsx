@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState, useRef } from "react";
-import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Eye, Share2, EyeOff, Flag, MoreVertical, Ban as BlockIcon, ChefHat } from "lucide-react";
-import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration } from "../components/ui.jsx";
-import { RecipePoster, ActionButton } from "../components/SwipeCard.jsx";
+import { Fragment, useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, ChevronLeft, Info } from "lucide-react";
+import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration, GroupAvatarStack } from "../components/ui.jsx";
+import { RecipePoster, PosterCorners, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
 import { PersonSheet } from "../components/PersonSheet.jsx";
 import { CommentThread } from "../components/CommentThread.jsx";
@@ -18,11 +18,16 @@ import { shareOut } from "../lib/shareLink.js";
 import { relativeTime } from "../lib/socialUi.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
+import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { memberAvatarColor } from "../lib/stages.js";
+import { DAYS } from "../lib/planner.js";
+import { loadPublicRecipe } from "../lib/userRecipesSync.js";
 import { folderArt, ALL_ID } from "./CatalogBrowserSheet.jsx";
 import { allFolders } from "../lib/recipeCollections.js";
 import {
   loadFeed,
   loadWeeklyMenus,
+  loadSharedMenu,
   loadProfilesByIds,
   loadFollowing,
   loadSentRequests,
@@ -99,6 +104,7 @@ export function FeedScreen({
   recipeFolders = [],
   onCreateFolder,
   onSetRecipeFolders,
+  onToast,
 }) {
   const [seenMenus, setSeenMenus] = useState(readSeenMenus);
   const [items, setItems] = useState([]);
@@ -116,6 +122,14 @@ export function FeedScreen({
   const [loading, setLoading] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [copied, setCopied] = useState(() => new Set());
+  // Ya copiadas antes de abrir el Feed: la copia guarda de quién venía
+  // (copiedFromRecipeId), así que la marca sobrevive a cerrar sesión y volver
+  // — antes vivía solo en el estado de la pantalla y se perdía al salir.
+  const copiedIds = useMemo(() => {
+    const ids = new Set(copied);
+    for (const r of myRecipes) if (r.copiedFromRecipeId) ids.add(r.copiedFromRecipeId);
+    return ids;
+  }, [copied, myRecipes]);
   const [menuOpen, setMenuOpen] = useState(null);
   const [stats, setStats] = useState({});
   const [folderPickerFor, setFolderPickerFor] = useState(null);
@@ -199,14 +213,26 @@ export function FeedScreen({
     return img ? deckImg(img, 160) : null;
   };
 
-  const openTarget = (type, id) => {
+  // Abrir algo desde una notificacion o un comentario.
+  //
+  // Antes solo miraba lo que YA estaba cargado en pantalla y, si no lo
+  // encontraba, no hacia nada — en silencio. Y no encontrarlo es lo normal:
+  // el carrusel solo trae los menus de esta semana y el rio va paginado, asi
+  // que cualquier aviso sobre algo un poco viejo llevaba a ningun sitio y
+  // parecia que la app se habia colgado. Ahora, si no esta a mano, se pide
+  // por id; y si tampoco asi (borrado, o sin permiso), se dice.
+  const openTarget = async (type, id) => {
     if (type === "menu") {
-      const m = weekly.find((w) => w.id === id) ?? items.find((i) => i.kind === "menu" && i.id === id)?.menu;
+      const local = weekly.find((w) => w.id === id) ?? items.find((i) => i.kind === "menu" && i.id === id)?.menu;
+      const m = local ?? await loadSharedMenu(id);
       if (m) openMenu(m);
+      else onToast?.("Ese menú ya no está disponible");
       return;
     }
-    const it = items.find((i) => i.kind === "recipe" && i.recipe.id === id);
-    if (it) onOpenRecipe?.(it.recipe);
+    const local = items.find((i) => i.kind === "recipe" && i.recipe.id === id)?.recipe;
+    const r = local ?? await loadPublicRecipe(id);
+    if (r) onOpenRecipe?.(r);
+    else onToast?.("Esa receta ya no está disponible");
   };
 
   const refresh = useCallback(async () => {
@@ -370,6 +396,24 @@ export function FeedScreen({
   };
 
   /**
+   * Guardar un plato del menu de otra persona pasa por la MISMA hoja de
+   * carpetas que guardar una receta del rio: es la misma decision -"me la
+   * llevo, ¿donde la meto?"- sobre el mismo objeto, y sin ella el plato caia
+   * en el saco comun sin que hubiera forma de ordenarlo. Se respeta el
+   * "guardar siempre aqui" que ya hubieras contestado.
+   */
+  const saveDishInto = async (dish, folderIds) => {
+    const savedId = await onSaveDish?.(dish);
+    if (savedId && folderIds?.length) onSetRecipeFolders?.(savedId, folderIds);
+  };
+
+  const handleSaveDish = (dish) => {
+    const preset = readDefaultFolders();
+    if (preset) { saveDishInto(dish, preset); return; }
+    setFolderPickerFor({ dish, recipe: { id: dish.recipeId, name: dish.name } });
+  };
+
+  /**
    * Solo el "no" penaliza, y no como un descarte: la receta es de otro, no
    * está en tu biblioteca, así que no hay nada que mandar a Descartados. Se
    * apunta como "no me la vuelvas a enseñar" y desaparece del Feed y del mazo.
@@ -448,7 +492,7 @@ export function FeedScreen({
                 menú que ya han publicado, así que la fila cuenta algo vivo
                 sin pedir un tipo de contenido nuevo. Al tocar, la semana. */}
             <h2 style={sectionTitle}>Hoy cocinan…</h2>
-            <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 2, marginInline: -14, paddingInline: 14 }}>
+            <div className="deck-scroller" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 2, marginInline: -14, paddingInline: 14 }}>
               {/* Tu hueco, el primero de la fila — el patron de "tu historia"
                   de toda red: anillo punteado con + si no has publicado, un
                   check si si. Sustituye al banner con parrafo que habia
@@ -655,7 +699,7 @@ export function FeedScreen({
                 user={user}
                 profile={profiles[item.ownerId]}
                 mine={item.ownerId === user?.id}
-                copied={copied.has(item.recipe.id)}
+                copied={copiedIds.has(item.recipe.id)}
                 meh={meh.has(item.recipe.id)}
                 onMeh={() => setMeh((prev) => new Set(prev).add(item.recipe.id))}
                 onDislike={() => handleDislike(item)}
@@ -693,8 +737,22 @@ export function FeedScreen({
         />
       )}
 
+      {/* Llevarte un plato del menu de otro (a tu semana o a tu recetario) y
+          abrir su receta: las tres llegaban ya como props de la pantalla y no
+          se pasaban, asi que los botones del plato no hacian NADA — ni fallo
+          ni aviso, simplemente no pasaba nada al tocarlos. */}
       {menuOpen && (
-        <MenuPeek menu={menuOpen} user={user} profile={profiles[menuOpen.owner_id]} onOpenPerson={() => { setMenuOpen(null); setPersonId(menuOpen.owner_id); }} onBlocked={handleBlocked} onClose={() => setMenuOpen(null)} />
+        <MenuPeek
+          menu={menuOpen}
+          user={user}
+          profile={profiles[menuOpen.owner_id]}
+          onOpenPerson={() => { setMenuOpen(null); setPersonId(menuOpen.owner_id); }}
+          onBlocked={handleBlocked}
+          onClose={() => setMenuOpen(null)}
+          onSaveDish={handleSaveDish}
+          onPlaceDish={(dish) => { setMenuOpen(null); onPlaceDish?.(dish); }}
+          onOpenDish={(dish) => onOpenRecipe?.({ id: dish.recipeId, name: dish.name })}
+        />
       )}
 
       {/* La lengueta a medio asomar no se explica sola, pero una burbuja
@@ -784,7 +842,8 @@ export function FeedScreen({
           folders={allFolders(recipeFolders)}
           onSave={(ids, remember) => {
             if (remember) writeDefaultFolders(ids);
-            copyInto(folderPickerFor, ids);
+            if (folderPickerFor.dish) saveDishInto(folderPickerFor.dish, ids);
+            else copyInto(folderPickerFor, ids);
           }}
           onCreateFolder={onCreateFolder}
           onClose={() => setFolderPickerFor(null)}
@@ -956,21 +1015,51 @@ function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onC
  * compra, ni presupuesto, ni horarios, ni nombres — aunque el menú original
  * los tenga, aquí no han llegado nunca.
  */
-function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish }) {
+function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish, onOpenDish }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
-  // Filtro por comensal: toca un avatar de la cabecera y ves solo lo que come
-  // esa persona ("que han comido los peques hoy"). Es una VISTA sobre lo ya
-  // publicado — no ensena nada que la semana entera no ensenara igual.
-  const [eaterFilter, setEaterFilter] = useState(null);
+  // Para quien es lo que estas mirando: adultos, ninos o bebes.
+  //
+  // Antes era un filtro por PERSONA -una fila de caras plegada tras un boton
+  // de la cabecera- y estaba mal por dos lados. Uno: las caras van sin nombre
+  // (el payload es anonimo a proposito), asi que elegir "esta persona" era
+  // elegir a ciegas. Dos: en una casa lo que cambia el menu no es quien eres
+  // sino que edad tienes — los dos adultos comen lo mismo. Asi que el filtro
+  // es por rol, que es la unica diferencia que el menu publicado conoce.
+  const [roleFilter, setRoleFilter] = useState(null);
   // El plato que estas mirando de cerca. Se copia PLATO a plato -no la semana
   // entera-, que es como se usa de verdad el menu de otra persona: te llevas
   // la idea suelta que te ha gustado.
   const [dishPick, setDishPick] = useState(null);
-  const days = m.payload?.weeks?.[0]?.days ?? [];
+  // Memorizado porque de el cuelga la peticion de estadisticas: sin esto el
+  // `?? []` daria un array nuevo en cada pintada y se pediria una vez por
+  // pintada en vez de una por menu.
+  const days = useMemo(() => m.payload?.weeks?.[0]?.days ?? [], [m]);
+  const rango = m.title || (m.week_start ? rangeLabel(m.week_start, m.week_end) : null);
   const members = m.payload?.members ?? [];
   const byId = Object.fromEntries(members.map((x) => [x.id, x]));
   const name = profile?.display_name || (profile?.username ? `@${profile.username}` : "Alguien");
+  const scopes = eaterScopes(members, days);
+
+  // Lo que ha pasado con cada plato ahi fuera: votos, veces cocinado y
+  // comentarios. Va aparte y despues de pintar -igual que en el rio de
+  // recetas- porque es adorno de la tarjeta, no contenido del menu.
+  const [dishStats, setDishStats] = useState({});
+  useEffect(() => {
+    const ids = [...new Set(
+      days.flatMap((d) => (d.meals ?? []).flatMap((meal) => (meal.dishes ?? []).map((x) => x.recipeId)))
+        .filter(Boolean),
+    )];
+    if (ids.length === 0) return undefined;
+    let alive = true;
+    loadRecipeStats(ids).then((real) => {
+      if (alive) setDishStats(FIXTURES_ENABLED ? { ...FIXTURE_STATS, ...real } : real);
+    });
+    return () => { alive = false; };
+    // `days` es la MISMA referencia mientras el menu este abierto (es un trozo
+    // del payload, que es una instantanea y no se toca), asi que esto se pide
+    // una vez por menu y no una vez por pintada.
+  }, [days]);
 
   return (
     <div style={peekBackdrop} onClick={onClose}>
@@ -978,96 +1067,72 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
         {/* Entrar en la cocina de alguien: su cara arriba y su semana debajo,
             con la misma pinta que tiene la tuya. Pantalla completa y no una
             hoja, porque el gesto que la abre es "asomarse". */}
-        <div style={peekHeader}>
-          <button type="button" onClick={onClose} aria-label="Cerrar" style={peekClose}>
-            <X size={17} strokeWidth={2.6} />
+        {/* Franja compacta, no portada.
+            Antes era una cabecera centrada de ~200px -avatar de 64, nombre,
+            @handle, fila de comensales y dos pastillas- que se comia un
+            tercio de la pantalla en un movil: para ver el segundo plato ya
+            habia que hacer scroll. Y en una pantalla que existe para MIRAR
+            UN MENU, quien lo publica es contexto, no el contenido.
+
+            Ahora una fila de 52px con lo imprescindible, y el resto -el
+            filtro por comensal- se despliega solo si lo pides. */}
+        <div style={peekBar}>
+          {/* Atras, no cerrar. Una X dice "esto es una ventana y la descartas";
+              una flecha dice "has entrado en un sitio y vuelves por donde
+              viniste", que es exactamente lo que pasa: el menu de alguien se
+              abre desde el feed y se vuelve al feed. Y va la primera, a la
+              izquierda, que es donde la busca el pulgar. */}
+          <button type="button" className="mp-press" onClick={onClose} aria-label="Volver" style={peekBarIcon}>
+            <ChevronLeft size={20} strokeWidth={2.6} />
           </button>
-          <div style={{ position: "absolute", top: 14, left: 14 }}>
-            {/* peekClose trae su propio position:absolute (top/right) para
-                anclarse solo; aqui ya lo ancla el div padre, asi que se usa un
-                estilo sin esa parte o el boton se iria a la esquina opuesta. */}
-            <button type="button" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={peekMenuBtn}>
-              <MoreVertical size={17} strokeWidth={2.6} />
-            </button>
-            {moreOpen && (
-              <div style={peekMenu}>
-                <button type="button" onClick={() => { setMoreOpen(false); setReporting(true); }} style={peekMenuItem}>
-                  <Flag size={13} strokeWidth={2.5} /> Reportar menú
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => { setMoreOpen(false); await blockUser(user?.id, m.owner_id); onBlocked?.(m.owner_id); onClose(); }}
-                  style={{ ...peekMenuItem, color: "#c0392b" }}
-                >
-                  <BlockIcon size={13} strokeWidth={2.5} /> Bloquear
-                </button>
-              </div>
-            )}
-          </div>
-          <span style={ringOn}>
-            <span style={{ ...ringGap, background: "rgba(255,255,255,.92)" }}>
-              <Avatar name={profile?.display_name ?? "?"} photo={profile?.avatar_url} size={64} color={TEAL} />
-            </span>
-          </span>
-          <button type="button" onClick={onOpenPerson} style={{ padding: 0, border: "none", background: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 18, fontWeight: 900, color: INK, marginTop: 10 }}>
-            {name}
+
+          <button type="button" className="mp-press" onClick={() => setMoreOpen((v) => !v)} aria-label="Más opciones" style={{ ...peekBarIcon, order: 3 }}>
+            <MoreVertical size={16} strokeWidth={2.6} />
           </button>
-          {profile?.username && profile?.display_name && (
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#8aa294" }}>@{profile.username}</div>
-          )}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: 12.5, fontWeight: 800, color: TEAL }}>
-            <CalendarDays size={14} strokeWidth={2.5} />
-            {m.title || rangeLabel(m.week_start, m.week_end)}
-          </div>
-          {members.length > 0 && (
-            <div style={{ display: "flex", gap: 5, marginTop: 10 }}>
-              {members.map((mem) => {
-                const on = eaterFilter === mem.id;
-                return (
-                  <button
-                    key={mem.id}
-                    type="button"
-                    title={mem.role === "nino" ? "Solo lo que come este peque" : "Solo lo que come esta persona"}
-                    aria-pressed={on}
-                    onClick={() => setEaterFilter(on ? null : mem.id)}
-                    style={{
-                      ...memberDot, width: 26, height: 26,
-                      border: on ? `2px solid ${TEAL}` : "2px solid transparent",
-                      background: on ? "#d9ece7" : "#e8efe9",
-                      cursor: "pointer", padding: 0, fontFamily: "inherit",
-                    }}
-                  >
-                    {mem.avatar
-                      ? <img src={mem.avatar} alt="" style={{ width: 22, height: 22, borderRadius: 999, objectFit: "cover" }} />
-                      : (mem.role === "nino" ? "N" : "A")}
-                  </button>
-                );
-              })}
-              {eaterFilter && (
-                <button type="button" onClick={() => setEaterFilter(null)} style={clearFilterBtn}>
-                  Ver todo
-                </button>
-              )}
+          {moreOpen && (
+            <div style={peekMenu}>
+              <button type="button" onClick={() => { setMoreOpen(false); setReporting(true); }} style={peekMenuItem}>
+                <Flag size={13} strokeWidth={2.5} /> Reportar menú
+              </button>
+              <button
+                type="button"
+                onClick={async () => { setMoreOpen(false); await blockUser(user?.id, m.owner_id); onBlocked?.(m.owner_id); onClose(); }}
+                style={{ ...peekMenuItem, color: "#c0392b" }}
+              >
+                <BlockIcon size={13} strokeWidth={2.5} /> Bloquear
+              </button>
             </div>
           )}
-          {/* Se dice en voz alta: esto es la semana de otra persona y desde
-              aqui no se toca nada. Sin el aviso, una pantalla identica a la
-              tuya invita a editarla. */}
-          <div style={readOnlyPill}>
-            <Eye size={12} strokeWidth={2.6} /> Solo vista
-          </div>
+
+          <button type="button" className="mp-press" onClick={onOpenPerson} style={peekWho} aria-label={`Ver el perfil de ${name}`}>
+            <Avatar name={profile?.display_name ?? "?"} photo={profile?.avatar_url} size={34} color={TEAL} />
+            <span style={{ minWidth: 0 }}>
+              <span style={peekWhoName}>{name}</span>
+              {/* La fecha va aqui, bajo el nombre: "el menu de Alvaro, del 31
+                  al 6". Solo si la hay — un chip que pone "Menú" no dice
+                  nada, que es lo que salia cuando el menu no traia rango. */}
+              {rango && <span style={peekWhoWhen}>{rango}</span>}
+            </span>
+          </button>
+
         </div>
 
-        <div style={{ padding: "4px 16px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+        <div style={{ padding: "16px 16px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
           <SharedMenuDeck
             days={days
               .map((d) => ({
                 ...d,
-                meals: (d.meals ?? []).filter((meal) => !eaterFilter || (meal.eaters ?? []).includes(eaterFilter)),
+                meals: (d.meals ?? []).filter((meal) =>
+                  !roleFilter || (meal.eaters ?? []).some((id) => byId[id]?.role === roleFilter)),
               }))
               .filter((d) => d.meals.length > 0)}
-            byId={byId}
+            weekStart={m.payload?.weeks?.[0]?.weekStart ?? m.week_start ?? null}
+            scopes={scopes}
+            roleFilter={roleFilter}
+            onRole={setRoleFilter}
+            stats={dishStats}
             onPickDish={setDishPick}
+            onOpenDish={onOpenDish}
           />
 
           <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eef3f0" }}>
@@ -1078,26 +1143,24 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
 
       {/* Dos acciones y ya: llevartelo al menu (lo colocas tu, en el hueco que
           quieras) o guardarlo para luego. Son los dos motivos por los que
-          alguien copia un plato ajeno, y no hay un tercero. */}
+          alguien copia un plato ajeno, y no hay un tercero.
+
+          Y salen PEGADAS AL PLATO, no en una tarjeta centrada: es la misma
+          barra que aparece al mantener pulsado un plato en tu propio menu.
+          Una ventana en mitad de la pantalla te obliga a volver a buscar de
+          que plato hablabas; el recuadro sobre la foto ya lo dice. */}
       {dishPick && (
-        <div style={dishPickOverlay} onClick={() => setDishPick(null)}>
-          <div style={dishPickCard} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <DishThumb dish={dishPick} />
-              <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 800, color: INK }}>{dishPick.name}</span>
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button type="button" onClick={() => { onPlaceDish?.(dishPick); setDishPick(null); }} style={dishPickAction}>
-                <CalendarDays size={19} strokeWidth={2.3} color="#4a6fd4" />
-                A mi menú
-              </button>
-              <button type="button" onClick={() => { onSaveDish?.(dishPick); setDishPick(null); }} style={dishPickAction}>
-                <Heart size={19} strokeWidth={2.3} color={GREEN} />
-                A mis recetas
-              </button>
-            </div>
-          </div>
-        </div>
+        <DishActionBar
+          anchor={dishPick.anchor}
+          // Los dos copys empiezan por el verbo: lo que haces con el plato de
+          // otro es COPIARLO, y "A mi menú" describia el destino pero no la
+          // accion — que es lo unico que el boton tiene que prometer.
+          actions={[
+            { id: "menu", label: "Copiar al menú", Icon: CalendarDays, onPick: () => { onPlaceDish?.(dishPick.dish); setDishPick(null); } },
+            { id: "recetas", label: "Copiar a recetas", Icon: Heart, onPick: () => { onSaveDish?.(dishPick.dish); setDishPick(null); } },
+          ]}
+          onClose={() => setDishPick(null)}
+        />
       )}
 
       {reporting && (
@@ -1122,54 +1185,83 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
  * Un dia se ensena solo; varios traen el selector Dia/Semana, igual que Menu.
  * Con un unico dia el selector seria elegir entre una cosa y la misma.
  */
-function SharedMenuDeck({ days, byId, onPickDish }) {
+function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, onPickDish, onOpenDish }) {
   const multi = days.length > 1;
   const [week, setWeek] = useState(false);
   const [dayIdx, setDayIdx] = useState(0);
   // Un filtro por comensal puede dejar el dia activo fuera de la lista.
   const idx = Math.min(dayIdx, Math.max(0, days.length - 1));
+  const nums = dayNumbers(days, weekStart);
 
   if (days.length === 0) return <p style={hint}>Este menu no trae dias.</p>;
 
   return (
     <>
-      {multi && (
-        <div style={deckSwitch}>
-          {[["Dia", false], ["Semana", true]].map(([label, val]) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => setWeek(val)}
-              aria-pressed={week === val}
-              style={{ ...deckSwitchBtn, ...(week === val ? deckSwitchOn : null) }}
-            >
-              {label}
-            </button>
-          ))}
+      {/* Una sola franja de mando: a la izquierda COMO lo miras (dia o semana)
+          y a la derecha PARA QUIEN es lo que miras. Las caras vivian antes en
+          la esquina de cada plato, una por comensal, y ahi no elegian nada:
+          eran un adorno que ademas repetia las mismas cuatro caras en todas
+          las tarjetas. Aqui son un control, y encima liberan la esquina. */}
+      {(multi || scopes.all.length > 0) && (
+        <div style={deckTopRow}>
+          {multi && <ViewPicker week={week} onWeek={setWeek} />}
+          {/* Los GRUPOS de la casa, siempre: todos, adultos, niños y bebés —
+              los que haya. Antes solo salian cuando el menu se partia en dos, y
+              entonces la franja se quedaba vacia en la mayoria de casas, que es
+              justo donde mas se quiere ver quien come. */}
+          {scopes.all.length > 0 && (
+            <EaterScope scopes={scopes.groups} all={scopes.all} value={roleFilter} onPick={onRole} />
+          )}
         </div>
       )}
 
+      {/* La tira de dias es un CALENDARIO, no siete botones.
+          Antes eran siete pastillas blancas con borde, todas iguales y con el
+          nombre del dia en gris: la forma decia "elige una accion" cuando lo
+          que hay debajo es una semana. Ahora cada dia es su casilla -inicial
+          arriba, numero del mes debajo- sobre una pista verde clara, como el
+          resto de controles segmentados de la app: se lee de un vistazo en que
+          dia estas y que dia es. */}
       {multi && !week && (
-        <div style={deckDayStrip}>
-          {days.map((d, i) => (
-            <button
-              key={d.day}
-              type="button"
-              onClick={() => setDayIdx(i)}
-              aria-pressed={i === idx}
-              style={{ ...deckDayChip, ...(i === idx ? deckDayChipOn : null) }}
-            >
-              {d.day}
-            </button>
-          ))}
+        <div style={deckDayStrip} role="tablist" aria-label="Día del menú">
+          {days.map((d, i) => {
+            const on = i === idx;
+            const num = nums[d.day];
+            return (
+              <button
+                key={d.day}
+                type="button"
+                role="tab"
+                className="mp-press"
+                onClick={() => setDayIdx(i)}
+                aria-selected={on}
+                style={{ ...deckDayCell, ...(on ? deckDayCellOn : null) }}
+              >
+                <span style={{ ...deckDayName, color: on ? "rgba(255,255,255,.82)" : "#9ab0a1" }}>{d.day}</span>
+                {num != null && (
+                  <span style={{ ...deckDayNum, color: on ? "#fff" : INK }}>{num}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
 
+      {/* La lista se repinta con la misma transicion de pestaña que usa el resto
+          de la app: al cambiar de dia, de vista o de comensal, los platos
+          entran deslizando en vez de aparecer de golpe — que es lo que hacia
+          dudar de si habias tocado algo. La `key` es lo que la dispara: cada
+          combinacion es un contenido distinto, asi que React lo remonta y la
+          animacion arranca sola. */}
+      <div key={`${week ? "s" : "d"}-${idx}-${roleFilter ?? "all"}`} className="mp-tab-fwd">
       {week
         ? days.map((d) => (
             <div key={d.day} style={{ marginBottom: 18 }}>
               <div style={deckWeekHead}>
                 <span style={{ fontSize: 14, fontWeight: 900, color: INK }}>{d.day}</span>
+                {nums[d.day] != null && (
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "#4cba6e" }}>{nums[d.day]}</span>
+                )}
                 <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
               </div>
               {/* En semana los platos van en fila y compactos: esta vista sirve
@@ -1177,7 +1269,7 @@ function SharedMenuDeck({ days, byId, onPickDish }) {
               <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
                 {flattenDayDishes(d).map((item, i) => (
                   <div key={i} style={{ flex: "0 0 46%" }}>
-                    <SharedDishTile item={item} byId={byId} onPick={onPickDish} height={132} compact />
+                    <SharedDishTile item={item} onPick={onPickDish} height={132} compact />
                   </div>
                 ))}
               </div>
@@ -1186,11 +1278,239 @@ function SharedMenuDeck({ days, byId, onPickDish }) {
         : (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {flattenDayDishes(days[idx]).map((item, i) => (
-                <SharedDishTile key={i} item={item} byId={byId} onPick={onPickDish} height={168} />
+                <SharedDishTile
+                  key={i}
+                  item={item}
+                  stats={stats}
+                  onPick={onPickDish}
+                  onOpen={onOpenDish}
+                  height={192}
+                />
               ))}
             </div>
           )}
+      </div>
     </>
+  );
+}
+
+/**
+ * El numero del mes de cada dia del menu compartido.
+ *
+ * `weekStart` es la fecha del PRIMER dia publicado (ver handlePublishMenu), no
+ * necesariamente un lunes: compartir "solo hoy" arranca en el dia que sea. Asi
+ * que el desplazamiento se cuenta contra ese primer dia y no contra la semana.
+ * Sin fecha -o con un dia que no esta en DAYS- se devuelve nada y la casilla
+ * ensena solo la inicial: mejor eso que un numero inventado.
+ */
+function dayNumbers(days, weekStart) {
+  if (!weekStart || days.length === 0) return {};
+  const [y, mo, d] = String(weekStart).split("-").map(Number);
+  if (!y || !mo || !d) return {};
+  const baseIdx = DAYS.indexOf(days[0].day);
+  if (baseIdx < 0) return {};
+  const out = {};
+  for (const day of days) {
+    const i = DAYS.indexOf(day.day);
+    if (i < 0) continue;
+    const date = new Date(y, mo - 1, d + (i - baseIdx));
+    out[day.day] = date.getDate();
+  }
+  return out;
+}
+
+/**
+ * Para quien es el menu: adultos, ninos o bebes.
+ *
+ * Son los MISMOS circulos que filtran tu propio menu (ScopeCircle en Menu.jsx):
+ * la cara de cada uno recortada sobre un disco de su color, apiladas y
+ * creciendo hacia la derecha, con la etiqueta debajo. Seleccionado = discos
+ * llenos de color; sin seleccionar, el color se va al aro y el disco se queda
+ * hueco. Se reusa GroupAvatarStack tal cual, que es donde vive esa regla, para
+ * que filtrar el menu de otro se vea y se toque igual que filtrar el tuyo.
+ *
+ * No hay circulo por persona -que en tu menu si lo hay- porque el payload es
+ * anonimo: las caras van sin nombre, asi que elegir "esta persona" seria
+ * elegir a ciegas. Y de todos modos lo que parte un menu en dos es la edad.
+ */
+function EaterScope({ scopes, all, value, onPick }) {
+  // Con un solo grupo, "Todos" y ese grupo son el mismo conjunto: enseñar los
+  // dos seria pintar dos veces a la misma gente y ofrecer una eleccion que no
+  // elige nada. Se queda la pila, sin ser boton.
+  if (scopes.length < 2) {
+    const only = scopes[0];
+    return (
+      <span style={scopeRow}>
+        <span style={scopeOpt}>
+          <GroupAvatarStack faces={only?.faces ?? all} size={SCOPE_FACE} active max={SCOPE_MAX} />
+          {only && <span style={{ ...scopeOptLabel, color: "#5f7568" }}>{only.label}</span>}
+        </span>
+      </span>
+    );
+  }
+
+  const opts = [{ role: null, label: "Todos", faces: all }, ...scopes];
+  return (
+    <div style={scopeRow} role="group" aria-label="Para quién es el menú">
+      {opts.map((opt, i) => {
+        const on = value === opt.role;
+        return (
+          <Fragment key={opt.role ?? "all"}>
+            {/* Barra fina entre "Todos" y los grupos: separa el conjunto de sus
+                partes, igual que en el selector de para-quien de la casa. */}
+            {i === 1 && <span style={scopeDivider} />}
+            <button
+              type="button"
+              className="mp-press"
+              aria-pressed={on}
+              onClick={() => onPick(opt.role)}
+              style={scopeOpt}
+            >
+              <GroupAvatarStack faces={opt.faces} size={SCOPE_FACE} active={on} max={SCOPE_MAX} />
+              <span style={{ ...scopeOptLabel, color: on ? GREEN : "#5f7568" }}>{opt.label}</span>
+            </button>
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// El orden en el que se lee una casa, y como se llama cada grupo por fuera.
+const ROLE_ORDER = ["adulto", "nino", "bebe"];
+const ROLE_LABEL = { adulto: "Adultos", nino: "Niños", bebe: "Bebés" };
+
+// El dibujo generico de cada grupo, para cuando ningun miembro publico el
+// suyo (nadie eligio avatar, o el menu se publico antes de que existieran).
+// Aqui SI se puede: el chip habla de una categoria -"Niños"- y no dice que
+// esta sea la cara de nadie. En la esquina de un plato eso mismo habria sido
+// ponerle cara inventada a una persona concreta.
+const ROLE_AVATAR = {
+  adulto: "/avatares/adulto/adulto_1.png",
+  nino: "/avatares/hijo/hijo_1.png",
+  bebe: "/avatares/bebe/bebe_1.png",
+};
+
+/**
+ * Los grupos de comensales que merece la pena poder filtrar.
+ *
+ * Un grupo por rol que aparezca comiendo, mas la casa entera. Elegir solo
+ * significa algo cuando hay mas de un grupo -con uno, "Todos" y ese grupo son
+ * la misma gente-, y eso lo decide quien pinta; aqui solo se cuenta quien hay.
+ */
+function eaterScopes(members, days) {
+  const eating = new Set();
+  for (const d of days ?? []) {
+    for (const meal of d.meals ?? []) {
+      for (const id of meal.eaters ?? []) eating.add(id);
+    }
+  }
+
+  // El color del disco sale del puesto que ocupa cada uno en la casa, igual
+  // que en tu menu (memberAvatarColor): asi dos personas seguidas nunca caen
+  // del mismo color y la pila se lee como personas distintas.
+  const roster = members ?? [];
+  const faceOf = (mem) => ({
+    src: scopeFaceSrc(mem),
+    color: memberAvatarColor(mem.id, roster),
+  });
+
+  const all = roster.filter((mem) => eating.has(mem.id));
+  const groups = [];
+  for (const role of ROLE_ORDER) {
+    const mine = all.filter((mem) => mem.role === role);
+    if (mine.length > 0) groups.push({ role, label: ROLE_LABEL[role], faces: mine.map(faceOf) });
+  }
+  return { groups, all: all.map(faceOf) };
+}
+
+/**
+ * El recorte de cabeza y hombros de un comensal.
+ *
+ * El payload trae la ruta del dibujo a tamaño completo (un PNG de 1024 px
+ * donde el muñeco es una columna estrecha en el centro) y esto se pinta en
+ * discos de 34: en ese tamaño la persona son cuatro pixeles, y ademas se
+ * bajaba medio mega por cara. La regla de la casa para los circulos pequeños
+ * es /avatares/thumbs/... (memberAvatarThumbSrc), y aqui se aplica igual.
+ *
+ * Sin dibujo propio -nadie eligio avatar, o el menu se publico antes de que
+ * existieran- se cae al generico del rol. Aqui SI se puede: el circulo va
+ * etiquetado por categoria -"Niños"- y no dice que esa sea la cara de nadie.
+ */
+function scopeFaceSrc(mem) {
+  const full = mem?.avatar ?? ROLE_AVATAR[mem?.role] ?? ROLE_AVATAR.adulto;
+  return full.replace("/avatares/", "/avatares/thumbs/");
+}
+
+/**
+ * Dia / Semana con la misma pinta que en tu menu: circulo de color con el
+ * icono de la vista, su nombre y un chevron.
+ *
+ * Se replica el LENGUAJE de DeckNav (Menu.jsx) y no el componente: aquel abre
+ * un modal a pantalla completa con tres vistas y su propio estado; aqui son
+ * dos opciones dentro de una hoja que ya esta abierta, y un modal encima de
+ * otro modal es una pantalla de mas para elegir entre dos cosas.
+ */
+function ViewPicker({ week, onWeek }) {
+  const [open, setOpen] = useState(false);
+  const OPTS = [
+    { id: false, label: "Día", Icon: CalendarDays, color: "#c9820a" },
+    { id: true, label: "Semana", Icon: Layers2, color: "#2e7d75" },
+  ];
+  const active = OPTS.find((o) => o.id === week) ?? OPTS[0];
+  const ActiveIcon = active.Icon;
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Vista del menú (${active.label})`}
+        style={pickerBtn}
+      >
+        <span style={{ ...pickerCircle, background: active.color }}>
+          <ActiveIcon size={14} strokeWidth={2.6} color="#fff" />
+        </span>
+        <span style={{ fontSize: 13.5, fontWeight: 800, color: active.color, letterSpacing: "-.2px" }}>
+          {active.label}
+        </span>
+        <ChevronDown size={15} strokeWidth={2.8} color="#9db3a6" />
+      </button>
+
+      {open && (
+        <>
+          {/* Capa invisible para cerrar tocando fuera: sin ella el desplegable
+              se queda abierto y tapa el primer plato. */}
+          <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 1 }} />
+          <div role="listbox" style={pickerMenu}>
+            {OPTS.map((o) => {
+              const OptIcon = o.Icon;
+              const on = o.id === week;
+              return (
+                <button
+                  key={o.label}
+                  type="button"
+                  role="option"
+                  aria-selected={on}
+                  onClick={() => { onWeek(o.id); setOpen(false); }}
+                  style={{ ...pickerItem, background: on ? "#eef4f0" : "transparent" }}
+                >
+                  <span style={{ ...pickerCircle, background: o.color, width: 24, height: 24 }}>
+                    <OptIcon size={13} strokeWidth={2.6} color="#fff" />
+                  </span>
+                  <span style={{ flex: 1, textAlign: "left", fontSize: 13, fontWeight: on ? 900 : 700, color: INK }}>
+                    {o.label}
+                  </span>
+                  {on && <Check size={14} strokeWidth={3} color={o.color} />}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -1204,16 +1524,29 @@ function flattenDayDishes(day) {
 }
 
 /** Un plato, con su foto llenando la tarjeta. */
-function SharedDishTile({ item, byId, onPick, height, compact = false }) {
-  const { dish, slot, eaters } = item;
+function SharedDishTile({ item, stats = null, onPick, onOpen, height, compact = false }) {
+  const { dish, slot } = item;
   const [failed, setFailed] = useState(false);
   const img = dish.recipeId ? dishImageForRecipe({ id: dish.recipeId }) : null;
   // Un plato cerrado no se puede abrir: no hay receta detras, solo su nombre.
   const locked = dish.readable === false;
+  // Lo que la receta ES sale del catalogo, que es el mismo para todos: no hace
+  // falta que el menu publicado cargue con la dificultad ni con los minutos.
+  const catalog = dish.recipeId ? recipeCatalogById[dish.recipeId] : null;
+  // Ceros explicitos, como en el rio: sin ellos la columna de la derecha no se
+  // pinta y parece que el plato no tiene datos, en vez de tener cero. Un plato
+  // cerrado no lleva ninguna: no hay receta de la que contar nada.
+  const dishStats = dish.recipeId ? (stats?.[dish.recipeId] ?? EMPTY_STATS) : null;
   return (
     <button
       type="button"
-      onClick={locked ? undefined : () => onPick(dish)}
+      className={locked ? undefined : "mp-press"}
+      // La barra de acciones sale pegada al plato, asi que el toque tiene que
+      // decir DONDE esta el plato — no solo cual es.
+      onClick={locked ? undefined : (e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        onPick({ dish, anchor: { tile: { top: r.top, left: r.left, width: r.width, height: r.height }, radius: compact ? 16 : 20 } });
+      }}
       disabled={locked}
       style={{
         position: "relative", width: "100%", height, display: "block",
@@ -1241,20 +1574,23 @@ function SharedDishTile({ item, byId, onPick, height, compact = false }) {
           foto clara se vuelve ilegible. */}
       <span style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,30,18,.78) 0%, rgba(10,30,18,0) 58%)" }} />
 
-      {eaters.length > 0 && !compact && (
-        <span style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 3 }}>
-          {eaters.map((id) => (
-            <span key={id} style={{ ...memberDot, width: 20, height: 20, fontSize: 9, border: "1.5px solid rgba(255,255,255,.85)" }}>
-              {byId[id]?.role === "nino" ? "N" : "A"}
-            </span>
-          ))}
-        </span>
+      {/* Las mismas dos esquinas que el cartel de una receta en el rio: a la
+          izquierda lo que el plato ES -dificultad y minutos-, a la derecha lo
+          que la gente ha hecho con el -votos, veces cocinado, comentarios-.
+          Solo en la vista de dia: en la de semana la tarjeta mide la mitad y
+          seis pastillas la taparian entera. */}
+      {!compact && (
+        <PosterCorners difficulty={catalog?.difficulty ?? null} time={catalog?.time ?? null} stats={dishStats} inset={10} />
       )}
 
       {/* Turno y nombre, abajo y en ese orden, exactamente donde los pone
           DeckTile en tu propio menu: el punto de color y el eyebrow encima
           del titulo. Es la disposicion la que hace que se lea como la misma
-          app, mas que la foto. */}
+          app, mas que la foto.
+
+          Sin caras: quien come cada plato se elige arriba, en la franja de
+          Dia/Semana. Repetirlas aqui era pintar las mismas cuatro caras en
+          todas las tarjetas del dia para no decir nada nuevo en ninguna. */}
       <span style={{ position: "absolute", left: compact ? 10 : 14, right: compact ? 10 : 14, bottom: compact ? 10 : 13 }}>
         <span style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: compact ? 4 : 7 }}>
           <span style={{
@@ -1274,6 +1610,8 @@ function SharedDishTile({ item, byId, onPick, height, compact = false }) {
           display: "block", color: "#fff", fontWeight: 900, lineHeight: 1.15,
           fontSize: compact ? 13 : 19, letterSpacing: "-.3px",
           textShadow: "0 2px 12px rgba(0,0,0,.45)",
+          // Hueco a la derecha para la ⓘ, para que el nombre no pase por debajo.
+          paddingRight: compact || locked || !onOpen ? 0 : 34,
         }}>
           {dish.name}
           {dish.source === "user" && (
@@ -1284,16 +1622,102 @@ function SharedDishTile({ item, byId, onPick, height, compact = false }) {
           )}
         </span>
       </span>
+
+      {/* La ⓘ abre la receta entera, como en el cartel del rio y en el mazo.
+          Va aparte del toque en la foto a proposito: mirar la receta y
+          llevartela son dos cosas distintas, y antes tocar el plato solo
+          ofrecia lo segundo — para leerla no habia por donde. Un plato cerrado
+          no la enseña: no hay nada que abrir. */}
+      {onOpen && !locked && !compact && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={`Ver la receta de ${dish.name}`}
+          title="Ver la receta"
+          onClick={(e) => { e.stopPropagation(); onOpen(dish); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onOpen(dish); } }}
+          style={{
+            position: "absolute", right: 12, bottom: 14,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#fff", cursor: "pointer",
+            filter: "drop-shadow(0 1px 3px rgba(0,0,0,.5))",
+          }}
+        >
+          <Info size={26} strokeWidth={2.2} />
+        </span>
+      )}
     </button>
   );
 }
 
-function DishThumb({ dish }) {
-  const img = dish.recipeId ? dishImageForRecipe({ id: dish.recipeId }) : null;
-  if (!img) {
-    return <span style={{ ...peekThumb, background: "#eef3f0", display: "flex", alignItems: "center", justifyContent: "center", color: "#b6c7bd" }}><Lock size={13} strokeWidth={2.4} /></span>;
-  }
-  return <img src={deckImg(img, 160)} alt="" loading="lazy" style={peekThumb} />;
+/**
+ * Las acciones de un plato, pegadas al plato.
+ *
+ * Se replica el LENGUAJE de la barra que sale al mantener pulsado un plato en
+ * tu propio menu (DishActionBar en Menu.jsx) y no el componente: aquel arrastra
+ * el mazo entero -contexto de armado, anclas de regeneracion, portal- y aqui
+ * son dos botones dentro de una pantalla que ya esta abierta. Lo que se copia
+ * es lo que se ve: el fondo que apaga el resto, el recuadro claro sobre la
+ * foto que dice de que plato hablamos, y la fila de circulos con su copy
+ * debajo. Cae por debajo del plato si hay sitio, y por encima si no.
+ */
+function DishActionBar({ anchor, actions, onClose }) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const tile = anchor?.tile;
+  const BTN = 86;
+  const GAP = 8;
+  const PAD = 12;
+  const barW = actions.length * BTN + (actions.length - 1) * GAP + PAD * 2;
+  const cx = tile ? tile.left + tile.width / 2 : vw / 2;
+  const halfW = barW / 2 + 10;
+  const left = Math.min(Math.max(cx, halfW), vw - halfW);
+  const fitsBelow = !tile || tile.top + tile.height + 92 <= vh;
+  const anchorFromBottom = Boolean(tile) && !fitsBelow;
+  const top = !tile ? vh / 2 : anchorFromBottom ? tile.top - 14 : tile.top + tile.height + 14;
+
+  return (
+    <div onClick={onClose} className="mp-overlay-in" style={dishBarBackdrop} role="dialog" aria-modal="true">
+      {tile && (
+        <div
+          style={{
+            position: "fixed",
+            top: tile.top, left: tile.left, width: tile.width, height: tile.height,
+            boxSizing: "border-box", borderRadius: anchor.radius,
+            border: "2px solid rgba(255,255,255,.55)",
+            pointerEvents: "none", zIndex: 341,
+          }}
+        />
+      )}
+
+      <div
+        style={{
+          position: "fixed", top, left, zIndex: 342,
+          transform: !tile ? "translate(-50%, -50%)" : anchorFromBottom ? "translate(-50%, -100%)" : "translate(-50%, 0)",
+        }}
+      >
+        <div className="mp-pop" onClick={(e) => e.stopPropagation()} style={dishBar}>
+          {actions.map((act) => (
+            <button
+              key={act.id}
+              type="button"
+              className="mp-press"
+              aria-label={act.label}
+              onClick={act.onPick}
+              style={{ ...dishBarBtn, width: BTN }}
+            >
+              <span style={{ ...dishBarIcon, background: act.tint ?? "#eef5f0" }}>
+                <act.Icon size={18} strokeWidth={2.3} color={act.color ?? GREEN} />
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: INK, textAlign: "center", lineHeight: 1.15 }}>
+                {act.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── Guardar en carpetas ─────────────────────────────────────────────────────
@@ -1432,7 +1856,7 @@ function SaveToFolderDialog({ recipe, folders, onSave, onCreateFolder, onClose }
           </span>
         </label>
 
-        <button type="button" onClick={() => { onSave([...picked], remember); onClose(); }} style={{ ...primaryBtnFull, marginTop: 12 }}>
+        <button type="button" className="mp-press" onClick={() => { onSave([...picked], remember); onClose(); }} style={{ ...primaryBtnFull, marginTop: 12 }}>
           <Plus size={14} strokeWidth={2.8} /> Añadir a mis recetas
         </button>
       </div>
@@ -1477,7 +1901,10 @@ function writeSeenMenus(set) {
 }
 
 function rangeLabel(a, b) {
-  if (!a) return "Menú";
+  // Sin fecha no hay etiqueta. Antes devolvia "Menú", que en un chip junto a
+  // un menu no aporta nada: dice lo que ya se esta viendo. Quien llama
+  // decide si pinta algo o no.
+  if (!a) return null;
   const f = (s) => s.slice(8, 10) + "/" + s.slice(5, 7);
   return b ? `${f(a)} – ${f(b)}` : f(a);
 }
@@ -1517,62 +1944,122 @@ const glassPane = {
 // Los mismos colores de comida/cena que usa el asistente.
 const SLOT_COLOR = { Desayuno: "#a9762a", Comida: "#c9820a", Cena: "#5a7a9a" };
 
-// Selector Dia/Semana: pista tintada y pastilla blanca, el mismo segmented
-// control que ya usa el resto de la app.
-const deckSwitch = {
-  display: "flex", gap: 3, padding: 3, marginBottom: 12,
-  background: "#f0f4f1", borderRadius: 999,
-};
-const deckSwitchBtn = {
-  flex: 1, padding: "7px 0", border: "none", borderRadius: 999,
-  background: "none", cursor: "pointer", fontFamily: "inherit",
-  fontSize: 12.5, fontWeight: 800, color: "#7a9485",
-  transition: "background .18s ease, color .18s ease",
-};
-const deckSwitchOn = { background: "#fff", color: GREEN, boxShadow: "0 1px 3px rgba(20,47,29,.12)" };
-
-const deckDayStrip = {
-  display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 12,
-};
-const deckDayChip = {
-  flexShrink: 0, padding: "6px 13px", borderRadius: 999,
-  border: "1px solid #dbe8df", background: "#fff", cursor: "pointer",
-  fontFamily: "inherit", fontSize: 12, fontWeight: 800, color: "#7a9485",
-};
-const deckDayChipOn = { background: GREEN, borderColor: GREEN, color: "#fff" };
-
-const deckWeekHead = { display: "flex", alignItems: "center", gap: 8, marginBottom: 8 };
-
-
-const readOnlyPill = {
-  display: "inline-flex", alignItems: "center", gap: 5, marginTop: 12,
-  padding: "5px 11px", borderRadius: 999,
-  background: "#eef3f0", color: "#5c6b60", fontSize: 11, fontWeight: 800,
-};
-
-const dishPickOverlay = {
-  position: "fixed", inset: 0, zIndex: 340,
-  background: "rgba(20,47,29,.45)", backdropFilter: "blur(2px)",
-  display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
-};
-
-const dishPickCard = {
-  width: "100%", maxWidth: 330, padding: 14,
-  borderRadius: 20, background: "#fff",
-  boxShadow: "0 24px 60px rgba(0,0,0,.25)", boxSizing: "border-box",
-};
-
-const dishPickAction = {
-  flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-  padding: "14px 8px", borderRadius: 16,
-  border: "1.5px solid #e0eae3", background: "#fbfcfb",
-  fontSize: 12, fontWeight: 800, color: INK,
+// Selector de vista: el mismo lenguaje que DeckNav en tu menu — circulo de
+// color con el icono, el nombre y un chevron.
+const pickerBtn = {
+  display: "inline-flex", alignItems: "center", gap: 7,
+  padding: 0, border: "none", background: "none",
   cursor: "pointer", fontFamily: "inherit",
 };
 
-const peekThumb = {
-  width: 38, height: 38, borderRadius: 10, objectFit: "cover",
-  flexShrink: 0, display: "block", background: "#f4f7f5",
+const pickerCircle = {
+  width: 28, height: 28, borderRadius: 999, flexShrink: 0,
+  display: "inline-flex", alignItems: "center", justifyContent: "center",
+};
+
+const pickerMenu = {
+  position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 2,
+  minWidth: 170, padding: 5, borderRadius: 14,
+  background: "#fff", border: "1px solid #e0eae3",
+  boxShadow: "0 10px 28px rgba(20,47,29,.16)",
+  display: "flex", flexDirection: "column", gap: 2,
+};
+
+const pickerItem = {
+  display: "flex", alignItems: "center", gap: 9, width: "100%",
+  padding: "7px 9px", borderRadius: 10, border: "none",
+  cursor: "pointer", fontFamily: "inherit",
+};
+
+// Los siete dias, repartidos y SIN scroll horizontal.
+//
+// Antes era una tira que se desbordaba: los ultimos dias quedaban fuera de
+// pantalla y habia que arrastrar para llegar al domingo, con la barra de
+// scroll cortando por la mitad. Siete elementos cortos caben de sobra en los
+// 420px de la columna — desbordar era gratis y molestaba.
+//
+// Y son CASILLAS de calendario, no pastillas: siete pildoras blancas con borde
+// y texto gris tenian la forma de siete botones de accion, cuando lo que hay
+// debajo es una semana. La pista verde clara es la misma de los controles
+// segmentados de la app (§6.2), asi que la tira se lee como un selector y no
+// como una fila de botones sueltos.
+const deckDayStrip = {
+  display: "flex", gap: 2, marginBottom: 14,
+  padding: 4, borderRadius: 16,
+  background: "#f0f4f1", border: "1px solid #e6efe9",
+};
+const deckDayCell = {
+  flex: 1, minWidth: 0,
+  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
+  padding: "6px 0 7px", borderRadius: 12,
+  border: "none", background: "none", cursor: "pointer",
+  fontFamily: "inherit", transition: "background .15s ease",
+};
+const deckDayCellOn = { background: GREEN, boxShadow: "0 4px 12px rgba(45,90,61,.28)" };
+const deckDayName = {
+  fontSize: 9.5, fontWeight: 800, letterSpacing: ".5px",
+  textTransform: "uppercase", lineHeight: 1,
+};
+const deckDayNum = { fontSize: 14, fontWeight: 900, lineHeight: 1, fontVariantNumeric: "tabular-nums" };
+
+const deckWeekHead = { display: "flex", alignItems: "center", gap: 8, marginBottom: 8 };
+
+// Como lo miras a la izquierda, para quien a la derecha. Envuelve si la casa
+// tiene tres grupos y no caben en una linea de 420 px.
+const deckTopRow = {
+  display: "flex", alignItems: "center", justifyContent: "space-between",
+  flexWrap: "wrap", gap: 8, marginBottom: 12,
+};
+
+// El mismo tamaño de circulo que el filtro del mazo de tu menu, un punto por
+// debajo (42 alli) porque aqui comparten linea con el selector de vista.
+const SCOPE_FACE = 34;
+
+// Tres caras y a partir de ahi un contador. Sin tope, la casa entera se pinta
+// entera en "Todos" y una familia de seis empuja los demas grupos fuera de la
+// linea; con el contador, cada grupo mide siempre lo mismo.
+const SCOPE_MAX = 3;
+
+const scopeRow = {
+  display: "flex", alignItems: "flex-start", gap: 10,
+  marginLeft: "auto",
+};
+
+const scopeOpt = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+  padding: 0, border: "none", background: "transparent",
+  cursor: "pointer", fontFamily: "inherit", minWidth: 40,
+};
+
+const scopeOptLabel = {
+  fontSize: 10.5, fontWeight: 800, whiteSpace: "nowrap",
+  transition: "color .15s ease",
+};
+
+const scopeDivider = {
+  width: 1, height: 30, background: "#dde8e1", alignSelf: "center", flexShrink: 0,
+};
+
+const dishBarBackdrop = {
+  position: "fixed", inset: 0, zIndex: 340,
+  background: "rgba(9,18,12,.8)",
+};
+
+const dishBar = {
+  display: "flex", gap: 8, padding: 12, borderRadius: 20,
+  background: "rgba(250,252,251,.98)",
+  boxShadow: "0 14px 34px rgba(9,18,12,.42)",
+};
+
+const dishBarBtn = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+  padding: "8px 2px", border: "none", background: "none", borderRadius: 12,
+  cursor: "pointer", fontFamily: "inherit",
+};
+
+const dishBarIcon = {
+  width: 38, height: 38, borderRadius: "50%",
+  display: "grid", placeItems: "center",
 };
 
 const peekBackdrop = {
@@ -1587,28 +2074,50 @@ const peekScreen = {
   boxShadow: "0 0 60px rgba(0,0,0,.35)",
 };
 
-const peekHeader = {
+// Exactamente la misma caja que la cabecera de Inicio, Menú, Recetas o el
+// propio Feed: 20 px arriba, 14 abajo y 36 de alto por dentro. Entrar en la
+// cocina de alguien no es entrar en otra app, asi que la barra no puede medir
+// otra cosa — antes era mas baja y el salto se notaba al abrirla. El inset
+// seguro se suma al padding para que en un movil con notch tampoco se meta
+// debajo.
+const peekBar = {
   position: "relative",
-  display: "flex", flexDirection: "column", alignItems: "center",
-  padding: "26px 20px 20px",
-  background: `linear-gradient(180deg, ${HEADER_BAND} 0%, #fff 100%)`,
+  display: "flex", alignItems: "center", gap: 10,
+  // La pantalla del asomo es una columna flex, asi que sin esto la cabecera
+  // ENCOGE cuando el menu es largo: pedia 70 px y se quedaba en 64, y por eso
+  // no acababa de cuadrar con la del resto de pestañas por mucho padding que
+  // se le pusiera.
+  flexShrink: 0,
+  padding: "20px 16px 14px",
+  paddingTop: "calc(20px + env(safe-area-inset-top, 0px))",
+  background: HEADER_BAND,
+  borderBottom: "1px solid #dfeae3",
 };
 
-const peekClose = {
-  position: "absolute", top: 14, right: 14,
-  display: "flex", alignItems: "center", justifyContent: "center",
-  width: 36, height: 36, borderRadius: 12,
-  border: "1.5px solid #d5e6da", background: "#fff", color: GREEN, cursor: "pointer",
+const peekBarIcon = {
+  display: "inline-flex", alignItems: "center", justifyContent: "center",
+  width: 36, height: 36, borderRadius: 999, flexShrink: 0,
+  border: "none", background: "#f0f4f1", color: GREEN, cursor: "pointer",
 };
 
-const peekMenuBtn = {
-  display: "flex", alignItems: "center", justifyContent: "center",
-  width: 36, height: 36, borderRadius: 12,
-  border: "1.5px solid #d5e6da", background: "#fff", color: GREEN, cursor: "pointer",
+const peekWho = {
+  display: "flex", alignItems: "center", gap: 9,
+  flex: 1, minWidth: 0, padding: 0, border: "none", background: "none",
+  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+};
+
+const peekWhoName = {
+  display: "block", fontSize: 14, fontWeight: 900, color: INK,
+  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+};
+
+const peekWhoWhen = {
+  display: "block", fontSize: 11.5, fontWeight: 700, color: "#8aa294",
+  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
 };
 
 const peekMenu = {
-  position: "absolute", top: 40, left: 0, zIndex: 3,
+  position: "absolute", top: "calc(100% - 4px)", right: 16, zIndex: 3,
   width: 168, padding: 5, borderRadius: 13,
   background: "#fff", border: "1.5px solid #e0eae3",
   boxShadow: "0 10px 30px rgba(20,47,29,.18)",
@@ -1702,18 +2211,6 @@ const inspireLink = {
 const dayRow = { display: "flex", gap: 10, alignItems: "flex-start" };
 const dayName = { flexShrink: 0, width: 34, fontSize: 11.5, fontWeight: 900, color: "#7a9485", textTransform: "uppercase", paddingTop: 1 };
 
-const clearFilterBtn = {
-  marginLeft: 4, padding: "3px 10px", borderRadius: 999,
-  border: "1.5px solid #cfe6df", background: "#fff", color: TEAL,
-  fontSize: 10.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-};
-
-const memberDot = {
-  width: 22, height: 22, borderRadius: 999, flexShrink: 0,
-  display: "flex", alignItems: "center", justifyContent: "center",
-  background: "#e8efe9", color: "#42594c", fontSize: 10, fontWeight: 900,
-};
-
 /**
  * La tarjeta de publicar.
  *
@@ -1729,14 +2226,11 @@ const VIS_PROMPT_KEY = "hm_feed_visibility_asked";
 // La lengueta: a la altura de la fila de pestañas, redondeada solo por la
 // izquierda y mordida por el borde derecho de la columna.
 
-
 const publishClose = {
   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   width: 24, height: 24, borderRadius: 999, marginLeft: 4,
   border: "none", background: "rgba(20,47,29,.07)", color: "#7a8a7f", cursor: "pointer",
 };
-
-
 
 // Plegada asoma por el borde izquierdo (margen negativo contra el padding de
 // la columna) y solo se redondea por la derecha, que es el lado que se ve.
@@ -1804,9 +2298,12 @@ const ringOn = {
 // Ya abierto: gris plano. La diferencia entre "hay algo nuevo" y "ya lo has
 // visto" es lo único que la fila necesita comunicar.
 // El hueco de "tu menu" sin publicar: anillo punteado, la invitacion clasica.
+// Mismo diametro exterior que ringOn/ringOff (58): el borde de 2px se come
+// parte del aire en vez de sumarse, o "Tu menu" quedaba mas gordo y mas
+// pegado a su vecino que el resto de la fila.
 const ringDashed = {
-  display: "flex", padding: 2.5, borderRadius: "50%",
-  border: "2px dashed #9ab5a6", margin: -2,
+  display: "flex", padding: 0.5, borderRadius: "50%",
+  border: "2px dashed #9ab5a6",
 };
 
 const shareCircle = {
@@ -1847,6 +2344,4 @@ const sheet = {
   paddingBottom: "calc(18px + env(safe-area-inset-bottom))",
   boxSizing: "border-box",
 };
-
-
 

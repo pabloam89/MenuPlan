@@ -94,6 +94,13 @@ function rowToRecipe(row) {
     // servida desde Supabase y el pool principal del generador se queda a 0
     // para cualquier grupo sin bebés. Ver 0025_recipe_estrella.sql.
     ...(row.estrella != null ? { estrella: row.estrella } : {}),
+    // Plato de OCASIÓN (marisco de ración, arroces de bogavante, paellas):
+    // la regla 3f de validateMenu.js lo saca de lunes a viernes. Mismo mapeo
+    // que faltó en su día para apetecible/montaje/estrella/extraProteins — sin
+    // esta línea el campo existe en el JSON, existe en el schema y se pierde
+    // en el viaje para cualquier receta servida desde Supabase, que es lo que
+    // producción sirve cuando catalog_meta.version alcanza a la del bundle.
+    ...(row.occasion ? { occasion: row.occasion } : {}),
     ...(row.can_be_garnish != null ? { canBeGarnish: row.can_be_garnish } : {}),
     ...(row.main_ingredients?.length ? { mainIngredients: row.main_ingredients } : {}),
     // Proteínas animales secundarias (jamón en una ensalada, atún en un
@@ -174,6 +181,35 @@ function withTimeout(promise, ms) {
   ]);
 }
 
+// Cuánto tarda en volver a preguntarse "¿hay catálogo nuevo?" cuando la
+// respuesta ha sido que no. La consulta en sí son ~100 bytes, pero es una ida
+// y vuelta en el arranque de CADA carga, y la respuesta solo cambia cuando
+// alguien sube una seed nueva a mano.
+const NO_UPDATE_KEY = "mp_recipe_catalog_uptodate_v1";
+const NO_UPDATE_TTL_MS = 6 * 60 * 60 * 1000;
+
+function remoteKnownUpToDate() {
+  try {
+    const raw = localStorage.getItem(NO_UPDATE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    // Atado a la versión del bundle: en cuanto se despliega un bundle nuevo,
+    // la nota deja de valer y se vuelve a preguntar.
+    if (parsed?.bundled !== BUNDLED_CATALOG_VERSION) return false;
+    return Date.now() - (parsed.at ?? 0) <= NO_UPDATE_TTL_MS;
+  } catch {
+    return false;
+  }
+}
+
+function markRemoteUpToDate() {
+  try {
+    localStorage.setItem(NO_UPDATE_KEY, JSON.stringify({ bundled: BUNDLED_CATALOG_VERSION, at: Date.now() }));
+  } catch {
+    // Cuota llena o modo privado: solo significa volver a preguntar.
+  }
+}
+
 // Reads the remote catalog version from catalog_meta. Any problem (table not
 // created yet, no row, network/permission error) resolves to 0 so the version
 // gate below treats the DB as "behind" and keeps the bundled JSON — the safe
@@ -181,7 +217,9 @@ function withTimeout(promise, ms) {
 async function loadRemoteCatalogVersion() {
   try {
     const { data, error } = await withTimeout(
-      supabase.from("catalog_meta").select("version").eq("id", "recipes").maybeSingle(),
+      supabase.from("catalog_meta").select("version").eq("id", "recipes")
+        .abortSignal(AbortSignal.timeout(SUPABASE_FETCH_TIMEOUT_MS))
+        .maybeSingle(),
       SUPABASE_FETCH_TIMEOUT_MS,
     );
     if (error) throw error;
@@ -202,24 +240,49 @@ async function loadRemoteCatalogVersion() {
 async function loadRecipes() {
   if (!supabase) return JSON_RECIPES;
 
+  // Empate = mismo contenido. La versión sube cuando cambia el JSON y la seed
+  // la iguala, así que con v20 en los dos lados bajarse el catálogo entero es
+  // pagar ~1,1 MB por recibir exactamente lo que ya viene en el bundle. Solo
+  // hay algo que traerse cuando la nube va POR DELANTE, que es el caso real
+  // del "editar recetas en Supabase sin redesplegar".
+  if (remoteKnownUpToDate()) return JSON_RECIPES;
+
   const cached = readCatalogCache();
-  if (cached && cached.version >= BUNDLED_CATALOG_VERSION) {
+  if (cached && cached.version > BUNDLED_CATALOG_VERSION) {
     return cached.recipes;
   }
 
   try {
-    const [remoteVersion, result] = await Promise.all([
-      loadRemoteCatalogVersion(),
-      withTimeout(supabase.from("recipes").select("*"), SUPABASE_FETCH_TIMEOUT_MS),
-    ]);
+    // La VERSIÓN primero, y el catálogo solo si hace falta.
+    //
+    // Antes las dos peticiones salían en paralelo (Promise.all), así que el
+    // catálogo entero se descargaba SIEMPRE y se tiraba a la basura cuando la
+    // puerta de versión no dejaba usarlo — y ese camino además no cacheaba
+    // nada, o sea que volvía a bajárselo entero en la siguiente carga. Con el
+    // bundle por delante de la nube (que es lo normal justo después de un
+    // despliegue) eran megas por recarga, por usuario, para nada. La ida y
+    // vuelta de más que cuesta preguntar antes son ~100 bytes.
+    const remoteVersion = await loadRemoteCatalogVersion();
 
-    if (remoteVersion < BUNDLED_CATALOG_VERSION) {
-      console.warn(
-        `[recipeCatalog] Catálogo de Supabase v${remoteVersion} por detrás del incluido ` +
-          `v${BUNDLED_CATALOG_VERSION}; usando el catálogo local para no degradar datos.`,
-      );
+    if (remoteVersion <= BUNDLED_CATALOG_VERSION) {
+      if (remoteVersion < BUNDLED_CATALOG_VERSION) {
+        console.warn(
+          `[recipeCatalog] Catálogo de Supabase v${remoteVersion} por detrás del incluido ` +
+            `v${BUNDLED_CATALOG_VERSION}; usando el catálogo local para no degradar datos.`,
+        );
+      }
+      markRemoteUpToDate();
       return JSON_RECIPES;
     }
+
+    // Con AbortSignal, no solo con la carrera del timeout: withTimeout deja de
+    // ESPERAR a los 3 s, pero sin abortar la petición los megas siguen
+    // bajando igual. Una conexión lenta pagaba el catálogo entero Y encima se
+    // quedaba con el JSON local — lo peor de los dos mundos.
+    const result = await withTimeout(
+      supabase.from("recipes").select("*").abortSignal(AbortSignal.timeout(SUPABASE_FETCH_TIMEOUT_MS)),
+      SUPABASE_FETCH_TIMEOUT_MS,
+    );
 
     const { data, error } = result;
     if (error) throw error;

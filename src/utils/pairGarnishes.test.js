@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { pairGarnishes } from "./pairGarnishes.js";
+import guarnicionesCatalog from "../data/recipes/guarniciones.json";
+import pescados from "../data/recipes/pescados.json";
+import huevos from "../data/recipes/huevos.json";
 
 function garnish(overrides) {
   return {
@@ -36,6 +39,28 @@ describe("pairGarnishes", () => {
     const slots = [{ slotId: "lun_cena", recipeId: "p1" }];
     const result = pairGarnishes(slots, pool, {}, []);
     expect(result[0].garnishId).toBeUndefined();
+  });
+
+  it("nunca pone guarnición automática a una receta del Recetario Estrella", () => {
+    // "Lenguado meunière con mantequilla y limón" ya es un plato entero. Al
+    // pegarle una guarnición salía "…con alcachofas confitadas con jamón": un
+    // título imposible, veinte ingredientes y la sal repetida tres veces.
+    const pool = { p1: principal({ estrella: true }) };
+    const slots = [{ slotId: "lun_cena", recipeId: "p1" }];
+    const result = pairGarnishes(slots, pool, {}, [garnish()]);
+    expect(result[0].garnishId).toBeUndefined();
+  });
+
+  it("pero sí respeta la guarnición que ha fijado el usuario, aunque sea estrella", () => {
+    // Elegirla es una decisión de quien cocina; lo que sobra es que la app se
+    // la invente.
+    // Id real del catalogo: la guarnicion fijada se resuelve contra
+    // guarniciones.json, no contra la lista de seguras (que solo gobierna el
+    // automatico).
+    const pool = { p1: principal({ estrella: true }) };
+    const slots = [{ slotId: "lun_cena", recipeId: "p1" }];
+    const result = pairGarnishes(slots, pool, { p1: "guarniciones_037" }, []);
+    expect(result[0].garnishId).toBe("guarniciones_037");
   });
 
   it("does not pair a garnish for a non-principal recipe", () => {
@@ -169,5 +194,25 @@ describe("pairGarnishes", () => {
     const slots = [{ slotId: "lun_cena", recipeId: "p1" }];
     const result = pairGarnishes(slots, pool, { p1: "guarniciones_024" }, []);
     expect(result[0].garnishId).toBe("guarniciones_024");
+  });
+});
+
+describe("pairGarnishes contra el catálogo real", () => {
+  // Los tres casos que se reportaron, con sus ids de verdad: si alguna vez
+  // vuelve a salir "Lenguado meunière con mantequilla y limón CON alcachofas
+  // confitadas con jamón", este test lo dice antes que un usuario.
+  const REPORTADAS = [
+    ...pescados.filter((r) => r.id === "pescados_086"),
+    ...huevos.filter((r) => r.id === "huevos_086"),
+  ];
+
+  it("no le pone guarnición a ninguna receta estrella reportada", () => {
+    expect(REPORTADAS.length).toBe(2);
+    for (const recipe of REPORTADAS) {
+      expect(recipe.estrella).toBe(true);
+      const slots = [{ slotId: "lun_cena", recipeId: recipe.id }];
+      const result = pairGarnishes(slots, { [recipe.id]: recipe }, {}, guarnicionesCatalog);
+      expect(result[0].garnishId).toBeUndefined();
+    }
   });
 });

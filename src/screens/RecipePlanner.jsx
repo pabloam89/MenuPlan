@@ -56,7 +56,6 @@ import {
   INGREDIENT_CATALOG_BY_AISLE,
   generateUserRecipeDraft,
   generateDishPhotoWithAI,
-  compressPhotoDataUrl,
   suggestRecipeIngredients,
 } from "../lib/userRecipes.js";
 import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle, ingredientStem } from "../lib/ingredientCategories.js";
@@ -1378,30 +1377,30 @@ function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
 
 // ── Visibility options ─────────────────────────────────────────────────────
 
+// Dos estados, no tres (0046): publicada o no. La AUDIENCIA de lo publicado
+// la decide tu cuenta -cerrada, tus conexiones; abierta, cualquiera-, asi que
+// preguntarla aqui otra vez, receta a receta, era la tercera escala del
+// sistema y ya sobraba con dos.
+//
+// El copy de "Solo amigos" decia ademas algo que ya no es cierto: hablaba de
+// seguimiento MUTUO, y bajo conexion mutua eso es sencillamente "tus
+// conexiones". 'friends' se queda como valor legacy en las recetas viejas —
+// la RLS lo trata como publicada, igual que 'public'.
 const VISIBILITY_OPTIONS = [
   {
     id: "public",
     art: "/avatares/cards/vis_cualquiera.png",
-    label: "Pública",
-    sub: "Cualquier usuario de HoMenu puede verla y valorarla.",
+    label: "Publicada",
+    sub: "La verán tus conexiones — o cualquiera, si tu cuenta está abierta.",
     color: "#2d5a3d",
     bg: "#e6f3ea",
     border: "#a8d5b5",
   },
   {
-    id: "friends",
-    art: "/avatares/cards/vis_seguidores.png",
-    label: "Solo amigos",
-    sub: "Solo la ven las personas que sigues y que te siguen.",
-    color: "#7a4e00",
-    bg: "#fff8e7",
-    border: "#f0d090",
-  },
-  {
     id: "private",
     art: "/avatares/cards/vis_nadie.png",
-    label: "Privada",
-    sub: "Solo tú puedes verla. No aparece en ningún listado.",
+    label: "Solo para mí",
+    sub: "No se publica. Solo tú la ves, en tu recetario.",
     color: "#5a2d7a",
     bg: "#f5edfc",
     border: "#c9a0e8",
@@ -1440,7 +1439,7 @@ function VisibilitySheet({ onConfirm, onClose }) {
         <div style={{ width: 36, height: 4, background: "#dde5df", borderRadius: 99, margin: "0 auto 18px" }} />
 
         <p style={{ margin: "0 0 4px", fontSize: 17, fontWeight: 900, color: "#142f1d", textAlign: "center" }}>
-          ¿Quién puede ver esta receta?
+          ¿Publicas esta receta?
         </p>
         <p style={{ margin: "0 0 18px", fontSize: 13, color: "#7a9485", textAlign: "center", lineHeight: 1.45 }}>
           Podrás cambiarlo después desde tu recetario.
@@ -1955,12 +1954,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
     photoAbortRef.current = ctrl;
     try {
       const dataUrl = await generateDishPhotoWithAI(form.name.trim(), { signal: ctrl.signal, category: form.category });
-      // Shrink before it ever reaches state/localStorage — the raw Gemini
-      // output can be 1-2MB, and it's about to be stored on the recipe
-      // itself (see compressPhotoDataUrl). Falls back to the original on
-      // any processing error rather than losing the photo.
-      const compressed = await compressPhotoDataUrl(dataUrl).catch(() => dataUrl);
-      setPhoto(compressed);
+      setPhoto(dataUrl);
       setPhotoGenState("idle");
     } catch (err) {
       if (err?.name === "AbortError") return;
@@ -2021,7 +2015,8 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
       source: "user",
       createdAt: draft.createdAt ?? Date.now(),
       rating: draft.rating ?? { up: 0, down: 0, score: 0 },
-      // Visibility: "public" | "friends" | "private"
+      // Visibility: "public" (publicada) | "private" (no publicada).
+      // 'friends' solo sobrevive en recetas creadas antes de la 0046.
       visibility,
     };
     setData((d) => {

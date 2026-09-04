@@ -689,6 +689,7 @@ export function CatalogBrowserSheet({
   const clearFilters = () => {
     setCats(new Set());
     setViewingMine(false);
+    setViewingCollection(null);
     setProteins(new Set());
     setMaxTime(0);
     setDifficulties(new Set());
@@ -700,6 +701,13 @@ export function CatalogBrowserSheet({
   };
 
   const goBackToCategories = () => {
+    // Dentro de una carpeta, "Volver" sube a la raíz de Mis recetas, no al
+    // grid de categorías.
+    if (viewingCollection) {
+      setViewingCollection(null);
+      setQuery("");
+      return;
+    }
     setQuery("");
     clearFilters();
     setShowFilters(false);
@@ -986,11 +994,10 @@ export function CatalogBrowserSheet({
         const broken = isFacet && brokenFacetImgs.has(tile.id);
         const label = isMine ? "Mis recetas" : isFacet ? meta.label : categoryLabel(tile.id);
         const count = isMine ? mineIds.size : isFacet ? facetCounts[tile.id] ?? 0 : categoryCounts[tile.id] ?? 0;
-        // "Mis recetas" a 0 no lleva a ningún sitio útil — antes entrabas y
-        // caías en el mensaje genérico de "No encontramos platos con esos
-        // filtros", que confunde (parece que falló una búsqueda, no que aún
-        // no has creado/marcado nada). Mejor deshabilitar la tile entera.
-        const disabled = isMine && count === 0;
+        // "Mis recetas" siempre se puede abrir, aunque tengas 0: la raíz
+        // muestra las carpetas (Todas, Descartados...), no el mensaje
+        // genérico de "sin resultados" — ese solo sale fuera de inMineRoot.
+        const disabled = false;
         const onTileClick = () => {
           if (disabled) return;
           if (isMine) {
@@ -1172,7 +1179,7 @@ export function CatalogBrowserSheet({
                 // no hay nada que publicar ni retirar.
                 social={
                   viewingMine && r.source === "user"
-                    ? { published: (r.visibility ?? "private") !== "private", visibility: r.visibility, stats: socialStats[r.id] ?? null }
+                    ? { stats: socialStats[r.id] ?? null }
                     : null
                 }
               />
@@ -2452,15 +2459,10 @@ function formatDishTime(totalMin) {
 // el único catálogo que se navega aquí, así que toda receta que llega ya
 // tiene foto propia — sin guarnición, sin salsa, sin descarte: eso vivía en
 // la lista antigua y ya no aplica a este pool.
-const publishedPin = {
-  position: "absolute", top: 6, left: 6, zIndex: 2,
-  display: "flex", alignItems: "center", justifyContent: "center",
-  width: 20, height: 20, borderRadius: "50%",
-  background: "rgba(45,90,61,.92)", color: "#fff",
-};
-
+// Debajo del corazon, no a su lado: arriba a la derecha ya vive favoritos, y
+// compartir esquina los pintaba uno encima del otro.
 const socialPins = {
-  position: "absolute", top: 6, right: 6, zIndex: 2,
+  position: "absolute", top: 36, right: 6, zIndex: 2,
   display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-end",
 };
 
@@ -2498,18 +2500,6 @@ function RecipeGridCard({
           boxShadow: "inset 0 0 0 1px #dce8e0",
         }}
       >
-        {/* Publicada o no, y como le va.
-            Solo en TUS recetas (social viene nulo en el catalogo): saber si
-            algo esta publicado importa cuando puedes cambiarlo. El candado no
-            se pinta — que algo sea privado es lo normal, y marcar lo normal
-            llena la rejilla de iconos que no dicen nada. */}
-        {social?.published && (
-          <span style={publishedPin} title={social.visibility === "public" ? "Publicada para cualquiera" : "Publicada para tus amigos"}>
-            {social.visibility === "public"
-              ? <Globe size={10} strokeWidth={2.8} />
-              : <Users2 size={10} strokeWidth={2.8} />}
-          </span>
-        )}
         {social?.stats && (social.stats.likes > 0 || social.stats.comments > 0) && (
           <span style={socialPins}>
             {social.stats.likes > 0 && (

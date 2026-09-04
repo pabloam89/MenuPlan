@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BellOff, UserPlus, UserCheck, MessageCircle, CornerDownRight, AtSign, Check } from "lucide-react";
+import { BellOff, UserPlus, UserCheck, MessageCircle, CornerDownRight, AtSign, Check, CalendarDays } from "lucide-react";
 import { Avatar } from "./ui.jsx";
 import { acceptFollowRequest, rejectFollowRequest, followUser } from "../lib/social.js";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -216,6 +216,10 @@ const KIND = {
   comment:  { Icon: MessageCircle,   tint: "#e6efff", ink: BLUE },
   reply:    { Icon: CornerDownRight, tint: "#e6efff", ink: BLUE },
   mention:  { Icon: AtSign,          tint: "#e6efff", ink: BLUE },
+  // Tercera familia, y solo una: un menu publicado no es gente ni
+  // conversacion, es CONTENIDO que aparece. El teal lo separa sin sumar una
+  // cuarta idea de color a la lista.
+  menu:     { Icon: CalendarDays,    tint: "#e2f1ee", ink: "#0f766e" },
 };
 
 const LINE = {
@@ -225,6 +229,7 @@ const LINE = {
   comment:  (n) => (n.targetType === "menu" ? "comentó tu menú" : "comentó tu receta"),
   reply:    () => "respondió a tu comentario",
   mention:  () => "te ha nombrado",
+  menu:     () => "ha publicado su menú",
 };
 
 const overlay = { position: "fixed", inset: 0, zIndex: 300 };

@@ -13,9 +13,14 @@ import {
 } from "./validateMenu.js";
 
 function recipe(overrides) {
+  // El nombre por defecto sale del id porque hay reglas que miran el NOMBRE
+  // (dos ensaladas, mismo plato dos días seguidos): con "Receta" para todas,
+  // cualquier par de fixtures parecía el mismo plato y las pruebas fallaban
+  // por algo que no estaban probando.
+  const id = overrides?.id ?? "r1";
   return {
     id: "r1",
-    name: "Receta",
+    name: id,
     category: "carnes",
     mainProtein: "pollo",
     mealRole: ["segundo"],
@@ -1540,5 +1545,101 @@ describe("proteina_cena_consecutiva (mismo grupo de proteína en cenas de días 
     const fixed = applyFallback(assignments, violations, pool, slots);
     expect(fixed.find((s) => s.slotId === "mar_cena")?.recipeId).toBe("pescado_mar");
     expect(validateMenu(fixed, pool, slots).violations.map((v) => v.rule)).not.toContain("proteina_cena_consecutiva");
+  });
+});
+
+describe("mismo plato dos días seguidos (regla 3e)", () => {
+  // Reportado: hummus el lunes y el martes de primero, y quesadillas el martes
+  // y el miércoles. Las quesadillas eran DOS recetas distintas -carnes_120 y
+  // ensaladas_verduras_035-, con categoría y proteína distintas, así que no
+  // las veía ni la regla de receta repetida ni ninguna de las de proteína.
+  const dia = (id, name, roles) => recipe({ id, name, mealRole: roles, mainProtein: "none", category: "ensaladas_verduras" });
+
+  it("caza dos quesadillas en días seguidos aunque sean recetas distintas", () => {
+    const pool = [
+      dia("q1", "Quesadillas de queso y jamón con guacamole", ["segundo"]),
+      dia("q2", "Quesadilla de champiñones y queso", ["primero"]),
+      dia("otro", "Crema de calabacín", ["primero"]),
+    ];
+    const slots = [slot("mar_comida_2"), slot("mie_comida_1")];
+    const assignments = [
+      { slotId: "mar_comida_2", recipeId: "q1" },
+      { slotId: "mie_comida_1", recipeId: "q2" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("mismo_plato_seguido");
+  });
+
+  it("y lo repara con un plato de otra familia", () => {
+    // Con sus segundos: sin ellos saltaría además `comida_sin_segundo` y sería
+    // ESA reparación -no la de esta regla- la que moviera los platos.
+    const pool = [
+      dia("h1", "Hummus de aguacate y lima", ["primero"]),
+      dia("h2", "Hummus de guisantes y menta", ["primero"]),
+      dia("otro", "Crema de calabacín", ["primero"]),
+      recipe({ id: "s1", name: "Filete de ternera", mainProtein: "ternera", mealRole: ["segundo"] }),
+      recipe({ id: "s2", name: "Merluza al horno", mainProtein: "pescado_blanco", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2"), slot("mar_comida_1"), slot("mar_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "h1" },
+      { slotId: "lun_comida_2", recipeId: "s1" },
+      { slotId: "mar_comida_1", recipeId: "h2" },
+      { slotId: "mar_comida_2", recipeId: "s2" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toEqual(["mismo_plato_seguido"]);
+    const result = applyFallback(assignments, violations, pool, slots);
+    expect(result.find((s) => s.slotId === "mar_comida_1")?.recipeId).toBe("otro");
+  });
+
+  it("no se queja de dos platos que solo comparten el ingrediente, no el plato", () => {
+    const pool = [
+      dia("a", "Crema de calabacín", ["primero"]),
+      dia("b", "Salteado de calabacín con gambas", ["primero"]),
+    ];
+    const slots = [slot("lun_comida_1"), slot("mar_comida_1")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "a" },
+      { slotId: "mar_comida_1", recipeId: "b" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("mismo_plato_seguido");
+  });
+});
+
+describe("platos de ocasión entre semana (regla 3f)", () => {
+  // "Nadie en España toma cigalas a la plancha un puñetero martes para comer."
+  // Y el generador no podía saberlo: para él son un segundo de pescado, fácil
+  // y de 15 minutos — igual que un filete.
+  const cigalas = recipe({
+    id: "cigalas", name: "Cigalas a la plancha con alioli de azafrán",
+    category: "pescados", mainProtein: "marisco", mealRole: ["segundo"], occasion: "especial",
+  });
+  const filete = recipe({
+    id: "filete", name: "Filete de ternera a la plancha",
+    category: "carnes", mainProtein: "ternera", mealRole: ["segundo"],
+  });
+
+  it("las caza de lunes a viernes", () => {
+    const slots = [slot("mar_comida_2")];
+    const assignments = [{ slotId: "mar_comida_2", recipeId: "cigalas" }];
+    const { violations } = validateMenu(assignments, [cigalas, filete], slots);
+    expect(violations.map((v) => v.rule)).toContain("plato_ocasion_entre_semana");
+  });
+
+  it("y las deja en paz el fin de semana, que es donde viven", () => {
+    const slots = [slot("dom_comida_2")];
+    const assignments = [{ slotId: "dom_comida_2", recipeId: "cigalas" }];
+    const { violations } = validateMenu(assignments, [cigalas, filete], slots);
+    expect(violations.map((v) => v.rule)).not.toContain("plato_ocasion_entre_semana");
+  });
+
+  it("las cambia por un plato de diario al reparar", () => {
+    const slots = [slot("mar_comida_2")];
+    const assignments = [{ slotId: "mar_comida_2", recipeId: "cigalas" }];
+    const { violations } = validateMenu(assignments, [cigalas, filete], slots);
+    const result = applyFallback(assignments, violations, [cigalas, filete], slots);
+    expect(result[0].recipeId).toBe("filete");
   });
 });

@@ -24,6 +24,10 @@ function makeQuery(result, log, table) {
     not: (...a) => (log.push({ table, op: "not", args: a }), q),
     lte: (...a) => (log.push({ table, op: "lte", args: a }), q),
     gte: (...a) => (log.push({ table, op: "gte", args: a }), q),
+    // loadWeeklyMenus filtra el rango con .or() para dejar pasar tambien los
+    // menus sin fechas (ver el comentario alli): sin esto en el mock, el test
+    // fallaba por el doble de la mock y no por el codigo.
+    or: (...a) => (log.push({ table, op: "or", args: a }), q),
     then: (resolve, reject) => Promise.resolve(result).then(resolve, reject),
   };
   return q;
