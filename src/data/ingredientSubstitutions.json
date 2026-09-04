@@ -26,6 +26,18 @@
     "replacementLabel": "Leche condensada sin lactosa"
   },
   {
+    "ingredientId": "mascarpone",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Queso crema sin lactosa",
+    "note": "El tiramisu queda algo menos denso, pero monta y aguanta igual."
+  },
+  {
+    "ingredientId": "mozzarella",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Mozzarella sin lactosa",
+    "note": "Misma textura y mismo fundido."
+  },
+  {
     "ingredientId": "nata",
     "restriction": "lactosa_fina",
     "replacementLabel": "Nata para cocinar sin lactosa"
@@ -39,6 +51,18 @@
     "ingredientId": "queso-fresco",
     "restriction": "lactosa_fina",
     "replacementLabel": "Queso fresco sin lactosa"
+  },
+  {
+    "ingredientId": "requeson",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Yogur griego sin lactosa",
+    "note": "Mas cremoso que el requeson; en un bol con miel y nueces no se nota."
+  },
+  {
+    "ingredientId": "ricotta",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Queso crema sin lactosa",
+    "note": "Mas denso que la ricotta: si el relleno queda pesado, aflojalo con un chorrito de leche sin lactosa."
   },
   {
     "ingredientId": "sidra",

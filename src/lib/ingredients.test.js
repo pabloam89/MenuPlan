@@ -395,13 +395,21 @@ describe("planIngredientSubstitutions", () => {
 
   // Un solo ingrediente sin recambio invalida la adaptación entera, por muchos
   // otros que sí se puedan cambiar.
+  //
+  // El ejemplo era Mascarpone, hasta que el mascarpone tuvo recambio: hoy los
+  // 11 ingredientes de `lactosa_fina` lo tienen, así que el caso hay que
+  // buscarlo en alcohol_cocina. Y ahí no es un hueco pendiente, es la línea del
+  // catálogo: los FERMENTADOS tienen versión sin alcohol de supermercado
+  // (cava, cerveza, sidra, vino) y los DESTILADOS no. Un brandy 0,0 que
+  // flambee y sepa a brandy no existe, así que la receta se excluye en vez de
+  // adaptarse mintiendo.
   it("reporta los ingredientes sin recambio en vez de ignorarlos", () => {
     const plan = planIngredientSubstitutions(
-      { ingredients: [{ name: "Leche" }, { name: "Mascarpone" }] },
-      "lactosa_fina",
+      { ingredients: [{ name: "Vino blanco" }, { name: "Brandy" }] },
+      "alcohol_cocina",
     );
-    expect(plan.swaps.map((s) => s.from)).toEqual(["Leche"]);
-    expect(plan.unsubstitutable).toEqual(["Mascarpone"]);
+    expect(plan.swaps.map((s) => s.from)).toEqual(["Vino blanco"]);
+    expect(plan.unsubstitutable).toEqual(["Brandy"]);
   });
 
   // Misma regla que substitutions.js: si el conflicto solo vive en el nombre

@@ -13,11 +13,11 @@ insert into ingredient_substitutions (
   ('cerveza', 'alcohol_cocina', 'Cerveza sin alcohol', NULL, true, NULL),
   ('leche', 'lactosa_fina', 'Leche sin lactosa', NULL, true, NULL),
   ('leche-condensada', 'lactosa_fina', 'Leche condensada sin lactosa', NULL, true, NULL),
+  ('mascarpone', 'lactosa_fina', 'Queso crema sin lactosa', NULL, true, 'El tiramisu queda algo menos denso, pero monta y aguanta igual.'),
+  ('mozzarella', 'lactosa_fina', 'Mozzarella sin lactosa', NULL, true, 'Misma textura y mismo fundido.'),
   ('nata', 'lactosa_fina', 'Nata para cocinar sin lactosa', NULL, true, NULL),
   ('nata-para-montar', 'lactosa_fina', 'Nata para montar sin lactosa', NULL, true, NULL),
-  ('queso-fresco', 'lactosa_fina', 'Queso fresco sin lactosa', NULL, true, NULL),
-  ('sidra', 'alcohol_cocina', 'Sidra sin alcohol', NULL, true, NULL),
-  ('vino-blanco', 'alcohol_cocina', 'Vino blanco sin alcohol', NULL, true, NULL)
+  ('queso-fresco', 'lactosa_fina', 'Queso fresco sin lactosa', NULL, true, NULL)
 on conflict (ingredient_id, restriction) do update set
   replacement_label = excluded.replacement_label,
   replacement_id = excluded.replacement_id,
@@ -27,6 +27,10 @@ on conflict (ingredient_id, restriction) do update set
 insert into ingredient_substitutions (
   ingredient_id, restriction, replacement_label, replacement_id, invisible, note
 ) values
+  ('requeson', 'lactosa_fina', 'Yogur griego sin lactosa', NULL, true, 'Mas cremoso que el requeson; en un bol con miel y nueces no se nota.'),
+  ('ricotta', 'lactosa_fina', 'Queso crema sin lactosa', NULL, true, 'Mas denso que la ricotta: si el relleno queda pesado, aflojalo con un chorrito de leche sin lactosa.'),
+  ('sidra', 'alcohol_cocina', 'Sidra sin alcohol', NULL, true, NULL),
+  ('vino-blanco', 'alcohol_cocina', 'Vino blanco sin alcohol', NULL, true, NULL),
   ('vino-tinto', 'alcohol_cocina', 'Vino tinto sin alcohol', NULL, true, NULL),
   ('yogur', 'lactosa_fina', 'Yogur natural sin lactosa', NULL, true, NULL)
 on conflict (ingredient_id, restriction) do update set

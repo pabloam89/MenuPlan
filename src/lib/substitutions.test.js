@@ -175,20 +175,25 @@ describe("adaptaciones que ya no se inventan", () => {
     expect(blocked).toBe(true);
   });
 
-  it("bloquea con un lácteo sin versión sin lactosa (mozzarella)", () => {
+  // La mozzarella era el ejemplo de "lácteo sin recambio" y dejó de serlo: la
+  // mozzarella sin lactosa se vende en cualquier súper, y bloquear 12 recetas
+  // por un producto que existe es el error contrario al que estos tests vigilan.
+  it("adapta la mozzarella, que sí tiene versión sin lactosa", () => {
     const { swaps, blocked } = planAdaptations(
       recipe("Ensalada caprese", ["Mozzarella fresca", "Tomate"]),
       ["lactosa_fina"],
     );
-    expect(swaps).toEqual([]);
-    expect(blocked).toBe(true);
+    expect(blocked).toBe(false);
+    expect(swaps.map((s) => s.from)).toEqual(["Mozzarella fresca"]);
   });
 
-  // Un ingrediente sustituible no rescata a la receta si otro no lo es.
+  // Un ingrediente sustituible no rescata a la receta si otro no lo es. Hoy los
+  // 11 ingredientes de lactosa_fina tienen recambio, así que el caso vive en
+  // alcohol_cocina: el vino tiene 0,0 de súper y el brandy no.
   it("bloquea aunque parte de los ingredientes sí se puedan cambiar", () => {
     const { blocked } = planAdaptations(
-      recipe("Lasaña de setas", ["Leche", "Mozzarella fresca"]),
-      ["lactosa_fina"],
+      recipe("Solomillo a la pimienta", ["Vino blanco", "Brandy"]),
+      ["alcohol_cocina"],
     );
     expect(blocked).toBe(true);
   });
@@ -221,10 +226,10 @@ describe("isCompatibleWith / adaptationsNeededFor", () => {
     ]);
   });
 
-  it("un plato con lácteo sin recambio NO es compatible", () => {
-    const r = recipe("Caprese", ["Mozzarella fresca", "Tomate"]);
-    expect(isCompatibleWith(r, "lactosa_fina")).toBe(false);
-    expect(adaptationsNeededFor(r, "lactosa_fina")).toEqual([]);
+  it("un plato con un destilado NO es compatible", () => {
+    const r = recipe("Solomillo al whisky", ["Whisky", "Solomillo"]);
+    expect(isCompatibleWith(r, "alcohol_cocina")).toBe(false);
+    expect(adaptationsNeededFor(r, "alcohol_cocina")).toEqual([]);
   });
 
   // La distinción que hace que el distintivo signifique algo: sin ella, una
