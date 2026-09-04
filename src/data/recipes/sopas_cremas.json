@@ -284,7 +284,10 @@
     "saturated_fat_g": 1,
     "sodium_mg": 520,
     "freezable": false,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "extraProteins": [
+      "pollo"
+    ]
   },
   {
     "id": "sopas_cremas_003",
@@ -769,7 +772,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "pan"
   },
   {
     "id": "sopas_cremas_006",
@@ -1159,7 +1163,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "pan"
   },
   {
     "id": "sopas_cremas_008",
@@ -1305,7 +1310,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "sopas_cremas_009",
@@ -4377,7 +4383,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "pan"
   },
   {
     "id": "sopas_cremas_027",
@@ -4559,7 +4566,8 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "sopas_cremas_028",
@@ -4900,7 +4908,10 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "extraProteins": [
+      "pollo"
+    ]
   },
   {
     "id": "sopas_cremas_030",
@@ -5866,7 +5877,10 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "extraProteins": [
+      "pollo"
+    ]
   },
   {
     "id": "sopas_cremas_036",
@@ -6527,7 +6541,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "sopas_cremas_040",
@@ -10485,7 +10500,11 @@
     "sodium_mg": 620,
     "freezable": false,
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "pan",
+    "extraProteins": [
+      "pollo"
+    ]
   },
   {
     "id": "sopas_cremas_061",
@@ -10738,7 +10757,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "mainBase": "pan"
   },
   {
     "id": "sopas_cremas_062",
@@ -11259,7 +11279,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "sopas_cremas_065",
@@ -11607,7 +11628,10 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "extraProteins": [
+      "pollo"
+    ]
   },
   {
     "id": "sopas_cremas_067",
@@ -13550,7 +13574,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "sopas_cremas_078",
@@ -14613,5 +14638,253 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "sopas_cremas_087",
+    "name": "Sopa de tortilla con aguacate y crema",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero"
+    ],
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 310,
+    "protein_g": 8,
+    "carbs_g": 32,
+    "fat_g": 17,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Tortillas de maíz",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Queso crema",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar las tortillas en tiras finas y freírlas en el aceite hasta que estén doradas y crujientes. Reservar sobre papel absorbente.",
+      "En la misma cazuela, pochar la cebolla y el ajo picados hasta que estén transparentes.",
+      "Añadir el tomate troceado y cocinar 10 minutos, aplastándolo con la cuchara.",
+      "Triturar el sofrito y devolverlo a la cazuela con el caldo. Cocer 10 minutos a fuego suave y salar.",
+      "Servir la sopa bien caliente con las tiras de tortilla por encima.",
+      "Coronar con el aguacate en dados, una cucharada de queso crema y el cilantro picado."
+    ],
+    "description": "La sopa mexicana de siempre: caldo de tomate suave, tiras de tortilla crujientes por encima y el contraste fresco del aguacate y la crema.",
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "kidFavourite": true,
+    "tecnica": "olla",
+    "cocina": "mexicana",
+    "mainBase": "pan",
+    "extraProteins": [
+      "pollo"
+    ]
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "sopas_cremas_088",
+    "name": "Crema de calabaza con chile y cacahuetes tostados",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "time": 35,
+    "difficulty": "facil",
+    "kcal": 280,
+    "protein_g": 8,
+    "carbs_g": 26,
+    "fat_g": 16,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "cacahuetes"
+    ],
+    "ingredients": [
+      {
+        "name": "Calabaza",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Chile fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Cacahuetes tostados",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pochar la cebolla y el ajo picados en el aceite, a fuego suave, hasta que estén transparentes.",
+      "Añadir la calabaza en dados y el chile sin semillas, muy picado. Rehogar 5 minutos.",
+      "Cubrir con el caldo y cocer 20 minutos, hasta que la calabaza esté muy tierna.",
+      "Triturar hasta que quede fina y rectificar de sal.",
+      "Servir con los cacahuetes picados por encima, que es lo que le da el crujiente."
+    ],
+    "description": "Dulce por la calabaza, con un punto justo de picante y el crujido de los cacahuetes. Una crema que no aburre.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "olla",
+    "cocina": "mexicana"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "sopas_cremas_089",
+    "name": "Sopa miso con tofu y cebolleta",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 180,
+    "protein_g": 12,
+    "carbs_g": 10,
+    "fat_g": 9,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "sesamo",
+      "soja"
+    ],
+    "ingredients": [
+      {
+        "name": "Miso",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Tofu firme",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 700,
+        "unit": "ml"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de sésamo",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Calentar el caldo sin que llegue a hervir: el miso no debe cocer o pierde el aroma.",
+      "Disolver el miso en un cazo con un poco de ese caldo caliente, hasta que no queden grumos.",
+      "Devolverlo a la olla y añadir la salsa de soja.",
+      "Cortar el tofu en dados y añadirlo. Dejar 3 minutos para que se caliente.",
+      "Servir con la cebolleta en aros finos y unas gotas de aceite de sésamo."
+    ],
+    "description": "Ligera, salada y reconfortante. Quince minutos y una cena que sienta bien.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "olla",
+    "cocina": "asiatica"
   }
 ]

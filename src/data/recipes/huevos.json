@@ -115,7 +115,8 @@
     "saturated_fat_g": 5,
     "sodium_mg": 310,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "patatas"
   },
   {
     "id": "huevos_002",
@@ -302,7 +303,8 @@
     "saturated_fat_g": 6,
     "sodium_mg": 620,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "patatas"
   },
   {
     "id": "huevos_004",
@@ -2232,7 +2234,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "patatas"
   },
   {
     "id": "huevos_018",
@@ -6322,7 +6325,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "pan"
   },
   {
     "id": "huevos_045",
@@ -7453,7 +7457,8 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "huevos_052",
@@ -7610,7 +7615,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "pan"
   },
   {
     "id": "huevos_053",
@@ -7757,7 +7763,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "pan"
   },
   {
     "id": "huevos_054",
@@ -8024,7 +8031,8 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "patatas"
   },
   {
     "id": "huevos_056",
@@ -9452,7 +9460,8 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "mainBase": "pan"
   },
   {
     "id": "huevos_065",
@@ -9630,7 +9639,8 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "mainBase": "pan"
   },
   {
     "id": "huevos_066",
@@ -12938,7 +12948,8 @@
     ],
     "description": "Huevos fritos con patatas y chorizo crujiente, plato de siempre.",
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "patatas"
   },
   {
     "id": "huevos_086",
@@ -13190,6 +13201,97 @@
     "description": "Huevos fritos, salchichas y patatas fritas, plato de siempre para los peques y no tan peques.",
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "patatas"
+  },
+  {
+    "type": "principal",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "huevos_090",
+    "name": "Chiles rellenos de queso con salsa de tomate asado",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "mealRole": [
+      "primero",
+      "segundo"
+    ],
+    "time": 40,
+    "difficulty": "normal",
+    "kcal": 480,
+    "protein_g": 22,
+    "carbs_g": 22,
+    "fat_g": 34,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo",
+      "lactosa",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Pimiento verde",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Queso fresco",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Harina",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Asar los pimientos hasta que la piel se ampolle, taparlos 10 minutos y pelarlos.",
+      "Abrirlos con cuidado por un lado, retirar las semillas y rellenarlos con el queso en bastones.",
+      "Asar el tomate con la cebolla y el ajo, triturar y colar. Salar: esa es la salsa.",
+      "Separar las claras y montarlas a punto de nieve. Incorporar las yemas con movimientos suaves.",
+      "Pasar los chiles por harina y luego por el huevo montado.",
+      "Freír en aceite caliente hasta que estén dorados y escurrir sobre papel.",
+      "Servir sobre la salsa de tomate bien caliente."
+    ],
+    "description": "Pimientos asados y rellenos de queso, rebozados en huevo montado y servidos sobre una salsa de tomate asado. Un clásico que impresiona.",
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "tecnica": "horno",
+    "cocina": "mexicana"
   }
 ]

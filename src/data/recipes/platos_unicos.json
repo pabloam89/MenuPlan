@@ -2641,7 +2641,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "pan"
   },
   {
     "id": "platos_unicos_015",
@@ -3645,6 +3646,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "mainBase": "patatas"
   }
 ]

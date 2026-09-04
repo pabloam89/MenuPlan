@@ -187,7 +187,6 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true,
     "tecnica": "horno"
   },
   {
@@ -310,7 +309,6 @@
     "saturated_fat_g": 3,
     "sodium_mg": 95,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -508,7 +506,10 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "ternera"
+    ]
   },
   {
     "id": "carnes_004",
@@ -633,7 +634,6 @@
     "saturated_fat_g": 6,
     "sodium_mg": 380,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "sarten"
   },
   {
@@ -843,7 +843,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "carnes_006",
@@ -1507,11 +1508,11 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "mainBase": "pan"
   },
   {
     "id": "carnes_010",
@@ -2109,7 +2110,6 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true,
     "mainIngredients": [
       "lacteo"
     ],
@@ -2279,7 +2279,6 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true,
     "tecnica": "horno"
   },
   {
@@ -2467,7 +2466,6 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -3175,7 +3173,6 @@
     "saturated_fat_g": 11,
     "sodium_mg": 180,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -4222,7 +4219,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 95,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -4610,7 +4606,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "ternera"
+    ]
   },
   {
     "id": "carnes_027",
@@ -4732,7 +4731,6 @@
     "saturated_fat_g": 11,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -5309,7 +5307,6 @@
     "saturated_fat_g": 3,
     "sodium_mg": 95,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -5635,7 +5632,6 @@
     "saturated_fat_g": 4,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "sarten"
   },
   {
@@ -6201,7 +6197,6 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true,
     "tecnica": "sarten"
   },
   {
@@ -6366,7 +6361,6 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true,
     "tecnica": "sarten"
   },
   {
@@ -6950,7 +6944,8 @@
       "seta"
     ],
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "pan"
   },
   {
     "id": "carnes_039",
@@ -8782,7 +8777,11 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "pan",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "carnes_047",
@@ -10444,7 +10443,8 @@
       "fruta"
     ],
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "carnes_054",
@@ -10455,7 +10455,6 @@
       "segundo"
     ],
     "type": "principal",
-    "canReceiveSauce": true,
     "time": 25,
     "difficulty": "facil",
     "apetecible": true,
@@ -12452,7 +12451,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "extraProteins": [
+      "cerdo"
+    ]
   },
   {
     "id": "carnes_065",
@@ -13129,7 +13131,10 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "carnes_068",
@@ -13621,7 +13626,10 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "carnes_071",
@@ -15458,7 +15466,11 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas",
+    "extraProteins": [
+      "ternera"
+    ]
   },
   {
     "id": "carnes_079",
@@ -16391,7 +16403,6 @@
       "Servir las chuletillas bien calientes con un poco de romero fresco por encima."
     ],
     "description": "Chuletillas de cordero a la brasa aromatizadas con ajo y romero fresco.",
-    "canReceiveSauce": true,
     "stepsRich": [
       {
         "text": "Sacar {{Chuletillas de cordero}} de la nevera y dejar atemperar a temperatura ambiente.",
@@ -17308,7 +17319,10 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "carnes_088",
@@ -18161,7 +18175,6 @@
       "Servir las brochetas recién hechas."
     ],
     "description": "Brochetas de solomillo de ternera con pimientos, marinadas y asadas a la plancha.",
-    "canReceiveSauce": true,
     "stepsRich": [
       {
         "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Cebolla}} en trozos cuadrados del mismo tamaño que los dados de carne.",
@@ -19667,7 +19680,8 @@
       "verdura"
     ],
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "patatas"
   },
   {
     "id": "carnes_099",
@@ -20121,7 +20135,10 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "carnes_101",
@@ -20847,7 +20864,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "patatas"
   },
   {
     "id": "carnes_104",
@@ -21267,7 +21285,8 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "carnes_106",
@@ -22646,7 +22665,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "carnes_112",
@@ -25033,7 +25053,11 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "extraProteins": [
+      "cerdo",
+      "huevo"
+    ]
   },
   {
     "id": "carnes_123",
@@ -25417,7 +25441,8 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "mainBase": "pan"
   },
   {
     "id": "carnes_125",
@@ -26291,7 +26316,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "carnes_131",
@@ -27361,7 +27389,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "pan"
   },
   {
     "id": "carnes_137",
@@ -29437,7 +29466,10 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "extraProteins": [
+      "ternera"
+    ]
   },
   {
     "id": "carnes_146",
@@ -29651,7 +29683,8 @@
     ],
     "description": "Muslos de pollo al horno sobre una cama de patatas aromatizadas con romero y limón.",
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "patatas"
   },
   {
     "id": "carnes_149",
@@ -29842,7 +29875,8 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "mainBase": "patatas"
   },
   {
     "id": "carnes_152",
@@ -29906,7 +29940,8 @@
     ],
     "description": "Costillas de cerdo al horno sobre patatas panadera con ajo y pimentón.",
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "patatas"
   },
   {
     "id": "carnes_153",
@@ -30122,7 +30157,11 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "cerdo",
+      "huevo"
+    ]
   },
   {
     "id": "carnes_156",
@@ -30197,5 +30236,352 @@
       "seta"
     ],
     "tecnica": "plancha"
+  },
+  {
+    "type": "principal",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "carnes_157",
+    "name": "Cochinita pibil con cebolla roja encurtida",
+    "category": "carnes",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "time": 150,
+    "difficulty": "normal",
+    "kcal": 560,
+    "protein_g": 42,
+    "carbs_g": 14,
+    "fat_g": 36,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Lomo de cerdo en filetes",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Naranja",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Lima",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre de vino",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Triturar el zumo de las naranjas y la lima con el ajo, el pimentón, el orégano y la sal.",
+      "Cubrir la carne con ese adobo y dejarla reposar al menos 1 hora en la nevera.",
+      "Hornear tapada a 160 °C durante 2 horas, hasta que se deshaga con el tenedor.",
+      "Mientras, cortar la cebolla morada en juliana fina y cubrirla con el vinagre y una pizca de sal. Reservar 30 minutos.",
+      "Desmenuzar la carne con dos tenedores y mezclarla con su propio jugo.",
+      "Servir con la cebolla encurtida por encima."
+    ],
+    "description": "Cerdo adobado en cítricos y pimentón, hecho al horno hasta que se deshace. La cebolla encurtida corta la grasa y lo levanta todo.",
+    "mainIngredients": [
+      "fruta"
+    ],
+    "tecnica": "horno",
+    "cocina": "mexicana"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "carnes_158",
+    "name": "Fajitas de ternera con pimientos y guacamole",
+    "category": "carnes",
+    "mainProtein": "ternera",
+    "mealRole": [
+      "segundo",
+      "plato_unico",
+      "cena"
+    ],
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 620,
+    "protein_g": 40,
+    "carbs_g": 46,
+    "fat_g": 30,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Filetes finos de ternera",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Tortillas de trigo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Lima",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar la ternera en tiras finas y salpimentar con el pimentón.",
+      "Cortar los pimientos y la cebolla en tiras del mismo grosor.",
+      "Saltear la verdura a fuego fuerte 5 minutos, que quede al dente, y reservar.",
+      "En la misma sartén, marcar la carne 2-3 minutos sin moverla mucho, y juntarla con la verdura.",
+      "Machacar el aguacate con el zumo de lima y una pizca de sal: ese es el guacamole.",
+      "Calentar las tortillas y servir todo en el centro de la mesa, para montarlas al momento."
+    ],
+    "description": "Ternera y pimientos salteados a fuego fuerte para montar en la mesa. Cena de las que gustan a todos y se hace en media hora.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "sarten",
+    "cocina": "mexicana",
+    "mainBase": "pan"
+  },
+  {
+    "type": "principal",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "carnes_159",
+    "name": "Cerdo a la naranja con sésamo tostado",
+    "category": "carnes",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "time": 25,
+    "difficulty": "facil",
+    "kcal": 470,
+    "protein_g": 38,
+    "carbs_g": 22,
+    "fat_g": 25,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "sesamo",
+      "soja"
+    ],
+    "ingredients": [
+      {
+        "name": "Lomo de cerdo en filetes",
+        "amount": 450,
+        "unit": "g"
+      },
+      {
+        "name": "Naranja",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Miel",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Semillas de sésamo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar el lomo en tiras y marcarlas a fuego fuerte en el aceite, sin moverlas, hasta que doren.",
+      "Retirar la carne y en la misma sartén sofreír el ajo y el jengibre picados 30 segundos.",
+      "Añadir el zumo de las naranjas, la soja y la miel. Reducir 5 minutos hasta que la salsa napa.",
+      "Devolver la carne y darle vueltas para que se glasee bien.",
+      "Tostar el sésamo en una sartén seca y espolvorearlo por encima al servir."
+    ],
+    "description": "Tiras de lomo glaseadas en una salsa de naranja y soja que brilla. Veinticinco minutos y parece de restaurante.",
+    "mainIngredients": [
+      "fruta"
+    ],
+    "tecnica": "sarten",
+    "cocina": "asiatica"
+  },
+  {
+    "type": "principal",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "carnes_160",
+    "name": "Salteado de ternera con brócoli y jengibre",
+    "category": "carnes",
+    "mainProtein": "ternera",
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 420,
+    "protein_g": 40,
+    "carbs_g": 14,
+    "fat_g": 22,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "sesamo",
+      "soja"
+    ],
+    "ingredients": [
+      {
+        "name": "Filetes finos de ternera",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Brócoli",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de sésamo",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Semillas de sésamo",
+        "amount": 10,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Separar el brócoli en ramilletes y escaldarlo 3 minutos en agua hirviendo. Escurrir bien.",
+      "Cortar la ternera en tiras muy finas contra la fibra.",
+      "Calentar el aceite de girasol hasta que humee y marcar la carne 2 minutos, sin removerla al principio.",
+      "Añadir el ajo y el jengibre picados y saltear 30 segundos.",
+      "Incorporar el brócoli y la salsa de soja, y saltear 2 minutos más a fuego fuerte.",
+      "Terminar fuera del fuego con el aceite de sésamo y las semillas."
+    ],
+    "description": "Salteado rápido de sartén muy caliente: la ternera jugosa y el brócoli con su punto. Veinte minutos de principio a fin.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "sarten",
+    "cocina": "asiatica"
   }
 ]

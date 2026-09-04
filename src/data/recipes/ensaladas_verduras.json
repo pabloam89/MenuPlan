@@ -123,7 +123,6 @@
     "saturated_fat_g": 4,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura",
       "lacteo",
@@ -793,7 +792,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "extraProteins": [
+      "ternera"
+    ]
   },
   {
     "id": "ensaladas_verduras_005",
@@ -1339,7 +1341,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "extraProteins": [
+      "ternera"
+    ]
   },
   {
     "id": "ensaladas_verduras_008",
@@ -1501,7 +1506,6 @@
     "saturated_fat_g": 1,
     "sodium_mg": 30,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -1639,7 +1643,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 18,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -1780,7 +1783,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 380,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -2102,7 +2104,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -2272,12 +2273,12 @@
     "saturated_fat_g": 2,
     "sodium_mg": 280,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura",
       "encurtido"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "ensaladas_verduras_015",
@@ -2471,7 +2472,8 @@
       "verdura",
       "encurtido"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "ensaladas_verduras_016",
@@ -2624,7 +2626,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 420,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -2875,7 +2876,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "patatas"
   },
   {
     "id": "ensaladas_verduras_018",
@@ -3155,7 +3157,6 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -3279,7 +3280,6 @@
     "saturated_fat_g": 7,
     "sodium_mg": 520,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura",
       "lacteo",
@@ -3588,7 +3588,6 @@
     "saturated_fat_g": 3,
     "sodium_mg": 280,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -3918,7 +3917,6 @@
     "saturated_fat_g": 1,
     "sodium_mg": 30,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -4050,7 +4048,6 @@
     "saturated_fat_g": 6,
     "sodium_mg": 220,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura",
       "lacteo",
@@ -4156,7 +4153,6 @@
     "saturated_fat_g": 9,
     "sodium_mg": 380,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura",
       "lacteo"
@@ -4278,7 +4274,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -4415,7 +4410,6 @@
     "saturated_fat_g": 1,
     "sodium_mg": 180,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -4517,7 +4511,6 @@
     "saturated_fat_g": 3,
     "sodium_mg": 10,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -4676,7 +4669,8 @@
       "lacteo"
     ],
     "tecnica": "crudo",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "mainBase": "pan"
   },
   {
     "id": "ensaladas_verduras_032",
@@ -5211,7 +5205,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "pan"
   },
   {
     "id": "ensaladas_verduras_035",
@@ -5394,7 +5389,8 @@
       "seta"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "mainBase": "pan"
   },
   {
     "id": "ensaladas_verduras_036",
@@ -5697,7 +5693,8 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "pan"
   },
   {
     "id": "ensaladas_verduras_038",
@@ -7093,7 +7090,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "ensaladas_verduras_047",
@@ -8505,7 +8503,11 @@
       "verdura",
       "encurtido"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "ensaladas_verduras_055",
@@ -11437,7 +11439,10 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "ensaladas_verduras_073",
@@ -15005,7 +15010,6 @@
     ],
     "type": "completo",
     "requiredAppliance": "horno",
-    "canReceiveSauce": true,
     "time": 30,
     "difficulty": "facil",
     "season": "all",
@@ -19479,7 +19483,10 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "ensaladas_verduras_119",
@@ -20565,5 +20572,165 @@
       "lacteo"
     ],
     "tecnica": "horno"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "ensaladas_verduras_124",
+    "name": "Ensalada de maíz, aguacate y lima con cilantro",
+    "category": "ensaladas_verduras",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 260,
+    "protein_g": 5,
+    "carbs_g": 24,
+    "fat_g": 16,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Maíz",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate cherry",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Lima",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir bien el maíz y ponerlo en una ensaladera.",
+      "Cortar el aguacate en dados y los cherries por la mitad. Picar la cebolla morada muy fina.",
+      "Mezclarlo todo con cuidado para no deshacer el aguacate.",
+      "Aliñar con el zumo de la lima, el aceite y la sal, y terminar con el cilantro picado."
+    ],
+    "description": "Fresca, crujiente y sin encender el fuego. El maíz dulce y la lima hacen que se coma sola.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "crudo",
+    "montaje": true,
+    "cocina": "mexicana"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "ensaladas_verduras_125",
+    "name": "Ensalada de col y zanahoria con aliño de sésamo y lima",
+    "category": "ensaladas_verduras",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 210,
+    "protein_g": 5,
+    "carbs_g": 18,
+    "fat_g": 13,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "sesamo",
+      "soja"
+    ],
+    "ingredients": [
+      {
+        "name": "Col china",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Semillas de sésamo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de sésamo",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Lima",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Miel",
+        "amount": 10,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar la col en juliana muy fina y rallar la zanahoria en tiras largas.",
+      "Batir el aceite de sésamo con la salsa de soja, el zumo de lima y la miel.",
+      "Mezclar la verdura con el aliño y dejar reposar 10 minutos, para que ablande un poco.",
+      "Servir con las semillas de sésamo tostadas y la cebolleta en aros."
+    ],
+    "description": "Crujiente y con un aliño que engancha: sésamo, soja y lima. Acompaña cualquier cosa y se hace en un momento.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "crudo",
+    "montaje": true,
+    "cocina": "asiatica"
   }
 ]

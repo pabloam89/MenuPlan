@@ -790,7 +790,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "patatas"
   },
   {
     "id": "cenas_rapidas_007",
@@ -1240,7 +1241,8 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "mainBase": "pan"
   },
   {
     "id": "cenas_rapidas_012",

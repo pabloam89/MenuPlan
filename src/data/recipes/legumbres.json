@@ -4320,7 +4320,8 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "mainBase": "pan"
   },
   {
     "id": "legumbres_024",
@@ -7419,7 +7420,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "legumbres_039",
@@ -8167,7 +8171,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "extraProteins": [
+      "cerdo"
+    ]
   },
   {
     "id": "legumbres_042",
@@ -13519,7 +13526,8 @@
     ],
     "description": "Guiso de judías blancas con arroz y chorizo.",
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "arroz"
   },
   {
     "id": "legumbres_071",
@@ -13587,7 +13595,8 @@
     ],
     "description": "Garbanzos guisados con patatas en una salsa de pimentón.",
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "legumbres_072",
@@ -13719,6 +13728,181 @@
     ],
     "description": "Garbanzos salteados con verduras y arroz blanco.",
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "arroz"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "legumbres_074",
+    "name": "Frijoles charros con chorizo y bacon",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "time": 35,
+    "difficulty": "facil",
+    "kcal": 430,
+    "protein_g": 22,
+    "carbs_g": 38,
+    "fat_g": 21,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Frijoles negros cocidos",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Bacon en lonchas",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Dorar el bacon y el chorizo en dados en una cazuela con el aceite, hasta que suelten su grasa.",
+      "Añadir la cebolla y el ajo picados y pochar 5 minutos.",
+      "Incorporar el tomate troceado y cocinar otros 5 minutos.",
+      "Agregar los frijoles escurridos y el caldo. Cocer 15 minutos a fuego suave, hasta que espese.",
+      "Rectificar de sal y servir con el cilantro picado por encima."
+    ],
+    "description": "Frijoles guisados con chorizo y bacon, caldosos y con mucho fondo. De cuchara, de las que saben mejor al día siguiente.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "olla",
+    "cocina": "mexicana"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "legumbres_075",
+    "name": "Curry rojo de garbanzos y calabaza con leche de coco",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "time": 35,
+    "difficulty": "facil",
+    "kcal": 470,
+    "protein_g": 16,
+    "carbs_g": 46,
+    "fat_g": 25,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Calabaza",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Leche de coco",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pochar la cebolla, el ajo y el jengibre picados en el aceite, 5 minutos.",
+      "Añadir el curry y tostarlo 30 segundos, removiendo, para que suelte el aroma.",
+      "Incorporar la calabaza en dados y la leche de coco. Cocer 15 minutos tapado.",
+      "Agregar los garbanzos escurridos y cocer 8 minutos más, hasta que espese.",
+      "Rectificar de sal y servir con el cilantro picado."
+    ],
+    "description": "Cremoso por el coco y dulce por la calabaza, con los garbanzos aguantando el tipo. Un plato único que llena de verdad.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "olla",
+    "cocina": "asiatica"
   }
 ]

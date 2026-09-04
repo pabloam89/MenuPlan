@@ -548,7 +548,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "horno"
   },
   {
     "id": "postres_006",
@@ -1748,7 +1748,7 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "horno"
   },
   {
     "id": "postres_019",
@@ -2844,7 +2844,10 @@
     "sodium_mg": 95,
     "freezable": false,
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "postres_025",

@@ -1676,7 +1676,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "desayunos_019",
@@ -2012,7 +2015,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "desayunos_022",
@@ -2181,7 +2187,10 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "desayunos_023",

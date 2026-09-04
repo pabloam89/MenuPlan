@@ -67,6 +67,7 @@ const MONTAJE = [
   "ensaladas_verduras_122",
   "platos_unicos_009", "platos_unicos_016",
   "desayunos_020", "meriendas_003", "meriendas_004",
+  "ensaladas_verduras_124", "ensaladas_verduras_125",
 ];
 
 // Los que YA estaban marcados y no debieron estarlo. No basta con sacarlos de
@@ -97,7 +98,7 @@ const NO_MONTAJE = [
 // Da un reparto que discrimina: olla 36%, sartén 23%, horno 18%, crudo 13%,
 // plancha 10%. Ninguno se come el catálogo.
 const CUCHARA_RE = /\b(guiso|estofad|potaje|cocido|caldo|fabada|marmitako|puchero|olla|sopa|crema|pisto|alubiada)/;
-const HORNO_RE = /\b(al horno|asad[oa]|gratinad|empanada|coca|lasan|pastel|tarta|calzone|pizza|papillote|hornead)/;
+const HORNO_RE = /\b(al horno|asad[oa]|gratinad|empanada|coca|lasan|pastel|tarta|calzone|pizza|papillote|horne)/;
 const PLANCHA_RE = /\b(a la plancha|plancha|parrilla|a la brasa|brasead|grill|entrecot|chuleton|tataki|brocheta|hamburgues|filete ruso|steak)/;
 const CRUDO_RE = /\b(tartar|tartare|ceviche|carpaccio|gazpacho|salmorejo|ajoblanco|sopa fria|crema fria|poke bowl)/;
 const FRITO_RE = /\b(frit|rebozad|empanad|bu[nñ]uel|croquet|tempura|nugget|varitas|torrezno|churro)/;
@@ -139,7 +140,28 @@ const COCINA_RE = {
   mediterranea: /\b(hummus|falafel|tahini|cuscus|tabule|shakshuka|tzatziki|kebab|baba ganoush|halloumi|labneh|moussaka|pita)/,
 };
 
+// Los platos cuyo nombre no lleva ninguna palabra delatora. Una sopa de
+// tortilla o unos frijoles charros son mexicanos sin decirlo, y ensanchar la
+// expresión para cazarlos acabaría cazando también la tortilla de patatas.
+// Para un eje curado, la lista explícita es más honesta que la regla forzada.
+const COCINA_IDS = {
+  mexicana: [
+    "sopas_cremas_087", "sopas_cremas_088", "legumbres_074",
+    "ensaladas_verduras_124", "huevos_090", "carnes_157", "carnes_158",
+    "pasta_arroces_100", "pescados_129",
+  ],
+  asiatica: [
+    "sopas_cremas_089", "legumbres_075", "ensaladas_verduras_125",
+    "carnes_159", "carnes_160", "pasta_arroces_101", "pasta_arroces_102",
+  ],
+};
+const COCINA_POR_ID = new Map(
+  Object.entries(COCINA_IDS).flatMap(([cocina, ids]) => ids.map((id) => [id, cocina])),
+);
+
 function cocinaDe(recipe) {
+  const explicita = COCINA_POR_ID.get(recipe.id);
+  if (explicita) return explicita;
   const name = norm(recipe.name);
   for (const [cocina, re] of Object.entries(COCINA_RE)) {
     if (re.test(name)) return cocina;

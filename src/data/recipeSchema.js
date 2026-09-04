@@ -229,14 +229,6 @@ export const RecipeSchema = z
     // Solo en recetas type "salsa": con qué tipo de plato principal encaja.
     // Ver SAUCE_COMPAT_TAGS arriba.
     sauceCompat: z.array(z.enum(SAUCE_COMPAT_TAGS)).optional(),
-    // ¿Puede recibir una salsa de acompañamiento (data/recipes/salsas.json)?
-    // Curado a mano, NUNCA derivado de category/mainProtein: la mayoría de
-    // carnes/pescados/ensaladas del catálogo ya llevan su sabor integrado
-    // (Merluza en salsa verde, Ensalada César) y añadir otra salsa encima
-    // sería redundante o directamente raro. Solo se marca en las recetas
-    // verificadas una a una como "a la plancha/horno sin aderezo propio" o
-    // "ensalada simple" — ver model/recipe-data-model-refactor.md §4.
-    canReceiveSauce: z.boolean().optional(),
     mealRole: z.array(z.enum(MEAL_ROLES)).min(1),
     type: z.enum(TYPES),
     // Links a variant (e.g. "Muslos de pollo al horno") to the base dish it
@@ -346,15 +338,6 @@ export const RecipeSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `"${id}": sauceCompat solo es válido en type "salsa"`,
-      });
-    }
-
-    // canReceiveSauce en una salsa o una guarnición es dato muerto: el flag
-    // habilita a un plato principal a recibir salsa, no al revés.
-    if (recipe.canReceiveSauce && (type === "salsa" || type === "guarnicion")) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: `"${id}": canReceiveSauce es redundante en type "${type}"`,
       });
     }
 

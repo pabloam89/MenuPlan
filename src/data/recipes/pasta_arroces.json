@@ -815,7 +815,10 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "pasta_arroces_006",
@@ -1370,7 +1373,10 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "extraProteins": [
+      "ternera"
+    ]
   },
   {
     "id": "pasta_arroces_009",
@@ -3646,7 +3652,10 @@
     "saturated_fat_g": 2,
     "sodium_mg": 520,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "extraProteins": [
+      "marisco"
+    ]
   },
   {
     "id": "pasta_arroces_022",
@@ -4587,7 +4596,11 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "extraProteins": [
+      "cerdo",
+      "huevo"
+    ]
   },
   {
     "id": "pasta_arroces_028",
@@ -6120,7 +6133,10 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "pasta_arroces_036",
@@ -9707,7 +9723,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "mainBase": "pasta"
   },
   {
     "id": "pasta_arroces_055",
@@ -12779,7 +12796,10 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "pasta_arroces_070",
@@ -13030,7 +13050,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "pasta_arroces_071",
@@ -17653,5 +17676,270 @@
       "verdura"
     ],
     "tecnica": "olla"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "pasta_arroces_100",
+    "name": "Tinga de pollo con arroz blanco y aguacate",
+    "category": "pasta_arroces",
+    "mainProtein": "pollo",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "time": 40,
+    "difficulty": "facil",
+    "kcal": 590,
+    "protein_g": 38,
+    "carbs_g": 58,
+    "fat_g": 22,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Chile fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cocer la pechuga en agua con sal 20 minutos y desmenuzarla con dos tenedores.",
+      "Cocer el arroz en agua con sal el tiempo que indique el paquete y escurrir.",
+      "Pochar la cebolla en juliana con el ajo hasta que empiece a dorarse.",
+      "Triturar el tomate con el chile y añadirlo a la sartén. Cocinar 10 minutos.",
+      "Incorporar el pollo desmenuzado y dejar que coja la salsa 5 minutos más.",
+      "Servir sobre el arroz blanco, con el aguacate en láminas al lado."
+    ],
+    "description": "Pollo deshebrado en salsa de tomate ahumada sobre arroz blanco. De esos platos que se hacen una vez y se repiten toda la semana.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "sarten",
+    "cocina": "mexicana",
+    "mainBase": "arroz"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "pasta_arroces_101",
+    "name": "Pollo agridulce con arroz jazmín",
+    "category": "pasta_arroces",
+    "mainProtein": "pollo",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "time": 35,
+    "difficulty": "facil",
+    "kcal": 610,
+    "protein_g": 40,
+    "carbs_g": 68,
+    "fat_g": 18,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "soja",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de vino",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Maicena",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer el arroz en agua con sal y reservarlo tapado.",
+      "Cortar el pollo en dados, pasarlos por la maicena y freírlos hasta que estén dorados. Reservar.",
+      "Saltear el pimiento y la cebolla en tiras 5 minutos, a fuego fuerte.",
+      "Añadir el tomate, el vinagre, el azúcar y la soja. Cocer 5 minutos hasta que la salsa brille y espese.",
+      "Devolver el pollo a la sartén y darle un par de vueltas para que se glasee.",
+      "Servir sobre el arroz."
+    ],
+    "description": "El agridulce de toda la vida, hecho en casa y sin colorantes. El pollo crujiente por fuera y la salsa brillante son la mitad del plato.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "sarten",
+    "cocina": "asiatica",
+    "mainBase": "arroz"
+  },
+  {
+    "type": "completo",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "pasta_arroces_102",
+    "name": "Arroz frito tres delicias con huevo y guisantes",
+    "category": "pasta_arroces",
+    "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "time": 25,
+    "difficulty": "facil",
+    "kcal": 540,
+    "protein_g": 22,
+    "carbs_g": 66,
+    "fat_g": 20,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "soja"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón cocido",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer el arroz, escurrirlo y extenderlo en una bandeja para que se enfríe y se suelte.",
+      "Batir los huevos y cuajarlos en tortilla fina. Cortarla en tiras y reservar.",
+      "Saltear la zanahoria en dados pequeños y los guisantes 5 minutos a fuego fuerte.",
+      "Añadir el jamón en dados y dar un par de vueltas.",
+      "Incorporar el arroz frío y saltear removiendo, para que se tueste sin apelmazarse.",
+      "Agregar la tortilla en tiras y la salsa de soja, mezclar y terminar con la cebolleta."
+    ],
+    "description": "El arroz tres delicias de casa, con el truco de siempre: el arroz del día anterior, bien frío, es lo que hace que quede suelto.",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "sarten",
+    "cocina": "asiatica",
+    "mainBase": "arroz"
   }
 ]

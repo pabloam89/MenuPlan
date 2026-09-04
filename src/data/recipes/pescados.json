@@ -319,7 +319,6 @@
     "saturated_fat_g": 5,
     "sodium_mg": 220,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "horno"
   },
   {
@@ -610,7 +609,6 @@
     "saturated_fat_g": 6,
     "sodium_mg": 380,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -752,7 +750,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 120,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "horno"
   },
   {
@@ -861,7 +858,6 @@
     "saturated_fat_g": 4,
     "sodium_mg": 210,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -994,7 +990,6 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "sarten"
   },
   {
@@ -1148,7 +1143,6 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -1259,7 +1253,6 @@
     "saturated_fat_g": 6,
     "sodium_mg": 280,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -1493,7 +1486,6 @@
     "saturated_fat_g": 3,
     "sodium_mg": 280,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "sarten"
   },
   {
@@ -1759,7 +1751,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 120,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -1889,7 +1880,6 @@
     "saturated_fat_g": 4,
     "sodium_mg": 520,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "sarten"
   },
   {
@@ -2035,7 +2025,6 @@
     "saturated_fat_g": 5,
     "sodium_mg": 780,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "sarten"
   },
   {
@@ -2190,7 +2179,10 @@
     "saturated_fat_g": 3,
     "sodium_mg": 420,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "marisco"
+    ]
   },
   {
     "id": "pescados_017",
@@ -2355,7 +2347,6 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true,
     "tecnica": "sarten"
   },
   {
@@ -2544,7 +2535,6 @@
     "saturated_fat_g": 5,
     "sodium_mg": 95,
     "freezable": false,
-    "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
     ],
@@ -2846,7 +2836,6 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -3166,7 +3155,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "horno"
   },
   {
@@ -3291,7 +3279,6 @@
     "saturated_fat_g": 4,
     "sodium_mg": 85,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "plancha"
   },
   {
@@ -3445,7 +3432,6 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "canReceiveSauce": true,
     "tecnica": "horno"
   },
   {
@@ -3842,7 +3828,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "pescados_027",
@@ -5436,7 +5425,6 @@
     ],
     "type": "principal",
     "requiredAppliance": "horno",
-    "canReceiveSauce": true,
     "time": 55,
     "difficulty": "normal",
     "season": "all",
@@ -5585,7 +5573,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "pescados_037",
@@ -12259,7 +12250,6 @@
       "sulfitos"
     ],
     "season": "all",
-    "canReceiveSauce": false,
     "ingredients": [
       {
         "name": "Berberechos frescos",
@@ -13857,7 +13847,6 @@
       "pescado"
     ],
     "season": "verano",
-    "canReceiveSauce": true,
     "ingredients": [
       {
         "name": "Sardinas frescas limpias",
@@ -15693,7 +15682,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "mainBase": "patatas"
   },
   {
     "id": "pescados_092",
@@ -16844,7 +16834,8 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "mainBase": "pan"
   },
   {
     "id": "pescados_098",
@@ -18183,7 +18174,8 @@
       "lacteo"
     ],
     "tecnica": "plancha",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "mainBase": "patatas"
   },
   {
     "id": "pescados_104",
@@ -19328,7 +19320,8 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "pan"
   },
   {
     "id": "pescados_109",
@@ -19954,7 +19947,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "pescados_112",
@@ -20937,7 +20933,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "pan"
   },
   {
     "id": "pescados_116",
@@ -21356,7 +21353,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "extraProteins": [
+      "huevo"
+    ]
   },
   {
     "id": "pescados_118",
@@ -22269,7 +22269,8 @@
     ],
     "description": "Lubina entera al horno sobre una cama de patatas panadera con limón.",
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "mainBase": "patatas"
   },
   {
     "id": "pescados_128",
@@ -22334,5 +22335,91 @@
       "frutos_secos"
     ],
     "tecnica": "plancha"
+  },
+  {
+    "type": "principal",
+    "season": "all",
+    "baseServings": 2,
+    "estrella": true,
+    "id": "pescados_129",
+    "name": "Merluza a la veracruzana con aceitunas y alcaparras",
+    "category": "pescados",
+    "mainProtein": "pescado_blanco",
+    "mealRole": [
+      "segundo"
+    ],
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 380,
+    "protein_g": 36,
+    "carbs_g": 12,
+    "fat_g": 21,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Merluza en lomos",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Alcaparras",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pochar la cebolla en juliana y el ajo picado en el aceite, sin que cojan color.",
+      "Añadir el tomate rallado y el laurel, y cocinar 12 minutos a fuego medio.",
+      "Incorporar las aceitunas y las alcaparras escurridas. Salar con cuidado, que ya salan ellas.",
+      "Colocar los lomos de merluza sobre la salsa, tapar y cocer 8 minutos a fuego suave.",
+      "Servir el pescado con su salsa por encima."
+    ],
+    "description": "Merluza cocinada en una salsa de tomate con aceitunas y alcaparras. El punto salado de los encurtidos es lo que la hace distinta.",
+    "mainIngredients": [
+      "verdura",
+      "encurtido"
+    ],
+    "tecnica": "sarten",
+    "cocina": "mexicana"
   }
 ]
