@@ -3920,8 +3920,24 @@ export default function App() {
   const handleDeleteAccount = useCallback(() => setResetConfirm("delete"), []);
   const handleAbandonOnboarding = useCallback(() => setResetConfirm("abandon"), []);
 
-  const doReset = useCallback(() => {
+  const doReset = useCallback(async () => {
     setResetConfirm(null);
+    // Lo que tuvieras PUBLICADO se retira del feed antes de borrar nada.
+    //
+    // publishedMenus va indexado por menu_id y el reinicio estrena id, asi que
+    // en cuanto se limpia el estado ya no hay forma de saber cual de los menus
+    // de shared_menus era el tuyo: se quedaba publicado, visible para todo el
+    // mundo, y sin boton para retirarlo. Para siempre.
+    //
+    // Se espera (a diferencia de clearUserState, que va suelto a proposito):
+    // esto toca lo que OTROS ven, y hacerlo a ciegas significaria fallar en
+    // silencio justo en lo unico que ya no se puede deshacer despues.
+    const publishedIds = Object.keys(publishedMenus ?? {});
+    if (user?.id && publishedIds.length > 0) {
+      await Promise.allSettled(publishedIds.map((menuId) => unpublishMenu(user.id, menuId)));
+    }
+    setPublishedMenus({});
+
     clearState();
     // Fired immediately (not the 1200ms debounced profile push) so a quick
     // reload right after "Reiniciar" can't race the stale cloud snapshot back
@@ -3935,7 +3951,7 @@ export default function App() {
     setAiRecipes([]);
     setMenuError(null);
     setScreen("splash");
-  }, [user]);
+  }, [user, publishedMenus]);
 
   // Soft reset — the profile lives in the account, so "reiniciar" only clears
   // the current week's menu, shopping list and week selection, then lands back
