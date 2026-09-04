@@ -2078,6 +2078,7 @@ function CookIngredientRow({ ing, unitView, onToggleHome, onTogglePurchased }) {
             label={have ? "Marcar como no comprado" : "Comprado"}
             active={have}
             onClick={() => onTogglePurchased(ing.id, !have)}
+            coach="shop-purchased"
           />
         </>
       )}

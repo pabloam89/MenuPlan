@@ -1017,6 +1017,10 @@ export function CatalogBrowserSheet({
           <button
             key={`${tile.kind}-${tile.id}`}
             type="button"
+            // El tour de Recetas apunta aqui: "Mis recetas" dejo de ser pestaña
+            // (2026-08-27) y es una tesela mas del grid, asi que el ancla vive
+            // en la tesela y no en una barra de pestañas que ya no existe.
+            data-coach={isMine ? "recipes-mine" : undefined}
             onClick={onTileClick}
             disabled={disabled}
             className="catalog-card-enter"

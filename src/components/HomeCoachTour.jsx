@@ -11,13 +11,10 @@ import {
   UtensilsCrossed,
   MoreVertical,
   RotateCw,
-  Ban,
   ShoppingCart,
   ArrowRight,
   Share2,
-  Receipt,
   Check,
-  Trash2,
   CircleHelp,
   X,
   Home,
@@ -117,20 +114,17 @@ export const HOME_COACH_STEPS = [
   },
 ];
 
-// Recetas del hogar: mis recetas (propias + favoritas) y descartados (catálogo → Biblioteca).
+// Recetas del hogar. Las dos pestañas de antes ya no existen: "Mis recetas" es
+// una tesela más del grid de categorías (2026-08-27) y "Descartados" pasó a ser
+// una carpeta DENTRO de ella. El paso de Descartados se retiró en vez de
+// reapuntarlo: vive a dos toques de aquí, y un foco no alcanza lo que aún no
+// está en pantalla. Se menciona en el texto, que es lo que sí llega.
 export const RECIPES_COACH_STEPS = [
   {
-    selector: '[data-coach="recipes-tab-mine"]',
+    selector: '[data-coach="recipes-mine"]',
     Icon: ChefHat,
     title: "Mis recetas",
-    desc: "Las que creas para este hogar y las que marcas como favoritas en el catálogo — de aquí decides qué entra en tu menú.",
-    place: "below",
-  },
-  {
-    selector: '[data-coach="recipes-tab-discarded"]',
-    Icon: Ban,
-    title: "Descartados",
-    desc: "Los platos que has descartado «para siempre» desde el menú. Aquí puedes recuperarlos cuando quieras.",
+    desc: "Todo tu recetario: las que creas, las que marcas como favoritas y las que te traes del Feed. Dentro están tus carpetas y los platos que descartaste, por si quieres recuperarlos.",
     place: "below",
   },
 ];
@@ -140,8 +134,8 @@ export const MENU_COACH_STEPS = [
   {
     selector: '[data-coach="menu-viewmode"]',
     Icon: CalendarDays,
-    title: "Día o semana",
-    desc: "Cambia entre lo que toca hoy y la semana completa.",
+    title: "Cómo ves el menú",
+    desc: "Cuatro vistas: el día de hoy, la semana entera, el mes sobre el calendario o un resumen de todo.",
     place: "below",
   },
   {
@@ -161,11 +155,14 @@ export const MENU_COACH_STEPS = [
     place: "below",
   },
   {
-    // The 3-dots button on every tile → quick actions popover.
-    selector: '[data-coach="menu-actions"]',
+    // Ya no hay botón de tres puntos: las acciones salen con una pulsación
+    // larga sobre el plato (useLongPress, 420 ms). Por eso el ancla es la misma
+    // que el paso anterior — es el mismo plato, con dos gestos distintos — y
+    // por eso este paso existe: una pulsación larga no se descubre sola.
+    selector: '[data-coach="menu-dish"]',
     Icon: MoreVertical,
     title: "Acciones rápidas",
-    desc: "En los tres puntos de cada plato: muévelo a otro día, regenéralo, elígelo a mano, duplícalo o quítalo. El menú es tuyo.",
+    desc: "Mantén pulsado un plato para cambiarlo, moverlo a otro día o duplicarlo. El menú es tuyo.",
     place: "below",
   },
   {
@@ -207,31 +204,10 @@ export const SHOPPING_COACH_STEPS = [
     place: "below",
   },
   {
-    selector: '[data-coach="shop-receipt"]',
-    Icon: Receipt,
-    title: "Ticket",
-    desc: "Sube una foto del ticket y marcamos como comprado lo que coincida.",
-    place: "below",
-  },
-  {
     selector: '[data-coach="shop-purchased"]',
     Icon: Check,
     title: "Comprado",
     desc: "Lo acabas de comprar: sale de la lista (puedes deshacerlo al momento).",
-    place: "above",
-  },
-  {
-    selector: '[data-coach="shop-recipes"]',
-    Icon: BookOpen,
-    title: "Recetas",
-    desc: "Mira en qué días y platos se usa ese ingrediente.",
-    place: "above",
-  },
-  {
-    selector: '[data-coach="shop-remove"]',
-    Icon: Trash2,
-    title: "Quitar",
-    desc: "Elimina el producto de la lista por completo.",
     place: "above",
   },
 ];
@@ -619,7 +595,8 @@ export function ShoppingCoachTour({ onClose }) {
 }
 
 export function PantryCoachTour({ onClose }) {
-  // Receipt/settings targets are conditional, so some steps may be absent.
+  // Los iconos sueltos (ticket / gastos / ajustes) se mudaron al menú lateral,
+  // así que aquí solo hay dos destinos y los dos existen siempre.
   return <ResolvingCoachTour steps={PANTRY_COACH_STEPS} grace={0} onClose={onClose} />;
 }
 
