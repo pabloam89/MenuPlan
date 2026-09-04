@@ -11,7 +11,7 @@ import { ShareRecipeSheet } from "../components/ShareRecipeSheet.jsx";
 import { NotificationsPopover } from "../components/NotificationsPopover.jsx";
 import { DiscoverPeopleSheet } from "../components/DiscoverPeopleSheet.jsx";
 import { VisibilityPrompt } from "../components/VisibilityPrompt.jsx";
-import { CoachTour } from "../components/HomeCoachTour.jsx";
+import { CoachTour, FeedCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { loadNotifications, markNotificationsSeen, countUnread } from "../lib/socialNotifications.js";
 import { setFeedBadge } from "../lib/socialBadge.js";
 import { shareOut } from "../lib/shareLink.js";
@@ -107,6 +107,8 @@ export function FeedScreen({
   onToast,
 }) {
   const [seenMenus, setSeenMenus] = useState(readSeenMenus);
+  // La "?" de la cabecera, como en Recetas / Menu / Compra / Despensa.
+  const [showIconCoach, setShowIconCoach] = useState(false);
   const [items, setItems] = useState([]);
   // "Siguiendo" o "Descubrir". Arranca en Siguiendo porque es el feed que la
   // gente espera de una red social; si no sigues a nadie, su estado vacio te
@@ -446,12 +448,13 @@ export function FeedScreen({
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
               Feed
             </h1>
+            <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
           {/* Buscar y "yo" en la cabecera, no como sub-pestañas: si el feed
               comparte fila con otras dos pestañas deja de ser lo primero que
               ves, que es justo lo que tiene que ser. */}
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-            <button type="button" onClick={() => setSearchOpen(true)} title="Buscar gente" style={iconBtn}>
+            <button type="button" data-coach="feed-search" onClick={() => setSearchOpen(true)} title="Buscar gente" style={iconBtn}>
               <Search size={16} strokeWidth={2.3} />
             </button>
             {(() => {
@@ -492,7 +495,7 @@ export function FeedScreen({
                 menú que ya han publicado, así que la fila cuenta algo vivo
                 sin pedir un tipo de contenido nuevo. Al tocar, la semana. */}
             <h2 style={sectionTitle}>Hoy cocinan…</h2>
-            <div className="deck-scroller" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 2, marginInline: -14, paddingInline: 14 }}>
+            <div data-coach="feed-weekly" className="deck-scroller" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 2, marginInline: -14, paddingInline: 14 }}>
               {/* Tu hueco, el primero de la fila — el patron de "tu historia"
                   de toda red: anillo punteado con + si no has publicado, un
                   check si si. Sustituye al banner con parrafo que habia
@@ -618,7 +621,7 @@ export function FeedScreen({
               }}
               aria-hidden={publishOpen}
             >
-          <div style={{ ...scopeTabs, marginTop: 0 }}>
+          <div data-coach="feed-scope" style={{ ...scopeTabs, marginTop: 0 }}>
             {/* Cada pestaña con su icono y su color: azul para los tuyos,
                 teja para lo que esta por descubrir. En gris las dos, la fila
                 no decia nada y habia que leerla entera. */}
@@ -772,6 +775,8 @@ export function FeedScreen({
           onClose={dismissPublishHint}
         />
       )}
+
+      {showIconCoach && <FeedCoachTour onClose={() => setShowIconCoach(false)} />}
 
       {visPrompt && (
         <VisibilityPrompt
@@ -946,7 +951,7 @@ function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onC
           <Check size={13} strokeWidth={3} /> En tus recetas
         </p>
       ) : (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, padding: "2px 0 4px" }}>
+        <div data-coach="feed-actions" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, padding: "2px 0 4px" }}>
           <ActionButton label="No me la enseñes más" color="#c0392b" size={50} onClick={onDislike}>
             <Ban size={21} strokeWidth={2.6} />
           </ActionButton>

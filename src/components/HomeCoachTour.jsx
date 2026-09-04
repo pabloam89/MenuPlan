@@ -19,6 +19,9 @@ import {
   X,
   Home,
   Eye,
+  Compass,
+  Heart,
+  Search,
 } from "lucide-react";
 
 // One-shot guided tours ("coach-marks"): a dimming overlay with a cut-out
@@ -228,6 +231,51 @@ export const PANTRY_COACH_STEPS = [
     Icon: MenuIcon,
     title: "Opciones de En casa",
     desc: "Aquí dentro tienes: subir el ticket de la compra, ver tus gastos y el histórico de tickets, y ajustar cómo influye tu despensa en el menú.",
+    place: "below",
+  },
+];
+
+// Feed. La pantalla con más cosas que no se explican solas de toda la app, y
+// hasta ahora la única sin tutorial. Dos gestos concretos justifican que
+// exista: el corazón NO es un aplauso (se lleva la receta a tu recetario), y
+// la fila de arriba no son historias aunque lo parezca.
+export const FEED_COACH_STEPS = [
+  {
+    selector: '[data-coach="feed-weekly"]',
+    Icon: CalendarDays,
+    title: "Hoy cocinan…",
+    desc: "Los menús de la semana de quien sigues. El anillo de color marca los que aún no has abierto, y el primer hueco es el tuyo: desde ahí publicas tu semana.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="feed-scope"]',
+    Icon: Compass,
+    title: "Siguiendo o Descubrir",
+    desc: "«Siguiendo» son las recetas de tu gente. En «Descubrir» aparecen las de familias que aún no sigues.",
+    place: "below",
+  },
+  {
+    // El malentendido caro de esta pantalla: en una app de menús un aplauso no
+    // sirve de nada, así que el corazón se lleva el plato a tu recetario. Si el
+    // tour explica una sola cosa del Feed, que sea esta.
+    selector: '[data-coach="feed-actions"]',
+    Icon: Heart,
+    title: "El corazón no es un «me gusta»",
+    desc: "Es «me la llevo»: el plato se copia a tus recetas y te pregunta en qué carpeta. Al lado, «ni fu ni fa» no guarda nada y la prohibición deja de enseñártela.",
+    place: "above",
+  },
+  {
+    selector: '[data-coach="feed-publish"]',
+    Icon: ChefHat,
+    title: "Publicar una receta tuya",
+    desc: "Esa pestaña asoma con las recetas que aún no has compartido. Tócala y eliges cuál publicas y para quién.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="feed-search"]',
+    Icon: Search,
+    title: "Buscar gente",
+    desc: "Encuentra a otras familias por su nombre de usuario y síguelas para ver sus menús y sus recetas.",
     place: "below",
   },
 ];
@@ -598,6 +646,13 @@ export function PantryCoachTour({ onClose }) {
   // Los iconos sueltos (ticket / gastos / ajustes) se mudaron al menú lateral,
   // así que aquí solo hay dos destinos y los dos existen siempre.
   return <ResolvingCoachTour steps={PANTRY_COACH_STEPS} grace={0} onClose={onClose} />;
+}
+
+export function FeedCoachTour({ onClose }) {
+  // Sin gracia de carga: el tour se abre desde la "?" con la pantalla ya
+  // delante. Los pasos que no apliquen todavía (sin menús que enseñar, sin
+  // recetas sin publicar) los descarta ResolvingCoachTour solo.
+  return <ResolvingCoachTour steps={FEED_COACH_STEPS} grace={0} onClose={onClose} />;
 }
 
 export function HouseholdsCoachTour({ onClose, onStepChange }) {
