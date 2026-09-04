@@ -33,8 +33,19 @@ if (!existsSync(IN_DIR)) {
   process.exit(1);
 }
 
-const files = readdirSync(IN_DIR).filter((f) => f.endsWith(".jpg"));
-console.log(`📤  Subiendo ${files.length} imágenes a Vercel Blob…\n`);
+// `--only id1,id2` sube solo esos ids. Existe porque output/dishes/ arrastra
+// ~1.500 fotos de combos plato+guarnición del sistema combinatorio antiguo, que
+// ya no se generan ni se usan: sin filtro, añadir 16 recetas dispara 1.500
+// subidas que no sirven a nadie y se quedan ocupando Blob para siempre.
+const onlyArg = process.argv.indexOf("--only");
+const only = onlyArg !== -1 && process.argv[onlyArg + 1]
+  ? new Set(process.argv[onlyArg + 1].split(",").map((s) => s.trim()).filter(Boolean))
+  : null;
+
+const files = readdirSync(IN_DIR)
+  .filter((f) => f.endsWith(".jpg"))
+  .filter((f) => !only || only.has(f.replace(/\.jpg$/, "")));
+console.log(`📤  Subiendo ${files.length} imágenes a Vercel Blob…${only ? ` (--only)` : ""}\n`);
 
 // Resume support: keep existing manifest entries and skip already-uploaded ids.
 const manifest = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, "utf8")) : {};
