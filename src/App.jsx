@@ -5187,6 +5187,25 @@ export default function App() {
               Tienes una configuración guardada. Elige cómo seguir.
             </p>
 
+            {/* Dos caminos, no tres. Aquí había un "Empezar de cero del todo" que
+                borraba la familia, los menús y la configuración, y estaba mal
+                por tres motivos:
+
+                · Esta hoja pregunta CÓMO GENERAR UN MENÚ. Borrar la cuenta
+                  entera no es una forma de generar un menú, y estaba a un toque
+                  de la opción que casi todo el mundo quiere.
+                · Sin confirmación. La MISMA acción en Ajustes pasa por un
+                  diálogo de "¿seguro?"; aquí se ejecutaba en el acto.
+                · Y para quien tiene cuenta ni siquiera cumplía lo que promete:
+                  las recetas propias vuelven solas de la nube al recargar
+                  (mergeUserRecipesAfterCloudLoad), y el menú que tuvieras
+                  publicado se quedaba HUÉRFANO — sigue en el feed de todo el
+                  mundo, pero como publishedMenus va indexado por menu_id y el
+                  reinicio estrena id, la app ya no sabía que era tuyo y perdías
+                  el botón de retirarlo.
+
+                Sigue existiendo en Ajustes, con su confirmación, para quien de
+                verdad quiera empezar de cero. */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
                 {
@@ -5230,29 +5249,6 @@ export default function App() {
                       }),
                     );
                     startQuickMenu();
-                  },
-                },
-                {
-                  key: "hard",
-                  Icon: Trash2,
-                  iconColor: "#a8402b",
-                  iconBg: "#fdecea",
-                  img: "/avatares/cards/empezar_de_cero_todo.jpg",
-                  primary: false,
-                  title: "Empezar de cero del todo",
-                  subtitle: "Borra familia, menús y configuración.",
-                  onClick: () => {
-                    setOnbResumeOpen(false);
-                    clearState();
-                    if (user?.id) clearUserState(user.id);
-                    setData(ensureRosters(INITIAL_DATA));
-                    setMenuPlan({});
-                    setShopping({ items: [] });
-                    setSelectedSlot(null);
-                    setAiRecipes([]);
-                    setMenuError(null);
-                    setQuickMenu(false);
-                    _doGoToOnboardingStep(0);
                   },
                 },
               ].map(({ key, Icon, iconColor, iconBg, img, primary, title, subtitle, onClick }) => (
