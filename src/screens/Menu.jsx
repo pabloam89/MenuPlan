@@ -3021,7 +3021,249 @@ function WeekGrid({ dayRows, activeMeals, weekDates, todayNum, onDishTap }) {
   );
 }
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [] }) {
+const MONTH_NAMES = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+const MONTH_COLS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+/** Lunes de la semana que contiene `d`. */
+function mondayOf(d) {
+  const out = new Date(d);
+  out.setHours(0, 0, 0, 0);
+  out.setDate(out.getDate() - ((out.getDay() + 6) % 7));
+  return out;
+}
+
+/**
+ * Todos los días del menú COMPLETO -de todas sus semanas- indexados por fecha.
+ *
+ * Las demás vistas trabajan sobre `menuPlan`, que es solo la semana activa. Un
+ * mes no cabe en una semana, así que esta lee `menuWeeks`, donde cada semana ya
+ * viene con su propio `plan` (ver orderedWeeks en lib/menuArchive.js): no hace
+ * falta pedir nada, ya estaba en las props.
+ */
+function monthCellsFromWeeks(menuWeeks, data, visibleGroups) {
+  const meals = getMeals(data);
+  const byDate = new Map();
+  for (const week of menuWeeks ?? []) {
+    if (!week?.weekStart || !week.plan) continue;
+    // La semana ABIERTA trae sus fechas ya resueltas por la pantalla, que es
+    // quien manda sobre qué días se ven (data.menuWeek). Calcularlas otra vez
+    // aquí las sacaba distintas -el archivo guarda su propio startDayIdx- y el
+    // mes acababa ofreciendo días que la vista de día no tiene: tocabas el
+    // miércoles y aterrizabas en el viernes.
+    const { dates, activeDays } = week.dates && week.activeDays
+      ? week
+      : getWeekDatesFromStartISO(week.weekStart, week.startDayIdx ?? 0);
+    for (const day of activeDays) {
+      const date = dates[day];
+      if (!date) continue;
+      const tokens = [];
+      for (const meal of meals) {
+        for (const t of typologyTokens(day, meal, week.plan, visibleGroups)) tokens.push({ ...t, meal });
+      }
+      if (tokens.length === 0) continue;
+      byDate.set(isoLocalDate(date), { day, weekStart: week.weekStart, tokens });
+    }
+  }
+  return byDate;
+}
+
+/**
+ * El menú puesto sobre el calendario del mes.
+ *
+ * No es "otra forma de ver la semana": responde a una pregunta distinta —
+ * DÓNDE cae cada cosa en el mes, qué días están cubiertos y cuáles no. Por eso
+ * pinta el mes ENTERO, con sus huecos vacíos a la vista, en vez de amontonar
+ * solo los días que tienen plato: el hueco es justamente la información.
+ *
+ * Cada día es su número y un punto por plato, del color de su categoría (la
+ * misma escala que el resumen semanal). A ese tamaño un nombre no se lee y una
+ * ilustración es un borrón, pero el color sí dice "ese día hay pescado". Para
+ * el detalle se toca el día: lleva a su semana y a su vista de día, que es
+ * donde el plato ya se ve entero.
+ */
+function DeckMonth({ menuWeeks, data, visibleGroups, onPickDay }) {
+  const cells = useMemo(
+    () => monthCellsFromWeeks(menuWeeks, data, visibleGroups),
+    [menuWeeks, data, visibleGroups],
+  );
+
+  // Los meses que el menú toca de verdad. Navegar fuera de ellos sería pasear
+  // por meses vacíos: el menú no llega ahí y nunca va a llegar.
+  const months = useMemo(() => {
+    const counts = new Map();
+    for (const iso of cells.keys()) {
+      const key = iso.slice(0, 7);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return { keys: [...counts.keys()].sort(), counts };
+  }, [cells]);
+
+  // Por cuál se abre. Una semana a caballo de dos meses (31 de agosto → 6 de
+  // septiembre) toca DOS, y abrir por el primero enseñaba agosto con un solo
+  // día y el resto del mes vacío — parecía que no había menú. Manda el mes de
+  // hoy si el menú pasa por él, y si no, aquel donde hay más menú que ver.
+  const defaultMonthIdx = useMemo(() => {
+    if (months.keys.length === 0) return 0;
+    const todayKey = isoLocalDate(new Date()).slice(0, 7);
+    const todayAt = months.keys.indexOf(todayKey);
+    if (todayAt >= 0) return todayAt;
+    let best = 0;
+    for (let i = 1; i < months.keys.length; i++) {
+      if ((months.counts.get(months.keys[i]) ?? 0) > (months.counts.get(months.keys[best]) ?? 0)) best = i;
+    }
+    return best;
+  }, [months]);
+
+  const [monthIdx, setMonthIdx] = useState(null);
+  const idx = Math.min(monthIdx ?? defaultMonthIdx, Math.max(0, months.keys.length - 1));
+  const monthKey = months.keys[idx];
+
+  if (!monthKey) {
+    return (
+      <div style={{ padding: "40px 20px", textAlign: "center" }}>
+        <CalendarRange size={32} color="#cdd8d0" strokeWidth={2} />
+        <p style={{ margin: "10px 0 0", fontSize: 13, fontWeight: 700, color: "#9ab0a1" }}>
+          Aún no hay menú que poner en el calendario
+        </p>
+      </div>
+    );
+  }
+
+  const [year, month] = monthKey.split("-").map(Number);
+  const first = new Date(year, month - 1, 1);
+  const last = new Date(year, month, 0);
+  const gridStart = mondayOf(first);
+  const gridEnd = mondayOf(last);
+  gridEnd.setDate(gridEnd.getDate() + 6);
+
+  const grid = [];
+  for (const d = new Date(gridStart); d <= gridEnd; d.setDate(d.getDate() + 1)) {
+    grid.push(new Date(d));
+  }
+
+  const todayIso = isoLocalDate(new Date());
+  const covered = [...cells.keys()].filter((iso) => iso.startsWith(monthKey)).length;
+
+  return (
+    <div style={{ paddingBottom: 8 }}>
+      <div style={monthHead}>
+        <button
+          type="button"
+          className="mp-press"
+          onClick={() => setMonthIdx(Math.max(0, idx - 1))}
+          disabled={idx <= 0}
+          aria-label="Mes anterior"
+          style={weekNavArrowStyle(idx <= 0)}
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <span style={{ flex: 1, textAlign: "center" }}>
+          <span style={{ display: "block", fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px" }}>
+            {MONTH_NAMES[month - 1]} {year}
+          </span>
+          <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#8aa294", marginTop: 1 }}>
+            {covered} {covered === 1 ? "día con menú" : "días con menú"}
+          </span>
+        </span>
+        <button
+          type="button"
+          className="mp-press"
+          onClick={() => setMonthIdx(Math.min(months.keys.length - 1, idx + 1))}
+          disabled={idx >= months.keys.length - 1}
+          aria-label="Mes siguiente"
+          style={weekNavArrowStyle(idx >= months.keys.length - 1)}
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      <div style={monthGrid}>
+        {MONTH_COLS.map((c) => (
+          <span key={c} style={monthColHead}>{c}</span>
+        ))}
+        {grid.map((date) => {
+          const iso = isoLocalDate(date);
+          const outside = date.getMonth() !== month - 1;
+          const cell = cells.get(iso);
+          const isToday = iso === todayIso;
+          const label = `${date.getDate()} de ${MONTH_NAMES[date.getMonth()]}`;
+          return (
+            <button
+              key={iso}
+              type="button"
+              className={cell ? "mp-press" : undefined}
+              disabled={!cell}
+              onClick={cell ? () => onPickDay?.(cell.weekStart, cell.day) : undefined}
+              aria-label={cell ? `${label}: ${cell.tokens.length} platos` : label}
+              style={{
+                ...monthCell,
+                // El día sin menú no se esconde: se apaga. Es la mitad de la
+                // respuesta a "dónde caben los platos".
+                background: cell ? "#fff" : "transparent",
+                border: cell ? "1px solid #e3ece6" : "1px solid transparent",
+                boxShadow: cell ? "0 1px 3px rgba(20,47,29,.05)" : "none",
+                opacity: outside ? 0.35 : 1,
+                cursor: cell ? "pointer" : "default",
+                ...(isToday ? { borderColor: "#2d5a3d", boxShadow: "0 0 0 1.5px #2d5a3d" } : null),
+              }}
+            >
+              <span style={{
+                fontSize: 12, fontWeight: isToday ? 900 : 800,
+                color: cell ? "#142f1d" : "#b6c7bd",
+                fontVariantNumeric: "tabular-nums", lineHeight: 1,
+              }}>
+                {date.getDate()}
+              </span>
+              <span style={monthDots}>
+                {(cell?.tokens ?? []).slice(0, 4).map((t, i) => (
+                  <span
+                    key={i}
+                    title={categoryLabel(t.cat)}
+                    style={{
+                      width: 6, height: 6, borderRadius: 999, flexShrink: 0,
+                      background: t.cat ? categoryColor(t.cat) : "#9ab0a1",
+                    }}
+                  />
+                ))}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const monthHead = {
+  display: "flex", alignItems: "center", gap: 8, marginBottom: 12,
+};
+
+const monthGrid = {
+  display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4,
+};
+
+const monthColHead = {
+  textAlign: "center", fontSize: 9.5, fontWeight: 800, color: "#9ab0a1",
+  textTransform: "uppercase", letterSpacing: ".4px", paddingBottom: 4,
+};
+
+const monthCell = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+  minHeight: 52, padding: "7px 2px 6px", borderRadius: 12,
+  fontFamily: "inherit", boxSizing: "border-box",
+};
+
+// Dos filas de dos puntos como mucho: en 48 px de ancho, cuatro seguidos se
+// tocan y dejan de leerse como platos distintos.
+const monthDots = {
+  display: "flex", flexWrap: "wrap", justifyContent: "center",
+  alignItems: "center", gap: 3, maxWidth: 30,
+};
+
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
@@ -3045,6 +3287,14 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
       )}
       {deckView === "semana" && (
         <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} />
+      )}
+      {deckView === "mes" && (
+        <DeckMonth
+          menuWeeks={menuWeeks}
+          data={data}
+          visibleGroups={visibleGroups}
+          onPickDay={onPickMonthDay}
+        />
       )}
       {deckView === "lista" && (
         <DeckCalendar
@@ -3978,6 +4228,50 @@ export const MenuScreen = memo(function MenuScreen({
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
     [menuWeeks, data.menuWeek],
   );
+  /**
+   * Las semanas del menú tal y como las ve la vista de mes.
+   *
+   * `menuWeeks` trae el plan que se GUARDÓ de cada semana, y el de la semana
+   * abierta puede haber cambiado desde entonces (cambiar un plato, mover otro):
+   * ese vive en `menuPlan`. Así que la activa se sustituye por lo que hay en
+   * pantalla — si no, el mes enseñaría el plato viejo justo en la semana que
+   * estás tocando.
+   *
+   * Y si el menú no tiene entrada en el archivo (una sola semana, sin
+   * activeMenuId) se arma una semana a mano con lo que hay delante, para que
+   * la vista no salga vacía teniendo menú.
+   */
+  const monthWeeks = useMemo(() => {
+    const firstDate = activeDays?.[0] ? weekDates?.[activeDays[0]] : null;
+    const activeStart = menuWeeks[Math.max(0, currentWeekIdx)]?.weekStart
+      ?? (firstDate ? isoLocalDate(firstDate) : null);
+    const live = activeStart
+      ? { weekStart: activeStart, plan: menuPlan, dates: weekDates, activeDays }
+      : null;
+    if (menuWeeks.length > 0) {
+      return menuWeeks.map((w) => (live && w.weekStart === activeStart ? { ...w, ...live } : w));
+    }
+    return live ? [live] : [];
+  }, [menuWeeks, currentWeekIdx, menuPlan, activeDays, weekDates]);
+
+  /**
+   * Tocar un día en la vista de mes.
+   *
+   * El mes cruza semanas, así que llevar allí son DOS cosas: cambiar de semana
+   * si el día no es de la que está abierta, y bajar a la vista de día en ese
+   * día. El cambio de semana solo se pide cuando hace falta — pedirlo siempre
+   * volvería a montar el plan de la misma semana para nada.
+   */
+  const handlePickMonthDay = useCallback(
+    (weekStart, day) => {
+      const current = menuWeeks[Math.max(0, currentWeekIdx)]?.weekStart ?? null;
+      if (weekStart && weekStart !== current) onSwitchWeek?.(weekStart);
+      setSelectedDay(day);
+      setDeckView("dia");
+    },
+    [menuWeeks, currentWeekIdx, onSwitchWeek],
+  );
+
   const restrictionWarning = useMemo(
     () => summarizeMenuRestrictionConflicts(restrictionConflicts),
     [restrictionConflicts],
@@ -4578,6 +4872,8 @@ export const MenuScreen = memo(function MenuScreen({
               onDishLongPress={handleTileLongPress}
               onRegenerateDay={onRegenerateDay}
               regenGroups={activeMenus}
+              menuWeeks={monthWeeks}
+              onPickMonthDay={handlePickMonthDay}
             />
             </ArmedContext.Provider>
           </div>
