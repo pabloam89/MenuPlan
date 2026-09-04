@@ -3616,7 +3616,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "plancha": true
   },
   {
     "id": "pasta_arroces_022",

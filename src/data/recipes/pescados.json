@@ -607,7 +607,8 @@
     "saturated_fat_g": 6,
     "sodium_mg": 380,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "pescados_005",
@@ -856,7 +857,8 @@
     "saturated_fat_g": 4,
     "sodium_mg": 210,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "pescados_007",
@@ -1251,7 +1253,8 @@
     "saturated_fat_g": 6,
     "sodium_mg": 280,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "pescados_010",
@@ -2827,7 +2830,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "pescados_021",
@@ -3269,7 +3273,8 @@
     "saturated_fat_g": 4,
     "sodium_mg": 85,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "pescados_024",
@@ -4832,7 +4837,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_033",
@@ -5018,7 +5024,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_034",
@@ -5741,7 +5748,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "plancha": true
   },
   {
     "id": "pescados_038",
@@ -6787,7 +6795,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "plancha": true
   },
   {
     "id": "pescados_044",
@@ -7909,7 +7918,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "plancha": true
   },
   {
     "id": "pescados_050",
@@ -8108,7 +8118,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "plancha": true
   },
   {
     "id": "pescados_051",
@@ -8906,7 +8917,8 @@
       }
     ],
     "estrella": true,
-    "kidFavourite": true
+    "kidFavourite": true,
+    "plancha": true
   },
   {
     "id": "pescados_055",
@@ -9089,7 +9101,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_056",
@@ -9242,7 +9255,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "plancha": true
   },
   {
     "id": "pescados_057",
@@ -9414,7 +9428,8 @@
         "prepSummary": "Precalienta el horno a 200°C con función grill. Sazona el emperador, rocía con aceite y hornea 12-15 minutos, usando el grill al final para dorar. Prepara la salsa rápida de tomate y albahaca mientras el pescado se hornea."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "pescados_058",
@@ -10020,7 +10035,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_062",
@@ -10586,7 +10602,8 @@
     "estrella": true,
     "mainIngredients": [
       "encurtido"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_065",
@@ -10774,7 +10791,8 @@
         "prepSummary": "Precalienta el horno con la función grill a 200°C. Coloca los medallones de rape en una bandeja con un hilo de aceite y cocina durante 15-20 minutos, girándolos a mitad para asegurar un dorado parejo. La salsa verde se elabora simultáneamente en una cazuela."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "pescados_066",
@@ -11490,7 +11508,8 @@
     "estrella": true,
     "mainIngredients": [
       "encurtido"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_070",
@@ -11818,7 +11837,8 @@
         "prepSummary": "Precalienta el horno a 220°C con la función grill. Coloca la sepia marinada en una bandeja y cocina 15-20 minutos, dándole la vuelta, hasta que esté bien dorada y jugosa, imitando el efecto plancha."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "pescados_072",
@@ -13240,7 +13260,8 @@
         "prepSummary": "Sofríe las verduras del pisto en la olla express, añade el tomate y cocina a presión durante 8-10 minutos. Abre, introduce el bacalao y cocina 2-3 minutos más. El huevo se puede freír aparte o escalfar rápidamente."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "pescados_079",
@@ -14273,7 +14294,8 @@
     "estrella": true,
     "mainIngredients": [
       "fruta"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_085",
@@ -15015,7 +15037,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "plancha": true
   },
   {
     "id": "pescados_089",
@@ -16181,7 +16204,8 @@
       }
     ],
     "estrella": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "plancha": true
   },
   {
     "id": "pescados_095",
@@ -16551,7 +16575,8 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_097",
@@ -17160,7 +17185,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "occasion": "especial"
+    "occasion": "especial",
+    "plancha": true
   },
   {
     "id": "pescados_100",
@@ -17619,7 +17645,8 @@
     "mainIngredients": [
       "lacteo",
       "encurtido"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_102",
@@ -18081,7 +18108,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_104",
@@ -18333,7 +18361,8 @@
     "saturated_fat_g": 4,
     "sodium_mg": 520,
     "freezable": false,
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "pescados_105",
@@ -18781,7 +18810,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_107",
@@ -19669,7 +19699,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_111",
@@ -21959,7 +21990,8 @@
       "Verter la ajada caliente por encima del pescado y servir."
     ],
     "description": "Filetes de merluza a la plancha con una ajada de ajo, pimentón y vinagre.",
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "pescados_125",
@@ -22027,7 +22059,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "pescados_126",
@@ -22205,6 +22238,7 @@
     "estrella": true,
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "plancha": true
   }
 ]

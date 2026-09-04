@@ -5038,7 +5038,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "sopas_cremas_031",
@@ -10677,7 +10678,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "sopas_cremas_062",

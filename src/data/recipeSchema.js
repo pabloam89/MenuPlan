@@ -179,6 +179,15 @@ export const RecipeSchema = z
     // kidFriendly + dificultad, que es justo la aproximación que se quedaba
     // corta (ver utils/recipeIntents.js).
     kidFavourite: z.boolean().optional(),
+    // ¿Se hace A LA PLANCHA? La única técnica que no tenía quien la
+    // representara, y en una casa española de lo que más se dice.
+    //
+    // No hay eje de "técnica" completo a propósito: derivarlo de los pasos no
+    // sale (sartén dispara en el 73% del catálogo y olla en el 55%, porque
+    // casi todo sofríe cebolla), y las demás técnicas ya tienen su señal —
+    // horno es `requiredAppliance`, frito es un healthFlag derivado, guiso es
+    // isPlatoCuchara y crudo es `montaje`. Faltaba esta y solo esta.
+    plancha: z.boolean().optional(),
     // "Cena rápida" de verdad: se monta, no se cocina (sándwich, tostas, tabla,
     // ensalada de asamblaje). Sustituye a category "cenas_rapidas".
     //

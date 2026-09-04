@@ -230,7 +230,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "cenas_rapidas_003",
@@ -531,7 +532,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "cenas_rapidas_005",
@@ -658,7 +660,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "cenas_rapidas_006",
@@ -784,7 +787,8 @@
     "montaje": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "cenas_rapidas_007",
@@ -1032,7 +1036,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "cenas_rapidas_009",
@@ -1780,7 +1785,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "cenas_rapidas_014",

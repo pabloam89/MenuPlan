@@ -1712,7 +1712,8 @@
       "verdura",
       "lacteo"
     ],
-    "montaje": true
+    "montaje": true,
+    "plancha": true
   },
   {
     "id": "platos_unicos_010",
@@ -2625,7 +2626,8 @@
     "montaje": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "platos_unicos_015",

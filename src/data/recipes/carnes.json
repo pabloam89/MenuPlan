@@ -309,7 +309,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 95,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "carnes_003",
@@ -1110,7 +1111,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 6,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "plancha": true
   },
   {
     "id": "carnes_008",
@@ -1502,7 +1504,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_010",
@@ -2454,7 +2457,8 @@
         "kind": "emplatado"
       }
     ],
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "carnes_015",
@@ -3158,7 +3162,8 @@
     "saturated_fat_g": 11,
     "sodium_mg": 180,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "carnes_019",
@@ -4199,7 +4204,8 @@
     "saturated_fat_g": 2,
     "sodium_mg": 95,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "carnes_025",
@@ -4706,7 +4712,8 @@
     "saturated_fat_g": 11,
     "sodium_mg": 320,
     "freezable": false,
-    "canReceiveSauce": true
+    "canReceiveSauce": true,
+    "plancha": true
   },
   {
     "id": "carnes_028",
@@ -5283,7 +5290,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_031",
@@ -8551,7 +8559,8 @@
         "prepSummary": "Precalienta el horno a 220°C con función grill si es posible. Cocina la entraña en una bandeja caliente durante 10-15 minutos por cada lado, hasta conseguir un buen dorado. El truco es sellarla primero a alta temperatura para mantenerla jugosa."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_046",
@@ -8934,7 +8943,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_048",
@@ -10522,7 +10532,8 @@
         "prepSummary": "Precalienta el horno a 220°C. Asa el chuletón directamente en una bandeja durante 25-30 minutos, volteándolo a mitad, para un punto medio. Para un mejor sellado, puedes usar la función grill del horno los últimos minutos y es fundamental dejar reposar la pieza 10 minutos antes de"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_055",
@@ -10954,7 +10965,8 @@
     "estrella": true,
     "mainIngredients": [
       "frutos_secos"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_057",
@@ -11104,7 +11116,8 @@
         "prepSummary": "Precalienta el horno a 200-220°C. Sella el filete en una sartén muy caliente con un poco de aceite durante 2 minutos por cada lado para crear una costra, luego termina de cocinarlo en el horno durante 8-12 minutos hasta el punto deseado. La gremolata se elabora por separado."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_058",
@@ -11271,7 +11284,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "plancha": true
   },
   {
     "id": "carnes_059",
@@ -11422,7 +11436,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_060",
@@ -11545,7 +11560,8 @@
         "prepSummary": "Precalienta el horno a 200°C (con función grill si es posible). Coloca los filetes de pavo salpimentados y ligeramente aceitados en una bandeja y hornea durante 15-20 minutos, volteándolos una vez, hasta que estén dorados y cocidos. La salsa se prepara aparte."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_061",
@@ -11704,7 +11720,8 @@
         "prepSummary": "Precalienta el horno a 200°C. Asa el solomillo sazonado por 20-25 minutos hasta el punto deseado. Para una costra perfecta, séllalo previamente en una sartén antes de hornear."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_062",
@@ -11919,7 +11936,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_063",
@@ -12162,7 +12180,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_064",
@@ -12388,7 +12407,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_065",
@@ -14408,7 +14428,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_075",
@@ -16242,7 +16263,8 @@
         "prepSummary": "Precalienta el horno a 200°C. Cocina los pinchos con función grill durante 20-25 minutos, dándoles la vuelta. Las patatas, cortadas en bastones y con poco aceite, se asan a 200°C durante 30-40 minutos hasta que estén tiernas y doradas."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_083",
@@ -16381,7 +16403,8 @@
         "prepSummary": "Marina las chuletillas con los ingredientes. Precalienta el horno a 220°C (con función grill si es posible) y hornea durante 22 minutos, dándoles la vuelta a mitad para un buen sellado y que queden tiernas por dentro."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_084",
@@ -17988,7 +18011,8 @@
         "prepSummary": "Para confitar, sumerge las costillas con el aceite y aromáticos en una fuente apta para horno y cocina a 120°C durante 3 horas. Escurre, glasea con la miel y mostaza, y hornea a 200°C unos 15-20 minutos hasta caramelizar."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_092",
@@ -18135,7 +18159,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_093",
@@ -20252,7 +20277,8 @@
     "mainIngredients": [
       "lacteo",
       "seta"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_102",
@@ -20488,7 +20514,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_103",
@@ -20973,7 +21000,8 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_105",
@@ -21385,7 +21413,8 @@
         "prepSummary": "El horno es excelente para asar el ajo y las patatas (horneadas). Para el chuletón, precalienta a 220°C y cocina unos 20-25 minutos, volteando, para un buen sellado y cocción uniforme. Las patatas se dorarán y el ajo quedará tierno y dulce."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_107",
@@ -22097,7 +22126,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_110",
@@ -22313,7 +22343,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_111",
@@ -23366,7 +23397,8 @@
     "estrella": true,
     "mainIngredients": [
       "encurtido"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_116",
@@ -24473,7 +24505,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_121",
@@ -24704,7 +24737,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_122",
@@ -24909,7 +24943,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "montaje": true
+    "montaje": true,
+    "plancha": true
   },
   {
     "id": "carnes_123",
@@ -25403,7 +25438,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_126",
@@ -25992,7 +26028,8 @@
     "estrella": true,
     "mainIngredients": [
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_130",
@@ -26338,7 +26375,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "plancha": true
   },
   {
     "id": "carnes_132",
@@ -26484,7 +26522,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_133",
@@ -26672,7 +26711,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_134",
@@ -26818,7 +26858,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_135",
@@ -29556,7 +29597,8 @@
       "Servir el lomo con la cebolla caramelizada por encima."
     ],
     "description": "Filetes de lomo de cerdo a la plancha con una generosa cebolla caramelizada al vino blanco.",
-    "estrella": true
+    "estrella": true,
+    "plancha": true
   },
   {
     "id": "carnes_150",
@@ -29618,7 +29660,8 @@
     "mainIngredients": [
       "seta"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "plancha": true
   },
   {
     "id": "carnes_151",
@@ -29686,7 +29729,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "kidFavourite": true
+    "kidFavourite": true,
+    "plancha": true
   },
   {
     "id": "carnes_152",
@@ -29819,7 +29863,8 @@
       "verdura",
       "lacteo",
       "fruta"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "carnes_154",
@@ -30035,6 +30080,7 @@
     "mainIngredients": [
       "verdura",
       "seta"
-    ]
+    ],
+    "plancha": true
   }
 ]

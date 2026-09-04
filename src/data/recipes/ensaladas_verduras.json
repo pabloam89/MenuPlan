@@ -1497,7 +1497,8 @@
     "canReceiveSauce": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_009",
@@ -2959,7 +2960,8 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_020",
@@ -3757,7 +3759,8 @@
     "freezable": false,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_025",
@@ -4645,7 +4648,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_032",
@@ -4836,7 +4840,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_033",
@@ -7354,7 +7359,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_049",
@@ -8005,7 +8011,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_053",
@@ -13654,7 +13661,8 @@
     "mainIngredients": [
       "verdura",
       "fruta"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_088",
@@ -15250,7 +15258,8 @@
     "mainIngredients": [
       "verdura",
       "frutos_secos"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_096",
@@ -15423,7 +15432,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_097",
@@ -16123,7 +16133,8 @@
     "estrella": true,
     "mainIngredients": [
       "verdura"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_101",
@@ -17713,7 +17724,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_110",
@@ -18162,7 +18174,8 @@
     "mainIngredients": [
       "fruta",
       "frutos_secos"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_113",
@@ -18895,7 +18908,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_117",
@@ -19693,7 +19707,8 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   },
   {
     "id": "ensaladas_verduras_120",
@@ -20430,6 +20445,7 @@
     "mainIngredients": [
       "verdura",
       "lacteo"
-    ]
+    ],
+    "plancha": true
   }
 ]

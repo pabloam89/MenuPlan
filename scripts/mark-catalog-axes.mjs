@@ -1,12 +1,12 @@
 /**
  * mark-catalog-axes.mjs
  *
- * Marca tres ejes de curación en src/data/recipes/*.json: `montaje`,
- * `occasion` y `kidFavourite`.
+ * Marca cuatro ejes de curación en src/data/recipes/*.json: `montaje`,
+ * `plancha`, `occasion` y `kidFavourite`.
  *
  * ── Por qué listas de ids y no reglas ─────────────────────────────────────
  * `mainIngredients` se DERIVA (ver derive-main-ingredients.mjs) porque la
- * respuesta está en los datos: la cantidad de calabacín por ración. Estos tres
+ * respuesta está en los datos: la cantidad de calabacín por ración. Estos cuatro
  * no. "¿Esto se monta o se cocina?", "¿esto se hace un martes?", "¿esto se lo
  * come un niño?" son juicios, y el esquema lo dice explícitamente en cada uno.
  * Así que lo que hay aquí abajo son DECISIONES escritas a mano; el script solo
@@ -51,6 +51,51 @@ const MONTAJE = [
   "ensaladas_verduras_122",
   "platos_unicos_009", "platos_unicos_016",
   "desayunos_020", "meriendas_003", "meriendas_004",
+];
+
+
+// ── plancha ───────────────────────────────────────────────────────────────
+// La técnica que faltaba, y la única que faltaba.
+//
+// Se probó a derivar el eje de técnica ENTERO de los pasos y no sale: sartén
+// dispara en el 73% del catálogo y olla en el 55%, porque casi todo sofríe
+// cebolla — un filtro que acepta a tres de cada cuatro no filtra nada. Es la
+// misma trampa del ajo en mainIngredients.
+//
+// Mirando técnica por técnica, resulta que las demás YA tienen quien las
+// represente: horno es requiredAppliance, frito es un healthFlag derivado,
+// guiso es isPlatoCuchara (nombre + categoría) y crudo es montaje. La plancha
+// no tenía nada, y en una casa española es de lo que más se dice.
+//
+// Sale del nombre o de los pasos: 57 la llevan en el título ("Pechugas de
+// pollo a la plancha") y el resto solo por dentro (hamburguesas, filetes
+// rusos, brochetas, entrecot). Para quien pide "algo a la plancha" son lo
+// mismo.
+const PLANCHA = [
+  "legumbres_022", "carnes_002", "carnes_007", "carnes_009", "carnes_014",
+  "carnes_018", "carnes_024", "carnes_027", "carnes_030", "carnes_045", "carnes_047",
+  "carnes_054", "carnes_056", "carnes_057", "carnes_058", "carnes_059", "carnes_060",
+  "carnes_061", "carnes_062", "carnes_063", "carnes_064", "carnes_074", "carnes_082",
+  "carnes_083", "carnes_091", "carnes_092", "carnes_101", "carnes_102", "carnes_104",
+  "carnes_106", "carnes_109", "carnes_110", "carnes_115", "carnes_120", "carnes_121",
+  "carnes_122", "carnes_125", "carnes_129", "carnes_131", "carnes_132", "carnes_133",
+  "carnes_134", "carnes_149", "carnes_150", "carnes_151", "carnes_153", "carnes_156",
+  "pescados_004", "pescados_006", "pescados_009", "pescados_020", "pescados_023",
+  "pescados_032", "pescados_033", "pescados_037", "pescados_043", "pescados_049",
+  "pescados_050", "pescados_054", "pescados_055", "pescados_056", "pescados_057",
+  "pescados_061", "pescados_064", "pescados_065", "pescados_069", "pescados_071",
+  "pescados_078", "pescados_084", "pescados_088", "pescados_094", "pescados_096",
+  "pescados_099", "pescados_101", "pescados_103", "pescados_104", "pescados_106",
+  "pescados_110", "pescados_124", "pescados_125", "pescados_128", "huevos_069",
+  "pasta_arroces_021", "sopas_cremas_030", "sopas_cremas_061",
+  "ensaladas_verduras_008", "ensaladas_verduras_018", "ensaladas_verduras_024",
+  "ensaladas_verduras_031", "ensaladas_verduras_032", "ensaladas_verduras_048",
+  "ensaladas_verduras_052", "ensaladas_verduras_087", "ensaladas_verduras_095",
+  "ensaladas_verduras_096", "ensaladas_verduras_100", "ensaladas_verduras_109",
+  "ensaladas_verduras_112", "ensaladas_verduras_116", "ensaladas_verduras_119",
+  "ensaladas_verduras_123", "platos_unicos_009", "platos_unicos_014",
+  "cenas_rapidas_002", "cenas_rapidas_004", "cenas_rapidas_005", "cenas_rapidas_006",
+  "cenas_rapidas_008", "cenas_rapidas_017",
 ];
 
 // ── occasion: "especial" ──────────────────────────────────────────────────
@@ -98,7 +143,8 @@ function isKidFavourite(recipe) {
 const write = process.argv.includes("--write");
 const montajeSet = new Set(MONTAJE);
 const especialSet = new Set(ESPECIAL);
-const counts = { montaje: 0, especial: 0, kid: 0 };
+const planchaSet = new Set(PLANCHA);
+const counts = { montaje: 0, especial: 0, kid: 0, plancha: 0 };
 const kidNames = [];
 
 for (const file of FILES) {
@@ -107,6 +153,7 @@ for (const file of FILES) {
   for (const recipe of recipes) {
     if (montajeSet.has(recipe.id)) recipe.montaje = true;
     if (especialSet.has(recipe.id)) recipe.occasion = "especial";
+    if (planchaSet.has(recipe.id)) recipe.plancha = true;
     if (isKidFavourite(recipe)) {
       recipe.kidFavourite = true;
       kidNames.push(`  ${recipe.id.padEnd(22)}${recipe.name.slice(0, 54)}`);
@@ -114,6 +161,7 @@ for (const file of FILES) {
     if (recipe.montaje === true) counts.montaje++;
     if (recipe.occasion === "especial") counts.especial++;
     if (recipe.kidFavourite === true) counts.kid++;
+    if (recipe.plancha === true) counts.plancha++;
   }
   if (write) writeFileSync(path, JSON.stringify(recipes, null, 2) + "\n", "utf8");
 }
@@ -121,6 +169,7 @@ for (const file of FILES) {
 console.log(`montaje:       ${counts.montaje}`);
 console.log(`occasion=esp:  ${counts.especial}`);
 console.log(`kidFavourite:  ${counts.kid}`);
+console.log(`plancha:       ${counts.plancha}`);
 console.log("\nkidFavourite:");
 console.log(kidNames.join("\n"));
 console.log(write ? "\n✅ Escrito." : "\n(informe: nada escrito — pasa --write para aplicar)");
