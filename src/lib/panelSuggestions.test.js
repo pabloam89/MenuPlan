@@ -13,7 +13,11 @@ describe("sugerencias del menú", () => {
     const s = sugerenciasDelMenu({ familias: { pescado: 4 }, huecos: 14 }, conObjetivos({ pescado: 2 }));
     const p = s.find((x) => x.id === "menos-pescado");
     expect(p.texto).toBe("Menos pescado");
-    expect(p.porque).toBe("Hay 4 veces y pediste 2");
+    expect(p.porque).toBe("Hay 4, pediste 2");
+    // Corto a proposito: todos los "porque" tienen que caber en UNA linea. Un
+    // texto que envuelve en una tarjeta y no en la de al lado descuadra la
+    // rejilla entera y se lee como un fallo de maquetacion.
+    expect(p.porque.length).toBeLessThanOrEqual(22);
   });
 
   // "Menos pescado" cuando no hay pescado es ruido, y el ruido enseña al
@@ -45,9 +49,9 @@ describe("sugerencias del menú", () => {
   // escribió una máquina.
   it("construye bien la preposición de cada técnica", () => {
     const horno = sugerenciasDelMenu({ tecnicas: { horno: 6 }, huecos: 14 }, libretaVacia());
-    expect(horno.find((x) => x.id === "variar-horno").porque).toBe("6 platos al horno");
+    expect(horno.find((x) => x.id === "variar-horno").porque).toBe("6 al horno");
     const plancha = sugerenciasDelMenu({ tecnicas: { plancha: 6 }, huecos: 14 }, libretaVacia());
-    expect(plancha.find((x) => x.id === "variar-plancha").porque).toBe("6 platos a la plancha");
+    expect(plancha.find((x) => x.id === "variar-plancha").porque).toBe("6 a la plancha");
   });
 
   it("propone cocina de fuera solo si no hay ninguna", () => {
@@ -130,8 +134,13 @@ describe("la rejilla de cuatro", () => {
   it("cada una trae su ilustracion y su tono de color", () => {
     for (const s of sugerenciasDelMenu({ familias: { pescado: 4 }, huecos: 14 }, conObjetivos({ pescado: 2 }))) {
       expect(s.arte).toMatch(/^\/categories\/.+\.(png|webp)$/);
-      expect(s.tono.fondo).toMatch(/^#/);
+      // La tarjeta es BLANCA y el color vive en el título, en el círculo de la
+      // ilustración y en la barra de abajo. Un fondo de color competía con los
+      // colores del propio render 3D, y ganaba el fondo.
       expect(s.tono.tinta).toMatch(/^#/);
+      expect(s.tono.suave).toMatch(/^#/);
+      expect(s.tono.barra).toMatch(/^#/);
+      expect(s.tono.fondo).toBeUndefined();
     }
   });
 
@@ -164,5 +173,22 @@ describe("la rejilla de cuatro", () => {
     const c = s.find((x) => x.id.startsWith("probar-"));
     expect(c.texto).not.toMatch(/algo (francesa|italiana|asiatica|mexicana)/);
     expect(c.texto).toMatch(/^Cocina /);
+  });
+});
+
+// Todos los textos entran en una linea a 165px de ancho de tarjeta. Sin esto,
+// una tarjeta de dos lineas y otra de una descuadran la rejilla de 2x2.
+describe("todo cabe en una linea", () => {
+  it("ningun titulo ni porque se pasa de largo", () => {
+    const casos = [
+      [{ familias: { pescado: 9, carne: 9, verdura: 9, legumbres: 9, pasta_arroz: 9, huevos: 9 }, huecos: 14 },
+       conObjetivos({ pescado: 1, carne: 1, verdura: 1, legumbres: 1, pasta_arroz: 1, huevos: 1 })],
+      [{ tecnicas: { plancha: 8 }, cocinas: {}, huecos: 14 }, libretaVacia()],
+      [{}, libretaVacia()],
+    ];
+    for (const [r, n] of casos) for (const s of sugerenciasDelMenu(r, n)) {
+      expect(s.texto.length, `titulo largo: ${s.texto}`).toBeLessThanOrEqual(18);
+      expect(s.porque.length, `porque largo: ${s.porque}`).toBeLessThanOrEqual(22);
+    }
   });
 });

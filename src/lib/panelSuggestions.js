@@ -36,7 +36,6 @@ const ARTE_FAMILIA = {
   huevos: "/categories/cut/huevos.png",
 };
 
-const veces = (n) => (n === 1 ? "una vez" : n === 2 ? "dos veces" : `${n} veces`);
 
 /**
  * @param {{familias: Record<string, number>, cocinas: Record<string, number>, tecnicas: Record<string, number>, huecos: number}} recuento
@@ -61,7 +60,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
         id: `menos-${familia}`,
         texto: `Menos ${FAMILIA_LABEL[familia] ?? familia}`,
         frase: `menos ${FAMILIA_LABEL[familia] ?? familia}`,
-        porque: `Hay ${veces(cuantas)} y pediste ${objetivo}`,
+        porque: `Hay ${cuantas}, pediste ${objetivo}`,
         arte: ARTE_FAMILIA[familia] ?? "/categories/platos_unicos.png",
       });
     }
@@ -74,9 +73,9 @@ export function sugerenciasDelMenu(recuento, notepad) {
   if (tecnicaTop && huecos >= 6 && tecnicaN >= Math.ceil(huecos / 3)) {
     out.push({
       id: `variar-${tecnicaTop}`,
-      texto: "Más variedad de estilos",
+      texto: "Más variedad",
       frase: `menos ${tecnicaTop}`,
-      porque: `${tecnicaN} platos ${preposicion(tecnicaTop)} ${tecnicaTop}`,
+      porque: `${tecnicaN} ${preposicion(tecnicaTop)} ${tecnicaTop}`,
       arte: "/categories/faceta_gourmet.webp",
     });
   }
@@ -93,7 +92,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
       // concuerdan con "cocina": la frase tiene que llevar el sustantivo.
       texto: `Cocina ${cual}`,
       frase: `más comida ${cual}`,
-      porque: "Esta semana no hay nada de fuera",
+      porque: "Nada de fuera",
       // Provisional hasta que existan las banderas de cocina: las especias
       // son lo mas parecido a "de fuera" que hay hoy en el catalogo.
       arte: "/categories/especias.png",
@@ -115,10 +114,10 @@ export function sugerenciasDelMenu(recuento, notepad) {
 // Siempre servibles: no dependen de cómo esté el menú, así que valen de
 // relleno sin mentir. Ordenados por lo que más pide la gente.
 const COMODINES = [
-  { id: "mas-rapido", texto: "Algo más rápido", frase: "algo más rápido", porque: "Para las noches con prisa", arte: "/categories/faceta_rapido.webp" },
-  { id: "mas-verdura", texto: "Más verdura", frase: "más verdura", porque: "Sin que parezca un castigo", arte: "/categories/cut/verduras.png" },
-  { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil", porque: "Platos de un cacharro", arte: "/categories/platos_unicos.png" },
-  { id: "mas-salsa", texto: "Platos con salsa", frase: "más platos con salsa", porque: "De los que mojan pan", arte: "/categories/salsas.png" },
+  { id: "mas-rapido", texto: "Algo más rápido", frase: "algo más rápido", porque: "Noches con prisa", arte: "/categories/faceta_rapido.webp" },
+  { id: "mas-verdura", texto: "Más verdura", frase: "más verdura", porque: "Sin dramas", arte: "/categories/cut/verduras.png" },
+  { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil", porque: "Un solo cacharro", arte: "/categories/platos_unicos.png" },
+  { id: "mas-salsa", texto: "Platos con salsa", frase: "más platos con salsa", porque: "Para mojar pan", arte: "/categories/salsas.png" },
 ];
 
 // Cuatro parejas de color, una por posición en la rejilla. Van por posición y
@@ -126,10 +125,10 @@ const COMODINES = [
 // colores en el mismo sitio y se reconoce de un vistazo, aunque el texto de
 // cada tarjeta cambie cada semana.
 const TONOS = [
-  { fondo: "#eaf6ee", borde: "#c9e6d4", tinta: "#1e5233", glow: "rgba(76,186,110,.28)" },
-  { fondo: "#fdf1e3", borde: "#f3ddc0", tinta: "#8a4f00", glow: "rgba(224,165,94,.28)" },
-  { fondo: "#e9f1fb", borde: "#cfe0f2", tinta: "#20456e", glow: "rgba(90,140,200,.26)" },
-  { fondo: "#f6edf8", borde: "#e6d4ea", tinta: "#5c2f66", glow: "rgba(150,95,165,.24)" },
+  { tinta: "#1e5233", suave: "#eaf6ee", barra: "#4cba6e" },
+  { tinta: "#8a4f00", suave: "#fdf1e3", barra: "#e0a55e" },
+  { tinta: "#20456e", suave: "#e9f1fb", barra: "#5a8cc8" },
+  { tinta: "#5c2f66", suave: "#f6edf8", barra: "#9a63a8" },
 ];
 
 function mayor(obj) {

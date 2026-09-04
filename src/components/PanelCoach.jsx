@@ -21,7 +21,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react
 import { Sparkles, X, ArrowUp, Check } from "lucide-react";
 import { resumirAjuste } from "../lib/panelParser.js";
 
-const ANCHO_MAX = 330;
+const ANCHO_MAX = 366;
 const HUECO = 14;
 
 export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, primeraVez = false }) {
@@ -133,16 +133,20 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                     <button key={s.id} type="button" className="mp-press"
                       onClick={() => preguntar(s.frase)}
                       style={{
-                        ...S.card, background: s.tono.fondo, borderColor: s.tono.borde,
+                        ...S.card,
                         animation: `panelCard .38s cubic-bezier(.34,1.4,.5,1) both ${i * 55}ms`,
                       }}>
-                      {/* La ilustracion 3D del catalogo, no un icono de linea:
-                          es lo que separa esto de cualquier app y ya estaba
-                          pagado. Sale del flujo con margen negativo para que
-                          respire y se salga un poco de la tarjeta. */}
-                      <img src={s.arte} alt="" style={S.cardArte} loading="lazy" />
+                      {/* La ilustracion manda: va CENTRADA, entera y con su
+                          propio hueco. Antes iba absoluta en una esquina con
+                          overflow:hidden y el borde la cortaba por la mitad —
+                          parecia rota, no diseñada. Y la tarjeta es BLANCA: el
+                          fondo de color competia con los colores del render. */}
+                      <span style={{ ...S.cardArteCaja, background: s.tono.suave }}>
+                        <img src={s.arte} alt="" style={S.cardArte} loading="lazy" />
+                      </span>
                       <span style={{ ...S.cardTexto, color: s.tono.tinta }}>{s.texto}</span>
-                      <span style={S.cardPorque}>{s.porque}</span>
+                      <span style={{ ...S.cardPorque, color: s.tono.tinta }}>{s.porque}</span>
+                      <span style={{ ...S.cardBarra, background: s.tono.barra }} />
                     </button>
                   ))}
                 </div>
@@ -249,7 +253,7 @@ const S = {
   },
   capa: { position: "fixed", inset: 0, zIndex: 300 },
   tarjeta: {
-    position: "fixed", background: "#fff", borderRadius: 22, padding: "17px 15px 15px",
+    position: "fixed", background: "#fff", borderRadius: 24, padding: "18px 16px 16px",
     boxShadow: "0 20px 56px rgba(20,47,29,.4)",
     animation: "panelPop .36s cubic-bezier(.34,1.56,.5,1) both",
   },
@@ -262,7 +266,7 @@ const S = {
     border: "none", background: "#f0f4f1", cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2,
   },
-  titulo: { fontSize: 17, fontWeight: 900, color: "#142f1d", letterSpacing: "-.35px", marginBottom: 12, paddingRight: 28 },
+  titulo: { fontSize: 19, fontWeight: 900, color: "#142f1d", letterSpacing: "-.35px", marginBottom: 12, paddingRight: 28 },
   parrafo: { margin: "0 0 9px", fontSize: 12.5, color: "#5a7a66", lineHeight: 1.5 },
   cta: {
     background: "linear-gradient(135deg, #2d5a3d, #4cba6e)", color: "#fff", border: "none",
@@ -272,20 +276,26 @@ const S = {
   ctaAncho: { width: "100%", marginTop: 12, padding: "12px 20px", fontSize: 14 },
   ctaOff: { background: "#c8d9ce", boxShadow: "none", cursor: "default" },
 
-  rejilla: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 11 },
+  rejilla: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 13 },
   card: {
-    position: "relative", display: "flex", flexDirection: "column",
-    alignItems: "flex-start", gap: 2, border: "1.5px solid", borderRadius: 16,
-    padding: "44px 10px 10px", cursor: "pointer", textAlign: "left",
-    minHeight: 104, overflow: "hidden",
+    position: "relative", display: "flex", flexDirection: "column", alignItems: "center",
+    gap: 0, background: "#fff", border: "1px solid #e4ece7", borderRadius: 18,
+    padding: "12px 8px 14px", cursor: "pointer", textAlign: "center",
+    boxShadow: "0 2px 10px rgba(20,47,29,.06)", overflow: "hidden",
+  },
+  cardArteCaja: {
+    width: 62, height: 62, borderRadius: 999, display: "flex",
+    alignItems: "center", justifyContent: "center", marginBottom: 9,
   },
   cardArte: {
-    position: "absolute", top: -6, right: -8, width: 60, height: 60,
-    objectFit: "contain", pointerEvents: "none",
-    filter: "drop-shadow(0 4px 10px rgba(20,47,29,.18))",
+    width: 50, height: 50, objectFit: "contain", pointerEvents: "none",
+    filter: "drop-shadow(0 3px 7px rgba(20,47,29,.22))",
   },
-  cardTexto: { fontSize: 13, fontWeight: 900, lineHeight: 1.2, letterSpacing: "-.2px" },
-  cardPorque: { fontSize: 10.5, fontWeight: 500, color: "#7d8f85", lineHeight: 1.3 },
+  // Mismo tamaño en las cuatro, pase lo que pase con el texto: dos alturas
+  // distintas en una rejilla de 2x2 se ven como un fallo de maquetacion.
+  cardTexto: { fontSize: 14, fontWeight: 800, lineHeight: 1.25, letterSpacing: "-.2px", minHeight: 18 },
+  cardPorque: { fontSize: 11.5, fontWeight: 700, lineHeight: 1.3, opacity: .72, marginTop: 3 },
+  cardBarra: { position: "absolute", left: 0, right: 0, bottom: 0, height: 3 },
 
   entrada: { display: "flex", gap: 7, alignItems: "center" },
   input: {
@@ -317,7 +327,7 @@ const S = {
   casillaOn: { background: "#2d5a3d", borderColor: "#2d5a3d", transform: "scale(1.06)" },
   filaTitulo: { display: "block", fontSize: 13.5, fontWeight: 800, lineHeight: 1.25 },
   filaCambio: { display: "block", fontSize: 11.5, fontWeight: 600, color: "#2d5a3d", marginTop: 1 },
-  pendiente: { fontSize: 11.5, color: "#8a9c91", lineHeight: 1.4, marginTop: 10 },
+  pendiente: { fontSize: 12, color: "#5a7a66", lineHeight: 1.45, marginTop: 11, padding: "9px 11px", background: "#f4f8f5", borderRadius: 10 },
 
   hecho: { display: "flex", flexDirection: "column", alignItems: "center", gap: 9, padding: "14px 0 10px" },
   hechoCirculo: {
