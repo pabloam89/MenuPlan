@@ -144,9 +144,12 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                       <span style={{ ...S.cardArteCaja, background: s.tono.suave }}>
                         <img src={s.arte} alt="" style={S.cardArte} loading="lazy" />
                       </span>
-                      <span style={{ ...S.cardTexto, color: s.tono.tinta }}>{s.texto}</span>
-                      <span style={{ ...S.cardPorque, color: s.tono.tinta }}>{s.porque}</span>
-                      <span style={{ ...S.cardBarra, background: s.tono.barra }} />
+                      {/* El texto va SIEMPRE del mismo color. Antes lo pintaba
+                          el tono de cada tarjeta y la rejilla parecia cuatro
+                          componentes distintos; el color lo lleva el circulo,
+                          que ya es suficiente. */}
+                      <span style={S.cardTexto}>{s.texto}</span>
+                      <span style={S.cardPorque}>{s.porque}</span>
                     </button>
                   ))}
                 </div>
@@ -219,9 +222,9 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
 function Entrada({ texto, setTexto, onEnviar }) {
   return (
     <div style={S.entrada}>
-      <input value={texto} onChange={(e) => setTexto(e.target.value)}
+      <input className="mp-panel-input" value={texto} onChange={(e) => setTexto(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") onEnviar(); }}
-        placeholder="o dímelo tú…" style={S.input} />
+        placeholder="o escríbeme" style={S.input} />
       <button type="button" onClick={onEnviar} disabled={!texto.trim()}
         style={{ ...S.enviar, ...(texto.trim() ? null : S.enviarOff) }} aria-label="Enviar">
         <ArrowUp size={15} color="#fff" />
@@ -280,7 +283,7 @@ const S = {
   card: {
     position: "relative", display: "flex", flexDirection: "column", alignItems: "center",
     gap: 0, background: "#fff", border: "1px solid #e4ece7", borderRadius: 18,
-    padding: "12px 8px 14px", cursor: "pointer", textAlign: "center",
+    padding: "12px 8px 12px", cursor: "pointer", textAlign: "center",
     boxShadow: "0 2px 10px rgba(20,47,29,.06)", overflow: "hidden",
   },
   cardArteCaja: {
@@ -293,17 +296,20 @@ const S = {
   },
   // Mismo tamaño en las cuatro, pase lo que pase con el texto: dos alturas
   // distintas en una rejilla de 2x2 se ven como un fallo de maquetacion.
-  cardTexto: { fontSize: 14, fontWeight: 800, lineHeight: 1.25, letterSpacing: "-.2px", minHeight: 18 },
-  cardPorque: { fontSize: 11.5, fontWeight: 700, lineHeight: 1.3, opacity: .72, marginTop: 3 },
-  cardBarra: { position: "absolute", left: 0, right: 0, bottom: 0, height: 3 },
+  cardTexto: { fontSize: 14, fontWeight: 800, lineHeight: 1.25, letterSpacing: "-.2px", color: "#142f1d", minHeight: 18 },
+  cardPorque: { fontSize: 11.5, fontWeight: 600, lineHeight: 1.3, color: "#5a7a66", marginTop: 3 },
 
   entrada: { display: "flex", gap: 7, alignItems: "center" },
+  // 16px es OBLIGATORIO: por debajo, iOS Safari hace zoom al enfocar el campo
+  // (DESIGN_SYSTEM §11). Asi que lo que se reduce es todo lo demas — caja mas
+  // baja, texto normal en vez de grueso y placeholder mas apagado.
   input: {
     flex: 1, minWidth: 0, background: "#f7faf8", border: "1.5px solid #e8efe9",
-    borderRadius: 12, padding: "10px 12px", fontSize: 16, color: "#1a3a24", outline: "none",
+    borderRadius: 11, padding: "8px 11px", fontSize: 16, fontWeight: 400,
+    color: "#1a3a24", outline: "none",
   },
   enviar: {
-    width: 36, height: 36, borderRadius: 12, border: "none",
+    width: 34, height: 34, borderRadius: 11, border: "none",
     background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
   },

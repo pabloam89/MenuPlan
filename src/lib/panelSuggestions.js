@@ -12,7 +12,6 @@
  * ruido enseña al usuario a ignorar el panel.
  */
 
-import { CAMPOS_POR_ID } from "./notepadFields.js";
 import { valorDe, proyectar } from "./notepad.js";
 
 /** Cuántas se enseñan. Tres o cuatro caben sin scroll y no abruman. */
@@ -23,17 +22,27 @@ const FAMILIA_LABEL = {
   pasta_arroz: "pasta o arroz", huevos: "huevo", verdura: "verdura",
 };
 
-// Nuestras ilustraciones 3D. Hermana de FAMILY_ART en screens/Analytics.jsx:
-// mismas rutas, mismo criterio (pasta y arroz comparten bol). Se duplica en vez
-// de importarse porque aquella vive dentro de una pantalla de 900 lineas y
-// sacarla de ahi es otra faena; si un dia se mueven, se mueven las dos.
-const ARTE_FAMILIA = {
-  pescado: "/categories/cut/pescado.png",
+// SOLO recortes de /categories/cut. Es la unica carpeta con transparencia real
+// (PNG color type 6); el resto son PNG sin alfa, y dentro del circulo de la
+// tarjeta se ven como una foto cuadrada metida a la fuerza en vez de como un
+// objeto flotando. Mientras no haya recorte de algo, ese algo no sale en la
+// rejilla — mejor una idea menos que una tarjeta fea.
+//
+// Hermana de FAMILY_ART en screens/Analytics.jsx: mismas rutas, mismo criterio
+// (pasta y arroz comparten bol).
+const CUT = {
   carne: "/categories/cut/carne.png",
-  verdura: "/categories/cut/verduras.png",
+  pescado: "/categories/cut/pescado.png",
+  verduras: "/categories/cut/verduras.png",
   legumbres: "/categories/cut/legumbres.png",
   pasta_arroz: "/categories/cut/pasta_arroz.png",
   huevos: "/categories/cut/huevos.png",
+  frutas: "/categories/cut/frutas.png",
+};
+
+const ARTE_FAMILIA = {
+  pescado: CUT.pescado, carne: CUT.carne, verdura: CUT.verduras,
+  legumbres: CUT.legumbres, pasta_arroz: CUT.pasta_arroz, huevos: CUT.huevos,
 };
 
 
@@ -61,7 +70,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
         texto: `Menos ${FAMILIA_LABEL[familia] ?? familia}`,
         frase: `menos ${FAMILIA_LABEL[familia] ?? familia}`,
         porque: `Hay ${cuantas}, pediste ${objetivo}`,
-        arte: ARTE_FAMILIA[familia] ?? "/categories/platos_unicos.png",
+        arte: ARTE_FAMILIA[familia] ?? CUT.frutas,
       });
     }
   }
@@ -76,28 +85,15 @@ export function sugerenciasDelMenu(recuento, notepad) {
       texto: "Más variedad",
       frase: `menos ${tecnicaTop}`,
       porque: `${tecnicaN} ${preposicion(tecnicaTop)} ${tecnicaTop}`,
-      arte: "/categories/faceta_gourmet.webp",
+      arte: CUT.frutas,
     });
   }
 
-  // 3. Semana sin cocina de fuera. Solo si de verdad no hay NINGUNA: con una
-  //    ya no es un hueco, es una semana normal.
-  if (Object.keys(cocinas).length === 0 && huecos > 0) {
-    const dominio = CAMPOS_POR_ID.cocina.dominio;
-    const cual = dominio[Math.floor(Date.now() / 86400000) % dominio.length];
-    out.push({
-      id: `probar-${cual}`,
-      // "Prueba algo francesa" es lo que sale si se concatena sin pensar, y
-      // canta a máquina. Los nombres de cocina son adjetivos femeninos porque
-      // concuerdan con "cocina": la frase tiene que llevar el sustantivo.
-      texto: `Cocina ${cual}`,
-      frase: `más comida ${cual}`,
-      porque: "Nada de fuera",
-      // Provisional hasta que existan las banderas de cocina: las especias
-      // son lo mas parecido a "de fuera" que hay hoy en el catalogo.
-      arte: "/categories/especias.png",
-    });
-  }
+  // 3. La sugerencia de cocina de fuera existia aqui y esta RETIRADA: no hay
+  //    recorte de ninguna cocina, y con la ilustracion de especias —que no
+  //    tiene alfa— la tarjeta se veia rota. Vuelve en cuanto esten los ocho
+  //    recortes en /categories/cut/cocinas. Escribirlo a mano sigue yendo:
+  //    lo que se ha quitado es la tarjeta, no la funcion.
 
   // 4. Comodines. La rejilla es de CUATRO y se rellena siempre: una rejilla de
   //    2×2 con un hueco se lee como que algo ha fallado, no como que no había
@@ -114,10 +110,10 @@ export function sugerenciasDelMenu(recuento, notepad) {
 // Siempre servibles: no dependen de cómo esté el menú, así que valen de
 // relleno sin mentir. Ordenados por lo que más pide la gente.
 const COMODINES = [
-  { id: "mas-rapido", texto: "Algo más rápido", frase: "algo más rápido", porque: "Noches con prisa", arte: "/categories/faceta_rapido.webp" },
-  { id: "mas-verdura", texto: "Más verdura", frase: "más verdura", porque: "Sin dramas", arte: "/categories/cut/verduras.png" },
-  { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil", porque: "Un solo cacharro", arte: "/categories/platos_unicos.png" },
-  { id: "mas-salsa", texto: "Platos con salsa", frase: "más platos con salsa", porque: "Para mojar pan", arte: "/categories/salsas.png" },
+  { id: "mas-verdura", texto: "Más verdura", frase: "más verdura", porque: "Sin dramas", arte: CUT.verduras },
+  { id: "mas-legumbre", texto: "Más legumbre", frase: "más legumbre", porque: "Puchero del bueno", arte: CUT.legumbres },
+  { id: "mas-pasta", texto: "Más pasta", frase: "más pasta", porque: "Gusta a todos", arte: CUT.pasta_arroz },
+  { id: "mas-fruta", texto: "Fruta de postre", frase: "más fruta de postre", porque: "En vez de dulces", arte: CUT.frutas },
 ];
 
 // Cuatro parejas de color, una por posición en la rejilla. Van por posición y

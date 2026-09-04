@@ -54,11 +54,13 @@ describe("sugerencias del menú", () => {
     expect(plancha.find((x) => x.id === "variar-plancha").porque).toBe("6 a la plancha");
   });
 
-  it("propone cocina de fuera solo si no hay ninguna", () => {
+  // La tarjeta de cocina esta RETIRADA hasta que existan sus recortes: con una
+  // ilustracion sin transparencia se veia como una foto cuadrada metida a la
+  // fuerza en el circulo. Escribir "mas comida mexicana" a mano sigue yendo —
+  // lo que se quito es la tarjeta, no la funcion.
+  it("no propone cocina mientras no haya recorte que enseñar", () => {
     const sin = sugerenciasDelMenu({ cocinas: {}, huecos: 14 }, libretaVacia());
-    expect(sin.some((x) => x.id.startsWith("probar-"))).toBe(true);
-    const con = sugerenciasDelMenu({ cocinas: { italiana: 1 }, huecos: 14 }, libretaVacia());
-    expect(con.some((x) => x.id.startsWith("probar-"))).toBe(false);
+    expect(sin.some((x) => x.id.startsWith("probar-"))).toBe(false);
   });
 
   // El panel no puede abrir vacío ni con un menú recién generado y perfecto.
@@ -167,12 +169,18 @@ describe("la rejilla de cuatro", () => {
     expect(a.map((x) => x.tono.tinta)).toEqual(b.map((x) => x.tono.tinta));
   });
 
-  // "Prueba algo francesa" es lo que sale al concatenar sin pensar.
-  it("la sugerencia de cocina esta bien escrita en castellano", () => {
-    const s = sugerenciasDelMenu({ cocinas: {}, huecos: 14 }, libretaVacia());
-    const c = s.find((x) => x.id.startsWith("probar-"));
-    expect(c.texto).not.toMatch(/algo (francesa|italiana|asiatica|mexicana)/);
-    expect(c.texto).toMatch(/^Cocina /);
+  // Solo /categories/cut tiene transparencia real (PNG color type 6). Una
+  // imagen sin alfa dentro del circulo se ve como una foto cuadrada metida a
+  // la fuerza, que es justo lo que se veia mal.
+  it("todas las ilustraciones salen de cut/, la unica carpeta con alfa", () => {
+    const casos = [
+      [{ familias: { pescado: 4, carne: 4 }, tecnicas: { horno: 8 }, cocinas: {}, huecos: 14 },
+       conObjetivos({ pescado: 1, carne: 1 })],
+      [{}, libretaVacia()],
+    ];
+    for (const [r, n] of casos) for (const x of sugerenciasDelMenu(r, n)) {
+      expect(x.arte, `fuera de cut/: ${x.arte}`).toMatch(/^\/categories\/cut\//);
+    }
   });
 });
 

@@ -288,3 +288,7 @@ button {
     transition: none;
   }
 }
+
+/* El placeholder del panel: 16px es obligatorio en el input (iOS hace zoom por
+   debajo), pero el texto de sugerencia no tiene por que gritar. */
+.mp-panel-input::placeholder { font-size: 13.5px; color: #9aa8a0; opacity: 1; }
