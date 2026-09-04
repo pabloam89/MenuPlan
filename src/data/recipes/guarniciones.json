@@ -2445,9 +2445,9 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": [
-      "guarnicion"
+      "primero"
     ],
-    "type": "guarnicion",
+    "type": "principal",
     "requiredAppliance": "horno",
     "time": 40,
     "difficulty": "facil",

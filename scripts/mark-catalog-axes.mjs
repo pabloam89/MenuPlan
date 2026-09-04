@@ -137,7 +137,12 @@ const COCINA_RE = {
   italiana: /\b(espagueti|macarron|rigatoni|tagliatelle|risotto|lasan|canelones|pizza|calzone|pesto|carbonara|bolo[nñ]esa|caprese|bruschetta|gnocchi|focaccia|ravioli|fettuccine|penne|linguine|tortellini|vongole|amatriciana|puttanesca|cacio e pepe|parmigiana|saltimbocca|pasta|carpaccio|ossobuco|osobuco|a la milanesa|vitello)/,
   asiatica: /\b(teriyaki|wok|noodles|udon|ramen|poke|tataki|edamame|hoisin|gochujang|pad thai|gyoza|yakisoba|estilo asiatico|salteado oriental|curry (rojo|verde|tailandes)|katsu|bibimbap|dumpling|sushi|maki|nigiri|tempura|kimchi)/,
   mexicana: /\b(guacamole|quesadilla|nachos|tacos? de|fajitas?|burrito|chipotle|cochinita|pico de gallo|rancheros|chili con carne|enchilada)/,
-  mediterranea: /\b(hummus|falafel|tahini|cuscus|tabule|shakshuka|tzatziki|kebab|baba ganoush|halloumi|labneh|moussaka|pita)/,
+  // Se llamaba "mediterranea" y estaba mal puesto: las 20 recetas eran hummus,
+  // falafel, tahini, shakshuka y cuscús — cocina árabe. Y en España
+  // "mediterráneo" significa aceite de oliva, pescado y verdura, que es
+  // justamente lo que ya es la cocina por defecto de este catálogo. Con el
+  // panel delante, ese nombre prometía una cosa y servía otra.
+  arabe: /\b(hummus|falafel|tahini|cuscus|tabule|shakshuka|tzatziki|kebab|baba ganoush|halloumi|labneh|moussaka|pita)/,
   // Las cuatro de abajo se añadieron al medir la convención "ausente =
   // española": 30 platos con nombre inequívocamente extranjero estaban
   // contando como españoles. Una quiche lorraine no es cocina española, y con

@@ -35,4 +35,4 @@
 //
 // Sin subir este número no llegan a producción: Supabase está en 20 y empate
 // significa que gana la nube.
-export const BUNDLED_CATALOG_VERSION = 22;
+export const BUNDLED_CATALOG_VERSION = 23;

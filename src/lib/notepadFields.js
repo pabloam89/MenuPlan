@@ -76,7 +76,7 @@ export const CAMPOS = [
     etiqueta: "De dónde es el plato",
     // Consume `cocina`. Ausente = española, así que "española" no está en el
     // dominio: pedir más española es pedir menos de todo lo demás.
-    dominio: ["italiana", "asiatica", "mexicana", "mediterranea", "francesa", "americana", "india", "peruana"],
+    dominio: ["italiana", "asiatica", "mexicana", "arabe", "francesa", "americana", "india", "peruana"],
     proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "más comida mexicana",

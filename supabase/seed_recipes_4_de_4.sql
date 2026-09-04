@@ -1272,7 +1272,7 @@ on conflict (id) do update set
   lleva_salsa = excluded.lleva_salsa;
 
 insert into catalog_meta (id, version) values
-  ('recipes', 22)
+  ('recipes', 23)
 on conflict (id) do update set version = excluded.version, updated_at = now();
 
 commit;

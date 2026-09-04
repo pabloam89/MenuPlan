@@ -2002,7 +2002,7 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "mainBase": "legumbre"
   },
   {
@@ -4154,7 +4154,7 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea"
+    "cocina": "arabe"
   },
   {
     "id": "legumbres_023",
@@ -4338,7 +4338,7 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "mainBase": "pan"
   },
   {
@@ -4520,7 +4520,7 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "mainBase": "legumbre"
   },
   {
@@ -4944,7 +4944,7 @@
       "frutos_secos"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "mainBase": "legumbre"
   },
   {
@@ -5094,7 +5094,7 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "mainBase": "legumbre"
   },
   {
@@ -5328,7 +5328,7 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "llevaSalsa": true,
     "mainBase": "legumbre"
   },
@@ -6364,7 +6364,7 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "mainBase": "legumbre"
   },
   {
@@ -8975,7 +8975,7 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "mainBase": "legumbre"
   },
   {
@@ -11979,7 +11979,7 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "mainBase": "legumbre"
   },
   {
@@ -13381,7 +13381,7 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "mediterranea"
+    "cocina": "arabe"
   },
   {
     "id": "legumbres_068",

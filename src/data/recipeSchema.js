@@ -153,9 +153,14 @@ export const RecipeSchema = z
     // el nivel de catálogo a un detalle puramente visual: conectar una foto
     // huérfana (fix visual sin relación con el generador) promovía la receta
     // al pool principal sin que nadie lo decidiera. Se marca a mano y es la
-    // única fuente de verdad que usa filterRecipes.isPrimaryCatalog(); el
-    // resto del catálogo ("fondo de armario") solo entra si el pool principal
-    // se queda corto para las restricciones del grupo.
+    // única fuente de verdad que usa filterRecipes.isPrimaryCatalog().
+    //
+    // Y es sin plan B: el resto del catálogo ("fondo de armario") NO entra
+    // nunca para un grupo normal, ni siquiera cuando las restricciones dejan
+    // el pool principal corto — ahí filterRecipes devuelve error antes que
+    // rellenar en silencio. La única excepción son los bebés, cuyo pool ya
+    // va aislado aparte. Para que una receta del fondo de armario se use,
+    // se la promueve a mano marcándola aquí (y entonces necesita foto).
     estrella: z.boolean().optional(),
     // ¿Es plato de OCASIÓN? Marisco de ración (cigalas, navajas, percebes),
     // arroces de bogavante, paellas de marisco… Cocina real y del catálogo,
@@ -194,7 +199,7 @@ export const RecipeSchema = z
     // "asiáticas" a unas costillas BBQ por llevar salsa de soja, y mexicana a
     // la tortilla de jamón y queso.
     cocina: z.enum([
-      "italiana", "asiatica", "mexicana", "mediterranea",
+      "italiana", "asiatica", "mexicana", "arabe",
       // Añadidas al medir la convención: 30 platos de nombre inequívocamente
       // extranjero (quiche lorraine, ceviche, hamburguesa, pollo al curry)
       // contaban como españoles por omisión.

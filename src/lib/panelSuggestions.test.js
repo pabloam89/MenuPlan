@@ -54,13 +54,31 @@ describe("sugerencias del menú", () => {
     expect(plancha.find((x) => x.id === "variar-plancha").porque).toBe("6 a la plancha");
   });
 
-  // La tarjeta de cocina esta RETIRADA hasta que existan sus recortes: con una
-  // ilustracion sin transparencia se veia como una foto cuadrada metida a la
-  // fuerza en el circulo. Escribir "mas comida mexicana" a mano sigue yendo —
-  // lo que se quito es la tarjeta, no la funcion.
-  it("no propone cocina mientras no haya recorte que enseñar", () => {
+  it("propone cocina de fuera solo si no hay ninguna", () => {
     const sin = sugerenciasDelMenu({ cocinas: {}, huecos: 14 }, libretaVacia());
-    expect(sin.some((x) => x.id.startsWith("probar-"))).toBe(false);
+    expect(sin.some((x) => x.id.startsWith("probar-"))).toBe(true);
+    const con = sugerenciasDelMenu({ cocinas: { italiana: 1 }, huecos: 14 }, libretaVacia());
+    expect(con.some((x) => x.id.startsWith("probar-"))).toBe(false);
+  });
+
+  // "Prueba algo francesa" es lo que sale al concatenar sin pensar: los nombres
+  // de cocina son adjetivos femeninos porque concuerdan con "cocina".
+  it("la sugerencia de cocina esta bien escrita en castellano", () => {
+    const c = sugerenciasDelMenu({ cocinas: {}, huecos: 14 }, libretaVacia())
+      .find((x) => x.id.startsWith("probar-"));
+    expect(c.texto).toMatch(/^Cocina /);
+    expect(c.arte).toMatch(/^\/categories\/cut\/cocinas\/\w+\.png$/);
+  });
+
+  // Ya no existe "mediterranea": eran 20 recetas de hummus, falafel y tahini,
+  // o sea cocina arabe. En España "mediterraneo" es aceite de oliva y verdura,
+  // que es lo que ya es este catalogo por defecto.
+  it("no queda rastro de la cocina mediterranea", () => {
+    for (let d = 0; d < 8; d++) {
+      const c = sugerenciasDelMenu({ cocinas: {}, huecos: 14 }, libretaVacia())
+        .find((x) => x.id.startsWith("probar-"));
+      expect(c.texto).not.toMatch(/mediterranea/i);
+    }
   });
 
   // El panel no puede abrir vacío ni con un menú recién generado y perfecto.

@@ -38,7 +38,15 @@ const CUT = {
   pasta_arroz: "/categories/cut/pasta_arroz.png",
   huevos: "/categories/cut/huevos.png",
   frutas: "/categories/cut/frutas.png",
+  variedad: "/categories/cut/variedad.png",
+  sano: "/categories/cut/sano.png",
+  rapido: "/categories/cut/rapido.png",
+  facil: "/categories/cut/facil.png",
+  salsa: "/categories/cut/salsa.png",
 };
+
+// Una por cocina. Existen las ocho, asi que la tarjeta ya puede volver.
+const CUT_COCINA = (c) => `/categories/cut/cocinas/${c}.png`;
 
 const ARTE_FAMILIA = {
   pescado: CUT.pescado, carne: CUT.carne, verdura: CUT.verduras,
@@ -85,15 +93,27 @@ export function sugerenciasDelMenu(recuento, notepad) {
       texto: "Más variedad",
       frase: `menos ${tecnicaTop}`,
       porque: `${tecnicaN} ${preposicion(tecnicaTop)} ${tecnicaTop}`,
-      arte: CUT.frutas,
+      arte: CUT.variedad,
     });
   }
 
-  // 3. La sugerencia de cocina de fuera existia aqui y esta RETIRADA: no hay
-  //    recorte de ninguna cocina, y con la ilustracion de especias —que no
-  //    tiene alfa— la tarjeta se veia rota. Vuelve en cuanto esten los ocho
-  //    recortes en /categories/cut/cocinas. Escribirlo a mano sigue yendo:
-  //    lo que se ha quitado es la tarjeta, no la funcion.
+  // 3. Semana sin cocina de fuera. Solo si de verdad no hay NINGUNA: con una
+  //    ya no es un hueco, es una semana normal.
+  if (Object.keys(cocinas).length === 0 && huecos > 0) {
+    // Rota por dia para que no proponga siempre la misma, pero estable dentro
+    // del mismo dia: una tarjeta que cambia al reabrir el panel desconcierta.
+    const cual = COCINAS[Math.floor(Date.now() / 86400000) % COCINAS.length];
+    out.push({
+      id: `probar-${cual}`,
+      // "Prueba algo francesa" es lo que sale al concatenar sin pensar, y canta
+      // a maquina: los nombres de cocina son adjetivos femeninos porque
+      // concuerdan con "cocina", asi que la frase necesita el sustantivo.
+      texto: `Cocina ${cual}`,
+      frase: `mas comida ${cual}`,
+      porque: "Nada de fuera",
+      arte: CUT_COCINA(cual),
+    });
+  }
 
   // 4. Comodines. La rejilla es de CUATRO y se rellena siempre: una rejilla de
   //    2×2 con un hueco se lee como que algo ha fallado, no como que no había
@@ -109,12 +129,15 @@ export function sugerenciasDelMenu(recuento, notepad) {
 
 // Siempre servibles: no dependen de cómo esté el menú, así que valen de
 // relleno sin mentir. Ordenados por lo que más pide la gente.
+// Ordenados por lo que mas pide la gente. Los cuatro tienen recorte propio.
 const COMODINES = [
-  { id: "mas-verdura", texto: "Más verdura", frase: "más verdura", porque: "Sin dramas", arte: CUT.verduras },
-  { id: "mas-legumbre", texto: "Más legumbre", frase: "más legumbre", porque: "Puchero del bueno", arte: CUT.legumbres },
-  { id: "mas-pasta", texto: "Más pasta", frase: "más pasta", porque: "Gusta a todos", arte: CUT.pasta_arroz },
-  { id: "mas-fruta", texto: "Fruta de postre", frase: "más fruta de postre", porque: "En vez de dulces", arte: CUT.frutas },
+  { id: "mas-sano", texto: "Algo más sano", frase: "algo más sano", porque: "Verdura y menos frito", arte: CUT.sano },
+  { id: "mas-rapido", texto: "Algo más rápido", frase: "algo más rápido", porque: "Noches con prisa", arte: CUT.rapido },
+  { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil", porque: "Un solo cacharro", arte: CUT.facil },
+  { id: "mas-salsa", texto: "Con salsa", frase: "más platos con salsa", porque: "Para mojar pan", arte: CUT.salsa },
 ];
+
+const COCINAS = ["italiana", "asiatica", "mexicana", "arabe", "francesa", "americana", "india", "peruana"];
 
 // Cuatro parejas de color, una por posición en la rejilla. Van por posición y
 // no por contenido a propósito: así la rejilla siempre tiene los mismos cuatro

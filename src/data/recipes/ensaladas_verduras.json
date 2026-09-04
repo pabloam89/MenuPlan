@@ -8377,7 +8377,7 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "mediterranea"
+    "cocina": "arabe"
   },
   {
     "id": "ensaladas_verduras_058",
@@ -8547,7 +8547,7 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "mediterranea"
+    "cocina": "arabe"
   },
   {
     "id": "ensaladas_verduras_059",
@@ -11884,7 +11884,7 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "mediterranea",
+    "cocina": "arabe",
     "llevaSalsa": true
   },
   {
@@ -14155,7 +14155,7 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "mediterranea"
+    "cocina": "arabe"
   },
   {
     "id": "ensaladas_verduras_093",
@@ -15489,7 +15489,7 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "mediterranea"
+    "cocina": "arabe"
   },
   {
     "id": "ensaladas_verduras_100",
@@ -19257,7 +19257,7 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "mediterranea"
+    "cocina": "arabe"
   },
   {
     "id": "ensaladas_verduras_120",
