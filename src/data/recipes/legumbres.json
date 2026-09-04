@@ -5306,7 +5306,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "llevaSalsa": true
   },
   {
     "id": "legumbres_029",
@@ -6145,7 +6146,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true,
+    "cocina": "india"
   },
   {
     "id": "legumbres_033",
@@ -11540,7 +11543,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true,
+    "cocina": "india"
   },
   {
     "id": "legumbres_059",
@@ -13903,6 +13908,7 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "llevaSalsa": true
   }
 ]

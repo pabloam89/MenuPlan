@@ -509,7 +509,8 @@
     "tecnica": "sarten",
     "extraProteins": [
       "ternera"
-    ]
+    ],
+    "llevaSalsa": true
   },
   {
     "id": "carnes_004",
@@ -1003,7 +1004,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_007",
@@ -1512,7 +1514,8 @@
       "verdura"
     ],
     "tecnica": "plancha",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "cocina": "americana"
   },
   {
     "id": "carnes_010",
@@ -3547,7 +3550,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_021",
@@ -3968,7 +3972,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_023",
@@ -4407,7 +4412,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true,
+    "cocina": "india"
   },
   {
     "id": "carnes_026",
@@ -6673,7 +6680,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_038",
@@ -7190,7 +7198,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_040",
@@ -7392,7 +7401,8 @@
       "fruta"
     ],
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_041",
@@ -7597,7 +7607,8 @@
       "fruta"
     ],
     "occasion": "especial",
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_042",
@@ -7945,7 +7956,8 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_043",
@@ -8411,7 +8423,8 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_045",
@@ -8591,7 +8604,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_046",
@@ -8979,7 +8993,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_048",
@@ -9299,7 +9314,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true,
+    "cocina": "italiana"
   },
   {
     "id": "carnes_049",
@@ -9499,7 +9516,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_050",
@@ -9966,7 +9984,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_052",
@@ -10224,7 +10243,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_053",
@@ -11009,7 +11029,8 @@
       "frutos_secos"
     ],
     "tecnica": "plancha",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_057",
@@ -11160,7 +11181,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_058",
@@ -11328,7 +11350,8 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_059",
@@ -11604,7 +11627,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_061",
@@ -11764,7 +11788,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_062",
@@ -11980,7 +12005,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_063",
@@ -12454,7 +12480,8 @@
     "tecnica": "plancha",
     "extraProteins": [
       "cerdo"
-    ]
+    ],
+    "cocina": "americana"
   },
   {
     "id": "carnes_065",
@@ -12905,7 +12932,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_067",
@@ -13307,7 +13335,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_069",
@@ -13459,7 +13488,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "cocina": "italiana"
   },
   {
     "id": "carnes_070",
@@ -13880,7 +13910,8 @@
     "mainIngredients": [
       "frutos_secos"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_072",
@@ -14274,7 +14305,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_074",
@@ -14489,7 +14521,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_075",
@@ -14691,7 +14724,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_076",
@@ -15203,7 +15237,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_078",
@@ -16336,7 +16371,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_083",
@@ -17564,7 +17600,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_089",
@@ -17733,7 +17770,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_090",
@@ -17895,7 +17933,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_091",
@@ -18477,7 +18516,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_094",
@@ -18690,7 +18730,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_095",
@@ -19412,7 +19453,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_098",
@@ -20370,7 +20412,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_102",
@@ -20865,7 +20908,8 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_104",
@@ -21095,7 +21139,8 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_105",
@@ -21510,7 +21555,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_107",
@@ -21759,7 +21805,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_108",
@@ -22009,7 +22056,8 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_109",
@@ -22225,7 +22273,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_110",
@@ -22442,7 +22491,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true,
+    "cocina": "americana"
   },
   {
     "id": "carnes_111",
@@ -22666,7 +22717,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_112",
@@ -22878,7 +22930,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_113",
@@ -23291,7 +23344,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_115",
@@ -23502,7 +23556,8 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "cocina": "americana"
   },
   {
     "id": "carnes_116",
@@ -23951,7 +24006,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_118",
@@ -24418,7 +24474,8 @@
       "lacteo"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "cocina": "americana"
   },
   {
     "id": "carnes_120",
@@ -25057,7 +25114,8 @@
     "extraProteins": [
       "cerdo",
       "huevo"
-    ]
+    ],
+    "llevaSalsa": true
   },
   {
     "id": "carnes_123",
@@ -25227,7 +25285,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "llevaSalsa": true,
+    "cocina": "americana"
   },
   {
     "id": "carnes_124",
@@ -27390,7 +27450,8 @@
       "seta"
     ],
     "tecnica": "horno",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_137",
@@ -28309,7 +28370,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_141",
@@ -29469,7 +29531,8 @@
     "cocina": "asiatica",
     "extraProteins": [
       "ternera"
-    ]
+    ],
+    "llevaSalsa": true
   },
   {
     "id": "carnes_146",
@@ -29806,7 +29869,8 @@
       "seta"
     ],
     "kidFavourite": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "carnes_151",
@@ -30499,7 +30563,8 @@
       "fruta"
     ],
     "tecnica": "sarten",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "llevaSalsa": true
   },
   {
     "type": "principal",
@@ -30582,6 +30647,7 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "llevaSalsa": true
   }
 ]

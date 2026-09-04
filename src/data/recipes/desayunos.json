@@ -1168,7 +1168,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "desayunos_014",
@@ -1253,7 +1254,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "desayunos_015",

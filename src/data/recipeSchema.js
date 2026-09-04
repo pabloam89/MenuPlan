@@ -193,7 +193,24 @@ export const RecipeSchema = z
     // obvio. Sale solo del NOMBRE — derivarlo de los ingredientes hacía
     // "asiáticas" a unas costillas BBQ por llevar salsa de soja, y mexicana a
     // la tortilla de jamón y queso.
-    cocina: z.enum(["italiana", "asiatica", "mexicana", "mediterranea"]).optional(),
+    cocina: z.enum([
+      "italiana", "asiatica", "mexicana", "mediterranea",
+      // Añadidas al medir la convención: 30 platos de nombre inequívocamente
+      // extranjero (quiche lorraine, ceviche, hamburguesa, pollo al curry)
+      // contaban como españoles por omisión.
+      "francesa", "americana", "india", "peruana",
+    ]).optional(),
+    // El plato TRAE salsa escrita dentro. No es `sauceId` —que fija UNA salsa
+    // concreta a mano y no lo usa nadie— sino "esto es un plato de salsa".
+    //
+    // Existe porque aquí no se combinan platos con salsas: cada receta es la
+    // que es. Sin este campo, "quiero más platos con salsa" no tiene respuesta
+    // posible; con él, la respuesta honesta —"te doy los que ya la llevan"—
+    // pasa a ser servible.
+    //
+    // Deliberadamente NO incluye guisos y estofados: tienen su jugo, pero eso
+    // ya lo dice `tecnica`, y mezclarlos dejaba el filtro sin filo.
+    llevaSalsa: z.boolean().optional(),
     // "Cena rápida" de verdad: se MONTA con cosas ya listas (sándwich, tostas,
     // tabla, ensalada de asamblaje). Sustituye a category "cenas_rapidas".
     //

@@ -377,7 +377,8 @@
       }
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_003",
@@ -818,7 +819,8 @@
     "cocina": "italiana",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_006",
@@ -1663,7 +1665,8 @@
       "frutos_secos"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_011",
@@ -2892,7 +2895,8 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_018",
@@ -3153,7 +3157,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_019",
@@ -4111,7 +4116,8 @@
       "encurtido"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_025",
@@ -4600,7 +4606,8 @@
     "extraProteins": [
       "cerdo",
       "huevo"
-    ]
+    ],
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_028",
@@ -4730,7 +4737,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_029",
@@ -5262,7 +5270,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_032",
@@ -5686,7 +5695,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_034",
@@ -8498,7 +8508,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_048",
@@ -8667,7 +8678,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_049",
@@ -9921,7 +9933,8 @@
     ],
     "kidFavourite": true,
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_056",
@@ -10227,7 +10240,8 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_057",
@@ -10534,7 +10548,8 @@
       "frutos_secos"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_058",
@@ -11106,7 +11121,8 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_060",
@@ -11561,7 +11577,8 @@
       "frutos_secos"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_063",
@@ -11888,7 +11905,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_065",
@@ -12065,7 +12083,8 @@
       "seta"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_066",
@@ -12227,7 +12246,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_067",
@@ -13196,7 +13216,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_072",
@@ -13542,7 +13563,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true,
+    "cocina": "india"
   },
   {
     "id": "pasta_arroces_074",
@@ -15580,7 +15603,8 @@
       "frutos_secos"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_085",
@@ -15769,7 +15793,8 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_086",
@@ -16016,7 +16041,8 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_087",
@@ -16510,7 +16536,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_090",
@@ -16851,7 +16878,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_092",
@@ -17394,7 +17422,8 @@
       "seta"
     ],
     "tecnica": "sarten",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_096",
@@ -17459,7 +17488,8 @@
       "fruta"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pasta_arroces_097",

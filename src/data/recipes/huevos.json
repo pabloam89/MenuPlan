@@ -1130,7 +1130,8 @@
     "saturated_fat_g": 5,
     "sodium_mg": 420,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_011",
@@ -4214,7 +4215,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true,
+    "cocina": "francesa"
   },
   {
     "id": "huevos_031",
@@ -5386,7 +5389,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true,
+    "cocina": "francesa"
   },
   {
     "id": "huevos_039",
@@ -5982,7 +5987,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "huevos_043",
@@ -6172,7 +6178,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "huevos_044",
@@ -6922,7 +6929,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_049",
@@ -7248,7 +7256,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_051",
@@ -7616,7 +7625,8 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_053",
@@ -9461,7 +9471,8 @@
     ],
     "tecnica": "sarten",
     "cocina": "mediterranea",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_065",
@@ -10194,7 +10205,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_069",
@@ -10570,7 +10582,8 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_071",
@@ -11092,7 +11105,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_074",
@@ -11458,7 +11472,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_076",
@@ -12159,7 +12174,8 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "huevos_080",
@@ -12544,7 +12560,9 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true,
+    "cocina": "francesa"
   },
   {
     "id": "huevos_082",
@@ -13292,6 +13310,7 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "llevaSalsa": true
   }
 ]

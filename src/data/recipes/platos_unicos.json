@@ -1178,7 +1178,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "cocina": "francesa"
   },
   {
     "id": "platos_unicos_007",
@@ -1393,7 +1394,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "platos_unicos_008",

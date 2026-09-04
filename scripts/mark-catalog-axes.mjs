@@ -134,10 +134,19 @@ function tecnicaDe(recipe) {
 // España es una cosa y en México otra — etiquetaba de mexicanas la tortilla de
 // jamón y queso y hasta el marmitako. El nombre del plato sí dice de dónde es.
 const COCINA_RE = {
-  italiana: /\b(espagueti|macarron|rigatoni|tagliatelle|risotto|lasan|canelones|pizza|calzone|pesto|carbonara|bolo[nñ]esa|caprese|bruschetta|gnocchi|focaccia|ravioli|fettuccine|penne|linguine|tortellini|vongole|amatriciana|puttanesca|cacio e pepe|parmigiana|saltimbocca|pasta)/,
-  asiatica: /\b(teriyaki|wok|noodles|udon|ramen|poke|tataki|edamame|hoisin|gochujang|pad thai|gyoza|yakisoba|estilo asiatico|salteado oriental|curry (rojo|verde|tailandes)|katsu|bibimbap|dumpling)/,
+  italiana: /\b(espagueti|macarron|rigatoni|tagliatelle|risotto|lasan|canelones|pizza|calzone|pesto|carbonara|bolo[nñ]esa|caprese|bruschetta|gnocchi|focaccia|ravioli|fettuccine|penne|linguine|tortellini|vongole|amatriciana|puttanesca|cacio e pepe|parmigiana|saltimbocca|pasta|carpaccio|ossobuco|osobuco|a la milanesa|vitello)/,
+  asiatica: /\b(teriyaki|wok|noodles|udon|ramen|poke|tataki|edamame|hoisin|gochujang|pad thai|gyoza|yakisoba|estilo asiatico|salteado oriental|curry (rojo|verde|tailandes)|katsu|bibimbap|dumpling|sushi|maki|nigiri|tempura|kimchi)/,
   mexicana: /\b(guacamole|quesadilla|nachos|tacos? de|fajitas?|burrito|chipotle|cochinita|pico de gallo|rancheros|chili con carne|enchilada)/,
   mediterranea: /\b(hummus|falafel|tahini|cuscus|tabule|shakshuka|tzatziki|kebab|baba ganoush|halloumi|labneh|moussaka|pita)/,
+  // Las cuatro de abajo se añadieron al medir la convención "ausente =
+  // española": 30 platos con nombre inequívocamente extranjero estaban
+  // contando como españoles. Una quiche lorraine no es cocina española, y con
+  // el panel de IA delante eso deja de ser una etiqueta y pasa a ser una
+  // respuesta mala a "¿qué tienes de otros sitios?".
+  francesa: /\b(quiche|meuniere|holandesa|bearnesa|bourguignon|ratatouille|crepe|gratin dauphinois|papillote|coq au vin|nicoise)/,
+  americana: /\b(hamburguesa|burger|cesar|caesar|waldorf|new york|nueva york|mac and cheese|buffalo)/,
+  india: /\b(curry|tikka|masala|tandoori|garam|dahl|dal\b)/,
+  peruana: /\b(ceviche|cebiche|leche de tigre|causa limena|tiradito|aji amarillo)/,
 };
 
 // Los platos cuyo nombre no lleva ninguna palabra delatora. Una sopa de

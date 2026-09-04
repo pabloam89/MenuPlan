@@ -170,7 +170,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_002",
@@ -1586,7 +1587,8 @@
       }
     ],
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_013",
@@ -2182,7 +2184,8 @@
     "tecnica": "sarten",
     "extraProteins": [
       "marisco"
-    ]
+    ],
+    "llevaSalsa": true
   },
   {
     "id": "pescados_017",
@@ -2538,7 +2541,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "pescados_019",
@@ -2699,7 +2703,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_020",
@@ -3618,7 +3623,8 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_026",
@@ -4054,7 +4060,8 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_028",
@@ -4539,7 +4546,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_031",
@@ -5770,7 +5778,8 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_038",
@@ -6123,7 +6132,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "cocina": "peruana"
   },
   {
     "id": "pescados_040",
@@ -6820,7 +6830,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_044",
@@ -7656,7 +7667,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_048",
@@ -7810,7 +7822,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_049",
@@ -8810,7 +8823,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_054",
@@ -8949,7 +8963,8 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_055",
@@ -9287,7 +9302,8 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_057",
@@ -9460,7 +9476,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_058",
@@ -9598,7 +9615,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "cocina": "peruana"
   },
   {
     "id": "pescados_059",
@@ -9757,7 +9775,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "cocina": "italiana"
   },
   {
     "id": "pescados_060",
@@ -10292,7 +10311,8 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_063",
@@ -10480,7 +10500,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_064",
@@ -10828,7 +10849,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_066",
@@ -10991,7 +11013,8 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_067",
@@ -11158,7 +11181,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_068",
@@ -11366,7 +11390,8 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_069",
@@ -11549,7 +11574,8 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_070",
@@ -11748,7 +11774,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_071",
@@ -12056,7 +12083,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_073",
@@ -12224,7 +12252,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_074",
@@ -12852,7 +12881,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_077",
@@ -13655,7 +13685,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "cocina": "peruana"
   },
   {
     "id": "pescados_081",
@@ -14343,7 +14374,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_085",
@@ -14700,7 +14732,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true,
+    "cocina": "francesa"
   },
   {
     "id": "pescados_087",
@@ -14926,7 +14960,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_088",
@@ -15089,7 +15124,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_089",
@@ -16437,7 +16473,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_096",
@@ -16634,7 +16671,8 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_097",
@@ -17039,7 +17077,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_099",
@@ -17248,7 +17287,8 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_100",
@@ -17911,7 +17951,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_103",
@@ -18175,7 +18216,8 @@
     ],
     "tecnica": "plancha",
     "cocina": "asiatica",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_104",
@@ -18649,7 +18691,8 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_106",
@@ -18879,7 +18922,8 @@
       "lacteo"
     ],
     "tecnica": "plancha",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_107",
@@ -19950,7 +19994,8 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "llevaSalsa": true
   },
   {
     "id": "pescados_112",
@@ -20161,7 +20206,8 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_113",
@@ -21160,7 +21206,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_117",
@@ -21356,7 +21403,8 @@
     "tecnica": "horno",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "llevaSalsa": true
   },
   {
     "id": "pescados_118",
@@ -21570,7 +21618,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_119",
@@ -21751,7 +21800,8 @@
     "sodium_mg": 820,
     "freezable": false,
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_120",
@@ -21951,7 +22001,8 @@
     ],
     "description": "Atún fresco cocinado con una salsa de cebolla pochada y tomate.",
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_123",
@@ -22208,7 +22259,8 @@
     ],
     "description": "Bacalao confitado a fuego suave con una salsa emulsionada de su propio aceite y ajo.",
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "pescados_127",

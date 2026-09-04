@@ -1956,7 +1956,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_012",
@@ -2473,7 +2474,8 @@
       "encurtido"
     ],
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_016",
@@ -3778,7 +3780,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "cocina": "americana"
   },
   {
     "id": "ensaladas_verduras_025",
@@ -4670,7 +4673,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "italiana",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_032",
@@ -6929,7 +6933,9 @@
       "frutos_secos"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "llevaSalsa": true,
+    "cocina": "americana"
   },
   {
     "id": "ensaladas_verduras_046",
@@ -8507,7 +8513,8 @@
     "mainBase": "patatas",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "cocina": "francesa"
   },
   {
     "id": "ensaladas_verduras_055",
@@ -8628,7 +8635,8 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_056",
@@ -9882,7 +9890,8 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_064",
@@ -10636,7 +10645,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true,
+    "cocina": "americana"
   },
   {
     "id": "ensaladas_verduras_068",
@@ -11579,7 +11590,8 @@
       "lacteo"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_074",
@@ -12465,7 +12477,8 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "mediterranea"
+    "cocina": "mediterranea",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_080",
@@ -13272,7 +13285,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true,
+    "cocina": "india"
   },
   {
     "id": "ensaladas_verduras_085",
@@ -14328,7 +14343,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_091",
@@ -15357,7 +15373,8 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_096",
@@ -15721,7 +15738,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_098",
@@ -18416,7 +18434,8 @@
     "mainIngredients": [
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_114",
@@ -20227,7 +20246,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "llevaSalsa": true
   },
   {
     "id": "ensaladas_verduras_122",

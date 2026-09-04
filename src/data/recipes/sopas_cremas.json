@@ -3912,7 +3912,8 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "sopas_cremas_024",
@@ -4911,7 +4912,8 @@
     "tecnica": "olla",
     "extraProteins": [
       "pollo"
-    ]
+    ],
+    "llevaSalsa": true
   },
   {
     "id": "sopas_cremas_030",
@@ -5723,7 +5725,8 @@
       "lacteo"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "llevaSalsa": true
   },
   {
     "id": "sopas_cremas_035",
@@ -9404,7 +9407,8 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "sopas_cremas_055",
@@ -12168,7 +12172,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "llevaSalsa": true
   },
   {
     "id": "sopas_cremas_070",

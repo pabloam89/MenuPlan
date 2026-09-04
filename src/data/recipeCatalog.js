@@ -106,6 +106,7 @@ function rowToRecipe(row) {
     ...(row.kid_favourite != null ? { kidFavourite: row.kid_favourite } : {}),
     ...(row.tecnica ? { tecnica: row.tecnica } : {}),
     ...(row.cocina ? { cocina: row.cocina } : {}),
+    ...(row.lleva_salsa != null ? { llevaSalsa: row.lleva_salsa } : {}),
     ...(row.can_be_garnish != null ? { canBeGarnish: row.can_be_garnish } : {}),
     ...(row.main_ingredients?.length ? { mainIngredients: row.main_ingredients } : {}),
     // Proteínas animales secundarias (jamón en una ensalada, atún en un
