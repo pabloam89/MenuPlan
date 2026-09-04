@@ -18,7 +18,7 @@
  */
 
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
-import { Sparkles, X, ArrowUp, Check } from "lucide-react";
+import { X, ArrowUp, Check } from "lucide-react";
 import { resumirAjuste } from "../lib/panelParser.js";
 
 const ANCHO_MAX = 366;
@@ -88,7 +88,10 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
       <button ref={fabRef} type="button" onClick={() => (abierto ? cerrar() : setAbierto(true))}
         style={{ ...S.fab, zIndex: abierto ? 310 : 150 }} aria-label="Ajustar el menú">
         <span style={S.fabHalo} />
-        <Sparkles size={21} color="#fff" style={{ position: "relative" }} />
+        {/* Nuestra ilustracion, no el glifo de lucide. Va sobre boton BLANCO
+            porque el PNG no tiene alfa: sobre el gradiente verde se veria el
+            cuadrado del fondo. El verde se queda en el aro que late. */}
+        <img src="/avatares/agente/agente.png" alt="" style={S.fabArte} />
       </button>
 
       {abierto && (
@@ -96,7 +99,9 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
           {rect && (
             <div style={{
               position: "fixed", top: rect.top - 6, left: rect.left - 6,
-              width: rect.width + 12, height: rect.height + 12, borderRadius: 20,
+              // Redondo del todo: el boton pasó a ser circular y un spotlight
+              // cuadrado dejaba cuatro esquinas oscuras alrededor.
+              width: rect.width + 12, height: rect.height + 12, borderRadius: 999,
               boxShadow: "0 0 0 9999px rgba(11,28,18,.7)",
               border: "2px solid rgba(255,255,255,.85)", pointerEvents: "none",
             }} />
@@ -245,14 +250,16 @@ const ANIM = `
 const S = {
   fab: {
     position: "fixed", right: 18, bottom: "calc(96px + env(safe-area-inset-bottom, 0px))",
-    width: 52, height: 52, borderRadius: 18, border: "none",
-    background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+    width: 58, height: 58, borderRadius: 999, border: "2px solid #fff",
+    background: "#fff", padding: 0, overflow: "hidden",
     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-    boxShadow: "0 6px 20px rgba(45,90,61,.42)",
+    boxShadow: "0 6px 22px rgba(20,47,29,.28)",
   },
+  fabArte: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
   fabHalo: {
-    position: "absolute", inset: -2, borderRadius: 20,
-    border: "2px solid rgba(76,186,110,.6)", animation: "panelHalo 2.6s ease-in-out infinite",
+    position: "absolute", inset: -3, borderRadius: 999,
+    border: "2.5px solid rgba(76,186,110,.75)", animation: "panelHalo 2.6s ease-in-out infinite",
+    pointerEvents: "none",
   },
   capa: { position: "fixed", inset: 0, zIndex: 300 },
   tarjeta: {
