@@ -263,17 +263,17 @@ const S = {
   },
   capa: { position: "fixed", inset: 0, zIndex: 300 },
   tarjeta: {
-    position: "fixed", background: "#fff", borderRadius: 24, padding: "18px 16px 16px",
+    position: "fixed", background: "#f2f7f4", borderRadius: 24, padding: "18px 16px 16px",
     boxShadow: "0 20px 56px rgba(20,47,29,.4)",
     animation: "panelPop .36s cubic-bezier(.34,1.56,.5,1) both",
   },
   flecha: {
-    position: "absolute", bottom: -9, width: 18, height: 18, background: "#fff",
+    position: "absolute", bottom: -9, width: 18, height: 18, background: "#f2f7f4",
     transform: "rotate(45deg)", borderRadius: 3,
   },
   cerrar: {
     position: "absolute", top: 13, right: 13, width: 24, height: 24, borderRadius: 999,
-    border: "none", background: "#f0f4f1", cursor: "pointer",
+    border: "none", background: "#e2ebe5", cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2,
   },
   titulo: { fontSize: 19, fontWeight: 900, color: "#142f1d", letterSpacing: "-.35px", marginBottom: 12, paddingRight: 28 },
@@ -291,7 +291,7 @@ const S = {
     position: "relative", display: "flex", flexDirection: "column", alignItems: "center",
     gap: 0, background: "#fff", border: "1px solid #e4ece7", borderRadius: 18,
     padding: "12px 8px 12px", cursor: "pointer", textAlign: "center",
-    boxShadow: "0 2px 10px rgba(20,47,29,.06)", overflow: "hidden",
+    boxShadow: "0 2px 8px rgba(20,47,29,.09)", overflow: "hidden",
   },
   cardArteCaja: {
     width: 62, height: 62, borderRadius: 999, display: "flex",
@@ -311,9 +311,9 @@ const S = {
   // (DESIGN_SYSTEM §11). Asi que lo que se reduce es todo lo demas — caja mas
   // baja, texto normal en vez de grueso y placeholder mas apagado.
   input: {
-    flex: 1, minWidth: 0, background: "#f7faf8", border: "1.5px solid #e8efe9",
+    flex: 1, minWidth: 0, border: "1.5px solid #dde8e1",
     borderRadius: 11, padding: "8px 11px", fontSize: 16, fontWeight: 400,
-    color: "#1a3a24", outline: "none",
+    color: "#1a3a24", outline: "none", background: "#fff",
   },
   enviar: {
     width: 34, height: 34, borderRadius: 11, border: "none",
@@ -327,7 +327,7 @@ const S = {
   pensandoTexto: { fontSize: 12.5, fontWeight: 600, color: "#8a9c91", marginLeft: 5 },
 
   reply: { fontSize: 13.5, fontWeight: 600, color: "#142f1d", lineHeight: 1.5, marginBottom: 12, paddingRight: 28 },
-  lista: { background: "#f7faf8", border: "1px solid #e8efe9", borderRadius: 14, overflow: "hidden" },
+  lista: { background: "#fff", border: "1px solid #e0eae3", borderRadius: 14, overflow: "hidden", boxShadow: "0 2px 8px rgba(20,47,29,.07)" },
   fila: {
     display: "flex", alignItems: "center", gap: 10, width: "100%",
     background: "none", border: "none", padding: "11px 12px", cursor: "pointer",
@@ -340,7 +340,7 @@ const S = {
   casillaOn: { background: "#2d5a3d", borderColor: "#2d5a3d", transform: "scale(1.06)" },
   filaTitulo: { display: "block", fontSize: 13.5, fontWeight: 800, lineHeight: 1.25 },
   filaCambio: { display: "block", fontSize: 11.5, fontWeight: 600, color: "#2d5a3d", marginTop: 1 },
-  pendiente: { fontSize: 12, color: "#5a7a66", lineHeight: 1.45, marginTop: 11, padding: "9px 11px", background: "#f4f8f5", borderRadius: 10 },
+  pendiente: { fontSize: 12, color: "#5a7a66", lineHeight: 1.45, marginTop: 11, padding: "9px 11px", background: "#e6eeea", borderRadius: 10 },
 
   hecho: { display: "flex", flexDirection: "column", alignItems: "center", gap: 9, padding: "14px 0 10px" },
   hechoCirculo: {
