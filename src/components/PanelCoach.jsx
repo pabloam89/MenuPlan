@@ -88,10 +88,10 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
       <button ref={fabRef} type="button" onClick={() => (abierto ? cerrar() : setAbierto(true))}
         style={{ ...S.fab, zIndex: abierto ? 310 : 150 }} aria-label="Ajustar el menú">
         <span style={S.fabHalo} />
-        {/* Nuestra ilustracion, no el glifo de lucide. Va sobre boton BLANCO
-            porque el PNG no tiene alfa: sobre el gradiente verde se veria el
-            cuadrado del fondo. El verde se queda en el aro que late. */}
-        <img src="/avatares/agente/agente.png" alt="" style={S.fabArte} />
+        {/* Nuestro logo, no un glifo de lucide ni una foto recortada. El SVG
+            trae sus propios colores y escala sin ensuciarse los bordes, que es
+            lo que estropeaba el recorte del gorro. */}
+        <img src="/logo-homenu.svg" alt="" style={S.fabArte} />
       </button>
 
       {abierto && (
@@ -154,7 +154,6 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                           componentes distintos; el color lo lleva el circulo,
                           que ya es suficiente. */}
                       <span style={S.cardTexto}>{s.texto}</span>
-                      <span style={S.cardPorque}>{s.porque}</span>
                     </button>
                   ))}
                 </div>
@@ -255,7 +254,7 @@ const S = {
     display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
     boxShadow: "0 6px 22px rgba(20,47,29,.28)",
   },
-  fabArte: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
+  fabArte: { width: "70%", height: "70%", objectFit: "contain", display: "block" },
   fabHalo: {
     position: "absolute", inset: -3, borderRadius: 999,
     border: "2.5px solid rgba(76,186,110,.75)", animation: "panelHalo 2.6s ease-in-out infinite",
@@ -290,21 +289,22 @@ const S = {
   card: {
     position: "relative", display: "flex", flexDirection: "column", alignItems: "center",
     gap: 0, background: "#fff", border: "1px solid #e4ece7", borderRadius: 18,
-    padding: "12px 8px 12px", cursor: "pointer", textAlign: "center",
+    padding: "14px 8px 14px", cursor: "pointer", textAlign: "center",
     boxShadow: "0 2px 8px rgba(20,47,29,.09)", overflow: "hidden",
   },
+  // Sin subcopy, la ilustracion se queda con el sitio que ocupaba: es lo que
+  // hace que la tarjeta se lea de un vistazo.
   cardArteCaja: {
-    width: 62, height: 62, borderRadius: 999, display: "flex",
-    alignItems: "center", justifyContent: "center", marginBottom: 9,
+    width: 76, height: 76, borderRadius: 999, display: "flex",
+    alignItems: "center", justifyContent: "center", marginBottom: 10,
   },
   cardArte: {
-    width: 50, height: 50, objectFit: "contain", pointerEvents: "none",
-    filter: "drop-shadow(0 3px 7px rgba(20,47,29,.22))",
+    width: 62, height: 62, objectFit: "contain", pointerEvents: "none",
+    filter: "drop-shadow(0 3px 8px rgba(20,47,29,.22))",
   },
   // Mismo tamaño en las cuatro, pase lo que pase con el texto: dos alturas
   // distintas en una rejilla de 2x2 se ven como un fallo de maquetacion.
-  cardTexto: { fontSize: 14, fontWeight: 800, lineHeight: 1.25, letterSpacing: "-.2px", color: "#142f1d", minHeight: 18 },
-  cardPorque: { fontSize: 11.5, fontWeight: 600, lineHeight: 1.3, color: "#5a7a66", marginTop: 3 },
+  cardTexto: { fontSize: 14, fontWeight: 800, lineHeight: 1.25, letterSpacing: "-.2px", color: "#142f1d" },
 
   entrada: { display: "flex", gap: 7, alignItems: "center" },
   // 16px es OBLIGATORIO: por debajo, iOS Safari hace zoom al enfocar el campo

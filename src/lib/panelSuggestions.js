@@ -62,6 +62,13 @@ const ARTE_FAMILIA = {
  *   `frase` es lo que se escribe en el input al pulsarla — la sugerencia no
  *   ejecuta nada por su cuenta, rellena el campo y deja que el flujo normal
  *   siga. Así hay un solo camino que mantener y probar.
+ *
+ *   `porque` YA NO se pinta en la tarjeta. Era ruido: "6 al horno" o "Nada de
+ *   fuera" no se entienden fuera de contexto, se comían la mitad del alto y
+ *   cada una hablaba en un registro distinto. La explicación de verdad ya
+ *   existe un toque más allá, en la respuesta, y allí hay sitio para decirla
+ *   entera. Se conserva en el dato porque documenta POR QUÉ salió esa
+ *   sugerencia, que es lo que hará falta el día que se registren.
  */
 export function sugerenciasDelMenu(recuento, notepad) {
   const { familias = {}, cocinas = {}, tecnicas = {}, huecos = 0 } = recuento ?? {};
