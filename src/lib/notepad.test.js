@@ -102,6 +102,17 @@ describe("proyectar: la vista que leen los consumidores de siempre", () => {
     expect(proyectar(n).freqs.verdura).toBeUndefined();
   });
 
+  // El espejo de excluidos: sin el, "quiero mas queso" no tenia donde
+  // escribirse. Se podia vetar un ingrediente pero no pedirlo, que es la mitad
+  // de lo que la gente dice de verdad.
+  it("los favoritos van por su lado, no mezclados con los excluidos", () => {
+    let n = poner(libretaVacia(), "favoritos.queso", true, { origen: "texto" });
+    n = poner(n, "excluidos.cilantro", true, { origen: "texto" });
+    const v = proyectar(n);
+    expect(v.favoritos).toEqual(["queso"]);
+    expect(v.excluidos).toEqual(["cilantro"]);
+  });
+
   it("separa los ejes de sesgo y los excluidos", () => {
     let n = poner(libretaVacia(), "cocina.mexicana", 1, { origen: "texto" });
     n = poner(n, "tecnica.horno", 1, { origen: "texto" });
@@ -203,13 +214,14 @@ describe("el registro de campos", () => {
 // sitio y el planner lee de otro, en silencio.
 describe("la tabla y proyectar no se contradicen", () => {
   it("cada campo cae donde su fila dice", () => {
-    const valores = { freqs: 2, base: 1, cocina: 1, tecnica: 1, salsa: 1, esfuerzo: 1, excluidos: true };
+    const valores = { freqs: 2, base: 1, cocina: 1, tecnica: 1, salsa: 1, esfuerzo: 1, excluidos: true, favoritos: true };
     for (const c of CAMPOS) {
       const valor = c.dominio ? c.dominio[0] : "cilantro";
       const n = poner(libretaVacia(), rutaDe(c.id, valor), valores[c.id], { origen: "texto" });
       const v = proyectar(n);
       if (c.proyecta === "freqs") expect(v.freqs[valor]).toBeDefined();
       else if (c.proyecta === "excluidos") expect(v.excluidos).toContain(valor);
+      else if (c.proyecta === "favoritos") expect(v.favoritos).toContain(valor);
       else expect(v.sesgos[c.id]?.[valor]).toBeDefined();
     }
   });

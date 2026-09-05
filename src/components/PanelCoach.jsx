@@ -19,7 +19,7 @@
 
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { X, ArrowUp, Check } from "lucide-react";
-import { resumirAjuste } from "../lib/panelParser.js";
+import { resumirAjuste, pintarAjuste } from "../lib/panelParser.js";
 
 const ANCHO_MAX = 366;
 const HUECO = 14;
@@ -149,6 +149,7 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                       <span style={{ ...S.cardArteCaja, background: s.tono.suave }}>
                         <img src={s.arte} alt="" style={S.cardArte} loading="lazy" />
                       </span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
                       {/* El texto va SIEMPRE del mismo color. Antes lo pintaba
                           el tono de cada tarjeta y la rejilla parecia cuatro
                           componentes distintos; el color lo lleva el circulo,
@@ -159,6 +160,7 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                           ("hay 4, pediste 3") con chiste ("sin dramas") era lo
                           que se leia como random. */}
                       <span style={S.cardSub}>{s.porque}</span>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -191,8 +193,27 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                           <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
                             <span style={{ ...S.filaTitulo, color: on ? "#142f1d" : "#4a6355" }}>{o.etiqueta}</span>
                             {o.detalle && <span style={S.filaDetalle}>{o.detalle}</span>}
-                            <span style={S.filaCambio}>
-                              {o.ajustes.map((a) => resumirAjuste(notepad, a)).filter(Boolean).join(" · ")}
+                            <span style={S.cambios}>
+                              {o.ajustes.map((a, k) => {
+                                const v = pintarAjuste(notepad, a);
+                                if (!v) {
+                                  const txt = resumirAjuste(notepad, a);
+                                  return txt ? <span key={k} style={S.filaCambio}>{txt}</span> : null;
+                                }
+                                return (
+                                  <span key={k} style={S.chip}>
+                                    <img src={v.arte} alt="" style={S.chipArte} />
+                                    <span style={{ ...S.chipFlecha, color: v.sube ? "#2f7d4a" : "#a85a00" }}>
+                                      {v.sube ? "▲" : "▼"}
+                                    </span>
+                                    {v.antes != null && (
+                                      <span style={S.chipNum}>
+                                        <s style={{ color: "#9ab0a1" }}>{v.antes}</s> {v.despues}
+                                      </span>
+                                    )}
+                                  </span>
+                                );
+                              })}
                             </span>
                           </span>
                         </button>
@@ -291,32 +312,34 @@ const S = {
   ctaAncho: { width: "100%", marginTop: 12, padding: "12px 20px", fontSize: 14 },
   ctaOff: { background: "#c8d9ce", boxShadow: "none", cursor: "default" },
 
-  rejilla: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 13 },
+  // En FILAS, no en rejilla de 2x2. Una tarjeta de 165 px no da para una frase
+  // que se entienda, y recortarla hasta que cupiera era lo que producia los
+  // telegramas. A lo ancho hay 320 px y el texto respira.
+  rejilla: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 13 },
   card: {
-    position: "relative", display: "flex", flexDirection: "column", alignItems: "center",
-    gap: 0, background: "#fff", border: "1px solid #e4ece7", borderRadius: 18,
-    padding: "13px 9px 12px", cursor: "pointer", textAlign: "center",
-    boxShadow: "0 2px 8px rgba(20,47,29,.09)", overflow: "hidden",
+    position: "relative", display: "flex", flexDirection: "row", alignItems: "center",
+    gap: 12, background: "#fff", border: "1px solid #e4ece7", borderRadius: 16,
+    padding: "11px 13px 11px 11px", cursor: "pointer", textAlign: "left",
+    boxShadow: "0 2px 8px rgba(20,47,29,.09)", width: "100%",
   },
   // Sin subcopy, la ilustracion se queda con el sitio que ocupaba: es lo que
   // hace que la tarjeta se lea de un vistazo.
   cardArteCaja: {
-    width: 54, height: 54, borderRadius: 999, display: "flex",
-    alignItems: "center", justifyContent: "center", marginBottom: 8,
+    width: 52, height: 52, borderRadius: 999, display: "flex", flexShrink: 0,
+    alignItems: "center", justifyContent: "center",
   },
   cardArte: {
-    width: 44, height: 44, objectFit: "contain", pointerEvents: "none",
+    width: 42, height: 42, objectFit: "contain", pointerEvents: "none",
     filter: "drop-shadow(0 3px 8px rgba(20,47,29,.22))",
   },
-  cardTexto: { fontSize: 13.5, fontWeight: 800, lineHeight: 1.2, letterSpacing: "-.2px", color: "#142f1d" },
+  cardTexto: { fontSize: 14, fontWeight: 800, lineHeight: 1.25, letterSpacing: "-.2px", color: "#142f1d" },
   // Tres lineas fijas en las cuatro tarjetas: si una ocupa dos y la de al lado
   // tres, la rejilla se descuadra y se lee como un fallo de maquetacion.
   // Cinco lineas de alto fijo. La tarjeta crece para que quepa la frase entera:
   // recortarla para que entrase era lo que producia telegramas como "6 al
   // horno", que no ahorran sitio — lo desperdician, porque no se entienden.
   cardSub: {
-    fontSize: 11, fontWeight: 500, lineHeight: 1.4, color: "#5a7a66",
-    marginTop: 5, minHeight: 77,
+    fontSize: 11.5, fontWeight: 500, lineHeight: 1.4, color: "#5a7a66", marginTop: 3,
   },
 
   entrada: { display: "flex", gap: 7, alignItems: "center" },
@@ -353,7 +376,16 @@ const S = {
   casillaOn: { background: "#2d5a3d", borderColor: "#2d5a3d", transform: "scale(1.06)" },
   filaTitulo: { display: "block", fontSize: 13.5, fontWeight: 800, lineHeight: 1.25 },
   filaDetalle: { display: "block", fontSize: 11.5, fontWeight: 500, color: "#5a7a66", marginTop: 1 },
-  filaCambio: { display: "block", fontSize: 11.5, fontWeight: 700, color: "#2d5a3d", marginTop: 2 },
+  filaCambio: { fontSize: 11.5, fontWeight: 700, color: "#2d5a3d" },
+  cambios: { display: "flex", flexWrap: "wrap", gap: 5, marginTop: 6, alignItems: "center" },
+  chip: {
+    display: "inline-flex", alignItems: "center", gap: 3,
+    background: "#f2f7f4", border: "1px solid #dde8e1", borderRadius: 999,
+    padding: "2px 8px 2px 3px",
+  },
+  chipArte: { width: 22, height: 22, objectFit: "contain" },
+  chipFlecha: { fontSize: 9, fontWeight: 900, lineHeight: 1 },
+  chipNum: { fontSize: 11.5, fontWeight: 800, color: "#142f1d", fontVariantNumeric: "tabular-nums" },
   pendiente: { fontSize: 12, color: "#5a7a66", lineHeight: 1.45, marginTop: 11, padding: "9px 11px", background: "#e6eeea", borderRadius: 10 },
 
   hecho: { display: "flex", flexDirection: "column", alignItems: "center", gap: 9, padding: "14px 0 10px" },

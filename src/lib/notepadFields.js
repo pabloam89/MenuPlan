@@ -111,6 +111,19 @@ export const CAMPOS = [
     ejemplo: "algo más rápido",
   },
   {
+    id: "favoritos",
+    grupo: "ingrediente",
+    etiqueta: "Lo que os gusta mucho",
+    // El espejo de `excluidos`, que solo sabia quitar. Sin esto, "quiero mas
+    // queso en los platos" o "mas aguacate" no tenian donde escribirse: se
+    // podia vetar un ingrediente pero no pedirlo, que es la mitad de lo que la
+    // gente dice de verdad.
+    dominio: null,
+    proyecta: "favoritos",
+    unidad: "lista",
+    ejemplo: "más queso en los platos",
+  },
+  {
     id: "excluidos",
     grupo: "ingrediente",
     etiqueta: "Lo que no queréis ver",

@@ -186,6 +186,8 @@ export function aplicarAjuste(notepad, ajuste, { frase, fecha }) {
     valor = Math.max(0, Math.min(7, propuesto));
   } else if (campo.proyecta === "excluidos") {
     valor = ajuste.op === "nunca";
+  } else if (campo.proyecta === "favoritos") {
+    valor = ajuste.op !== "nunca";
   } else {
     valor = ajuste.op === "mas" ? 1 : ajuste.op === "menos" ? -1 : 0;
   }
@@ -214,9 +216,51 @@ export function resumirAjuste(notepad, ajuste) {
     return `${cap(etiqueta)}: ${antes} → ${despues} por semana`;
   }
   if (campo.proyecta === "excluidos") return `Fuera ${etiqueta}`;
+  if (campo.proyecta === "favoritos") return `Más ${etiqueta}`;
   return ajuste.op === "nunca" ? `Nunca ${etiqueta}` : `${ajuste.op === "mas" ? "Más" : "Menos"} ${etiqueta}`;
 }
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Las ilustraciones por familia y por eje, para pintar el cambio en vez de
+// contarlo. Mismas rutas que panelSuggestions: son los unicos recortes con alfa.
+const ARTE = {
+  "freqs.carne": "/categories/cut/carne.png",
+  "freqs.pescado": "/categories/cut/pescado.png",
+  "freqs.verdura": "/categories/cut/verduras.png",
+  "freqs.legumbres": "/categories/cut/legumbres.png",
+  "freqs.pasta_arroz": "/categories/cut/pasta_arroz.png",
+  "freqs.huevos": "/categories/cut/huevos.png",
+  "tecnica.horno": "/categories/cut/tecnica/horno.png",
+  "tecnica.plancha": "/categories/cut/tecnica/plancha.png",
+  "tecnica.sarten": "/categories/cut/tecnica/sarten.png",
+  "tecnica.olla": "/categories/cut/tecnica/olla.png",
+  "tecnica.crudo": "/categories/cut/tecnica/crudo.png",
+  "salsa.si": "/categories/cut/salsa.png",
+};
+
+/**
+ * El cambio en datos, para pintarlo: ilustracion, direccion y numeros.
+ *
+ * "Carne 4 -> 3" contado con palabras se lee; contado con el dibujo de la carne
+ * y una flecha hacia abajo se VE, que es lo que pedia la pantalla 2. Devuelve
+ * null cuando no hay ilustracion para ese eje: entonces la UI cae al texto.
+ */
+export function pintarAjuste(notepad, ajuste) {
+  const campo = CAMPOS_POR_ID[ajuste.campo];
+  if (!campo) return null;
+  const clave = `${ajuste.campo}.${ajuste.valor}`;
+  const path = rutaDe(ajuste.campo, ajuste.valor, ajuste.ambito, ajuste.servicio);
+  const arte = ARTE[clave] ?? (ajuste.campo === "cocina" ? `/categories/cut/cocinas/${ajuste.valor}.png` : null);
+  if (!arte) return null;
+
+  const etiqueta = cap(ajuste.valor.replace(/_/g, " o "));
+  if (campo.proyecta === "freqs") {
+    const antes = valorDe(notepad, path, 0);
+    const despues = aplicarAjuste(notepad, ajuste, {}).campos[path]?.valor ?? antes;
+    return { arte, etiqueta, antes, despues, sube: despues > antes };
+  }
+  return { arte, etiqueta, sube: ajuste.op === "mas" };
+}
 
 export { VERBOS, AMBITOS, SERVICIOS };

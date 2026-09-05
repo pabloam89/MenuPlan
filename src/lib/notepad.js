@@ -201,6 +201,7 @@ export function proyectar(notepad) {
   const freqsByGroup = {};
   const sesgos = {};
   const excluidos = [];
+  const favoritos = [];
 
   for (const [path, campo] of Object.entries(notepad?.campos ?? {})) {
     if (campo.delegado || campo.valor === undefined) continue;
@@ -215,6 +216,8 @@ export function proyectar(notepad) {
       }
     } else if (campoId === "excluidos") {
       if (campo.valor) excluidos.push(valorId);
+    } else if (campoId === "favoritos") {
+      if (campo.valor) favoritos.push(valorId);
     } else {
       // base, cocina, tecnica, salsa, esfuerzo — ejes de sesgo, sin consumidor
       // todavía: los estrenará el panel.
@@ -222,7 +225,7 @@ export function proyectar(notepad) {
     }
   }
 
-  return { freqs, freqsByGroup, sesgos, excluidos };
+  return { freqs, freqsByGroup, sesgos, excluidos, favoritos };
 }
 
 /**

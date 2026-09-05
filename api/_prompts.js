@@ -207,6 +207,7 @@ Campos y sus valores permitidos. No existe ningún otro campo ni ningún otro va
 - "tecnica": horno, plancha, sarten, olla, crudo
 - "salsa": si, no
 - "esfuerzo": facil, rapido, elaborado
+- "favoritos": el nombre del ingrediente en minúsculas ("más queso", "más aguacate")
 - "excluidos": el nombre del ingrediente en minúsculas, tal cual lo diga el usuario
 
 "freqs" mete pasta y arroz en el mismo saco ("pasta_arroz"). Si el usuario distingue —"más pasta", "menos arroz"— usa "base", que sí los separa.
