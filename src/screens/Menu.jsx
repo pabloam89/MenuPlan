@@ -115,7 +115,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CommentThread } from "../components/CommentThread.jsx";
 import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
@@ -279,10 +279,6 @@ function DaySectionHeader({ day, dayNumber, right = null }) {
 }
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
-const MENU_VIEW_OPTIONS = [
-  { id: "dia", label: "Por día" },
-  { id: "semana", label: "Semana" },
-];
 const GROUP_ABBREV = { Adultos: "A", Niños: "N", "Bebé": "B", Familia: "F" };
 
 // An ad-hoc menú isn't a set of people, and a caller with no roster can't
@@ -4005,7 +4001,6 @@ export const MenuScreen = memo(function MenuScreen({
   onOpenMenus,
   onOpenAnalytics,
   onDeleteActive,
-  initialViewMode = "dia",
   // Demo-only (value-props carousel): seed the deck view ("semana"/"dia"/"lista")
   // and auto-play the quick-actions rosco so the tutorial can show off the
   // week view + acciones rápidas without a real user gesture.
@@ -4162,11 +4157,6 @@ export const MenuScreen = memo(function MenuScreen({
     [shoppingItems],
   );
 
-  const [viewMode, setViewMode] = useState(initialViewMode); // "dia" | "semana"
-  const [viewAnimDir, setViewAnimDir] = useState(0);
-  // Deck is now the only menu UI. (The classic view has been retired; its render
-  // branches are gated on `uiMode === "clasico"` and simply never activate.)
-  const uiMode = "deck";
   const [deckView, setDeckView] = useState(() => {
     if (["semana", "lista", "dia", "mes"].includes(initialDeckView)) {
       return initialDeckView;
@@ -4334,23 +4324,10 @@ export const MenuScreen = memo(function MenuScreen({
     }
   };
 
-  const handleViewModeChange = (mode) => {
-    if (mode === viewMode) return;
-    setViewAnimDir(mode === "semana" ? 1 : -1);
-    setViewMode(mode);
-  };
 
   return (
     <div style={{ background: "#fff", minHeight: "100dvh" }}>
       <style>{`
-        @keyframes menuViewFromRight {
-          from { opacity: 0; transform: translateX(14px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes menuViewFromLeft {
-          from { opacity: 0; transform: translateX(-14px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
         @keyframes shareDropIn {
           from { opacity: 0; transform: translateY(-6px) scale(.96); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -4676,129 +4653,16 @@ export const MenuScreen = memo(function MenuScreen({
         </div>
       </div>
       {/* ── Filter panel: collapsible con animación (solo modo clásico) ── */}
-      {uiMode === "clasico" && (
-        <div
-          style={{
-            overflow: "hidden",
-            maxHeight: filterPanelOpen ? 300 : 0,
-            opacity: filterPanelOpen ? 1 : 0,
-            transition: "max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease",
-          }}
-        >
-          <MenuFilterPanel
-            groups={data.groups}
-            scope={scope}
-            onScopeChange={setScope}
-            members={data.members ?? []}
-            multiGroup={multiGroup}
-          />
-          <div style={{ height: 1, background: "#e0eae3" }} />
-        </div>
-      )}
 
       {/* ── Zona de navegación: cabecera clásica (fecha/perfil/chevron) o nav del deck ── */}
       <div style={{ background: "#fff", padding: "12px 16px 0" }}>
-        {uiMode === "clasico" && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <WeekRangeBadge label={weekLabel} hideLabel />
-          <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-            {/* Las caras de quien come, y al tocarlas se abren los ajustes
-                del hogar: en esta app "tu perfil" son ellos, asi que la
-                puerta es su propia foto y no un icono de persona generica. */}
-            <button
-              type="button"
-              onClick={() => setProfileOpen(true)}
-              aria-label="Ajustes del hogar"
-              style={{ display: "flex", alignItems: "center", padding: 0, border: "none", background: "none", cursor: "pointer", fontFamily: "inherit" }}
-            >
-              <GroupAvatarStack faces={groupAvatarFaces(data.members ?? [], data.members ?? [])} size={26} max={4} />
-            </button>
-          </div>
-          <button
-            type="button"
-            data-coach="menu-filters"
-            onClick={() => setFilterPanelOpen((v) => !v)}
-            aria-label={filterPanelOpen ? "Colapsar filtros" : "Expandir filtros"}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 32,
-              height: 32,
-              borderRadius: 999,
-              border: "1px solid #e6eee8",
-              background: filterPanelOpen ? "#f0f5f1" : "#fff",
-              cursor: "pointer",
-              flexShrink: 0,
-              fontFamily: "inherit",
-              padding: 0,
-            }}
-          >
-            <ChevronDown
-              size={17}
-              strokeWidth={2.5}
-              color="#2d5a3d"
-              style={{
-                transform: filterPanelOpen ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.3s cubic-bezier(.4,0,.2,1)",
-                display: "block",
-              }}
-            />
-          </button>
-        </div>
-        )}
 
         {/* ── Multi-week switcher: solo en clásico (en deck vive dentro del DeckNav) ── */}
-        {uiMode === "clasico" && menuWeeks.length > 1 && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 12 }}>
-            <button
-              type="button"
-              onClick={() => currentWeekIdx > 0 && onSwitchWeek?.(menuWeeks[currentWeekIdx - 1].weekStart)}
-              disabled={currentWeekIdx <= 0}
-              aria-label="Semana anterior"
-              style={weekNavArrowStyle(currentWeekIdx <= 0)}
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={onOpenMenus}
-              style={{
-                border: "none", background: "none", cursor: "pointer", fontFamily: "inherit",
-                fontSize: 12.5, fontWeight: 800, color: "#2d5a3d", padding: "4px 8px",
-              }}
-            >
-              Semana {Math.max(0, currentWeekIdx) + 1} de {menuWeeks.length}
-            </button>
-            <button
-              type="button"
-              onClick={() => currentWeekIdx < menuWeeks.length - 1 && onSwitchWeek?.(menuWeeks[currentWeekIdx + 1].weekStart)}
-              disabled={currentWeekIdx >= menuWeeks.length - 1}
-              aria-label="Semana siguiente"
-              style={weekNavArrowStyle(currentWeekIdx >= menuWeeks.length - 1)}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
 
         {/* View controls — clásico: segmented + botón para entrar al Deck */}
-        {hasMenu && uiMode === "clasico" && (
-          <>
-            <div data-coach="menu-viewmode" style={{ minWidth: 0 }}>
-              <SegmentedControl
-                value={viewMode}
-                onChange={handleViewModeChange}
-                options={MENU_VIEW_OPTIONS}
-                style={{ marginBottom: 0 }}
-              />
-            </div>
-            <MenuViewDivider options={MENU_VIEW_OPTIONS} value={viewMode} />
-          </>
-        )}
 
         {/* View controls — deck: vistas (izq) · semana (centro) · filtro círculo (der) */}
-        {hasMenu && uiMode === "deck" && (
+        {hasMenu && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
             {/* The coach anchor hugs the view switch alone: the filter circle at
                 the far right gets its own step, and a spotlight over the whole
@@ -4830,7 +4694,6 @@ export const MenuScreen = memo(function MenuScreen({
       </div>
 
       {/* ── Second divider: end of nav zone (solo clásico; en deck sobra) ── */}
-      {uiMode === "clasico" && <div style={{ height: 1, background: "#e8eee9" }} />}
 
       {!isGenerating && error && (
         <ErrorCard error={error} onRetry={onRetry} />
@@ -4845,7 +4708,7 @@ export const MenuScreen = memo(function MenuScreen({
         {restrictionWarning && (
           <RestrictionConflictBanner key={restrictionWarning} message={restrictionWarning} onRegenerate={readOnly ? undefined : onRegenerate} />
         )}
-        {uiMode === "deck" && (
+        {(
           <div
             style={{
               paddingTop: 14,
@@ -4974,174 +4837,6 @@ export const MenuScreen = memo(function MenuScreen({
             document.body,
           )}
 
-        {uiMode === "clasico" && (<>
-        {/* ── Week strip (only in "dia" mode) ── */}
-        <div
-          style={{
-            overflow: "hidden",
-            maxHeight: viewMode === "dia" ? 100 : 0,
-            opacity: viewMode === "dia" ? 1 : 0,
-            transition: "max-height .3s cubic-bezier(.4,0,.2,1), opacity .24s ease",
-            background: "#fff",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "flex-end", padding: "4px 12px 16px", gap: 2 }}>
-            {activeDays.map((day) => {
-              const meals = getMeals(data);
-              const hasDot = meals.some((meal) =>
-                visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`])
-              );
-              const isSelected = day === selectedDay;
-              const dayNum = calendarDayNumber(day, weekDates);
-              const isWeekend = day === "Sáb" || day === "Dom";
-              return (
-                <button key={day} type="button" onClick={() => setSelectedDay(day)}
-                  style={{
-                    flex: isSelected ? 1.4 : 1,
-                    display: "flex", flexDirection: "column", alignItems: "center",
-                    gap: 4, padding: isSelected ? "12px 6px 10px" : "8px 4px 8px",
-                    borderRadius: 16, border: "none",
-                    background: isSelected ? "#4cba6e" : isWeekend ? "#f0f8f3" : "transparent",
-                    cursor: "pointer", fontFamily: "inherit",
-                    transition: "all .2s cubic-bezier(.4,0,.2,1)",
-                    boxShadow: isSelected ? "0 4px 16px #4cba6e55" : "none",
-                  }}
-                >
-                  <span style={{
-                    fontSize: isSelected ? 10 : 9, fontWeight: 800, letterSpacing: .5, textTransform: "uppercase",
-                    color: isSelected ? "rgba(255,255,255,.85)" : isWeekend ? "#4cba6e" : "#aab5af",
-                  }}>
-                    {DAY_LETTERS[day]}
-                  </span>
-                  <span style={{
-                    fontSize: isSelected ? 20 : 15, fontWeight: 900, lineHeight: 1,
-                    color: isSelected ? "#fff" : "#15331c",
-                    transition: "font-size .2s",
-                  }}>
-                    {dayNum}
-                  </span>
-                  <span style={{
-                    width: 5, height: 5, borderRadius: 999,
-                    background: isSelected ? "rgba(255,255,255,.6)" : hasDot ? "#4cba6e" : "transparent",
-                  }} />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── Content ── */}
-        <div
-          key={viewMode}
-          style={{
-            padding: "14px 16px 0",
-            paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
-            animation:
-              viewAnimDir > 0
-                ? "menuViewFromRight .28s cubic-bezier(.4,0,.2,1) both"
-                : viewAnimDir < 0
-                  ? "menuViewFromLeft .28s cubic-bezier(.4,0,.2,1) both"
-                  : "menuViewFromRight .28s cubic-bezier(.4,0,.2,1) both",
-          }}
-        >
-          {(viewMode === "dia" ? [selectedDay] : activeDays).map((day) => {
-            const members = data.members ?? [];
-            const schedule = data.schedule ?? {};
-            const meals = getDayMeals(data);
-            const dayHasContent = meals.some((meal) =>
-              visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`])
-            );
-            if (!dayHasContent) return null;
-            return (
-              <div key={day}>
-                {viewMode === "semana" && (
-                  <DaySectionHeader
-                    day={day}
-                    dayNumber={calendarDayNumber(day, weekDates)}
-                  />
-                )}
-
-                {meals.map((meal) => {
-                  const isLunch = isLunchMeal(meal);
-                  const cards = [];
-                  const cardByKey = new Map();
-                  for (const g of visibleGroups) {
-                    const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
-                    if (!slot) continue;
-                    for (const dish of dishesFromSlot(slot, isLunch)) {
-                      const key = `${dish.recipeId}::${dish.courseKey}`;
-                      const existing = cardByKey.get(key);
-                      if (existing) {
-                        existing.groups.push(g);
-                        continue;
-                      }
-                      const card = { kind: "dish", group: g, groups: [g], slot, dish };
-                      cardByKey.set(key, card);
-                      cards.push(card);
-                    }
-                  }
-                  if (cards.length === 0) return null;
-
-                  const mealGroups =
-                    multiGroup && scope === "all"
-                      ? data.groups.filter((g) => menuPlan[g.id]?.[`${day}-${meal}`])
-                      : null;
-
-                  return (
-                    <div key={meal} style={{ marginBottom: viewMode === "semana" ? 14 : 18 }}>
-                      <MealSectionLabel meal={meal} activeGroups={mealGroups} />
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        {cards.map((card, idx) => {
-                          // With a dish shared across groups the "who eats this"
-                          // sub-line is ambiguous, so only show it for single-group dishes.
-                          const groupMembers = membersOfGroup(card.group, members);
-                          const slotEaters = eatersForSlot(card.group, members, schedule, day, meal);
-                          const showEaters =
-                            card.groups.length === 1 &&
-                            groupMembers.length > 1 &&
-                            slotEaters.length > 0 &&
-                            slotEaters.length < groupMembers.length;
-
-                          return (
-                            <DishCard
-                              key={`dish-${card.group.id}-${card.dish.courseKey}-${idx}`}
-                              slot={{ ...card.slot, recipeId: card.dish.recipeId }}
-                              courseLabel={card.dish.course}
-                              showDivider={idx < cards.length - 1}
-                              eaterMembers={showEaters ? slotEaters : null}
-                              allMembers={members}
-                              group={card.group}
-                              badgeGroups={card.groups}
-                              showGroupBadge={multiGroup && scope === "all"}
-                              kitchenTools={data.kitchenTools ?? []}
-                              highlight={!!armed && sameDish(armed.source, { groupId: card.group.id, day, meal, course: card.dish.courseKey })}
-                              availability={dishAvailability.get(`${day}::${meal}::${card.dish.recipeId}`) ?? null}
-                              onTap={() =>
-                                onDishTap({
-                                  recipe: RECIPES_BY_ID[card.dish.recipeId],
-                                  slot: card.slot,
-                                  groupId: card.group.id,
-                                  day,
-                                  meal,
-                                  group: card.group,
-                                  course: card.dish.courseKey,
-                                })
-                              }
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-                {viewMode === "semana" && (
-                  <div style={{ height: 1, background: "#e8f0ea", marginBottom: 20 }} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-        </>)}
       </div>
       )}
 

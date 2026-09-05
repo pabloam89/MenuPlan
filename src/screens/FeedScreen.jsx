@@ -11,7 +11,7 @@ import { ShareRecipeSheet } from "../components/ShareRecipeSheet.jsx";
 import { NotificationsPopover } from "../components/NotificationsPopover.jsx";
 import { DiscoverPeopleSheet } from "../components/DiscoverPeopleSheet.jsx";
 import { VisibilityPrompt } from "../components/VisibilityPrompt.jsx";
-import { CoachTour, FeedCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
+import { CoachTour } from "../components/HomeCoachTour.jsx";
 import { loadNotifications, markNotificationsSeen, countUnread } from "../lib/socialNotifications.js";
 import { setFeedBadge } from "../lib/socialBadge.js";
 import { shareOut } from "../lib/shareLink.js";
@@ -107,8 +107,6 @@ export function FeedScreen({
   onToast,
 }) {
   const [seenMenus, setSeenMenus] = useState(readSeenMenus);
-  // La "?" de la cabecera, como en Recetas / Menu / Compra / Despensa.
-  const [showIconCoach, setShowIconCoach] = useState(false);
   const [items, setItems] = useState([]);
   // "Siguiendo" o "Descubrir". Arranca en Siguiendo porque es el feed que la
   // gente espera de una red social; si no sigues a nadie, su estado vacio te
@@ -155,7 +153,6 @@ export function FeedScreen({
   const [publishHint, setPublishHint] = useState(false);
   // "¿Quieres que te encuentren?", una vez. Ver VisibilityPrompt.
   const [visPrompt, setVisPrompt] = useState(null);
-  const [meh, setMeh] = useState(() => new Set());
   const [notif, setNotif] = useState({ items: [], seenAt: null });
   const [notifPeople, setNotifPeople] = useState({});
   const [notifOpen, setNotifOpen] = useState(false);
@@ -416,13 +413,26 @@ export function FeedScreen({
   };
 
   /**
-   * Solo el "no" penaliza, y no como un descarte: la receta es de otro, no
-   * está en tu biblioteca, así que no hay nada que mandar a Descartados. Se
-   * apunta como "no me la vuelvas a enseñar" y desaparece del Feed y del mazo.
-   * "Ni fu ni fa" no guarda nada — es literalmente no opinar.
+   * Los tres botones se diferencian en CUÁNTO duran, no en cuánto opinan:
+   *
+   *   · Corazón      → te la llevas: la receta se copia a tus recetas.
+   *   · Ni fu ni fa  → ya la has mirado y no te dice nada AHORA. Sale de la
+   *                    corriente para que no te la vuelvas a encontrar en esta
+   *                    sesión, pero no se guarda nada: ni favorita ni
+   *                    descartada. Otro día puede volver a aparecer, que para
+   *                    eso no llegaste a decir que no.
+   *   · Prohibido    → no me la enseñes más. Eso sí persiste (hideRecipe) y
+   *                    desaparece del Feed para siempre. Pero no es un
+   *                    descarte: la receta es de otro y no está en tu
+   *                    biblioteca, así que no hay nada que mandar a
+   *                    Descartados.
    */
+  const handleMeh = (item) => {
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
+  };
+
   const handleDislike = (item) => {
-    hideRecipe(item.recipe.id);
+    hideRecipe(user?.id ?? null, item.recipe.id);
     setItems((prev) => prev.filter((i) => i.id !== item.id));
   };
 
@@ -448,7 +458,6 @@ export function FeedScreen({
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
               Feed
             </h1>
-            <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
           {/* Buscar y "yo" en la cabecera, no como sub-pestañas: si el feed
               comparte fila con otras dos pestañas deja de ser lo primero que
@@ -703,8 +712,7 @@ export function FeedScreen({
                 profile={profiles[item.ownerId]}
                 mine={item.ownerId === user?.id}
                 copied={copiedIds.has(item.recipe.id)}
-                meh={meh.has(item.recipe.id)}
-                onMeh={() => setMeh((prev) => new Set(prev).add(item.recipe.id))}
+                onMeh={() => handleMeh(item)}
                 onDislike={() => handleDislike(item)}
                 onOpenPerson={() => setPersonId(item.ownerId)}
                 stats={stats[item.recipe.id] ?? EMPTY_STATS}
@@ -775,8 +783,6 @@ export function FeedScreen({
           onClose={dismissPublishHint}
         />
       )}
-
-      {showIconCoach && <FeedCoachTour onClose={() => setShowIconCoach(false)} />}
 
       {visPrompt && (
         <VisibilityPrompt
@@ -901,7 +907,7 @@ export function FeedScreen({
  * cocinada), y abajo el autor con la fecha. Sin franja de datos aparte —
  * era una fila más para tres números que caben en las esquinas.
  */
-function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onCopy, onMeh, onDislike, onOpenPerson }) {
+function RecipeCard({ item, user, profile, mine, copied, stats, onOpen, onCopy, onMeh, onDislike, onOpenPerson }) {
   const [reporting, setReporting] = useState(false);
   // Aviso corto de que el enlace se copio: un boton que no confirma nada
   // parece roto aunque haya funcionado.
@@ -955,7 +961,7 @@ function RecipeCard({ item, user, profile, mine, copied, meh, stats, onOpen, onC
           <ActionButton label="No me la enseñes más" color="#c0392b" size={50} onClick={onDislike}>
             <Ban size={21} strokeWidth={2.6} />
           </ActionButton>
-          <ActionButton label="Ni fu ni fa" color="#a97a1f" size={44} disabled={meh} onClick={onMeh}>
+          <ActionButton label="Ni fu ni fa" color="#a97a1f" size={44} onClick={onMeh}>
             <Meh size={19} strokeWidth={2.4} />
           </ActionButton>
           <ActionButton label="Añadir a mis recetas" color={GREEN} size={50} onClick={onCopy}>
@@ -2186,10 +2192,6 @@ const sectionTitle = {
   letterSpacing: ".6px", textTransform: "uppercase",
 };
 
-const card = {
-  border: "1.5px solid #e0eae3", borderRadius: 18, overflow: "hidden",
-  background: "#fff", boxShadow: "0 2px 10px rgba(20,47,29,.05)",
-};
 
 const primaryBtn = {
   display: "inline-flex", alignItems: "center", gap: 6,
@@ -2200,42 +2202,8 @@ const primaryBtn = {
 
 const primaryBtnFull = { ...primaryBtn, width: "100%", justifyContent: "center", marginTop: 12 };
 
-const doneBtn = {
-  ...primaryBtnFull, background: "#eef5f1", color: TEAL,
-  border: "1.5px solid #cfe6df", cursor: "default",
-};
 
-const inspireLink = {
-  display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-  width: "100%", margin: "0 0 22px", padding: "11px 14px",
-  borderRadius: 12, border: "1.5px dashed #cfe0d6", background: "#f7fbf8",
-  color: "#42594c", fontSize: 12.5, fontWeight: 700,
-  cursor: "pointer", fontFamily: "inherit",
-};
 
-const dayRow = { display: "flex", gap: 10, alignItems: "flex-start" };
-const dayName = { flexShrink: 0, width: 34, fontSize: 11.5, fontWeight: 900, color: "#7a9485", textTransform: "uppercase", paddingTop: 1 };
-
-/**
- * La tarjeta de publicar.
- *
- * Fondo crema para separarla del rio de recetas (que son fotos a sangre) sin
- * competir con ellas. El color lo ponen SOLO la ilustracion y la pildora
- * verde de accion: el texto va en la escala de tinta de la app, nunca en el
- * tono del fondo — un mismo color untado en fondo, borde y letras convierte
- * cualquier tarjeta en una pegatina.
- */
-const PUBLISH_HINT_KEY = "hm_feed_publish_hint";
-const VIS_PROMPT_KEY = "hm_feed_visibility_asked";
-
-// La lengueta: a la altura de la fila de pestañas, redondeada solo por la
-// izquierda y mordida por el borde derecho de la columna.
-
-const publishClose = {
-  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-  width: 24, height: 24, borderRadius: 999, marginLeft: 4,
-  border: "none", background: "rgba(20,47,29,.07)", color: "#7a8a7f", cursor: "pointer",
-};
 
 // Plegada asoma por el borde izquierdo (margen negativo contra el padding de
 // la columna) y solo se redondea por la derecha, que es el lado que se ve.
@@ -2323,12 +2291,6 @@ const ringOff = { display: "flex", padding: 2.5, borderRadius: "50%", background
 // recortado en vez de como separación.
 const ringGap = { display: "flex", padding: 2.5, borderRadius: "50%", background: "rgba(255,255,255,.85)" };
 
-const inspireBtn = {
-  display: "inline-flex", alignItems: "center", gap: 5,
-  height: 36, padding: "0 12px", borderRadius: 12, border: "none",
-  background: GREEN, color: "#fff", fontSize: 12.5, fontWeight: 800,
-  cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
-};
 
 const weeklyName = {
   fontSize: 10.5, maxWidth: 60,

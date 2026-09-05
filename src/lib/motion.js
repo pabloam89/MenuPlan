@@ -2,7 +2,7 @@
 // el orden VISUAL de la barra (Inicio - Recetas - Menu - Compra - Feed), o al
 // saltar de tab la animacion empuja hacia el lado contrario del que tocaste.
 // Las pantallas sin tab propio van junto a su tab de origen.
-export const MAIN_TABS = ["dashboard", "profile", "recipes", "menus", "menu", "pantry", "shopping", "analytics", "feed", "inspiranos"];
+export const MAIN_TABS = ["dashboard", "profile", "recipes", "menus", "menu", "pantry", "shopping", "analytics", "feed"];
 
 export function navDirection(from, to) {
   const a = MAIN_TABS.indexOf(from);

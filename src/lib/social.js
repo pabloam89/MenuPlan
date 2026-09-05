@@ -1,6 +1,5 @@
 import { supabase } from "./supabase.js";
 import { isoLocalDate } from "./weekCalendar.js";
-import { rowToRecipe } from "./userRecipesSync.js";
 import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, FIXTURE_SUGGESTED, fixtureFeed } from "./socialFixtures.js";
 
 /**
@@ -37,18 +36,23 @@ function warn(where, error) {
 //
 // (El descarte de verdad, con su carpeta y su recuperación, sigue siendo el de
 // las recetas del catálogo — ver handleInspireDiscard en App.jsx.)
+// La clave lleva el id del usuario: sin el, en un movil compartido -- o
+// simplemente al cambiar de cuenta -- heredabas los descartes del anterior y
+// dejabas los tuyos ahi cuando te ibas. Es una lista de gustos, y los gustos
+// son de cada uno.
 const HIDDEN_KEY = "hm_social_hidden";
+const hiddenKey = (userId) => (userId ? `${HIDDEN_KEY}_${userId}` : HIDDEN_KEY);
 
-export function readHiddenRecipes() {
-  try { return new Set(JSON.parse(localStorage.getItem(HIDDEN_KEY) ?? "[]")); } catch { return new Set(); }
+export function readHiddenRecipes(userId = null) {
+  try { return new Set(JSON.parse(localStorage.getItem(hiddenKey(userId)) ?? "[]")); } catch { return new Set(); }
 }
 
-export function hideRecipe(id) {
+export function hideRecipe(userId, id) {
   if (!id) return;
   try {
-    const next = readHiddenRecipes();
+    const next = readHiddenRecipes(userId);
     next.add(id);
-    localStorage.setItem(HIDDEN_KEY, JSON.stringify([...next]));
+    localStorage.setItem(hiddenKey(userId), JSON.stringify([...next]));
   } catch { /* modo privado */ }
 }
 
@@ -799,7 +803,7 @@ export async function loadFeed({
 
   // Lo descartado con "no me la ensenes mas" no vuelve ni aqui ni en el mazo:
   // el mismo filtro en los dos sitios por donde entran recetas ajenas.
-  const hidden = readHiddenRecipes();
+  const hidden = readHiddenRecipes(viewerId);
 
   const merged = (recipes.data ?? [])
     .filter((r) => !hidden.has(r.id) && !blocked.has(r.owner_id))
@@ -909,52 +913,6 @@ export async function loadWeeklyMenus({ viewerId = null, scope = "all", followin
   return rows;
 }
 
-/**
- * Recetas de otra gente que este usuario puede leer, ya en la forma del
- * catálogo y firmadas con el perfil de su autor.
- *
- * Esto es lo que hace que el mazo de Inspírate mezcle catálogo y gente: allí
- * decides platos, y de dónde salga el plato es lo de menos. El Feed, en
- * cambio, va de personas — por eso el swipe vive en Inspírate y no aquí.
- *
- * Las políticas RLS ya deciden qué se ve: 'public' cualquiera, 'friends' solo
- * seguimiento mutuo. Aquí solo se pide y se firma.
- */
-export async function loadSocialRecipes({ excludeOwnerId = null, limit = 60 } = {}) {
-  if (!ok()) return [];
-  let q = supabase
-    .from("user_recipes")
-    .select("*")
-    .neq("visibility", "private")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  if (excludeOwnerId) q = q.neq("owner_id", excludeOwnerId);
-
-  const [{ data, error }, blockedIds] = await Promise.all([
-    q,
-    excludeOwnerId ? loadBlockedIds(excludeOwnerId) : Promise.resolve([]),
-  ]);
-  if (warn("loadSocialRecipes", error)) return [];
-
-  const hidden = readHiddenRecipes();
-  const blocked = new Set(blockedIds);
-  const rows = (data ?? []).filter((r) => !hidden.has(r.id) && !blocked.has(r.owner_id));
-  const profiles = await loadProfilesByIds(rows.map((r) => r.owner_id));
-  return rows.map((row) => {
-    const p = profiles[row.owner_id];
-    return {
-      ...rowToRecipe(row),
-      ownerId: row.owner_id,
-      // La firma que pinta la carta. Sin perfil todavía (no ha hecho opt-in o
-      // la migración no está aplicada) se queda en "Alguien" — nunca en el
-      // logo de HoMenu, que firmaría como nuestra la receta de otro.
-      owner: {
-        name: p?.display_name || (p?.username ? `@${p.username}` : "Alguien"),
-        avatar: p?.avatar_url ?? null,
-      },
-    };
-  });
-}
 
 // ── Publicar un menú ────────────────────────────────────────────────────────
 

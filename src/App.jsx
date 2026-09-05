@@ -43,7 +43,6 @@ const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ d
 const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
-const InspiranosScreen = lazy(() => import("./screens/InspiranosScreen.jsx").then(m => ({ default: m.InspiranosScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
@@ -115,7 +114,6 @@ import {
   upsertRecipeVotes,
 } from "./lib/recipeVotes.js";
 import {
-  addToCollections,
   setRecipeCollections,
   purgeFolder,
   newFolderId,
@@ -168,7 +166,7 @@ import {
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
-import { HomeCoachTour, RecipesCoachTour, MenuCoachTour } from "./components/HomeCoachTour.jsx";
+import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry } from "./lib/pantry.js";
@@ -1076,6 +1074,24 @@ export default function App() {
       // ignore storage failures (private mode, etc.)
     }
     setRecipesCoachSeen(true);
+  }, []);
+  // Feed coach-marks — la pantalla con mas cosas que no se explican solas, y
+  // la unica que no tenia tutorial. Sale sola la primera vez y no vuelve.
+  const [feedCoachSeen, setFeedCoachSeen] = useState(() => {
+    if (FORCE_TOUR) return false;
+    try {
+      return Boolean(localStorage.getItem("mp_feed_coachmarks_seen"));
+    } catch {
+      return false;
+    }
+  });
+  const markFeedCoachSeen = useCallback(() => {
+    try {
+      localStorage.setItem("mp_feed_coachmarks_seen", "1");
+    } catch {
+      // ignore storage failures (private mode, etc.)
+    }
+    setFeedCoachSeen(true);
   }, []);
   // "Tu menú" coach-marks — shown once the first time the user sees a generated
   // menu, explaining Tu perfil, filtros, día/semana, los platos y el nav.
@@ -3079,30 +3095,6 @@ export default function App() {
     }
   }, [personalRecipeVotes, showToast, user]);
 
-  // Inspíranos: un swipe a la derecha archiva la receta en las carpetas que
-  // cumple Y la marca como favorita. El favorito es lo que hace que el
-  // generador la priorice (filterRecipes la anota isFavorite y aiPlanner se lo
-  // dice al modelo), así que tiene que ir por data.recipeVotes — las favoritas
-  // personales de Biblioteca viven en otro estado que el generador no lee.
-  // Las carpetas, en cambio, son siempre personales: nunca a household.
-  const handleInspireLike = useCallback((recipeId, collectionIds) => {
-    if (householdReadOnly) return;
-    const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
-    const nextVotes = setFavoriteScope(data.recipeVotes, baseId, "all");
-    setData((d) => ({
-      ...d,
-      recipeVotes: nextVotes,
-      recipeCollections: addToCollections(d.recipeCollections, baseId, collectionIds),
-    }));
-    if (user?.id) {
-      const entry = nextVotes[baseId] ?? null;
-      if (entry != null) {
-        if (syncHouseholdId) saveHouseholdFavorite(syncHouseholdId, baseId, entry.scope);
-        else saveRecipeVote(user.id, baseId, entry);
-      }
-      saveRecipeCollections(user.id, baseId, collectionIds);
-    }
-  }, [data.recipeVotes, data.recipeCollections, user, householdReadOnly, syncHouseholdId]);
 
   // Carpetas propias del usuario (las 4 de Inspíranos son fijas y no pasan
   // por aquí). Devuelve el id para que el selector pueda marcarla al vuelo.
@@ -3155,38 +3147,6 @@ export default function App() {
     if (user?.id) saveRecipeCollections(user.id, baseId, folderIds);
   }, [user]);
 
-  // Inspíranos: el swipe negativo. Reusa el mismo almacén que los rechazos de
-  // menú, así que ambas cosas caen en la carpeta "Descartados" y se recuperan
-  // igual.
-  //   "no"  (🚫, swipe izquierda) → descartado para siempre, reversible.
-  //   "meh" (😐, swipe abajo)     → ni fu ni fa: enfriamiento de 14 días, así
-  //                                 que puede reaparecer más adelante.
-  // Ninguno de los dos sale del pool del generador por su cuenta: eso ya lo
-  // hace activeDiscardIds con estos mismos datos, que es justo lo que evita
-  // tener dos conceptos de descarte compitiendo.
-  const handleInspireDiscard = useCallback((recipeId, kind) => {
-    if (householdReadOnly) return;
-    const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
-    const until = Date.now() + 14 * 86400000;
-    setData((d) => {
-      const src = d.discards ?? { forever: [], cooldownUntil: {} };
-      if (kind === "no") {
-        const forever = Array.from(new Set([...(src.forever ?? []), baseId]));
-        const cooldownUntil = { ...(src.cooldownUntil ?? {}) };
-        delete cooldownUntil[baseId];
-        return { ...d, discards: { forever, cooldownUntil } };
-      }
-      return {
-        ...d,
-        discards: { ...src, cooldownUntil: { ...(src.cooldownUntil ?? {}), [baseId]: until } },
-      };
-    });
-    if (user?.id) {
-      const payload = kind === "no" ? { isPermanent: true } : { cooldownUntil: until };
-      if (syncHouseholdId) saveHouseholdDiscard(syncHouseholdId, baseId, payload);
-      else saveRecipeDiscard(user.id, baseId, payload);
-    }
-  }, [user, householdReadOnly, syncHouseholdId]);
 
   // ── Discards (menu rejections) ──────────────────────────────────────────
   // Base catalog id (prefix-free) of whatever currently sits in a slot, so a
@@ -4741,31 +4701,12 @@ export default function App() {
           </div>
         )}
 
-        {screen === "inspiranos" && (
-          <div
-            key="inspiranos"
-            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
-          >
-            <Suspense fallback={null}>
-              <InspiranosScreen
-                data={data}
-                user={user}
-                onLike={handleInspireLike}
-                onDiscard={householdReadOnly ? undefined : handleInspireDiscard}
-                onNav={handleNav}
-                onOpenRecipe={handleOpenCatalogRecipe}
-                recipeCollections={data.recipeCollections}
-                recipeFolders={data.recipeFolders}
-                onCreateFolder={householdReadOnly ? undefined : handleCreateFolder}
-                onSetRecipeFolders={householdReadOnly ? undefined : handleSetRecipeFolders}
-                onOpenRecipes={() => back(() => setScreen("feed"))}
-              />
-            </Suspense>
-          </div>
-        )}
-
         {screen === "recipes" && !recipesCoachSeen && (
           <RecipesCoachTour onClose={markRecipesCoachSeen} />
+        )}
+
+        {screen === "feed" && !feedCoachSeen && (
+          <FeedCoachTour onClose={markFeedCoachSeen} />
         )}
 
         {recipePrefsOpen && (

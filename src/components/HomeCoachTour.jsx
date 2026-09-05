@@ -261,7 +261,7 @@ export const FEED_COACH_STEPS = [
     selector: '[data-coach="feed-actions"]',
     Icon: Heart,
     title: "El corazón no es un «me gusta»",
-    desc: "Es «me la llevo»: el plato se copia a tus recetas y te pregunta en qué carpeta. Al lado, «ni fu ni fa» no guarda nada y la prohibición deja de enseñártela.",
+    desc: "Es «me la llevo»: el plato se copia a tus recetas y te pregunta en qué carpeta. «Ni fu ni fa» lo aparta por hoy sin guardar nada, y la prohibición deja de enseñártelo.",
     place: "above",
   },
   {

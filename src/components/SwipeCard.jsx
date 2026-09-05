@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Clock, Info, ThumbsUp, ThumbsDown, CookingPot, MessageCircle } from "lucide-react";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
@@ -227,96 +227,6 @@ export function RecipePoster({ recipe, onInfo, onOwner = null, showOwner = true,
   );
 }
 
-/**
- * La carta arrastrable del mazo de Inspírate.
- *  · derecha = me gusta · izquierda = no me gusta · abajo = ni fu ni fa
- *
- * Pointer Events (no `touch*`) para que valga igual con dedo y con ratón, y
- * expone `swipe(dir)` por ref para que los botones de abajo disparen la misma
- * animación de salida — el gesto nunca es la única forma de decidir.
- */
-export const SwipeCard = forwardRef(function SwipeCard({ recipe, onSwipe, onInfo }, ref) {
-  const [drag, setDrag] = useState({ dx: 0, dy: 0, dragging: false });
-  const [exiting, setExiting] = useState(null);
-  const start = useRef(null);
-  const done = useRef(false);
-
-  const commit = (dir) => {
-    if (done.current) return;
-    done.current = true;
-    setExiting(dir);
-    setTimeout(() => onSwipe(dir), reduceMotion() ? 0 : EXIT_MS);
-  };
-
-  useImperativeHandle(ref, () => ({ swipe: commit }));
-
-  const onPointerDown = (e) => {
-    if (done.current) return;
-    start.current = { x: e.clientX, y: e.clientY };
-    try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch { /* puntero sintético */ }
-    setDrag({ dx: 0, dy: 0, dragging: true });
-  };
-
-  const onPointerMove = (e) => {
-    if (!start.current) return;
-    setDrag({ dx: e.clientX - start.current.x, dy: e.clientY - start.current.y, dragging: true });
-  };
-
-  const onPointerUp = () => {
-    if (!start.current) return;
-    start.current = null;
-    const { dx, dy } = drag;
-    const reset = () => setDrag({ dx: 0, dy: 0, dragging: false });
-    // El eje dominante manda: arrastrar en diagonal no debe hacer dos cosas.
-    if (Math.abs(dy) > Math.abs(dx)) {
-      // Solo hacia abajo: arrastrar hacia arriba no significa nada.
-      if (dy > THRESHOLD_Y) commit("meh");
-      else reset();
-      return;
-    }
-    if (Math.abs(dx) > THRESHOLD_X) commit(dx > 0 ? "like" : "no");
-    else reset();
-  };
-
-  const verticalDrag = Math.abs(drag.dy) > Math.abs(drag.dx);
-  const dx = exiting === "like" ? 700 : exiting === "no" ? -700 : exiting ? 0 : drag.dx;
-  // Arriba no hay salida, así que el arrastre se frena a un tercio para que se
-  // note que por ahí no va.
-  const dyRaw = exiting === "meh" ? 800 : exiting ? 0 : drag.dy;
-  const dy = !exiting && verticalDrag && dyRaw < 0 ? dyRaw * 0.33 : dyRaw;
-  const rotate = reduceMotion() || verticalDrag ? 0 : dx / 20;
-  const stampX = verticalDrag ? 0 : Math.min(Math.abs(drag.dx) / THRESHOLD_X, 1);
-  const stampMeh = verticalDrag && drag.dy > 0 ? Math.min(drag.dy / THRESHOLD_Y, 1) : 0;
-
-  return (
-    <div
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-      style={{
-        position: "absolute",
-        inset: 0,
-        borderRadius: 20,
-        boxShadow: "0 6px 24px rgba(0,0,0,.18)",
-        transform: `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`,
-        // Sin esto el scroll nativo del navegador compite con el arrastre en
-        // móvil y el gesto se pierde a mitad.
-        touchAction: "none",
-        transition: drag.dragging ? "none" : `transform ${EXIT_MS}ms ease-out`,
-        opacity: exiting && reduceMotion() ? 0 : 1,
-        cursor: "grab",
-        userSelect: "none",
-      }}
-    >
-      <RecipePoster recipe={recipe} onInfo={onInfo} style={{ position: "absolute", inset: 0 }}>
-        <Stamp side="like" opacity={drag.dx > 0 ? stampX : 0} />
-        <Stamp side="no" opacity={drag.dx < 0 ? stampX : 0} />
-        <Stamp side="meh" opacity={stampMeh} />
-      </RecipePoster>
-    </div>
-  );
-});
 
 /**
  * Los botones redondos de debajo del mazo. Viven aquí, con la carta, porque
