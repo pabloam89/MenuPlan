@@ -1,70 +1,86 @@
-import { Calendar } from 'lucide-react';
+import { UtensilsCrossed } from 'lucide-react';
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 import { IsoWorld } from '../IsoWorld';
 
-// Card de ejemplo (mock) para el beat 1: mismos tokens que DESIGN_SYSTEM.md
-// (tarjeta blanca, verde #2d5a3d, DM Sans, sombra tintada de verde). No es
-// el DashboardScreen real: ese componente exige user/menuPlan/household
-// reales, así que aquí se simula un resumen de menú con datos de muestra,
-// pero con el estilo real de la app, no uno inventado.
-function MenuSummaryCard() {
-  const rows = [
-    { day: 'Lun', dish: 'Lentejas estofadas' },
-    { day: 'Mar', dish: 'Pollo al horno' },
-    { day: 'Mié', dish: 'Poke de salmón' },
-  ];
+// Calcado de TodayDishCard real (src/screens/Dashboard.jsx:80): misma altura,
+// radio, borde, sombra y estructura de pills. La versión real muestra una
+// foto del plato (photo prop); aquí no hay red para traer las fotos reales
+// del catálogo (dish-gallery/public/catalog.json, en Vercel Blob), así que
+// se usa el estado "sin foto" del propio componente -- que es un estado
+// real de la app, no algo inventado -- con nombres de plato reales del
+// catálogo.
+const GREEN = '#2d5a3d';
 
+const todayPillStyle = {
+  position: 'absolute',
+  fontSize: 9.5,
+  fontWeight: 800,
+  background: 'rgba(255,255,255,.92)',
+  padding: '2px 7px',
+  borderRadius: 999,
+  letterSpacing: '.3px',
+  whiteSpace: 'nowrap',
+  boxShadow: '0 1px 4px rgba(20,47,29,.16)',
+};
+
+function DishCard({ meal, name, time }) {
   return (
     <div
       style={{
-        width: 380,
+        position: 'relative',
+        width: 168,
+        height: 132,
+        overflow: 'hidden',
         borderRadius: 16,
-        background: '#fff',
-        border: '1px solid #e3ebe6',
-        boxShadow: '0 18px 50px rgba(20,47,29,.32)',
-        padding: '20px 22px',
+        border: '1.5px solid #e3ebe6',
+        background: '#eef4f0',
+        boxShadow: '0 6px 16px -12px rgba(20,47,29,.3)',
         fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
-        color: '#142f1d',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 12,
-            background: 'rgba(45,90,61,.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Calendar size={16} strokeWidth={2.4} color="#2d5a3d" />
-        </div>
-        <span style={{ fontSize: 14, fontWeight: 800, color: '#2d5a3d', letterSpacing: -0.2 }}>
-          Menú de la semana
-        </span>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <UtensilsCrossed size={26} color="#9ab0a1" />
       </div>
-      {rows.map((r, i) => (
-        <div
-          key={r.day}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '10px 0',
-            borderBottom: i < rows.length - 1 ? '1px solid #eef3f0' : 'none',
-          }}
-        >
-          <span style={{ fontSize: 12.5, fontWeight: 600, color: '#7a8a7f', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            {r.day}
-          </span>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#142f1d' }}>{r.dish}</span>
-        </div>
-      ))}
+
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '58%',
+          background: 'linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.18) 65%, transparent 100%)',
+        }}
+      />
+
+      <span style={{ ...todayPillStyle, top: 6, left: 6, color: GREEN }}>{meal}</span>
+      <span style={{ ...todayPillStyle, top: 6, right: 6, color: '#5a7262' }}>{time} min</span>
+      <p
+        style={{
+          position: 'absolute',
+          left: 8,
+          right: 8,
+          bottom: 8,
+          margin: 0,
+          fontSize: 13,
+          fontWeight: 800,
+          color: '#fff',
+          lineHeight: 1.25,
+          textShadow: '0 1px 3px rgba(0,0,0,.4)',
+        }}
+      >
+        {name}
+      </p>
     </div>
   );
 }
+
+// Nombres reales del catálogo (dish-gallery/public/catalog.json), no inventados.
+const DISHES = [
+  { meal: 'Comida', name: 'Costillas de cerdo al horno', time: 45 },
+  { meal: 'Comida', name: 'Ensalada de lentejas, tomate y comino', time: 20 },
+  { meal: 'Cena', name: 'Merluza en salsa verde', time: 30 },
+];
 
 export function Beat1Float() {
   const frame = useCurrentFrame();
@@ -98,7 +114,7 @@ export function Beat1Float() {
               position: 'absolute',
               bottom: -40,
               left: '50%',
-              width: 320,
+              width: 380,
               height: 40,
               borderRadius: '50%',
               background: 'rgba(20,47,29,1)',
@@ -109,10 +125,14 @@ export function Beat1Float() {
           />
           <div
             style={{
+              display: 'flex',
+              gap: 10,
               transform: `translateY(${translateY}px) rotateY(${rotateY}deg)`,
             }}
           >
-            <MenuSummaryCard />
+            {DISHES.map((d) => (
+              <DishCard key={d.name} {...d} />
+            ))}
           </div>
         </div>
       </IsoWorld>
