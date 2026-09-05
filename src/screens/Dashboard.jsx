@@ -480,13 +480,18 @@ export function DashboardScreen({
             ))}
           </div>
 
+          {/* El rol va pegado al nombre porque el nombre solo no distingue: "Mi
+              casa" es el que se pone por defecto a CUALQUIER hogar, así que en
+              la casa de otro se lee igual que en la propia. Sin esto, a un
+              visitante le desaparecen el botón de generar y sus recetas (se
+              cargan las del dueño, ver App.jsx) sin nada que lo explique. */}
           {user && activeHousehold && (
             <p
               style={{
                 margin: "8px 0 0", fontSize: 11, fontWeight: 700, color: "#5c7568",
               }}
             >
-              {activeHousehold.name}
+              {activeHousehold.name} · {householdReadOnly ? "Visitante" : "Propietario"}
             </p>
           )}
         </div>
