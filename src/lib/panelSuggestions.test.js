@@ -13,7 +13,7 @@ describe("sugerencias del menú", () => {
     const s = sugerenciasDelMenu({ familias: { pescado: 4 }, huecos: 14 }, conObjetivos({ pescado: 2 }));
     const p = s.find((x) => x.id === "menos-pescado");
     expect(p.texto).toBe("Menos pescado");
-    expect(p.porque).toBe("Hay 4 días esta semana y me habías pedido 2. Si quieres la bajamos y te propongo por qué cambiarla.");
+    expect(p.porque).toBe("4 días esta semana. Pediste 2.");
   });
 
   // "Menos pescado" cuando no hay pescado es ruido, y el ruido enseña al
@@ -85,7 +85,10 @@ describe("sugerencias del menú", () => {
       { familias: { pescado: 5, carne: 6, verdura: 7, legumbres: 4 }, tecnicas: { horno: 8 }, cocinas: {}, huecos: 14 },
       conObjetivos({ pescado: 1, carne: 1, verdura: 1, legumbres: 1 }),
     );
-    expect(ruidoso.length).toBeLessThanOrEqual(MAX_SUGERENCIAS);
+    // Ya no se corta a cuatro: se devuelven todas y la UI coge las que caben,
+    // porque la rotacion necesita reserva. Lo que si tiene que haber es de
+    // sobra para rotar sin repetir.
+    expect(ruidoso.length).toBeGreaterThan(MAX_SUGERENCIAS);
   });
 
   it("aguanta un menú vacío sin reventar", () => {
@@ -132,12 +135,12 @@ describe("contexto para el modelo", () => {
 describe("la rejilla de cuatro", () => {
   it("devuelve siempre cuatro, con menu perfecto o con menu horrible", () => {
     const perfecto = sugerenciasDelMenu({ familias: { pescado: 2 }, cocinas: { italiana: 2 }, huecos: 14 }, conObjetivos({ pescado: 2 }));
-    expect(perfecto).toHaveLength(4);
+    expect(perfecto.length).toBeGreaterThanOrEqual(4);
     const horrible = sugerenciasDelMenu(
       { familias: { pescado: 5, carne: 6, verdura: 7 }, tecnicas: { horno: 8 }, cocinas: {}, huecos: 14 },
       conObjetivos({ pescado: 1, carne: 1, verdura: 1 }),
     );
-    expect(horrible).toHaveLength(4);
+    expect(horrible.length).toBeGreaterThanOrEqual(4);
   });
 
   it("no repite la misma sugerencia dos veces", () => {
@@ -198,10 +201,10 @@ describe("la rejilla de cuatro", () => {
   });
 });
 
-// El titulo va en UNA linea y el subcopy en TRES: la tarjeta les reserva alto
-// fijo, asi que pasarse no recorta el texto — descuadra la rejilla entera, que
-// es peor porque se lee como un fallo de maquetacion.
-describe("los textos caben en el alto reservado", () => {
+// Las pills son FILAS a lo ancho del panel, no una rejilla de 2x2, asi que hay
+// unos 320 px: caben un titulo de una linea y un subcopy de una o dos. Lo que
+// no cabe es un parrafo, y lo que no sirve es un telegrama.
+describe("los textos caben en la fila", () => {
   it("ningun titulo ni subcopy se pasa de largo", () => {
     const casos = [
       [{ familias: { pescado: 9, carne: 9, verdura: 9, legumbres: 9, pasta_arroz: 9, huevos: 9 }, huecos: 14 },
@@ -210,12 +213,15 @@ describe("los textos caben en el alto reservado", () => {
       [{}, libretaVacia()],
     ];
     for (const [r, n] of casos) for (const s of sugerenciasDelMenu(r, n)) {
-      expect(s.texto.length, `titulo largo: ${s.texto}`).toBeLessThanOrEqual(18);
-      expect(s.porque.length, `subcopy largo: ${s.porque}`).toBeLessThanOrEqual(110);
+      expect(s.texto.length, `titulo largo: ${s.texto}`).toBeLessThanOrEqual(22);
+      // Corto y sobre TU problema, no sobre lo que voy a hacer yo. "Si quieres
+      // la bajamos y te propongo por que cambiarla" habla de mi; "4 dias esta
+      // semana" habla de tu semana, y es lo unico que hace que apetezca pulsar.
+      expect(s.porque.length, `subcopy largo: ${s.porque}`).toBeLessThanOrEqual(46);
       // Y que sea una frase de verdad, no un telegrama: "6 al horno" no se
       // entiende fuera de contexto, que es lo que hacia parecer random la
       // rejilla entera.
-      expect(s.porque.length, `subcopy corto: ${s.porque}`).toBeGreaterThanOrEqual(55);
+      expect(s.porque.length, `subcopy corto: ${s.porque}`).toBeGreaterThanOrEqual(22);
       expect(s.porque, `sin punto: ${s.porque}`).toMatch(/.$/);
     }
   });

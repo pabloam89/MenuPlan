@@ -30,6 +30,9 @@ const FAMILIA_LABEL = {
 //
 // Hermana de FAMILY_ART en screens/Analytics.jsx: mismas rutas, mismo criterio
 // (pasta y arroz comparten bol).
+const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+const veces = (n) => (n === 1 ? "un día" : `${n} días`);
+
 const CUT = {
   carne: "/categories/cut/carne.png",
   pescado: "/categories/cut/pescado.png",
@@ -43,6 +46,8 @@ const CUT = {
   rapido: "/categories/cut/rapido.png",
   facil: "/categories/cut/facil.png",
   salsa: "/categories/cut/salsa.png",
+  queso: "/categories/cut/queso.png",
+  elaborado: "/categories/cut/elaborado.png",
 };
 
 // Una por cocina. Existen las ocho, asi que la tarjeta ya puede volver.
@@ -84,7 +89,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
         id: `menos-${familia}`,
         texto: `Menos ${FAMILIA_LABEL[familia] ?? familia}`,
         frase: `menos ${FAMILIA_LABEL[familia] ?? familia}`,
-        porque: `Hay ${cuantas} días esta semana y me habías pedido ${objetivo}. Si quieres la bajamos y te propongo por qué cambiarla.`,
+        porque: `${cap(veces(cuantas))} esta semana. Pediste ${objetivo}.`,
         arte: ARTE_FAMILIA[familia] ?? CUT.frutas,
       });
     }
@@ -99,7 +104,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
       id: `variar-${tecnicaTop}`,
       texto: "Más variedad",
       frase: `menos ${tecnicaTop}`,
-      porque: `Han salido ${tecnicaN} platos ${preposicion(tecnicaTop)} ${tecnicaTop}, que son muchos. Puedo repartirlo mejor entre horno, plancha y guiso.`,
+      porque: `${tecnicaN} platos ${preposicion(tecnicaTop)} ${tecnicaTop}. Sabe todo parecido.`,
       arte: CUT.variedad,
     });
   }
@@ -117,21 +122,21 @@ export function sugerenciasDelMenu(recuento, notepad) {
       // concuerdan con "cocina", asi que la frase necesita el sustantivo.
       texto: `Cocina ${cual}`,
       frase: `mas comida ${cual}`,
-      porque: "Esta semana no ha salido ni un plato de fuera de España. Te puedo meter un par sin cambiar el resto.",
+      porque: "La semana se ha quedado muy de siempre.",
       arte: CUT_COCINA(cual),
     });
   }
 
-  // 4. Comodines. La rejilla es de CUATRO y se rellena siempre: una rejilla de
-  //    2×2 con un hueco se lee como que algo ha fallado, no como que no había
-  //    nada que decir. Se añaden por orden y sin repetir lo ya propuesto.
+  // 4. Comodines. Se añaden TODOS los que no repitan algo ya propuesto: las
+  //    cuatro primeras son las que se ven, y el resto son la reserva de la
+  //    rotación. Las sacadas del menú van delante porque son las que de verdad
+  //    hablan de esta semana.
   for (const c of COMODINES) {
-    if (out.length >= MAX_SUGERENCIAS) break;
     if (out.some((s) => s.id === c.id)) continue;
     out.push(c);
   }
 
-  return out.slice(0, MAX_SUGERENCIAS).map((s, i) => ({ ...s, tono: TONOS[i % TONOS.length] }));
+  return out.map((s, i) => ({ ...s, tono: TONOS[i % TONOS.length] }));
 }
 
 // Siempre servibles: no dependen de cómo esté el menú, así que valen de
@@ -139,13 +144,21 @@ export function sugerenciasDelMenu(recuento, notepad) {
 // Ordenados por lo que mas pide la gente. Los cuatro tienen recorte propio.
 const COMODINES = [
   { id: "mas-sano", texto: "Comer más sano", frase: "quiero comer más sano",
-    porque: "Cada casa entiende una cosa distinta por sano, así que te pregunto qué es para vosotros y lo aplico.", arte: CUT.sano },
+    porque: "Se os está yendo la mano estas semanas.", arte: CUT.sano },
   { id: "mas-rapido", texto: "Con menos tiempo", frase: "algo más rápido",
-    porque: "Para los días que llegas justo: platos que se resuelven en menos de veinticinco minutos.", arte: CUT.rapido },
+    porque: "Los días de prisa no te cuadran.", arte: CUT.rapido },
   { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil",
-    porque: "Platos que se hacen en un solo cacharro, para no acabar con la cocina llena.", arte: CUT.facil },
+    porque: "Acabas con la cocina llena de cacharros.", arte: CUT.facil },
   { id: "mas-salsa", texto: "Con más salsa", frase: "más platos con salsa",
-    porque: "Aquí no le añadimos salsa a nada: te busco los platos que ya la traen hecha.", arte: CUT.salsa },
+    porque: "Los platos se te quedan secos.", arte: CUT.salsa },
+  { id: "mas-queso", texto: "Más queso", frase: "más queso en los platos",
+    porque: "En casa el queso lo arregla todo.", arte: CUT.queso },
+  { id: "mas-elaborado", texto: "Algo más elaborado", frase: "algo más elaborado",
+    porque: "El finde te apetece cocinar de verdad.", arte: CUT.elaborado },
+  { id: "mas-verdura", texto: "Más verdura", frase: "más verdura",
+    porque: "Falta verde en la semana.", arte: CUT.verduras },
+  { id: "mas-legumbre", texto: "Más legumbre", frase: "más legumbre",
+    porque: "Echas de menos el puchero.", arte: CUT.legumbres },
 ];
 
 const COCINAS = ["italiana", "asiatica", "mexicana", "arabe", "francesa", "americana", "india", "peruana"];

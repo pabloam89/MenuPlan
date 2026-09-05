@@ -22,6 +22,9 @@ import { X, ArrowUp, Check } from "lucide-react";
 import { resumirAjuste, pintarAjuste } from "../lib/panelParser.js";
 
 const ANCHO_MAX = 366;
+
+/** Cuántas pills se ven a la vez. El resto son la reserva de la rotación. */
+const VISIBLES = 4;
 const HUECO = 14;
 
 export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, primeraVez = false }) {
@@ -31,6 +34,8 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
   const [respuesta, setRespuesta] = useState(null);
   const [marcadas, setMarcadas] = useState([]);
   const [rect, setRect] = useState(null);
+  const [vuelta, setVuelta] = useState(0);
+  const [congelado, setCongelado] = useState(false);
   const fabRef = useRef(null);
 
   const medir = useCallback(() => {
@@ -39,6 +44,18 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
   }, []);
 
   useLayoutEffect(() => { if (abierto) medir(); }, [abierto, paso, medir]);
+
+  // Las cuatro pills rotan sobre la reserva, pero de UNA EN UNA y solo si el
+  // usuario no ha tocado nada. Cambiar las cuatro a la vez —o cambiar la que
+  // estás leyendo— es de las cosas que más molestan de una interfaz: te mueve
+  // el objetivo justo cuando ibas a pulsarlo. En cuanto escribe o pasa el dedo
+  // por encima, se congela y ya no vuelve a moverse.
+  useEffect(() => {
+    if (!abierto || paso !== "ideas" || congelado) return;
+    if (sugerencias.length <= VISIBLES) return;
+    const t = setInterval(() => setVuelta((v) => v + 1), 5000);
+    return () => clearInterval(t);
+  }, [abierto, paso, congelado, sugerencias.length]);
   useEffect(() => {
     if (!abierto) return;
     window.addEventListener("resize", medir);
@@ -47,8 +64,16 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
 
   const cerrar = () => {
     setAbierto(false); setTexto(""); setRespuesta(null); setMarcadas([]);
+    setVuelta(0); setCongelado(false);
     setPaso(primeraVez ? "intro" : "ideas");
   };
+
+  // Cuáles se ven ahora. Solo se sustituye UNA por vuelta —la de arriba, que es
+  // la que menos cuesta perder de vista— y la reserva entra por el final.
+  const visibles = [];
+  for (let i = 0; i < Math.min(VISIBLES, sugerencias.length); i++) {
+    visibles.push(sugerencias[(i + (i === 0 ? vuelta : 0)) % sugerencias.length]);
+  }
 
   const preguntar = async (frase) => {
     const q = (frase ?? texto).trim();
@@ -133,13 +158,15 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
             {paso === "ideas" && (
               <>
                 <div style={S.titulo}>¿Qué necesitas?</div>
-                <div style={S.rejilla}>
-                  {sugerencias.slice(0, 4).map((s, i) => (
-                    <button key={s.id} type="button" className="mp-press"
+                <div style={S.rejilla}
+                  onPointerDown={() => setCongelado(true)}
+                  onPointerEnter={() => setCongelado(true)}>
+                  {visibles.map((s, i) => (
+                    <button key={s.id + i} type="button" className="mp-press"
                       onClick={() => preguntar(s.frase)}
                       style={{
                         ...S.card,
-                        animation: `panelCard .38s cubic-bezier(.34,1.4,.5,1) both ${i * 55}ms`,
+                        animation: `panelCard .38s cubic-bezier(.34,1.4,.5,1) both ${(vuelta ? 0 : i * 55)}ms`,
                       }}>
                       {/* La ilustracion manda: va CENTRADA, entera y con su
                           propio hueco. Antes iba absoluta en una esquina con
@@ -164,7 +191,8 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                     </button>
                   ))}
                 </div>
-                <Entrada texto={texto} setTexto={setTexto} onEnviar={() => preguntar()} />
+                <Entrada texto={texto} setTexto={setTexto}
+                  onEnviar={() => preguntar()} onEscribir={() => setCongelado(true)} />
               </>
             )}
 
@@ -250,7 +278,7 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
   );
 }
 
-function Entrada({ texto, setTexto, onEnviar }) {
+function Entrada({ texto, setTexto, onEnviar, onEscribir }) {
   return (
     <div style={S.entrada}>
       <input className="mp-panel-input" value={texto} onChange={(e) => setTexto(e.target.value)}
