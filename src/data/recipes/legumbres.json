@@ -195,7 +195,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "estrella": true
   },
   {
     "id": "legumbres_002",

@@ -287,7 +287,8 @@
     "tecnica": "olla",
     "extraProteins": [
       "pollo"
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_003",
@@ -1848,7 +1849,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "estrella": true
   },
   {
     "id": "sopas_cremas_012",

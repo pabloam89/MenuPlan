@@ -507,7 +507,8 @@
     "saturated_fat_g": 1,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "estrella": true
   },
   {
     "id": "pasta_arroces_004",
@@ -4117,7 +4118,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "estrella": true
   },
   {
     "id": "pasta_arroces_025",

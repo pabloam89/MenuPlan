@@ -101,6 +101,29 @@ if (existsSync(INGREDIENTS_PATH)) {
   }
 }
 
+// ── Toda receta del Recetario Estrella tiene foto ───────────────────────────
+// El estrella es el ÚNICO pool que sirve el generador: filterRecipes lo filtra
+// por `estrella` y, si se queda corto, devuelve error en vez de rellenar con
+// fondo de armario (isPrimaryCatalog, sin plan B). Así que una receta estrella
+// sin foto no es un detalle estético: es un hueco visible en el menú, y sin
+// nada detrás que lo tape.
+//
+// Ojo con la dirección: la foto NO decide si algo es estrella —esa señal se
+// separó a mano justo porque conectar una foto huérfana ascendía recetas sin
+// que nadie lo decidiera (ver recipeSchema.js)—, pero ser estrella sí exige
+// foto. Este check vigila esa segunda mitad.
+const IMAGES_PATH = join(ROOT, "src", "assets", "dishes", "dishImages.json");
+if (existsSync(IMAGES_PATH)) {
+  const manifest = JSON.parse(readFileSync(IMAGES_PATH, "utf8"));
+  // Las claves con "+" son combos plato+guarnición; para "¿tiene foto propia?"
+  // solo cuenta la entrada suelta.
+  const conFoto = new Set(Object.keys(manifest).filter((k) => !k.includes("+")));
+  const sinFoto = recipes.filter((r) => r.estrella && !conFoto.has(r.id));
+  for (const r of sinFoto) {
+    errors.push(`[${r.id}] "${r.name}": es estrella pero no tiene foto en dishImages.json`);
+  }
+}
+
 if (errors.length > 0) {
   console.error(`❌ Catálogo inválido (${errors.length} error/es):`);
   for (const e of errors) console.error(`  - ${e}`);

@@ -129,7 +129,8 @@
       "encurtido"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_002",
@@ -2475,7 +2476,8 @@
     ],
     "tecnica": "olla",
     "mainBase": "patatas",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_016",
@@ -3781,7 +3783,8 @@
       "verdura"
     ],
     "tecnica": "plancha",
-    "cocina": "americana"
+    "cocina": "americana",
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_025",
