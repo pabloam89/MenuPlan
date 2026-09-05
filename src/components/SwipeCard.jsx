@@ -89,7 +89,7 @@ export function PosterCorners({ difficulty = null, time = null, stats = null, in
  * izquierda, tiempo arriba a la derecha, y el nombre sobre un degradado.
  *
  * Vive separado del arrastre porque lo usan dos sitios con gestos distintos:
- * el mazo de Inspírate (que lo arrastra) y el Feed (que lo apila en scroll).
+ * el mazo de Inspírate (que lo arrastra) y Gente (que lo apila en scroll).
  * Si cada uno lo pintara por su lado, dos "mismas" cartas acabarían siendo
  * distintas a la primera corrección de estilo.
  *

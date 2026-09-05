@@ -3,10 +3,10 @@ import { isoLocalDate } from "./weekCalendar.js";
 import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, FIXTURE_SUGGESTED, fixtureFeed } from "./socialFixtures.js";
 
 /**
- * Capa de datos del Feed social (ver supabase/migrations/0027_social_feed.sql).
+ * Capa de datos de Gente social (ver supabase/migrations/0027_social_feed.sql).
  *
  * Igual que el resto de módulos de sync: sin Supabase o sin sesión no revienta,
- * devuelve vacío. El Feed es la única pantalla de la app que NO funciona
+ * devuelve vacío. Gente es la única pantalla de la app que NO funciona
  * offline — no hay copia local de lo que publican otros — así que aquí el
  * estado vacío no es un fallo, es el estado normal de quien no ha entrado.
  *
@@ -32,7 +32,7 @@ function warn(where, error) {
 // biblioteca, así que no hay nada que mandar a Descartados — esa carpeta es de
 // lo tuyo, y llenarla de cosas que nunca fueron tuyas la vuelve inútil. Aquí
 // solo se apunta "no me la vuelvas a enseñar", y con eso deja de aparecer
-// tanto en el Feed como en el mazo de Inspírate.
+// tanto en Gente como en el mazo de Inspírate.
 //
 // (El descarte de verdad, con su carpeta y su recuperación, sigue siendo el de
 // las recetas del catálogo — ver handleInspireDiscard en App.jsx.)

@@ -2503,7 +2503,7 @@ function PhotoStep({ dishName, photo, genState, genError, onGenerate, onRemovePh
 
       <div style={{ position: "relative", height: 260, borderRadius: 20, overflow: "hidden" }}>
         {photo ? (
-          // Misma tarjeta que el Feed (RecipePoster): nombre, tiempo, dificultad
+          // Misma tarjeta que Gente (RecipePoster): nombre, tiempo, dificultad
           // y la ⓘ que abre el Dish Detail real. Sin estadísticas todavía —
           // no existen hasta que se publique, y RecipePoster ya sabe omitir
           // lo que falte (sin `stats`, no pinta esa columna).
@@ -2603,7 +2603,7 @@ function ReviewStep({
     [previewRecipe, draft],
   );
   // Aún sin publicar: cero votos, cero veces cocinada, cero comentarios —
-  // exactamente lo que mostraría el Feed el día 1 de una receta real.
+  // exactamente lo que mostraría Gente el día 1 de una receta real.
   const previewStats = { likes: 0, dislikes: 0, used: 0, comments: 0 };
 
   if (aiState === "loading" || aiState === "idle") {

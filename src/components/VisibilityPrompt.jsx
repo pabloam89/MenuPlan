@@ -18,7 +18,7 @@ const INK = "#142f1d";
  * "Ahora": las tres filas ya se explican solas, y un párrafo encima
  * repitiéndolas solo aleja la decisión.
  *
- * Se enseña al entrar al Feed -el único momento en que importa- y UNA vez:
+ * Se enseña al entrar a Gente -el único momento en que importa- y UNA vez:
  * conteste lo que conteste, no se insiste. Cambiar de idea es ir a Mi perfil,
  * como cualquier otro ajuste.
  *

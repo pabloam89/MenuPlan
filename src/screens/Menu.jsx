@@ -4012,7 +4012,7 @@ export const MenuScreen = memo(function MenuScreen({
   shoppingItems = null,
   readOnly = false,
   readOnlyLabel = null,
-  // Publicar el menu en el Feed (distinto del "Compartir" nativo de abajo,
+  // Publicar el menu en Gente (distinto del "Compartir" nativo de abajo,
   // que manda texto por WhatsApp/portapapeles y no publica nada en la app).
   onPublishToFeed = null,
   onUnpublishFromFeed = null,

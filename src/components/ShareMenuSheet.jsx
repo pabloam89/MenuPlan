@@ -8,15 +8,15 @@ const BLUE = "#4a6fd4";
 const CLAY = "#cf7833";
 
 /**
- * Publicar el menú en el Feed: elegir alcance y confirmar.
+ * Publicar el menú en Gente: elegir alcance y confirmar.
  *
  * Un solo componente para las dos puertas (la pantalla de Menú y el hueco
- * "Tu menú" del carrusel del Feed): es la misma decisión, y dos copias
+ * "Tu menú" del carrusel de Gente): es la misma decisión, y dos copias
  * divergirían en el copy de privacidad — que es justo lo que no puede
  * divergir.
  *
  * El aviso de qué se comparte vive AQUÍ, en el momento de decidir, y no como
- * banner permanente en el Feed: un texto que ves siempre deja de leerse a la
+ * banner permanente en Gente: un texto que ves siempre deja de leerse a la
  * segunda visita; uno que aparece al ir a publicar se lee cuando importa.
  *
  * Dos alcances y ya — la semana o solo hoy. "Algunas semanas" o "solo este

@@ -122,7 +122,7 @@ export function FeedScreen({
   const [loading, setLoading] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [copied, setCopied] = useState(() => new Set());
-  // Ya copiadas antes de abrir el Feed: la copia guarda de quién venía
+  // Ya copiadas antes de abrir Gente: la copia guarda de quién venía
   // (copiedFromRecipeId), así que la marca sobrevive a cerrar sesión y volver
   // — antes vivía solo en el estado de la pantalla y se perdía al salir.
   const copiedIds = useMemo(() => {
@@ -264,7 +264,7 @@ export function FeedScreen({
 
   // Desde 0038 el perfil nuevo nace en 'followers' (te encuentran por tu
   // nombre, tu contenido no). Abrir un valor por defecto obliga a decirlo, no
-  // a esconderlo: por eso esto se enseña una vez al entrar al Feed, diga lo
+  // a esconderlo: por eso esto se enseña una vez al entrar a Gente, diga lo
   // que diga tu estado actual, y con la puerta de salida al lado.
   useEffect(() => {
     if (!user?.id) return;
@@ -422,7 +422,7 @@ export function FeedScreen({
    *                    descartada. Otro día puede volver a aparecer, que para
    *                    eso no llegaste a decir que no.
    *   · Prohibido    → no me la enseñes más. Eso sí persiste (hideRecipe) y
-   *                    desaparece del Feed para siempre. Pero no es un
+   *                    desaparece de Gente para siempre. Pero no es un
    *                    descarte: la receta es de otro y no está en tu
    *                    biblioteca, así que no hay nada que mandar a
    *                    Descartados.

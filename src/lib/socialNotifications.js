@@ -2,7 +2,7 @@ import { supabase } from "./supabase.js";
 import { FIXTURES_ENABLED, FIXTURE_NOTIFICATIONS } from "./socialFixtures.js";
 
 /**
- * Notificaciones del Feed (ver 0034_social_notifications.sql).
+ * Notificaciones de Gente (ver 0034_social_notifications.sql).
  *
  * Aquí NO hay tabla de notificaciones: la bandeja se DERIVA de las tablas
  * donde los hechos ya viven (user_follows, social_comments). Una tabla espejo

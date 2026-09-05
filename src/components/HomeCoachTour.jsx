@@ -257,7 +257,7 @@ export const FEED_COACH_STEPS = [
   {
     // El malentendido caro de esta pantalla: en una app de menús un aplauso no
     // sirve de nada, así que el corazón se lleva el plato a tu recetario. Si el
-    // tour explica una sola cosa del Feed, que sea esta.
+    // tour explica una sola cosa de Gente, que sea esta.
     selector: '[data-coach="feed-actions"]',
     Icon: Heart,
     title: "El corazón no es un «me gusta»",

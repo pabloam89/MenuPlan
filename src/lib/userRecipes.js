@@ -262,7 +262,7 @@ export function filterOwnCreatedRecipes(userRecipes, user) {
 }
 
 /**
- * Una receta que te has traido del Feed. La fila es TUYA (se guarda con tu
+ * Una receta que te has traido de Gente. La fila es TUYA (se guarda con tu
  * owner_id), pero `owner` sigue firmando al autor original a proposito: es su
  * plato y la carta lo acredita. Por eso no pasa por isOwnCreatedRecipe, que
  * compara esa firma con tu id.

@@ -8,7 +8,7 @@ const INK = "#142f1d";
 const TEAL = "#0f766e";
 
 /**
- * Publicar una receta tuya en el Feed.
+ * Publicar una receta tuya en Gente.
  *
  * Enseña SOLO las que siguen en privado: las ya publicadas ya están en el
  * feed, y volver a listarlas aquí convertiría "publica una" en "gestiona

@@ -1,5 +1,5 @@
 /**
- * Datos de mentira para diseñar el Feed.
+ * Datos de mentira para diseñar Gente.
  *
  * Solo en `npm run dev` y solo cuando la consulta real no ha devuelto nada
  * (porque la migración 0027 aún no está aplicada, o porque todavía no sigues a

@@ -465,7 +465,7 @@ export function bottomNavSpacer() {
 // icono de menú ⋮) is la puerta única al menú — 2026-08-25: el tab
 // "Generar" que vivió aquí un tiempo se quitó del todo (competía con "Menú"
 // por el mismo verbo) y no se sustituye por nada — la quinta posición se
-// dejó libre a propósito, en reserva para el Feed social — ocupada desde
+// dejó libre a propósito, en reserva para Gente social — ocupada desde
 // 2026-09-01. Cinco es el tope de una barra inferior en móvil; no cabe una
 // sexta sin pasar a iconos sin etiqueta.
 // Menú va en el CENTRO a propósito: es la acción principal de la app (ya es
@@ -481,7 +481,7 @@ const NAV_ITEMS = [
 
 export function BottomNav({ active, onNav, dissolved = false }) {
   const items = NAV_ITEMS;
-  // Aviso de novedades del Feed: punto sin numero (el numero esta en la
+  // Aviso de novedades de Gente: punto sin numero (el numero esta en la
   // campana del propio Feed). Ver socialBadge.js para el porque del store.
   const feedNews = useSyncExternalStore(subscribeFeedBadge, readFeedBadge);
   const nav = (

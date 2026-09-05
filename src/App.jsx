@@ -1216,7 +1216,7 @@ export default function App() {
     if (householdReadOnly && activeHousehold?.ownerUserId) {
       return data.userRecipes ?? [];
     }
-    // Tu recetario entero, copias del Feed incluidas: de aqui salen las fichas
+    // Tu recetario entero, copias de Gente incluidas: de aqui salen las fichas
     // que se registran para poder abrirlas y los platos que se ofrecen al
     // llenar un hueco del menu. Con el filtro estrecho, una receta copiada se
     // guardaba pero no se podia ni ver ni usar.
@@ -2921,9 +2921,9 @@ export default function App() {
   }, [user?.id]);
 
   // La fila del perfil social nace al INICIAR SESION, no al abrir el cajon
-  // del Feed (donde nacia antes). El modelo es "cuenta activa = te pueden
+  // de Gente (donde nacia antes). El modelo es "cuenta activa = te pueden
   // encontrar, salvo que elijas Nadie": quien usaba la app a diario sin pisar
-  // el Feed no existia para la busqueda, y "Encontrar gente" parecia rota
+  // Gente no existia para la busqueda, y "Encontrar gente" parecia rota
   // estando perfecta — buscaba sobre un censo vacio. Con retardo y sin
   // bloquear nada, como la migracion de fotos de arriba.
   useEffect(() => {
@@ -2941,9 +2941,9 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  // El punto del tab Feed necesita saberse al ARRANCAR, no al entrar al Feed
+  // El punto del pestaña Gente necesita saberse al ARRANCAR, no al entrar a Gente
   // (si hiciera falta entrar para verlo, no avisaria de nada). Una consulta
-  // al iniciar sesion y ya: sin polling — el Feed refresca el punto solo
+  // al iniciar sesion y ya: sin polling — Gente refresca el punto solo
   // cuando lo visitas.
   useEffect(() => {
     if (!user?.id) return;
@@ -3242,7 +3242,7 @@ export default function App() {
   }, [data.members, user]);
 
   /**
-   * Copiar una receta del Feed a mi biblioteca. Es una INSTANTÁNEA: nace con
+   * Copiar una receta de Gente a mi biblioteca. Es una INSTANTÁNEA: nace con
    * id nuevo y dueño nuevo, y no vuelve a mirar al original — si el autor la
    * edita o borra su cuenta, tu menú de la semana no cambia debajo. Las
    * columnas copied_from_* solo guardan de quién era, para poder firmarla.
@@ -3272,7 +3272,7 @@ export default function App() {
   }, [householdReadOnly, showToast, data.members, user]);
 
   /**
-   * La ⓘ del Feed. `handleOpenCatalogRecipe` espera un objeto receta, no un
+   * La ⓘ de Gente. `handleOpenCatalogRecipe` espera un objeto receta, no un
    * id, y una receta ajena no está en el catálogo local — así que hay que
    * traérsela antes. Si no se puede (sin sesión, o es un fixture de diseño),
    * se abre con lo poco que trae la tarjeta en vez de no abrir nada.
@@ -3304,7 +3304,7 @@ export default function App() {
   }, [handleOpenCatalogRecipe]);
 
   /**
-   * Publicar el menú activo en el Feed.
+   * Publicar el menú activo en Gente.
    *
    * Lo que se manda NO es el menú: es la proyección que construye
    * buildSharedMenuPayload — platos por día y avatares anónimos. El menú vivo
@@ -3392,7 +3392,7 @@ export default function App() {
   /**
    * Publicar una receta tuya = cambiarle la visibilidad. Sin tabla nueva ni
    * copia: el interruptor private/friends/public existe desde 0003, esto solo
-   * le pone una puerta comoda en el Feed.
+   * le pone una puerta comoda en Gente.
    */
   const handlePublishRecipe = useCallback((recipeId, visibility) => {
     if (!recipeId || !visibility) return false;
@@ -3666,7 +3666,7 @@ export default function App() {
   // Duplicar: copy a dish into another slot (action bar → "Duplicar" → tap target).
   /**
    * Un plato que viene de FUERA (del menu de otra persona) esperando hueco.
-   * Vive aqui y no en MenuScreen porque el gesto empieza en el Feed y termina
+   * Vive aqui y no en MenuScreen porque el gesto empieza en Gente y termina
    * en el menu: son dos pantallas, y el plato tiene que sobrevivir al salto.
    */
   const [pendingDish, setPendingDish] = useState(null);

@@ -1,5 +1,5 @@
 /**
- * Punto de "hay algo nuevo" del tab Feed.
+ * Punto de "hay algo nuevo" del pestaña Gente.
  *
  * Cada pantalla monta su propio <BottomNav>, así que pasar el aviso por props
  * serían diez callsites tocados para un booleano. Esto es un store mínimo

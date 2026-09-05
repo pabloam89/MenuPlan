@@ -311,7 +311,7 @@ describe("isOwnCreatedRecipe", () => {
 describe("filterMyLibraryRecipes", () => {
   const user = { id: "u1" };
   const mine = { id: "user_mia", source: "user", owner: { id: "u1", name: "Pablo" } };
-  // Copiada del Feed: la fila es tuya, pero sigue firmada por su autor.
+  // Copiada de Gente: la fila es tuya, pero sigue firmada por su autor.
   const copied = {
     id: "user_copia",
     source: "user",
