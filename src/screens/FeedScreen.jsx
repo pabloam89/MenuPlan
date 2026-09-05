@@ -2205,6 +2205,27 @@ const primaryBtnFull = { ...primaryBtn, width: "100%", justifyContent: "center",
 
 
 
+/**
+ * La tarjeta de publicar.
+ *
+ * Fondo crema para separarla del rio de recetas (que son fotos a sangre) sin
+ * competir con ellas. El color lo ponen SOLO la ilustracion y la pildora
+ * verde de accion: el texto va en la escala de tinta de la app, nunca en el
+ * tono del fondo — un mismo color untado en fondo, borde y letras convierte
+ * cualquier tarjeta en una pegatina.
+ */
+const PUBLISH_HINT_KEY = "hm_feed_publish_hint";
+const VIS_PROMPT_KEY = "hm_feed_visibility_asked";
+
+// La lengueta: a la altura de la fila de pestañas, redondeada solo por la
+// izquierda y mordida por el borde derecho de la columna.
+
+const publishClose = {
+  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+  width: 24, height: 24, borderRadius: 999, marginLeft: 4,
+  border: "none", background: "rgba(20,47,29,.07)", color: "#7a8a7f", cursor: "pointer",
+};
+
 // Plegada asoma por el borde izquierdo (margen negativo contra el padding de
 // la columna) y solo se redondea por la derecha, que es el lado que se ve.
 const publishCard = {
