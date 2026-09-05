@@ -154,6 +154,11 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                           componentes distintos; el color lo lleva el circulo,
                           que ya es suficiente. */}
                       <span style={S.cardTexto}>{s.texto}</span>
+                      {/* Explica QUE VAS A CONSEGUIR, no por que salio la
+                          tarjeta. Todos en el mismo registro: mezclar dato
+                          ("hay 4, pediste 3") con chiste ("sin dramas") era lo
+                          que se leia como random. */}
+                      <span style={S.cardSub}>{s.porque}</span>
                     </button>
                   ))}
                 </div>
@@ -185,6 +190,7 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                           </span>
                           <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
                             <span style={{ ...S.filaTitulo, color: on ? "#142f1d" : "#4a6355" }}>{o.etiqueta}</span>
+                            {o.detalle && <span style={S.filaDetalle}>{o.detalle}</span>}
                             <span style={S.filaCambio}>
                               {o.ajustes.map((a) => resumirAjuste(notepad, a)).filter(Boolean).join(" · ")}
                             </span>
@@ -289,22 +295,26 @@ const S = {
   card: {
     position: "relative", display: "flex", flexDirection: "column", alignItems: "center",
     gap: 0, background: "#fff", border: "1px solid #e4ece7", borderRadius: 18,
-    padding: "14px 8px 14px", cursor: "pointer", textAlign: "center",
+    padding: "13px 9px 12px", cursor: "pointer", textAlign: "center",
     boxShadow: "0 2px 8px rgba(20,47,29,.09)", overflow: "hidden",
   },
   // Sin subcopy, la ilustracion se queda con el sitio que ocupaba: es lo que
   // hace que la tarjeta se lea de un vistazo.
   cardArteCaja: {
-    width: 76, height: 76, borderRadius: 999, display: "flex",
-    alignItems: "center", justifyContent: "center", marginBottom: 10,
+    width: 62, height: 62, borderRadius: 999, display: "flex",
+    alignItems: "center", justifyContent: "center", marginBottom: 8,
   },
   cardArte: {
-    width: 62, height: 62, objectFit: "contain", pointerEvents: "none",
+    width: 50, height: 50, objectFit: "contain", pointerEvents: "none",
     filter: "drop-shadow(0 3px 8px rgba(20,47,29,.22))",
   },
-  // Mismo tamaño en las cuatro, pase lo que pase con el texto: dos alturas
-  // distintas en una rejilla de 2x2 se ven como un fallo de maquetacion.
-  cardTexto: { fontSize: 14, fontWeight: 800, lineHeight: 1.25, letterSpacing: "-.2px", color: "#142f1d" },
+  cardTexto: { fontSize: 13.5, fontWeight: 800, lineHeight: 1.2, letterSpacing: "-.2px", color: "#142f1d" },
+  // Tres lineas fijas en las cuatro tarjetas: si una ocupa dos y la de al lado
+  // tres, la rejilla se descuadra y se lee como un fallo de maquetacion.
+  cardSub: {
+    fontSize: 11, fontWeight: 500, lineHeight: 1.35, color: "#5a7a66",
+    marginTop: 5, minHeight: 45,
+  },
 
   entrada: { display: "flex", gap: 7, alignItems: "center" },
   // 16px es OBLIGATORIO: por debajo, iOS Safari hace zoom al enfocar el campo
@@ -339,7 +349,8 @@ const S = {
   },
   casillaOn: { background: "#2d5a3d", borderColor: "#2d5a3d", transform: "scale(1.06)" },
   filaTitulo: { display: "block", fontSize: 13.5, fontWeight: 800, lineHeight: 1.25 },
-  filaCambio: { display: "block", fontSize: 11.5, fontWeight: 600, color: "#2d5a3d", marginTop: 1 },
+  filaDetalle: { display: "block", fontSize: 11.5, fontWeight: 500, color: "#5a7a66", marginTop: 1 },
+  filaCambio: { display: "block", fontSize: 11.5, fontWeight: 700, color: "#2d5a3d", marginTop: 2 },
   pendiente: { fontSize: 12, color: "#5a7a66", lineHeight: 1.45, marginTop: 11, padding: "9px 11px", background: "#e6eeea", borderRadius: 10 },
 
   hecho: { display: "flex", flexDirection: "column", alignItems: "center", gap: 9, padding: "14px 0 10px" },

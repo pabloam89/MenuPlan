@@ -84,7 +84,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
         id: `menos-${familia}`,
         texto: `Menos ${FAMILIA_LABEL[familia] ?? familia}`,
         frase: `menos ${FAMILIA_LABEL[familia] ?? familia}`,
-        porque: `Hay ${cuantas}, pediste ${objetivo}`,
+        porque: `Hay ${cuantas} esta semana y pediste ${objetivo}. Cambio las que sobran.`,
         arte: ARTE_FAMILIA[familia] ?? CUT.frutas,
       });
     }
@@ -99,7 +99,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
       id: `variar-${tecnicaTop}`,
       texto: "Más variedad",
       frase: `menos ${tecnicaTop}`,
-      porque: `${tecnicaN} ${preposicion(tecnicaTop)} ${tecnicaTop}`,
+      porque: `${tecnicaN} platos ${preposicion(tecnicaTop)} ${tecnicaTop}. Reparto mejor horno, plancha y guiso.`,
       arte: CUT.variedad,
     });
   }
@@ -117,7 +117,7 @@ export function sugerenciasDelMenu(recuento, notepad) {
       // concuerdan con "cocina", asi que la frase necesita el sustantivo.
       texto: `Cocina ${cual}`,
       frase: `mas comida ${cual}`,
-      porque: "Nada de fuera",
+      porque: "Esta semana no hay ningún plato de fuera. Meto un par.",
       arte: CUT_COCINA(cual),
     });
   }
@@ -138,10 +138,14 @@ export function sugerenciasDelMenu(recuento, notepad) {
 // relleno sin mentir. Ordenados por lo que más pide la gente.
 // Ordenados por lo que mas pide la gente. Los cuatro tienen recorte propio.
 const COMODINES = [
-  { id: "mas-sano", texto: "Algo más sano", frase: "algo más sano", porque: "Verdura y menos frito", arte: CUT.sano },
-  { id: "mas-rapido", texto: "Algo más rápido", frase: "algo más rápido", porque: "Noches con prisa", arte: CUT.rapido },
-  { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil", porque: "Un solo cacharro", arte: CUT.facil },
-  { id: "mas-salsa", texto: "Con salsa", frase: "más platos con salsa", porque: "Para mojar pan", arte: CUT.salsa },
+  { id: "mas-sano", texto: "Comer más sano", frase: "quiero comer más sano",
+    porque: "Te pregunto qué entiendes tú por sano y lo aplico.", arte: CUT.sano },
+  { id: "mas-rapido", texto: "Algo más rápido", frase: "algo más rápido",
+    porque: "Platos de menos de 25 minutos para los días con prisa.", arte: CUT.rapido },
+  { id: "mas-facil", texto: "Menos lío", frase: "algo más fácil",
+    porque: "Platos de un solo cacharro, para fregar poco.", arte: CUT.facil },
+  { id: "mas-salsa", texto: "Con salsa", frase: "más platos con salsa",
+    porque: "Platos que ya traen su salsa hecha, no añadida.", arte: CUT.salsa },
 ];
 
 const COCINAS = ["italiana", "asiatica", "mexicana", "arabe", "francesa", "americana", "india", "peruana"];

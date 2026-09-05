@@ -13,11 +13,7 @@ describe("sugerencias del menú", () => {
     const s = sugerenciasDelMenu({ familias: { pescado: 4 }, huecos: 14 }, conObjetivos({ pescado: 2 }));
     const p = s.find((x) => x.id === "menos-pescado");
     expect(p.texto).toBe("Menos pescado");
-    expect(p.porque).toBe("Hay 4, pediste 2");
-    // Corto a proposito: todos los "porque" tienen que caber en UNA linea. Un
-    // texto que envuelve en una tarjeta y no en la de al lado descuadra la
-    // rejilla entera y se lee como un fallo de maquetacion.
-    expect(p.porque.length).toBeLessThanOrEqual(22);
+    expect(p.porque).toBe("Hay 4 esta semana y pediste 2. Cambio las que sobran.");
   });
 
   // "Menos pescado" cuando no hay pescado es ruido, y el ruido enseña al
@@ -49,9 +45,9 @@ describe("sugerencias del menú", () => {
   // escribió una máquina.
   it("construye bien la preposición de cada técnica", () => {
     const horno = sugerenciasDelMenu({ tecnicas: { horno: 6 }, huecos: 14 }, libretaVacia());
-    expect(horno.find((x) => x.id === "variar-horno").porque).toBe("6 al horno");
+    expect(horno.find((x) => x.id === "variar-horno").porque).toMatch(/^6 platos al horno./);
     const plancha = sugerenciasDelMenu({ tecnicas: { plancha: 6 }, huecos: 14 }, libretaVacia());
-    expect(plancha.find((x) => x.id === "variar-plancha").porque).toBe("6 a la plancha");
+    expect(plancha.find((x) => x.id === "variar-plancha").porque).toMatch(/^6 platos a la plancha./);
   });
 
   it("propone cocina de fuera solo si no hay ninguna", () => {
@@ -202,10 +198,11 @@ describe("la rejilla de cuatro", () => {
   });
 });
 
-// Todos los textos entran en una linea a 165px de ancho de tarjeta. Sin esto,
-// una tarjeta de dos lineas y otra de una descuadran la rejilla de 2x2.
-describe("todo cabe en una linea", () => {
-  it("ningun titulo ni porque se pasa de largo", () => {
+// El titulo va en UNA linea y el subcopy en TRES: la tarjeta les reserva alto
+// fijo, asi que pasarse no recorta el texto — descuadra la rejilla entera, que
+// es peor porque se lee como un fallo de maquetacion.
+describe("los textos caben en el alto reservado", () => {
+  it("ningun titulo ni subcopy se pasa de largo", () => {
     const casos = [
       [{ familias: { pescado: 9, carne: 9, verdura: 9, legumbres: 9, pasta_arroz: 9, huevos: 9 }, huecos: 14 },
        conObjetivos({ pescado: 1, carne: 1, verdura: 1, legumbres: 1, pasta_arroz: 1, huevos: 1 })],
@@ -214,7 +211,12 @@ describe("todo cabe en una linea", () => {
     ];
     for (const [r, n] of casos) for (const s of sugerenciasDelMenu(r, n)) {
       expect(s.texto.length, `titulo largo: ${s.texto}`).toBeLessThanOrEqual(18);
-      expect(s.porque.length, `porque largo: ${s.porque}`).toBeLessThanOrEqual(22);
+      expect(s.porque.length, `subcopy largo: ${s.porque}`).toBeLessThanOrEqual(62);
+      // Y que sea una frase de verdad, no un telegrama: "6 al horno" no se
+      // entiende fuera de contexto, que es lo que hacia parecer random la
+      // rejilla entera.
+      expect(s.porque.length, `subcopy corto: ${s.porque}`).toBeGreaterThanOrEqual(30);
+      expect(s.porque, `sin punto: ${s.porque}`).toMatch(/.$/);
     }
   });
 });

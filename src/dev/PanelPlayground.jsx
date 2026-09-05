@@ -63,6 +63,35 @@ const GUIONES = {
       ],
     },
   },
+  // El caso que da nombre a todo esto: peticion vaga -> te digo QUE ENTIENDO yo
+  // por eso, con opciones, y eliges. Nunca "esto es mas sano para ti": describe
+  // platos, no efectos sobre tu cuerpo.
+  sano: {
+    etiqueta: "Comer más sano",
+    respuesta: {
+      reply: "«Sano» significa cosas distintas para cada casa. Esto es lo que yo sé hacer — marca lo que te encaje.",
+      kind: "propuestas",
+      modo: "varias",
+      pendiente: [],
+      opciones: [
+        { etiqueta: "Más verdura", detalle: "De 3 a 5 veces por semana",
+          ajustes: [{ campo: "freqs", valor: "verdura", op: "mas", n: 5 }] },
+        { etiqueta: "Menos carne, más pescado", detalle: "Sin quitarla del todo",
+          ajustes: [
+            { campo: "freqs", valor: "carne", op: "menos", n: 2 },
+            { campo: "freqs", valor: "pescado", op: "mas", n: 3 },
+          ] },
+        { etiqueta: "Al horno y a la plancha", detalle: "En vez de sartén",
+          ajustes: [
+            { campo: "tecnica", valor: "horno", op: "mas" },
+            { campo: "tecnica", valor: "plancha", op: "mas" },
+            { campo: "tecnica", valor: "sarten", op: "menos" },
+          ] },
+        { etiqueta: "Más legumbre", detalle: "Puchero y ensaladas de bote",
+          ajustes: [{ campo: "freqs", valor: "legumbres", op: "mas", n: 3 }] },
+      ],
+    },
+  },
   limite: {
     etiqueta: "No sé hacerlo",
     respuesta: {
