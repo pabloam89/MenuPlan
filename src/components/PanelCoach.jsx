@@ -301,19 +301,22 @@ const S = {
   // Sin subcopy, la ilustracion se queda con el sitio que ocupaba: es lo que
   // hace que la tarjeta se lea de un vistazo.
   cardArteCaja: {
-    width: 62, height: 62, borderRadius: 999, display: "flex",
+    width: 54, height: 54, borderRadius: 999, display: "flex",
     alignItems: "center", justifyContent: "center", marginBottom: 8,
   },
   cardArte: {
-    width: 50, height: 50, objectFit: "contain", pointerEvents: "none",
+    width: 44, height: 44, objectFit: "contain", pointerEvents: "none",
     filter: "drop-shadow(0 3px 8px rgba(20,47,29,.22))",
   },
   cardTexto: { fontSize: 13.5, fontWeight: 800, lineHeight: 1.2, letterSpacing: "-.2px", color: "#142f1d" },
   // Tres lineas fijas en las cuatro tarjetas: si una ocupa dos y la de al lado
   // tres, la rejilla se descuadra y se lee como un fallo de maquetacion.
+  // Cinco lineas de alto fijo. La tarjeta crece para que quepa la frase entera:
+  // recortarla para que entrase era lo que producia telegramas como "6 al
+  // horno", que no ahorran sitio — lo desperdician, porque no se entienden.
   cardSub: {
-    fontSize: 11, fontWeight: 500, lineHeight: 1.35, color: "#5a7a66",
-    marginTop: 5, minHeight: 45,
+    fontSize: 11, fontWeight: 500, lineHeight: 1.4, color: "#5a7a66",
+    marginTop: 5, minHeight: 77,
   },
 
   entrada: { display: "flex", gap: 7, alignItems: "center" },

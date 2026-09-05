@@ -27,19 +27,45 @@ const LIBRETA = [
 ].reduce((n, [k, v]) => poner(n, k, v, { origen: "pregunta" }), libretaVacia());
 
 const GUIONES = {
+  // El caso de "menos carne", que es donde se ve por que una peticion no basta:
+  // el menu tiene 14 huecos FIJOS. Si quitas dos dias de carne, esos dos huecos
+  // no desaparecen — algo los ocupa. Por eso la segunda pantalla no pregunta
+  // "cuanta", pregunta POR QUE la cambiamos, y cada opcion es un intercambio
+  // completo. Si no, el motor rellena por su cuenta y el usuario se encuentra
+  // dos cenas que no pidio.
   cambia: {
-    etiqueta: "Cambia y ya",
+    etiqueta: "Bajar la carne",
     respuesta: {
-      reply: "Ahora hay pescado cuatro veces, dos más de las que pediste.",
+      reply: "Genial, la bajamos. ¿Por qué te gustaría cambiarla?",
       kind: "propuestas",
       pendiente: [],
-      opciones: [{ etiqueta: "Dejarlo en dos", ajustes: [{ campo: "freqs", valor: "pescado", op: "menos", n: 2 }] }],
+      opciones: [
+        { etiqueta: "Un día de carne, por uno de pescado",
+          detalle: "Lo más suave: solo se mueve un plato de la semana",
+          ajustes: [
+            { campo: "freqs", valor: "carne", op: "menos", n: 3 },
+            { campo: "freqs", valor: "pescado", op: "mas", n: 3 },
+          ] },
+        { etiqueta: "Dos días: uno de pescado y otro de verdura",
+          detalle: "El cambio que más se nota, y el más equilibrado",
+          ajustes: [
+            { campo: "freqs", valor: "carne", op: "menos", n: 2 },
+            { campo: "freqs", valor: "pescado", op: "mas", n: 3 },
+            { campo: "freqs", valor: "verdura", op: "mas", n: 5 },
+          ] },
+        { etiqueta: "Méteme más ensaladas en su sitio",
+          detalle: "Sobre todo para las cenas, que es donde mejor caen",
+          ajustes: [
+            { campo: "freqs", valor: "carne", op: "menos", n: 3 },
+            { campo: "freqs", valor: "verdura", op: "mas", n: 5, servicio: "cena" },
+          ] },
+      ],
     },
   },
   pregunta: {
-    etiqueta: "Te pregunta",
+    etiqueta: "Cuánta pasta",
     respuesta: {
-      reply: "Ahora hay pasta o arroz una vez por semana. ¿Cuánta te apetece?",
+      reply: "Ahora mismo hay pasta o arroz una sola vez por semana, así que hay sitio de sobra. ¿Cuánta te apetece?",
       kind: "propuestas",
       pendiente: [],
       opciones: [
@@ -50,9 +76,9 @@ const GUIONES = {
     },
   },
   varias: {
-    etiqueta: "Marca varias",
+    etiqueta: "Tres a la vez",
     respuesta: {
-      reply: "He pillado tres cosas. Marca las que quieras.",
+      reply: "Te he pillado tres cosas de golpe. Marca las que quieras y te las aplico todas de una vez.",
       kind: "propuestas",
       modo: "varias",
       pendiente: ["Lo de los jueves todavía no sé hacerlo."],
@@ -69,7 +95,7 @@ const GUIONES = {
   sano: {
     etiqueta: "Comer más sano",
     respuesta: {
-      reply: "«Sano» significa cosas distintas para cada casa. Esto es lo que yo sé hacer — marca lo que te encaje.",
+      reply: "Vale. «Sano» quiere decir una cosa distinta en cada casa, así que mejor me lo dices tú. Esto es lo que sé hacer — marca todo lo que te encaje.",
       kind: "propuestas",
       modo: "varias",
       pendiente: [],
@@ -95,7 +121,7 @@ const GUIONES = {
   limite: {
     etiqueta: "No sé hacerlo",
     respuesta: {
-      reply: "Las dietas de una persona concreta todavía no las llevo. Sí puedo cambiar cuánto hay de cada cosa.",
+      reply: "Las dietas de una persona concreta todavía no las sé llevar, y prefiero decírtelo a hacerlo a medias. Lo que sí puedo es cambiar cuánto hay de cada cosa para toda la casa, o para los niños, los adultos o los bebés por separado.",
       kind: "limites", pendiente: [], opciones: [],
     },
   },

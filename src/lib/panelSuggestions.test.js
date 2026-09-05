@@ -13,7 +13,7 @@ describe("sugerencias del menú", () => {
     const s = sugerenciasDelMenu({ familias: { pescado: 4 }, huecos: 14 }, conObjetivos({ pescado: 2 }));
     const p = s.find((x) => x.id === "menos-pescado");
     expect(p.texto).toBe("Menos pescado");
-    expect(p.porque).toBe("Hay 4 esta semana y pediste 2. Cambio las que sobran.");
+    expect(p.porque).toBe("Hay 4 días esta semana y me habías pedido 2. Si quieres la bajamos y te propongo por qué cambiarla.");
   });
 
   // "Menos pescado" cuando no hay pescado es ruido, y el ruido enseña al
@@ -45,9 +45,9 @@ describe("sugerencias del menú", () => {
   // escribió una máquina.
   it("construye bien la preposición de cada técnica", () => {
     const horno = sugerenciasDelMenu({ tecnicas: { horno: 6 }, huecos: 14 }, libretaVacia());
-    expect(horno.find((x) => x.id === "variar-horno").porque).toMatch(/^6 platos al horno./);
+    expect(horno.find((x) => x.id === "variar-horno").porque).toContain("6 platos al horno");
     const plancha = sugerenciasDelMenu({ tecnicas: { plancha: 6 }, huecos: 14 }, libretaVacia());
-    expect(plancha.find((x) => x.id === "variar-plancha").porque).toMatch(/^6 platos a la plancha./);
+    expect(plancha.find((x) => x.id === "variar-plancha").porque).toContain("6 platos a la plancha");
   });
 
   it("propone cocina de fuera solo si no hay ninguna", () => {
@@ -211,11 +211,11 @@ describe("los textos caben en el alto reservado", () => {
     ];
     for (const [r, n] of casos) for (const s of sugerenciasDelMenu(r, n)) {
       expect(s.texto.length, `titulo largo: ${s.texto}`).toBeLessThanOrEqual(18);
-      expect(s.porque.length, `subcopy largo: ${s.porque}`).toBeLessThanOrEqual(62);
+      expect(s.porque.length, `subcopy largo: ${s.porque}`).toBeLessThanOrEqual(110);
       // Y que sea una frase de verdad, no un telegrama: "6 al horno" no se
       // entiende fuera de contexto, que es lo que hacia parecer random la
       // rejilla entera.
-      expect(s.porque.length, `subcopy corto: ${s.porque}`).toBeGreaterThanOrEqual(30);
+      expect(s.porque.length, `subcopy corto: ${s.porque}`).toBeGreaterThanOrEqual(55);
       expect(s.porque, `sin punto: ${s.porque}`).toMatch(/.$/);
     }
   });
