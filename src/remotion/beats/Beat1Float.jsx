@@ -1,86 +1,49 @@
-import { UtensilsCrossed } from 'lucide-react';
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
-import { IsoWorld } from '../IsoWorld';
+import { DashboardScreen } from '../../screens/Dashboard.jsx';
 
-// Calcado de TodayDishCard real (src/screens/Dashboard.jsx:80): misma altura,
-// radio, borde, sombra y estructura de pills. La versión real muestra una
-// foto del plato (photo prop); aquí no hay red para traer las fotos reales
-// del catálogo (dish-gallery/public/catalog.json, en Vercel Blob), así que
-// se usa el estado "sin foto" del propio componente -- que es un estado
-// real de la app, no algo inventado -- con nombres de plato reales del
-// catálogo.
-const GREEN = '#2d5a3d';
+// Renderiza la pantalla real de Inicio (src/screens/Dashboard.jsx), no una
+// recreación: mismos avatares, degradado, hero de "Generar menú", carrusel
+// "Hoy toca" y BottomNav. Solo se le inyectan datos de ejemplo porque el
+// componente real exige user/data/menuPlan/household -- nada de su JSX o
+// estilos se toca.
 
-const todayPillStyle = {
-  position: 'absolute',
-  fontSize: 9.5,
-  fontWeight: 800,
-  background: 'rgba(255,255,255,.92)',
-  padding: '2px 7px',
-  borderRadius: 999,
-  letterSpacing: '.3px',
-  whiteSpace: 'nowrap',
-  boxShadow: '0 1px 4px rgba(20,47,29,.16)',
+const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const todayShort = () => DAYS[(new Date().getDay() + 6) % 7];
+
+// Avatares ilustrados reales (public/avatares/<rol>/<rol>_N.png) via avatarKey,
+// no fotos. Recetas con id real de src/data/recipes.js -- "lentejas-verduras"
+// no tiene foto en el manifiesto (dishImages.json), así que su card cae al
+// mismo icono de cubiertos que usaría la app real para cualquier receta sin
+// foto: no es un fallback nuestro, es el comportamiento real del componente.
+const MEMBERS = [
+  { id: 'm1', name: 'Ana', avatarKey: 'mama_3' },
+  { id: 'm2', name: 'Marcos', avatarKey: 'papa_5' },
+  { id: 'm3', name: 'Lucía', avatarKey: 'hija_2' },
+  { id: 'm4', name: 'Hugo', avatarKey: 'hijo_4' },
+];
+
+const GROUPS = [{ id: 'familia', label: 'Familia', memberIds: MEMBERS.map((m) => m.id) }];
+
+const DATA = { members: MEMBERS, groups: GROUPS, meals: ['Comida', 'Cena'] };
+
+const MENU_PLAN = {
+  familia: {
+    [`${todayShort()}-Comida`]: { recipeId: 'lentejas-verduras' },
+    [`${todayShort()}-Cena`]: { recipeId: 'tortilla-francesa' },
+  },
 };
 
-function DishCard({ meal, name, time }) {
-  return (
-    <div
-      style={{
-        position: 'relative',
-        width: 168,
-        height: 132,
-        overflow: 'hidden',
-        borderRadius: 16,
-        border: '1.5px solid #e3ebe6',
-        background: '#eef4f0',
-        boxShadow: '0 6px 16px -12px rgba(20,47,29,.3)',
-        fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
-      }}
-    >
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <UtensilsCrossed size={26} color="#9ab0a1" />
-      </div>
+const USER = { email: 'ana@example.com', user_metadata: { full_name: 'Ana' } };
+const ACTIVE_HOUSEHOLD = { name: 'Casa de Ana' };
 
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: '58%',
-          background: 'linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.18) 65%, transparent 100%)',
-        }}
-      />
+const noop = () => {};
 
-      <span style={{ ...todayPillStyle, top: 6, left: 6, color: GREEN }}>{meal}</span>
-      <span style={{ ...todayPillStyle, top: 6, right: 6, color: '#5a7262' }}>{time} min</span>
-      <p
-        style={{
-          position: 'absolute',
-          left: 8,
-          right: 8,
-          bottom: 8,
-          margin: 0,
-          fontSize: 13,
-          fontWeight: 800,
-          color: '#fff',
-          lineHeight: 1.25,
-          textShadow: '0 1px 3px rgba(0,0,0,.4)',
-        }}
-      >
-        {name}
-      </p>
-    </div>
-  );
-}
-
-// Nombres reales del catálogo (dish-gallery/public/catalog.json), no inventados.
-const DISHES = [
-  { meal: 'Comida', name: 'Costillas de cerdo al horno', time: 45 },
-  { meal: 'Comida', name: 'Ensalada de lentejas, tomate y comino', time: 20 },
-  { meal: 'Cena', name: 'Merluza en salsa verde', time: 30 },
-];
+// Ancla el frame del teléfono a un tamaño fijo. DashboardScreen usa
+// min-height: 100dvh (se ajusta al viewport real de Remotion, no al frame),
+// así que con overflow hidden el resto del scroll queda recortado por el
+// propio marco -- igual que un mockup de dispositivo recorta los bordes.
+const PHONE_WIDTH = 460;
+const PHONE_HEIGHT = 940;
 
 export function Beat1Float() {
   const frame = useCurrentFrame();
@@ -92,50 +55,61 @@ export function Beat1Float() {
     config: { damping: 12, stiffness: 120, mass: 1 },
   });
 
-  const translateY = interpolate(bounce, [0, 1], [420, 0]);
-  const rotateY = interpolate(frame, [0, 30], [-25, 0], {
+  const translateY = interpolate(bounce, [0, 1], [520, 0]);
+  const rotateY = interpolate(frame, [0, 30], [-16, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
   const shadowScale = interpolate(bounce, [0, 1], [0.5, 1]);
-  const shadowOpacity = interpolate(bounce, [0, 1], [0.1, 0.35]);
+  const shadowOpacity = interpolate(bounce, [0, 1], [0.05, 0.5]);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#f4f8f5' }}>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap"
-      />
-      <IsoWorld rotateX={0} rotateZ={0} perspective={1200}>
+    <AbsoluteFill style={{ backgroundColor: '#11131a' }}>
+      <AbsoluteFill style={{ perspective: 1800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ position: 'relative' }}>
           <div
             style={{
               position: 'absolute',
-              bottom: -40,
+              bottom: -30,
               left: '50%',
-              width: 380,
-              height: 40,
+              width: 360,
+              height: 50,
               borderRadius: '50%',
-              background: 'rgba(20,47,29,1)',
-              filter: 'blur(10px)',
+              background: '#000',
+              filter: 'blur(20px)',
               transform: `translateX(-50%) scale(${shadowScale})`,
               opacity: shadowOpacity,
             }}
           />
           <div
             style={{
-              display: 'flex',
-              gap: 10,
-              transform: `translateY(${translateY}px) rotateY(${rotateY}deg)`,
+              width: PHONE_WIDTH,
+              height: PHONE_HEIGHT,
+              overflow: 'hidden',
+              borderRadius: 36,
+              border: '10px solid #0b0c10',
+              boxShadow: '0 40px 80px rgba(0,0,0,.55)',
+              // translateZ(0) fuerza un containing block nuevo: el BottomNav
+              // (position: fixed en el componente real) queda anclado a
+              // ESTE marco en vez de saltar al viewport completo de Remotion.
+              transform: `translateY(${translateY}px) rotateY(${rotateY}deg) translateZ(0)`,
             }}
           >
-            {DISHES.map((d) => (
-              <DishCard key={d.name} {...d} />
-            ))}
+            <DashboardScreen
+              user={USER}
+              data={DATA}
+              menuPlan={MENU_PLAN}
+              activeHousehold={ACTIVE_HOUSEHOLD}
+              householdReadOnly={false}
+              onNav={noop}
+              onViewMenu={noop}
+              onOpenAccount={noop}
+              onGenerateMenu={noop}
+            />
           </div>
         </div>
-      </IsoWorld>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 }
