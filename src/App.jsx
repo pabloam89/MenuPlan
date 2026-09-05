@@ -3374,7 +3374,7 @@ export default function App() {
     });
     if (!saved) { showToast("No se pudo compartir el menú"); return false; }
     setPublishedMenus((prev) => ({ ...prev, [menuId]: saved }));
-    showToast("Menú compartido en tu feed");
+    showToast("Menú publicado en Gente");
     return true;
   }, [user, data, menuPlan, showToast]);
 
@@ -3384,7 +3384,7 @@ export default function App() {
     const done = await unpublishMenu(user.id, menuId);
     if (done) {
       setPublishedMenus((prev) => { const next = { ...prev }; delete next[menuId]; return next; });
-      showToast("Menú retirado del feed");
+      showToast("Menú retirado de Gente");
     }
     return done;
   }, [user, data.activeMenuId, showToast]);

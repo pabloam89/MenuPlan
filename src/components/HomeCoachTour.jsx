@@ -127,7 +127,7 @@ export const RECIPES_COACH_STEPS = [
     selector: '[data-coach="recipes-mine"]',
     Icon: ChefHat,
     title: "Mis recetas",
-    desc: "Todo tu recetario: las que creas, las que marcas como favoritas y las que te traes del Feed. Dentro están tus carpetas y los platos que descartaste, por si quieres recuperarlos.",
+    desc: "Todo tu recetario: las que creas, las que marcas como favoritas y las que te traes de Gente. Dentro están tus carpetas y los platos que descartaste, por si quieres recuperarlos.",
     place: "below",
   },
 ];

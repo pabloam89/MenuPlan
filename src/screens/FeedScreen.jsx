@@ -456,7 +456,7 @@ export function FeedScreen({
               <Users size={17} color="#4a6fd4" />
             </div>
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
-              Feed
+              Gente
             </h1>
           </div>
           {/* Buscar y "yo" en la cabecera, no como sub-pestañas: si el feed
@@ -603,7 +603,7 @@ export function FeedScreen({
                         ? "Tienes 1 sin compartir"
                         : unsharedRecipes.length > 1
                           ? `Tienes ${unsharedRecipes.length} sin compartir`
-                          : "Tus platos, en el feed"}
+                          : "Tus platos, para los demás"}
                     </span>
                   </span>
                   {publishOpen && (
@@ -690,7 +690,7 @@ export function FeedScreen({
                 img="/avatares/cards/comidas.jpg"
                 accent={TEAL}
                 title="Aquí verás lo que cocinan los demás"
-                subtitle="Busca a alguien y síguele: sus recetas y sus menús de la semana aparecerán aquí, y además se colarán en el mazo de Inspírate."
+                subtitle="Busca a alguien y síguele: sus recetas y sus menús de la semana aparecerán aquí."
               >
                 <button type="button" onClick={() => setSearchOpen(true)} style={{ ...primaryBtn, marginTop: 14 }}>
                   <Search size={14} strokeWidth={2.6} /> Buscar gente

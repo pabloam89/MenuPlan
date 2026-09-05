@@ -419,7 +419,7 @@ function ActividadTab({ stats }) {
       <FlatBlock title="Social" icon={Users}>
         <ProfileEmptyState
           img={PERFIL_EMPTY_IMG.feedSemanal}
-          title="Feed semanal"
+          title="Resumen semanal"
           subtitle="Verás platos que copiaste de amigos, recetas populares entre tu gente y «lo cociné esta semana»."
         />
       </FlatBlock>

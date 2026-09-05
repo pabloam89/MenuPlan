@@ -4618,7 +4618,7 @@ export const MenuScreen = memo(function MenuScreen({
                     // "Análisis" y "Borrar menú" quitados de momento (2026-08-27):
                     // para borrar, ahora se genera otro menú por encima.
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
-                    hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú en el Feed" : "Publicar en el Feed", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
+                    hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
                     hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
                     !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },

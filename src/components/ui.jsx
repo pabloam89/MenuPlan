@@ -476,7 +476,7 @@ const NAV_ITEMS = [
   { id: "recipes",   icon: BookOpen,      label: "Recetas",  color: "#d45c7a" },
   { id: "menu",      icon: ClipboardList, label: "Menú",     highlight: true },
   { id: "shopping",  icon: ShoppingCart,  label: "Compra",   color: "#5a82d4" },
-  { id: "feed",      icon: Users,         label: "Feed",     color: "#4a6fd4" },
+  { id: "feed",      icon: Users,         label: "Gente",    color: "#4a6fd4" },
 ];
 
 export function BottomNav({ active, onNav, dissolved = false }) {

@@ -32,7 +32,7 @@ export function ShareMenuSheet({ shared = false, sharing = false, onPublish, onU
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <Share2 size={16} strokeWidth={2.5} color={TEAL} />
           <h2 style={{ margin: 0, flex: 1, fontSize: 15, fontWeight: 900, color: INK }}>
-            {shared ? "Tu menú está en el feed" : "Publicar tu menú"}
+            {shared ? "Tu menú está publicado" : "Publicar tu menú"}
           </h2>
           <button type="button" onClick={onClose} aria-label="Cerrar" style={closeBtn}>
             <X size={15} strokeWidth={2.6} />
@@ -71,7 +71,7 @@ export function ShareMenuSheet({ shared = false, sharing = false, onPublish, onU
           style={publishBtn}
         >
           <Share2 size={14} strokeWidth={2.6} />
-          {shared ? "Volver a publicar" : "Publicar en el feed"}
+          {shared ? "Volver a publicar" : "Publicar en Gente"}
         </button>
 
         {shared && (
