@@ -474,11 +474,13 @@ if (existsSync(IMAGES_PATH)) {
     const { resolveIngredientId } = createIngredientResolver(catalog);
 
     const rows = [];
+    const usados = new Set();
     let unresolved = 0;
     for (const r of recipes) {
       (r.ingredients ?? []).forEach((line, position) => {
         const id = resolveIngredientId(line.name);
         if (!id) unresolved += 1;
+        else usados.add(id);
         rows.push(
           `  (${sqlString(r.id)}, ${position}, ${id ? sqlString(id) : "NULL"}, ` +
             `${sqlString(line.name)}, ${sqlNumber(line.amount)}, ${sqlString(line.unit)})`,
