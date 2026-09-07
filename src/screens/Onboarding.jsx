@@ -3806,11 +3806,22 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
 // El choque que tenía con el coral del desayuno (6° de matiz) ya no existe:
 // dentro de los carriles los glifos de franja horaria van en gris, así que el
 // único color de la rejilla es el del sitio donde se come.
+// DOS colores, no cuatro. La pregunta que resuelve esta pantalla es "¿hay que
+// cocinar para esta persona este día?", y esa pregunta solo tiene dos
+// respuestas. Cuatro colores obligaban a leer la leyenda para entender la
+// rejilla; con teal y navy se lee de un vistazo desde el otro lado de la mesa.
+//
+// Los ESTADOS siguen siendo cuatro y eso no cambia: `cole` es como el
+// importador del menú del comedor reconoce los huecos que le pertenecen
+// (schedulePresets.js#outStateFor). Lo que se unifica es el color, no el dato.
+const CASA_COLOR = "#0f766e";  // teal fuerte
+const FUERA_COLOR = "#1e3a5f"; // azul navy
+
 const SLOT_CONFIG = {
-  casa:   { label: "En casa",     color: "#4cba6e" },
-  tupper: { label: "Tupper",      color: "#c05c3a" },
-  fuera:  { label: "Come fuera",  color: "#2e7d75" },
-  cole:   { label: "Comedor",     color: "#c05c3a" },
+  casa:   { label: "En casa",     color: CASA_COLOR },
+  tupper: { label: "Tupper",      color: FUERA_COLOR },
+  fuera:  { label: "Come fuera",  color: FUERA_COLOR },
+  cole:   { label: "Comedor",     color: FUERA_COLOR },
 };
 
 const MIXED_COLOR = "#aaa";
@@ -4402,8 +4413,11 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     () => getWeekDatesByMenuWeek({
       offset: viewingOffset,
       startDayIdx: viewingOffset === baseOffset ? (data.menuWeek?.startDayIdx ?? 0) : 0,
+      // Días sueltos marcados a mano (arrastre en OnboardingWeek) para la
+      // semana que se está viendo aquí — no solo la semana ancla.
+      days: data.menuWeekDays?.[viewingOffset] ?? null,
     }),
-    [viewingOffset, baseOffset, data.menuWeek],
+    [viewingOffset, baseOffset, data.menuWeek, data.menuWeekDays],
   );
 
   // Solo hay algo que pasar si se han elegido varias semanas y cada una lleva
@@ -4675,12 +4689,15 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         }
       `}</style>
 
-      <div ref={quickGridRef}>
-        {quickActions.length > 0 && <SectionTitle>Acciones rápidas</SectionTitle>}
-        <QuickActionCards actions={quickActions} onToggle={toggleQuickAction} />
-      </div>
+      {/* El carril de acciones rápidas vivía aquí, encima de la rejilla, y se
+          comía media pantalla antes de que se viera un solo día. Ahora se abre
+          desde la propia tarjeta: el sitio donde estás cuando te das cuenta de
+          que rellenar casilla a casilla es un peñazo. */}
+      <div ref={quickGridRef} />
 
       <ScheduleLanes
+        quickActions={quickActions}
+        onToggleQuickAction={toggleQuickAction}
         members={subjectMembers}
         meals={meals}
         schedule={effectiveSchedule}
@@ -4694,7 +4711,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         onDayClick={toggleLaneDay}
       />
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 7, marginBottom: 12, paddingRight: 2 }}>
-        <SheetIconLegend columns={sheetColumns(allowCole)} compact tiny />
+        <SheetIconLegend compact tiny />
       </div>
 
       {/* "Aplicar la misma configuración a todas las semanas" toggle — only
@@ -4750,36 +4767,41 @@ function sheetColumns(showCole) {
   return showCole ? SLOT_COLUMNS : SLOT_COLUMNS.filter((s) => s !== "cole");
 }
 
-function SheetIconLegend({ columns, compact = false, tiny = false }) {
+// La leyenda dice DOS cosas, no cuatro, porque la rejilla solo pinta dos
+// colores. Enumerar "En casa / Comedor / Come fuera / Tupper" con tres de ellos
+// del mismo navy es pedirle al usuario que distinga algo que no se ve.
+const LEYENDA = [
+  { label: "En casa", color: CASA_COLOR, estado: "casa" },
+  { label: "Fuera de casa", color: FUERA_COLOR, estado: "fuera" },
+];
+
+function SheetIconLegend({ compact = false, tiny = false }) {
   return (
     <div
       style={{
         display: "flex",
         flexWrap: "wrap",
-        gap: compact ? "4px 10px" : "6px 12px",
+        gap: compact ? "4px 12px" : "6px 14px",
         marginBottom: compact ? 0 : 10,
         justifyContent: compact ? "flex-end" : "flex-start",
       }}
     >
-      {columns.map((s) => {
-        const c = SLOT_CONFIG[s].color;
-        return (
-          <span
-            key={s}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              fontSize: tiny ? 9 : 10,
-              fontWeight: 600,
-              color: tiny ? "#8b9b91" : "#666",
-            }}
-          >
-            <span style={{ color: c, display: "inline-flex" }}>{stateIcon(s, tiny ? 11 : 12)}</span>
-            {SLOT_CONFIG[s].label}
-          </span>
-        );
-      })}
+      {LEYENDA.map(({ label, color, estado }) => (
+        <span
+          key={estado}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            fontSize: tiny ? 9.5 : 10.5, fontWeight: 700,
+            color: tiny ? "#8b9b91" : "#5a6b62",
+          }}
+        >
+          <span style={{
+            width: tiny ? 9 : 10, height: tiny ? 9 : 10, borderRadius: 3,
+            background: color, display: "inline-block", flexShrink: 0,
+          }} />
+          {label}
+        </span>
+      ))}
     </div>
   );
 }
@@ -5692,195 +5714,6 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick, act
  * reads as "these three, to the school canteen" rather than as an abstract
  * setting — and a household with no children simply never sees that card.
  */
-function QuickActionCards({ actions, onToggle }) {
-  const railRef = useRef(null);
-
-  // Abanico: las dos del centro rectas y las de los lados caídas hacia fuera.
-  // El transform se escribe directamente en el DOM en cada frame de scroll —
-  // pasarlo por estado repintaría cuatro tarjetas con ilustración sesenta veces
-  // por segundo para animar tres grados.
-  useLayoutEffect(() => {
-    const rail = railRef.current;
-    if (!rail) return undefined;
-    let raf = 0;
-    const paint = () => {
-      raf = 0;
-      const cards = [...rail.children];
-      const mid = rail.scrollLeft + rail.clientWidth / 2;
-      // Distancia al eje en anchos de tarjeta, con signo.
-      const dist = cards.map((el) => (el.offsetLeft + el.offsetWidth / 2 - mid) / el.offsetWidth);
-      // Las dos más cercanas al eje quedan rectas, y el resto cae en
-      // proporción. Por ranking y no por un umbral fijo: así sigue saliendo
-      // una pareja recta con tres tarjetas, o si cambia el ancho del móvil.
-      const dead = [...dist].map(Math.abs).sort((a, b) => a - b)[1] ?? 0;
-      cards.forEach((el, i) => {
-        const d = dist[i];
-        const t = Math.sign(d) * Math.min(1.2, Math.max(0, Math.abs(d) - dead));
-        el.style.transform =
-          `translateY(${Math.abs(t) * 10}px) rotate(${t * 5}deg) scale(${1 - Math.abs(t) * 0.05})`;
-        // Las centrales por delante de las caídas. Nunca negativo: un z-index
-        // por debajo de cero las mete detrás del fondo del panel y desaparecen.
-        el.style.zIndex = t === 0 ? "2" : "1";
-      });
-    };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(paint); };
-    // Arranca centrado en las dos del medio, que es donde vive el abanico.
-    rail.scrollLeft = (rail.scrollWidth - rail.clientWidth) / 2;
-    paint();
-    // Las ilustraciones pueden cambiar el layout al cargar, así que se repinta
-    // en el siguiente frame y ante cualquier reflow del carril.
-    const raf2 = requestAnimationFrame(paint);
-    const ro = new ResizeObserver(onScroll);
-    ro.observe(rail);
-    rail.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      rail.removeEventListener("scroll", onScroll);
-      ro.disconnect();
-      cancelAnimationFrame(raf);
-      cancelAnimationFrame(raf2);
-    };
-  }, [actions.length]);
-
-  if (actions.length === 0) return null;
-  return (
-    <div
-      ref={railRef}
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: 10,
-        overflowX: "auto",
-        // Sin scroll-snap: engancharía UNA tarjeta al eje y rompería la pareja
-        // central que sostiene el abanico.
-        // Sangra hasta el borde de la pantalla (el shell mete 20px) para que las
-        // tarjetas de los lados asomen de verdad y se lea como carrusel.
-        marginInline: -20,
-        paddingInline: 20,
-        // Hueco para la caída y la sombra de las inclinadas.
-        paddingBottom: 12,
-        marginBottom: 8,
-        scrollbarWidth: "none",
-      }}
-    >
-      {actions.map((a) => {
-        const on = a.status === "on";
-        const partial = a.status === "partial";
-        const accent = SLOT_CONFIG[a.value]?.color ?? SLOT_CONFIG.fuera.color;
-        return (
-          <button
-            key={a.id}
-            type="button"
-            onClick={() => onToggle(a)}
-            aria-pressed={on}
-            title={`${a.label} — ${a.faces.map((f) => f.name).join(", ")}`}
-            style={{
-              position: "relative",
-              // Dos protagonistas en el centro y las vecinas asomando por los
-              // lados: se ve que hay más sin abrir un scroll invisible.
-              flex: "0 0 40%",
-              transformOrigin: "center top",
-              display: "block",
-              padding: 0,
-              overflow: "hidden",
-              textAlign: "left",
-              borderRadius: 16,
-              background: "#fff",
-              border: `2px solid ${on ? accent : partial ? "#cfe0d5" : "#e8efe9"}`,
-              borderStyle: partial ? "dashed" : "solid",
-              boxShadow: on ? `0 4px 14px ${accent}33` : "0 1px 3px rgba(0,0,0,.05)",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              transition: "border-color .16s ease, box-shadow .16s ease",
-            }}
-          >
-            <div style={{ position: "relative", height: 84, background: "#fdfcfa" }}>
-              <img
-                src={a.img}
-                alt=""
-                style={{
-                  width: "100%", height: "100%", objectFit: "cover", objectPosition: a.focus,
-                  display: "block",
-                  // Off cards stay legible but visibly dormant, so the board
-                  // reads as a set of switches rather than four illustrations.
-                  filter: on ? "none" : "saturate(.55) opacity(.72)",
-                  transition: "filter .16s ease",
-                }}
-              />
-              <div style={{ position: "absolute", left: 6, top: 6, display: "flex" }}>
-                {a.faces.slice(0, 2).map((f, i) => (
-                  <span
-                    key={f.id}
-                    style={{
-                      marginLeft: i === 0 ? 0 : -7,
-                      display: "inline-flex", borderRadius: "50%",
-                      border: "2px solid #fff", background: "#fff",
-                    }}
-                  >
-                    <Avatar name={f.name} photo={f.src} size={18} color={f.color} />
-                  </span>
-                ))}
-                {a.faces.length > 2 && (
-                  <span
-                    style={{
-                      marginLeft: -7, width: 20, height: 20, borderRadius: "50%",
-                      background: "#2d5a3d", color: "#fff", border: "2px solid #fff",
-                      fontSize: 8.5, fontWeight: 800,
-                      display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    }}
-                  >
-                    +{a.faces.length - 2}
-                  </span>
-                )}
-              </div>
-              {on && (
-                <span
-                  style={{
-                    position: "absolute", top: 6, right: 6,
-                    width: 19, height: 19, borderRadius: "50%",
-                    background: accent, border: "2px solid #fff",
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <Check size={10} color="#fff" strokeWidth={3.5} />
-                </span>
-              )}
-            </div>
-            <div style={{ padding: "6px 8px 7px" }}>
-              <div
-                style={{
-                  fontSize: 10, fontWeight: 800, lineHeight: 1.3,
-                  color: on ? accent : "#1a3a24",
-                }}
-              >
-                {a.label}
-              </div>
-            </div>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * The week, transposed: one lane per person instead of one cell per slot.
- *
- * The classic grid collapses the household into a consensus per slot and gives
- * up ("Mix") the moment people diverge — so the one thing this step is actually
- * asking, *who* eats at home, is the one thing it can't show. Seven columns on
- * a phone leave ~40px each, which is why: a face never fits. Putting people on
- * the rows fixes that, and the meals become two thin bars inside each day
- * rather than a mode you have to toggle between.
- *
- * Editing is binary — at home or not — because the planner never distinguished
- * `cole` from `fuera` anyway; the stored label is resolved by `outStateFor`.
- */
-/**
- * Paso de semana en miniatura para la esquina de la cabecera de los carriles.
- * Sustituye a la botonera de rangos a todo lo ancho: dentro de una tabla que ya
- * pide siete columnas, saber en cuál de las semanas estás es una nota al pie,
- * no un control principal. El rango de fechas se conserva en el `title`.
- */
 function WeekStepper({ index, total, label, modified, onPrev, onNext }) {
   const step = (Icon, onClick) => (
     <button
@@ -5921,6 +5754,8 @@ function WeekStepper({ index, total, label, modified, onPrev, onNext }) {
 }
 
 function ScheduleLanes({
+  quickActions = [],
+  onToggleQuickAction,
   members,
   meals,
   schedule,
@@ -5933,6 +5768,8 @@ function ScheduleLanes({
   onToggleMemberMeal,
   onDayClick,
 }) {
+  const [accionesAbiertas, setAccionesAbiertas] = useState(false);
+  const hayActivas = quickActions.some((a) => a.active);
   const mealGlyph = (meal, size = 11) =>
     meal === "Desayuno" ? <Coffee size={size} strokeWidth={2.6} /> :
     meal === "Comida"   ? <Sun size={size} strokeWidth={2.6} />    :
@@ -5969,8 +5806,29 @@ function ScheduleLanes({
       {/* Day header */}
       <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 3, marginBottom: 9 }}>
         {/* Hueco izquierdo (avatar + nombre): el selector de semana vive aquí */}
-        <div style={{ gridColumn: "span 2", display: "flex", alignItems: "center", justifyContent: "flex-start", paddingLeft: 2 }}>
+        <div style={{ gridColumn: "span 2", display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-start", paddingLeft: 2 }}>
           {weekNav && <WeekStepper {...weekNav} />}
+          {/* El atajo vive DENTRO de la tarjeta, que es donde estás cuando te
+              das cuenta de que rellenar casilla a casilla es un peñazo. Se
+              enciende cuando hay alguna aplicada, para que se vea que la
+              semana no está rellenada solo a mano. */}
+          {quickActions.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setAccionesAbiertas(true)}
+              className="mp-press"
+              aria-label="Acciones rápidas"
+              style={{
+                width: 30, height: 30, borderRadius: 10, flexShrink: 0,
+                border: `1.5px solid ${hayActivas ? CASA_COLOR : "#dde8e1"}`,
+                background: hayActivas ? `${CASA_COLOR}14` : "#fff",
+                color: hayActivas ? CASA_COLOR : "#5a7a66",
+                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+              }}
+            >
+              <Zap size={15} strokeWidth={2.4} />
+            </button>
+          )}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: dayCols }}>
         {DAYS.map((d) => {
@@ -6158,6 +6016,105 @@ function ScheduleLanes({
         }}
       >
         Toca una casilla para cambiar un día suelto
+      </div>
+
+      {accionesAbiertas && (
+        <QuickActionsSheet
+          actions={quickActions}
+          onToggle={onToggleQuickAction}
+          onClose={() => setAccionesAbiertas(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Las cuatro acciones rápidas, en pop-up y en rejilla 2×2.
+ *
+ * En 2×2 y no en carril horizontal porque son CUATRO y no cambian: un carril
+ * obliga a desplazar para descubrir que hay una cuarta, y esconder una de
+ * cuatro opciones fijas no tiene ninguna ventaja. En rejilla se ven todas de
+ * golpe y se comparan, que es justo lo que se hace al elegirlas.
+ *
+ * No se cierra al pulsar una: son toggles disjuntos y lo normal es encender
+ * dos o tres seguidas. Cerrar en cada toque obligaría a reabrir tres veces.
+ */
+function QuickActionsSheet({ actions, onToggle, onClose }) {
+  return (
+    <div onClick={onClose} className="mp-overlay-in" style={{
+      position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,.5)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 18,
+    }}>
+      <div onClick={(e) => e.stopPropagation()} className="mp-pop" style={{
+        background: "#f3f8f4", borderRadius: 26, width: "100%", maxWidth: 380,
+        padding: "18px 16px 16px", border: "1px solid #e2ede5",
+        boxShadow: "0 24px 60px rgba(0,0,0,.25)",
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 14 }}>
+          <span style={{
+            width: 40, height: 40, borderRadius: 13, flexShrink: 0,
+            background: `${CASA_COLOR}18`, color: CASA_COLOR,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Zap size={19} strokeWidth={2.4} />
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 900, color: "#142f1d" }}>Acciones rápidas</div>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: "#5a7a66", marginTop: 1 }}>
+              Rellena media semana de un toque
+            </div>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Cerrar" style={{
+            width: 32, height: 32, borderRadius: 999, border: "none", background: "#e2ebe5",
+            display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
+          }}>
+            <X size={15} color="#5a7a66" />
+          </button>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {actions.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => onToggle(a)}
+              className="mp-press"
+              style={{
+                position: "relative", background: "#fff", cursor: "pointer",
+                border: `2px solid ${a.active ? CASA_COLOR : "#e4ece7"}`,
+                borderRadius: 16, padding: 0, overflow: "hidden", textAlign: "left",
+                boxShadow: "0 2px 8px rgba(20,47,29,.08)",
+              }}
+            >
+              <span style={{
+                display: "block", width: "100%", height: 92,
+                background: `#eef4ef url(${a.img}) center top / cover no-repeat`,
+              }} />
+              {a.active && (
+                <span style={{
+                  position: "absolute", top: 7, right: 7, width: 22, height: 22, borderRadius: 999,
+                  background: CASA_COLOR, display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Check size={13} color="#fff" strokeWidth={3.2} />
+                </span>
+              )}
+              <span style={{
+                display: "block", padding: "9px 10px 11px", fontSize: 12, fontWeight: 700,
+                lineHeight: 1.3, color: a.active ? "#142f1d" : "#4a6355",
+              }}>
+                {a.label}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <button type="button" onClick={onClose} className="mp-press" style={{
+          width: "100%", marginTop: 12, padding: "12px 20px", borderRadius: 12, border: "none",
+          background: CASA_COLOR, color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
+        }}>
+          Listo
+        </button>
       </div>
     </div>
   );
@@ -9610,54 +9567,122 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const selectedOffsets = useMemo(() => {
-    const raw = Array.isArray(data.menuWeekOffsets) && data.menuWeekOffsets.length
-      ? data.menuWeekOffsets
-      : [data.menuWeek?.offset ?? 0];
-    return [...new Set(raw)].sort((a, b) => a - b);
-  }, [data.menuWeekOffsets, data.menuWeek]);
+  const weeks = buildCalendarWeeks(MAX_MENU_WEEKS);
+  const allOffsets = weeks.map((w) => w.offset);
 
-  // Persist the default selection even when the user never toggles a week:
-  // without this, data.menuWeek stays null and the current week is treated as
-  // a full Mon–Sun week — so "¿dónde coméis?" never dims the past days and the
-  // menú gets generated for days already gone. Invariant: the current week
-  // (offset 0) always starts today; any later week is a full 7-day week.
-  useEffect(() => {
-    const anchor = selectedOffsets[0];
-    const startDayIdx = anchor === 0 ? todayIdx : 0;
-    if (
-      data.menuWeek?.offset !== anchor ||
-      (data.menuWeek?.startDayIdx ?? 0) !== startDayIdx
-    ) {
-      setData((d) => ({ ...d, menuWeek: { offset: anchor, startDayIdx } }));
-    }
-  }, [selectedOffsets, todayIdx, data.menuWeek, setData]);
+  // Días de una semana que nunca se tocó a mano con el arrastre: la semana 0
+  // empieza hoy (no tiene sentido planificar un día que ya pasó), el resto
+  // son semanas completas — mismo criterio que el startDayIdx de siempre.
+  const legacyDefaultDays = (offset) => (offset === 0 ? DAYS.filter((_, i) => i >= todayIdx) : [...DAYS]);
 
-  const toggleWeek = (offset) => {
+  // Días seleccionados de una semana: lo explícito (arrastre, menuWeekDays)
+  // manda; si esa semana nunca se tocó, cae al criterio legado a partir de
+  // menuWeekOffsets/menuWeek — así un menú/borrador guardado antes de que
+  // existiera el arrastre por días sigue viéndose exactamente igual.
+  const daysForOffset = (d, offset) => {
+    const explicit = d.menuWeekDays?.[offset];
+    if (Array.isArray(explicit)) return explicit;
+    const legacyOffsets = Array.isArray(d.menuWeekOffsets) && d.menuWeekOffsets.length
+      ? d.menuWeekOffsets
+      : [d.menuWeek?.offset ?? 0];
+    return legacyOffsets.includes(offset) ? legacyDefaultDays(offset) : [];
+  };
+
+  const selectedDaysByOffset = useMemo(() => {
+    const map = {};
+    for (const offset of allOffsets) map[offset] = new Set(daysForOffset(data, offset));
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.menuWeekDays, data.menuWeekOffsets, data.menuWeek, todayIdx]);
+
+  const selectedOffsets = useMemo(
+    () => allOffsets.filter((o) => selectedDaysByOffset[o].size > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedDaysByOffset],
+  );
+
+  // Escribe menuWeekDays + deriva menuWeekOffsets/menuWeek (el resto de la
+  // app sigue leyendo estos dos tal cual) en una sola actualización atómica,
+  // para que no haga falta un efecto de sincronización aparte. `days` vacío
+  // en la propia semana que se está tocando cuenta como "semana fuera".
+  const setDaySelected = (offset, dayCode, selected) => {
     setData((d) => {
-      const current = Array.isArray(d.menuWeekOffsets) && d.menuWeekOffsets.length
-        ? d.menuWeekOffsets
-        : [d.menuWeek?.offset ?? 0];
-      const has = current.includes(offset);
-      let next;
-      if (has) {
-        if (current.length <= 1) return d; // always keep at least one week selected
-        next = current.filter((o) => o !== offset);
-      } else {
-        if (current.length >= MAX_MENU_WEEKS) return d;
-        next = [...current, offset];
-      }
-      next = next.sort((a, b) => a - b);
-      const anchor = next[0];
+      const current = new Set(daysForOffset(d, offset));
+      if (selected) current.add(dayCode);
+      else current.delete(dayCode);
+      const nextDays = DAYS.filter((day) => current.has(day));
+      const menuWeekDays = { ...(d.menuWeekDays ?? {}) };
+      if (nextDays.length > 0) menuWeekDays[offset] = nextDays;
+      else delete menuWeekDays[offset];
+      const nextOffsets = allOffsets.filter((o) =>
+        o === offset ? nextDays.length > 0 : daysForOffset(d, o).length > 0
+      );
+      if (nextOffsets.length === 0) return d; // siempre queda al menos un día en algún sitio
+      const anchor = nextOffsets[0];
+      const anchorDays = anchor === offset ? nextDays : daysForOffset(d, anchor);
+      const startDayIdx = anchor === 0 ? DAYS.indexOf(anchorDays[0] ?? DAYS[todayIdx]) : 0;
       return {
         ...d,
-        menuWeekOffsets: next,
-        menuWeek: { offset: anchor, startDayIdx: anchor === 0 ? todayIdx : 0 },
+        menuWeekDays,
+        menuWeekOffsets: nextOffsets,
+        menuWeek: { offset: anchor, startDayIdx },
       };
     });
   };
 
-  const weeks = buildCalendarWeeks(MAX_MENU_WEEKS);
+  const setWeekDays = (offset, days) => {
+    setData((d) => {
+      const menuWeekDays = { ...(d.menuWeekDays ?? {}) };
+      if (days.length > 0) menuWeekDays[offset] = days;
+      else delete menuWeekDays[offset];
+      const nextOffsets = allOffsets.filter((o) =>
+        o === offset ? days.length > 0 : daysForOffset(d, o).length > 0
+      );
+      if (nextOffsets.length === 0) return d;
+      const anchor = nextOffsets[0];
+      const anchorDays = anchor === offset ? days : daysForOffset(d, anchor);
+      const startDayIdx = anchor === 0 ? DAYS.indexOf(anchorDays[0] ?? DAYS[todayIdx]) : 0;
+      return {
+        ...d,
+        menuWeekDays,
+        menuWeekOffsets: nextOffsets,
+        menuWeek: { offset: anchor, startDayIdx },
+      };
+    });
+  };
+
+  const toggleWholeWeek = (offset) => {
+    const full = legacyDefaultDays(offset);
+    const allSelected = (selectedDaysByOffset[offset]?.size ?? 0) === full.length;
+    setWeekDays(offset, allSelected ? [] : full);
+  };
+
+  // Arrastrar para pintar varios días de golpe: el primer día tocado decide
+  // el modo (seleccionar o quitar) según su propio estado ANTES del toque, y
+  // cada día que el puntero visita mientras sigue pulsado se pone en ese
+  // mismo modo — así arrastrar por encima de días ya en el modo destino no
+  // los "revierte" a mitad de gesto. Sin setPointerCapture a propósito: así
+  // el navegador sigue enrutando pointerenter al día real bajo el dedo/ratón
+  // según se mueve, que es justo lo que hace falta para pintar varias celdas.
+  const dragRef = useRef(null);
+  useEffect(() => {
+    const end = () => { dragRef.current = null; };
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+    return () => {
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+    };
+  }, []);
+  const beginDayDrag = (offset, dayCode, wasSelected) => {
+    const mode = !wasSelected;
+    dragRef.current = { mode };
+    setDaySelected(offset, dayCode, mode);
+  };
+  const continueDayDrag = (offset, dayCode) => {
+    if (!dragRef.current) return;
+    setDaySelected(offset, dayCode, dragRef.current.mode);
+  };
 
   // The select-column card is drawn as one continuous pill that hugs the
   // circles: it must start above the FIRST circle and end below the LAST one
@@ -9689,7 +9714,11 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
   return (
     <OnboardingShell
       title="¿Para cuándo quieres el menú?"
-      subtitle={`Toca las semanas que quieres planificar (hasta ${MAX_MENU_WEEKS})`}
+      // Ya no se eligen semanas enteras sino días sueltos, así que el copy
+      // dice el gesto: tocar quita y pone, arrastrar pinta varios de golpe.
+      // Fuera el "(hasta N)": MAX_MENU_WEEKS ya no topa la selección, solo
+      // cuántas semanas dibuja el calendario — y eso se ve sin contarlo.
+      subtitle="Toca los días que quieres planificar. Arrastra para marcar varios de golpe."
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -9748,7 +9777,10 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
         }} />
         <div style={{ display: "flex", flexDirection: "column", gap: 4, position: "relative" }}>
         {weeks.map(({ offset, monday, days }, weekIdx) => {
-          const isSelected = selectedOffsets.includes(offset);
+          const selectedSet = selectedDaysByOffset[offset] ?? new Set();
+          const fullWeekLen = legacyDefaultDays(offset).length;
+          const isSelected = selectedSet.size > 0 && selectedSet.size === fullWeekLen;
+          const isPartial = selectedSet.size > 0 && !isSelected;
           const showMonthLabel =
             weekIdx > 0 &&
             monday.getMonth() !== weeks[weekIdx - 1].monday.getMonth();
@@ -9770,25 +9802,21 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
                 </div>
               )}
 
-              {/* Week row */}
-              <button
-                type="button"
-                onClick={() => toggleWeek(offset)}
+              {/* Week row — ya no es un único botón: cada día es su propia
+                  celda arrastrable, y el indicador de la derecha pasa a ser
+                  un botón aparte para "semana completa" de un toque. */}
+              <div
                 style={{
                   width: "100%",
-                  border: "none",
                   borderRadius: 14,
-                  background: isSelected ? "rgba(45,90,61,.07)" : "transparent",
-                  cursor: "pointer",
+                  background: (isSelected || isPartial) ? "rgba(45,90,61,.07)" : "transparent",
                   padding: "3px 4px",
-                  fontFamily: "inherit",
-                  outline: "none",
                   position: "relative",
                   transition: "background .15s ease",
                 }}
               >
                 {/* Left accent bar for selected */}
-                {isSelected && (
+                {(isSelected || isPartial) && (
                   <span style={{
                     position: "absolute",
                     left: 0,
@@ -9797,7 +9825,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
                     width: 3,
                     height: "70%",
                     borderRadius: 99,
-                    background: "#2d5a3d",
+                    background: isPartial ? "#8fae9a" : "#2d5a3d",
                   }} />
                 )}
 
@@ -9810,14 +9838,21 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
                   {days.map((dayDate, i) => {
                     const isToday = isSameDay(dayDate, today);
                     const isPast = dayDate < today && !isToday;
+                    const dayCode = DAYS[i];
+                    const daySelected = selectedSet.has(dayCode);
+                    const interactive = !isPast;
                     return (
                       <div key={i} style={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         height: 38,
+                        touchAction: "none",
                       }}>
-                        <span style={{
+                        <span
+                          onPointerDown={interactive ? (e) => { e.preventDefault(); beginDayDrag(offset, dayCode, daySelected); } : undefined}
+                          onPointerEnter={interactive ? () => continueDayDrag(offset, dayCode) : undefined}
+                          style={{
                           width: 30,
                           height: 30,
                           borderRadius: 999,
@@ -9826,10 +9861,12 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
                           justifyContent: "center",
                           fontSize: 14,
                           fontWeight: isToday ? 900 : isPast ? 400 : 600,
-                          background: isToday ? "#f59e0b" : "transparent",
-                          color: isToday ? "#fff" : isPast ? "#ccc" : isSelected ? "#142f1d" : "#333",
+                          background: isToday ? "#f59e0b" : daySelected ? "rgba(45,90,61,.14)" : "transparent",
+                          color: isToday ? "#fff" : isPast ? "#ccc" : daySelected ? "#142f1d" : "#333",
                           boxShadow: isToday ? "0 2px 8px #f59e0b55" : "none",
-                          transition: "all .15s ease",
+                          cursor: interactive ? "pointer" : "default",
+                          userSelect: "none",
+                          transition: "background .1s ease, color .1s ease",
                         }}>
                           {dayDate.getDate()}
                         </span>
@@ -9837,37 +9874,48 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
                     );
                   })}
 
-                  {/* Select indicator — sits inside the continuous pill card
-                      drawn as an absolute overlay above, so no per-row border. */}
+                  {/* Indicador + atajo "semana completa" — sigue viviendo
+                      dentro de la pill continua dibujada arriba como overlay
+                      absoluto, ahora como su propio botón (3 estados: llena,
+                      parcial, vacía) en vez de solo reflejar el toggle de la
+                      fila entera. */}
                   <div style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     alignSelf: "stretch",
                   }}>
-                    <span
+                    <button
+                      type="button"
+                      onClick={() => toggleWholeWeek(offset)}
+                      aria-label={isSelected ? "Quitar toda la semana" : "Marcar toda la semana"}
                       ref={weekIdx === 0 ? firstCircleRef : weekIdx === weeks.length - 1 ? lastCircleRef : undefined}
                       style={{
                       width: 20,
                       height: 20,
                       borderRadius: 999,
-                      border: `2px solid ${isSelected ? "#2d5a3d" : "#d0dbd3"}`,
+                      border: `2px solid ${(isSelected || isPartial) ? "#2d5a3d" : "#d0dbd3"}`,
                       background: isSelected ? "#2d5a3d" : "transparent",
+                      padding: 0,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       transition: "all .15s ease",
                       flexShrink: 0,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
                     }}>
-                      {isSelected && (
+                      {isSelected ? (
                         <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
                           <path d="M1 3.5l2.5 2.5 5-5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
-                      )}
-                    </span>
+                      ) : isPartial ? (
+                        <span style={{ width: 8, height: 2, borderRadius: 1, background: "#2d5a3d" }} />
+                      ) : null}
+                    </button>
                   </div>
                 </div>
-              </button>
+              </div>
             </div>
           );
         })}
