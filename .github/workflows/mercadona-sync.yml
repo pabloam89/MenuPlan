@@ -1,0 +1,95 @@
+# Sincroniza el catálogo de Mercadona una vez por semana.
+#
+# ── Por qué aquí y no en un cron de Vercel ────────────────────────────────
+# El catálogo es un fichero del repo que se sirve estático (lib/storeCatalog.js
+# hace fetch("/store/mercadona.json")). Así que su sitio natural es un commit:
+# queda versionado —se ve en el historial cuándo subió el aceite— y no añade ni
+# una lectura a Supabase. Servirlo desde la base de datos serían 568 KB por
+# usuario y sesión, que es justo el patrón que disparó el egress a 7,4 GB.
+#
+# El push a main dispara el deploy de Vercel, así que en la práctica se publica
+# solo.
+#
+# ── Sobre la API ──────────────────────────────────────────────────────────
+# tienda.mercadona.es/api es NO OFICIAL. Una cosa es lanzarlo a mano de vez en
+# cuando y otra convertirlo en tráfico recurrente contra el servidor de otro,
+# así que: una vez por semana y punto, con el User-Agent que ya identifica la
+# herramienta y las pausas que trae mercadonaFetch.mjs. Nunca a diario.
+#
+# Y no lleva credenciales de Supabase a propósito: el repo es PÚBLICO, y el
+# script se salta ese paso solo cuando no están (mercadona-sync.mjs#42).
+
+name: Sync catálogo Mercadona
+
+on:
+  schedule:
+    # Lunes a las 06:15 UTC. En punto no: los cron de GitHub se atascan en las
+    # horas redondas, cuando arranca medio mundo a la vez.
+    - cron: "15 6 * * 1"
+  workflow_dispatch: # para poder lanzarlo a mano desde la pestaña Actions
+
+# Solo lo justo para commitear el JSON. Sin esto, el token es de solo lectura.
+permissions:
+  contents: write
+
+concurrency:
+  group: mercadona-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Descargar el catálogo
+        run: node scripts/mercadona-sync.mjs
+
+      # El guardarraíl que de verdad importa. Si Mercadona cambia su API, el
+      # script puede devolver 0 productos —o 40— sin fallar, y entonces esto
+      # commitearía un catálogo vacío y lo desplegaría: la lista de la compra se
+      # queda sin precios para todo el mundo y nadie se entera.
+      #
+      # Así que se compara con lo que había: una caída de más del 20% se trata
+      # como scraper roto, no como que Mercadona ha dejado de vender comida.
+      - name: Comprobar que el catálogo tiene sentido
+        run: |
+          node -e '
+            const { execSync } = require("child_process");
+            const nuevo = require("./public/store/mercadona.json");
+            const previo = JSON.parse(
+              execSync("git show HEAD:public/store/mercadona.json", { maxBuffer: 64e6 }).toString(),
+            );
+            const antes = previo.productCount, ahora = nuevo.productCount;
+            console.log(`productos: ${antes} → ${ahora}`);
+            if (ahora < 500) {
+              console.error(`❌ Solo ${ahora} productos. El scraper está roto.`);
+              process.exit(1);
+            }
+            if (ahora < antes * 0.8) {
+              console.error(`❌ Caída del ${Math.round((1 - ahora / antes) * 100)}%. Revisar antes de publicar.`);
+              process.exit(1);
+            }
+          '
+
+      - name: Commitear si ha cambiado algo
+        run: |
+          if git diff --quiet -- public/store/mercadona.json; then
+            echo "Sin cambios: los precios son los mismos que la semana pasada."
+            exit 0
+          fi
+          N=$(node -p "require('./public/store/mercadona.json').productCount")
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/store/mercadona.json
+          git commit -m "chore(mercadona): catálogo semanal — ${N} productos"
+          git push
