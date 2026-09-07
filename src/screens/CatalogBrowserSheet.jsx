@@ -518,6 +518,9 @@ export function CatalogBrowserSheet({
     const source = gatePick ? platoCatalog : fullCatalog;
     for (const r of source) {
       if (r.category && !isGuarnicionRecipe(r)) c.add(catKeyOf(r));
+      // Las dos tejas de bebé se ofrecen aunque una esté vacía: es la única
+      // forma de que se vea que "sólidos" existe y todavía no tiene recetas.
+      if (r.category === "bebes") { c.add("bebes_cremas"); c.add("bebes_solidos"); }
       if (isRealProtein(r.mainProtein)) p.add(r.mainProtein);
     }
     if (!gatePick && catalogGarnishBrowseList.length > 0) c.add("guarniciones");
@@ -754,9 +757,18 @@ export function CatalogBrowserSheet({
     const counts = {};
     for (const r of fullCatalog) {
       if (r.category && !isGuarnicionRecipe(r)) {
-        counts[r.category] = (counts[r.category] ?? 0) + 1;
+        // Por clave de TEJA, no por categoría: si no, las 19 de bebé se cuentan
+        // bajo "bebes" y la teja "Cremas de bebé" sale con el contador vacío
+        // aunque estén todas ahí dentro.
+        counts[catKeyOf(r)] = (counts[catKeyOf(r)] ?? 0) + 1;
       }
     }
+    // Las tejas de bebé existen SIEMPRE, aunque una esté a cero. Un cero dice
+    // "esto existe y todavía no hay nada"; que la teja desaparezca dice "esto
+    // no existe", y entonces nadie entiende por qué al elegir "ya come sólidos"
+    // el generador se queda sin platos.
+    counts.bebes_cremas ??= 0;
+    counts.bebes_solidos ??= 0;
     if (catalogGarnishBrowseList.length > 0) {
       counts.guarniciones = catalogGarnishBrowseList.length;
     }
