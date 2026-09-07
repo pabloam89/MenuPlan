@@ -196,6 +196,10 @@ export function filterRecipes({
   // pass so a rejected dish can never come back on generation or regeneration.
   excludeIds = [],
   hasKids = false,
+  // Qué etapas de bebé sirven en esta casa ("cremas" y/o "solidos"). Por
+  // defecto las dos: hasta ahora todas las recetas de bebé eran cremas, así que
+  // no filtrar es exactamente el comportamiento de siempre.
+  etapasBebe = null,
   maxTime = 120,
   kitchenTools = [],
   cookLevel = "normal",
@@ -239,6 +243,16 @@ export function filterRecipes({
 
   // 0b. Baby group isolation — baby recipes only for baby groups, excluded otherwise
   pool = pool.filter((r) => isBabyGroup ? r.category === "bebes" : r.category !== "bebes");
+
+  // 0b-bis. Y dentro de bebés, la ETAPA. "Bebé" no es una etapa sino tres, y
+  // hasta que existió este filtro un niño de 22 meses comía el mismo puré que
+  // uno de seis: stages.js define bebé como 0-2 años y aquí se le encerraba en
+  // su categoría. Una receta sin etapa cuenta como crema, que es lo que eran las
+  // 19 originales, así que no filtrar deja el comportamiento de siempre.
+  if (isBabyGroup && Array.isArray(etapasBebe) && etapasBebe.length > 0) {
+    const permitidas = new Set(etapasBebe);
+    pool = pool.filter((r) => permitidas.has(r.etapaBebe ?? "cremas"));
+  }
 
   // 0c. Off-menu isolation — desayuno/merienda/postre are an optional light pool
   // (fruit, yogur, kéfir, pan), never candidates for the comida/cena planner.

@@ -216,6 +216,13 @@ export const RecipeSchema = z
     // Deliberadamente NO incluye guisos y estofados: tienen su jugo, pero eso
     // ya lo dice `tecnica`, y mezclarlos dejaba el filtro sin filo.
     llevaSalsa: z.boolean().optional(),
+    // Etapa del bebé, solo para category "bebes". "Bebé" no es una etapa: son
+    // tres, y hasta ahora las 19 recetas eran todas del primer tramo — un niño
+    // de 22 meses comía el mismo puré que uno de seis, porque filterRecipes
+    // encierra al grupo bebé en su propia categoría.
+    //
+    // Ausente = "cremas", que es lo que eran las 19 originales.
+    etapaBebe: z.enum(["cremas", "solidos"]).optional(),
     // "Cena rápida" de verdad: se MONTA con cosas ya listas (sándwich, tostas,
     // tabla, ensalada de asamblaje). Sustituye a category "cenas_rapidas".
     //

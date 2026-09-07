@@ -13972,5 +13972,750 @@
     "cocina": "asiatica",
     "llevaSalsa": true,
     "mainBase": "legumbre"
+  },
+  {
+    "id": "legumbres_076",
+    "name": "Alubias blancas guisadas con verduras",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "tecnica": "olla",
+    "kcal": 312,
+    "protein_g": 16,
+    "carbs_g": 45,
+    "fat_g": 7,
+    "fiber_g": 13,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 210,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "freezable": true,
+    "description": "Alubias blancas guisadas a fuego lento con zanahoria, puerro y pimiento",
+    "ingredients": [
+      {
+        "name": "Alubias blancas cocidas",
+        "amount": 320,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y picar la cebolla y la zanahoria en dados pequeños.",
+      "Limpiar el puerro y cortarlo en medias lunas finas.",
+      "Cortar el pimiento verde en dados del tamaño de la zanahoria.",
+      "Calentar el aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla y el puerro hasta que estén transparentes, unos 6 minutos.",
+      "Añadir la zanahoria y el pimiento verde y sofreír 5 minutos más.",
+      "Incorporar el pimentón fuera del fuego y remover deprisa para que no se queme.",
+      "Añadir el tomate triturado y cocer a fuego medio hasta que pierda el agua.",
+      "Incorporar las alubias blancas escurridas, el laurel y la sal.",
+      "Cubrir con agua justo hasta la altura de las alubias y llevar a hervor suave.",
+      "Cocer a fuego bajo 15 minutos, moviendo la olla en vaivén para que ligue sin romper las alubias.",
+      "Retirar el laurel y servir en platos hondos, bien caliente."
+    ],
+    "methods": [
+      {
+        "appliance": "olla_rapida",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la verdura en la olla destapada, añade tomate, alubias y agua a ras, cierra y cuece 6 minutos desde que suba la válvula. Despresuriza y deja reposar 5 minutos para que ligue."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Trocea la verdura 4 seg/vel 4. Sofríe 8 min/120°C/vel 1. Añade tomate y cocina 5 min más. Incorpora alubias y agua y programa 12 min/100°C/giro inverso/vel cuchara."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_077",
+    "name": "Lentejas a la riojana",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mainIngredients": [
+      "verdura"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "facil",
+    "tecnica": "olla",
+    "kcal": 396,
+    "protein_g": 20,
+    "carbs_g": 46,
+    "fat_g": 14,
+    "fiber_g": 12,
+    "sugar_g": 4,
+    "saturated_fat_g": 4,
+    "sodium_mg": 480,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "freezable": true,
+    "healthFlags": [
+      "embutido"
+    ],
+    "description": "Lentejas guisadas con chorizo, patata y pimiento al estilo riojano",
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar las lentejas en un colador bajo el grifo hasta que el agua salga limpia.",
+      "Pelar y picar la cebolla y el ajo; cortar el pimiento rojo y la zanahoria en dados.",
+      "Pelar la patata y cascarla en trozos irregulares, rompiendo el corte al final para que suelte almidón y espese el guiso.",
+      "Cortar el chorizo en rodajas de medio centímetro.",
+      "Calentar el aceite en una olla y dorar el chorizo un par de minutos; retirar y reservar.",
+      "En esa misma grasa, sofreír la cebolla y el ajo hasta que estén transparentes.",
+      "Añadir el pimiento rojo y la zanahoria y sofreír 5 minutos.",
+      "Retirar del fuego, añadir el pimentón y remover deprisa para que no amargue.",
+      "Incorporar las lentejas, la patata, el laurel y el chorizo reservado.",
+      "Cubrir con agua dos dedos por encima y llevar a hervor.",
+      "Bajar el fuego y cocer 35 minutos, hasta que la lenteja esté tierna y el caldo haya espesado.",
+      "Salar al final, retirar el laurel y dejar reposar 5 minutos antes de servir."
+    ],
+    "methods": [
+      {
+        "appliance": "olla_rapida",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Haz el sofrito destapado, añade lentejas, patata y agua dos dedos por encima. Cierra y cuece 12 minutos desde que suba la válvula. Sala al abrir."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_078",
+    "name": "Lentejas a la jardinera",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "facil",
+    "tecnica": "olla",
+    "kcal": 322,
+    "protein_g": 18,
+    "carbs_g": 48,
+    "fat_g": 6,
+    "fiber_g": 14,
+    "sugar_g": 6,
+    "saturated_fat_g": 1,
+    "sodium_mg": 220,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "freezable": true,
+    "description": "Lentejas guisadas con guisantes, zanahoria y judía verde, sin embutido",
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 70,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar las lentejas bajo el grifo hasta que el agua salga limpia.",
+      "Pelar y picar la cebolla y el ajo.",
+      "Cortar la zanahoria en rodajas y las judías verdes en trozos de dos centímetros.",
+      "Calentar el aceite en una olla y sofreír la cebolla y el ajo hasta que estén transparentes.",
+      "Añadir la zanahoria y sofreír 4 minutos.",
+      "Retirar del fuego, incorporar el pimentón y remover deprisa.",
+      "Añadir el tomate triturado y cocer a fuego medio hasta que pierda el agua.",
+      "Incorporar las lentejas y el laurel, cubrir con agua dos dedos por encima y llevar a hervor.",
+      "Cocer a fuego bajo 25 minutos.",
+      "Añadir las judías verdes y los guisantes y cocer 10 minutos más, hasta que todo esté tierno.",
+      "Salar, retirar el laurel y servir."
+    ],
+    "methods": [
+      {
+        "appliance": "olla_rapida",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Sofrito destapado, añade lentejas y agua, cierra y cuece 10 minutos desde la válvula. Abre, añade judía verde y guisantes y hierve 5 minutos destapada."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_079",
+    "name": "Garbanzos estofados",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "facil",
+    "tecnica": "olla",
+    "kcal": 358,
+    "protein_g": 17,
+    "carbs_g": 47,
+    "fat_g": 11,
+    "fiber_g": 12,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 240,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "freezable": true,
+    "description": "Garbanzos estofados con sofrito de verduras y pimentón",
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Pelar y picar la cebolla y el ajo; cortar la zanahoria y el pimiento rojo en dados.",
+      "Calentar el aceite en una olla ancha a fuego medio.",
+      "Sofreír la cebolla y el ajo hasta que estén transparentes, unos 6 minutos.",
+      "Añadir la zanahoria y el pimiento y sofreír 6 minutos más.",
+      "Retirar del fuego, añadir el pimentón y remover deprisa para que no se queme.",
+      "Incorporar el tomate triturado y cocer a fuego medio hasta que se concentre.",
+      "Añadir los garbanzos, el laurel y un vaso de agua.",
+      "Cocer a fuego suave 15 minutos, moviendo la olla en vaivén para que la salsa ligue.",
+      "Salar, retirar el laurel y dejar reposar 5 minutos antes de servir."
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Trocea la verdura 4 seg/vel 4 y sofríe 8 min/120°C/vel 1. Añade tomate y pimentón, 5 min/100°C. Incorpora garbanzos y agua y programa 10 min/100°C/giro inverso/vel cuchara."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_080",
+    "name": "Garbanzos estofados con ternera y chorizo",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "extraProteins": [
+      "ternera",
+      "cerdo"
+    ],
+    "mainIngredients": [
+      "verdura"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 60,
+    "difficulty": "normal",
+    "tecnica": "olla",
+    "kcal": 486,
+    "protein_g": 30,
+    "carbs_g": 44,
+    "fat_g": 20,
+    "fiber_g": 11,
+    "sugar_g": 5,
+    "saturated_fat_g": 6,
+    "sodium_mg": 520,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "freezable": true,
+    "healthFlags": [
+      "embutido"
+    ],
+    "description": "Garbanzos estofados con carne de ternera y chorizo, guiso de cuchara completo",
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 320,
+        "unit": "g"
+      },
+      {
+        "name": "Carne de ternera para guisar",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar la ternera en dados de bocado y salarla ligeramente.",
+      "Cortar el chorizo en rodajas gruesas.",
+      "Pelar y picar la cebolla y el ajo; cortar la zanahoria en rodajas.",
+      "Calentar el aceite en una olla y dorar la ternera a fuego fuerte por todas sus caras; retirar y reservar.",
+      "Bajar el fuego y dorar el chorizo en la misma grasa un par de minutos.",
+      "Añadir la cebolla y el ajo y sofreír hasta que estén transparentes.",
+      "Incorporar la zanahoria y sofreír 5 minutos.",
+      "Retirar del fuego, añadir el pimentón y remover deprisa.",
+      "Añadir el tomate triturado y cocer hasta que se concentre.",
+      "Devolver la ternera a la olla con el laurel y cubrir con agua.",
+      "Cocer a fuego bajo 40 minutos, hasta que la carne esté tierna.",
+      "Añadir los garbanzos y cocer 10 minutos más para que se integren.",
+      "Rectificar de sal, retirar el laurel y servir bien caliente."
+    ],
+    "methods": [
+      {
+        "appliance": "olla_rapida",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Dora la carne y haz el sofrito destapado. Añade tomate, carne, laurel y agua, cierra y cuece 18 minutos desde la válvula. Abre, incorpora los garbanzos y hierve 5 minutos destapada."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_081",
+    "name": "Judías pintas con verduras",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "tecnica": "olla",
+    "kcal": 336,
+    "protein_g": 18,
+    "carbs_g": 50,
+    "fat_g": 6,
+    "fiber_g": 15,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 230,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "freezable": true,
+    "description": "Judías pintas guisadas con puerro, zanahoria y calabacín",
+    "ingredients": [
+      {
+        "name": "Judías pintas",
+        "amount": 330,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar las judías pintas cocidas.",
+      "Limpiar el puerro y cortarlo en medias lunas; picar la cebolla.",
+      "Cortar la zanahoria en rodajas y el calabacín en medias lunas.",
+      "Calentar el aceite en una olla y sofreír el puerro y la cebolla hasta que estén transparentes.",
+      "Añadir la zanahoria y sofreír 5 minutos.",
+      "Retirar del fuego, añadir el pimentón y remover deprisa.",
+      "Incorporar el tomate triturado y cocer hasta que pierda el agua.",
+      "Añadir las judías pintas, el laurel y un vaso de agua.",
+      "Cocer a fuego suave 12 minutos.",
+      "Incorporar el calabacín y cocer 6 minutos más, para que quede tierno pero entero.",
+      "Salar, retirar el laurel y servir."
+    ]
+  },
+  {
+    "id": "legumbres_082",
+    "name": "Ensalada de alubias blancas",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "tecnica": "crudo",
+    "kcal": 288,
+    "protein_g": 14,
+    "carbs_g": 36,
+    "fat_g": 10,
+    "fiber_g": 11,
+    "sugar_g": 4,
+    "saturated_fat_g": 1,
+    "sodium_mg": 260,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "verano",
+    "freezable": false,
+    "montaje": true,
+    "description": "Alubias blancas en ensalada con tomate, cebolleta y pimiento, aliñadas en frío",
+    "ingredients": [
+      {
+        "name": "Alubias blancas cocidas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir las alubias en un colador y enjuagarlas bajo el grifo para quitar el almidón del bote.",
+      "Dejarlas escurrir bien para que la ensalada no quede aguada.",
+      "Cortar el tomate en dados, retirando la parte más acuosa de las semillas.",
+      "Picar la cebolleta muy fina y el pimiento verde en dados pequeños.",
+      "Poner las alubias en una fuente amplia y añadir el tomate, la cebolleta y el pimiento.",
+      "Aliñar con el aceite de oliva virgen extra, el vinagre y la sal.",
+      "Mezclar con cuidado, con movimientos envolventes, para no romper las alubias.",
+      "Dejar reposar 10 minutos en la nevera antes de servir para que tome el aliño."
+    ]
   }
 ]
