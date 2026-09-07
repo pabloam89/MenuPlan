@@ -3816,12 +3816,18 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
 // (schedulePresets.js#outStateFor). Lo que se unifica es el color, no el dato.
 const CASA_COLOR = "#0f766e";  // teal fuerte
 const FUERA_COLOR = "#1e3a5f"; // azul navy
+// El comedor sale del navy y se queda con el rojo de la casa (#c0392b, el de
+// carnes y el de peligro). No es un color mas: de los tres estados "fuera",
+// el cole es el UNICO del que sabemos lo que van a comer —tiene su menu, y su
+// importador— asi que mezclarlo con "come fuera" escondia justo el que si
+// aporta informacion. Y de paso la rejilla deja de ser dos colores.
+const COLE_COLOR = "#c0392b";
 
 const SLOT_CONFIG = {
   casa:   { label: "En casa",     color: CASA_COLOR },
   tupper: { label: "Tupper",      color: FUERA_COLOR },
   fuera:  { label: "Come fuera",  color: FUERA_COLOR },
-  cole:   { label: "Comedor",     color: FUERA_COLOR },
+  cole:   { label: "Comedor",     color: COLE_COLOR },
 };
 
 const MIXED_COLOR = "#aaa";
@@ -4586,7 +4592,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   return (
     <OnboardingShell
       title="¿Dónde coméis?"
-      subtitle="Marca dónde come cada uno cada día — en casa, en el cole, fuera o con tupper — para saber qué comidas planificar."
+      subtitle="Marca dónde come cada uno cada día para saber qué comidas hay que planificar."
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -4762,11 +4768,13 @@ function sheetColumns(showCole) {
   return showCole ? SLOT_COLUMNS : SLOT_COLUMNS.filter((s) => s !== "cole");
 }
 
-// La leyenda dice DOS cosas, no cuatro, porque la rejilla solo pinta dos
-// colores. Enumerar "En casa / Comedor / Come fuera / Tupper" con tres de ellos
-// del mismo navy es pedirle al usuario que distinga algo que no se ve.
+// La leyenda dice TRES cosas, no cuatro: cada entrada es un color que la
+// rejilla pinta de verdad. "Tupper" se queda fuera a proposito porque comparte
+// el navy de "come fuera" — enumerar dos etiquetas del mismo color es pedirle
+// al usuario que distinga algo que no se ve.
 const LEYENDA = [
   { label: "En casa", color: CASA_COLOR, estado: "casa" },
+  { label: "Comedor", color: COLE_COLOR, estado: "cole" },
   { label: "Fuera de casa", color: FUERA_COLOR, estado: "fuera" },
 ];
 
@@ -5764,7 +5772,11 @@ function ScheduleLanes({
   onDayClick,
 }) {
   const [accionesAbiertas, setAccionesAbiertas] = useState(false);
-  const hayActivas = quickActions.some((a) => a.active);
+  // `resolveQuickActions` devuelve `status` ("off" | "on" | "partial"), nunca
+  // `active` — que es lo que se leia aqui y en las tarjetas. Al ser siempre
+  // undefined, ni el boton ni las tarjetas se marcaban NUNCA: aplicabas una
+  // accion, la rejilla cambiaba, y no habia forma de saber cual habias tocado.
+  const hayActivas = quickActions.some((a) => a.status && a.status !== "off");
   const mealGlyph = (meal, size = 11) =>
     meal === "Desayuno" ? <Coffee size={size} strokeWidth={2.6} /> :
     meal === "Comida"   ? <Sun size={size} strokeWidth={2.6} />    :
@@ -5940,7 +5952,14 @@ function ScheduleLanes({
                             // "sin contestar" y esta pantalla arranca contestada
                             // — lo normal es comer en casa, y lo que el usuario
                             // marca son las excepciones.
-                            background: home ? CASA_COLOR : FUERA_COLOR,
+                            //
+                            // El color de fuera sale de SLOT_CONFIG (`c`) y ya
+                            // no de un FUERA_COLOR fijo: asi el comedor se
+                            // pinta con SU rojo. `c` llevaba calculado ahi
+                            // arriba desde siempre y no lo usaba nadie, que es
+                            // por lo que la leyenda podia decir tres colores
+                            // mientras la rejilla seguia pintando dos.
+                            background: home ? CASA_COLOR : c,
                             opacity: dayActive ? 1 : 0.35,
                             transition: "background .14s ease",
                             animation: flash ? "laneFill .34s ease-out both" : "none",
@@ -6058,7 +6077,7 @@ function QuickActionsSheet({ actions, onToggle, onClose }) {
               className="mp-press"
               style={{
                 position: "relative", background: "#fff", cursor: "pointer",
-                border: `2px solid ${a.active ? CASA_COLOR : "#e4ece7"}`,
+                border: `2px solid ${a.status && a.status !== "off" ? CASA_COLOR : "#e4ece7"}`,
                 borderRadius: 16, padding: 0, overflow: "hidden", textAlign: "left",
                 boxShadow: "0 2px 8px rgba(20,47,29,.08)",
               }}
@@ -6067,17 +6086,24 @@ function QuickActionsSheet({ actions, onToggle, onClose }) {
                 display: "block", width: "100%", height: 92,
                 background: `#eef4ef url(${a.img}) center top / cover no-repeat`,
               }} />
-              {a.active && (
+              {/* Entera lleva check; a medias, un guion. Distinguirlas importa:
+                  "partial" significa que algunos dias de esa accion ya estaban
+                  puestos a mano, y un check ahi mentiria. */}
+              {a.status && a.status !== "off" && (
                 <span style={{
                   position: "absolute", top: 7, right: 7, width: 22, height: 22, borderRadius: 999,
-                  background: CASA_COLOR, display: "flex", alignItems: "center", justifyContent: "center",
+                  background: a.status === "on" ? CASA_COLOR : "#fff",
+                  border: a.status === "on" ? "none" : `2px solid ${CASA_COLOR}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <Check size={13} color="#fff" strokeWidth={3.2} />
+                  {a.status === "on"
+                    ? <Check size={13} color="#fff" strokeWidth={3.2} />
+                    : <span style={{ width: 8, height: 2.5, borderRadius: 2, background: CASA_COLOR }} />}
                 </span>
               )}
               <span style={{
                 display: "block", padding: "9px 10px 11px", fontSize: 12, fontWeight: 700,
-                lineHeight: 1.3, color: a.active ? "#142f1d" : "#4a6355",
+                lineHeight: 1.3, color: a.status && a.status !== "off" ? "#142f1d" : "#4a6355",
               }}>
                 {a.label}
               </span>
