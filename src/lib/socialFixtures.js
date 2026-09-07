@@ -235,3 +235,44 @@ export const FIXTURE_SUGGESTED = [
   { ...FIXTURE_PROFILES.fx_javi, mutuals: 1, via_ids: ["fx_ana"] },
 ];
 
+/**
+ * Cocinadas de mentira para la fila de "Hoy cocinan".
+ *
+ * Van SIN foto propia a proposito: asi el demo ensena el camino de repuesto
+ * (sin foto se cae al cartel del catalogo), que es justo lo que hace que la
+ * fila no se quede muerta un miercoles. Con foto obligatoria el habito no
+ * arranca — ver CookingComposer.
+ *
+ * Las horas estan repartidas dentro de las ultimas 48 h porque ese es el TTL
+ * de la fila: una cocinada mas vieja sale de la fila pero se queda en la
+ * historia de su receta.
+ */
+const hoursAgo = (h) => new Date(Date.now() - h * 3600 * 1000).toISOString();
+
+export const FIXTURE_COOKINGS = [
+  {
+    id: 'fx_ck1', ownerId: 'fx_marta', createdAt: hoursAgo(3), photo: null,
+    recipeId: 'legumbres_001', recipeName: 'Lentejas con verduras',
+    draft: false, seal: 'repetimos', eaters: ['a1', 'a2', 'n1', 'n2'], __fixture: true,
+  },
+  {
+    id: 'fx_ck2', ownerId: 'fx_marta', createdAt: hoursAgo(1), photo: null,
+    recipeId: 'sopas_cremas_001', recipeName: 'Crema de calabacin',
+    draft: false, seal: 'sin_rechistar', eaters: ['a1', 'a2'], __fixture: true,
+  },
+  {
+    id: 'fx_ck3', ownerId: 'fx_javi', createdAt: hoursAgo(6), photo: null,
+    recipeId: 'draft_fx_guiso', recipeName: 'Guiso de ternera de mi madre',
+    draft: true, seal: 'de_familia', eaters: ['a1', 'a2'], __fixture: true,
+  },
+  {
+    id: 'fx_ck4', ownerId: 'fx_pau', createdAt: hoursAgo(20), photo: null,
+    recipeId: 'pasta_arroces_002', recipeName: 'Espaguetis a la bolonesa',
+    draft: false, seal: 'primera', eaters: ['a1', 'n1'], __fixture: true,
+  },
+  {
+    id: 'fx_ck5', ownerId: 'fx_ana', createdAt: hoursAgo(30), photo: null,
+    recipeId: 'huevos_001', recipeName: 'Tortilla de patatas',
+    draft: false, seal: 'regular', eaters: ['a1', 'a2'], __fixture: true,
+  },
+];

@@ -287,8 +287,87 @@ button {
   .mp-hpanel {
     transition: none;
   }
+
+  /* La foto deja de respirar, el halo deja de latir y el sello no brinca. */
+  .mp-kenburns,
+  .mp-cta-bob,
+  .mp-drift,
+  .mp-await {
+    animation: none;
+  }
+
+  /* La entrada escalonada cae a un fade sin desplazamiento y sin retardo: el
+     escalonado ES movimiento, asi que aqui no puede quedar nada de el. */
+  .mp-rise {
+    animation: mpFadeIn .12s ease both;
+    animation-delay: 0s;
+  }
+
+  .mp-seal-pop {
+    animation: mpFadeIn .12s ease both;
+  }
 }
 
 /* El placeholder del panel: 16px es obligatorio en el input (iOS hace zoom por
    debajo), pero el texto de sugerencia no tiene por que gritar. */
 .mp-panel-input::placeholder { font-size: 13.5px; color: #9aa8a0; opacity: 1; }
+
+/* ── Cocinadas ────────────────────────────────────────────────────────────
+   Dos animaciones y ni una mas. La foto respira (un Ken Burns lentisimo, 8s
+   y un 6% de escala: se nota que esta viva sin que nadie diga "esto se
+   mueve"), y el sello entra con un pop cuando la historia aparece. Es toda
+   la "magia de IG" que hace falta - un editor de capas y gestos seria otro
+   producto, y ademas convertiria contenido accionable en un poster. */
+@keyframes mpKenBurns {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+.mp-kenburns { animation: mpKenBurns 8s ease-out both; }
+
+@keyframes mpSealPop {
+  0%   { opacity: 0; transform: scale(.7) rotate(-6deg); }
+  70%  { opacity: 1; transform: scale(1.06) rotate(1deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+.mp-seal-pop { animation: mpSealPop .22s cubic-bezier(.2,.8,.3,1) both; }
+
+/* El boton de la camara da un salto corto cada pocos segundos. Es un rebote de
+   dibujo animado -sube 4px y cae con un pelin de rebote-, no un halo de neon
+   pulsando: lo primero invita, lo segundo parecia una alarma de nave espacial
+   y no tenia nada que ver con el tono de la app. */
+@keyframes mpCtaBob {
+  0%, 72%, 100% { transform: translateY(0) scale(1); }
+  80%           { transform: translateY(-5px) scale(1.04); }
+  88%           { transform: translateY(0) scale(.98); }
+  94%           { transform: translateY(-1px) scale(1); }
+}
+.mp-cta-bob { animation: mpCtaBob 3.6s ease-in-out infinite; }
+
+/* ── Composer de cocinadas ──────────────────────────────────────────────
+   Entrada escalonada. Cada control sube 10px y aparece, con un retardo que se
+   pasa inline (--d): la hoja se monta por partes en vez de aparecer entera de
+   golpe, que es lo que la hacia sentir estatica. 260ms, nada de coreografia. */
+@keyframes mpRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.mp-rise {
+  animation: mpRise .26s cubic-bezier(.2,.8,.3,1) both;
+  animation-delay: var(--d, 0s);
+}
+
+/* La ilustracion de fondo respira muy despacio mientras no hay foto: sin esto
+   el hueco vacio parecia una captura pegada. */
+@keyframes mpDrift {
+  from { transform: scale(1); }
+  to   { transform: scale(1.07); }
+}
+.mp-drift { animation: mpDrift 14s ease-out both; }
+
+/* Mientras esperas a colocar el adhesivo, la foto late apenas para decir
+   "toca aqui". Es la unica pista de un gesto que no tiene boton. */
+@keyframes mpAwait {
+  0%, 100% { box-shadow: inset 0 0 0 0 rgba(255,255,255,.9); }
+  50%      { box-shadow: inset 0 0 0 3px rgba(255,255,255,.9); }
+}
+.mp-await { animation: mpAwait 1.4s ease-in-out infinite; }

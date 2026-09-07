@@ -6,8 +6,10 @@ import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
 import { PersonSheet } from "../components/PersonSheet.jsx";
 import { CommentThread } from "../components/CommentThread.jsx";
 import { ReportSheet } from "../components/ReportSheet.jsx";
-import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { ShareRecipeSheet } from "../components/ShareRecipeSheet.jsx";
+import { CookingComposer } from "../components/CookingComposer.jsx";
+import { CookingStory } from "../components/CookingStory.jsx";
+import { SharedMenuCard } from "../components/SharedMenuCard.jsx";
 import { NotificationsPopover } from "../components/NotificationsPopover.jsx";
 import { DiscoverPeopleSheet } from "../components/DiscoverPeopleSheet.jsx";
 import { VisibilityPrompt } from "../components/VisibilityPrompt.jsx";
@@ -40,7 +42,9 @@ import {
   unfollowUser,
   blockUser,
 } from "../lib/social.js";
-import { FIXTURES_ENABLED, FIXTURE_STATS } from "../lib/socialFixtures.js";
+import { FIXTURES_ENABLED, FIXTURE_STATS, FIXTURE_COOKINGS, FIXTURE_PROFILES, FIXTURE_MENUS } from "../lib/socialFixtures.js";
+import { groupForRow, hasPublishedToday } from "../lib/cookings.js";
+import { loadRowCookings, publishCooking as publishCookingRemote } from "../lib/cookingsSync.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -51,34 +55,50 @@ const HEADER_BAND = "#e9f4ed";
 // y compartir tono las hacía parecer la misma.
 const CAROUSEL_BG = "#f4ede1";
 
+// Las cocinadas de mentira traen autores que `loadProfilesByIds` no conoce
+// (no existen en la base). En dev se resuelven aquí para que la fila no salga
+// llena de "Alguien"; en producción esto es un objeto vacío.
+const FIXTURE_PROFILE_FALLBACK = FIXTURES_ENABLED ? FIXTURE_PROFILES : {};
+
 /**
  * Feed — quinta pestaña, y puerta de todo lo que pasa fuera de tu casa: la
  * gente, y el mazo de Inspírate.
  *
- * ── Dos ejes, y a propósito ────────────────────────────────────────
- * Menús y recetas no son dos pestañas de lo mismo: un menú CONTIENE recetas,
- * y además llegan a ritmos distintos — uno por persona y semana frente a
- * muchas recetas sueltas. Un segmented control los pondría de iguales y
- * dejaría la pestaña de menús casi vacía. Así que cada uno va por su eje:
+ * ── Dos velocidades, y a propósito ─────────────────────────────────
+ * Lo que se publica aquí no es de una sola clase. Una RECETA es permanente,
+ * estructurada y copiable; una COCINADA es un evento sobre esa receta ("hoy
+ * he hecho esto", con foto) y caduca. De ahí el reparto:
  *
- *   · HORIZONTAL (arriba) = menús. Pocos, periódicos, uno por persona. La
- *     cara en esa fila ya significa "ha publicado su menú"; el anillo marca
- *     lo que no has abierto. Solo cara y nombre: el plato de hoy vivió ahí un
- *     rato y hacía la fila el doble de alta para un dato que se ve mejor al
- *     abrir el menú.
- *   · VERTICAL (abajo) = recetas. Muchas y continuas, con autor y cuándo.
+ *   · HORIZONTAL (arriba) = cocinadas de hoy. Diario, fotográfico, efímero:
+ *     el impulso. Una persona por hueco aunque haya cocinado tres veces.
+ *   · VERTICAL (abajo) = recetas nuevas + las semanas de tu gente. Permanente
+ *     y copiable: el fondo de armario.
  *
- * Y por eso un menú NO aparece además como tarjeta en la corriente: estaría
- * dos veces en la misma pantalla.
+ * Y una regla para que nada salga dos veces en la misma pantalla: una FICHA
+ * entra al río solo cuando es nueva. Las cocinadas siguientes de esa misma
+ * receta solo tocan la fila. Así el río cuenta "qué recetas circulan" y la
+ * fila cuenta "qué se ha cocinado hoy", que no es lo mismo.
  *
- * Sobre el formato de la fila: se parece a las historias y no lo es — ni
- * caducan en 24 h ni hay salto automático. Se toma prestado el anillo, que es
- * un "aquí hay algo nuevo" que todo el mundo ya sabe leer, y se deja fuera la
- * promesa: al tocar se abre la semana, no una secuencia a pantalla completa.
+ * ── El anillo, que antes estaba prestado y ahora es nuestro ────────
+ * La fila llevaba el anillo de las historias para enseñar MENÚS, y eso era
+ * una cita estética: un menú ni caduca en 24 h ni es visual, así que el
+ * formato prometía algo que el contenido no cumplía. Con cocinadas el
+ * préstamo se paga: son diarias, son foto y caducan de verdad a las 48 h.
+ * Y caducar no cuesta nada, porque lo efímero es el evento — la foto se
+ * queda para siempre en la historia de su receta.
  *
- * Y por eso la fila no se llama "historias": el gesto es el mismo, pero la
- * palabra arrastra la presión de publicar a diario, y aquí se publica una vez
- * por semana como mucho.
+ * ── Dónde se publica cada cosa: manda la frecuencia ────────────────
+ * Un botón con tres hijos (cocinada / receta / menú) igualaría tres actos de
+ * frecuencias muy distintas, y un selector de tres siempre castiga al que más
+ * se usa. Así que cada uno vive donde le toca:
+ *
+ *   · cocinada → el hueco de la fila, que ya es la posición de "tu historia";
+ *   · receta nueva → el acordeón horizontal, para lo caro y raro;
+ *   · MENÚ → en la pantalla de Menú, al terminar de planificar. Esa puerta ya
+ *     existía (ShareMenuSheet tenía dos), y aquí sobraba: nadie publica su
+ *     semana mientras cotillea el feed. Lo que queda en Gente es el empujón
+ *     dentro del composer — la cocinada ya se está enganchando a tu menú, así
+ *     que ahí es donde toca ofrecer publicarlo.
  *
  * Las recetas del catalogo y las de la gente comparten corriente y cartel:
  * al decidir un plato, de donde salga es lo de menos.
@@ -91,11 +111,21 @@ export function FeedScreen({
   onNav,
   onOpenRecipe,
   onCopyRecipe,
+  // Se conservan para el empujon de "tu semana sigue sin publicar" que sale
+  // tras publicar una cocinada. Retirar el menu de Gente no era retirar el
+  // dato: es justo el momento en que ofrecerlo tiene sentido.
   menuShared = false,
   onPublishMenu,
-  onUnpublishMenu,
   unsharedRecipes = [],
   myRecipes = [],
+  // Lo que tienes planificado HOY: es lo que deja que el composer PROPONGA el
+  // vínculo en vez de preguntarlo. Es la ventaja injusta sobre Instagram, que
+  // te pide el pie de foto desde cero porque no sabe nada de ti.
+  todayDishes = [],
+  members = [],
+  searchPool = [],
+  recipeCollections = {},
+  onNewRecipe,
   initialPersonId = null,
   onSaveDish,
   onPlaceDish,
@@ -135,6 +165,10 @@ export function FeedScreen({
   const [folderPickerFor, setFolderPickerFor] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [personId, setPersonId] = useState(initialPersonId);
+  // Con qué pestaña abrir la ficha: las tres cajas del cajón llevan cada una
+  // a la suya, y llegar siempre a "Cocinadas" haría que tocar "Menús" no
+  // significara nada.
+  const [personTab, setPersonTab] = useState("cookings");
   // Un enlace a un perfil abre esa ficha en cuanto la pantalla existe.
   useEffect(() => {
     if (!initialPersonId) return;
@@ -143,8 +177,12 @@ export function FeedScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPersonId]);
   const [sharing, setSharing] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
   const [shareRecipeOpen, setShareRecipeOpen] = useState(false);
+  // Las cocinadas viven de momento en localStorage (ver lib/cookings.js): no
+  // hay tabla todavía, y esto es para ver cómo queda.
+  const [cookings, setCookings] = useState([]);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [storyOwner, setStoryOwner] = useState(null);
   // Publicar vive plegado, asomando por el borde, y comparte hueco con
   // Siguiendo/Descubrir: al desplegarse, las pestañas se van. Son dos cosas
   // que nunca se necesitan a la vez -o estas leyendo o estas publicando- asi
@@ -165,14 +203,104 @@ export function FeedScreen({
   const bellRef = useRef(null);
   const [bellRect, setBellRect] = useState(null);
 
-  // La corriente es SOLO de recetas: los menús ya están arriba, y repetirlos
-  // aquí los pondría dos veces en la misma pantalla.
   const recipes = items.filter((i) => i.kind === "recipe");
+
+  // ── Cocinadas ─────────────────────────────────────────────────────────
+  /**
+   * Las cocinadas vivas: las tuyas y las de quien sigues, dentro de la ventana
+   * de 48 h. Se recarga cuando cambia a quién sigues, porque la fila es
+   * exactamente "tu gente" y no una lista global.
+   */
+  const refreshCookings = useCallback(async () => {
+    const mias = await loadRowCookings({ viewerId: user?.id, followingIds: following });
+    // En dev se suman las de mentira para que la fila tenga algo que enseñar
+    // aunque no sigas a nadie. En producción `FIXTURES_ENABLED` es false y el
+    // módulo entero desaparece del bundle.
+    setCookings(FIXTURES_ENABLED ? [...mias, ...FIXTURE_COOKINGS] : mias);
+  }, [user?.id, following]);
+
+  useEffect(() => { refreshCookings(); }, [refreshCookings]);
+
+  const cookRow = useMemo(() => groupForRow(cookings), [cookings]);
+  const publishedToday = hasPublishedToday(cookings, user?.id);
+
+  const publishCooking = async (payload) => {
+    setComposerOpen(false);
+    // Los comensales viajan como avatares ANÓNIMOS ({ avatar, role }), igual
+    // que el payload de un menú compartido: quién come es un dato de tu casa y
+    // no tiene por qué salir de ella con nombre y apellidos.
+    const eaters = (payload.eaters ?? [])
+      .map((id) => members.find((m) => m.id === id))
+      .filter(Boolean)
+      .map((m) => ({ avatar: m.avatar ?? null, role: m.role ?? "adulto" }));
+
+    const saved = await publishCookingRemote({ ...payload, eaters, ownerId: user?.id });
+    if (!saved) {
+      onToast?.("No se ha podido publicar. Inténtalo en un momento.");
+      return;
+    }
+    await refreshCookings();
+    // El empujón del menú: la cocinada ya se acaba de enganchar a tu semana,
+    // así que este es el momento en que ofrecerlo tiene sentido — y no un
+    // botón fijo en la cabecera que se aprende a ignorar a la tercera visita.
+    if (!menuShared && onPublishMenu) {
+      onToast?.("Publicada. Tu semana sigue sin publicar: nadie puede copiarte.");
+    } else {
+      onToast?.("Publicada");
+    }
+  };
+
+  /**
+   * Las semanas de tu gente, intercaladas en el río — no en una pestaña.
+   *
+   * Solo en "Siguiendo", y a propósito: copiarle la semana entera a un
+   * desconocido no sirve de nada (es su casa, sus niños, sus alergias), así
+   * que una semana solo es útil si esa persona se te parece — y para eso ya
+   * la sigues. De paso, las dos pestañas dejan de ser la misma tarjeta de
+   * distinta gente, y seguir a alguien desbloquea algo concreto.
+   */
+  const menuCards = scope !== "following"
+    ? []
+    // En dev, sin seguir a nadie `loadWeeklyMenus` corta antes de consultar
+    // (y hace bien), así que la tarjeta de semana no se vería nunca. Los
+    // fixtures la enseñan igual que enseñan el río.
+    : (weekly.length > 0 ? weekly : (FIXTURES_ENABLED ? FIXTURE_MENUS : []));
+
+  // Los amigos que pueden marcarse como INVITADOS: la gente que sigues, con
+  // su perfil ya resuelto. Etiquetar a alguien de tu lista es distinto de
+  // escribir un @: aquí solo puedes señalar a gente que existe y que estuvo.
+  const friendProfiles = useMemo(
+    () => following.map((id) => profiles[id] ?? FIXTURE_PROFILE_FALLBACK[id]).filter(Boolean).map((p) => ({
+      id: p.user_id ?? p.id,
+      display_name: p.display_name,
+      username: p.username,
+      avatar_url: p.avatar_url,
+    })),
+    [following, profiles],
+  );
+
+  // Para el "N platos que no tienes" de la portada: lo que ya está en tu
+  // recetario, por id de catálogo o de la receta copiada.
+  const myRecipeIds = useMemo(
+    () => myRecipes.map((r) => r.linkedCatalogId ?? r.baseRecipeId ?? r.id),
+    [myRecipes],
+  );
 
   const openMenu = (m) => {
     setMenuOpen(m);
     setSeenMenus((prev) => {
       const next = new Set(prev).add(m.id);
+      writeSeenMenus(next);
+      return next;
+    });
+  };
+
+  const openStory = (g) => {
+    setStoryOwner(g);
+    // El anillo se apaga con la ÚLTIMA cocinada de esa persona: si publica
+    // otra después, vuelve a encenderse — que es lo que esperas de la fila.
+    setSeenMenus((prev) => {
+      const next = new Set(prev).add(g.latest.id);
       writeSeenMenus(next);
       return next;
     });
@@ -228,7 +356,11 @@ export function FeedScreen({
       else onToast?.("Ese menú ya no está disponible");
       return;
     }
-    const local = items.find((i) => i.kind === "recipe" && i.recipe.id === id)?.recipe;
+    // El catálogo primero: las cocinadas se enganchan sobre todo a recetas de
+    // catálogo, y pedirlas por red cuando ya están en memoria era un viaje
+    // para nada que además acababa en "no disponible".
+    const local = recipeCatalogById[id]
+      ?? items.find((i) => i.kind === "recipe" && i.recipe.id === id)?.recipe;
     const r = local ?? await loadPublicRecipe(id);
     if (r) onOpenRecipe?.(r);
     else onToast?.("Esa receta ya no está disponible");
@@ -495,58 +627,65 @@ export function FeedScreen({
           </div>
         </div>
 
-        {(weekly.length > 0 || onPublishMenu) && (
-          <section style={carouselBand}>
-            <div aria-hidden="true" style={glassBlobs} />
-            <div aria-hidden="true" style={glassPane} />
-            <div style={{ position: "relative" }}>
-            {/* "Hoy cocinan" y no "esta semana": el plato de hoy sale del
-                menú que ya han publicado, así que la fila cuenta algo vivo
-                sin pedir un tipo de contenido nuevo. Al tocar, la semana. */}
-            <h2 style={sectionTitle}>Hoy cocinan…</h2>
-            <div data-coach="feed-weekly" className="deck-scroller" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 2, marginInline: -14, paddingInline: 14 }}>
-              {/* Tu hueco, el primero de la fila — el patron de "tu historia"
-                  de toda red: anillo punteado con + si no has publicado, un
-                  check si si. Sustituye al banner con parrafo que habia
-                  encima: mismo mensaje en una fraccion del sitio, y el aviso
-                  de privacidad se lee dentro de la hoja al ir a publicar. */}
-              {onPublishMenu && (
-                <button type="button" onClick={() => setShareOpen(true)} style={weeklyItem}>
-                  <span style={menuShared ? ringOn : ringDashed}>
+        <section style={carouselBand}>
+          <div aria-hidden="true" style={glassBlobs} />
+          <div aria-hidden="true" style={glassPane} />
+          <div style={{ position: "relative" }}>
+          {/* Ahora la fila dice literalmente lo que enseña: quién ha cocinado
+              hoy, con su foto. Antes eran menús de la semana y el título ya
+              prometía algo más vivo de lo que había debajo. */}
+          <h2 style={sectionTitle}>Hoy cocinan…</h2>
+          <div data-coach="feed-weekly" className="deck-scroller" style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 2, marginInline: -14, paddingInline: 14 }}>
+            {/* Tu hueco, el primero — el patrón de "tu historia" de toda red:
+                anillo punteado con + si no has publicado, check si sí. Lo que
+                abre ya no es publicar el menú (eso vive en la pantalla de
+                Menú) sino subir la cocinada de hoy, que es el acto diario. */}
+            {/* Sin sesión no se abre: desde que esto vive en Supabase, publicar
+                necesita cuenta, y dejar entrar al composer para fallar al final
+                —después de hacer la foto, escribir y colocar el adhesivo— es la
+                peor forma posible de contarlo. Mismo criterio que
+                ShareRecipeSheet, que ya avisa antes de dejarte elegir. */}
+            <button
+              type="button"
+              onClick={() => (user?.id
+                ? setComposerOpen(true)
+                : onToast?.("Inicia sesión para publicar: lo que subes vive en la nube"))}
+              style={weeklyItem}
+            >
+              <span style={publishedToday ? ringOn : ringDashed}>
+                <span style={ringGap}>
+                  <span style={shareCircle}>
+                    {publishedToday
+                      ? <Check size={17} strokeWidth={2.8} color={TEAL} />
+                      : <Plus size={17} strokeWidth={2.6} color="#8aa294" />}
+                  </span>
+                </span>
+              </span>
+              <span style={{ ...weeklyName, fontWeight: 700, color: INK }}>Tu foto</span>
+            </button>
+
+            {cookRow.filter((g) => g.ownerId !== user?.id).map((g) => {
+              const p = profiles[g.ownerId] ?? FIXTURE_PROFILE_FALLBACK[g.ownerId];
+              const unseen = !seenMenus.has(g.latest.id);
+              return (
+                <button key={g.ownerId} type="button" onClick={() => openStory(g)} style={weeklyItem}>
+                  {/* Anillo de gradiente + hueco blanco + avatar: la
+                      construcción de Instagram exacta, con el gradiente de la
+                      paleta de la app y no su naranja-morado. */}
+                  <span style={unseen ? ringOn : ringOff}>
                     <span style={ringGap}>
-                      <span style={shareCircle}>
-                        {menuShared
-                          ? <Check size={17} strokeWidth={2.8} color={TEAL} />
-                          : <Plus size={17} strokeWidth={2.6} color="#8aa294" />}
-                      </span>
+                      <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={48} color={TEAL} />
                     </span>
                   </span>
-                  <span style={{ ...weeklyName, fontWeight: 700, color: INK }}>Tu menú</span>
+                  <span style={{ ...weeklyName, fontWeight: unseen ? 700 : 500, color: unseen ? INK : "#8aa294" }}>
+                    {p?.display_name || (p?.username ? `@${p.username}` : "Alguien")}
+                  </span>
                 </button>
-              )}
-            {weekly.map((m) => {
-                const p = profiles[m.owner_id];
-                const unseen = !seenMenus.has(m.id);
-                return (
-                  <button key={m.id} type="button" onClick={() => openMenu(m)} style={weeklyItem}>
-                    {/* Anillo de gradiente + hueco blanco + avatar, la
-                        construcción de Instagram exacta. El gradiente es de
-                        la paleta de la app, no el naranja-morado de allí. */}
-                    <span style={unseen ? ringOn : ringOff}>
-                      <span style={ringGap}>
-                        <Avatar name={p?.display_name ?? "?"} photo={p?.avatar_url} size={48} color={TEAL} />
-                      </span>
-                    </span>
-                    <span style={{ ...weeklyName, fontWeight: unseen ? 700 : 500, color: unseen ? INK : "#8aa294" }}>
-                      {p?.display_name || (p?.username ? `@${p.username}` : "Alguien")}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            </div>
-          </section>
-          )}
+              );
+            })}
+          </div>
+          </div>
+        </section>
 
       </div>
 
@@ -608,7 +747,17 @@ export function FeedScreen({
                   </span>
                   {publishOpen && (
                     <>
-                      <button type="button" onClick={() => setShareRecipeOpen(true)} style={publishPill}>Publicar</button>
+                      {/* Sin nada sin compartir, la hoja era un callejón: te
+                          decía "créala desde Recetas" y te dejaba tirado. Si
+                          no hay nada que publicar, lo que quieres es escribir
+                          una — así que abre el asistente directamente. */}
+                      <button
+                        type="button"
+                        onClick={() => (unsharedRecipes.length === 0 && onNewRecipe ? onNewRecipe() : setShareRecipeOpen(true))}
+                        style={publishPill}
+                      >
+                        {unsharedRecipes.length === 0 && onNewRecipe ? "Crear" : "Publicar"}
+                      </button>
                       <button type="button" onClick={() => setPublishOpen(false)} aria-label="Cerrar" style={publishClose}>
                         <X size={13} strokeWidth={2.8} />
                       </button>
@@ -703,21 +852,51 @@ export function FeedScreen({
             <h2 style={{ ...sectionTitle, marginTop: 16 }}>Recién salido del horno</h2>
           )}
 
+          {/* Recetas y, cada tres, la semana de alguien. Intercalar y no
+              agrupar es lo que hace que un contenido tan escaso (uno por
+              persona y semana) funcione: aparece cuando ya estabas mirando,
+              rompe el ritmo del río y no hay que ir a buscarlo. */}
           <div style={{ display: "flex", flexDirection: "column", gap: 26, padding: "4px 0 18px" }}>
-            {recipes.map((item) => (
-              <RecipeCard
-                key={`r_${item.id}`}
-                item={item}
-                user={user}
-                profile={profiles[item.ownerId]}
-                mine={item.ownerId === user?.id}
-                copied={copiedIds.has(item.recipe.id)}
-                onMeh={() => handleMeh(item)}
-                onDislike={() => handleDislike(item)}
-                onOpenPerson={() => setPersonId(item.ownerId)}
-                stats={stats[item.recipe.id] ?? EMPTY_STATS}
-                onOpen={() => onOpenRecipe?.(item.recipe)}
-                onCopy={() => handleCopy(item)}
+            {recipes.map((item, i) => {
+              const menu = i > 0 && i % 3 === 0 ? menuCards[Math.floor(i / 3) - 1] : null;
+              return (
+                <Fragment key={`r_${item.id}`}>
+                  {menu && (
+                    <SharedMenuCard
+                      menu={menu}
+                      profile={profiles[menu.owner_id] ?? FIXTURE_PROFILE_FALLBACK[menu.owner_id]}
+                      myRecipeIds={myRecipeIds}
+                      onOpen={() => openMenu(menu)}
+                      onPickDish={(dish) => onPlaceDish?.(dish)}
+                    />
+                  )}
+                  <RecipeCard
+                    item={item}
+                    user={user}
+                    profile={profiles[item.ownerId]}
+                    mine={item.ownerId === user?.id}
+                    copied={copiedIds.has(item.recipe.id)}
+                    onMeh={() => handleMeh(item)}
+                    onDislike={() => handleDislike(item)}
+                    onOpenPerson={() => setPersonId(item.ownerId)}
+                    stats={stats[item.recipe.id] ?? EMPTY_STATS}
+                    onOpen={() => onOpenRecipe?.(item.recipe)}
+                    onCopy={() => handleCopy(item)}
+                  />
+                </Fragment>
+              );
+            })}
+
+            {/* Las semanas que no han cabido entre las recetas — con pocas
+                recetas cargadas, si no, no se verían nunca. */}
+            {menuCards.slice(Math.max(0, Math.floor((recipes.length - 1) / 3))).map((m) => (
+              <SharedMenuCard
+                key={`m_${m.id}`}
+                menu={m}
+                profile={profiles[m.owner_id] ?? FIXTURE_PROFILE_FALLBACK[m.owner_id]}
+                myRecipeIds={myRecipeIds}
+                onOpen={() => openMenu(m)}
+                onPickDish={(dish) => onPlaceDish?.(dish)}
               />
             ))}
           </div>
@@ -756,13 +935,14 @@ export function FeedScreen({
         <MenuPeek
           menu={menuOpen}
           user={user}
-          profile={profiles[menuOpen.owner_id]}
+          profile={profiles[menuOpen.owner_id] ?? FIXTURE_PROFILE_FALLBACK[menuOpen.owner_id]}
           onOpenPerson={() => { setMenuOpen(null); setPersonId(menuOpen.owner_id); }}
           onBlocked={handleBlocked}
           onClose={() => setMenuOpen(null)}
           onSaveDish={handleSaveDish}
           onPlaceDish={(dish) => { setMenuOpen(null); onPlaceDish?.(dish); }}
           onOpenDish={(dish) => onOpenRecipe?.({ id: dish.recipeId, name: dish.name })}
+          myRecipeIds={myRecipeIds}
         />
       )}
 
@@ -826,24 +1006,29 @@ export function FeedScreen({
         />
       )}
 
-      {shareOpen && (
-        <ShareMenuSheet
-          shared={menuShared}
-          sharing={sharing}
-          onPublish={async (scope) => {
-            setSharing(true);
-            const done = await onPublishMenu?.(scope);
-            setSharing(false);
-            if (done) { setShareOpen(false); refresh(); }
-          }}
-          onUnpublish={async () => {
-            setSharing(true);
-            await onUnpublishMenu?.();
-            setSharing(false);
-            setShareOpen(false);
-            refresh();
-          }}
-          onClose={() => setShareOpen(false)}
+      {composerOpen && (
+        <CookingComposer
+          todayDishes={todayDishes}
+          members={members}
+          friends={friendProfiles}
+          searchPool={searchPool}
+          // Cada carpeta ya enriquecida con SU ilustración (la misma que en
+          // Recetas). El arte se resuelve aquí y no dentro del composer para
+          // no arrastrar CatalogBrowserSheet entero a ese bundle.
+          folders={allFolders(recipeFolders).map((f) => ({ ...f, ...folderArt(f.id) }))}
+          collections={recipeCollections}
+          onPublish={publishCooking}
+          onClose={() => setComposerOpen(false)}
+        />
+      )}
+
+      {storyOwner && (
+        <CookingStory
+          group={storyOwner}
+          profile={profiles[storyOwner.ownerId] ?? FIXTURE_PROFILE_FALLBACK[storyOwner.ownerId]}
+          onClose={() => setStoryOwner(null)}
+          onOpenRecipe={(c) => { setStoryOwner(null); openTarget("recipe", c.recipeId); }}
+          onAskRecipe={(c) => onToast?.(`Le hemos pedido «${c.recipeName}»`)}
         />
       )}
 
@@ -865,6 +1050,7 @@ export function FeedScreen({
         <PersonSheet
           user={user}
           userId={personId}
+          initialTab={personTab}
           profile={profiles[personId]}
           onClose={() => setPersonId(null)}
           onOpenRecipe={(r) => { setPersonId(null); onOpenRecipe?.(r); }}
@@ -880,7 +1066,7 @@ export function FeedScreen({
           user={user}
           thumbFor={thumbForTarget}
           onChanged={refresh}
-          onOpenPerson={(id) => { setProfileOpen(false); setPersonId(id); }}
+          onOpenPerson={(id, tab = "cookings") => { setProfileOpen(false); setPersonTab(tab); setPersonId(id); }}
           onClose={() => setProfileOpen(false)}
           onOpenTarget={(type, id) => { setProfileOpen(false); openTarget(type, id); }}
         />
@@ -1026,9 +1212,10 @@ function RecipeCard({ item, user, profile, mine, copied, stats, onOpen, onCopy, 
  * compra, ni presupuesto, ni horarios, ni nombres — aunque el menú original
  * los tenga, aquí no han llegado nunca.
  */
-function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish, onOpenDish }) {
+function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, onSaveDish, onPlaceDish, onOpenDish, myRecipeIds = [] }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false);
   // Para quien es lo que estas mirando: adultos, ninos o bebes.
   //
   // Antes era un filtro por PERSONA -una fila de caras plegada tras un boton
@@ -1051,6 +1238,24 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
   const byId = Object.fromEntries(members.map((x) => [x.id, x]));
   const name = profile?.display_name || (profile?.username ? `@${profile.username}` : "Alguien");
   const scopes = eaterScopes(members, days);
+
+  // Los platos de esta semana que no están ya en tu recetario. Es el número
+  // que la portada promete ("3 platos que no tienes"), así que se calcula
+  // igual aquí para que dentro diga lo mismo que fuera.
+  const nuevos = useMemo(() => {
+    const vistos = new Set();
+    const out = [];
+    for (const d of days) {
+      for (const meal of d.meals ?? []) {
+        for (const dish of meal.dishes ?? []) {
+          if (!dish.recipeId || vistos.has(dish.recipeId)) continue;
+          vistos.add(dish.recipeId);
+          if (!myRecipeIds.includes(dish.recipeId)) out.push(dish);
+        }
+      }
+    }
+    return out;
+  }, [days, myRecipeIds]);
 
   // Lo que ha pasado con cada plato ahi fuera: votos, veces cocinado y
   // comentarios. Va aparte y despues de pintar -igual que en el rio de
@@ -1146,6 +1351,26 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
             onOpenDish={onOpenDish}
           />
 
+          {/* Salir con algo.
+              Copiar plato a plato está bien cuando venías POR un plato, pero
+              si has entrado por la semana la gracia es la semana: si entrar
+              cuesta un toque y sacar valor cuesta siete, se entra una vez y no
+              se vuelve. Se copia al RECETARIO y no al menú porque colocar en
+              tu semana necesita elegir hueco — eso sigue siendo plato a plato,
+              con su barra de acciones. */}
+          {nuevos.length > 0 && onSaveDish && (
+            <button
+              type="button"
+              onClick={() => { nuevos.forEach((d) => onSaveDish(d)); setCopiedAll(true); }}
+              disabled={copiedAll}
+              style={{ ...bulkCopyBtn, opacity: copiedAll ? .6 : 1 }}
+            >
+              {copiedAll
+                ? <><Check size={15} strokeWidth={2.8} /> Guardados en tus recetas</>
+                : <><FolderPlus size={15} strokeWidth={2.5} /> Guardar los {nuevos.length} que no tienes</>}
+            </button>
+          )}
+
           <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eef3f0" }}>
             <CommentThread user={user} targetType="menu" targetId={m.id} targetOwnerId={m.owner_id} />
           </div>
@@ -1199,7 +1424,14 @@ function MenuPeek({ menu: m, user, profile, onClose, onOpenPerson, onBlocked, on
 function SharedMenuDeck({ days, weekStart, scopes, roleFilter, onRole, stats, onPickDish, onOpenDish }) {
   const multi = days.length > 1;
   const [week, setWeek] = useState(false);
-  const [dayIdx, setDayIdx] = useState(0);
+  // Se entra por HOY, no por lunes. Aterrizar siempre en lunes un jueves hacía
+  // que la semana de otro pareciera un documento archivado en vez de algo que
+  // está pasando — y es lo que más barato costaba arreglar.
+  const [dayIdx, setDayIdx] = useState(() => {
+    const hoy = DAYS[(new Date().getDay() + 6) % 7];
+    const i = days.findIndex((d) => d.day === hoy);
+    return i === -1 ? 0 : i;
+  });
   // Un filtro por comensal puede dejar el dia activo fuera de la lista.
   const idx = Math.min(dayIdx, Math.max(0, days.length - 1));
   const nums = dayNumbers(days, weekStart);
@@ -2201,6 +2433,13 @@ const primaryBtn = {
 };
 
 const primaryBtnFull = { ...primaryBtn, width: "100%", justifyContent: "center", marginTop: 12 };
+
+const bulkCopyBtn = {
+  display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+  width: "100%", marginTop: 16, padding: "12px 0", borderRadius: 14, border: "none",
+  background: "#eef6f4", color: TEAL, fontSize: 13, fontWeight: 900,
+  cursor: "pointer", fontFamily: "inherit",
+};
 
 
 

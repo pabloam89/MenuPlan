@@ -1157,6 +1157,42 @@ export default function App() {
     () => findMenuRestrictionConflicts(data, menuPlan),
     [data, menuPlan],
   );
+
+  // ── Lo que Gente necesita saber de tu casa ────────────────────────────
+  // El composer de la cocinada propone el plato en vez de preguntarlo, y para
+  // eso hace falta lo que toca HOY. Se recorren todos los grupos (adultos,
+  // niños, bebé): si has cocinado el puré del bebé, esa también es una
+  // cocinada válida.
+  const feedTodayDishes = useMemo(() => {
+    const hoy = DAYS[(new Date().getDay() + 6) % 7];
+    const grupos = data.groups?.length ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const vistos = new Set();
+    const out = [];
+    for (const g of grupos) {
+      for (const meal of getDayMeals(data)) {
+        const slot = menuPlan[g.id]?.[`${hoy}-${meal}`];
+        if (!slot?.recipeId || vistos.has(slot.recipeId)) continue;
+        const recipe = RECIPES_BY_ID[slot.recipeId] ?? recipeCatalogById[slot.recipeId];
+        if (!recipe) continue;
+        vistos.add(slot.recipeId);
+        out.push({ recipeId: slot.recipeId, name: recipe.name, meal, recipe });
+      }
+    }
+    return out;
+  }, [menuPlan, data]);
+
+  const feedMembers = useMemo(
+    () => (data.members ?? []).map((m) => ({ id: m.id, name: m.name, avatar: m.avatar, role: m.role })),
+    [data.members],
+  );
+
+  // El pozo del buscador de "era otra cosa": catálogo + lo tuyo. Emparejar
+  // contra lo que ya existe es lo que evita catorce fichas de "pasta con
+  // tomate" — crear borrador es la última salida, no la primera.
+  const feedSearchPool = useMemo(
+    () => [...(data.userRecipes ?? []), ...Object.values(recipeCatalogById)],
+    [data.userRecipes],
+  );
   const lastRegenerateArgs = useRef(null);
   const generateAbortRef = useRef(null);
   // Warn at most once per session if localStorage writes start failing
@@ -4794,7 +4830,6 @@ export default function App() {
                 onToast={showToast}
                 menuShared={Boolean(publishedMenus[data.activeMenuId ?? "actual"])}
                 onPublishMenu={handlePublishMenu}
-                onUnpublishMenu={handleUnpublishMenu}
                 // Solo las CREADAS por ti (filterOwnCreatedRecipes): las
                 // copias del feed llevan el owner del autor original, y
                 // republicarlas seria duplicar su receta firmada por ti.
@@ -4808,6 +4843,14 @@ export default function App() {
                 onPlaceDish={(dish) => { setPendingDish(dish); fwd(() => setScreen("menu")); }}
                 onConsumedPerson={() => setDeepLinkPerson(null)}
                 onCopyRecipe={handleCopyRecipeFromFeed}
+                // Lo que toca HOY: con esto el composer de la cocinada PROPONE
+                // el plato en vez de preguntarlo, que es la diferencia entre
+                // un toque y un formulario.
+                todayDishes={feedTodayDishes}
+                members={feedMembers}
+                searchPool={feedSearchPool}
+                recipeCollections={data.recipeCollections}
+                onNewRecipe={() => { recipePlannerOriginRef.current = "feed"; setEditingRecipe(null); fwd(() => setScreen("recipePlanner")); }}
                 recipeFolders={data.recipeFolders}
                 onCreateFolder={householdReadOnly ? undefined : handleCreateFolder}
                 onSetRecipeFolders={householdReadOnly ? undefined : handleSetRecipeFolders}

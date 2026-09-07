@@ -8,7 +8,11 @@ import {
   loadFollowing, loadSentRequests, followUser, unfollowUser,
   blockUser, loadRecipeStats,
 } from "../lib/social.js";
-import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_RECIPES, FIXTURE_MENUS } from "../lib/socialFixtures.js";
+import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_RECIPES, FIXTURE_MENUS, FIXTURE_COOKINGS } from "../lib/socialFixtures.js";
+import { loadOwnerCookings } from "../lib/cookingsSync.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
+import { deckImg } from "../lib/dishPhotoOptimize.js";
+import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { ReportSheet } from "./ReportSheet.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 
@@ -25,10 +29,19 @@ const TEAL = "#0f766e";
  * su perfil pide seguimiento y no te ha aceptado, el contenido vuelve vacío y
  * aquí se explica por qué en vez de enseñar una lista en blanco.
  */
-export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpenRecipe, onOpenMenu, onOpenPerson, onBlocked, onChanged }) {
+export function PersonSheet({ user, userId, profile: seed = null, initialTab = "cookings", onClose, onOpenRecipe, onOpenMenu, onOpenPerson, onBlocked, onChanged }) {
   const [profile, setProfile] = useState(seed);
   const [counts, setCounts] = useState({ followers: 0, following: 0, recipes: 0, menus: 0 });
-  const [content, setContent] = useState({ recipes: [], menus: [] });
+  const [content, setContent] = useState({ recipes: [], menus: [], cookings: [] });
+  // Historias / Recetas / Menús. Arranca en historias: es lo más reciente y lo
+  // más visual, y en un perfil de cocina la comida manda sobre las listas.
+  //
+  // El objeto se sigue llamando `cooking` en el código y en la tabla, y es a
+  // propósito: "historia" describe el FORMATO (efímero, a pantalla completa) y
+  // el modelo describe lo que la cosa ES (una vez que alguien cocinó algo). Si
+  // mañana cambia la etiqueta —y probablemente cambie— no hay que tocar ni la
+  // base ni una migración.
+  const [tab, setTab] = useState(initialTab);
   const [rel, setRel] = useState("none"); // none | pending | following
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -39,13 +52,14 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const [prof, cts, cont, following, sent, rel] = await Promise.all([
+    const [prof, cts, cont, following, sent, rel, cooks] = await Promise.all([
       loadProfileById(userId),
       loadProfileCounts(userId),
       loadPersonContent(userId, { viewerId: user?.id }),
       loadFollowing(user?.id),
       loadSentRequests(user?.id),
       loadRelations(userId),
+      loadOwnerCookings(userId),
     ]);
     const fxProfile = FIXTURES_ENABLED ? FIXTURE_PROFILES[userId] : null;
     setProfile(prof ?? seed ?? fxProfile ?? null);
@@ -57,9 +71,11 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
     // persona para poder diseñar la pantalla. Ver socialFixtures.js.
     const fxRecipes = FIXTURES_ENABLED ? FIXTURE_RECIPES.filter((r) => r.owner_id === userId) : [];
     const fxMenus = FIXTURES_ENABLED ? FIXTURE_MENUS.filter((m) => m.owner_id === userId) : [];
+    const fxCooks = FIXTURES_ENABLED ? FIXTURE_COOKINGS.filter((c) => c.ownerId === userId) : [];
     setContent({
       recipes: cont.recipes.length ? cont.recipes : fxRecipes,
       menus: cont.menus.length ? cont.menus : fxMenus,
+      cookings: cooks.length ? cooks : fxCooks,
     });
     setRel(following.includes(userId) ? "following" : sent.some((r) => r.followee_id === userId) ? "pending" : "none");
     setLoading(false);
@@ -152,17 +168,19 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
             </p>
           )}
 
-          <div style={statsCard}>
-            {/* El numero lleva a la lista: era el camino natural para
-                descubrir gente y no iba a ninguna parte. */}
-            <Stat n={counts.friends ?? 0} label="Amigos" onClick={() => setListKind("friends")} />
-            <span style={divider} />
-            <Stat n={counts.onlyFollowers ?? 0} label="Seguidores" onClick={() => setListKind("followers")} />
-            <span style={divider} />
-            <Stat n={counts.recipes} label="Recetas" />
-            <span style={divider} />
-            <Stat n={counts.menus} label="Menús" />
-          </div>
+          {/* ── El grafo, en una línea ────────────────────────────────
+              Baja de caja a texto a propósito: en el perfil de alguien que
+              cocina, lo que decide si te quedas es su comida, no cuánta gente
+              le sigue. Sigue llevando a la lista, que era su único trabajo. */}
+          <p style={graphLine}>
+            <button type="button" onClick={() => setListKind("friends")} style={graphBtn}>
+              <b>{counts.friends ?? 0}</b> amigos
+            </button>
+            <span style={{ color: "#c2cfc7" }}>·</span>
+            <button type="button" onClick={() => setListKind("followers")} style={graphBtn}>
+              <b>{counts.onlyFollowers ?? 0}</b> seguidores
+            </button>
+          </p>
 
           {userId !== user?.id && (
             <button type="button" onClick={toggleFollow} disabled={busy} style={rel === "none" ? followBtn : followingBtn}>
@@ -170,6 +188,37 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
             </button>
           )}
         </div>
+
+        {/* ── Las tres pestañas ─────────────────────────────────────────
+            Su número va DENTRO y no en una caja aparte: te dice cuánto hay en
+            cada sitio justo cuando estás decidiendo a cuál ir, que es la única
+            decisión que ese número sirve para tomar. Como caja suelta arriba
+            no decidía nada — de hecho ni siquiera se podía tocar. */}
+        {!gated && (
+          <div style={tabsWrap}>
+            <div style={tabsRail}>
+              {[
+                ["cookings", "Historias", content.cookings.length],
+                ["recipes", "Recetas", content.recipes.length],
+                ["menus", "Menús", content.menus.length],
+              ].map(([id, label, n]) => {
+                const on = tab === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setTab(id)}
+                    style={{ ...tabBtn, background: on ? "#fff" : "transparent", color: on ? INK : "#8aa294", boxShadow: on ? "0 1px 4px rgba(0,0,0,.1)" : "none" }}
+                  >
+                    {label}
+                    <span style={{ ...tabCount, background: on ? "#eaf3ed" : "transparent", color: on ? TEAL : "#a8b8ad" }}>{n}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div style={{ padding: "6px 18px 26px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
           {loading && <p style={hint}>Cargando…</p>}
@@ -188,24 +237,76 @@ export function PersonSheet({ user, userId, profile: seed = null, onClose, onOpe
             </div>
           )}
 
-          {content.menus.length > 0 && (
-            <>
-              <h3 style={sectionTitle}>Sus menús</h3>
-              {content.menus.map((m) => (
-                <button key={m.id} type="button" onClick={() => onOpenMenu?.(m)} style={menuRow}>
-                  <CalendarDays size={15} strokeWidth={2.5} color={TEAL} />
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 800, color: INK }}>
-                    {m.title || weekLabel(m.week_start, m.week_end)}
-                  </span>
-                  <span style={{ fontSize: 11.5, fontWeight: 700, color: "#8aa294" }}>
-                    {(m.payload?.weeks?.[0]?.days ?? []).length} días
-                  </span>
-                </button>
-              ))}
-            </>
+          {/* ── Cocinadas: mosaico ───────────────────────────────────────
+              Aquí es donde lo efímero deja de perderse. En la fila de Gente
+              caducan a las 48 h; este es el archivo, y por eso no se corta por
+              fecha (ver loadOwnerCookings). Cuadrícula, como cualquier álbum:
+              la foto manda y el nombre del plato queda de apoyo. */}
+          {!gated && tab === "cookings" && (
+            content.cookings.length > 0 ? (
+              <div style={mosaic}>
+                {content.cookings.map((c) => {
+                  const fallback = c.draft ? null : dishImageForRecipe(recipeCatalogById[c.recipeId] ?? { id: c.recipeId });
+                  const img = c.photo ?? (fallback ? deckImg(fallback, 240) : null);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      title={c.recipeName}
+                      onClick={() => onOpenRecipe?.({ id: c.recipeId, name: c.recipeName })}
+                      style={mosaicTile}
+                    >
+                      {img
+                        ? <img src={img} alt="" loading="lazy" style={mosaicImg} />
+                        : <span style={{ ...mosaicImg, background: "#eef3f0", display: "block" }} />}
+                      <span style={mosaicName}>{c.recipeName}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : <p style={hint}>Todavía no ha subido ninguna foto.</p>
           )}
 
-          {content.recipes.length > 0 && (
+          {/* ── Menús: una fila por semana, con la comida a la vista ──────
+              No la tarjeta grande de Siguiendo: aquella es una PORTADA para
+              convencer a un desconocido de entrar, y aquí no hay a quién
+              convencer. Además, a una tarjeta por semana, veinte semanas son
+              un scroll eterno. Lo que sí cambia respecto a antes: donde ponía
+              "5 días" —que no dice nada— van las miniaturas de los platos,
+              que es lo que de verdad identifica una semana. */}
+          {!gated && tab === "menus" && (
+            content.menus.length > 0 ? (
+              content.menus.map((m) => {
+                const dias = m.payload?.weeks?.[0]?.days ?? [];
+                const platos = dias
+                  .map((d) => d.meals?.[0]?.dishes?.[0])
+                  .filter((d) => d?.recipeId)
+                  .slice(0, 5);
+                return (
+                  <button key={m.id} type="button" onClick={() => onOpenMenu?.(m)} style={menuRow}>
+                    <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                      <span style={{ display: "block", fontSize: 13, fontWeight: 800, color: INK }}>
+                        {m.title || weekLabel(m.week_start, m.week_end)}
+                      </span>
+                      <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#8aa294", marginTop: 2 }}>
+                        {dias.length} {dias.length === 1 ? "día" : "días"}
+                      </span>
+                    </span>
+                    <span style={{ display: "flex", gap: 3, flexShrink: 0 }}>
+                      {platos.map((d, i) => {
+                        const img = dishImageForRecipe(recipeCatalogById[d.recipeId] ?? { id: d.recipeId });
+                        return img
+                          ? <img key={i} src={deckImg(img, 80)} alt="" loading="lazy" style={weekThumb} />
+                          : <span key={i} style={{ ...weekThumb, background: "#eef3f0" }} />;
+                      })}
+                    </span>
+                  </button>
+                );
+              })
+            ) : <p style={hint}>Todavía no ha publicado ningún menú.</p>
+          )}
+
+          {!gated && tab === "recipes" && content.recipes.length > 0 && (
             <>
               <h3 style={sectionTitle}>Sus recetas</h3>
               <div style={recipeCol}>
@@ -312,13 +413,7 @@ const closeBtn = {
   border: "1.5px solid #d5e6da", background: "#fff", color: GREEN, cursor: "pointer",
 };
 
-const statsCard = {
-  display: "flex", alignItems: "center", width: "100%", maxWidth: 300, marginTop: 14,
-  padding: "11px 6px", borderRadius: 14,
-  background: "#fff", border: "1.5px solid #e0eae3",
-};
 
-const divider = { width: 1, alignSelf: "stretch", background: "#eef3f0" };
 
 const followBtn = {
   marginTop: 14, padding: "11px 30px", borderRadius: 12, border: "none",
@@ -333,6 +428,44 @@ const sectionTitle = {
   letterSpacing: ".6px", textTransform: "uppercase",
 };
 
+const graphLine = {
+  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+  margin: "12px 0 0", fontSize: 13, color: "#5a7066",
+};
+const graphBtn = {
+  border: "none", background: "none", padding: 0, cursor: "pointer",
+  fontSize: 13, fontWeight: 600, color: "#5a7066", fontFamily: "inherit",
+};
+
+// La pista de las pestañas es el mismo segmented control que Siguiendo /
+// Descubrir en el feed: si el mismo gesto se viera distinto en dos pantallas,
+// habría que aprenderlo dos veces.
+const tabsWrap = { padding: "14px 18px 0", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" };
+const tabsRail = {
+  display: "flex", gap: 4, padding: 4, borderRadius: 999, background: "#f0f4f1",
+};
+const tabBtn = {
+  flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+  padding: "9px 4px", borderRadius: 999, border: "none", cursor: "pointer",
+  fontSize: 12.5, fontWeight: 800, fontFamily: "inherit",
+  transition: "background .15s ease, color .15s ease",
+};
+const tabCount = { padding: "1px 7px", borderRadius: 999, fontSize: 11, fontWeight: 900 };
+
+const mosaic = { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 3 };
+const mosaicTile = {
+  position: "relative", aspectRatio: "1 / 1", border: "none", padding: 0,
+  background: "#eef3f0", cursor: "pointer", overflow: "hidden", borderRadius: 3,
+  fontFamily: "inherit",
+};
+const mosaicImg = { width: "100%", height: "100%", objectFit: "cover", display: "block" };
+const mosaicName = {
+  position: "absolute", left: 0, right: 0, bottom: 0, padding: "14px 5px 5px",
+  background: "linear-gradient(to top, rgba(10,20,14,.82), rgba(10,20,14,0))",
+  color: "#fff", fontSize: 9, fontWeight: 800, lineHeight: 1.15, textAlign: "left",
+  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+};
+const weekThumb = { width: 30, height: 30, borderRadius: 7, objectFit: "cover", display: "block" };
 const menuRow = {
   display: "flex", alignItems: "center", gap: 9, width: "100%",
   padding: "11px 12px", borderRadius: 13, marginBottom: 7,

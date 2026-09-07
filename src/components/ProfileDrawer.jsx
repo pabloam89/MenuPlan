@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X, Users, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "./icons.jsx";
+import { countOwnerCookings } from "../lib/cookingsSync.js";
 import { Avatar } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
@@ -70,6 +71,9 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
   const [recipesOpen, setRecipesOpen] = useState(false);
   const [blockedOpen, setBlockedOpen] = useState(false);
   const [listKind, setListKind] = useState(null);
+  // Las cocinadas no salen de loadProfileCounts (son de otra tabla), así que
+  // su número se pide aparte. `head: true`: cuenta sin traerse las filas.
+  const [cookCount, setCookCount] = useState(0);
   const [blocked, setBlocked] = useState([]);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -96,6 +100,7 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
 
     setProfile(prof);
     setCounts(useFx && cts.followers === 0 ? { followers: 12, following: 8, recipes: 5, menus: 1 } : cts);
+    setCookCount(await countOwnerCookings(user?.id));
     setRequests(finalReqs);
     setSent(finalSent);
     setFollowers(fols);
@@ -268,18 +273,54 @@ export function ProfileDrawer({ user, thumbFor, onClose, onOpenTarget, onOpenPer
               leían como cuatro palabras sin dueño. */}
           {editing && user?.id && <ProfileForm profile={profile} inheritedName={inheritedName} onSave={async (fields) => { await patch(fields); setEditing(false); }} />}
 
-          <div style={statsCard}>
-            {/* Amigos (mutuo) es el vinculo que crea la app; "seguidores" a
-                secas solo existe alrededor de las cuentas abiertas. Antes
-                ponia Seguidores/Siguiendo, que era el vocabulario del modelo
-                direccional de antes de la 0046 y ya no describia nada. */}
-            <Stat n={amigos} label="Amigos" onClick={() => setListKind("friends")} />
-            <span style={statDivider} />
-            <Stat n={soloSeguidores} label="Seguidores" onClick={() => setListKind("followers")} />
-            <span style={statDivider} />
-            <Stat n={counts.recipes} label="Recetas" onClick={() => setRecipesOpen(true)} />
-            <span style={statDivider} />
-            <Stat n={counts.menus} label="Menús" />
+          {/* ── El grafo, en una línea ────────────────────────────────────
+              Amigos (mutuo) es el vínculo que crea la app; "seguidores" a
+              secas solo existe alrededor de las cuentas abiertas.
+
+              Baja de cajas a texto por lo mismo que en PersonSheet: mezclaba
+              dos gestos. Cuatro cajas donde dos abrían una lista de gente y
+              dos eran números muertos enseñaban a no fiarte de ninguna. */}
+          <p style={graphLine}>
+            <button type="button" onClick={() => setListKind("friends")} style={graphBtn}>
+              <b>{amigos}</b> amigos
+            </button>
+            <span style={{ color: "#c2cfc7" }}>·</span>
+            <button type="button" onClick={() => setListKind("followers")} style={graphBtn}>
+              <b>{soloSeguidores}</b> seguidores
+            </button>
+          </p>
+
+          {/* ── Tu contenido: tres cajas, y ahora SÍ llevan a algún sitio ──
+              Cada una abre tu propio perfil —la misma ficha que ves de los
+              demás— ya en su pestaña. Antes "Menús" era un número que no hacía
+              nada y "Recetas" abría otra hoja distinta: tres puertas para tres
+              cosas del mismo rango, cada una a un sitio diferente.
+
+              Y de paso resuelve que no hubiera forma de ver lo tuyo: a tus
+              cocinadas solo se llegaba tocando el nombre de OTRA persona en el
+              río, que es justo al revés de como se busca. */}
+          <div style={contentBoxes}>
+            {[
+              ["cookings", "Historias", cookCount],
+              ["recipes", "Recetas", counts.recipes],
+              ["menus", "Menús", counts.menus],
+            ].map(([tabId, label, n]) => (
+              <button
+                key={tabId}
+                type="button"
+                // Sin sesión se ven igual, en ceros y apagadas. Esconderlas
+                // dejaba media pantalla distinta para el invitado —y el grafo
+                // de al lado sí enseñaba sus ceros—, así que la forma de la
+                // pantalla cambiaba según quién la mirase. Apagadas cuentan lo
+                // mismo y no llevan a una puerta que no existe.
+                disabled={!user?.id}
+                onClick={() => onOpenPerson?.(user.id, tabId)}
+                style={{ ...contentBox, opacity: user?.id ? 1 : .45, cursor: user?.id ? "pointer" : "default" }}
+              >
+                <span style={contentBoxN}>{n ?? 0}</span>
+                <span style={contentBoxLabel}>{label}</span>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -720,14 +761,23 @@ const saveBtn = {
   cursor: "pointer", fontFamily: "inherit",
 };
 
-const statsCard = {
-  display: "flex", alignItems: "center", marginTop: 16,
-  padding: "12px 6px", borderRadius: 14,
-  background: "#fff", border: "1.5px solid #e0eae3",
-  boxShadow: "0 2px 8px rgba(20,47,29,.05)",
+const graphLine = {
+  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+  margin: "14px 0 0", fontSize: 13, color: "#5a7066",
 };
+const graphBtn = {
+  border: "none", background: "none", padding: 0, cursor: "pointer",
+  fontSize: 13, fontWeight: 600, color: "#5a7066", fontFamily: "inherit",
+};
+const contentBoxes = { display: "flex", gap: 8, marginTop: 12 };
+const contentBox = {
+  flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+  padding: "12px 4px", borderRadius: 14, border: "1px solid #e3ebe6", background: "#fff",
+  cursor: "pointer", fontFamily: "inherit",
+};
+const contentBoxN = { fontSize: 18, fontWeight: 900, color: INK, lineHeight: 1.1 };
+const contentBoxLabel = { fontSize: 11, fontWeight: 700, color: "#8aa294" };
 
-const statDivider = { width: 1, alignSelf: "stretch", background: "#eef3f0" };
 const rowName = { fontSize: 13, fontWeight: 800, color: INK, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" };
 const rowSub = { fontSize: 11, fontWeight: 700, color: "#8aa294" };
 const stat = { display: "inline-flex", alignItems: "center", gap: 3 };

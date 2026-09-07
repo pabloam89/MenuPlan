@@ -238,13 +238,14 @@ export const PANTRY_COACH_STEPS = [
 // Feed. La pantalla con más cosas que no se explican solas de toda la app, y
 // hasta ahora la única sin tutorial. Dos gestos concretos justifican que
 // exista: el corazón NO es un aplauso (se lleva la receta a tu recetario), y
-// la fila de arriba no son historias aunque lo parezca.
+// la fila de arriba SÍ son historias — pero de cocinadas, no de menús, y cada
+// una lleva debajo la receta que te puedes copiar.
 export const FEED_COACH_STEPS = [
   {
     selector: '[data-coach="feed-weekly"]',
     Icon: CalendarDays,
     title: "Hoy cocinan…",
-    desc: "Los menús de la semana de quien sigues. El anillo de color marca los que aún no has abierto, y el primer hueco es el tuyo: desde ahí publicas tu semana.",
+    desc: "Lo que ha cocinado hoy tu gente, con su foto. Caduca en 48 h, y el primer hueco es el tuyo: una foto, el plato al que va, y ya.",
     place: "below",
   },
   {
