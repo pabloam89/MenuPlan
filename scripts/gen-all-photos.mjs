@@ -99,6 +99,39 @@ function buildPrompt(dishName) {
   );
 }
 
+/**
+ * La etapa SOLIDOS no es un pure y no puede usar el prompt del bol.
+ *
+ * buildBabyPureePrompt fuerza "una sola masa triturada, lisa y homogenea" y
+ * prohibe explicitamente cualquier trozo reconocible. Aplicado a una tortita de
+ * brocoli o a unos bastones de boniato devuelve — y devolvio — veinte boles de
+ * pure identicos cambiando de color, que es exactamente lo contrario de lo que
+ * la receta es. La rama se elige por ETAPA, no por categoria.
+ */
+// Recetas de etapa "solidos" que NO son finger food. El prompt de sólidos pide
+// "piezas sueltas que el bebé pueda coger con la mano", y aplicado a una pasta
+// con boloñesa devolvió croquetas y fusilli crudo en el mismo plato. Estas se
+// fotografían como cualquier otro plato del catálogo: son sólidas, pero se
+// comen con cuchara (pasta, pisto) o salen de un molde (muffins).
+const BEBES_NO_FINGER = new Set(["bebes_039", "bebes_041", "bebes_042"]);
+
+function buildBabySolidsPrompt(dishName) {
+  return (
+    `Fotografía cenital de un plato de comida para bebé de "${dishName}". ` +
+    `Comida SÓLIDA en piezas que un bebé puede coger con la mano: se ven las formas ` +
+    `enteras y separadas (tortitas, mini hamburguesas, albóndigas, bastones, tiras o bolitas), ` +
+    `nunca trituradas ni convertidas en puré. ` +
+    `PROHIBIDO ABSOLUTAMENTE: cualquier puré, papilla, crema o masa batida homogénea. ` +
+    `Tres o cuatro piezas bien separadas, del tamaño de un dedo o algo mayor, ` +
+    `con textura visible y bordes definidos, ligeramente doradas cuando corresponda. ` +
+    `Servidas en un plato de cerámica artesanal blanco roto con borde irregular, ` +
+    `perfectamente centrado sobre una superficie de mármol blanco cálido con vetas grises suaves que llena todo el encuadre. ` +
+    `Iluminación lateral dorada y cálida, estética de revista gastronómica de alta gama, hiperrealista. ` +
+    `SOLO el plato con la comida en el encuadre: sin cubiertos, sin servilletas, sin manteles, sin manos. ` +
+    `SIN TEXTO, SIN LETRAS, SIN PALABRAS, SIN NÚMEROS en la imagen — imagen pura sin ninguna superposición gráfica.`
+  );
+}
+
 function buildBabyPureePrompt(dishName) {
   return (
     `Fotografía cenital de una papilla de bebé de "${dishName}". ` +
@@ -232,10 +265,16 @@ async function main() {
     const prefix = `[${i + 1}/${catalog.length}]`;
     process.stdout.write(`${prefix} ${name}... `);
 
+    // Dentro de bebés hay dos mundos: el bol de puré y la comida en trozos. Se
+    // elige por la ETAPA de la receta, no por la categoría — que era el fallo
+    // que devolvía veinte boles de puré para veinte recetas de sólidos.
+    const etapa = recipeById[combo_id]?.etapaBebe ?? "cremas";
     const prompt =
-      family === "bebes"
-        ? buildBabyPureePrompt(name)
-        : buildPrompt(name);
+      family !== "bebes" || BEBES_NO_FINGER.has(combo_id)
+        ? buildPrompt(name)
+        : etapa === "solidos"
+          ? buildBabySolidsPrompt(name)
+          : buildBabyPureePrompt(name);
 
     try {
       const imgPart = await generateImage(ai, prompt);
