@@ -29,6 +29,7 @@ import { isQualitativeUnit, mergeIngredientLines } from "./ingredientUnits.js";
 import { buildAdaptationMap } from "./substitutions.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
+import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
 import { normalizeKidDinnerConfig, schoolAvoidCategories, householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 import { lowerFirst } from "./dishNaming.js";
@@ -1131,11 +1132,13 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     data.garnishRepeat ?? "off",
   );
 
-  // 5b. Pair a subset of "canReceiveSauce" dishes with a compatible sauce —
-  //     independiente de la guarnición, un plato puede llevar las dos.
-  //     Deliberadamente NO se aplica a todo lo elegible: tope de unas pocas
-  //     por semana + solo salsas rápidas entre semana (ver pairSauces.js),
-  //     para que sea un toque ocasional y no un plato de más cada noche.
+  // 5b. Aplica SOLO la salsa que la propia receta declara suya (sauceId) o la
+  //     que el usuario fijó a mano (fixedDishes.sauceId) — pairSauces.js ya no
+  //     elige ninguna por su cuenta (ver su cabecera). Ninguno de los dos casos
+  //     "combina" el plato con algo ajeno: sauceId nombra la salsa que el
+  //     plato ya lleva escrita dentro (para que DishDetail pueda mostrarla
+  //     como su propio paso), y lo fijado a mano es una decisión explícita de
+  //     quien cocina, igual que un garnishId fijado a mano en el paso 5.
   slotAssignments = pairSauces(
     slotAssignments,
     poolById,
@@ -2354,6 +2357,39 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const strict = candidates.filter((r) => sameDayOk(r) && neighborDayOk(r));
   const relaxed = strict.length > 0 ? strict : candidates.filter(sameDayOk);
   if (relaxed.length > 0) candidates = relaxed;
+
+  // Subtype variety across the WHOLE week (not just adjacent days), for the
+  // two groups coarse enough to hide a repeat from every check above:
+  // legumbres (garbanzo/lenteja/alubia all count as one "legumbres" group,
+  // so the neighbour-day guardrail can't stop garbanzos on Thursday AND
+  // Sunday) and marisco (mejillones/navajas/gambas all collapse into
+  // "pescado"). Reported directly: a swap put garbanzos back on a day that
+  // didn't neighbour the other garbanzos of the week, and two shellfish
+  // cenas landed in the same week undetected. This is a PREFERENCE, not a
+  // hard filter — config.freqs already allows e.g. 3 legume dishes/week on
+  // purpose, so it only steers toward the subtype not used yet and falls
+  // back to the full pool when that would empty it (e.g. a filtered catalog
+  // with just one legume left).
+  const usedLegumeSubtypes = new Set();
+  const usedMariscoSubtypes = new Set();
+  for (const slot of Object.values(menuPlan[groupId] ?? {})) {
+    for (const rid of [slot?.firstRecipeId, slot?.recipeId]) {
+      const r = recipeCatalogById[stripGroupPrefix(rid)];
+      const legume = legumeSubtypeOf(r);
+      if (legume) usedLegumeSubtypes.add(legume);
+      const marisco = mariscoSubtypeOf(r);
+      if (marisco) usedMariscoSubtypes.add(marisco);
+    }
+  }
+  const freshSubtype = (r) => {
+    const legume = legumeSubtypeOf(r);
+    if (legume && usedLegumeSubtypes.has(legume)) return false;
+    const marisco = mariscoSubtypeOf(r);
+    if (marisco && usedMariscoSubtypes.has(marisco)) return false;
+    return true;
+  };
+  const withFreshSubtype = candidates.filter(freshSubtype);
+  if (withFreshSubtype.length > 0) candidates = withFreshSubtype;
 
   picked = candidates[Math.floor(Math.random() * candidates.length)];
   }

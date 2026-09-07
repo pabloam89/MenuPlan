@@ -211,9 +211,18 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
     // para el fondo de armario, donde los platos SI son piezas sueltas; el
     // recetario estrella no es eso y no hay que "completarlo".
     //
+    // Lo mismo aplica a cualquier receta con llevaSalsa: true, sea o no
+    // Recetario Estrella — "Merluza en salsa verde" o "Pollo al ajillo" ya
+    // traen su salsa escrita dentro, así que pegarles TAMBIÉN una guarnición
+    // automática (patatas panaderas, ensalada...) deja el plato recargado:
+    // salsa propia + guarnición ajena compitiendo en el mismo plato. Es
+    // literalmente el principio que ya declara recipeSchema.js sobre este
+    // campo — "aquí no se combinan platos con salsas: cada receta es la que
+    // es" — que hasta ahora esta función no respetaba para la guarnición.
+    //
     // Lo elegido a mano se respeta igual: fijar una guarnicion es una decision
     // de quien cocina, no algo que la app se invente.
-    if (!garnish && recipe.estrella) return slot;
+    if (!garnish && (recipe.estrella || recipe.llevaSalsa)) return slot;
 
     if (!garnish) {
       // A fried side (patatas fritas) only pairs with meat/fish — never a
@@ -265,6 +274,22 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
           const gCarb = carbOfGarnish(g);
           if (gCarb && dayCarbs.has(gCarb)) return false;
           return true;
+        });
+      }
+      // Cena-only final fallback: bread. It's excluded from every tier above
+      // because a baguette plated next to a normal segundo reads as
+      // redundant — but a cena main that's shellfish-in-the-shell or another
+      // light single-ingredient plate (mejillones, navajas…) with NO other
+      // eligible side left this week would otherwise ship completely bare,
+      // which is exactly what was reported as "una cena no puede ser solo
+      // navajas/mejillones, es incompleta". Pan is a normal way to round out
+      // that kind of cena in practice, so it's better than nothing here even
+      // though it's never proactively chosen while a non-bread side exists.
+      if (candidates.length === 0 && isCena) {
+        candidates = eligible.filter((g) => {
+          if (!isPanGarnish(g)) return false;
+          const gCarb = carbOfGarnish(g);
+          return !(gCarb && dayCarbs.has(gCarb));
         });
       }
       // Avoid a garnish that duplicates the main's headline ingredient
