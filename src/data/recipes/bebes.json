@@ -2694,5 +2694,1745 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "etapaBebe": "cremas"
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_023",
+    "name": "Tortitas de brócoli y requesón",
+    "mainProtein": "huevo",
+    "time": 20,
+    "kcal": 165,
+    "protein_g": 11,
+    "carbs_g": 9,
+    "fat_g": 9,
+    "allergens": [
+      "huevo",
+      "lactosa",
+      "gluten"
+    ],
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "tecnica": "sarten",
+    "ingredients": [
+      {
+        "name": "Brócoli",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Requesón",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Copos de avena",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Tortitas blanditas de brócoli que el bebé agarra con la mano, sin sal",
+    "steps": [
+      "Cocer el brócoli al vapor hasta que se aplaste con un tenedor sin esfuerzo.",
+      "Triturar los copos de avena hasta dejarlos como harina.",
+      "Aplastar el brócoli con un tenedor en un bol, sin llegar a puré.",
+      "Añadir el requesón, el huevo batido y la avena molida, y mezclar.",
+      "Calentar una sartén antiadherente con unas gotas de aceite a fuego medio-bajo.",
+      "Formar tortitas de un dedo de grosor con una cuchara.",
+      "Dorar dos o tres minutos por cada lado, hasta que cuajen por dentro.",
+      "Dejar templar y comprobar que el centro no quema antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Cocer el {{Brócoli}} al vapor hasta que se aplaste con un tenedor sin esfuerzo.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Triturar los {{Copos de avena}} hasta dejarlos como harina.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Aplastar el brócoli con un tenedor en un bol, sin llegar a puré: quedan grumos y eso es lo que hace que se pueda coger.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el {{Requesón}}, el {{Huevo}} batido y la avena molida, y mezclar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar una sartén antiadherente con unas gotas de {{Aceite de oliva virgen extra}} a fuego medio-bajo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Formar tortitas de un dedo de grosor con una cuchara.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar dos o tres minutos por cada lado, hasta que cuajen por dentro.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar y comprobar que el centro no quema antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_024",
+    "name": "Tortitas de guisantes y aguacate",
+    "mainProtein": "huevo",
+    "time": 18,
+    "kcal": 190,
+    "protein_g": 9,
+    "carbs_g": 14,
+    "fat_g": 11,
+    "allergens": [
+      "huevo",
+      "gluten"
+    ],
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "sarten",
+    "ingredients": [
+      {
+        "name": "Guisantes",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Copos de avena",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Tortitas verdes muy tiernas de guisante y aguacate, sin sal",
+    "steps": [
+      "Cocer los guisantes hasta que estén muy tiernos y escurrir.",
+      "Triturar los copos de avena hasta dejarlos como harina.",
+      "Aplastar los guisantes y el aguacate con un tenedor.",
+      "Añadir el huevo batido y la avena molida, y mezclar hasta que ligue.",
+      "Formar tortitas pequeñas y dorarlas a fuego medio-bajo por los dos lados.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Cocer los {{Guisantes}} hasta que estén muy tiernos y escurrir.",
+        "minutes": 7,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Triturar los {{Copos de avena}} hasta dejarlos como harina.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Aplastar los guisantes y el {{Aguacate}} con un tenedor.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el {{Huevo}} batido y la avena molida, y mezclar hasta que ligue.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar tortitas pequeñas y dorarlas con {{Aceite de oliva virgen extra}} a fuego medio-bajo por los dos lados.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_025",
+    "name": "Tortitas de avena y plátano",
+    "mainProtein": "huevo",
+    "time": 15,
+    "kcal": 210,
+    "protein_g": 8,
+    "carbs_g": 31,
+    "fat_g": 6,
+    "allergens": [
+      "huevo",
+      "gluten"
+    ],
+    "mainIngredients": [
+      "fruta"
+    ],
+    "mainBase": "avena",
+    "tecnica": "sarten",
+    "ingredients": [
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Copos de avena",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Tortitas dulces sin azúcar: el plátano maduro endulza solo",
+    "steps": [
+      "Aplastar el plátano con un tenedor hasta que quede casi puré.",
+      "Añadir el huevo batido y los copos de avena y mezclar.",
+      "Dejar reposar cinco minutos para que la avena se hidrate y la masa espese.",
+      "Dorar tortitas pequeñas a fuego medio-bajo por los dos lados.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Aplastar el {{Plátano}} con un tenedor hasta que quede casi puré. Cuanto más maduro, más dulce sale sin añadir nada.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el {{Huevo}} batido y los {{Copos de avena}} y mezclar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Dejar reposar cinco minutos para que la avena se hidrate y la masa espese.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Dorar tortitas pequeñas con {{Aceite de oliva virgen extra}} a fuego medio-bajo por los dos lados.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_026",
+    "name": "Bocaditos de lentejas y arroz",
+    "mainProtein": "legumbre",
+    "time": 30,
+    "kcal": 205,
+    "protein_g": 10,
+    "carbs_g": 32,
+    "fat_g": 5,
+    "allergens": [],
+    "mainBase": "legumbre",
+    "tecnica": "horno",
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "description": "Bocaditos al horno de lenteja y arroz, blandos y fáciles de agarrar",
+    "steps": [
+      "Cocer las lentejas y el arroz por separado hasta que estén muy tiernos.",
+      "Cocer la zanahoria hasta que se aplaste sin esfuerzo.",
+      "Aplastar todo junto con un tenedor y añadir el aceite y el comino.",
+      "Formar bolitas achatadas del tamaño de una nuez y ponerlas en una bandeja.",
+      "Hornear a 180 grados unos quince minutos, hasta que se sostengan solas.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Cocer las {{Lentejas}} y el {{Arroz}} por separado hasta que estén muy tiernos.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer la {{Zanahoria}} hasta que se aplaste sin esfuerzo.",
+        "minutes": 10,
+        "kind": "paralelo"
+      },
+      {
+        "text": "Aplastar todo junto con un tenedor y añadir el {{Aceite de oliva virgen extra}} y el {{Comino molido}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar bolitas achatadas del tamaño de una nuez y ponerlas en una bandeja.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 180 grados unos quince minutos, hasta que se sostengan solas.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 4,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_027",
+    "name": "Falafel al horno de lentejas",
+    "mainProtein": "legumbre",
+    "time": 32,
+    "kcal": 195,
+    "protein_g": 10,
+    "carbs_g": 24,
+    "fat_g": 7,
+    "allergens": [],
+    "mainBase": "legumbre",
+    "cocina": "arabe",
+    "tecnica": "horno",
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 6,
+        "unit": "ml"
+      }
+    ],
+    "description": "Falafel al horno, nunca frito, sin sal ni picante",
+    "steps": [
+      "Cocer las lentejas hasta que estén muy tiernas y escurrir bien.",
+      "Pochar la cebolla muy picada a fuego suave hasta que esté transparente.",
+      "Triturar las lentejas con la cebolla, el perejil y el comino, dejando algo de grano.",
+      "Formar discos aplastados, no bolas: se agarran mejor y se cuecen antes.",
+      "Hornear a 190 grados unos dieciocho minutos, dándoles la vuelta a mitad.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Cocer las {{Lentejas}} hasta que estén muy tiernas y escurrir bien.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pochar la {{Cebolla}} muy picada a fuego suave hasta que esté transparente.",
+        "minutes": 6,
+        "kind": "paralelo"
+      },
+      {
+        "text": "Triturar las lentejas con la cebolla, el {{Perejil}} y el {{Comino molido}}, dejando algo de grano.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar discos aplastados, no bolas: se agarran mejor y se cuecen antes.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Pintar con {{Aceite de oliva virgen extra}} y hornear a 190 grados unos dieciocho minutos, dándoles la vuelta a mitad.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 4,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_028",
+    "name": "Tortitas de calabacín y queso fresco",
+    "mainProtein": "huevo",
+    "time": 18,
+    "kcal": 170,
+    "protein_g": 11,
+    "carbs_g": 10,
+    "fat_g": 9,
+    "allergens": [
+      "huevo",
+      "lactosa",
+      "gluten"
+    ],
+    "mainIngredients": [
+      "verdura",
+      "lacteo"
+    ],
+    "tecnica": "sarten",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Queso fresco",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Copos de avena",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Tortitas jugosas de calabacín rallado y queso fresco, sin sal",
+    "steps": [
+      "Rallar el calabacín y escurrirlo apretando con las manos.",
+      "Triturar los copos de avena hasta dejarlos como harina.",
+      "Mezclar el calabacín con el queso fresco desmenuzado, el huevo y la avena.",
+      "Dorar tortitas pequeñas a fuego medio-bajo por los dos lados.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Rallar el {{Calabacín}} y escurrirlo apretando con las manos: si suelta agua en la sartén, la tortita no cuaja.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar los {{Copos de avena}} hasta dejarlos como harina.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar el calabacín con el {{Queso fresco}} desmenuzado, el {{Huevo}} y la avena.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Dorar tortitas pequeñas con {{Aceite de oliva virgen extra}} a fuego medio-bajo por los dos lados.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_029",
+    "name": "Mini hamburguesa de merluza y guisantes",
+    "mainProtein": "pescado_blanco",
+    "time": 22,
+    "kcal": 180,
+    "protein_g": 17,
+    "carbs_g": 12,
+    "fat_g": 7,
+    "allergens": [
+      "pescado",
+      "huevo",
+      "gluten"
+    ],
+    "tecnica": "sarten",
+    "ingredients": [
+      {
+        "name": "Merluza en lomos",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Hamburguesa pequeña de merluza que se deshace en la boca, sin sal",
+    "steps": [
+      "Revisar la merluza de espinas dos veces, pasando los dedos por todo el lomo.",
+      "Cocer la merluza al vapor y desmigarla con los dedos.",
+      "Cocer los guisantes hasta que estén muy tiernos y aplastarlos.",
+      "Mezclar la merluza con los guisantes, el huevo y el pan rallado.",
+      "Formar hamburguesas pequeñas y dorarlas a fuego medio por los dos lados.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Revisar la {{Merluza en lomos}} de espinas dos veces, pasando los dedos por todo el lomo. Es el paso que no se puede saltar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cocer la merluza al vapor y desmigarla con los dedos.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer los {{Guisantes}} hasta que estén muy tiernos y aplastarlos.",
+        "minutes": 7,
+        "kind": "paralelo"
+      },
+      {
+        "text": "Mezclar la merluza con los guisantes, el {{Huevo}} y el {{Pan rallado}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar hamburguesas pequeñas y dorarlas con {{Aceite de oliva virgen extra}} a fuego medio por los dos lados.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_030",
+    "name": "Albóndigas de ternera al horno con tomate",
+    "mainProtein": "ternera",
+    "time": 35,
+    "kcal": 215,
+    "protein_g": 18,
+    "carbs_g": 13,
+    "fat_g": 11,
+    "allergens": [
+      "huevo",
+      "gluten"
+    ],
+    "tecnica": "horno",
+    "ingredients": [
+      {
+        "name": "Carne picada de ternera",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 6,
+        "unit": "ml"
+      }
+    ],
+    "description": "Albóndigas tiernas al horno con salsa de tomate suave, sin sal",
+    "steps": [
+      "Mezclar la carne picada con el huevo y el pan rallado.",
+      "Formar albóndigas pequeñas y aplastarlas un poco por arriba.",
+      "Hornear a 180 grados unos veinte minutos.",
+      "Reducir el tomate triturado con el aceite a fuego suave, sin sal.",
+      "Juntar las albóndigas con el tomate y dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Mezclar la {{Carne picada de ternera}} con el {{Huevo}} y el {{Pan rallado}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar albóndigas pequeñas y aplastarlas un poco por arriba: una bola redonda rueda y cuesta más agarrarla.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 180 grados unos veinte minutos.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Reducir el {{Tomate triturado}} con el {{Aceite de oliva virgen extra}} a fuego suave, sin sal.",
+        "minutes": 8,
+        "kind": "paralelo"
+      },
+      {
+        "text": "Juntar las albóndigas con el tomate y dejar templar antes de servir.",
+        "minutes": 4,
+        "kind": "emplatado"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_031",
+    "name": "Mini hamburguesa de pollo y calabacín",
+    "mainProtein": "pollo",
+    "time": 22,
+    "kcal": 185,
+    "protein_g": 18,
+    "carbs_g": 11,
+    "fat_g": 8,
+    "allergens": [
+      "huevo",
+      "gluten"
+    ],
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "sarten",
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Hamburguesa jugosa de pollo con calabacín rallado dentro, sin sal",
+    "steps": [
+      "Picar la pechuga de pollo muy fina con cuchillo o picadora.",
+      "Rallar el calabacín y escurrirlo bien.",
+      "Mezclar el pollo con el calabacín, el huevo y el pan rallado.",
+      "Formar hamburguesas pequeñas y hacerlas a fuego medio-bajo, tapadas, hasta que estén hechas por dentro.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar la {{Pechuga de pollo}} muy fina con cuchillo o picadora.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar el {{Calabacín}} y escurrirlo bien. Es lo que mantiene jugosa la hamburguesa sin añadir grasa.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar el pollo con el calabacín, el {{Huevo}} y el {{Pan rallado}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar hamburguesas pequeñas y hacerlas con {{Aceite de oliva virgen extra}} a fuego medio-bajo, tapadas, hasta que estén hechas por dentro.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_032",
+    "name": "Hamburguesa de garbanzos y zanahoria",
+    "mainProtein": "legumbre",
+    "time": 25,
+    "kcal": 200,
+    "protein_g": 9,
+    "carbs_g": 27,
+    "fat_g": 7,
+    "allergens": [
+      "huevo",
+      "gluten"
+    ],
+    "mainBase": "legumbre",
+    "tecnica": "horno",
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Copos de avena",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 6,
+        "unit": "ml"
+      }
+    ],
+    "description": "Hamburguesa vegetal de garbanzo y zanahoria al horno, sin sal",
+    "steps": [
+      "Cocer la zanahoria hasta que se aplaste sin esfuerzo y rallarla o aplastarla.",
+      "Aplastar los garbanzos con un tenedor, dejando trocitos.",
+      "Mezclar con el huevo y los copos de avena y dejar reposar cinco minutos.",
+      "Formar hamburguesas y hornear a 190 grados unos quince minutos, dándoles la vuelta.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Cocer la {{Zanahoria}} hasta que se aplaste sin esfuerzo y rallarla o aplastarla.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Aplastar los {{Garbanzos cocidos}} con un tenedor, dejando trocitos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar con el {{Huevo}} y los {{Copos de avena}} y dejar reposar cinco minutos.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Formar hamburguesas, pintar con {{Aceite de oliva virgen extra}} y hornear a 190 grados unos quince minutos, dándoles la vuelta.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 4,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_033",
+    "name": "Albóndigas de salmón y patata",
+    "mainProtein": "pescado_azul",
+    "time": 30,
+    "kcal": 220,
+    "protein_g": 16,
+    "carbs_g": 17,
+    "fat_g": 10,
+    "allergens": [
+      "pescado",
+      "huevo"
+    ],
+    "mainBase": "patatas",
+    "tecnica": "horno",
+    "ingredients": [
+      {
+        "name": "Lomos de salmón",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 6,
+        "unit": "ml"
+      }
+    ],
+    "description": "Albóndigas suaves de salmón y patata cocida, al horno y sin sal",
+    "steps": [
+      "Revisar el salmón de espinas dos veces y cocerlo al vapor.",
+      "Cocer la patata hasta que se deshaga y aplastarla.",
+      "Desmigar el salmón y mezclarlo con la patata, el huevo y el perejil.",
+      "Formar albóndigas achatadas y hornear a 190 grados unos quince minutos.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Revisar los {{Lomos de salmón}} de espinas dos veces y cocerlos al vapor.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer la {{Patata}} hasta que se deshaga y aplastarla.",
+        "minutes": 15,
+        "kind": "paralelo"
+      },
+      {
+        "text": "Desmigar el salmón y mezclarlo con la patata, el {{Huevo}} y el {{Perejil}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar albóndigas achatadas, pintar con {{Aceite de oliva virgen extra}} y hornear a 190 grados unos quince minutos.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 4,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_034",
+    "name": "Bastones de boniato al horno",
+    "mainProtein": "none",
+    "time": 30,
+    "kcal": 150,
+    "protein_g": 2,
+    "carbs_g": 28,
+    "fat_g": 5,
+    "allergens": [],
+    "mainBase": "patatas",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "horno",
+    "ingredients": [
+      {
+        "name": "Boniato",
+        "amount": 140,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 6,
+        "unit": "ml"
+      }
+    ],
+    "description": "Bastones blandos de boniato, del grosor de un dedo, sin sal",
+    "steps": [
+      "Pelar el boniato y cortarlo en bastones del grosor de un dedo adulto.",
+      "Aliñar con el aceite y extender en una bandeja sin amontonar.",
+      "Hornear a 200 grados unos veinticinco minutos, hasta que se aplasten con los dedos.",
+      "Comprobar que ceden a la presión y dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar el {{Boniato}} y cortarlo en bastones del grosor de un dedo adulto. A lo largo, nunca en rodajas: una rodaja tiene el diámetro de la tráquea.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Aliñar con el {{Aceite de oliva virgen extra}} y extender en una bandeja sin amontonar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 200 grados unos veinticinco minutos, hasta que se aplasten con los dedos.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Comprobar que ceden a la presión y dejar templar antes de servir.",
+        "minutes": 4,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_035",
+    "name": "Zanahoria cocida en bastón con aceite",
+    "mainProtein": "none",
+    "time": 18,
+    "kcal": 95,
+    "protein_g": 1,
+    "carbs_g": 12,
+    "fat_g": 5,
+    "allergens": [],
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "olla",
+    "ingredients": [
+      {
+        "name": "Zanahoria",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Zanahoria bien cocida en bastones, la forma segura de darla",
+    "steps": [
+      "Pelar la zanahoria y cortarla en bastones a lo largo.",
+      "Cocerla hasta que un bastón se aplaste con los dedos sin resistencia.",
+      "Escurrir, aliñar con el aceite y dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar la {{Zanahoria}} y cortarla en bastones a lo largo. Cruda es de los alimentos con más riesgo de atragantamiento: siempre cocida.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Cocerla hasta que un bastón se aplaste con los dedos sin resistencia. Si aún cruje, le faltan minutos.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir, aliñar con el {{Aceite de oliva virgen extra}} y dejar templar antes de servir.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_036",
+    "name": "Tortilla francesa en tiras",
+    "mainProtein": "huevo",
+    "time": 10,
+    "kcal": 165,
+    "protein_g": 13,
+    "carbs_g": 1,
+    "fat_g": 12,
+    "allergens": [
+      "huevo"
+    ],
+    "tecnica": "sarten",
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 6,
+        "unit": "ml"
+      }
+    ],
+    "description": "Tortilla fina cortada en tiras, el primer sólido de casi todos",
+    "steps": [
+      "Batir los huevos sin sal.",
+      "Cuajar una tortilla fina a fuego medio-bajo, sin dejarla jugosa por dentro.",
+      "Dejar templar y cortarla en tiras del ancho de un dedo."
+    ],
+    "stepsRich": [
+      {
+        "text": "Batir los {{Huevo}} sin sal.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cuajar una tortilla fina con {{Aceite de oliva virgen extra}} a fuego medio-bajo, sin dejarla jugosa por dentro: a esta edad el huevo va bien hecho.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar y cortarla en tiras del ancho de un dedo.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_037",
+    "name": "Brócoli al vapor en árbol",
+    "mainProtein": "none",
+    "time": 14,
+    "kcal": 90,
+    "protein_g": 4,
+    "carbs_g": 7,
+    "fat_g": 5,
+    "allergens": [],
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "olla",
+    "ingredients": [
+      {
+        "name": "Brócoli",
+        "amount": 110,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Ramilletes de brócoli al vapor con el tallo largo, para agarrar",
+    "steps": [
+      "Separar el brócoli en ramilletes dejando el tallo largo.",
+      "Cocer al vapor hasta que el tallo se atraviese con un tenedor sin esfuerzo.",
+      "Aliñar con el aceite y dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Separar el {{Brócoli}} en ramilletes dejando el tallo largo: ese tallo es el asa, y es lo que convierte una verdura en algo que el bebé puede coger.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Cocer al vapor hasta que el tallo se atraviese con un tenedor sin esfuerzo.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Aliñar con el {{Aceite de oliva virgen extra}} y dejar templar antes de servir.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_038",
+    "name": "Tiras de aguacate rebozado en avena",
+    "mainProtein": "none",
+    "time": 12,
+    "kcal": 205,
+    "protein_g": 4,
+    "carbs_g": 16,
+    "fat_g": 14,
+    "allergens": [
+      "gluten"
+    ],
+    "mainIngredients": [
+      "fruta"
+    ],
+    "tecnica": "horno",
+    "ingredients": [
+      {
+        "name": "Aguacate",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Copos de avena",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Aguacate en gajos rebozado en avena para que no resbale",
+    "steps": [
+      "Triturar los copos de avena hasta dejarlos gruesos, como pan rallado.",
+      "Cortar el aguacate en gajos a lo largo.",
+      "Rebozar cada gajo en la avena, presionando para que se pegue.",
+      "Dorar en el horno a 200 grados unos ocho minutos.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Triturar los {{Copos de avena}} hasta dejarlos gruesos, como pan rallado. Aquí NO se usa almendra molida ni ningún fruto seco.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar el {{Aguacate}} en gajos a lo largo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Rebozar cada gajo en la avena, presionando para que se pegue. El rebozado está para que no resbale entre los dedos, que es el problema del aguacate solo.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pintar con {{Aceite de oliva virgen extra}} y dorar en el horno a 200 grados unos ocho minutos.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_039",
+    "name": "Pasta pequeña con boloñesa de verduras",
+    "mainProtein": "ternera",
+    "time": 32,
+    "kcal": 245,
+    "protein_g": 15,
+    "carbs_g": 30,
+    "fat_g": 8,
+    "allergens": [
+      "gluten"
+    ],
+    "mainBase": "pasta",
+    "cocina": "italiana",
+    "tecnica": "sarten",
+    "ingredients": [
+      {
+        "name": "Pasta pequeña",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Carne picada de ternera",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 6,
+        "unit": "ml"
+      }
+    ],
+    "description": "Pasta pequeña con boloñesa muy blanda de carne y verdura, sin sal",
+    "steps": [
+      "Rallar la zanahoria y el calabacín muy finos.",
+      "Sofreír la carne picada a fuego suave, deshaciéndola con la cuchara.",
+      "Añadir la verdura rallada y el tomate y cocer a fuego lento hasta que todo esté muy blando.",
+      "Cocer la pasta pequeña dos minutos más de lo que diga el paquete.",
+      "Mezclar y dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Rallar la {{Zanahoria}} y el {{Calabacín}} muy finos.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Sofreír la {{Carne picada de ternera}} con {{Aceite de oliva virgen extra}} a fuego suave, deshaciéndola con la cuchara para que no queden trozos grandes.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la verdura rallada y el {{Tomate triturado}} y cocer a fuego lento hasta que todo esté muy blando.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer la {{Pasta pequeña}} dos minutos más de lo que diga el paquete: al dente no vale a esta edad.",
+        "minutes": 12,
+        "kind": "paralelo"
+      },
+      {
+        "text": "Mezclar y dejar templar antes de servir.",
+        "minutes": 4,
+        "kind": "emplatado"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_040",
+    "name": "Bolitas de arroz con brócoli y sésamo",
+    "mainProtein": "none",
+    "time": 28,
+    "kcal": 190,
+    "protein_g": 6,
+    "carbs_g": 30,
+    "fat_g": 6,
+    "allergens": [
+      "sesamo"
+    ],
+    "mainBase": "arroz",
+    "mainIngredients": [
+      "verdura"
+    ],
+    "cocina": "asiatica",
+    "tecnica": "olla",
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Brócoli",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Semillas de sésamo",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Bolitas de arroz apelmazado con brócoli, se cogen sin deshacerse",
+    "steps": [
+      "Cocer el arroz con más agua de lo normal para que quede pasado y pegajoso.",
+      "Cocer el brócoli al vapor y picarlo muy fino.",
+      "Triturar las semillas de sésamo hasta dejarlas en polvo.",
+      "Mezclar todo y apretar con las manos húmedas formando bolitas.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Cocer el {{Arroz}} con más agua de lo normal para que quede pasado y pegajoso. Aquí el arroz suelto es el enemigo: lo que liga la bolita es el almidón.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer el {{Brócoli}} al vapor y picarlo muy fino.",
+        "minutes": 8,
+        "kind": "paralelo"
+      },
+      {
+        "text": "Triturar las {{Semillas de sésamo}} hasta dejarlas en polvo. Enteras no.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar todo con el {{Aceite de oliva virgen extra}} y apretar con las manos húmedas formando bolitas.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_041",
+    "name": "Muffins de patata y champiñón",
+    "mainProtein": "huevo",
+    "time": 35,
+    "kcal": 195,
+    "protein_g": 11,
+    "carbs_g": 19,
+    "fat_g": 9,
+    "allergens": [
+      "huevo",
+      "lactosa"
+    ],
+    "mainBase": "patatas",
+    "tecnica": "horno",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "description": "Muffins salados sin sal, de patata y champiñón, que se cogen con la mano",
+    "steps": [
+      "Cocer la patata hasta que se deshaga y aplastarla.",
+      "Saltear los champiñones muy picados a fuego suave hasta que suelten el agua.",
+      "Mezclar la patata con el champiñón, el huevo y el queso rallado.",
+      "Repartir en moldes pequeños y hornear a 180 grados unos veinte minutos.",
+      "Desmoldar y dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Cocer la {{Patata}} hasta que se deshaga y aplastarla.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Saltear los {{Champiñones}} muy picados con {{Aceite de oliva virgen extra}} a fuego suave hasta que suelten el agua.",
+        "minutes": 6,
+        "kind": "paralelo"
+      },
+      {
+        "text": "Mezclar la patata con el champiñón, el {{Huevo}} y el {{Queso rallado}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir en moldes pequeños y hornear a 180 grados unos veinte minutos.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Desmoldar y dejar templar antes de servir.",
+        "minutes": 5,
+        "kind": "espera"
+      }
+    ]
+  },
+  {
+    "category": "bebes",
+    "etapaBebe": "solidos",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "difficulty": "facil",
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "season": "all",
+    "id": "bebes_042",
+    "name": "Pisto muy blando con huevo revuelto",
+    "mainProtein": "huevo",
+    "time": 30,
+    "kcal": 205,
+    "protein_g": 12,
+    "carbs_g": 12,
+    "fat_g": 13,
+    "allergens": [
+      "huevo"
+    ],
+    "mainIngredients": [
+      "verdura"
+    ],
+    "tecnica": "sarten",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 7,
+        "unit": "ml"
+      }
+    ],
+    "description": "Pisto cocinado de más para que se aplaste, con huevo revuelto",
+    "steps": [
+      "Cortar el calabacín, la berenjena y el pimiento en dados pequeños.",
+      "Pochar la verdura a fuego suave y tapada hasta que esté muy blanda.",
+      "Añadir el tomate triturado y cocer diez minutos más, sin sal.",
+      "Cuajar el huevo batido dentro del pisto, removiendo.",
+      "Dejar templar antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar el {{Calabacín}}, la {{Berenjena}} y el {{Pimiento rojo}} en dados pequeños.",
+        "minutes": 6,
+        "kind": "prep"
+      },
+      {
+        "text": "Pochar la verdura con {{Aceite de oliva virgen extra}} a fuego suave y tapada hasta que esté muy blanda. Aquí se cocina de más a propósito: el punto de un pisto de adulto no vale.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir el {{Tomate triturado}} y cocer diez minutos más, sin sal.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cuajar el {{Huevo}} batido dentro del pisto, removiendo.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar antes de servir.",
+        "minutes": 4,
+        "kind": "espera"
+      }
+    ]
   }
 ]
