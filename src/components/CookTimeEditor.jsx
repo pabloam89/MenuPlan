@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BriefcaseBusiness, Check, Moon, Shuffle, Sun, Sunset } from "lucide-react";
+import { BriefcaseBusiness, Check, Moon, Shuffle, Sun, Sunset } from "./icons.jsx";
 import {
   migrateCookTime,
   writeCookTimeMode,

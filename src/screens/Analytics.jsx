@@ -13,7 +13,7 @@ import {
   Utensils,
   Wheat,
   X,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import {
   BottomNav,
   SegmentedControl,

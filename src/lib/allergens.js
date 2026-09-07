@@ -12,7 +12,7 @@ import {
   Sprout,
   Wheat,
   Wine,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { compileKeywordRegex, normalizeText } from "./recipeText.js";
 
 /** Reglamento UE — 14 alérgenos declarables */

@@ -201,7 +201,7 @@ const RECIPE_COLUMNS = [
   // del generador se queda a 0 para cualquier grupo sin bebés.
   "estrella",
   // Plato de ocasión (ver recipeSchema.js y la regla 3f de validateMenu.js).
-  "occasion", "kid_favourite", "tecnica", "cocina", "lleva_salsa",
+  "occasion", "kid_favourite", "tecnica", "cocina", "lleva_salsa", "etapa_bebe",
 ];
 const RECIPE_UPDATE_COLUMNS = RECIPE_COLUMNS.filter((c) => c !== "id");
 
@@ -229,7 +229,7 @@ const RECIPE_COLUMN_TYPES = {
   // hace `alter table ... add column if not exists`, y un enum necesitaría
   // ademas un `create type` en una transacción aparte. El valor lo valida el
   // schema de zod al cargar (recipeSchema.js).
-  occasion: "text", kid_favourite: "boolean", tecnica: "text", cocina: "text", lleva_salsa: "boolean",
+  occasion: "text", kid_favourite: "boolean", tecnica: "text", cocina: "text", lleva_salsa: "boolean", etapa_bebe: "text",
 };
 
 const recipeRows = recipes.map((r) => {
@@ -243,7 +243,7 @@ const recipeRows = recipes.map((r) => {
     `${sqlNullableBool(r.apetecible)}, ${sqlNullableBool(r.montaje)}, ${sqlNullableBool(r.canBeGarnish)}, ` +
     `${sqlTextArray(r.mainIngredients)}, ${sqlString(r.sauceId)}, ` +
     `${sqlEnumArray(r.extraProteins, "main_protein")}, ${sqlNullableBool(r.freezable)}, ${sqlJsonb(r.stepsRich)}, ` +
-    `${sqlNullableBool(r.estrella)}, ${sqlString(r.occasion)}, ${sqlNullableBool(r.kidFavourite)}, ${sqlString(r.tecnica)}, ${sqlString(r.cocina)}, ${sqlNullableBool(r.llevaSalsa)})`;
+    `${sqlNullableBool(r.estrella)}, ${sqlString(r.occasion)}, ${sqlNullableBool(r.kidFavourite)}, ${sqlString(r.tecnica)}, ${sqlString(r.cocina)}, ${sqlNullableBool(r.llevaSalsa)}, ${sqlString(r.etapaBebe)})`;
 });
 
 // Setup: un archivo APARTE que hay que pegar y ejecutar solo, ANTES que los

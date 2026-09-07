@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, CookingPot, Check, Share2 } from "lucide-react";
+import { X, CookingPot, Check, Share2 } from "./icons.jsx";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 

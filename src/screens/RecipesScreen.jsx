@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BookOpen, Plus, SlidersHorizontal, Sparkles } from "lucide-react";
+import { BookOpen, Plus, SlidersHorizontal, Sparkles } from "../components/icons.jsx";
 import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";

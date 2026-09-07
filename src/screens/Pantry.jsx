@@ -29,7 +29,7 @@ import {
   SlidersHorizontal,
   Refrigerator,
   Menu as MenuIcon,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
 import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";

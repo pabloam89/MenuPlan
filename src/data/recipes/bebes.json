@@ -171,7 +171,8 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_002",
@@ -304,7 +305,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_003",
@@ -447,7 +449,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_004",
@@ -577,7 +580,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_005",
@@ -701,7 +705,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_006",
@@ -851,7 +856,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_007",
@@ -990,7 +996,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_008",
@@ -1125,7 +1132,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_009",
@@ -1273,7 +1281,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_010",
@@ -1437,7 +1446,8 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_012",
@@ -1573,7 +1583,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_013",
@@ -1719,7 +1730,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_014",
@@ -1855,7 +1867,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_015",
@@ -1995,7 +2008,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_016",
@@ -2146,7 +2160,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_018",
@@ -2282,7 +2297,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_019",
@@ -2426,7 +2442,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_021",
@@ -2550,7 +2567,8 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   },
   {
     "id": "bebes_022",
@@ -2674,6 +2692,7 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "etapaBebe": "cremas"
   }
 ]

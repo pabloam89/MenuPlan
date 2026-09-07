@@ -8,7 +8,7 @@
 // a medical claim: a badge means "this pick avoids the flagged risk factors
 // for that profile", not "this dish was clinically designed for you".
 
-import { Beef, CircleDot, Flame, HeartPulse, Zap } from "lucide-react";
+import { Beef, CircleDot, Flame, HeartPulse, Zap } from "../components/icons.jsx";
 
 export const HEALTH_PROFILE_BADGE = {
   glucemico: {

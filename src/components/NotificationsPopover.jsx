@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BellOff, UserPlus, UserCheck, MessageCircle, CornerDownRight, AtSign, Check, CalendarDays } from "lucide-react";
+import { BellOff, UserPlus, UserCheck, MessageCircle, CornerDownRight, AtSign, Check, CalendarDays } from "./icons.jsx";
 import { Avatar } from "./ui.jsx";
 import { acceptFollowRequest, rejectFollowRequest, followUser } from "../lib/social.js";
 import { relativeTime, personColor } from "../lib/socialUi.js";

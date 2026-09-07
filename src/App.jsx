@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "lucide-react";
+import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
 import {
   OnboardingMembers,
@@ -3777,6 +3777,119 @@ export default function App() {
   }, [data, menuPlan, showToast, user, applyShoppingFor]);
 
   /**
+   * Cambia la ESTRUCTURA de una comida: de primero+segundo a plato único, o al
+   * revés. No fusiona ni parte platos —eso sería emparejar, y no lo hacemos—:
+   * sustituye lo que hubiera por las recetas que pide la estructura nueva,
+   * cada una con su foto.
+   *
+   * Se apoya en dos cosas que ya existían: `data.slotType[día|comida]`, que el
+   * planificador ya lee para colapsar un hueco a plato único (aiPlanner.js), y
+   * pickCatalogReplacement, que deduce el rol que busca de si el hueco tiene
+   * `firstRecipeId`. De ahí el orden de los pasos de abajo: hay que dejar el
+   * hueco con la forma nueva ANTES de pedirle un plato, o devuelve el rol
+   * viejo.
+   */
+  const handleSlotStructure = useCallback(async (sel, structure) => {
+    if (householdReadOnly || !sel) return;
+    const { groupId, day, meal } = sel;
+    const slotKey = `${day}-${meal}`;
+    const prevSlot = menuPlan[groupId]?.[slotKey];
+    if (!prevSlot) return;
+
+    const toUnico = structure === "unico";
+    // Copia del plan con la forma nueva ya aplicada, para que el picker vea el
+    // hueco como quedará y no como está.
+    const shaped = { ...prevSlot, firstRecipeId: toUnico ? null : (prevSlot.firstRecipeId ?? null) };
+    let planForPick = { ...menuPlan, [groupId]: { ...(menuPlan[groupId] ?? {}), [slotKey]: shaped } };
+
+    const picks = [];
+    if (toUnico) {
+      // Un solo plato con rol plato_unico: el hueco ya no tiene primero.
+      const r = pickCatalogReplacement(data, planForPick, { groupId, day, meal, course: "main" });
+      if (!r) { showToast("No hay ningún plato único para este hueco"); return; }
+      picks.push({ course: "main", ...r });
+    } else {
+      // Primero, y luego el segundo YA con el primero puesto, para que el
+      // picker busque rol "segundo" en vez de "plato_unico" otra vez.
+      const first = pickCatalogReplacement(data, planForPick, { groupId, day, meal, course: "first" });
+      if (!first) { showToast("No hay ningún primero para este hueco"); return; }
+      picks.push({ course: "first", ...first });
+      const withFirst = { ...shaped, firstRecipeId: first.recipeId };
+      planForPick = { ...planForPick, [groupId]: { ...planForPick[groupId], [slotKey]: withFirst } };
+      const second = pickCatalogReplacement(data, planForPick, { groupId, day, meal, course: "main" });
+      if (second) picks.push({ course: "main", ...second });
+    }
+
+    registerRecipes(picks.map((p) => p.frontendRecipe));
+    setAiRecipes((cur) => {
+      const byId = new Map(cur.map((r) => [r.id, r]));
+      for (const p of picks) byId.set(p.frontendRecipe.id, p.frontendRecipe);
+      return Array.from(byId.values());
+    });
+
+    // Persistido para que regenerar el menú siga respetando la elección.
+    setData((d) => ({
+      ...d,
+      slotType: { ...(d.slotType ?? {}), [`${day}|${meal}`]: toUnico ? "unico" : undefined },
+    }));
+
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const base = { ...(plan[groupId]?.[slotKey] ?? {}), warnings: [], cleared: false };
+      if (toUnico) base.firstRecipeId = null;
+      for (const p of picks) {
+        if (p.course === "first") base.firstRecipeId = p.recipeId;
+        else base.recipeId = p.recipeId;
+      }
+      const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [slotKey]: base } };
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    showToast(toUnico ? "Ahora es plato único" : "Ahora hay primero y segundo");
+    trackEvent(user, "slot_structure_changed", "menu", { day, meal, structure });
+  }, [data, menuPlan, showToast, user, applyShoppingFor, householdReadOnly]);
+
+  /**
+   * Vaciar un hueco. Solo quita el plato que has tocado: en una comida con
+   * primero y segundo, vaciar el segundo deja el primero donde estaba.
+   *
+   * El hueco NO se borra del plan, se marca `cleared` — así el menú sigue
+   * pintando un placeholder tocable para rellenarlo (ver dishesFromSlot y el
+   * bloque de `slot.cleared` en Menu.jsx). Si se borrara, el día perdería la
+   * fila y no habría dónde volver a poner nada.
+   *
+   * La compra se reconstruye al vuelo porque es justo lo que cambia: los
+   * ingredientes de ese plato dejan de hacer falta.
+   */
+  const handleClearSlot = useCallback(async (sel) => {
+    if (householdReadOnly || !sel) return;
+    const { groupId, day, meal, course } = sel;
+    const key = `${day}-${meal}`;
+    const field = course === "first" ? "firstRecipeId" : "recipeId";
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const prevSlot = plan[groupId]?.[key];
+      if (!prevSlot) return plan;
+      const nextSlot = { ...prevSlot, [field]: null, warnings: [] };
+      // Vaciar el 2º de una comida con dos platos ascendería el 1º a plato
+      // suelto sin querer: dishesFromSlot lee `recipeId` como el principal.
+      // Se sube el primero a esa posición y el hueco queda con un solo plato.
+      if (field === "recipeId" && nextSlot.firstRecipeId) {
+        nextSlot.recipeId = nextSlot.firstRecipeId;
+        nextSlot.firstRecipeId = null;
+      }
+      nextSlot.cleared = !nextSlot.recipeId;
+      const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    showToast("Hueco vaciado");
+    trackEvent(user, "dish_cleared", "menu", { day, meal, course });
+  }, [data, showToast, user, applyShoppingFor, householdReadOnly]);
+
+  /**
    * Marca (o desmarca) un hueco como cubierto por un plato ya cocinado del
    * congelador. `patch` es null para volver a cocinarlo desde cero.
    *
@@ -4422,6 +4535,8 @@ export default function App() {
               restrictionConflicts={restrictionConflicts}
               onDishTap={handleDishTap}
               onDishReplace={householdReadOnly ? undefined : handleReplaceSlot}
+              onDishClear={householdReadOnly ? undefined : handleClearSlot}
+              onSlotStructure={householdReadOnly ? undefined : handleSlotStructure}
               onDishSwap={householdReadOnly ? undefined : handleSwapSlots}
               onDishDuplicate={householdReadOnly ? undefined : handleDuplicateSlot}
               incomingDish={pendingDish}

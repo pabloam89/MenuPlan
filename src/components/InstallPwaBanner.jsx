@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Download, Share, ChevronDown } from 'lucide-react'
+import { X, Download, Share, ChevronDown } from './icons.jsx'
 
 const DISMISS_KEY_ANDROID = 'mp_pwa_install_dismissed'
 const DISMISS_KEY_IOS = 'mp_pwa_install_dismissed_ios'

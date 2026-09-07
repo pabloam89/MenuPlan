@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { X, Search, UserPlus, Users2, Sparkles, Check, Sprout } from "lucide-react";
+import { X, Search, UserPlus, Users2, Sparkles, Check, Sprout } from "./icons.jsx";
 import { Avatar } from "./ui.jsx";
 import {
   searchProfiles, followUser, unfollowUser,

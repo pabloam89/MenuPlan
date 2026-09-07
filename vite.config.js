@@ -178,9 +178,9 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     server: {
-      port: 5175,
+      port: 5176,
       // Falla en vez de saltar a otro puerto: así la URL local es siempre
-      // http://localhost:5175 y coincide con la redirect URL de Supabase OAuth
+      // http://localhost:5176 y coincide con la redirect URL de Supabase OAuth
       // (evita acabar rebotado al deploy de producción tras el login).
       strictPort: true,
       host: true,

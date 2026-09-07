@@ -28,7 +28,7 @@ import {
   Wallet,
   Wheat,
   X,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { WizardSheet } from "../components/ui.jsx";
 import {
   DATE_BUCKET_OPTIONS,

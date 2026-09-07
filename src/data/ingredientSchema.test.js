@@ -21,7 +21,7 @@ const VALID = {
 
 describe("EU_ALLERGEN_IDS", () => {
   // ingredientSchema.js repite la lista de los 14 alérgenos en vez de
-  // importarla de allergens.js, para no arrastrar lucide-react a la capa de
+  // importarla de allergens.js, para no arrastrar los iconos a la capa de
   // datos. Este test es el precio de esa decisión: si alguien toca uno de los
   // dos vocabularios y no el otro, falla aquí en vez de en producción.
   it("coincide exactamente con las claves de EU_ALLERGENS", () => {

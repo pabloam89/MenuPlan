@@ -1,3 +1,4 @@
+import { ETAPAS_BEBE, ETAPA_BEBE_INFO, etapaBebeDe } from "../lib/babyStage.js";
 import React, { Fragment, Suspense, lazy, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -71,7 +72,7 @@ import {
   Utensils,
   UtensilsCrossed,
   X,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import {
   Chip,
   SliderInput,
@@ -4234,6 +4235,36 @@ export function OnboardingKidsDinner({ data, setData, onNext, onBack, onFinish, 
                   </button>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {/* Los bebés van DEBAJO de los niños y solo en modo completo. En el modo
+            corto sobra: "mixto" ya sirve las dos listas y es la única respuesta
+            que no se equivoca si nadie contesta. */}
+        {data.expertMode && hasBabyMember(data.members.map((m) => ({ ...m, age: memberAge(m) }))) && (
+          <section style={{ paddingTop: 18, borderTop: "1px solid #eef3f0" }}>
+            <SectionTitle Icon={Baby} color={CARD_ACCENT}>¿Y los bebés?</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              {ETAPAS_BEBE.map((id) => {
+                const info = ETAPA_BEBE_INFO[id];
+                return (
+                  <Card
+                    key={id}
+                    accent={CARD_ACCENT}
+                    imgHeight={120}
+                    active={etapaBebeDe(data) === id}
+                    onClick={() => setData((d) => ({ ...d, etapaBebe: id }))}
+                    img={info.img}
+                    title={info.label}
+                  />
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 12, color: "#5a7a66", marginTop: 8, lineHeight: 1.45 }}>
+              {ETAPA_BEBE_INFO[etapaBebeDe(data)].desc}. Lo preguntamos en vez de
+              mirar la edad porque entre dos bebés del mismo mes hay uno que traga
+              trozos y otro que no.
             </div>
           </section>
         )}

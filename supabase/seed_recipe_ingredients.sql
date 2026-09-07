@@ -7494,6 +7494,139 @@ on conflict (recipe_id, position) do update set
 insert into recipe_ingredients (
   recipe_id, position, ingredient_id, raw_name, amount, unit
 ) values
+  ('legumbres_076', 0, 'alubias', 'Alubias blancas cocidas', 320, 'g'),
+  ('legumbres_076', 1, 'zanahoria', 'Zanahoria', 80, 'g'),
+  ('legumbres_076', 2, 'puerro', 'Puerro', 70, 'g'),
+  ('legumbres_076', 3, 'pimiento-verde', 'Pimiento verde', 60, 'g'),
+  ('legumbres_076', 4, 'cebolla', 'Cebolla', 70, 'g'),
+  ('legumbres_076', 5, 'tomate-triturado', 'Tomate triturado', 80, 'ml'),
+  ('legumbres_076', 6, 'aceite-oliva', 'Aceite de oliva', 15, 'ml'),
+  ('legumbres_076', 7, 'pimenton', 'Pimentón', 3, 'g'),
+  ('legumbres_076', 8, 'laurel', 'Laurel', 1, 'g'),
+  ('legumbres_076', 9, 'sal', 'Sal', 3, 'g')
+on conflict (recipe_id, position) do update set
+  ingredient_id = excluded.ingredient_id,
+  raw_name = excluded.raw_name,
+  amount = excluded.amount,
+  unit = excluded.unit;
+
+insert into recipe_ingredients (
+  recipe_id, position, ingredient_id, raw_name, amount, unit
+) values
+  ('legumbres_077', 0, 'lentejas', 'Lentejas', 200, 'g'),
+  ('legumbres_077', 1, 'chorizo', 'Chorizo', 60, 'g'),
+  ('legumbres_077', 2, 'patata', 'Patata', 150, 'g'),
+  ('legumbres_077', 3, 'cebolla', 'Cebolla', 80, 'g'),
+  ('legumbres_077', 4, 'pimiento-rojo', 'Pimiento rojo', 60, 'g'),
+  ('legumbres_077', 5, 'zanahoria', 'Zanahoria', 60, 'g'),
+  ('legumbres_077', 6, 'ajo', 'Ajo', 8, 'g'),
+  ('legumbres_077', 7, 'aceite-oliva', 'Aceite de oliva', 15, 'ml'),
+  ('legumbres_077', 8, 'pimenton', 'Pimentón', 4, 'g'),
+  ('legumbres_077', 9, 'laurel', 'Laurel', 1, 'g')
+on conflict (recipe_id, position) do update set
+  ingredient_id = excluded.ingredient_id,
+  raw_name = excluded.raw_name,
+  amount = excluded.amount,
+  unit = excluded.unit;
+
+insert into recipe_ingredients (
+  recipe_id, position, ingredient_id, raw_name, amount, unit
+) values
+  ('legumbres_077', 10, 'sal', 'Sal', 4, 'g'),
+  ('legumbres_078', 0, 'lentejas', 'Lentejas', 200, 'g'),
+  ('legumbres_078', 1, 'zanahoria', 'Zanahoria', 80, 'g'),
+  ('legumbres_078', 2, 'guisantes', 'Guisantes', 80, 'g'),
+  ('legumbres_078', 3, 'judia-verde', 'Judías verdes', 80, 'g'),
+  ('legumbres_078', 4, 'cebolla', 'Cebolla', 70, 'g'),
+  ('legumbres_078', 5, 'ajo', 'Ajo', 8, 'g'),
+  ('legumbres_078', 6, 'tomate-triturado', 'Tomate triturado', 70, 'ml'),
+  ('legumbres_078', 7, 'aceite-oliva', 'Aceite de oliva', 15, 'ml'),
+  ('legumbres_078', 8, 'pimenton', 'Pimentón', 3, 'g')
+on conflict (recipe_id, position) do update set
+  ingredient_id = excluded.ingredient_id,
+  raw_name = excluded.raw_name,
+  amount = excluded.amount,
+  unit = excluded.unit;
+
+insert into recipe_ingredients (
+  recipe_id, position, ingredient_id, raw_name, amount, unit
+) values
+  ('legumbres_078', 9, 'laurel', 'Laurel', 1, 'g'),
+  ('legumbres_078', 10, 'sal', 'Sal', 4, 'g'),
+  ('legumbres_079', 0, 'garbanzos', 'Garbanzos cocidos', 350, 'g'),
+  ('legumbres_079', 1, 'cebolla', 'Cebolla', 80, 'g'),
+  ('legumbres_079', 2, 'zanahoria', 'Zanahoria', 70, 'g'),
+  ('legumbres_079', 3, 'pimiento-rojo', 'Pimiento rojo', 60, 'g'),
+  ('legumbres_079', 4, 'ajo', 'Ajo', 8, 'g'),
+  ('legumbres_079', 5, 'tomate-triturado', 'Tomate triturado', 100, 'ml'),
+  ('legumbres_079', 6, 'aceite-oliva', 'Aceite de oliva', 20, 'ml'),
+  ('legumbres_079', 7, 'pimenton', 'Pimentón', 4, 'g')
+on conflict (recipe_id, position) do update set
+  ingredient_id = excluded.ingredient_id,
+  raw_name = excluded.raw_name,
+  amount = excluded.amount,
+  unit = excluded.unit;
+
+insert into recipe_ingredients (
+  recipe_id, position, ingredient_id, raw_name, amount, unit
+) values
+  ('legumbres_079', 8, 'laurel', 'Laurel', 1, 'g'),
+  ('legumbres_079', 9, 'sal', 'Sal', 3, 'g'),
+  ('legumbres_080', 0, 'garbanzos', 'Garbanzos cocidos', 320, 'g'),
+  ('legumbres_080', 1, 'carne-de-ternera-para-guisar', 'Carne de ternera para guisar', 180, 'g'),
+  ('legumbres_080', 2, 'chorizo', 'Chorizo', 50, 'g'),
+  ('legumbres_080', 3, 'cebolla', 'Cebolla', 80, 'g'),
+  ('legumbres_080', 4, 'zanahoria', 'Zanahoria', 70, 'g'),
+  ('legumbres_080', 5, 'ajo', 'Ajo', 8, 'g'),
+  ('legumbres_080', 6, 'tomate-triturado', 'Tomate triturado', 100, 'ml'),
+  ('legumbres_080', 7, 'aceite-oliva', 'Aceite de oliva', 15, 'ml')
+on conflict (recipe_id, position) do update set
+  ingredient_id = excluded.ingredient_id,
+  raw_name = excluded.raw_name,
+  amount = excluded.amount,
+  unit = excluded.unit;
+
+insert into recipe_ingredients (
+  recipe_id, position, ingredient_id, raw_name, amount, unit
+) values
+  ('legumbres_080', 8, 'pimenton', 'Pimentón', 4, 'g'),
+  ('legumbres_080', 9, 'laurel', 'Laurel', 1, 'g'),
+  ('legumbres_080', 10, 'sal', 'Sal', 4, 'g'),
+  ('legumbres_081', 0, 'judias-pintas', 'Judías pintas', 330, 'g'),
+  ('legumbres_081', 1, 'puerro', 'Puerro', 80, 'g'),
+  ('legumbres_081', 2, 'zanahoria', 'Zanahoria', 80, 'g'),
+  ('legumbres_081', 3, 'calabacin', 'Calabacín', 100, 'g'),
+  ('legumbres_081', 4, 'cebolla', 'Cebolla', 60, 'g'),
+  ('legumbres_081', 5, 'tomate-triturado', 'Tomate triturado', 80, 'ml'),
+  ('legumbres_081', 6, 'aceite-oliva', 'Aceite de oliva', 15, 'ml')
+on conflict (recipe_id, position) do update set
+  ingredient_id = excluded.ingredient_id,
+  raw_name = excluded.raw_name,
+  amount = excluded.amount,
+  unit = excluded.unit;
+
+insert into recipe_ingredients (
+  recipe_id, position, ingredient_id, raw_name, amount, unit
+) values
+  ('legumbres_081', 7, 'pimenton', 'Pimentón', 3, 'g'),
+  ('legumbres_081', 8, 'laurel', 'Laurel', 1, 'g'),
+  ('legumbres_081', 9, 'sal', 'Sal', 3, 'g'),
+  ('legumbres_082', 0, 'alubias', 'Alubias blancas cocidas', 300, 'g'),
+  ('legumbres_082', 1, 'tomate', 'Tomate', 150, 'g'),
+  ('legumbres_082', 2, 'cebolleta', 'Cebolleta', 50, 'g'),
+  ('legumbres_082', 3, 'pimiento-verde', 'Pimiento verde', 60, 'g'),
+  ('legumbres_082', 4, 'aceite-oliva-virgen', 'Aceite de oliva virgen extra', 20, 'ml'),
+  ('legumbres_082', 5, 'vinagre', 'Vinagre', 10, 'ml'),
+  ('legumbres_082', 6, 'sal', 'Sal', 2, 'g')
+on conflict (recipe_id, position) do update set
+  ingredient_id = excluded.ingredient_id,
+  raw_name = excluded.raw_name,
+  amount = excluded.amount,
+  unit = excluded.unit;
+
+insert into recipe_ingredients (
+  recipe_id, position, ingredient_id, raw_name, amount, unit
+) values
   ('meriendas_001', 0, 'kefir', 'Kéfir', 300, 'ml'),
   ('meriendas_001', 1, 'platano', 'Plátano', 1, 'ud'),
   ('meriendas_001', 2, 'fresa', 'Fresas', 120, 'g'),

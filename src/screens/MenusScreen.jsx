@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Calendar, Heart, History, Loader2, RotateCw, Sparkles, Trash2, X } from "lucide-react";
+import { Calendar, Heart, History, Loader2, RotateCw, Sparkles, Trash2, X } from "../components/icons.jsx";
 import { BottomNav, EmptyIllustration, GoogleButton, APP_SHELL_MAX_WIDTH, bottomNavSpacer } from "../components/ui.jsx";
 import { sortMenusDesc, orderedWeeks, formatMenuRangeLabel, clampWeekCount, MAX_MENU_WEEKS, menuHasContent } from "../lib/menuArchive.js";
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ThumbsUp, ThumbsDown, Utensils } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Utensils } from "./icons.jsx";
 
 // Small MenuPlan logo mark used instead of a user avatar for catalog dishes.
 export function MenuPlanBadge({ size = 26 }) {

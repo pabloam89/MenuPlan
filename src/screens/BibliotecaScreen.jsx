@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BookOpen, Heart, NotebookPen, Plus, SlidersHorizontal } from "lucide-react";
+import { BookOpen, Heart, NotebookPen, Plus, SlidersHorizontal } from "../components/icons.jsx";
 import {
   BottomNav,
   bottomNavSpacer,

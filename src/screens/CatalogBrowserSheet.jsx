@@ -46,7 +46,7 @@ import {
   Sun,
   Snowflake,
   MilkOff,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { loadRecipeStats } from "../lib/social.js";
 import { isMontaje } from "../data/recipeSchema.js";
@@ -99,7 +99,13 @@ const CATEGORY_META = {
   ensaladas_verduras: { label: "Verduras",       icon: Salad,          color: "#3f9656", img: "/categories/ensaladas_verduras.png" },
   platos_unicos:      { label: "Platos únicos",  icon: Utensils,       color: "#5a7066", img: "/categories/platos_unicos.png" },
   cenas_rapidas:      { label: "Cenas rápidas",  icon: Soup,           color: "#d56b9a", img: "/categories/cenas_rapidas.png" },
-  bebes:              { label: "Bebés",           icon: Baby,           color: "#6cb4c4", img: "/categories/bebes.png" },
+  // "Bebés" se parte en dos tejas, no en dos categorías: la de dentro sigue
+  // siendo una sola (`recipe_category` es un enum nativo de Postgres compartido
+  // con user_recipes, y añadirle valores es una migración incómoda). Flat de
+  // cara al usuario, una categoría por debajo — y sin doble clic, que era el
+  // motivo de no meterlas como carpetas dentro de "Bebés".
+  bebes_cremas:       { label: "Cremas de bebé",  icon: Baby,           color: "#6cb4c4", img: "/avatares/cards/bebe/cremas.png" },
+  bebes_solidos:      { label: "Sólidos de bebé", icon: Baby,           color: "#7bbf8a", img: "/avatares/cards/bebe/solidos.png" },
   desayunos:          { label: "Desayunos",       icon: Coffee,         color: "#c98a3a", img: "/categories/desayunos.png" },
   meriendas:          { label: "Meriendas",       icon: Apple,          color: "#4a9d6b", img: "/categories/meriendas.png" },
   postres:            { label: "Postres",         icon: IceCream,       color: "#c463a0", img: "/categories/postres.png" },
@@ -207,6 +213,16 @@ function sortByNameQuery(items, q) {
     sorted.sort((a, b) => a.name.localeCompare(b.name));
   }
   return sorted;
+}
+
+/**
+ * Clave de teja de una receta. Igual a su categoría salvo en bebés, que se
+ * parten por etapa. Sin `etapaBebe` cuenta como crema: las 19 originales lo
+ * eran, así que el catálogo viejo cae entero en la teja que le toca.
+ */
+export function catKeyOf(recipe) {
+  if (recipe?.category !== "bebes") return recipe?.category;
+  return (recipe.etapaBebe ?? "cremas") === "solidos" ? "bebes_solidos" : "bebes_cremas";
 }
 
 export function categoryLabel(cat) {
@@ -502,7 +518,10 @@ export function CatalogBrowserSheet({
     const p = new Set();
     const source = gatePick ? platoCatalog : fullCatalog;
     for (const r of source) {
-      if (r.category && !isGuarnicionRecipe(r)) c.add(r.category);
+      if (r.category && !isGuarnicionRecipe(r)) c.add(catKeyOf(r));
+      // Las dos tejas de bebé se ofrecen aunque una esté vacía: es la única
+      // forma de que se vea que "sólidos" existe y todavía no tiene recetas.
+      if (r.category === "bebes") { c.add("bebes_cremas"); c.add("bebes_solidos"); }
       if (isRealProtein(r.mainProtein)) p.add(r.mainProtein);
     }
     if (!gatePick && catalogGarnishBrowseList.length > 0) c.add("guarniciones");
@@ -536,7 +555,7 @@ export function CatalogBrowserSheet({
       if (viewingMine && (!viewingCollection || viewingCollection === ALL_ID) && !mineIds.has(r.id)) return false;
       if (collectionIds && !collectionIds.has(r.id)) return false;
       if (q && !norm(r.name).includes(q)) return false;
-      if (cats.size && !cats.has(r.category)) return false;
+      if (cats.size && !cats.has(catKeyOf(r))) return false;
       if (proteins.size && !proteins.has(r.mainProtein)) return false;
       if (maxTime && (r.time ?? 999) > maxTime) return false;
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
@@ -627,7 +646,7 @@ export function CatalogBrowserSheet({
     if (includePlatos) {
       for (const r of fullCatalog) {
         if (isGuarnicionRecipe(r)) continue;
-        if (cats.size && !cats.has(r.category)) continue;
+        if (cats.size && !cats.has(catKeyOf(r))) continue;
         if (proteins.size && !proteins.has(r.mainProtein)) continue;
         if (matchesCommon(r)) out.push(r);
       }
@@ -739,9 +758,18 @@ export function CatalogBrowserSheet({
     const counts = {};
     for (const r of fullCatalog) {
       if (r.category && !isGuarnicionRecipe(r)) {
-        counts[r.category] = (counts[r.category] ?? 0) + 1;
+        // Por clave de TEJA, no por categoría: si no, las 19 de bebé se cuentan
+        // bajo "bebes" y la teja "Cremas de bebé" sale con el contador vacío
+        // aunque estén todas ahí dentro.
+        counts[catKeyOf(r)] = (counts[catKeyOf(r)] ?? 0) + 1;
       }
     }
+    // Las tejas de bebé existen SIEMPRE, aunque una esté a cero. Un cero dice
+    // "esto existe y todavía no hay nada"; que la teja desaparezca dice "esto
+    // no existe", y entonces nadie entiende por qué al elegir "ya come sólidos"
+    // el generador se queda sin platos.
+    counts.bebes_cremas ??= 0;
+    counts.bebes_solidos ??= 0;
     if (catalogGarnishBrowseList.length > 0) {
       counts.guarniciones = catalogGarnishBrowseList.length;
     }

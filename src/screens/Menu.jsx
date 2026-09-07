@@ -23,6 +23,7 @@ import {
   CookingPot,
   History,
   IceCream,
+  Minimize2,
   LayoutGrid,
   Layers2,
   Download,
@@ -64,7 +65,7 @@ import {
   X,
   Zap,
   MilkOff,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
@@ -1595,6 +1596,35 @@ export function dishesFromSlot(slot, isLunch) {
     recipeId: slot.recipeId,
   });
   return items;
+}
+
+/**
+ * ¿Este hueco admite cambiar de estructura (plato único ↔ primero y segundo)?
+ *
+ * Solo la comida. La cena SIEMPRE es un plato: aiPlanner le crea un único slot
+ * (`${daySlug}_cena`, sin primero/segundo) y dishesFromSlot solo pinta el
+ * primero cuando isLunch. Ofrecerlo en la cena sería un botón que escribe un
+ * campo que nadie lee. Desayuno, merienda y postre, lo mismo.
+ */
+function isStructuralMeal(meal) {
+  return isLunchMeal(meal);
+}
+
+/**
+ * La acción contextual de la barra: si la comida tiene dos platos, ofrece
+ * juntarlos en uno; si tiene uno, ofrece repartirlo en primero y segundo.
+ *
+ * El copy dice el RESULTADO, no la operación ("Plato único", no "Combinar"):
+ * no se fusionan ni se parten platos —eso sería emparejar—, se sustituyen por
+ * las recetas que pide la estructura nueva, cada una con su foto. "Combinar"
+ * haría esperar los dos platos juntos en la misma imagen.
+ */
+function structureActionFor(sel, menuPlan, onPick) {
+  const slot = menuPlan?.[sel.groupId]?.[`${sel.day}-${sel.meal}`];
+  const dosPlatos = Boolean(slot?.firstRecipeId);
+  return dosPlatos
+    ? { id: "unico", Icon: Minimize2, label: "Plato único", onPick: () => onPick("unico") }
+    : { id: "split", Icon: Layers2, label: "1º y 2º", onPick: () => onPick("primero_segundo") };
 }
 
 export function DishCard({
@@ -3871,7 +3901,14 @@ function DishActionBar({ anchor, actions, onClose }) {
   const BTN = 62;
   const GAP = 8;
   const PAD = 12;
-  const barW = actions.length * BTN + (actions.length - 1) * GAP + PAD * 2;
+  // Dos filas en vez de una: con 5 acciones, una sola fila se sale de un móvil
+  // estrecho. Se reparten 3+2 (cinco) o 2+2 (cuatro, cuando la comida no admite
+  // cambio de estructura). Nunca se deja un hueco suelto en la fila de abajo:
+  // preferimos que los botones bailen de sitio a que se vea un agujero.
+  const topCount = actions.length >= 5 ? 3 : Math.ceil(actions.length / 2);
+  const rows = [actions.slice(0, topCount), actions.slice(topCount)].filter((r) => r.length > 0);
+  const widest = Math.max(...rows.map((r) => r.length));
+  const barW = widest * BTN + (widest - 1) * GAP + PAD * 2;
   const cx = tile ? tile.left + tile.width / 2 : vw / 2;
   const halfW = barW / 2 + 10;
   const left = Math.min(Math.max(cx, halfW), vw - halfW);
@@ -3930,6 +3967,7 @@ function DishActionBar({ anchor, actions, onClose }) {
           onClick={(e) => e.stopPropagation()}
           style={{
             display: "flex",
+            flexDirection: "column",
             gap: GAP,
             padding: PAD,
             borderRadius: 20,
@@ -3938,7 +3976,9 @@ function DishActionBar({ anchor, actions, onClose }) {
             animation: "actionBarPop .22s cubic-bezier(.34,1.4,.64,1) both",
           }}
         >
-          {actions.map((act) => (
+          {rows.map((row, ri) => (
+            <div key={ri} style={{ display: "flex", gap: GAP, justifyContent: "center" }}>
+          {row.map((act) => (
             <button
               key={act.id}
               type="button"
@@ -3964,6 +4004,8 @@ function DishActionBar({ anchor, actions, onClose }) {
               </span>
             </button>
           ))}
+            </div>
+          ))}
         </div>
       </div>
     </div>,
@@ -3982,6 +4024,8 @@ export const MenuScreen = memo(function MenuScreen({
   onDishReplace,
   onDishSwap,
   onDishDuplicate,
+  onDishClear,
+  onSlotStructure,
   incomingDish = null,
   onDishPlace,
   onIncomingCancel,
@@ -4763,6 +4807,19 @@ export const MenuScreen = memo(function MenuScreen({
                 id: "dup", Icon: CopyPlus, label: "Duplicar",
                 onPick: () => { setArmed({ mode: "duplicate", source: dishAction }); setDishAction(null); },
               },
+              {
+                id: "clear", Icon: Trash2, label: "Quitar",
+                onPick: () => { onDishClear?.(dishAction); setDishAction(null); },
+              },
+              // Estructura: solo en comidas y cenas. En desayuno, merienda o
+              // postre no hay primero y segundo que repartir, así que la barra
+              // se queda en cuatro y la retícula pasa sola a 2+2.
+              ...(onSlotStructure && isStructuralMeal(dishAction.meal)
+                ? [structureActionFor(dishAction, menuPlan, (structure) => {
+                    onSlotStructure(dishAction, structure);
+                    setDishAction(null);
+                  })]
+                : []),
             ]}
           />
         )}

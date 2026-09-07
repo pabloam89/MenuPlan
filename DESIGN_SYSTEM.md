@@ -15,7 +15,7 @@
 5. **Jerarquía por peso, no por tamaño.** Se usan pesos muy altos (700/800/900) para jerarquizar; los tamaños se mueven poco (10–26px).
 6. **Redondez en todo.** Radios generosos; los elementos "atómicos" (toggles, avatares, dots, pills) son totalmente circulares (`999`).
 7. **Microinteracciones discretas.** Transiciones 0.15–0.22s, `scale(.97)` al pulsar, animaciones respetando `prefers-reduced-motion`.
-8. **Iconografía única: `lucide-react`.** Nunca mezclar familias de iconos.
+8. **Iconografía única: Nucleo (core / outline / 24px).** Nunca mezclar familias de iconos.
 
 ---
 
@@ -171,7 +171,8 @@ export const BOTTOM_NAV_HEIGHT = 80;     // alto de la barra inferior
 
 ## 5. Iconografía
 
-- **Librería única:** [`lucide-react`](https://lucide.dev). Import nominal (`import { Home, Settings } from "lucide-react"`).
+- **Librería única:** [Nucleo](https://nucleoapp.com), familia **core**, relleno **outline**, tamaño **24px**. Los iconos viven copiados en el repo (`src/components/icons.jsx`, generado por `npm run build:icons`); nunca se importan desde `~/.nucleo`. Import nominal (`import { Home, Settings } from "../components/icons.jsx"`).
+- **Añadir un icono:** busca el componente en la familia core/outline/24px, añádelo al mapa de `scripts/build-nucleo-icons.mjs` y regenera. No pegues SVG a mano en las pantallas.
 - **Tamaños:** nav `20`, sección `16`, chip/inline `12–15`, burbuja de icono `18–21`, decorativo grande `32`.
 - **Grosor:** `strokeWidth` por defecto `2`; **estado activo/énfasis `2.4`** (`2.2` en burbujas). El cambio de grosor es una señal de selección tan importante como el color.
 - **Color:** hereda el color de estado (verde activo `#2d5a3d`, inactivo `#9ab0a1`). Sobre verde, `#fff`.
@@ -355,7 +356,7 @@ zIndex: 200; maxWidth: 320; textAlign: center;
 - [ ] ¿Todo lo interactivo/seleccionado usa el verde `#2d5a3d` (relleno) o su tint (`rgba(45,90,61,.08)`)?
 - [ ] ¿Radios coherentes (12 controles / 16 tarjetas / 20 pills / 26 sheets / 999 circulares)?
 - [ ] ¿Espaciado en múltiplos de 4 y `max-width 420`?
-- [ ] ¿Iconos de `lucide-react`, `strokeWidth 2` (2.4 si activo), tamaño acorde?
+- [ ] ¿Iconos de `components/icons.jsx` (Nucleo core outline), `strokeWidth 2` (2.4 si activo), tamaño acorde?
 - [ ] ¿Tipografía DM Sans, pesos 600–900, inputs a 16px, `fontFamily: "inherit"` en botones/inputs?
 - [ ] ¿Sombras tintadas de verde y con spread negativo para elevación?
 - [ ] ¿Estados: seleccionado, deshabilitado (fondo `#c8d9ce`), pulsado (`scale(.97)`), vacío?

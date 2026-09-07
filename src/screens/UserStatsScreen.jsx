@@ -13,7 +13,7 @@ import {
   UserPlus,
   Users,
   UsersRound,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import {
   Avatar,
   BottomNav,

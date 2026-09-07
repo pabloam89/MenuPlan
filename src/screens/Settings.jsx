@@ -17,7 +17,7 @@ import {
   Wrench,
   Pencil,
   LayoutDashboard,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import {
   BottomNav,
   Avatar,

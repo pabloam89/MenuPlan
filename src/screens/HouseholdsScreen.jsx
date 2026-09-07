@@ -12,7 +12,7 @@ import {
   Share2,
   Trash2,
   UserMinus,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import {
   Avatar,
   BottomNav,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, Users2, Trash2 } from "lucide-react";
+import { X, Users2, Trash2 } from "./icons.jsx";
 import { Avatar } from "./ui.jsx";
 import { personColor } from "../lib/socialUi.js";
 import { loadRelations, loadFollowing, loadSentRequests, followUser, rejectFollowRequest } from "../lib/social.js";

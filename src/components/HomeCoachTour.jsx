@@ -22,7 +22,7 @@ import {
   Compass,
   Heart,
   Search,
-} from "lucide-react";
+} from "./icons.jsx";
 
 // One-shot guided tours ("coach-marks"): a dimming overlay with a cut-out
 // spotlight around each target button plus a branded bubble (with a pointer)

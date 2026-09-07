@@ -1,3 +1,4 @@
+import { etapasServibles } from "./babyStage.js";
 import { z } from "zod";
 import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
@@ -471,6 +472,9 @@ export function buildGroupContext(data, group) {
       // Permanent + still-live weekly/cooldown discards, excluded by id.
       excludeIds: activeDiscardIds(data),
       hasKids,
+      // Cremas, sólidos o las dos. Solo lo mira el grupo de bebés; para el
+      // resto filterRecipes lo ignora.
+      etapasBebe: etapasServibles(data),
       maxTime: maxCookTimeFilter(data),
       kitchenTools,
       cookLevel: data.cookLevel ?? "normal",
