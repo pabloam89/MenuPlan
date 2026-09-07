@@ -2,6 +2,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import { noTdzInBody } from './eslint-rules/no-tdz-in-body.js'
+import { noUndefJsx } from './eslint-rules/no-undef-jsx.js'
 
 /**
  * Config mínima con las reglas que TUMBAN UNA PANTALLA, para poder ejecutarla
@@ -29,7 +30,7 @@ export default defineConfig([
     // cargado ESLint falla con "Definition for rule not found".
     plugins: {
       'react-hooks': reactHooks,
-      local: { rules: { 'no-tdz-in-body': noTdzInBody } },
+      local: { rules: { 'no-tdz-in-body': noTdzInBody, 'no-undef-jsx': noUndefJsx } },
     },
     rules: {
       'local/no-tdz-in-body': 'error',
@@ -39,6 +40,10 @@ export default defineConfig([
       // `loadPublicRecipe` y `ensureSocialProfile`, las tres por un import que
       // se quedó fuera al mover código de sitio.
       'no-undef': 'error',
+      // no-undef NO mira las etiquetas JSX: para ESLint <BlockIcon /> es un
+      // JSXIdentifier, no una referencia. Ese agujero dejo pasar a produccion
+      // un `Ban as BlockIcon` que una poda de imports se habia comido.
+      'local/no-undef-jsx': 'error',
     },
   },
 ])

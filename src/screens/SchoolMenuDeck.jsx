@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Plus, Check, Pencil, Fish, Drumstick, Egg, Soup, Wheat, Leaf, ChefHat, Apple, X, Trash2 } from "lucide-react";
+import { Plus, Check, Pencil, Fish, Drumstick, Egg, Soup, Wheat, Leaf, ChefHat, Apple, X, Trash2 } from "../components/icons.jsx";
 import { SCHOOL_DAYS, SCHOOL_COURSES } from "../lib/schoolMenu.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe, dishImageUrl } from "../assets/dishes/dishImages.js";

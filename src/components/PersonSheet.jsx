@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { X, Lock, CalendarDays, MoreVertical, Ban, Flag } from "lucide-react";
+import { X, Lock, CalendarDays, MoreVertical, Ban, Flag } from "./icons.jsx";
 import { Avatar } from "./ui.jsx";
 import { RecipePoster } from "./SwipeCard.jsx";
 import { personColor, relativeTime } from "../lib/socialUi.js";

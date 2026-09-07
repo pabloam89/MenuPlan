@@ -46,7 +46,7 @@ import {
   Sun,
   Snowflake,
   MilkOff,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { loadRecipeStats } from "../lib/social.js";
 import { isMontaje } from "../data/recipeSchema.js";

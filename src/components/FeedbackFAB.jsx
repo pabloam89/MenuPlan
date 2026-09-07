@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageSquarePlus, Send, X } from "lucide-react";
+import { MessageSquarePlus, Send, X } from "./icons.jsx";
 import { submitFeedback } from "../lib/feedback.js";
 import { BOTTOM_NAV_HEIGHT } from "./ui.jsx";
 

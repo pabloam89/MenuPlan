@@ -13,7 +13,7 @@ import { INGREDIENT_CATEGORIES } from "./recipes.js";
 // "frutos_secos"), que RecipeSchema sigue usando por compatibilidad.
 //
 // Se escriben aquí en vez de importarse de allergens.js a propósito: ese módulo
-// arrastra los iconos de lucide-react, y un schema de datos no debería depender
+// arrastra los iconos de components/icons.jsx, y un schema de datos no debería depender
 // de la capa de UI. La lista duplicada la vigila un test
 // (ingredientSchema.test.js) que falla si los dos vocabularios divergen.
 export const EU_ALLERGEN_IDS = [

@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check } from "./icons.jsx";
 
 /**
  * Centered popup to choose which menu group a favorite applies to (or

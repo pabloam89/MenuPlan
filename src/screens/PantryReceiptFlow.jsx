@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Check, ChevronRight, Loader2, Receipt, Refrigerator, Snowflake, TrendingUp } from "lucide-react";
+import { Check, ChevronRight, Loader2, Receipt, Refrigerator, Snowflake, TrendingUp } from "../components/icons.jsx";
 import { WizardSheet } from "../components/ui.jsx";
 import { extractReceiptDetail } from "../lib/receiptParser.js";
 import { ingredientDictionary, matchReceiptLine, stripQtyNoise, toDisplayCase } from "../lib/priceHistory.js";

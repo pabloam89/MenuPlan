@@ -1,5 +1,5 @@
 import { WizardSheet } from "./ui.jsx";
-import { Eye } from "lucide-react";
+import { Eye } from "./icons.jsx";
 
 const INK = "#142f1d";
 

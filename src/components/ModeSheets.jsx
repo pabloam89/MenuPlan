@@ -7,7 +7,7 @@ import {
   BookOpen,
   Globe,
   Refrigerator,
-} from "lucide-react";
+} from "./icons.jsx";
 import { WizardSheet } from "./ui.jsx";
 
 const PANTRY_PREF_IMG = (slug) => `/avatares/cards/pantry_prefs/${slug}.png`;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Search, X } from "lucide-react";
+import { Search, X } from "../components/icons.jsx";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg, deckSrcSet } from "../lib/dishPhotoOptimize.js";
 

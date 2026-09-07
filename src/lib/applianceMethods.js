@@ -8,7 +8,7 @@
 // (stovetop / its own technique). Methods are alternatives the user can pick
 // based on the kitchen tools they declared in onboarding.
 
-import { Wind, Flame, Microwave, Bot, CookingPot, Layers2 } from "lucide-react";
+import { Wind, Flame, Microwave, Bot, CookingPot, Layers2 } from "../components/icons.jsx";
 
 export const APPLIANCE_LABELS = {
   airfryer: "Airfryer",

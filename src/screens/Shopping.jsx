@@ -42,7 +42,7 @@ import {
   Wallet,
   Wheat,
   X,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import {
   BottomNav,
   EmptyIllustration,

@@ -8,7 +8,7 @@ import {
   Check,
   Info,
   ShieldCheck,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember,

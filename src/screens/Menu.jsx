@@ -65,7 +65,7 @@ import {
   X,
   Zap,
   MilkOff,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
@@ -4809,7 +4809,6 @@ export const MenuScreen = memo(function MenuScreen({
               },
               {
                 id: "clear", Icon: Trash2, label: "Quitar",
-                tint: "#fdecea", color: "#c0392b",
                 onPick: () => { onDishClear?.(dishAction); setDishAction(null); },
               },
               // Estructura: solo en comidas y cenas. En desayuno, merienda o

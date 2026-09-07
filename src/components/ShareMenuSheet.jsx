@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Share2, EyeOff, Check } from "lucide-react";
+import { X, Share2, EyeOff, Check } from "./icons.jsx";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";

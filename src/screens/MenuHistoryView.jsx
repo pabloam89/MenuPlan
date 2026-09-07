@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "../components/icons.jsx";
 import { getWeekDatesFromStartISO, calendarDayNumber } from "../lib/weekCalendar.js";
 import { getMeals, isLunchMeal } from "../lib/planner.js";
 import { membersOfGroup } from "../lib/groups.js";

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { Check } from "../components/icons.jsx";
 import { OnboardingShell } from "./Onboarding.jsx";
 import { hasChildMember } from "../lib/groups.js";
 

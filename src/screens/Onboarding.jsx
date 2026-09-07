@@ -72,7 +72,7 @@ import {
   Utensils,
   UtensilsCrossed,
   X,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import {
   Chip,
   SliderInput,

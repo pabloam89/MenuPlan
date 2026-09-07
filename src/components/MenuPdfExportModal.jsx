@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Check, Coffee, Download, FileText, Moon, School, Sun, UtensilsCrossed, X } from "lucide-react";
+import { CalendarDays, Check, Coffee, Download, FileText, Moon, School, Sun, UtensilsCrossed, X } from "./icons.jsx";
 import {
   defaultPdfExportOptions,
   estimatePdfSheets,

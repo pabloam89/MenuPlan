@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { MessageCircle, Send, Trash2, Heart, CornerDownRight, Flag, Pencil, Check, X } from "lucide-react";
+import { MessageCircle, Send, Trash2, Heart, CornerDownRight, Flag, Pencil, Check, X } from "./icons.jsx";
 import { Avatar } from "./ui.jsx";
 import { personColor } from "../lib/socialUi.js";
 import {

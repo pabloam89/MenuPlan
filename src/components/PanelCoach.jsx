@@ -18,7 +18,7 @@
  */
 
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
-import { X, ArrowUp, Check } from "lucide-react";
+import { X, ArrowUp, Check } from "./icons.jsx";
 import { resumirAjuste, pintarAjuste } from "../lib/panelParser.js";
 
 const ANCHO_MAX = 366;

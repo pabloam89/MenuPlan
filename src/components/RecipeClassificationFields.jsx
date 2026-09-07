@@ -7,7 +7,7 @@ import {
   Utensils,
   UtensilsCrossed,
   Zap,
-} from "lucide-react";
+} from "./icons.jsx";
 import { deriveUsageTagsFromType, USAGE_TAGS } from "../lib/userRecipes.js";
 import { isMontaje } from "../data/recipeSchema.js";
 import { mealTimeColor } from "../lib/mealTimes.js";

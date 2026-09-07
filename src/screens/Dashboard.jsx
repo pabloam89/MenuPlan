@@ -5,7 +5,7 @@ import {
   UtensilsCrossed,
   Settings,
   Sparkles,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { planHasDishes } from "../lib/menuArchive.js";

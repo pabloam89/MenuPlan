@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, RotateCw } from "lucide-react";
+import { AlertTriangle, RotateCw } from "./icons.jsx";
 
 // Non-blocking warning shown ABOVE an already-generated menu when a member's
 // allergies/intolerances changed after generation (e.g. edited from "Tu

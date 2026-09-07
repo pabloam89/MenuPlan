@@ -40,7 +40,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronUp,
-} from "lucide-react";
+} from "../components/icons.jsx";
 import { ProgressDots, SegmentedControl } from "../components/ui.jsx";
 import { RestrictionTabCard, APPLIANCES, CARD_ACCENT_TEAL } from "./Onboarding.jsx";
 import { DishDetail } from "./Menu.jsx";

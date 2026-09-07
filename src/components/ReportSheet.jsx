@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Flag, Check } from "lucide-react";
+import { X, Flag, Check } from "./icons.jsx";
 import { reportContent, REPORT_REASONS } from "../lib/social.js";
 
 const GREEN = "#2d5a3d";

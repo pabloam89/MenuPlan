@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Clock, Info, ThumbsUp, ThumbsDown, CookingPot, MessageCircle } from "lucide-react";
+import { Clock, Info, ThumbsUp, ThumbsDown, CookingPot, MessageCircle } from "./icons.jsx";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { categoryColor, categoryLabel } from "../screens/CatalogBrowserSheet.jsx";
