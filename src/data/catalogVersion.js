@@ -32,7 +32,16 @@
 // y `cocina` (italiana 74, mediterránea 20, mexicana 9, asiática 8; ausente =
 // española). Ver scripts/mark-catalog-axes.mjs y, para saber si cada eje da
 // para servir una petición sin repetir plato, scripts/axis-coverage.mjs.
+// v26 (2026-09-07): `estrella: true` en los 20 sólidos de bebé. Entraron en
+// v25 sin la marca, y el Recetario Estrella es el único catálogo elegible
+// (ver onlyPrimaryCatalog en CatalogBrowserSheet y isPrimaryCatalog en
+// filterRecipes), así que la teja "Sólidos de bebé" salía a CERO en
+// producción con las 20 recetas ahí, empaquetadas y sin poder verse.
 //
-// Sin subir este número no llegan a producción: Supabase está en 20 y empate
+// Que solo lleguen a los bebés que ya comen sólido lo garantiza el filtro por
+// etapa (filterRecipes.js:252), no la estrella: son dos puertas distintas y
+// esta solo abre la de "existe en el catálogo".
+//
+// Sin subir este número no llegan a producción: Supabase está en 25 y empate
 // significa que gana la nube.
-export const BUNDLED_CATALOG_VERSION = 25;
+export const BUNDLED_CATALOG_VERSION = 26;

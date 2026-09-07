@@ -2805,7 +2805,8 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -2903,7 +2904,8 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -2991,7 +2993,8 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3084,7 +3087,8 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3178,7 +3182,8 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3272,7 +3277,8 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3368,7 +3374,8 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3457,7 +3464,8 @@
         "minutes": 4,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3549,7 +3557,8 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3639,7 +3648,8 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3729,7 +3739,8 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3798,7 +3809,8 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3860,7 +3872,8 @@
         "minutes": 3,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3921,7 +3934,8 @@
         "minutes": 3,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -3983,7 +3997,8 @@
         "minutes": 3,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -4064,7 +4079,8 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -4159,7 +4175,8 @@
         "minutes": 4,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -4247,7 +4264,8 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -4337,7 +4355,8 @@
         "minutes": 5,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -4433,6 +4452,7 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "estrella": true
   }
 ]
