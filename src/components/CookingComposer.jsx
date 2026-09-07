@@ -1,9 +1,10 @@
 import { useMemo, useRef, useState } from "react";
-import { X, Camera, ImagePlus, Search, ChevronLeft, ChevronRight, ChevronDown, Check, Plus, UsersRound, Folder, Sparkles } from "./icons.jsx";
+import { X, Camera, ImagePlus, Search, ChevronLeft, ChevronRight, ChevronDown, Check, Plus, Sparkles } from "./icons.jsx";
 import { Avatar } from "./ui.jsx";
 import { SEALS, STICKER_COLORS } from "../lib/cookings.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
+import { CatalogBrowserSheet } from "../screens/CatalogBrowserSheet.jsx";
 
 const INK = "#142f1d";
 const INK_SOFT = "#5a7066";
@@ -84,7 +85,13 @@ export function CookingComposer({
   members = [],
   friends = [],
   searchPool = [],
-  folders = [],
+  // Solo lo tuyo: alimenta la pestaña "Mis recetas" de la hoja. `searchPool`
+  // no vale porque ahí van tus recetas Y el catálogo entero mezclados.
+  myRecipes = [],
+  recipeVotes = {},
+  // Crudas, sin las carpetas fijas: la hoja de Recetas las añade ella sola
+  // (allFolders), y si llegaran ya expandidas saldrían por duplicado.
+  recipeFolders = [],
   collections = {},
   onPublish,
   onClose,
@@ -95,7 +102,6 @@ export function CookingComposer({
   // toque, y la meta-línea dice claramente que es una propuesta.
   const [link, setLink] = useState(todayDishes[0] ?? null);
   const [view, setView] = useState(null); // null | "pick" | "guests" | "shortcuts"
-  const [query, setQuery] = useState("");
   const [note, setNote] = useState("");
   const [sticker, setSticker] = useState(null); // { text, id, x, y, anchor }
   // Lo que llevas en la mano, y por dónde va el dedo.
@@ -104,7 +110,6 @@ export function CookingComposer({
   // Teal por defecto: es el color de la casa y funciona sobre casi
   // cualquier foto de comida.
   const [color, setColor] = useState("teal");
-  const [openFolder, setOpenFolder] = useState(null);
   const [panel, setPanel] = useState(null); // null | "pills" | "color"
   const [eaters, setEaters] = useState(() => members.map((m) => m.id));
   const [guests, setGuests] = useState([]);
@@ -123,42 +128,19 @@ export function CookingComposer({
   };
 
   /**
-   * Emparejar ANTES de crear nada. Sin esto, catorce personas cocinando lo
-   * mismo crean catorce fichas de "pasta con tomate". Crear es la última
-   * salida, no la primera.
-   */
-  const matches = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (q.length < 2) return [];
-    return searchPool.filter((r) => r.name?.toLowerCase().includes(q)).slice(0, 8);
-  }, [query, searchPool]);
-
-  /**
-   * El recetario tal y como lo tienes organizado: tus recetas primero, y luego
-   * cada carpeta con lo que guardaste dentro.
+   * Lo tuyo, con los platos de HOY delante.
    *
-   * Se reusa `data.recipeCollections` (receta -> carpetas), que es el mismo
-   * mapa que pinta Mis Recetas: si aquí inventara otra agrupación, el mismo
-   * plato estaría en sitios distintos según por dónde entres.
+   * La barra propone el primer plato del día; el segundo tiene que seguir
+   * estando a mano, porque "hoy tenía dos cosas y he cocinado la otra" es el
+   * caso corriente. Al entrar por "Mis recetas" salen los primeros, así que
+   * sigue siendo un toque sin haber inventado una lista aparte.
    */
-  const shelves = useMemo(() => {
+  const mineWithToday = useMemo(() => {
     const byId = new Map(searchPool.map((r) => [r.id, r]));
-    const mias = searchPool.filter((r) => r.owner || String(r.id).startsWith("user_"));
     const hoy = todayDishes.map((d) => d.recipe ?? byId.get(d.recipeId)).filter(Boolean);
-    const out = [];
-    // Lo de hoy primero: la barra propone UNO, y este es el sitio donde se
-    // cambia por el otro plato del día sin tener que buscarlo.
-    if (hoy.length > 0) out.push({ id: "hoy", label: "Hoy tenías", recipes: hoy, img: "/avatares/cards/comidas.jpg" });
-    out.push({ id: "mias", label: "Tus recetas", recipes: mias, img: "/avatares/cards/empty_recetas_propias.jpg" });
-    for (const f of folders) {
-      const recipes = Object.entries(collections)
-        .filter(([, ids]) => Array.isArray(ids) && ids.includes(f.id))
-        .map(([recipeId]) => byId.get(recipeId))
-        .filter(Boolean);
-      out.push({ id: f.id, label: f.label, recipes, img: f.img, Icon: f.Icon });
-    }
-    return out;
-  }, [searchPool, folders, collections, todayDishes]);
+    const seen = new Set(hoy.map((r) => r.id));
+    return [...hoy, ...myRecipes.filter((r) => !seen.has(r.id))];
+  }, [todayDishes, myRecipes, searchPool]);
 
   const recipe = link?.recipe ?? null;
   const catalogPhoto = link && !link.draft ? dishImageForRecipe(recipe ?? link) : null;
@@ -208,90 +190,40 @@ export function CookingComposer({
   const pickRecipe = (r) => {
     setLink({ recipeId: r.id, name: r.name, recipe: r });
     setView(null);
-    setOpenFolder(null);
   };
 
-  // ── El recetario: carpetas como en Recetas, y dentro las fichas ──────
+  // ── El recetario: LA hoja de Recetas, no una copia ───────────────────
+  // Aquí vivía un recetario propio: buscador, tus carpetas y poco más. El
+  // catálogo entero solo aparecía si acertabas a escribir el nombre — no había
+  // forma de mirar qué hay. Y al ser una segunda implementación, se quedaba
+  // atrás cada vez que Recetas avanzaba: dos recetarios que envejecían por
+  // separado.
+  //
+  // Ahora se monta la misma hoja: las categorías, los filtros, las pestañas de
+  // Mis recetas / Catálogo y las carpetas, idénticas a como las conoces. Lo
+  // único que se añade es «X» es mía, que la hoja no traía y aquí es la salida
+  // para lo que no está en el catálogo.
   if (view === "pick") {
-    const searching = query.trim().length >= 2;
-    const inside = openFolder ? shelves.find((f) => f.id === openFolder) : null;
     return (
-      <Sheet onClose={onClose}>
-        <SheetHead
-          title={inside ? inside.label : "¿Qué has cocinado?"}
-          onBack={() => (inside ? setOpenFolder(null) : setView(null))}
-        />
-        <div style={searchWrap}>
-          <Search size={15} color={INK_SOFT} strokeWidth={2.4} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Escribe el nombre del plato…"
-            style={searchInput}
-          />
-        </div>
-
-        {/* La `key` dispara el deslizamiento: cada nivel entra desde el lado en
-            vez de cambiar de golpe. Misma transición que el resto de la app. */}
-        <div
-          className="mp-nav-fwd"
-          key={searching ? "q" : (inside?.id ?? "folders")}
-          style={{ maxHeight: 380, overflowY: "auto", marginTop: 12 }}
-        >
-          {searching ? (
-            <>
-              <div style={pickList}>
-                {matches.map((r) => <RecipeTile key={r.id} recipe={r} onPick={pickRecipe} />)}
-              </div>
-
-              {/* Crear ficha nueva va DEBAJO de las coincidencias: es lo último
-                  que quieres que haga alguien que solo sube una cena. */}
-              <button
-                type="button"
-                onClick={() => {
-                  setLink({ recipeId: `draft_${Date.now().toString(36)}`, name: query.trim(), draft: true });
-                  setView(null);
-                }}
-                style={{ ...pickRow, borderStyle: "dashed", marginTop: 10 }}
-              >
-                <span style={{ width: 40, height: 40, borderRadius: 11, background: "#eef2f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Plus size={18} color={INK_SOFT} strokeWidth={2.5} />
-                </span>
-                <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                  <span style={{ display: "block", fontSize: 13.5, fontWeight: 800, color: INK }}>«{query.trim()}» es mía</span>
-                  <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: INK_SOFT, marginTop: 2 }}>
-                    La receta la escribes cuando te la pidan
-                  </span>
-                </span>
-              </button>
-            </>
-          ) : inside ? (
-            inside.recipes.length > 0 ? (
-              <div style={pickList}>
-                {inside.recipes.map((r) => <RecipeTile key={r.id} recipe={r} onPick={pickRecipe} />)}
-              </div>
-            ) : (
-              <p style={mutedCopy}>Esta carpeta está vacía.</p>
-            )
-          ) : (
-            /* Las carpetas con SU ilustración, exactamente como en Recetas: si
-               las mismas carpetas se vieran distintas según por dónde entras,
-               parecerían dos recetarios diferentes. */
-            <div style={pickList}>
-              {shelves.map((f) => (
-                <FolderTile
-                  key={f.id}
-                  label={f.label}
-                  img={f.img}
-                  Icon={f.Icon}
-                  count={f.recipes.length}
-                  onClick={() => setOpenFolder(f.id)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </Sheet>
+      <CatalogBrowserSheet
+        gatePick
+        gatePickSourceTabs
+        gatePickType="plato"
+        selectedPlatoId={link?.recipeId ?? null}
+        onPickPlato={(id) => {
+          const r = searchPool.find((x) => x.id === id);
+          if (r) pickRecipe(r);
+        }}
+        onCreateDraft={(name) => {
+          setLink({ recipeId: `draft_${Date.now().toString(36)}`, name, draft: true });
+          setView(null);
+        }}
+        extraRecipes={mineWithToday}
+        recipeVotes={recipeVotes}
+        recipeCollections={collections}
+        recipeFolders={recipeFolders}
+        onClose={() => setView(null)}
+      />
     );
   }
 
@@ -482,9 +414,9 @@ export function CookingComposer({
               publicaciones distintas en vez de dos opciones. Ahora se PROPONE
               el primero —el mismo criterio de "confirmar, no preguntar" con el
               que arrancó todo esto— y cambiarlo es un toque. Los otros platos
-              de hoy salen los primeros al abrir el recetario. */}
+              de hoy encabezan "Mis recetas" en la hoja que se abre. */}
           <div className="mp-rise" style={linkBar}>
-            <button type="button" onClick={() => { setView("pick"); setQuery(""); }} style={linkChip}>
+            <button type="button" onClick={() => { setView("pick"); }} style={linkChip}>
               {link ? (
                 <>
                   {catalogPhoto
@@ -639,69 +571,6 @@ export function CookingComposer({
         </div>
       </div>
     </div>
-  );
-}
-
-/**
- * La carpeta, con la misma cara que en Recetas: su ilustración a sangre, el
- * contador sobre la foto y el nombre debajo.
- *
- * El arte llega ya resuelto en la prop `folders` (ver FeedScreen) para no
- * arrastrar CatalogBrowserSheet entero hasta aquí. Si estas carpetas se vieran
- * distintas según por dónde entras, parecerían dos recetarios diferentes.
- */
-function FolderTile({ label, img, Icon, count, onClick }) {
-  const [failed, setFailed] = useState(false);
-  const showImg = Boolean(img) && !failed;
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
-      <button
-        type="button"
-        onClick={onClick}
-        aria-label={`Abrir carpeta ${label}`}
-        style={{
-          position: "relative", width: "100%", aspectRatio: "1 / 1",
-          padding: 0, borderRadius: 14, overflow: "hidden", cursor: "pointer",
-          border: showImg ? "none" : `1.5px dashed ${GREEN}44`,
-          background: showImg ? "#f4f7f5" : `${GREEN}0f`,
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
-          fontFamily: "inherit",
-        }}
-      >
-        {showImg ? (
-          <>
-            <img
-              src={img}
-              alt=""
-              loading="lazy"
-              onError={() => setFailed(true)}
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-            />
-            {/* El contador va SOBRE la foto, así que necesita su propio fondo
-                para leerse igual en una imagen clara y en una oscura. */}
-            <span style={folderCount}>{count}</span>
-          </>
-        ) : (
-          <>
-            {Icon ? <Icon size={28} color={GREEN} strokeWidth={1.9} /> : null}
-            <span style={{ fontSize: 18, fontWeight: 900, color: GREEN, lineHeight: 1 }}>{count}</span>
-          </>
-        )}
-      </button>
-      <div style={folderLabelStyle}>{label}</div>
-    </div>
-  );
-}
-
-function RecipeTile({ recipe, onPick }) {
-  const img = dishImageForRecipe(recipe);
-  return (
-    <button type="button" onClick={() => onPick(recipe)} title={recipe.name} style={tile}>
-      {img
-        ? <img src={deckImg(img, 240)} alt="" loading="lazy" style={tileImg} />
-        : <span style={{ ...tileImg, background: "#eef2f0", display: "block" }} />}
-      <span style={tileName}>{recipe.name}</span>
-    </button>
   );
 }
 
@@ -872,15 +741,6 @@ const eaterAdd = {
   background: "none", display: "flex", alignItems: "center", justifyContent: "center",
   cursor: "pointer", flexShrink: 0, fontFamily: "inherit",
 };
-const folderCount = {
-  position: "absolute", bottom: 6, left: 6, padding: "2px 8px", borderRadius: 999,
-  background: "rgba(255,255,255,.92)", color: GREEN, fontSize: 12.5, fontWeight: 900,
-  lineHeight: 1.5, boxShadow: "0 1px 3px rgba(0,0,0,.18)",
-};
-const folderLabelStyle = {
-  fontSize: 12, fontWeight: 800, color: INK, lineHeight: 1.25, minWidth: 0,
-  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-};
 const noteInput = {
   flex: 1, minWidth: 0, border: "none", outline: "none", background: "none",
   fontSize: 13.5, fontWeight: 600, color: INK, fontFamily: "inherit", paddingLeft: 9,
@@ -902,18 +762,6 @@ const primaryBtn = {
   background: GREEN, color: "#fff", fontSize: 14.5, fontWeight: 900,
   cursor: "pointer", fontFamily: "inherit",
 };
-const pickList = { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 7 };
-const tile = {
-  position: "relative", aspectRatio: "1 / 1", borderRadius: 13, overflow: "hidden",
-  border: "none", padding: 0, background: "#eef2f0", cursor: "pointer", fontFamily: "inherit",
-};
-const tileImg = { width: "100%", height: "100%", objectFit: "cover", display: "block" };
-const tileName = {
-  position: "absolute", left: 0, right: 0, bottom: 0, padding: "16px 6px 6px",
-  background: "linear-gradient(to top, rgba(10,20,14,.86), rgba(10,20,14,0))",
-  color: "#fff", fontSize: 10, fontWeight: 800, lineHeight: 1.15, textAlign: "left",
-  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-};
 const groupLabel = { margin: "18px 0 10px", fontSize: 12, fontWeight: 800, color: INK_SOFT };
 const faceGrid = { display: "flex", gap: 13, flexWrap: "wrap" };
 const faceBtn = {
@@ -930,15 +778,3 @@ const faceName = {
   whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
 };
 const mutedCopy = { margin: 0, fontSize: 12.5, fontWeight: 600, color: INK_SOFT, lineHeight: 1.5 };
-const searchWrap = {
-  display: "flex", alignItems: "center", gap: 9, marginTop: 14, padding: "12px 14px",
-  background: "#eef2f0", borderRadius: 999,
-};
-const searchInput = {
-  flex: 1, minWidth: 0, border: "none", outline: "none", background: "none",
-  fontSize: 14.5, fontWeight: 600, color: INK, fontFamily: "inherit",
-};
-const pickRow = {
-  display: "flex", alignItems: "center", gap: 11, padding: 9, background: "#fff",
-  border: "1px solid #dbe3de", borderRadius: 15, cursor: "pointer", fontFamily: "inherit",
-};

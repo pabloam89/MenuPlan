@@ -141,6 +141,28 @@ const FACET_META = {
   sin_lactosa: { label: "Sin lactosa", wired: true, color: "#4a7ab8", Icon: MilkOff },
 };
 
+/**
+ * Tipos de cocina. Mismos valores que el enum `cocina` de recipeSchema.js —
+ * si se añade uno allí, hay que añadirlo aquí o la tesela no aparece.
+ *
+ * Las ilustraciones salen de Avatares/cards/cocina/ vía
+ * scripts/make_cocina_images.py, que las deja en /categories/cocina_*.webp
+ * con el mismo tratamiento que las facetas (400x400).
+ *
+ * No está "española": el catálogo es español de serie y marcar 580 recetas
+ * para decir lo obvio sería ruido — mismo criterio que el schema.
+ */
+const COCINA_META = {
+  italiana:  { label: "Italiana",  color: "#c0392b", img: "/categories/cocina_italiana.webp" },
+  mexicana:  { label: "Mexicana",  color: "#cf7833", img: "/categories/cocina_mexicana.webp" },
+  asiatica:  { label: "Asiática",  color: "#8a5a00", img: "/categories/cocina_asiatica.webp" },
+  arabe:     { label: "Árabe",     color: "#a97e21", img: "/categories/cocina_arabe.webp" },
+  francesa:  { label: "Francesa",  color: "#4a7ab8", img: "/categories/cocina_francesa.webp" },
+  americana: { label: "Americana", color: "#5a7066", img: "/categories/cocina_americana.webp" },
+  india:     { label: "India",     color: "#b9770e", img: "/categories/cocina_india.webp" },
+  peruana:   { label: "Peruana",   color: "#3f9656", img: "/categories/cocina_peruana.webp" },
+};
+
 const DEFAULT_COLOR = "#5a7066";
 export function categoryColor(cat) {
   return CATEGORY_META[cat]?.color ?? DEFAULT_COLOR;
@@ -327,6 +349,12 @@ export function CatalogBrowserSheet({
   discardedIds = null,
   onDiscardRecipe = null,
   onRecoverRecipe = null,
+  // Cocinada: "«lo que has escrito» es mía". Es la salida cuando lo que has
+  // hecho no está en el catálogo, y sin ella no podrías publicar la cena. Solo
+  // la pinta quien la pasa (el composer del feed), y siempre DEBAJO de las
+  // coincidencias: crear ficha nueva es lo último que quieres que haga alguien
+  // que solo sube una foto.
+  onCreateDraft = null,
 }) {
   const [query, setQuery] = useState("");
   // mine | favorites | catalog. Al cambiar un plato del menú se abre en "Mis
@@ -506,6 +534,10 @@ export function CatalogBrowserSheet({
   // invierno son mutuamente excluyentes (season es un valor único por
   // receta) — activar una desactiva la otra, ver toggleFacet.
   const [activeFacets, setActiveFacets] = useState(() => new Set());
+  // Tipo de cocina (italiana, mexicana…). Uno solo a la vez: son excluyentes
+  // —un plato no es italiano Y mexicano— así que un Set aquí solo serviría
+  // para construir filtros que no devuelven nada.
+  const [cocina, setCocina] = useState(null);
   // Ilustraciones de faceta que aun no existen (404) — fallback a icono.
   const [brokenFacetImgs, setBrokenFacetImgs] = useState(() => new Set());
   const [garnishFor, setGarnishFor] = useState(null);
@@ -564,10 +596,11 @@ export function CatalogBrowserSheet({
       if (rapidoOnly && !isMontaje(r)) return false;
       if (seasonFilter && r.season !== seasonFilter) return false;
       if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
+      if (cocina && r.cocina !== cocina) return false;
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, platoCatalog, restrictToIds, viewingMine, mineIds, collectionIds]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, cocina, platoCatalog, restrictToIds, viewingMine, mineIds, collectionIds]);
 
   const garnishResults = useMemo(() => {
     const q = norm(query);
@@ -718,6 +751,9 @@ export function CatalogBrowserSheet({
     // filtros: sin esto, "Volver" devolvía a la rejilla con una faceta aún
     // activa y sin nada en la UI que lo indicara.
     setActiveFacets(new Set());
+    // Mismo motivo con el tipo de cocina: es un filtro más, y sin limpiarlo
+    // "Volver" devolvía a la rejilla con "Italiana" aún puesto.
+    setCocina(null);
   };
 
   const goBackToCategories = () => {
@@ -747,13 +783,26 @@ export function CatalogBrowserSheet({
   // contarla aquí la rejilla se quedaba puesta y los platos filtrados no se
   // llegaban a pintar nunca — tocabas "Cenas rápidas" y solo se iluminaba la
   // tesela.
-  const anyFacetActive = kidOnly || activeFacets.size > 0;
+  const anyFacetActive = kidOnly || activeFacets.size > 0 || Boolean(cocina);
   const showCategoryGrid =
     isBrowseCatalog && cats.size === 0 && !viewingMine && !viewingCollection && !query.trim() && !anyFacetActive;
-  // En la rejilla de inicio (fuera de gatePick) el estante de facetas ya
-  // cubre "explorar" — la barra de busqueda/filtros solo aparece al entrar
-  // en una categoria o al buscar, no compitiendo con el estante arriba.
-  const hideSearchOnGrid = !gatePick && showCategoryGrid;
+  // El buscador va SIEMPRE arriba, tambien en la rejilla de inicio. Antes se
+  // escondia ahi para no competir con el estante de facetas, pero eso obligaba
+  // a entrar en una categoria antes de poder buscar: si sabes que quieres
+  // "lasaña", tener que elegir "Pasta y arroces" primero sobra. El "volver a
+  // categorias" de al lado solo aparece cuando hay algo a lo que volver.
+  const hideSearchOnGrid = false;
+  // Cuántas recetas hay de cada cocina. Solo se pintan las teselas con al
+  // menos una: peruana tiene 3 y sale, pero si un día se queda en cero, la
+  // tesela desaparece sola en vez de invitar a un callejón vacío.
+  const cocinaCounts = useMemo(() => {
+    const counts = {};
+    for (const r of fullCatalog) {
+      if (r.cocina && !isGuarnicionRecipe(r)) counts[r.cocina] = (counts[r.cocina] ?? 0) + 1;
+    }
+    return counts;
+  }, [fullCatalog]);
+
   const categoryCounts = useMemo(() => {
     const counts = {};
     for (const r of fullCatalog) {
@@ -995,9 +1044,17 @@ export function CatalogBrowserSheet({
   // nombre y distinto contenido (la faceta, todo el catálogo; la carpeta, solo
   // lo tuyo), y tener los dos ejes a la vez confundía. El filtrado por faceta
   // sigue existiendo dentro de Filtros; lo que desaparece es la tile.
+  // Las cocinas van DESPUÉS de las categorías: la categoría es de qué está
+  // hecho el plato (lo que casi siempre buscas), la cocina es de dónde viene.
+  // Solo las que tienen alguna receta — ver cocinaCounts.
+  const cocinaTiles = Object.keys(COCINA_META)
+    .filter((id) => (cocinaCounts[id] ?? 0) > 0)
+    .sort((a, b) => (cocinaCounts[b] ?? 0) - (cocinaCounts[a] ?? 0));
+
   const gridTiles = [
     { kind: "mine", id: "__mine__" },
     ...allCats.map((catId) => ({ kind: "category", id: catId })),
+    ...cocinaTiles.map((id) => ({ kind: "cocina", id })),
   ];
 
   const categoryGrid = (
@@ -1012,17 +1069,20 @@ export function CatalogBrowserSheet({
       {gridTiles.map((tile, i) => {
         const isFacet = tile.kind === "facet";
         const isMine = tile.kind === "mine";
+        const isCocina = tile.kind === "cocina";
         const meta = isFacet
           ? FACET_META[tile.id]
           : isMine
             ? { img: "/avatares/cards/empty_recetas_propias.jpg" }
-            : CATEGORY_META[tile.id];
-        const Icon = isMine ? NotebookPen : isFacet ? meta.Icon : (meta?.icon ?? Utensils);
-        const color = isMine ? GREEN : isFacet ? meta.color : categoryColor(tile.id);
-        const active = isMine ? viewingMine : isFacet ? facetActive[tile.id] : false;
+            : isCocina
+              ? COCINA_META[tile.id]
+              : CATEGORY_META[tile.id];
+        const Icon = isMine ? NotebookPen : isFacet ? meta.Icon : isCocina ? Globe : (meta?.icon ?? Utensils);
+        const color = isMine ? GREEN : isFacet || isCocina ? meta.color : categoryColor(tile.id);
+        const active = isMine ? viewingMine : isFacet ? facetActive[tile.id] : isCocina ? cocina === tile.id : false;
         const broken = isFacet && brokenFacetImgs.has(tile.id);
-        const label = isMine ? "Mis recetas" : isFacet ? meta.label : categoryLabel(tile.id);
-        const count = isMine ? mineIds.size : isFacet ? facetCounts[tile.id] ?? 0 : categoryCounts[tile.id] ?? 0;
+        const label = isMine ? "Mis recetas" : isFacet || isCocina ? meta.label : categoryLabel(tile.id);
+        const count = isMine ? mineIds.size : isFacet ? facetCounts[tile.id] ?? 0 : isCocina ? cocinaCounts[tile.id] ?? 0 : categoryCounts[tile.id] ?? 0;
         // "Mis recetas" siempre se puede abrir, aunque tengas 0: la raíz
         // muestra las carpetas (Todas, Descartados...), no el mensaje
         // genérico de "sin resultados" — ese solo sale fuera de inMineRoot.
@@ -1035,6 +1095,11 @@ export function CatalogBrowserSheet({
             setCats(new Set());
           } else if (isFacet) {
             toggleFacet(tile.id);
+          } else if (isCocina) {
+            setViewingMine(false);
+            setViewingCollection(null);
+            setCats(new Set());
+            setCocina((cur) => (cur === tile.id ? null : tile.id));
           } else {
             setViewingMine(false);
             setViewingCollection(null);
@@ -1244,6 +1309,33 @@ export function CatalogBrowserSheet({
                 onDiscard={discardedIds && r.source !== "user" ? (discardedIds.has(r.id) ? () => onRecoverRecipe?.(r.id) : () => onDiscardRecipe?.(r.id)) : undefined}
               />
             ))}
+      {onCreateDraft && query.trim().length >= 2 && (
+        <button
+          type="button"
+          onClick={() => onCreateDraft(query.trim())}
+          style={{
+            display: "flex", alignItems: "center", gap: 11, width: "100%",
+            margin: "10px 0 4px", padding: "11px 13px", boxSizing: "border-box",
+            borderRadius: 14, border: "1.5px dashed #c7d8cd", background: "#fff",
+            cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+          }}
+        >
+          <span style={{
+            width: 40, height: 40, borderRadius: 11, background: "#eef2f0", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Plus size={18} color="#7a9485" strokeWidth={2.5} />
+          </span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: "block", fontSize: 13.5, fontWeight: 800, color: "#1d3327" }}>
+              «{query.trim()}» es mía
+            </span>
+            <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "#7a9485", marginTop: 2 }}>
+              La receta la escribes cuando te la pidan
+            </span>
+          </span>
+        </button>
+      )}
       {results.length === 0 && !inMineRoot && (
         emptyImg || gatePickTabEmpty?.img ? (
           <div style={{ padding: "16px 20px" }}>

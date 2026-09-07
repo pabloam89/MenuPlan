@@ -4849,6 +4849,7 @@ export default function App() {
                 todayDishes={feedTodayDishes}
                 members={feedMembers}
                 searchPool={feedSearchPool}
+                recipeVotes={data.recipeVotes ?? {}}
                 recipeCollections={data.recipeCollections}
                 onNewRecipe={() => { recipePlannerOriginRef.current = "feed"; setEditingRecipe(null); fwd(() => setScreen("recipePlanner")); }}
                 recipeFolders={data.recipeFolders}

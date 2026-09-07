@@ -125,6 +125,7 @@ export function FeedScreen({
   members = [],
   searchPool = [],
   recipeCollections = {},
+  recipeVotes = {},
   onNewRecipe,
   initialPersonId = null,
   onSaveDish,
@@ -1012,10 +1013,11 @@ export function FeedScreen({
           members={members}
           friends={friendProfiles}
           searchPool={searchPool}
-          // Cada carpeta ya enriquecida con SU ilustración (la misma que en
-          // Recetas). El arte se resuelve aquí y no dentro del composer para
-          // no arrastrar CatalogBrowserSheet entero a ese bundle.
-          folders={allFolders(recipeFolders).map((f) => ({ ...f, ...folderArt(f.id) }))}
+          // Lo tuyo y tus favoritos, para las pestañas de la hoja de Recetas
+          // que el composer monta al elegir plato.
+          myRecipes={myRecipes}
+          recipeVotes={recipeVotes}
+          recipeFolders={recipeFolders}
           collections={recipeCollections}
           onPublish={publishCooking}
           onClose={() => setComposerOpen(false)}
