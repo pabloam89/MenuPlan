@@ -222,6 +222,27 @@ function isGatePickPlato(r) {
   return roles.length === 0 || !roles.every((role) => role === "guarnicion");
 }
 
+/**
+ * ¿Encaja esta receta con lo que se está buscando?
+ *
+ * Antes solo miraba el NOMBRE, y eso dejaba fuera del índice justo el eje que
+ * la pantalla acababa de estrenar: escribir "peruana" no devolvía nada aunque
+ * hubiera tres recetas peruanas y su propia teja ahí al lado. Buscar por una
+ * cocina que ves en la pantalla y que no salga nada se lee como que la app
+ * está rota, no como que ese campo no se indexa.
+ *
+ * Se busca por el ID y por la ETIQUETA porque no siempre coinciden: la receta
+ * guarda `asiatica` sin tilde y la teja dice "Asiática". Quien escribe lo hace
+ * mirando la etiqueta.
+ */
+function matchesQuery(recipe, q) {
+  if (!q) return true;
+  if (norm(recipe.name).includes(q)) return true;
+  const c = recipe.cocina;
+  if (!c) return false;
+  return norm(c).includes(q) || norm(COCINA_META[c]?.label ?? "").includes(q);
+}
+
 function sortByNameQuery(items, q) {
   const sorted = [...items];
   if (q) {
@@ -586,7 +607,7 @@ export function CatalogBrowserSheet({
       if (restrictToIds && !restrictToIds.has(r.id)) return false;
       if (viewingMine && (!viewingCollection || viewingCollection === ALL_ID) && !mineIds.has(r.id)) return false;
       if (collectionIds && !collectionIds.has(r.id)) return false;
-      if (q && !norm(r.name).includes(q)) return false;
+      if (!matchesQuery(r, q)) return false;
       if (cats.size && !cats.has(catKeyOf(r))) return false;
       if (proteins.size && !proteins.has(r.mainProtein)) return false;
       if (maxTime && (r.time ?? 999) > maxTime) return false;
@@ -631,7 +652,7 @@ export function CatalogBrowserSheet({
     // de catálogo que las oculta cuando no hay búsqueda activa.
     if (sourceRecipes) {
       const filtered = fullCatalog.filter((r) => {
-        if (q && !norm(r.name).includes(q)) return false;
+        if (!matchesQuery(r, q)) return false;
         if (cats.size) {
           const catKey = isGuarnicionRecipe(r) ? "guarniciones" : r.category;
           if (!catKey || !cats.has(catKey)) return false;
@@ -664,7 +685,13 @@ export function CatalogBrowserSheet({
       if (viewingMine && (!viewingCollection || viewingCollection === ALL_ID) && !mineIds.has(r.id)) return false;
       if (collectionIds && !collectionIds.has(r.id)) return false;
       if (restrictToIds && !restrictToIds.has(r.id)) return false;
-      if (q && !norm(r.name).includes(q)) return false;
+      // La cocina, exactamente por el mismo motivo que "Mis recetas" ahí
+      // arriba: la teja encendía el filtro, `platoResults` lo aplicaba, y esta
+      // —que es LA QUE SE PINTA— no. Salía el catálogo entero con el contador
+      // de la teja diciendo 3, que es la peor combinación posible: el número
+      // correcto al lado de la lista equivocada.
+      if (cocina && r.cocina !== cocina) return false;
+      if (!matchesQuery(r, q)) return false;
       if (maxTime && (r.time ?? 999) > maxTime) return false;
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
@@ -697,7 +724,7 @@ export function CatalogBrowserSheet({
       }
     }
     return sortByNameQuery(out, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes, viewingMine, mineIds, collectionIds]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, sinLactosaOnly, cocina, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes, viewingMine, mineIds, collectionIds]);
 
   const gatePickMinePlatoCount = useMemo(
     () => mineRecipes.filter(isGatePickPlato).length,
