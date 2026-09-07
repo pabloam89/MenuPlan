@@ -510,10 +510,10 @@ function schoolEntriesForComida(data, schedule, group, day) {
 
 function resolveWeekCalendar(week, fallbackMenuWeek) {
   if (week?.startISO) {
-    return getWeekDatesFromStartISO(week.startISO, week.startDayIdx ?? 0);
+    return getWeekDatesFromStartISO(week.startISO, week.startDayIdx ?? 0, week.days ?? null);
   }
   const menuWeek = week
-    ? { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0 }
+    ? { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null }
     : (fallbackMenuWeek ?? { offset: 0, startDayIdx: 0 });
   return getWeekDatesByMenuWeek(menuWeek);
 }

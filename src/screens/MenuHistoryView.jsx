@@ -48,7 +48,7 @@ export function MenuHistoryView({ menu, data, onBack }) {
 
       <div style={{ padding: "8px 16px 24px" }}>
         {weeks.map((week) => {
-          const { dates, activeDays } = getWeekDatesFromStartISO(week.startISO, week.startDayIdx ?? 0);
+          const { dates, activeDays } = getWeekDatesFromStartISO(week.startISO, week.startDayIdx ?? 0, week.days ?? null);
           return (
             <div key={week.weekStart} style={{ marginBottom: 22 }}>
               {weeks.length > 1 && (

@@ -58,8 +58,8 @@ function isoDate(date) {
  * relative to "today", so they stop being meaningful once time has passed
  * and are useless for a menú viewed later in the history list.
  */
-export function computeWeekRange(offset, startDayIdx = 0) {
-  const { dates, activeDays } = getWeekDatesByMenuWeek({ offset, startDayIdx });
+export function computeWeekRange(offset, startDayIdx = 0, days = null) {
+  const { dates, activeDays } = getWeekDatesByMenuWeek({ offset, startDayIdx, days });
   const first = dates[activeDays[0]];
   const last = dates[activeDays[activeDays.length - 1]];
   return {
@@ -67,6 +67,19 @@ export function computeWeekRange(offset, startDayIdx = 0) {
     endISO: isoDate(last),
     activeDays,
   };
+}
+
+/**
+ * Días seleccionados a mano (arrastrar en OnboardingWeek) para una semana
+ * concreta, o `null` si esa semana nunca se tocó a mano — en cuyo caso el
+ * resto del código sigue con su fallback de siempre (semana completa, o
+ * desde startDayIdx en la semana 0). `data.menuWeekDays` es aditivo: una
+ * semana ausente ahí se comporta exactamente igual que antes de que esto
+ * existiera, así que un menú/archivo viejo sin este campo no cambia.
+ */
+export function explicitDaysForOffset(data, offset) {
+  const days = data?.menuWeekDays?.[offset];
+  return Array.isArray(days) && days.length > 0 ? days : null;
 }
 
 export function formatISODateShort(iso) {

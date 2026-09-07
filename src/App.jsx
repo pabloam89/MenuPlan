@@ -75,6 +75,7 @@ import { loadState, saveState, clearState } from "./lib/storage.js";
 import {
   clampWeekCount,
   computeWeekRange,
+  explicitDaysForOffset,
   createMenuId,
   foldInNewMenu,
   removeMenu,
@@ -800,7 +801,8 @@ function migrate(state) {
   if (Object.keys(d.menus).length === 0 && planHasDishes(state.menuPlan)) {
     const offset = d.menuWeek?.offset ?? 0;
     const startDayIdx = d.menuWeek?.startDayIdx ?? 0;
-    const { startISO, endISO } = computeWeekRange(offset, startDayIdx);
+    const days = explicitDaysForOffset(d, offset);
+    const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
     const legacyMenu = {
       id: createMenuId(),
       createdAt: Date.now(),
@@ -811,6 +813,7 @@ function migrate(state) {
         [startISO]: {
           offset,
           startDayIdx,
+          days,
           startISO,
           endISO,
           plan: state.menuPlan,
@@ -1615,7 +1618,7 @@ export default function App() {
             // "active" when it actually has one, otherwise keep the local one.
             activeMenuId: activeSummary?.id ?? d.activeMenuId ?? null,
             ...(activeWeek
-              ? { menuWeek: { offset: activeWeek.offset, startDayIdx: activeWeek.startDayIdx ?? 0 } }
+              ? { menuWeek: { offset: activeWeek.offset, startDayIdx: activeWeek.startDayIdx ?? 0, days: activeWeek.days ?? null } }
               : {}),
           };
         });
@@ -1854,8 +1857,12 @@ export default function App() {
       // y para la limpieza semanal (decisión C).
       const weekMeta = weekOffsets.map((offset, w) => {
         const startDayIdx = offset === weekOffsets[0] ? baseStartDayIdx : 0;
-        const { startISO, endISO } = computeWeekRange(offset, startDayIdx);
-        return { offset, w, startDayIdx, startISO, endISO };
+        // Días sueltos marcados a mano (arrastre en OnboardingWeek) para ESTA
+        // semana concreta — cada semana seleccionada puede llevar los suyos,
+        // no solo la semana ancla como pasaba con startDayIdx.
+        const days = explicitDaysForOffset(working, offset);
+        const { startISO, endISO, activeDays } = computeWeekRange(offset, startDayIdx, days);
+        return { offset, w, startDayIdx, days, activeDays, startISO, endISO };
       });
 
       // D (consumo): si alguna de las semanas que vamos a regenerar ya tenía
@@ -1908,7 +1915,7 @@ export default function App() {
       let spreadPantry = pantryIngredients;
       const effectiveConcurrency = pantryMultiWeek === "spread" ? 1 : WEEK_CONCURRENCY;
       const weekResults = await mapWithConcurrency(weekOffsets, effectiveConcurrency, async (offset, w) => {
-        const { startDayIdx, startISO, endISO } = weekMeta[w];
+        const { startDayIdx, days, startISO, endISO } = weekMeta[w];
         const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
           ? working.schedule
           : (working.menuWeekOverrides?.[offset] ?? working.schedule);
@@ -1921,7 +1928,7 @@ export default function App() {
           ...working,
           groups,
           schedule: weekSchedule,
-          menuWeek: { offset, startDayIdx },
+          menuWeek: { offset, startDayIdx, days },
           schoolMenus: schoolMenusForWeekIndex(working.schoolMenus, w),
           // kidDinnerConfig manda: derivamos el flag legacy que consume el
           // planner a partir de la config por niño + el horario de esta semana.
@@ -1969,7 +1976,7 @@ export default function App() {
         }
         const weekShopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems] };
         return {
-          offset, startDayIdx, startISO, endISO, plan, weekShopping, weekSchedule, recipes,
+          offset, startDayIdx, days, startISO, endISO, plan, weekShopping, weekSchedule, recipes,
           pantryItems: sh.pantryItems,
         };
       });
@@ -2025,6 +2032,7 @@ export default function App() {
         weeks[res.startISO] = {
           offset: res.offset,
           startDayIdx: res.startDayIdx,
+          days: res.days,
           startISO: res.startISO,
           endISO: res.endISO,
           plan: res.plan,
@@ -2359,7 +2367,7 @@ export default function App() {
     if (!wk) return;
     setMenuPlan(wk.plan);
     setShopping(wk.shopping);
-    setData((d) => ({ ...d, menuWeek: { offset: wk.offset, startDayIdx: wk.startDayIdx } }));
+    setData((d) => ({ ...d, menuWeek: { offset: wk.offset, startDayIdx: wk.startDayIdx, days: wk.days ?? null } }));
   }, [data.menus, data.activeMenuId]);
 
   // Writes one week's shopping back into the archive so per-week lists stay
@@ -2564,7 +2572,7 @@ export default function App() {
         const weekData = {
           ...data,
           schedule: week.schedule ?? data.schedule,
-          menuWeek: { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0 },
+          menuWeek: { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0, days: week.days ?? null },
         };
         const freshStock = user ? await loadPantry(user.id) : loadLocalPantry();
         const sh = buildShoppingList(week.plan, groups, getDayMeals(weekData), freshStock);

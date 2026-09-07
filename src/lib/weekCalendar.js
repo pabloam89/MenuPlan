@@ -36,20 +36,28 @@ export function getWeekDates(referenceDate = new Date()) {
 
 /**
  * Returns { dates, activeDays } for a menuWeek object.
- * menuWeek = { offset: number (0=this week, 1=next, ...), startDayIdx: number (0=Lun) }
+ * menuWeek = { offset: number (0=this week, 1=next, ...), startDayIdx: number (0=Lun), days?: string[] }
  * When offset>0 all 7 days are active; when offset==0 days before startDayIdx are inactive.
+ * `days`, when given (arrastrar-selección de días sueltos — ver OnboardingWeek),
+ * OVERRIDES both of the above with an explicit, possibly non-contiguous set —
+ * normalizado al orden L-D y sin duplicados, para que el resto del código
+ * (que solo espera un array de day-codes en orden) no tenga que saber que
+ * viene de una selección manual.
  */
 export function getWeekDatesByMenuWeek(menuWeek) {
-  const { offset = 0, startDayIdx = 0 } = menuWeek ?? {};
+  const { offset = 0, startDayIdx = 0, days = null } = menuWeek ?? {};
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const referenceDate = new Date(today);
   referenceDate.setDate(today.getDate() + offset * 7);
   const dates = getWeekDates(referenceDate);
-  // For the current week (offset==0), only show days from startDayIdx onwards.
-  const activeDays = offset === 0
-    ? DAYS.filter((_, i) => i >= startDayIdx)
-    : [...DAYS];
+  const activeDays =
+    Array.isArray(days) && days.length > 0
+      ? DAYS.filter((d) => days.includes(d))
+      // For the current week (offset==0), only show days from startDayIdx onwards.
+      : offset === 0
+        ? DAYS.filter((_, i) => i >= startDayIdx)
+        : [...DAYS];
   return { dates, activeDays };
 }
 
@@ -62,14 +70,19 @@ export function getWeekDatesByMenuWeek(menuWeek) {
  * was. Reversing computeWeekRange's own math: startISO is the first ACTIVE
  * day, i.e. startDayIdx days after that week's Monday.
  */
-export function getWeekDatesFromStartISO(startISO, startDayIdx = 0) {
+export function getWeekDatesFromStartISO(startISO, startDayIdx = 0, days = null) {
   const [y, m, d] = startISO.split("-").map(Number);
   const start = new Date(y, m - 1, d);
   start.setHours(0, 0, 0, 0);
   const monday = new Date(start);
   monday.setDate(start.getDate() - startDayIdx);
   const dates = getWeekDates(monday);
-  const activeDays = DAYS.filter((_, i) => i >= startDayIdx);
+  // `days` (selección manual archivada) manda si está presente — ver
+  // getWeekDatesByMenuWeek, mismo criterio.
+  const activeDays =
+    Array.isArray(days) && days.length > 0
+      ? DAYS.filter((dd) => days.includes(dd))
+      : DAYS.filter((_, i) => i >= startDayIdx);
   return { dates, activeDays };
 }
 
