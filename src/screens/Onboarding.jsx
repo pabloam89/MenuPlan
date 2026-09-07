@@ -3826,11 +3826,6 @@ const SLOT_CONFIG = {
 
 const MIXED_COLOR = "#aaa";
 
-// Verde de la banda de "en casa" en los carriles: tiene que leerse como verde
-// —de ahí que suba respecto al #e9f3ec de antes— pero quedarse por debajo de
-// las fichas de comedor y de fuera, que son las que deben saltar.
-const HOME_BAND = "#d9edde";
-
 // ── ¿Cómo comen los niños? ────────────────────────────────────────────────────
 // Pantalla dedicada tras el horario (y las alergias): ya sabemos qué días come
 // cada niño en el cole y qué días en casa, así que aquí decidimos QUÉ les
@@ -5785,6 +5780,11 @@ function ScheduleLanes({
   // cabecera usa la misma anidación para que día y celda sigan alineados.
   const gridCols = "48px 18px minmax(0, 1fr)";
   const dayCols = "repeat(7, minmax(0, 1fr))";
+  // Separación real entre días. Antes iban pegados y se cortaban con una línea
+  // de 1px, que resolvía la frontera pero no daba aire: la semana se leía como
+  // una barra continua en vez de como siete días. Va en la cabecera Y en las
+  // celdas, o se desalinean entre sí.
+  const DAY_GAP = 5;
 
   // Qué columna es hoy. La semana en curso arranca en el día de hoy, así que
   // sin marcarlo el salto entre los días apagados y los vivos parece un error
@@ -5806,31 +5806,10 @@ function ScheduleLanes({
       {/* Day header */}
       <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 3, marginBottom: 9 }}>
         {/* Hueco izquierdo (avatar + nombre): el selector de semana vive aquí */}
-        <div style={{ gridColumn: "span 2", display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-start", paddingLeft: 2 }}>
+        <div style={{ gridColumn: "span 2", display: "flex", alignItems: "center", justifyContent: "flex-start", paddingLeft: 2 }}>
           {weekNav && <WeekStepper {...weekNav} />}
-          {/* El atajo vive DENTRO de la tarjeta, que es donde estás cuando te
-              das cuenta de que rellenar casilla a casilla es un peñazo. Se
-              enciende cuando hay alguna aplicada, para que se vea que la
-              semana no está rellenada solo a mano. */}
-          {quickActions.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setAccionesAbiertas(true)}
-              className="mp-press"
-              aria-label="Acciones rápidas"
-              style={{
-                width: 30, height: 30, borderRadius: 10, flexShrink: 0,
-                border: `1.5px solid ${hayActivas ? CASA_COLOR : "#dde8e1"}`,
-                background: hayActivas ? `${CASA_COLOR}14` : "#fff",
-                color: hayActivas ? CASA_COLOR : "#5a7a66",
-                display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-              }}
-            >
-              <Zap size={15} strokeWidth={2.4} />
-            </button>
-          )}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: dayCols }}>
+        <div style={{ display: "grid", gridTemplateColumns: dayCols, columnGap: DAY_GAP }}>
         {DAYS.map((d) => {
           const wknd = d === "Sáb" || d === "Dom";
           return (
@@ -5924,37 +5903,14 @@ function ScheduleLanes({
                 >
                   {mealGlyph(meal)}
                 </button>
-                <div style={{ position: "relative" }}>
-                  {/* La casa no se dibuja celda a celda: es el campo sobre el
-                      que ocurre todo lo demás. Antes era el hueco entre
-                      excepciones y una semana normal —casi todo el mundo come
-                      en casa casi siempre— se veía como una tabla a medio
-                      rellenar en vez de como una semana resuelta. Los días ya
-                      pasados atenúan su tramo, por eso son siete y no uno. */}
-                  <div
-                    style={{
-                      position: "absolute", inset: 0, display: "grid",
-                      gridTemplateColumns: dayCols, borderRadius: 7, overflow: "hidden",
-                    }}
-                  >
-                    {DAYS.map((day, di) => (
-                      <div
-                        key={day}
-                        style={{
-                          background: HOME_BAND,
-                          opacity: activeDays.includes(day) ? 1 : 0.35,
-                          // Una línea de nada en cada frontera. La banda seguida
-                          // resolvía el vacío pero se leía como un fondo, no como
-                          // algo que se toca; los cortes devuelven la idea de
-                          // siete casillas sin volver a partir el verde.
-                          borderRight: di === DAYS.length - 1
-                            ? "none"
-                            : "1px solid rgba(45,90,61,.09)",
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <div style={{ position: "relative", display: "grid", gridTemplateColumns: dayCols }}>
+                <div>
+                  {/* La banda de fondo verde vivía aquí. Existía porque las
+                      casillas de "en casa" iban transparentes y la semana se
+                      veía como una tabla a medio rellenar; la banda ponía el
+                      campo debajo. Ahora cada casilla se pinta —teal en casa,
+                      navy fuera— así que la banda quedaba tapada al 100%: era
+                      siete divs por fila que no se veían. */}
+                  <div style={{ display: "grid", gridTemplateColumns: dayCols, columnGap: DAY_GAP }}>
                     {DAYS.map((day, di) => {
                       const key = `${m.id}|${day}|${meal}`;
                       const raw = schedule[key] ?? "casa";
@@ -5975,27 +5931,26 @@ function ScheduleLanes({
                           aria-pressed={home}
                           style={{
                             height: 22,
-                            // Los 1.5px dejan asomar la banda alrededor de cada
-                            // ficha: es lo que hace que se lea como algo puesto
-                            // encima del verde y no como un trozo que falta.
-                            margin: "0 1.5px",
                             borderRadius: 7,
                             border: "none",
                             padding: 0,
                             cursor: "pointer",
-                            background: home ? "transparent" : c,
-                            color: "#fff",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            // Todo empieza en casa y se PINTA de teal, no se
+                            // deja transparente: una casilla vacía se lee como
+                            // "sin contestar" y esta pantalla arranca contestada
+                            // — lo normal es comer en casa, y lo que el usuario
+                            // marca son las excepciones.
+                            background: home ? CASA_COLOR : FUERA_COLOR,
                             opacity: dayActive ? 1 : 0.35,
                             transition: "background .14s ease",
                             animation: flash ? "laneFill .34s ease-out both" : "none",
                             animationDelay: flash ? `${di * 45}ms` : undefined,
                           }}
-                        >
-                          {!home && stateIcon(out, 11)}
-                        </button>
+                        />
+                        /* Sin icono dentro: con dos colores planos el icono no
+                           añadía información y sí ruido a 22px de alto. El color
+                           ya lo dice todo, y el detalle (comedor o fuera) sigue
+                           estando en la hoja de cada persona. */
                       );
                     })}
                   </div>
@@ -6009,13 +5964,34 @@ function ScheduleLanes({
       {/* Con las tarjetas de acciones rápidas arriba, la rejilla se lee como el
           resultado de lo que pulsas ahí y no como algo editable por su cuenta.
           Los cortes de la banda insinúan las casillas; esto lo dice. */}
-      <div
-        style={{
-          paddingTop: 7, textAlign: "center",
-          fontSize: 9.5, fontWeight: 600, fontStyle: "italic", color: "#9ab0a1",
-        }}
-      >
-        Toca una casilla para cambiar un día suelto
+      {/* El atajo va ABAJO y con etiqueta, no arriba junto al selector de
+          semana: ahí se pisaba con el stepper en cuanto había más de una
+          semana, y el icono solo tampoco decía qué hacía. */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 10, paddingTop: 8,
+      }}>
+        <span style={{ fontSize: 9.5, fontWeight: 600, fontStyle: "italic", color: "#9ab0a1" }}>
+          Toca una casilla para cambiar un día suelto
+        </span>
+        {quickActions.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setAccionesAbiertas(true)}
+            className="mp-press"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0,
+              padding: "5px 10px", borderRadius: 999, cursor: "pointer",
+              border: `1.5px solid ${hayActivas ? CASA_COLOR : "#dde8e1"}`,
+              background: hayActivas ? `${CASA_COLOR}12` : "#fff",
+              color: hayActivas ? CASA_COLOR : "#5a7a66",
+              fontSize: 11, fontWeight: 800, fontFamily: "inherit",
+            }}
+          >
+            <Zap size={13} strokeWidth={2.6} />
+            Acciones rápidas
+          </button>
+        )}
       </div>
 
       {accionesAbiertas && (
