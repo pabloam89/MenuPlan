@@ -13440,10 +13440,15 @@
       }
     ],
     "steps": [
-      "Picar la cebolla, el puerro y la zanahoria, sofreír en una cazuela con aceite hasta que estén tiernos.",
-      "Añadir el jamón en tacos y sofreír 2 min más.",
-      "Incorporar las alubias cocidas con un poco de su caldo, cocinar 15 min a fuego suave.",
-      "Rectificar de sal y servir."
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Limpiar y picar puerro en trozos pequeños.",
+      "Pelar y cortar zanahoria en dados pequeños.",
+      "Calentar aceite de oliva en una cazuela a fuego medio.",
+      "Sofreír la cebolla, el puerro y la zanahoria hasta que estén tiernos.",
+      "Añadir jamón serrano en tacos y sofreír hasta que coja color.",
+      "Incorporar alubias blancas cocidas con un poco de su caldo y remover.",
+      "Cocer a fuego suave hasta que el caldo ligue y las alubias estén calientes.",
+      "Servir las alubias en plato hondo bien calientes."
     ],
     "description": "Alubias blancas guisadas con verduras y jamón serrano.",
     "estrella": true,
@@ -13451,7 +13456,54 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar y picar {{Puerro}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y cortar {{Zanahoria}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla, el puerro y la zanahoria hasta que estén tiernos.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Jamón serrano en tacos}} y sofreír hasta que coja color.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Alubias blancas cocidas}} con un poco de su caldo y remover.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que el caldo ligue y las alubias estén calientes.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir las alubias en plato hondo bien calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_069",
@@ -13512,11 +13564,19 @@
       }
     ],
     "steps": [
-      "Sofreír la cebolla picada en una cazuela con aceite hasta transparentar.",
-      "Añadir la zanahoria y la patata troceadas, sofreír 3 min.",
-      "Incorporar el pimentón, cubrir con agua o caldo y cocer 20 min.",
-      "Añadir las acelgas troceadas y los garbanzos, cocinar 10 min más.",
-      "Rectificar de sal y servir."
+      "Pelar y picar cebolla en trozos finos.",
+      "Pelar zanahoria y cortarla en rodajas de medio centímetro.",
+      "Pelar patata y cortarla en dados de unos 2 cm.",
+      "Lavar acelgas y cortarlas en trozos de unos 3 cm.",
+      "Calentar aceite de oliva en una cazuela a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada hasta que esté transparente.",
+      "Añadir la zanahoria y la patata cortadas y sofreír removiendo a fuego medio.",
+      "Añadir pimentón dulce y remover durante 30 segundos hasta que se integre.",
+      "Cubrir con agua hasta que queden todos los ingredientes sumergidos y llevar a ebullición.",
+      "Cocer a fuego medio-suave tapado hasta que la patata y la zanahoria estén tiernas.",
+      "Añadir las acelgas cortadas y garbanzos cocidos y remover para integrar.",
+      "Cocer a fuego suave tapado hasta que las acelgas estén tiernas.",
+      "Servir el potaje bien caliente directamente en el plato hondo."
     ],
     "description": "Potaje sencillo de garbanzos con verduras de temporada.",
     "estrella": true,
@@ -13524,7 +13584,74 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos finos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortarla en rodajas de medio centímetro.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Acelgas}} y cortarlas en trozos de unos 3 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y la patata cortadas y sofreír removiendo a fuego medio.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pimentón dulce|pizca}} y remover durante 30 segundos hasta que se integre.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con agua hasta que queden todos los ingredientes sumergidos y llevar a ebullición.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio-suave tapado hasta que la patata y la zanahoria estén tiernas.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir las acelgas cortadas y {{Garbanzos cocidos}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave tapado hasta que las acelgas estén tiernas.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir el potaje bien caliente directamente en el plato hondo.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_070",
@@ -13582,16 +13709,85 @@
       }
     ],
     "steps": [
-      "Sofreír la cebolla picada en una cazuela con aceite hasta transparentar.",
-      "Añadir el chorizo en rodajas y el tomate, cocinar 5 min.",
-      "Incorporar el arroz y cubrir con caldo o agua, cocer 15-18 min.",
-      "Añadir las judías cocidas los últimos 5 min para que se calienten.",
-      "Servir caliente."
+      "Cortar cebolla en dados finos.",
+      "Cortar chorizo en rodajas de medio centímetro.",
+      "Calentar aceite de oliva en una cazuela a fuego medio.",
+      "Sofreír la cebolla en la cazuela hasta que esté transparente.",
+      "Añadir el chorizo y sofreír hasta que suelte la grasa.",
+      "Añadir tomate triturado y remover hasta integrar con el sofrito.",
+      "Añadir arroz y remover para que se impregne del sofrito.",
+      "Cubrir con agua hasta superar el arroz unos 2 cm y llevar a ebullición.",
+      "Tapar y cocer a fuego suave hasta que el arroz esté tierno.",
+      "Añadir judías blancas cocidas y remover con cuidado para no romperlas.",
+      "Cocer a fuego suave hasta que las judías estén calientes.",
+      "Servir en plato hondo caliente."
     ],
     "description": "Guiso de judías blancas con arroz y chorizo.",
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "arroz"
+    "mainBase": "arroz",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en dados finos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Chorizo}} en rodajas de medio centímetro.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla en la cazuela hasta que esté transparente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el chorizo y sofreír hasta que suelte la grasa.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover hasta integrar con el sofrito.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y remover para que se impregne del sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con agua hasta superar el arroz unos 2 cm y llevar a ebullición.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer a fuego suave hasta que el arroz esté tierno.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Judías blancas cocidas}} y remover con cuidado para no romperlas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que las judías estén calientes.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir en plato hondo caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_071",
@@ -13651,16 +13847,85 @@
       }
     ],
     "steps": [
-      "Sofreír la cebolla y el ajo picados hasta transparentar.",
-      "Añadir las patatas troceadas, el pimentón y el tomate, sofreír 2 min.",
-      "Cubrir con agua o caldo y cocer 20 min hasta que las patatas estén tiernas.",
-      "Añadir los garbanzos los últimos 5 min.",
-      "Rectificar de sal y servir."
+      "Pelar patatas y cortar en trozos de bocado.",
+      "Pelar y picar cebolla en trozos finos.",
+      "Pelar y picar ajo fino.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla picada y el ajo picado hasta que estén transparentes.",
+      "Añadir pimentón dulce y remover 30 segundos hasta que aromatice.",
+      "Añadir tomate triturado y sofreír hasta que reduzca y pierda el agua, unos 2 min.",
+      "Incorporar las patatas troceadas y remover para que se impregnen del sofrito.",
+      "Cubrir con agua hasta que las patatas queden sumergidas y llevar a ebullición.",
+      "Tapar y cocer a fuego suave hasta que las patatas estén tiernas.",
+      "Añadir garbanzos cocidos y cocer 5 min más para que se integren.",
+      "Servir el guiso en platos hondos bien caliente."
     ],
     "description": "Garbanzos guisados con patatas en una salsa de pimentón.",
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patatas}} y cortar en trozos de bocado.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el ajo picado hasta que estén transparentes.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pimentón dulce|pizca}} y remover 30 segundos hasta que aromatice.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y sofreír hasta que reduzca y pierda el agua, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las patatas troceadas y remover para que se impregnen del sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con agua hasta que las patatas queden sumergidas y llevar a ebullición.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer a fuego suave hasta que las patatas estén tiernas.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Garbanzos cocidos}} y cocer 5 min más para que se integren.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir el guiso en platos hondos bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_072",
@@ -13718,11 +13983,20 @@
       }
     ],
     "steps": [
-      "Salpimentar la costilla y dorarla en una cazuela con aceite.",
-      "Retirar y sofreír la cebolla, el puerro y la zanahoria picados en la misma cazuela.",
-      "Incorporar de nuevo la costilla, cubrir con agua y cocer a fuego medio 40 min hasta que esté tierna.",
-      "Añadir las alubias cocidas y cocinar 10 min más.",
-      "Rectificar de sal y servir."
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Limpiar y picar puerro en rodajas finas.",
+      "Pelar y cortar zanahoria en rodajas.",
+      "Salpimentar costilla de cerdo por ambos lados.",
+      "Calentar aceite de oliva en una cazuela a fuego fuerte.",
+      "Dorar la costilla de cerdo en la cazuela hasta que esté dorada por ambos lados.",
+      "Retirar la costilla de cerdo y reservar.",
+      "Sofreír la cebolla, el puerro y la zanahoria en la misma cazuela a fuego medio hasta que estén tiernos.",
+      "Incorporar la costilla de cerdo reservada a la cazuela.",
+      "Cubrir con agua hasta sobrepasar los ingredientes y llevar a ebullición.",
+      "Tapar y cocer a fuego medio hasta que la costilla de cerdo esté tierna.",
+      "Añadir alubias blancas cocidas y remover para integrar.",
+      "Cocer a fuego medio hasta que las alubias blancas cocidas estén calientes y hayan absorbido el caldo.",
+      "Rectificar de sal y servir en platos hondos."
     ],
     "description": "Alubias blancas guisadas con costilla de cerdo y verduras.",
     "estrella": true,
@@ -13730,7 +14004,79 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar y picar {{Puerro}} en rodajas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y cortar {{Zanahoria}} en rodajas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Costilla de cerdo}} por ambos lados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego fuerte.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar la costilla de cerdo en la cazuela hasta que esté dorada por ambos lados.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la costilla de cerdo y reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla, el puerro y la zanahoria en la misma cazuela a fuego medio hasta que estén tiernos.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la costilla de cerdo reservada a la cazuela.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con agua hasta sobrepasar los ingredientes y llevar a ebullición.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer a fuego medio hasta que la costilla de cerdo esté tierna.",
+        "minutes": 40,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Alubias blancas cocidas}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que las alubias blancas cocidas estén calientes y hayan absorbido el caldo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Rectificar de sal y servir en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_073",
@@ -13786,15 +14132,82 @@
       }
     ],
     "steps": [
-      "Cocer el arroz en agua con sal 15-18 min, escurrir.",
-      "Saltear la cebolla, el calabacín y el pimiento en dados con aceite hasta que estén tiernos.",
-      "Añadir los garbanzos cocidos y saltear 3 min más.",
-      "Mezclar con el arroz y servir."
+      "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
+      "Añadir arroz cuando rompa a hervir y cocer a fuego medio.",
+      "Picar cebolla en dados finos.",
+      "Cortar pimiento rojo en dados.",
+      "Cortar calabacín en dados.",
+      "Calentar aceite de oliva en una sartén a fuego medio.",
+      "Sofreír la cebolla picada hasta que esté transparente.",
+      "Añadir el pimiento rojo y el calabacín y saltear hasta que estén tiernos.",
+      "Añadir garbanzos cocidos y saltear removiendo hasta que estén calientes.",
+      "Escurrir el arroz cocido y reservar.",
+      "Mezclar el arroz escurrido con los garbanzos y las verduras y remover."
     ],
     "description": "Garbanzos salteados con verduras y arroz blanco.",
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "arroz"
+    "mainBase": "arroz",
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} cuando rompa a hervir y cocer a fuego medio.",
+        "minutes": 16,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Cebolla}} en dados finos.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en dados.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Calabacín}} en dados.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el pimiento rojo y el calabacín y saltear hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Garbanzos cocidos}} y saltear removiendo hasta que estén calientes.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir el arroz cocido y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar el arroz escurrido con los garbanzos y las verduras y remover.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "type": "completo",
@@ -13869,11 +14282,19 @@
       }
     ],
     "steps": [
-      "Dorar el bacon y el chorizo en dados en una cazuela con el aceite, hasta que suelten su grasa.",
-      "Añadir la cebolla y el ajo picados y pochar 5 minutos.",
-      "Incorporar el tomate troceado y cocinar otros 5 minutos.",
-      "Agregar los frijoles escurridos y el caldo. Cocer 15 minutos a fuego suave, hasta que espese.",
-      "Rectificar de sal y servir con el cilantro picado por encima."
+      "Cortar chorizo en dados de 1 cm.",
+      "Cortar bacon en lonchas en trozos de 1 cm.",
+      "Picar cebolla en dados finos.",
+      "Picar ajo fino.",
+      "Cortar tomate maduro en dados.",
+      "Calentar aceite de oliva en una cazuela a fuego medio.",
+      "Añadir el chorizo y el bacon y dorar hasta que suelten su grasa, removiendo.",
+      "Añadir la cebolla y el ajo picados y sofreír hasta que estén tiernos.",
+      "Añadir el tomate y sofreír hasta que pierda el agua y la salsa espese.",
+      "Añadir frijoles negros cocidos y caldo de carne. Remover para integrar.",
+      "Cocer a fuego suave hasta que el caldo reduzca y los frijoles estén cremosos.",
+      "Picar cilantro fresco fino.",
+      "Servir los frijoles en cuenco con el cilantro picado por encima."
     ],
     "description": "Frijoles guisados con chorizo y bacon, caldosos y con mucho fondo. De cuchara, de las que saben mejor al día siguiente.",
     "mainIngredients": [
@@ -13881,7 +14302,75 @@
     ],
     "tecnica": "olla",
     "cocina": "mexicana",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Chorizo}} en dados de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Bacon en lonchas}} en trozos de 1 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} en dados finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} en dados.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el chorizo y el bacon y dorar hasta que suelten su grasa, removiendo.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la cebolla y el ajo picados y sofreír hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate y sofreír hasta que pierda el agua y la salsa espese.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Frijoles negros cocidos}} y {{Caldo de carne}}. Remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que el caldo reduzca y los frijoles estén cremosos.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Cilantro fresco}} fino.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 10
+      },
+      {
+        "text": "Servir los frijoles en cuenco con el cilantro picado por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "type": "completo",
@@ -13958,11 +14447,20 @@
       }
     ],
     "steps": [
-      "Pochar la cebolla, el ajo y el jengibre picados en el aceite, 5 minutos.",
-      "Añadir el curry y tostarlo 30 segundos, removiendo, para que suelte el aroma.",
-      "Incorporar la calabaza en dados y la leche de coco. Cocer 15 minutos tapado.",
-      "Agregar los garbanzos escurridos y cocer 8 minutos más, hasta que espese.",
-      "Rectificar de sal y servir con el cilantro picado."
+      "Pelar y picar cebolla en trozos finos.",
+      "Pelar y picar ajo en trozos finos.",
+      "Pelar y rallar jengibre fresco.",
+      "Pelar calabaza y cortar en dados de unos 2 cm.",
+      "Picar cilantro fresco fino y reservar.",
+      "Calentar sartén a fuego medio con aceite de oliva.",
+      "Sofreír la cebolla picada, el ajo picado y el jengibre rallado hasta que la cebolla esté transparente.",
+      "Añadir curry en polvo y remover sin parar hasta que suelte el aroma.",
+      "Añadir los dados de calabaza y leche de coco. Remover para integrar.",
+      "Tapar y cocer a fuego medio hasta que la calabaza esté tierna.",
+      "Añadir garbanzos cocidos y remover para mezclar con la salsa.",
+      "Cocer sin tapar a fuego medio hasta que la salsa espese al gusto.",
+      "Añadir sal y remover.",
+      "Servir en plato hondo y repartir el cilantro picado por encima."
     ],
     "description": "Cremoso por el coco y dulce por la calabaza, con los garbanzos aguantando el tipo. Un plato único que llena de verdad.",
     "mainIngredients": [
@@ -13971,7 +14469,79 @@
     "tecnica": "olla",
     "cocina": "asiatica",
     "llevaSalsa": true,
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} en trozos finos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y rallar {{Jengibre fresco}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Calabaza}} y cortar en dados de unos 2 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cilantro fresco}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada, el ajo picado y el jengibre rallado hasta que la cebolla esté transparente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Curry en polvo}} y remover sin parar hasta que suelte el aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los dados de calabaza y {{Leche de coco}}. Remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer a fuego medio hasta que la calabaza esté tierna.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Garbanzos cocidos}} y remover para mezclar con la salsa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer sin tapar a fuego medio hasta que la salsa espese al gusto.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir en plato hondo y repartir el cilantro picado por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_076",
@@ -14058,18 +14628,18 @@
       }
     ],
     "steps": [
-      "Pelar y picar la cebolla y la zanahoria en dados pequeños.",
-      "Limpiar el puerro y cortarlo en medias lunas finas.",
-      "Cortar el pimiento verde en dados del tamaño de la zanahoria.",
-      "Calentar el aceite de oliva en una olla a fuego medio.",
-      "Sofreír la cebolla y el puerro hasta que estén transparentes, unos 6 minutos.",
-      "Añadir la zanahoria y el pimiento verde y sofreír 5 minutos más.",
-      "Incorporar el pimentón fuera del fuego y remover deprisa para que no se queme.",
-      "Añadir el tomate triturado y cocer a fuego medio hasta que pierda el agua.",
-      "Incorporar las alubias blancas escurridas, el laurel y la sal.",
+      "Pelar cebolla y zanahoria, picar ambas en dados pequeños.",
+      "Limpiar puerro y cortar en medias lunas finas.",
+      "Cortar pimiento verde en dados del mismo tamaño que la zanahoria.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla y el puerro hasta que estén transparentes.",
+      "Añadir la zanahoria y el pimiento verde y sofreír hasta que estén ligeramente tiernos.",
+      "Retirar la olla del fuego, añadir pimentón y remover deprisa para que no se queme.",
+      "Añadir tomate triturado y cocer a fuego medio hasta que pierda el agua.",
+      "Incorporar alubias blancas cocidas, laurel y sal.",
       "Cubrir con agua justo hasta la altura de las alubias y llevar a hervor suave.",
-      "Cocer a fuego bajo 15 minutos, moviendo la olla en vaivén para que ligue sin romper las alubias.",
-      "Retirar el laurel y servir en platos hondos, bien caliente."
+      "Cocer a fuego bajo 15 min, moviendo la olla en vaivén para que ligue sin romper las alubias.",
+      "Retirar el laurel y servir en platos hondos bien caliente."
     ],
     "methods": [
       {
@@ -14083,6 +14653,68 @@
         "time": 35,
         "difficulty": "facil",
         "prepSummary": "Trocea la verdura 4 seg/vel 4. Sofríe 8 min/120°C/vel 1. Añade tomate y cocina 5 min más. Incorpora alubias y agua y programa 12 min/100°C/giro inverso/vel cuchara."
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y {{Zanahoria}}, picar ambas en dados pequeños.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Puerro}} y cortar en medias lunas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento verde}} en dados del mismo tamaño que la zanahoria.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el puerro hasta que estén transparentes.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y el pimiento verde y sofreír hasta que estén ligeramente tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la olla del fuego, añadir {{Pimentón}} y remover deprisa para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que pierda el agua.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Alubias blancas cocidas}}, {{Laurel}} y {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con agua justo hasta la altura de las alubias y llevar a hervor suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego bajo 15 min, moviendo la olla en vaivén para que ligue sin romper las alubias.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel y servir en platos hondos bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
       }
     ]
   },
@@ -14182,18 +14814,22 @@
       }
     ],
     "steps": [
-      "Lavar las lentejas en un colador bajo el grifo hasta que el agua salga limpia.",
-      "Pelar y picar la cebolla y el ajo; cortar el pimiento rojo y la zanahoria en dados.",
-      "Pelar la patata y cascarla en trozos irregulares, rompiendo el corte al final para que suelte almidón y espese el guiso.",
-      "Cortar el chorizo en rodajas de medio centímetro.",
-      "Calentar el aceite en una olla y dorar el chorizo un par de minutos; retirar y reservar.",
-      "En esa misma grasa, sofreír la cebolla y el ajo hasta que estén transparentes.",
-      "Añadir el pimiento rojo y la zanahoria y sofreír 5 minutos.",
-      "Retirar del fuego, añadir el pimentón y remover deprisa para que no amargue.",
-      "Incorporar las lentejas, la patata, el laurel y el chorizo reservado.",
-      "Cubrir con agua dos dedos por encima y llevar a hervor.",
-      "Bajar el fuego y cocer 35 minutos, hasta que la lenteja esté tierna y el caldo haya espesado.",
-      "Salar al final, retirar el laurel y dejar reposar 5 minutos antes de servir."
+      "Lavar lentejas en un colador bajo el grifo hasta que el agua salga limpia.",
+      "Pelar y picar cebolla y ajo finos.",
+      "Cortar pimiento rojo y zanahoria en dados.",
+      "Pelar patata y cascarla en trozos irregulares, rompiendo el corte al final para que suelte almidón.",
+      "Cortar chorizo en rodajas de medio centímetro.",
+      "Calentar aceite de oliva en una olla a fuego medio hasta que esté caliente.",
+      "Dorar el chorizo en la olla 2 min hasta que suelte grasa, retirar y reservar.",
+      "Sofreír la cebolla y el ajo en esa misma grasa a fuego medio hasta que estén transparentes.",
+      "Añadir el pimiento rojo y la zanahoria y sofreír hasta que estén ligeramente tiernos.",
+      "Retirar la olla del fuego y añadir pimentón, remover deprisa para que no amargue.",
+      "Incorporar las lentejas, la patata, el chorizo reservado y laurel.",
+      "Cubrir con agua fría dos dedos por encima y llevar a ebullición a fuego fuerte.",
+      "Bajar el fuego a suave y cocer tapado 35 min hasta que la lenteja esté tierna y el caldo espeso.",
+      "Añadir sal, remover y retirar el laurel.",
+      "Reposar el guiso tapado 5 min antes de servir.",
+      "Servir las lentejas en plato hondo, bien calientes."
     ],
     "methods": [
       {
@@ -14201,6 +14837,88 @@
         "time": 30,
         "difficulty": "facil",
         "prepSummary": "Haz el sofrito destapado, añade lentejas, patata y agua dos dedos por encima. Cierra y cuece 12 minutos desde que suba la válvula. Sala al abrir."
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Lavar {{Lentejas}} en un colador bajo el grifo hasta que el agua salga limpia.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} y {{Ajo}} finos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} y {{Zanahoria}} en dados.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cascarla en trozos irregulares, rompiendo el corte al final para que suelte almidón.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Chorizo}} en rodajas de medio centímetro.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el chorizo en la olla 2 min hasta que suelte grasa, retirar y reservar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo en esa misma grasa a fuego medio hasta que estén transparentes.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el pimiento rojo y la zanahoria y sofreír hasta que estén ligeramente tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la olla del fuego y añadir {{Pimentón}}, remover deprisa para que no amargue.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las lentejas, la patata, el chorizo reservado y {{Laurel}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con agua fría dos dedos por encima y llevar a ebullición a fuego fuerte.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego a suave y cocer tapado 35 min hasta que la lenteja esté tierna y el caldo espeso.",
+        "minutes": 35,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}}, remover y retirar el laurel.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Reposar el guiso tapado 5 min antes de servir.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir las lentejas en plato hondo, bien calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
       }
     ]
   },
@@ -14294,17 +15012,22 @@
       }
     ],
     "steps": [
-      "Lavar las lentejas bajo el grifo hasta que el agua salga limpia.",
-      "Pelar y picar la cebolla y el ajo.",
-      "Cortar la zanahoria en rodajas y las judías verdes en trozos de dos centímetros.",
-      "Calentar el aceite en una olla y sofreír la cebolla y el ajo hasta que estén transparentes.",
-      "Añadir la zanahoria y sofreír 4 minutos.",
-      "Retirar del fuego, incorporar el pimentón y remover deprisa.",
-      "Añadir el tomate triturado y cocer a fuego medio hasta que pierda el agua.",
-      "Incorporar las lentejas y el laurel, cubrir con agua dos dedos por encima y llevar a hervor.",
-      "Cocer a fuego bajo 25 minutos.",
-      "Añadir las judías verdes y los guisantes y cocer 10 minutos más, hasta que todo esté tierno.",
-      "Salar, retirar el laurel y servir."
+      "Lavar lentejas bajo el grifo hasta que el agua salga limpia.",
+      "Pelar y picar cebolla y ajo.",
+      "Cortar zanahoria en rodajas.",
+      "Cortar judías verdes en trozos de 2 cm.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla y el ajo hasta que estén transparentes.",
+      "Añadir la zanahoria y sofreír 4 min a fuego medio.",
+      "Retirar la olla del fuego y añadir pimentón.",
+      "Remover deprisa para que el pimentón no se queme.",
+      "Añadir tomate triturado y cocer a fuego medio hasta que pierda el agua.",
+      "Incorporar las lentejas lavadas y laurel.",
+      "Cubrir con agua dos dedos por encima y llevar a ebullición a fuego fuerte.",
+      "Bajar a fuego suave y cocer tapado 25 min.",
+      "Añadir guisantes y las judías verdes y cocer 10 min más hasta que todo esté tierno.",
+      "Añadir sal y remover.",
+      "Retirar el laurel y servir."
     ],
     "methods": [
       {
@@ -14312,6 +15035,88 @@
         "time": 28,
         "difficulty": "facil",
         "prepSummary": "Sofrito destapado, añade lentejas y agua, cierra y cuece 10 minutos desde la válvula. Abre, añade judía verde y guisantes y hierve 5 minutos destapada."
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Lavar {{Lentejas}} bajo el grifo hasta que el agua salga limpia.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} y {{Ajo}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Zanahoria}} en rodajas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Judías verdes}} en trozos de 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo hasta que estén transparentes.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y sofreír 4 min a fuego medio.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la olla del fuego y añadir {{Pimentón|pizca}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover deprisa para que el pimentón no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que pierda el agua.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las lentejas lavadas y {{Laurel}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con agua dos dedos por encima y llevar a ebullición a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego suave y cocer tapado 25 min.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Guisantes}} y las judías verdes y cocer 10 min más hasta que todo esté tierno.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el laurel y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
       }
     ]
   },
@@ -14400,16 +15205,19 @@
       }
     ],
     "steps": [
-      "Escurrir y enjuagar los garbanzos cocidos.",
-      "Pelar y picar la cebolla y el ajo; cortar la zanahoria y el pimiento rojo en dados.",
-      "Calentar el aceite en una olla ancha a fuego medio.",
-      "Sofreír la cebolla y el ajo hasta que estén transparentes, unos 6 minutos.",
-      "Añadir la zanahoria y el pimiento y sofreír 6 minutos más.",
-      "Retirar del fuego, añadir el pimentón y remover deprisa para que no se queme.",
-      "Incorporar el tomate triturado y cocer a fuego medio hasta que se concentre.",
-      "Añadir los garbanzos, el laurel y un vaso de agua.",
-      "Cocer a fuego suave 15 minutos, moviendo la olla en vaivén para que la salsa ligue.",
-      "Salar, retirar el laurel y dejar reposar 5 minutos antes de servir."
+      "Escurrir garbanzos cocidos bajo el grifo y reservar.",
+      "Pelar cebolla y ajo y picar ambos fino.",
+      "Cortar zanahoria y pimiento rojo en dados pequeños.",
+      "Calentar aceite de oliva en una olla ancha a fuego medio.",
+      "Sofreír la cebolla y el ajo hasta que estén transparentes.",
+      "Añadir la zanahoria y el pimiento rojo y sofreír hasta que estén tiernos.",
+      "Retirar la olla del fuego y añadir pimentón, removiendo deprisa para que no se queme.",
+      "Incorporar tomate triturado y cocer a fuego medio hasta que se concentre.",
+      "Añadir los garbanzos escurridos y laurel con un vaso de agua.",
+      "Cocer a fuego suave, moviendo la olla en vaivén para que la salsa ligue.",
+      "Añadir sal y retirar el laurel.",
+      "Reposar la olla fuera del fuego antes de servir.",
+      "Servir los garbanzos estofados en plato hondo o cazuela."
     ],
     "methods": [
       {
@@ -14417,6 +15225,73 @@
         "time": 30,
         "difficulty": "facil",
         "prepSummary": "Trocea la verdura 4 seg/vel 4 y sofríe 8 min/120°C/vel 1. Añade tomate y pimentón, 5 min/100°C. Incorpora garbanzos y agua y programa 10 min/100°C/giro inverso/vel cuchara."
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Escurrir {{Garbanzos cocidos}} bajo el grifo y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y {{Ajo}} y picar ambos fino.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Zanahoria}} y {{Pimiento rojo}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla ancha a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo hasta que estén transparentes.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y el pimiento rojo y sofreír hasta que estén tiernos.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la olla del fuego y añadir {{Pimentón|pizca}}, removiendo deprisa para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} y cocer a fuego medio hasta que se concentre.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los garbanzos escurridos y {{Laurel}} con un vaso de agua.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave, moviendo la olla en vaivén para que la salsa ligue.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y retirar el laurel.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Reposar la olla fuera del fuego antes de servir.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir los garbanzos estofados en plato hondo o cazuela.",
+        "minutes": 1,
+        "kind": "emplatado"
       }
     ]
   },
@@ -14516,19 +15391,24 @@
       }
     ],
     "steps": [
-      "Cortar la ternera en dados de bocado y salarla ligeramente.",
-      "Cortar el chorizo en rodajas gruesas.",
-      "Pelar y picar la cebolla y el ajo; cortar la zanahoria en rodajas.",
-      "Calentar el aceite en una olla y dorar la ternera a fuego fuerte por todas sus caras; retirar y reservar.",
-      "Bajar el fuego y dorar el chorizo en la misma grasa un par de minutos.",
-      "Añadir la cebolla y el ajo y sofreír hasta que estén transparentes.",
-      "Incorporar la zanahoria y sofreír 5 minutos.",
-      "Retirar del fuego, añadir el pimentón y remover deprisa.",
-      "Añadir el tomate triturado y cocer hasta que se concentre.",
-      "Devolver la ternera a la olla con el laurel y cubrir con agua.",
-      "Cocer a fuego bajo 40 minutos, hasta que la carne esté tierna.",
-      "Añadir los garbanzos y cocer 10 minutos más para que se integren.",
-      "Rectificar de sal, retirar el laurel y servir bien caliente."
+      "Cortar carne de ternera para guisar en dados de bocado.",
+      "Salpimentar la ternera con sal.",
+      "Cortar chorizo en rodajas gruesas.",
+      "Pelar y picar cebolla y ajo fino.",
+      "Cortar zanahoria en rodajas.",
+      "Calentar aceite de oliva en una olla a fuego fuerte.",
+      "Dorar la ternera por todas las caras hasta que esté sellada; retirar y reservar.",
+      "Dorar el chorizo en la misma olla a fuego medio hasta que suelte la grasa.",
+      "Añadir la cebolla y el ajo y sofreír a fuego medio hasta que estén transparentes.",
+      "Añadir la zanahoria y sofreír hasta que empiece a estar tierna.",
+      "Retirar la olla del fuego y añadir pimentón; remover deprisa para que no se queme.",
+      "Añadir tomate triturado y cocer a fuego medio hasta que se concentre y oscurezca.",
+      "Incorporar la ternera reservada y laurel a la olla.",
+      "Cubrir con agua hasta que queden los ingredientes sumergidos.",
+      "Cocer a fuego suave tapado hasta que la ternera esté tierna.",
+      "Añadir garbanzos cocidos y cocer a fuego suave hasta que se integren.",
+      "Retirar el laurel y rectificar de sal.",
+      "Servir el estofado bien caliente en plato hondo."
     ],
     "methods": [
       {
@@ -14536,6 +15416,98 @@
         "time": 35,
         "difficulty": "normal",
         "prepSummary": "Dora la carne y haz el sofrito destapado. Añade tomate, carne, laurel y agua, cierra y cuece 18 minutos desde la válvula. Abre, incorpora los garbanzos y hierve 5 minutos destapada."
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Carne de ternera para guisar}} en dados de bocado.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar la ternera con {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Chorizo}} en rodajas gruesas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} y {{Ajo}} fino.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Zanahoria}} en rodajas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego fuerte.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar la ternera por todas las caras hasta que esté sellada; retirar y reservar.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el chorizo en la misma olla a fuego medio hasta que suelte la grasa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la cebolla y el ajo y sofreír a fuego medio hasta que estén transparentes.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y sofreír hasta que empiece a estar tierna.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la olla del fuego y añadir {{Pimentón|pizca}}; remover deprisa para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que se concentre y oscurezca.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la ternera reservada y {{Laurel}} a la olla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con agua hasta que queden los ingredientes sumergidos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave tapado hasta que la ternera esté tierna.",
+        "minutes": 40,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Garbanzos cocidos}} y cocer a fuego suave hasta que se integren.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel y rectificar de sal.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el estofado bien caliente en plato hondo.",
+        "minutes": 1,
+        "kind": "emplatado"
       }
     ]
   },
@@ -14624,17 +15596,98 @@
       }
     ],
     "steps": [
-      "Escurrir y enjuagar las judías pintas cocidas.",
-      "Limpiar el puerro y cortarlo en medias lunas; picar la cebolla.",
-      "Cortar la zanahoria en rodajas y el calabacín en medias lunas.",
-      "Calentar el aceite en una olla y sofreír el puerro y la cebolla hasta que estén transparentes.",
-      "Añadir la zanahoria y sofreír 5 minutos.",
-      "Retirar del fuego, añadir el pimentón y remover deprisa.",
-      "Incorporar el tomate triturado y cocer hasta que pierda el agua.",
-      "Añadir las judías pintas, el laurel y un vaso de agua.",
-      "Cocer a fuego suave 12 minutos.",
-      "Incorporar el calabacín y cocer 6 minutos más, para que quede tierno pero entero.",
-      "Salar, retirar el laurel y servir."
+      "Escurrir judías pintas en un colador y enjuagarlas bajo el grifo con agua fría.",
+      "Limpiar puerro y cortarlo en medias lunas finas.",
+      "Picar cebolla en trozos pequeños.",
+      "Cortar zanahoria en rodajas de medio centímetro.",
+      "Cortar calabacín en medias lunas de medio centímetro.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír el puerro y la cebolla hasta que estén transparentes.",
+      "Añadir la zanahoria y sofreír hasta que empiece a estar tierna.",
+      "Retirar la olla del fuego y añadir pimentón.",
+      "Remover con rapidez para que el pimentón no se queme.",
+      "Añadir tomate triturado y cocer a fuego medio hasta que pierda el agua.",
+      "Añadir las judías pintas escurridas, laurel y 200 ml de agua.",
+      "Cocer a fuego suave tapado durante 12 min.",
+      "Incorporar el calabacín y cocer a fuego suave hasta que esté tierno pero entero.",
+      "Añadir sal, remover y retirar el laurel antes de servir."
+    ],
+    "stepsRich": [
+      {
+        "text": "Escurrir {{Judías pintas}} en un colador y enjuagarlas bajo el grifo con agua fría.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Puerro}} y cortarlo en medias lunas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Zanahoria}} en rodajas de medio centímetro.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}} en medias lunas de medio centímetro.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el puerro y la cebolla hasta que estén transparentes.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y sofreír hasta que empiece a estar tierna.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la olla del fuego y añadir {{Pimentón|pizca}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con rapidez para que el pimentón no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que pierda el agua.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las judías pintas escurridas, {{Laurel}} y 200 ml de agua.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave tapado durante 12 min.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Incorporar el calabacín y cocer a fuego suave hasta que esté tierno pero entero.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}}, remover y retirar el laurel antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ]
   },
   {
@@ -14708,14 +15761,68 @@
       }
     ],
     "steps": [
-      "Escurrir las alubias en un colador y enjuagarlas bajo el grifo para quitar el almidón del bote.",
-      "Dejarlas escurrir bien para que la ensalada no quede aguada.",
-      "Cortar el tomate en dados, retirando la parte más acuosa de las semillas.",
-      "Picar la cebolleta muy fina y el pimiento verde en dados pequeños.",
-      "Poner las alubias en una fuente amplia y añadir el tomate, la cebolleta y el pimiento.",
-      "Aliñar con el aceite de oliva virgen extra, el vinagre y la sal.",
-      "Mezclar con cuidado, con movimientos envolventes, para no romper las alubias.",
-      "Dejar reposar 10 minutos en la nevera antes de servir para que tome el aliño."
+      "Escurrir alubias blancas cocidas en un colador y enjuagarlas bajo el grifo para eliminar el almidón.",
+      "Dejar escurrir las alubias blancas cocidas en el colador hasta que no goteen.",
+      "Cortar tomate en dados pequeños, retirando la parte más acuosa de las semillas.",
+      "Picar cebolleta muy fina.",
+      "Cortar pimiento verde en dados pequeños.",
+      "Añadir las alubias blancas cocidas escurridas en una fuente amplia junto al tomate, la cebolleta y el pimiento verde.",
+      "Aliñar con aceite de oliva virgen extra, vinagre y sal.",
+      "Mezclar con movimientos envolventes hasta que el aliño cubra bien todos los ingredientes sin romper las alubias.",
+      "Refrigerar la ensalada en la nevera hasta que esté bien fría y haya tomado el aliño.",
+      "Servir la ensalada directamente de la nevera."
+    ],
+    "stepsRich": [
+      {
+        "text": "Escurrir {{Alubias blancas cocidas}} en un colador y enjuagarlas bajo el grifo para eliminar el almidón.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Dejar escurrir las alubias blancas cocidas en el colador hasta que no goteen.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Cortar {{Tomate}} en dados pequeños, retirando la parte más acuosa de las semillas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolleta}} muy fina.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento verde}} en dados pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir las alubias blancas cocidas escurridas en una fuente amplia junto al tomate, la cebolleta y el pimiento verde.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva virgen extra}}, {{Vinagre}} y {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar con movimientos envolventes hasta que el aliño cubra bien todos los ingredientes sin romper las alubias.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Refrigerar la ensalada en la nevera hasta que esté bien fría y haya tomado el aliño.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la ensalada directamente de la nevera.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ]
   }
 ]

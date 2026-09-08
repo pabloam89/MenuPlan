@@ -17411,11 +17411,18 @@
       }
     ],
     "steps": [
-      "Cocer la pasta en agua con sal según el envase, escurrir.",
-      "Saltear el bacon en tiras hasta que esté crujiente, retirar.",
-      "En la misma sartén, saltear los champiñones laminados con el ajo picado.",
-      "Añadir la nata y el bacon, cocinar 2 min.",
-      "Mezclar con la pasta y servir."
+      "Llevar a ebullición una olla con agua abundante y sal a fuego fuerte.",
+      "Laminar champiñones y reservar.",
+      "Picar ajo fino y reservar.",
+      "Cocer pasta corta en el agua hirviendo hasta que esté al dente según el envase.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Saltear bacon en tiras hasta que esté crujiente.",
+      "Retirar el bacon a un plato y reservar.",
+      "Saltear los champiñones laminados en la misma sartén a fuego fuerte hasta que estén dorados.",
+      "Añadir el ajo picado a los champiñones y saltear hasta que suelte el aroma.",
+      "Añadir nata para cocinar y el bacon reservado; remover y cocer a fuego suave hasta que la salsa espese.",
+      "Escurrir la pasta cocida y añadirla a la sartén con la salsa.",
+      "Remover bien hasta que la pasta quede cubierta con la salsa y servir de inmediato."
     ],
     "description": "Pasta cremosa con champiñones salteados y bacon crujiente.",
     "estrella": true,
@@ -17425,7 +17432,69 @@
     ],
     "tecnica": "sarten",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición una olla con agua abundante y sal a fuego fuerte.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Laminar {{Champiñones}} y reservar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cocer {{Pasta corta}} en el agua hirviendo hasta que esté al dente según el envase.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear {{Bacon en tiras}} hasta que esté crujiente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el bacon a un plato y reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear los champiñones laminados en la misma sartén a fuego fuerte hasta que estén dorados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado a los champiñones y saltear hasta que suelte el aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Nata para cocinar}} y el bacon reservado; remover y cocer a fuego suave hasta que la salsa espese.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir la pasta cocida y añadirla a la sartén con la salsa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover bien hasta que la pasta quede cubierta con la salsa y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pasta_arroces_096",
@@ -17479,10 +17548,20 @@
       }
     ],
     "steps": [
-      "Cocer el arroz en agua con sal 15-18 min, escurrir.",
-      "Freír los huevos hasta que la clara esté cuajada.",
-      "Freír el plátano cortado en rodajas hasta que dore.",
-      "Servir el arroz con el tomate frito por encima, el huevo y el plátano al lado."
+      "Llevar a ebullición una olla con agua abundante y sal.",
+      "Añadir arroz cuando el agua hierva y cocer a fuego medio.",
+      "Cocer el arroz hasta que esté tierno, sin tapar.",
+      "Cortar plátano en rodajas de 1 cm mientras el arroz cuece.",
+      "Calentar aceite de oliva en sartén a fuego fuerte.",
+      "Freír las rodajas de plátano hasta que estén doradas por ambos lados.",
+      "Retirar el plátano dorado y reservar en un plato.",
+      "Escurrir el arroz cocido y reservar en la olla tapada.",
+      "Calentar aceite de oliva en la misma sartén a fuego fuerte.",
+      "Cascar huevo en la sartén caliente con cuidado de no romper la yema.",
+      "Freír los huevos hasta que la clara esté cuajada y los bordes dorados.",
+      "Calentar tomate frito en un cazo a fuego suave hasta que esté caliente.",
+      "Servir el arroz en el plato y verter el tomate frito por encima.",
+      "Colocar el huevo frito y las rodajas de plátano al lado del arroz."
     ],
     "description": "El clásico arroz blanco a la cubana, con tomate frito, huevo y plátano.",
     "estrella": true,
@@ -17491,7 +17570,90 @@
     ],
     "kidFavourite": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición una olla con agua abundante y sal.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} cuando el agua hierva y cocer a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer el arroz hasta que esté tierno, sin tapar.",
+        "minutes": 16,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Plátano}} en rodajas de 1 cm mientras el arroz cuece.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Freír las rodajas de plátano hasta que estén doradas por ambos lados.",
+        "minutes": 3,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Retirar el plátano dorado y reservar en un plato.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Escurrir el arroz cocido y reservar en la olla tapada.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en la misma sartén a fuego fuerte.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Cascar {{Huevo}} en la sartén caliente con cuidado de no romper la yema.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Freír los huevos hasta que la clara esté cuajada y los bordes dorados.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{Tomate frito}} en un cazo a fuego suave hasta que esté caliente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Servir el arroz en el plato y verter el tomate frito por encima.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      },
+      {
+        "text": "Colocar el huevo frito y las rodajas de plátano al lado del arroz.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "pasta_arroces_097",
@@ -17551,10 +17713,21 @@
       }
     ],
     "steps": [
-      "Cocer los macarrones según el envase, escurrir.",
-      "Sofreír la cebolla picada, añadir el chorizo en rodajas y el tomate triturado, cocinar 10 min.",
-      "Mezclar la salsa con la pasta cocida y colocar en una fuente apta para horno.",
-      "Cubrir con queso rallado y gratinar en el horno 5 min hasta dorar."
+      "Llevar a ebullición agua con sal abundante en una olla grande a fuego fuerte.",
+      "Cocer macarrones en el agua hirviendo el tiempo indicado en el envase.",
+      "Picar cebolla en trozos finos mientras la pasta cuece.",
+      "Cortar chorizo en rodajas finas mientras la pasta cuece.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada en la sartén hasta que esté transparente.",
+      "Añadir el chorizo en rodajas y sofreír hasta que suelte la grasa.",
+      "Añadir tomate triturado y cocer a fuego suave hasta que la salsa espese.",
+      "Precalentar el horno a 200 °C con función gratinador mientras la salsa cuece.",
+      "Escurrir los macarrones cocidos y reservar.",
+      "Mezclar los macarrones escurridos con la salsa en la sartén hasta integrar.",
+      "Disponer la mezcla en una fuente apta para horno en capa uniforme.",
+      "Cubrir la superficie con queso rallado de forma homogénea.",
+      "Gratinar en el horno a 200 °C hasta que el queso esté dorado y burbujeante.",
+      "Retirar del horno y servir la fuente en la mesa directamente."
     ],
     "description": "Macarrones con chorizo y tomate, gratinados con queso al horno.",
     "estrella": true,
@@ -17563,7 +17736,87 @@
     ],
     "kidFavourite": true,
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición agua con sal abundante en una olla grande a fuego fuerte.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer {{Macarrones}} en el agua hirviendo el tiempo indicado en el envase.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Cebolla}} en trozos finos mientras la pasta cuece.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Chorizo}} en rodajas finas mientras la pasta cuece.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en la sartén hasta que esté transparente.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el chorizo en rodajas y sofreír hasta que suelte la grasa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y cocer a fuego suave hasta que la salsa espese.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con función gratinador mientras la salsa cuece.",
+        "minutes": 5,
+        "kind": "paralelo",
+        "during": 7
+      },
+      {
+        "text": "Escurrir los macarrones cocidos y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar los macarrones escurridos con la salsa en la sartén hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer la mezcla en una fuente apta para horno en capa uniforme.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir la superficie con {{Queso rallado}} de forma homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Gratinar en el horno a 200 °C hasta que el queso esté dorado y burbujeante.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y servir la fuente en la mesa directamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pasta_arroces_098",
@@ -17623,10 +17876,18 @@
       }
     ],
     "steps": [
-      "Cocer los espaguetis según el envase, escurrir.",
-      "Sofreír el ajo picado en aceite, añadir el tomate triturado y cocinar 12-15 min hasta espesar.",
-      "Mezclar la salsa con la pasta.",
-      "Añadir albahaca fresca picada y parmesano rallado al servir."
+      "Pelar ajo y picar fino.",
+      "Rallar queso parmesano y reservar.",
+      "Picar albahaca fresca fino y reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír el ajo picado hasta que esté dorado, sin que se queme.",
+      "Añadir tomate triturado y remover para integrar con el ajo.",
+      "Cocer la salsa a fuego medio hasta que espese y pierda el sabor ácido.",
+      "Llevar a ebullición una olla grande con agua abundante y sal al gusto.",
+      "Cocer espaguetis en el agua hirviendo hasta que estén al dente.",
+      "Escurrir los espaguetis y añadir a la sartén con la salsa.",
+      "Remover para que la pasta quede bien cubierta de salsa.",
+      "Servir con la albahaca fresca picada y el queso parmesano rallado por encima."
     ],
     "description": "Espaguetis con una salsa de tomate casera, albahaca fresca y parmesano.",
     "estrella": true,
@@ -17635,7 +17896,70 @@
     ],
     "kidFavourite": true,
     "tecnica": "sarten",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Ajo}} y picar fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar {{Queso parmesano}} y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Albahaca fresca}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado hasta que esté dorado, sin que se queme.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover para integrar con el ajo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la salsa a fuego medio hasta que espese y pierda el sabor ácido.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Llevar a ebullición una olla grande con agua abundante y sal al gusto.",
+        "minutes": 5,
+        "kind": "paralelo",
+        "during": 6
+      },
+      {
+        "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir los espaguetis y añadir a la sartén con la salsa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover para que la pasta quede bien cubierta de salsa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir con la albahaca fresca picada y el queso parmesano rallado por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pasta_arroces_099",
@@ -17697,17 +18021,75 @@
       }
     ],
     "steps": [
-      "Picar todas las verduras en dados pequeños y sofreír en una cazuela con aceite hasta que estén tiernas.",
-      "Añadir el arroz y sofreír 1 min.",
-      "Incorporar el caldo caliente poco a poco, removiendo, y cocinar 16-18 min a fuego medio hasta que quede meloso.",
-      "Rectificar de sal y servir."
+      "Pelar cebolla y zanahoria.",
+      "Picar la cebolla y la zanahoria en dados pequeños.",
+      "Cortar pimiento rojo y calabacín en dados pequeños.",
+      "Calentar aceite de oliva en una cazuela a fuego medio.",
+      "Sofreír la cebolla y la zanahoria hasta que empiecen a ablandarse.",
+      "Añadir el pimiento rojo y el calabacín y sofreír hasta que estén tiernos.",
+      "Añadir arroz y sofreír removiendo durante 1 min.",
+      "Incorporar caldo de verduras caliente poco a poco, removiendo con frecuencia.",
+      "Cocer a fuego medio removiendo con frecuencia hasta que el arroz esté meloso y en su punto.",
+      "Servir el arroz meloso en platos hondos en caliente."
     ],
     "description": "Arroz meloso con verduras de temporada, cocinado con caldo.",
     "estrella": true,
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y {{Zanahoria}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar la cebolla y la zanahoria en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} y {{Calabacín}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y la zanahoria hasta que empiecen a ablandarse.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el pimiento rojo y el calabacín y sofreír hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y sofreír removiendo durante 1 min.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Caldo de verduras}} caliente poco a poco, removiendo con frecuencia.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio removiendo con frecuencia hasta que el arroz esté meloso y en su punto.",
+        "minutes": 17,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el arroz meloso en platos hondos en caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "type": "completo",
@@ -17779,12 +18161,23 @@
       }
     ],
     "steps": [
-      "Cocer la pechuga en agua con sal 20 minutos y desmenuzarla con dos tenedores.",
-      "Cocer el arroz en agua con sal el tiempo que indique el paquete y escurrir.",
-      "Pochar la cebolla en juliana con el ajo hasta que empiece a dorarse.",
-      "Triturar el tomate con el chile y añadirlo a la sartén. Cocinar 10 minutos.",
-      "Incorporar el pollo desmenuzado y dejar que coja la salsa 5 minutos más.",
-      "Servir sobre el arroz blanco, con el aguacate en láminas al lado."
+      "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+      "Cocer pechuga de pollo en el agua hirviendo a fuego medio hasta que esté tierna.",
+      "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
+      "Cocer arroz en el agua hirviendo a fuego medio hasta que esté en su punto.",
+      "Pelar y cortar cebolla en juliana fina.",
+      "Pelar y picar ajo.",
+      "Cortar tomate maduro en trozos y triturar junto con chile fresco hasta obtener una salsa homogénea.",
+      "Retirar la pechuga cocida, dejar templar y desmenuzar con dos tenedores.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla en juliana y el ajo picado hasta que empiecen a dorarse.",
+      "Añadir la salsa de tomate y chile a la sartén y remover para integrar.",
+      "Cocer la salsa a fuego medio hasta que reduzca y espese.",
+      "Escurrir el arroz cocido y reservar.",
+      "Pelar y laminar aguacate.",
+      "Incorporar el pollo desmenuzado a la salsa y remover para que se impregne bien.",
+      "Cocer el conjunto a fuego suave hasta que el pollo haya absorbido la salsa.",
+      "Servir la tinga sobre el arroz blanco y disponer las láminas de aguacate al lado."
     ],
     "description": "Pollo deshebrado en salsa de tomate ahumada sobre arroz blanco. De esos platos que se hacen una vez y se repiten toda la semana.",
     "mainIngredients": [
@@ -17792,7 +18185,117 @@
     ],
     "tecnica": "sarten",
     "cocina": "mexicana",
-    "mainBase": "arroz"
+    "mainBase": "arroz",
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Cocer {{Pechuga de pollo}} en el agua hirviendo a fuego medio hasta que esté tierna.",
+        "minutes": 20,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Llevar a ebullición agua con {{Sal|gusto}} en un cazo a fuego fuerte.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 1
+      },
+      {
+        "text": "Cocer {{Arroz}} en el agua hirviendo a fuego medio hasta que esté en su punto.",
+        "minutes": 16,
+        "kind": "pasivo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Pelar y cortar {{Cebolla}} en juliana fina.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 1
+      },
+      {
+        "text": "Pelar y picar {{Ajo}}.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} en trozos y triturar junto con {{Chile fresco}} hasta obtener una salsa homogénea.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 1
+      },
+      {
+        "text": "Retirar la pechuga cocida, dejar templar y desmenuzar con dos tenedores.",
+        "minutes": 4,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Sofreír la cebolla en juliana y el ajo picado hasta que empiecen a dorarse.",
+        "minutes": 6,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Añadir la salsa de tomate y chile a la sartén y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Cocer la salsa a fuego medio hasta que reduzca y espese.",
+        "minutes": 10,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Escurrir el arroz cocido y reservar.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 11
+      },
+      {
+        "text": "Pelar y laminar {{Aguacate}}.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 11
+      },
+      {
+        "text": "Incorporar el pollo desmenuzado a la salsa y remover para que se impregne bien.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Cocer el conjunto a fuego suave hasta que el pollo haya absorbido la salsa.",
+        "minutes": 5,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir la tinga sobre el arroz blanco y disponer las láminas de aguacate al lado.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "type": "completo",
@@ -17872,12 +18375,20 @@
       }
     ],
     "steps": [
-      "Cocer el arroz en agua con sal y reservarlo tapado.",
-      "Cortar el pollo en dados, pasarlos por la maicena y freírlos hasta que estén dorados. Reservar.",
-      "Saltear el pimiento y la cebolla en tiras 5 minutos, a fuego fuerte.",
-      "Añadir el tomate, el vinagre, el azúcar y la soja. Cocer 5 minutos hasta que la salsa brille y espese.",
-      "Devolver el pollo a la sartén y darle un par de vueltas para que se glasee.",
-      "Servir sobre el arroz."
+      "Hervir agua con sal en un cazo a fuego fuerte.",
+      "Añadir arroz cuando rompa a hervir, bajar a fuego medio y cocer hasta que esté tierno.",
+      "Escurrir el arroz, tapar y reservar.",
+      "Cortar pechuga de pollo en dados de unos 3 cm.",
+      "Rebozar los dados de pollo en maicena hasta cubrirlos bien y sacudir el exceso.",
+      "Cortar pimiento rojo y cebolla en tiras finas.",
+      "Calentar aceite de girasol en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír los dados de pollo hasta que estén dorados por todas las caras.",
+      "Retirar el pollo de la sartén y reservar en un plato.",
+      "Saltear el pimiento rojo y la cebolla en la misma sartén a fuego fuerte hasta que estén tiernos.",
+      "Añadir tomate triturado, vinagre de vino, azúcar y salsa de soja a la sartén.",
+      "Cocer la salsa a fuego medio hasta que brille y espese.",
+      "Añadir el pollo reservado a la sartén y remover hasta que quede bien glaseado con la salsa.",
+      "Servir el pollo agridulce sobre el arroz reservado."
     ],
     "description": "El agridulce de toda la vida, hecho en casa y sin colorantes. El pollo crujiente por fuera y la salsa brillante son la mitad del plato.",
     "mainIngredients": [
@@ -17885,7 +18396,93 @@
     ],
     "tecnica": "sarten",
     "cocina": "asiatica",
-    "mainBase": "arroz"
+    "mainBase": "arroz",
+    "stepsRich": [
+      {
+        "text": "Hervir agua con sal en un cazo a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Añadir {{Arroz}} cuando rompa a hervir, bajar a fuego medio y cocer hasta que esté tierno.",
+        "minutes": 12,
+        "kind": "pasivo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Escurrir el arroz, tapar y reservar.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Cortar {{Pechuga de pollo}} en dados de unos 3 cm.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Rebozar los dados de pollo en {{Maicena}} hasta cubrirlos bien y sacudir el exceso.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} y {{Cebolla}} en tiras finas.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{Aceite de girasol}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Freír los dados de pollo hasta que estén dorados por todas las caras.",
+        "minutes": 5,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Retirar el pollo de la sartén y reservar en un plato.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Saltear el pimiento rojo y la cebolla en la misma sartén a fuego fuerte hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}}, {{Vinagre de vino}}, {{Azúcar}} y {{Salsa de soja}} a la sartén.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Cocer la salsa a fuego medio hasta que brille y espese.",
+        "minutes": 5,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Añadir el pollo reservado a la sartén y remover hasta que quede bien glaseado con la salsa.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "combinado"
+      },
+      {
+        "text": "Servir el pollo agridulce sobre el arroz reservado.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "type": "completo",
@@ -17959,12 +18556,19 @@
       }
     ],
     "steps": [
-      "Cocer el arroz, escurrirlo y extenderlo en una bandeja para que se enfríe y se suelte.",
-      "Batir los huevos y cuajarlos en tortilla fina. Cortarla en tiras y reservar.",
-      "Saltear la zanahoria en dados pequeños y los guisantes 5 minutos a fuego fuerte.",
-      "Añadir el jamón en dados y dar un par de vueltas.",
-      "Incorporar el arroz frío y saltear removiendo, para que se tueste sin apelmazarse.",
-      "Agregar la tortilla en tiras y la salsa de soja, mezclar y terminar con la cebolleta."
+      "Llevar a ebullición agua con sal en un cazo. Añadir arroz y cocer hasta que esté en su punto.",
+      "Escurrir el arroz cocido y extenderlo en una bandeja. Reservar hasta que esté frío y suelto.",
+      "Pelar zanahoria y cortar en dados pequeños.",
+      "Cortar jamón cocido en dados pequeños.",
+      "Picar cebolleta fino.",
+      "Batir huevo en un bol hasta que estén homogéneos.",
+      "Calentar aceite de girasol en sartén a fuego medio. Verter el huevo batido y cuajar una tortilla fina.",
+      "Retirar la tortilla de la sartén y cortar en tiras finas. Reservar.",
+      "Calentar el aceite restante en la sartén a fuego fuerte. Saltear la zanahoria y guisantes hasta que estén tiernos.",
+      "Añadir el jamón cocido a la sartén y saltear removiendo hasta que coja color.",
+      "Incorporar el arroz frío y saltear removiendo hasta que se tueste y no se apelmace.",
+      "Añadir salsa de soja y remover hasta que el arroz quede uniformemente dorado.",
+      "Añadir las tiras de tortilla y la cebolleta picada. Mezclar y servir en el momento."
     ],
     "description": "El arroz tres delicias de casa, con el truco de siempre: el arroz del día anterior, bien frío, es lo que hace que quede suelto.",
     "mainIngredients": [
@@ -17972,6 +18576,73 @@
     ],
     "tecnica": "sarten",
     "cocina": "asiatica",
-    "mainBase": "arroz"
+    "mainBase": "arroz",
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición agua con sal en un cazo. Añadir {{Arroz}} y cocer hasta que esté en su punto.",
+        "minutes": 14,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el arroz cocido y extenderlo en una bandeja. Reservar hasta que esté frío y suelto.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Jamón cocido}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolleta}} fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que estén homogéneos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de girasol|chorrito}} en {{@Sartén}} a fuego medio. Verter el huevo batido y cuajar una tortilla fina.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la tortilla de la sartén y cortar en tiras finas. Reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar el aceite restante en la sartén a fuego fuerte. Saltear la zanahoria y {{Guisantes}} hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el jamón cocido a la sartén y saltear removiendo hasta que coja color.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el arroz frío y saltear removiendo hasta que se tueste y no se apelmace.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Salsa de soja}} y remover hasta que el arroz quede uniformemente dorado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las tiras de tortilla y la cebolleta picada. Mezclar y servir en el momento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

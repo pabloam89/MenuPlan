@@ -29437,13 +29437,19 @@
       }
     ],
     "steps": [
-      "Aplanar la pechuga de pollo en filetes finos y salpimentar.",
-      "Pasar cada filete por huevo batido y luego por pan rallado, presionando bien.",
-      "Freír en aceite bien caliente hasta que estén dorados por ambos lados, unos 3-4 min por cara.",
-      "Escurrir sobre papel absorbente.",
-      "Cortar el aguacate y el tomate en dados, mezclar con el maíz escurrido.",
-      "Aliñar la ensalada con el zumo de lima y un chorrito de aceite de oliva.",
-      "Servir el pollo empanado con la ensalada al lado."
+      "Cortar pechuga de pollo en filetes finos y aplanar cada uno con la palma de la mano.",
+      "Batir huevo en un plato hondo hasta que la yema y la clara estén integradas.",
+      "Salpimentar los filetes por ambas caras.",
+      "Pasar cada filete por el huevo batido y escurrir el exceso.",
+      "Rebozar cada filete en pan rallado, presionando bien para que quede adherido.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír los filetes empanados hasta que estén dorados por ambos lados, unos 3 min por cara.",
+      "Cortar aguacate en dados de tamaño similar.",
+      "Cortar tomate en dados y reservar junto al aguacate.",
+      "Escurrir maíz cocido y añadir al bol con el aguacate y el tomate.",
+      "Exprimir lima sobre la ensalada y aliñar con un chorrito de aceite de oliva.",
+      "Escurrir el pollo frito sobre papel absorbente para retirar el exceso de aceite.",
+      "Servir los filetes empanados con la ensalada de aguacate, tomate y maíz al lado."
     ],
     "description": "Filetes de pollo empanados y crujientes con una ensalada fresca de aguacate, tomate y maíz.",
     "estrella": true,
@@ -29451,7 +29457,91 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en filetes finos y aplanar cada uno con la palma de la mano.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Batir {{Huevo}} en un plato hondo hasta que la yema y la clara estén integradas.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Salpimentar los filetes por ambas caras.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Pasar cada filete por el huevo batido y escurrir el exceso.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Rebozar cada filete en {{Pan rallado}}, presionando bien para que quede adherido.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Freír los filetes empanados hasta que estén dorados por ambos lados, unos 3 min por cara.",
+        "minutes": 6,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Cortar {{Aguacate}} en dados de tamaño similar.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 6
+      },
+      {
+        "text": "Cortar {{Tomate}} en dados y reservar junto al aguacate.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 6
+      },
+      {
+        "text": "Escurrir {{Maíz cocido}} y añadir al bol con el aguacate y el tomate.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 6
+      },
+      {
+        "text": "Exprimir {{Lima}} sobre la ensalada y aliñar con un chorrito de aceite de oliva.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 6
+      },
+      {
+        "text": "Escurrir el pollo frito sobre papel absorbente para retirar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir los filetes empanados con la ensalada de aguacate, tomate y maíz al lado.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "carnes_147",
@@ -29507,18 +29597,78 @@
       }
     ],
     "steps": [
-      "Cortar los pimientos y la cebolla en tiras finas.",
-      "Sofreír las verduras y el ajo picado en una sartén con aceite a fuego medio hasta que estén tiernas y ligeramente doradas, unos 15 min.",
-      "Salpimentar los filetes de ternera.",
-      "Marcar los filetes en una sartén bien caliente 1-2 min por cada lado, al gusto.",
-      "Servir la ternera con los pimientos y la cebolla asados por encima."
+      "Cortar pimiento rojo y pimiento verde en tiras finas.",
+      "Cortar cebolla en tiras finas.",
+      "Picar ajo.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír los pimientos, la cebolla y el ajo picado hasta que estén tiernos y ligeramente dorados.",
+      "Salpimentar filetes de ternera por ambas caras.",
+      "Calentar plancha a fuego fuerte hasta que esté muy caliente.",
+      "Dorar los filetes de ternera 1-2 min por cada lado hasta alcanzar el punto deseado.",
+      "Servir los filetes de ternera con los pimientos y la cebolla por encima."
     ],
     "description": "Filetes de ternera a la plancha con pimientos y cebolla asados lentamente hasta caramelizar.",
     "estrella": true,
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en tiras finas.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Cortar {{Cebolla}} en tiras finas.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Picar {{Ajo}}.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Sofreír los pimientos, la cebolla y el ajo picado hasta que estén tiernos y ligeramente dorados.",
+        "minutes": 15,
+        "kind": "pasivo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Salpimentar {{Filetes de ternera}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté muy caliente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Dorar los filetes de ternera 1-2 min por cada lado hasta alcanzar el punto deseado.",
+        "minutes": 4,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir los filetes de ternera con los pimientos y la cebolla por encima.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "carnes_148",
@@ -29574,16 +29724,75 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 200°C.",
-      "Cortar las patatas en rodajas y colocarlas en una bandeja de horno.",
-      "Colocar los muslos de pollo salpimentados encima de las patatas.",
-      "Regar con aceite de oliva, zumo de limón, ajo picado y romero.",
-      "Hornear 45-50 min hasta que el pollo esté dorado y las patatas tiernas."
+      "Precalentar el horno a 200 °C.",
+      "Pelar patatas y cortar en rodajas de unos 5 mm.",
+      "Pelar ajo y picar fino.",
+      "Exprimir limón y reservar el zumo.",
+      "Disponer las patatas en una bandeja de horno formando una cama uniforme.",
+      "Salpimentar muslos de pollo y colocar encima de las patatas.",
+      "Regar el conjunto con aceite de oliva y el zumo de limón reservado.",
+      "Repartir el ajo picado y romero sobre el pollo y las patatas.",
+      "Hornear en el horno a 200 °C durante 45 min hasta que el pollo esté dorado y las patatas tiernas.",
+      "Servir los muslos de pollo sobre las patatas con los jugos de la bandeja."
     ],
     "description": "Muslos de pollo al horno sobre una cama de patatas aromatizadas con romero y limón.",
     "estrella": true,
     "tecnica": "horno",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pelar {{Patatas}} y cortar en rodajas de unos 5 mm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Ajo}} y picar fino.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Disponer las patatas en una bandeja de horno formando una cama uniforme.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Muslos de pollo}} y colocar encima de las patatas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar el conjunto con {{Aceite de oliva|chorrito}} y el zumo de limón reservado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir el ajo picado y {{Romero|pizca}} sobre el pollo y las patatas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear en el horno a 200 °C durante 45 min hasta que el pollo esté dorado y las patatas tiernas.",
+        "minutes": 45,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir los muslos de pollo sobre las patatas con los jugos de la bandeja.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_149",
@@ -29634,15 +29843,74 @@
       }
     ],
     "steps": [
-      "Cortar la cebolla en juliana fina.",
-      "Pochar la cebolla en una sartén con aceite a fuego lento hasta que esté tierna, unos 15 min.",
-      "Añadir el azúcar y el vino blanco, y cocinar a fuego suave hasta caramelizar, unos 10 min más.",
-      "Salpimentar los filetes de lomo y marcarlos a la plancha 2-3 min por cada lado.",
-      "Servir el lomo con la cebolla caramelizada por encima."
+      "Cortar cebolla en juliana fina.",
+      "Calentar aceite de oliva en sartén a fuego suave.",
+      "Sofreír la cebolla en la sartén a fuego suave hasta que esté tierna.",
+      "Añadir azúcar y vino blanco a la cebolla y remover.",
+      "Cocinar a fuego suave hasta que la cebolla caramelice y el vino evapore.",
+      "Salpimentar filetes de lomo de cerdo por ambas caras.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Dorar los filetes de lomo 2 min por cada lado hasta que estén marcados.",
+      "Servir los filetes de lomo con la cebolla caramelizada por encima."
     ],
     "description": "Filetes de lomo de cerdo a la plancha con una generosa cebolla caramelizada al vino blanco.",
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en juliana fina.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego suave.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Sofreír la cebolla en la sartén a fuego suave hasta que esté tierna.",
+        "minutes": 15,
+        "kind": "pasivo",
+        "part": "salsa"
+      },
+      {
+        "text": "Añadir {{Azúcar}} y {{Vino blanco}} a la cebolla y remover.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Cocinar a fuego suave hasta que la cebolla caramelice y el vino evapore.",
+        "minutes": 10,
+        "kind": "pasivo",
+        "part": "salsa"
+      },
+      {
+        "text": "Salpimentar {{Filetes de lomo de cerdo}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Dorar los filetes de lomo 2 min por cada lado hasta que estén marcados.",
+        "minutes": 4,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir los filetes de lomo con la cebolla caramelizada por encima.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "carnes_150",
@@ -29693,11 +29961,18 @@
       }
     ],
     "steps": [
-      "Salpimentar la pechuga de pollo y marcarla a la plancha 4-5 min por cada lado hasta que esté hecha.",
-      "Limpiar y laminar los champiñones.",
-      "Saltear los champiñones con el ajo picado en una sartén con aceite a fuego fuerte hasta que doren.",
-      "Terminar con perejil picado.",
-      "Servir la pechuga con los champiñones al ajillo por encima."
+      "Laminar champiñones y reservar.",
+      "Picar ajo fino y reservar.",
+      "Picar perejil fino y reservar.",
+      "Salpimentar pechuga de pollo por ambos lados.",
+      "Calentar plancha a fuego fuerte con aceite de oliva.",
+      "Colocar la pechuga de pollo en la plancha y cocinar 5 min sin mover.",
+      "Calentar sartén a fuego fuerte con el resto de aceite de oliva.",
+      "Dar la vuelta a la pechuga de pollo y cocinar 5 min más hasta que esté hecha.",
+      "Añadir el ajo picado a la sartén y saltear 1 min hasta que empiece a dorarse.",
+      "Añadir los champiñones laminados y saltear a fuego fuerte hasta que se doren.",
+      "Añadir el perejil picado a los champiñones, remover y retirar del fuego.",
+      "Retirar la pechuga de pollo de la plancha y servir con los champiñones por encima."
     ],
     "description": "Pechuga de pollo a la plancha con champiñones salteados con ajo y perejil.",
     "estrella": true,
@@ -29706,7 +29981,81 @@
     ],
     "kidFavourite": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "stepsRich": [
+      {
+        "text": "Laminar {{Champiñones}} y reservar.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Picar {{Ajo}} fino y reservar.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Salpimentar {{Pechuga de pollo}} por ambos lados.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Colocar la pechuga de pollo en la plancha y cocinar 5 min sin mover.",
+        "minutes": 5,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego fuerte con el resto de aceite de oliva.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Dar la vuelta a la pechuga de pollo y cocinar 5 min más hasta que esté hecha.",
+        "minutes": 5,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Añadir el ajo picado a la sartén y saltear 1 min hasta que empiece a dorarse.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Añadir los champiñones laminados y saltear a fuego fuerte hasta que se doren.",
+        "minutes": 4,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Añadir el perejil picado a los champiñones, remover y retirar del fuego.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Retirar la pechuga de pollo de la plancha y servir con los champiñones por encima.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "carnes_151",
@@ -29764,10 +30113,15 @@
       }
     ],
     "steps": [
-      "Pelar y trocear las patatas, cocer en agua con sal hasta que estén tiernas, unos 18-20 min.",
-      "Escurrir y triturar con la leche y la mantequilla hasta obtener un puré cremoso. Salpimentar.",
-      "Salpimentar los filetes de cerdo y marcarlos a la plancha 2-3 min por cada lado.",
-      "Servir el filete sobre el puré con cebollino picado por encima."
+      "Pelar patatas y cortar en trozos de tamaño similar.",
+      "Llevar a ebullición una olla con agua y sal, añadir las patatas y cocer hasta que estén tiernas.",
+      "Picar cebollino fino y reservar.",
+      "Calentar plancha a fuego fuerte con aceite de oliva.",
+      "Salpimentar filetes de cerdo por ambas caras.",
+      "Dorar los filetes de cerdo 3 min por cada lado hasta que estén dorados y cocinados en el centro.",
+      "Escurrir las patatas y triturar con leche y mantequilla hasta obtener un puré cremoso.",
+      "Salpimentar el puré al gusto y remover para integrar.",
+      "Servir el puré en el plato, colocar los filetes de cerdo encima y espolvorear el cebollino picado."
     ],
     "description": "Filetes de cerdo a la plancha sobre un puré de patatas cremoso con cebollino fresco.",
     "estrella": true,
@@ -29776,7 +30130,66 @@
     ],
     "kidFavourite": true,
     "tecnica": "plancha",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patatas}} y cortar en trozos de tamaño similar.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua y sal, añadir las patatas y cocer hasta que estén tiernas.",
+        "minutes": 20,
+        "kind": "pasivo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Picar {{Cebollino}} fino y reservar.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 1
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 1
+      },
+      {
+        "text": "Salpimentar {{Filetes de cerdo}} por ambas caras.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 1
+      },
+      {
+        "text": "Dorar los filetes de cerdo 3 min por cada lado hasta que estén dorados y cocinados en el centro.",
+        "minutes": 6,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Escurrir las patatas y triturar con {{Leche}} y {{Mantequilla}} hasta obtener un puré cremoso.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Salpimentar el puré al gusto y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Servir el puré en el plato, colocar los filetes de cerdo encima y espolvorear el cebollino picado.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "carnes_152",
@@ -29832,16 +30245,85 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 190°C.",
-      "Salpimentar las costillas.",
-      "Cortar las patatas y la cebolla en rodajas finas y colocarlas en una bandeja de horno.",
-      "Colocar las costillas encima, aliñar con ajo picado, pimentón y aceite de oliva.",
-      "Hornear 55-60 min hasta que las costillas estén doradas y las patatas tiernas."
+      "Precalentar el horno a 190 °C.",
+      "Pelar patatas y cebolla.",
+      "Laminar las patatas en rodajas finas de unos 3 mm.",
+      "Cortar la cebolla en rodajas finas.",
+      "Picar ajo.",
+      "Extender las patatas laminadas y la cebolla en una bandeja de horno formando una cama uniforme.",
+      "Salpimentar costillas de cerdo por ambas caras.",
+      "Colocar las costillas encima de la cama de patatas y cebolla.",
+      "Repartir el ajo picado y pimentón dulce sobre las costillas y las patatas.",
+      "Regar con aceite de oliva toda la bandeja de manera uniforme.",
+      "Hornear la bandeja en el centro del horno hasta que las costillas estén doradas y las patatas tiernas.",
+      "Retirar la bandeja del horno y servir las costillas junto con las patatas panadera."
     ],
     "description": "Costillas de cerdo al horno sobre patatas panadera con ajo y pimentón.",
     "estrella": true,
     "tecnica": "horno",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 190 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pelar {{Patatas}} y {{Cebolla}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar las patatas en rodajas finas de unos 3 mm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la cebolla en rodajas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender las patatas laminadas y la cebolla en una bandeja de horno formando una cama uniforme.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Costillas de cerdo}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar las costillas encima de la cama de patatas y cebolla.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir el ajo picado y {{Pimentón dulce|pizca}} sobre las costillas y las patatas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar con {{Aceite de oliva|chorrito}} toda la bandeja de manera uniforme.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la bandeja en el centro del horno hasta que las costillas estén doradas y las patatas tiernas.",
+        "minutes": 55,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir las costillas junto con las patatas panadera.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_153",
@@ -29899,11 +30381,15 @@
       }
     ],
     "steps": [
-      "Salpimentar las chuletas y marcarlas a la plancha 3-4 min por cada lado.",
-      "Desgranar la granada.",
-      "Mezclar los canónigos con los granos de granada y el queso de cabra desmenuzado.",
+      "Salpimentar chuletas de cerdo por ambas caras.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Desgranar granada sobre un bol.",
+      "Desmenuzar queso de cabra en trozos irregulares.",
+      "Cocinar las chuletas en la plancha caliente 4 min por cada lado hasta que estén doradas.",
+      "Mezclar canónigos con los granos de granada y el queso de cabra desmenuzado en un bol.",
       "Aliñar la ensalada con aceite de oliva y vinagre balsámico.",
-      "Servir las chuletas con la ensalada al lado."
+      "Retirar las chuletas de la plancha y dejar reposar 2 min antes de servir.",
+      "Servir las chuletas junto a la ensalada aliñada."
     ],
     "description": "Chuletas de cerdo a la plancha acompañadas de una ensalada de canónigos, granada y queso de cabra.",
     "estrella": true,
@@ -29912,7 +30398,67 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "stepsRich": [
+      {
+        "text": "Salpimentar {{Chuletas de cerdo}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Desgranar {{Granada}} sobre un bol.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 1
+      },
+      {
+        "text": "Desmenuzar {{Queso de cabra}} en trozos irregulares.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 1
+      },
+      {
+        "text": "Cocinar las chuletas en la plancha caliente 4 min por cada lado hasta que estén doradas.",
+        "minutes": 8,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Mezclar {{Canónigos}} con los granos de granada y el queso de cabra desmenuzado en un bol.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 4
+      },
+      {
+        "text": "Aliñar la ensalada con {{Aceite de oliva|chorrito}} y {{Vinagre balsámico|chorrito}}.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 4
+      },
+      {
+        "text": "Retirar las chuletas de la plancha y dejar reposar 2 min antes de servir.",
+        "minutes": 2,
+        "kind": "espera",
+        "part": "principal"
+      },
+      {
+        "text": "Servir las chuletas junto a la ensalada aliñada.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "carnes_154",
@@ -29963,18 +30509,93 @@
       }
     ],
     "steps": [
-      "Salpimentar el solomillo entero y sellarlo en una sartén con aceite bien caliente por todos los lados. Reservar.",
-      "En la misma sartén, pochar la cebolla picada hasta que esté tierna.",
-      "Añadir los pimientos del piquillo troceados y el vino blanco, cocinar 5 min.",
-      "Incorporar de nuevo el solomillo, tapar y cocinar a fuego medio 10-12 min hasta el punto deseado.",
-      "Cortar en medallones y servir con la salsa de pimientos por encima."
+      "Picar cebolla en trozos finos.",
+      "Cortar pimientos del piquillo en tiras gruesas.",
+      "Salpimentar solomillo de cerdo por todos los lados.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee.",
+      "Dorar el solomillo en la sartén caliente por todos los lados hasta que esté sellado.",
+      "Retirar el solomillo de la sartén y reservar.",
+      "Sofreír la cebolla picada en la misma sartén a fuego medio hasta que esté tierna.",
+      "Añadir los pimientos del piquillo a la sartén y remover para integrar.",
+      "Añadir vino blanco y cocer a fuego medio hasta que el alcohol se evapore.",
+      "Incorporar el solomillo reservado a la sartén y tapar.",
+      "Cocer a fuego medio hasta que el solomillo esté en su punto, dando la vuelta a mitad.",
+      "Retirar el solomillo de la sartén y cortar en medallones de unos 2 cm.",
+      "Servir los medallones con la salsa de pimientos por encima."
     ],
     "description": "Solomillo de cerdo sellado y cocinado con una salsa de pimientos del piquillo y cebolla.",
     "estrella": true,
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} en trozos finos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimientos del piquillo}} en tiras gruesas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Solomillo de cerdo}} por todos los lados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el solomillo en la sartén caliente por todos los lados hasta que esté sellado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el solomillo de la sartén y reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en la misma sartén a fuego medio hasta que esté tierna.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los pimientos del piquillo a la sartén y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vino blanco}} y cocer a fuego medio hasta que el alcohol se evapore.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el solomillo reservado a la sartén y tapar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que el solomillo esté en su punto, dando la vuelta a mitad.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el solomillo de la sartén y cortar en medallones de unos 2 cm.",
+        "minutes": 2,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir los medallones con la salsa de pimientos por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_155",
@@ -30044,12 +30665,24 @@
       }
     ],
     "steps": [
-      "Abrir las pechugas en libro, salpimentar y rellenar con jamón y queso. Cerrar y sujetar con palillos.",
-      "Pasar por huevo batido y pan rallado.",
-      "Dorar en una sartén con aceite hasta que estén doradas por fuera y el queso haya fundido, unos 6-8 min por cada lado.",
-      "Cocer las judías verdes al vapor 8-10 min. Cocer un huevo 10 min, pelar y picar.",
-      "Mezclar las judías con el tomate en dados y el huevo duro picado, aliñar con aceite.",
-      "Servir la pechuga rellena con la ensalada al lado."
+      "Abrir pechuga de pollo en libro con un cuchillo, haciendo un corte horizontal sin llegar al extremo.",
+      "Salpimentar el interior de cada pechuga abierta.",
+      "Colocar jamón cocido y queso en lonchas sobre una mitad de cada pechuga.",
+      "Cerrar cada pechuga y sujetar con palillos para que el relleno no salga durante la cocción.",
+      "Batir 1 huevo en un bol hasta que esté homogéneo.",
+      "Extender pan rallado en un plato llano.",
+      "Pasar cada pechuga por el huevo batido y después por el pan rallado, cubriendo bien toda la superficie.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Dorar las pechugas rebozadas 7 min por el primer lado, sin moverlas, hasta que estén doradas.",
+      "Dar la vuelta a las pechugas y dorar 7 min por el otro lado hasta que el queso haya fundido.",
+      "Cocer el segundo huevo en un cazo con agua a fuego fuerte hasta que rompa a hervir, luego 10 min.",
+      "Cocer judías verdes en otro cazo con agua hirviendo a fuego fuerte 9 min hasta que estén tiernas.",
+      "Escurrir las judías verdes y refrescar bajo agua fría para cortar la cocción.",
+      "Pelar el huevo cocido y picar en trozos pequeños.",
+      "Cortar tomate en dados medianos.",
+      "Mezclar en un bol las judías verdes, el tomate en dados y el huevo duro picado.",
+      "Aliñar la ensalada con aceite de oliva y sal al gusto, y remover para integrar.",
+      "Retirar los palillos de las pechugas y servir cada una junto a la ensalada de judías verdes."
     ],
     "description": "Pechugas de pollo rellenas de jamón y queso, empanadas y doradas, con una ensalada templada de judías verdes.",
     "estrella": true,
@@ -30061,6 +30694,118 @@
     "extraProteins": [
       "cerdo",
       "huevo"
+    ],
+    "stepsRich": [
+      {
+        "text": "Abrir {{Pechuga de pollo}} en libro con un cuchillo, haciendo un corte horizontal sin llegar al extremo.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Salpimentar el interior de cada pechuga abierta.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Colocar {{Jamón cocido}} y {{Queso en lonchas}} sobre una mitad de cada pechuga.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Cerrar cada pechuga y sujetar con palillos para que el relleno no salga durante la cocción.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Batir 1 {{Huevo}} en un bol hasta que esté homogéneo.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Extender {{Pan rallado}} en un plato llano.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Pasar cada pechuga por el huevo batido y después por el pan rallado, cubriendo bien toda la superficie.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Dorar las pechugas rebozadas 7 min por el primer lado, sin moverlas, hasta que estén doradas.",
+        "minutes": 7,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Dar la vuelta a las pechugas y dorar 7 min por el otro lado hasta que el queso haya fundido.",
+        "minutes": 7,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Cocer el segundo {{Huevo}} en un cazo con agua a fuego fuerte hasta que rompa a hervir, luego 10 min.",
+        "minutes": 12,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 8
+      },
+      {
+        "text": "Cocer {{Judías verdes}} en otro cazo con agua hirviendo a fuego fuerte 9 min hasta que estén tiernas.",
+        "minutes": 9,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 9
+      },
+      {
+        "text": "Escurrir las judías verdes y refrescar bajo agua fría para cortar la cocción.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Pelar el huevo cocido y picar en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Cortar {{Tomate}} en dados medianos.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Mezclar en un bol las judías verdes, el tomate en dados y el huevo duro picado.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Aliñar la ensalada con {{Aceite de oliva|chorrito}} y sal al gusto, y remover para integrar.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Retirar los palillos de las pechugas y servir cada una junto a la ensalada de judías verdes.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
     ]
   },
   {
@@ -30124,10 +30869,16 @@
       }
     ],
     "steps": [
-      "Salpimentar los filetes de ternera y marcarlos a la plancha 1-2 min por cada lado. Reservar.",
-      "En la misma sartén, saltear los champiñones laminados con un chorrito de vino blanco hasta dorar.",
-      "Rallar la zanahoria y mezclarla con las pasas, el comino y un chorrito de aceite de oliva.",
-      "Servir la ternera con los champiñones salteados y la ensalada de zanahoria al lado."
+      "Laminar champiñones.",
+      "Rallar zanahoria.",
+      "Mezclar la zanahoria rallada con pasas, comino y aceite de oliva.",
+      "Calentar plancha a fuego fuerte.",
+      "Salpimentar filetes de ternera.",
+      "Dorar los filetes de ternera 1-2 min por cada lado hasta que estén marcados.",
+      "Retirar los filetes de ternera y reservar.",
+      "Saltear los champiñones laminados en la misma plancha a fuego fuerte hasta que se doren.",
+      "Añadir vino blanco y remover hasta que se evapore el alcohol.",
+      "Servir los filetes de ternera con los champiñones salteados y la ensalada de zanahoria al lado."
     ],
     "description": "Filetes de ternera con champiñones salteados y una ensalada crujiente de zanahoria, pasas y comino.",
     "estrella": true,
@@ -30135,7 +30886,69 @@
       "verdura",
       "seta"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "stepsRich": [
+      {
+        "text": "Laminar {{Champiñones}}.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Rallar {{Zanahoria}}.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Mezclar la zanahoria rallada con {{Pasas}}, {{Comino|pizca}} y {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Salpimentar {{Filetes de ternera}}.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Dorar los filetes de ternera 1-2 min por cada lado hasta que estén marcados.",
+        "minutes": 4,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Retirar los filetes de ternera y reservar.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Saltear los champiñones laminados en la misma plancha a fuego fuerte hasta que se doren.",
+        "minutes": 4,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Añadir {{Vino blanco}} y remover hasta que se evapore el alcohol.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir los filetes de ternera con los champiñones salteados y la ensalada de zanahoria al lado.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "type": "principal",
@@ -30212,19 +31025,108 @@
       }
     ],
     "steps": [
-      "Triturar el zumo de las naranjas y la lima con el ajo, el pimentón, el orégano y la sal.",
-      "Cubrir la carne con ese adobo y dejarla reposar al menos 1 hora en la nevera.",
-      "Hornear tapada a 160 °C durante 2 horas, hasta que se deshaga con el tenedor.",
-      "Mientras, cortar la cebolla morada en juliana fina y cubrirla con el vinagre y una pizca de sal. Reservar 30 minutos.",
-      "Desmenuzar la carne con dos tenedores y mezclarla con su propio jugo.",
-      "Servir con la cebolla encurtida por encima."
+      "Exprimir naranja y lima en un bol.",
+      "Pelar ajo y añadirlo al bol junto con pimentón dulce, orégano y sal.",
+      "Triturar la mezcla del bol hasta obtener un adobo homogéneo.",
+      "Colocar lomo de cerdo en filetes en una fuente y cubrir con el adobo por todos lados.",
+      "Tapar la fuente y refrigerar hasta que el adobo penetre en la carne.",
+      "Precalentar el horno a 160 °C.",
+      "Regar la carne con aceite de oliva, tapar la fuente con papel de aluminio y meter en el horno.",
+      "Hornear la carne tapada a 160 °C hasta que esté tan tierna que se deshaga al tocarla con el tenedor.",
+      "Laminar cebolla morada en juliana fina.",
+      "Cubrir la cebolla con vinagre de vino y una pizca de sal en un bol.",
+      "Reposar la cebolla encurtida en el bol hasta que ablande y tome color.",
+      "Retirar la fuente del horno y desmenuzar la carne con dos tenedores.",
+      "Mezclar la carne desmenuzada con todos los jugos de cocción de la fuente.",
+      "Servir la carne en el plato y colocar la cebolla encurtida escurrida por encima."
     ],
     "description": "Cerdo adobado en cítricos y pimentón, hecho al horno hasta que se deshace. La cebolla encurtida corta la grasa y lo levanta todo.",
     "mainIngredients": [
       "fruta"
     ],
     "tecnica": "horno",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "stepsRich": [
+      {
+        "text": "Exprimir {{Naranja}} y {{Lima}} en un bol.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Ajo}} y añadirlo al bol junto con {{Pimentón dulce}}, {{Orégano}} y {{Sal|gusto}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar la mezcla del bol hasta obtener un adobo homogéneo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar {{Lomo de cerdo en filetes}} en una fuente y cubrir con el adobo por todos lados.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Tapar la fuente y refrigerar hasta que el adobo penetre en la carne.",
+        "minutes": 60,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 160 °C.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Regar la carne con {{Aceite de oliva|chorrito}}, tapar la fuente con papel de aluminio y meter en el horno.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear la carne tapada a 160 °C hasta que esté tan tierna que se deshaga al tocarla con el tenedor.",
+        "minutes": 120,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Laminar {{Cebolla morada}} en juliana fina.",
+        "minutes": 4,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 7
+      },
+      {
+        "text": "Cubrir la cebolla con {{Vinagre de vino}} y una pizca de sal en un bol.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 7
+      },
+      {
+        "text": "Reposar la cebolla encurtida en el bol hasta que ablande y tome color.",
+        "minutes": 30,
+        "kind": "espera",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Retirar la fuente del horno y desmenuzar la carne con dos tenedores.",
+        "minutes": 5,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Mezclar la carne desmenuzada con todos los jugos de cocción de la fuente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir la carne en el plato y colocar la cebolla encurtida escurrida por encima.",
+        "minutes": 2,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "type": "completo",
@@ -30304,12 +31206,19 @@
       }
     ],
     "steps": [
-      "Cortar la ternera en tiras finas y salpimentar con el pimentón.",
-      "Cortar los pimientos y la cebolla en tiras del mismo grosor.",
-      "Saltear la verdura a fuego fuerte 5 minutos, que quede al dente, y reservar.",
-      "En la misma sartén, marcar la carne 2-3 minutos sin moverla mucho, y juntarla con la verdura.",
-      "Machacar el aguacate con el zumo de lima y una pizca de sal: ese es el guacamole.",
-      "Calentar las tortillas y servir todo en el centro de la mesa, para montarlas al momento."
+      "Cortar filetes finos de ternera en tiras finas.",
+      "Salpimentar la ternera con pimentón dulce y sal.",
+      "Cortar pimiento rojo, pimiento verde y cebolla en tiras del mismo grosor.",
+      "Calentar sartén con aceite de oliva a fuego fuerte.",
+      "Saltear el pimiento rojo, el pimiento verde y la cebolla a fuego fuerte hasta que estén al dente.",
+      "Reservar las verduras salteadas en un plato.",
+      "Cortar aguacate por la mitad, retirar el hueso y extraer la pulpa con una cuchara.",
+      "Exprimir lima y reservar el zumo.",
+      "Machacar la pulpa de aguacate con el zumo de lima y sal hasta obtener una pasta homogénea.",
+      "Marcar la ternera en la misma sartén a fuego fuerte sin mover durante 2 min hasta que se dore.",
+      "Añadir las verduras reservadas a la sartén y saltear todo junto 1 min a fuego fuerte.",
+      "Calentar tortillas de trigo en la misma sartén, 30 segundos por cada lado, hasta que estén templadas.",
+      "Servir la ternera con verduras, el guacamole y las tortillas en el centro de la mesa para montar al momento."
     ],
     "description": "Ternera y pimientos salteados a fuego fuerte para montar en la mesa. Cena de las que gustan a todos y se hace en media hora.",
     "mainIngredients": [
@@ -30317,7 +31226,87 @@
     ],
     "tecnica": "sarten",
     "cocina": "mexicana",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Filetes finos de ternera}} en tiras finas.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Salpimentar la ternera con {{Pimentón dulce}} y {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Cebolla}} en tiras del mismo grosor.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{@Sartén}} con {{Aceite de oliva|chorrito}} a fuego fuerte.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Saltear el pimiento rojo, el pimiento verde y la cebolla a fuego fuerte hasta que estén al dente.",
+        "minutes": 5,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Reservar las verduras salteadas en un plato.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Cortar {{Aguacate}} por la mitad, retirar el hueso y extraer la pulpa con una cuchara.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Exprimir {{Lima}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Machacar la pulpa de aguacate con el zumo de lima y {{Sal|gusto}} hasta obtener una pasta homogénea.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Marcar la ternera en la misma sartén a fuego fuerte sin mover durante 2 min hasta que se dore.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Añadir las verduras reservadas a la sartén y saltear todo junto 1 min a fuego fuerte.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{Tortillas de trigo}} en la misma sartén, 30 segundos por cada lado, hasta que estén templadas.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "combinado"
+      },
+      {
+        "text": "Servir la ternera con verduras, el guacamole y las tortillas en el centro de la mesa para montar al momento.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "type": "principal",
@@ -30388,11 +31377,20 @@
       }
     ],
     "steps": [
-      "Cortar el lomo en tiras y marcarlas a fuego fuerte en el aceite, sin moverlas, hasta que doren.",
-      "Retirar la carne y en la misma sartén sofreír el ajo y el jengibre picados 30 segundos.",
-      "Añadir el zumo de las naranjas, la soja y la miel. Reducir 5 minutos hasta que la salsa napa.",
-      "Devolver la carne y darle vueltas para que se glasee bien.",
-      "Tostar el sésamo en una sartén seca y espolvorearlo por encima al servir."
+      "Pelar y rallar jengibre fresco.",
+      "Pelar y picar fino ajo.",
+      "Exprimir naranja y reservar el zumo.",
+      "Cortar lomo de cerdo en filetes en tiras de unos 2 cm de grosor.",
+      "Calentar aceite de girasol en sartén a fuego fuerte hasta que humee.",
+      "Dorar las tiras de lomo sin moverlas hasta que estén doradas por un lado, unos 2 min.",
+      "Dar la vuelta a las tiras y dorar el lado contrario hasta que estén doradas, unos 2 min.",
+      "Retirar la carne y reservar en un plato.",
+      "Sofreír el ajo picado y el jengibre rallado en la misma sartén a fuego medio hasta que estén aromáticos.",
+      "Añadir el zumo de naranja, salsa de soja y miel.",
+      "Reducir la salsa a fuego medio hasta que nape la cuchara, sin dejar de vigilar.",
+      "Devolver las tiras de lomo a la sartén y remover para que se glaseen bien con la salsa.",
+      "Tostar semillas de sésamo en una sartén seca a fuego medio hasta que estén doradas.",
+      "Servir el cerdo glaseado con la salsa y espolvorear las semillas de sésamo tostadas por encima."
     ],
     "description": "Tiras de lomo glaseadas en una salsa de naranja y soja que brilla. Veinticinco minutos y parece de restaurante.",
     "mainIngredients": [
@@ -30400,7 +31398,79 @@
     ],
     "tecnica": "sarten",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "stepsRich": [
+      {
+        "text": "Pelar y rallar {{Jengibre fresco}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar fino {{Ajo}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Naranja}} y reservar el zumo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Lomo de cerdo en filetes}} en tiras de unos 2 cm de grosor.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de girasol}} en {{@Sartén}} a fuego fuerte hasta que humee.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar las tiras de lomo sin moverlas hasta que estén doradas por un lado, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a las tiras y dorar el lado contrario hasta que estén doradas, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la carne y reservar en un plato.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado y el jengibre rallado en la misma sartén a fuego medio hasta que estén aromáticos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el zumo de naranja, {{Salsa de soja}} y {{Miel}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Reducir la salsa a fuego medio hasta que nape la cuchara, sin dejar de vigilar.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Devolver las tiras de lomo a la sartén y remover para que se glaseen bien con la salsa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar {{Semillas de sésamo}} en una sartén seca a fuego medio hasta que estén doradas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el cerdo glaseado con la salsa y espolvorear las semillas de sésamo tostadas por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "type": "principal",
@@ -30471,12 +31541,18 @@
       }
     ],
     "steps": [
-      "Separar el brócoli en ramilletes y escaldarlo 3 minutos en agua hirviendo. Escurrir bien.",
-      "Cortar la ternera en tiras muy finas contra la fibra.",
-      "Calentar el aceite de girasol hasta que humee y marcar la carne 2 minutos, sin removerla al principio.",
-      "Añadir el ajo y el jengibre picados y saltear 30 segundos.",
-      "Incorporar el brócoli y la salsa de soja, y saltear 2 minutos más a fuego fuerte.",
-      "Terminar fuera del fuego con el aceite de sésamo y las semillas."
+      "Separar brócoli en ramilletes pequeños y uniformes.",
+      "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
+      "Escaldar los ramilletes de brócoli en el agua hirviendo hasta que estén tiernos pero firmes.",
+      "Escurrir el brócoli escaldado y reservar.",
+      "Cortar filetes finos de ternera en tiras muy finas contra la fibra.",
+      "Picar ajo y jengibre fresco muy finos.",
+      "Calentar aceite de girasol en sartén a fuego fuerte hasta que humee.",
+      "Saltear las tiras de ternera sin remover hasta que se doren por un lado, unos 2 min.",
+      "Añadir el ajo picado y el jengibre picado y saltear a fuego fuerte hasta que suelten el aroma.",
+      "Incorporar el brócoli escurrido y salsa de soja y saltear a fuego fuerte removiendo continuamente.",
+      "Retirar la sartén del fuego y añadir aceite de sésamo.",
+      "Servir el salteado y terminar con semillas de sésamo por encima."
     ],
     "description": "Salteado rápido de sartén muy caliente: la ternera jugosa y el brócoli con su punto. Veinte minutos de principio a fin.",
     "mainIngredients": [
@@ -30484,6 +31560,68 @@
     ],
     "tecnica": "sarten",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "stepsRich": [
+      {
+        "text": "Separar {{Brócoli}} en ramilletes pequeños y uniformes.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Escaldar los ramilletes de brócoli en el agua hirviendo hasta que estén tiernos pero firmes.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el brócoli escaldado y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Filetes finos de ternera}} en tiras muy finas contra la fibra.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} y {{Jengibre fresco}} muy finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de girasol}} en {{@Sartén}} a fuego fuerte hasta que humee.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear las tiras de ternera sin remover hasta que se doren por un lado, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y el jengibre picado y saltear a fuego fuerte hasta que suelten el aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el brócoli escurrido y {{Salsa de soja}} y saltear a fuego fuerte removiendo continuamente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego y añadir {{Aceite de sésamo}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el salteado y terminar con {{Semillas de sésamo}} por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

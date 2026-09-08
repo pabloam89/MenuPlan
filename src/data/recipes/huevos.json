@@ -12650,18 +12650,63 @@
       }
     ],
     "steps": [
-      "Saltear el bacon en tiras en una sartén hasta que esté dorado y suelte su grasa.",
-      "Limpiar y laminar los champiñones, añadirlos a la sartén y saltear hasta que se doren.",
-      "Batir los huevos con una pizca de sal.",
-      "Verter el huevo batido sobre el bacon y los champiñones, remover a fuego medio hasta que cuaje al gusto.",
-      "Servir caliente."
+      "Limpiar champiñones con un paño húmedo y laminar.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Añadir bacon en tiras y saltear hasta que esté dorado y haya soltado su grasa.",
+      "Incorporar los champiñones laminados y saltear hasta que estén dorados y sin agua.",
+      "Batir huevo en un bol hasta que estén homogéneos.",
+      "Bajar el fuego a suave, verter el huevo batido sobre el bacon y los champiñones.",
+      "Remover con movimientos lentos y continuos hasta que el huevo cuaje al gusto.",
+      "Servir de inmediato en el plato."
     ],
     "description": "Revuelto de huevo con bacon crujiente y champiñones salteados.",
     "estrella": true,
     "mainIngredients": [
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "stepsRich": [
+      {
+        "text": "Limpiar {{Champiñones}} con un paño húmedo y laminar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Bacon en tiras}} y saltear hasta que esté dorado y haya soltado su grasa.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar los champiñones laminados y saltear hasta que estén dorados y sin agua.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que estén homogéneos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Bajar el fuego a suave, verter el huevo batido sobre el bacon y los champiñones.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con movimientos lentos y continuos hasta que el huevo cuaje al gusto.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato en el plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "huevos_084",
@@ -12709,18 +12754,81 @@
       }
     ],
     "steps": [
-      "Cortar los espárragos en trozos, quitando la parte más dura del tallo.",
-      "Saltear los espárragos con la cebolla picada en una sartén con aceite hasta que estén tiernos.",
-      "Batir los huevos, mezclar con los espárragos salteados y salpimentar.",
-      "Cuajar la mezcla en la sartén a fuego medio, dando la vuelta con ayuda de un plato.",
-      "Servir en porciones."
+      "Cortar espárragos trigueros en trozos de 3-4 cm, desechando la parte dura del tallo.",
+      "Picar cebolla en trozos finos.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada hasta que esté transparente.",
+      "Añadir los espárragos y saltear hasta que estén tiernos.",
+      "Batir huevo en un bol hasta que estén homogéneos.",
+      "Añadir los espárragos y la cebolla al bol con los huevos batidos.",
+      "Salpimentar la mezcla y remover para integrar.",
+      "Verter la mezcla en la sartén con un chorrito de aceite de oliva y cuajar a fuego medio.",
+      "Dar la vuelta a la tortilla con ayuda de un plato y cuajar por el otro lado hasta que esté a punto.",
+      "Servir la tortilla cortada en porciones."
     ],
     "description": "Tortilla cuajada de espárragos trigueros y cebolla.",
     "estrella": true,
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Espárragos trigueros}} en trozos de 3-4 cm, desechando la parte dura del tallo.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} en trozos finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los espárragos y saltear hasta que estén tiernos.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que estén homogéneos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir los espárragos y la cebolla al bol con los huevos batidos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar la mezcla y remover para integrar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter la mezcla en la sartén con un chorrito de aceite de oliva y cuajar a fuego medio.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a la tortilla con ayuda de un plato y cuajar por el otro lado hasta que esté a punto.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la tortilla cortada en porciones.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "huevos_085",
@@ -12771,16 +12879,77 @@
       }
     ],
     "steps": [
-      "Pelar y cortar las patatas en rodajas finas.",
-      "Freír las patatas a fuego medio en abundante aceite hasta que estén tiernas y doradas.",
-      "Freír el chorizo en rodajas en la misma sartén hasta que esté crujiente.",
-      "Freír los huevos hasta que la clara esté cuajada y la yema líquida.",
-      "Servir todo junto."
+      "Pelar patatas y cortar en rodajas finas de unos 3 mm.",
+      "Calentar aceite de oliva en sartén grande a fuego medio hasta que esté caliente.",
+      "Freír las patatas en el aceite caliente hasta que estén tiernas y doradas, unos 12 min.",
+      "Cortar chorizo en rodajas de unos 5 mm.",
+      "Retirar las patatas con una espumadera y escurrir sobre papel absorbente. Reservar.",
+      "Freír las rodajas de chorizo en la misma sartén a fuego medio hasta que estén crujientes, unos 3 min.",
+      "Retirar el chorizo y escurrir sobre papel absorbente. Reservar.",
+      "Freír huevo de uno en uno en el aceite restante a fuego medio hasta que la clara esté cuajada y la yema líquida.",
+      "Servir las patatas como base, colocar los huevos encima y distribuir el chorizo crujiente alrededor."
     ],
     "description": "Huevos fritos con patatas y chorizo crujiente, plato de siempre.",
     "estrella": true,
     "tecnica": "sarten",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patatas}} y cortar en rodajas finas de unos 3 mm.",
+        "minutes": 5,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} grande a fuego medio hasta que esté caliente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Freír las patatas en el aceite caliente hasta que estén tiernas y doradas, unos 12 min.",
+        "minutes": 12,
+        "kind": "pasivo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Cortar {{Chorizo}} en rodajas de unos 5 mm.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 2
+      },
+      {
+        "text": "Retirar las patatas con una espumadera y escurrir sobre papel absorbente. Reservar.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Freír las rodajas de chorizo en la misma sartén a fuego medio hasta que estén crujientes, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Retirar el chorizo y escurrir sobre papel absorbente. Reservar.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Freír {{Huevo}} de uno en uno en el aceite restante a fuego medio hasta que la clara esté cuajada y la yema líquida.",
+        "minutes": 4,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir las patatas como base, colocar los huevos encima y distribuir el chorizo crujiente alrededor.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "huevos_086",
@@ -12832,10 +13001,14 @@
       }
     ],
     "steps": [
-      "Batir los huevos con el jamón en tacos y el queso rallado, salpimentar.",
-      "Calentar aceite en una sartén y verter la mezcla.",
-      "Cuajar a fuego medio-bajo, dando la vuelta con ayuda de un plato.",
-      "Cuajar por el otro lado y servir en porciones."
+      "Cascar huevo en un bol amplio y batir con un tenedor hasta que la yema y la clara queden integradas.",
+      "Añadir jamón cocido en tacos y queso curado rallado al huevo batido y mezclar hasta distribuir de forma uniforme.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente pero sin humear.",
+      "Verter la mezcla de huevo en la sartén y remover suavemente el centro con una espátula hasta que el huevo empiece a cuajar.",
+      "Dejar cuajar a fuego suave, sin remover, hasta que los bordes estén firmes y el centro ligeramente cremoso.",
+      "Apoyar un plato plano sobre la sartén y dar la vuelta a la tortilla con un giro rápido y firme.",
+      "Deslizar la tortilla de nuevo a la sartén por el lado crudo y cocer a fuego suave hasta que esté cuajada al gusto.",
+      "Deslizar la tortilla sobre una tabla o plato de servir y cortar en porciones antes de llevar a la mesa."
     ],
     "description": "Tortilla redonda cuajada con jamón en tacos y queso curado.",
     "estrella": true,
@@ -12843,7 +13016,49 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "stepsRich": [
+      {
+        "text": "Cascar {{Huevo}} en un bol amplio y batir con un tenedor hasta que la yema y la clara queden integradas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Jamón cocido en tacos}} y {{Queso curado rallado}} al huevo batido y mezclar hasta distribuir de forma uniforme.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté caliente pero sin humear.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la mezcla de huevo en la sartén y remover suavemente el centro con una espátula hasta que el huevo empiece a cuajar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar cuajar a fuego suave, sin remover, hasta que los bordes estén firmes y el centro ligeramente cremoso.",
+        "minutes": 2,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Apoyar un plato plano sobre la sartén y dar la vuelta a la tortilla con un giro rápido y firme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Deslizar la tortilla de nuevo a la sartén por el lado crudo y cocer a fuego suave hasta que esté cuajada al gusto.",
+        "minutes": 2,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Deslizar la tortilla sobre una tabla o plato de servir y cortar en porciones antes de llevar a la mesa.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "huevos_087",
@@ -12894,10 +13109,14 @@
       }
     ],
     "steps": [
-      "Cortar los pimientos en tiras y saltear en aceite hasta que estén tiernos.",
-      "Freír el chorizo en rodajas hasta que suelte su grasa y esté dorado.",
-      "Freír los huevos en el mismo aceite hasta que la clara esté cuajada.",
-      "Servir todo junto."
+      "Cortar pimiento verde en tiras finas.",
+      "Cortar chorizo en rodajas de 1 cm.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír las tiras de pimiento verde hasta que estén tiernas.",
+      "Añadir las rodajas de chorizo y sofreír hasta que estén doradas y suelten su grasa.",
+      "Retirar el chorizo y los pimientos y reservar en un plato.",
+      "Freír huevo de uno en uno en el aceite de la sartén a fuego medio hasta que la clara esté cuajada.",
+      "Servir los huevos fritos junto al chorizo y los pimientos reservados."
     ],
     "description": "Huevos fritos con chorizo y pimiento verde salteado.",
     "estrella": true,
@@ -12905,7 +13124,49 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pimiento verde}} en tiras finas.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Chorizo}} en rodajas de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír las tiras de pimiento verde hasta que estén tiernas.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las rodajas de chorizo y sofreír hasta que estén doradas y suelten su grasa.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el chorizo y los pimientos y reservar en un plato.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír {{Huevo}} de uno en uno en el aceite de la sartén a fuego medio hasta que la clara esté cuajada.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los huevos fritos junto al chorizo y los pimientos reservados.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "huevos_088",
@@ -12962,10 +13223,18 @@
       }
     ],
     "steps": [
-      "Picar la cebolla y el tomate, saltear brevemente en una sartén con aceite.",
-      "Batir los huevos, mezclar con el atún escurrido y el sofrito de tomate.",
-      "Cuajar en la sartén por ambos lados con ayuda de un plato.",
-      "Servir en porciones."
+      "Picar cebolla en dados muy finos.",
+      "Cortar tomate en dados pequeños.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada hasta que esté transparente.",
+      "Añadir el tomate en dados y sofreír hasta que pierda el agua.",
+      "Escurrir atún en lata y reservar.",
+      "Batir huevo en un bol hasta que estén bien integrados.",
+      "Añadir el atún escurrido y el sofrito al bol con el huevo batido.",
+      "Mezclar todo hasta obtener una mezcla homogénea.",
+      "Verter la mezcla en la sartén a fuego medio y cuajar hasta que los bordes estén firmes.",
+      "Dar la vuelta a la tortilla con un plato y cuajar por el otro lado hasta que esté hecha.",
+      "Servir la tortilla cortada en porciones."
     ],
     "description": "Tortilla cuajada con atún y un sofrito ligero de tomate.",
     "estrella": true,
@@ -12973,7 +13242,69 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} en dados muy finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate en dados y sofreír hasta que pierda el agua.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir {{Atún en lata}} y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que estén bien integrados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el atún escurrido y el sofrito al bol con el huevo batido.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar todo hasta obtener una mezcla homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter la mezcla en la sartén a fuego medio y cuajar hasta que los bordes estén firmes.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a la tortilla con un plato y cuajar por el otro lado hasta que esté hecha.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la tortilla cortada en porciones.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "huevos_089",
@@ -13024,16 +13355,77 @@
       }
     ],
     "steps": [
-      "Pelar y cortar las patatas en bastones, freír en abundante aceite hasta que estén doradas.",
-      "Freír las salchichas hasta que estén doradas por todos los lados.",
-      "Freír los huevos hasta que la clara esté cuajada.",
-      "Servir todo junto."
+      "Pelar patatas y cortar en bastones de unos 1 cm de grosor.",
+      "Calentar aceite de oliva en una sartén grande a fuego fuerte hasta que esté bien caliente.",
+      "Freír las patatas en el aceite caliente a fuego medio-fuerte hasta que estén doradas y tiernas.",
+      "Retirar las patatas con una espumadera y reservar sobre papel absorbente.",
+      "Cortar salchichas frescas por la mitad a lo largo.",
+      "Freír las salchichas en la misma sartén a fuego medio hasta que estén doradas por todos los lados.",
+      "Retirar las salchichas y reservar en un plato.",
+      "Freír huevo de uno en uno en la sartén a fuego medio hasta que la clara esté cuajada y el borde dorado.",
+      "Servir los huevos junto a las salchichas y las patatas fritas en cada plato."
     ],
     "description": "Huevos fritos, salchichas y patatas fritas, plato de siempre para los peques y no tan peques.",
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "sarten",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patatas}} y cortar en bastones de unos 1 cm de grosor.",
+        "minutes": 4,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en una sartén grande a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Freír las patatas en el aceite caliente a fuego medio-fuerte hasta que estén doradas y tiernas.",
+        "minutes": 12,
+        "kind": "pasivo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Retirar las patatas con una espumadera y reservar sobre papel absorbente.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Cortar {{Salchichas frescas}} por la mitad a lo largo.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Freír las salchichas en la misma sartén a fuego medio hasta que estén doradas por todos los lados.",
+        "minutes": 6,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Retirar las salchichas y reservar en un plato.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Freír {{Huevo}} de uno en uno en la sartén a fuego medio hasta que la clara esté cuajada y el borde dorado.",
+        "minutes": 3,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir los huevos junto a las salchichas y las patatas fritas en cada plato.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "type": "principal",
@@ -13109,13 +13501,25 @@
       }
     ],
     "steps": [
-      "Asar los pimientos hasta que la piel se ampolle, taparlos 10 minutos y pelarlos.",
-      "Abrirlos con cuidado por un lado, retirar las semillas y rellenarlos con el queso en bastones.",
-      "Asar el tomate con la cebolla y el ajo, triturar y colar. Salar: esa es la salsa.",
-      "Separar las claras y montarlas a punto de nieve. Incorporar las yemas con movimientos suaves.",
-      "Pasar los chiles por harina y luego por el huevo montado.",
-      "Freír en aceite caliente hasta que estén dorados y escurrir sobre papel.",
-      "Servir sobre la salsa de tomate bien caliente."
+      "Calentar el horno a 220 °C con el grill activado.",
+      "Cortar tomate maduro, cebolla y ajo por la mitad y disponerlos en una bandeja.",
+      "Regar la bandeja con aceite de oliva y hornear bajo el grill hasta que las pieles se chamusquen.",
+      "Disponer pimiento verde en otra bandeja y asar bajo el grill hasta que la piel se ampolle por todos los lados.",
+      "Retirar los pimientos del horno y taparlos con un paño o bolsa durante 10 min para que suden.",
+      "Retirar los tomates, la cebolla y el ajo del horno y triturar hasta obtener una salsa homogénea.",
+      "Colar la salsa sobre un cazo, salpimentar con sal y mantener a fuego suave hasta servir.",
+      "Pelar los pimientos con cuidado, abrirlos por un lado con un corte longitudinal y retirar las semillas.",
+      "Cortar queso fresco en bastones y rellenar el interior de cada pimiento con ellos.",
+      "Cerrar con cuidado cada pimiento relleno presionando los bordes para que no se abra.",
+      "Separar las claras de huevo de las yemas y reservar ambas en boles distintos.",
+      "Montar las claras a punto de nieve firme con unas varillas.",
+      "Incorporar las yemas a las claras montadas con movimientos suaves y envolventes hasta integrar.",
+      "Extender harina en un plato llano y pasar cada pimiento relleno por la harina cubriéndolo bien.",
+      "Sacudir el exceso de harina y sumergir cada pimiento en el huevo montado hasta cubrirlo por completo.",
+      "Calentar el aceite de oliva restante en una sartén a fuego medio hasta que esté bien caliente.",
+      "Freír los pimientos rebozados hasta que estén dorados por todos los lados, girándolos con cuidado.",
+      "Retirar los pimientos fritos y escurrir sobre papel absorbente.",
+      "Servir los pimientos sobre la salsa de tomate bien caliente repartida en el fondo del plato."
     ],
     "description": "Pimientos asados y rellenos de queso, rebozados en huevo montado y servidos sobre una salsa de tomate asado. Un clásico que impresiona.",
     "mainIngredients": [
@@ -13124,6 +13528,103 @@
     ],
     "tecnica": "horno",
     "cocina": "mexicana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "stepsRich": [
+      {
+        "text": "Calentar el horno a 220 °C con el grill activado.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}}, {{Cebolla}} y {{Ajo}} por la mitad y disponerlos en una bandeja.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar la bandeja con {{Aceite de oliva|chorrito}} y hornear bajo el grill hasta que las pieles se chamusquen.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Disponer {{Pimiento verde}} en otra bandeja y asar bajo el grill hasta que la piel se ampolle por todos los lados.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar los pimientos del horno y taparlos con un paño o bolsa durante 10 min para que suden.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Retirar los tomates, la cebolla y el ajo del horno y triturar hasta obtener una salsa homogénea.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Colar la salsa sobre un cazo, salpimentar con {{Sal|gusto}} y mantener a fuego suave hasta servir.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Pelar los pimientos con cuidado, abrirlos por un lado con un corte longitudinal y retirar las semillas.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Queso fresco}} en bastones y rellenar el interior de cada pimiento con ellos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cerrar con cuidado cada pimiento relleno presionando los bordes para que no se abra.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Separar las claras de {{Huevo}} de las yemas y reservar ambas en boles distintos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Montar las claras a punto de nieve firme con unas varillas.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las yemas a las claras montadas con movimientos suaves y envolventes hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender {{Harina}} en un plato llano y pasar cada pimiento relleno por la harina cubriéndolo bien.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Sacudir el exceso de harina y sumergir cada pimiento en el huevo montado hasta cubrirlo por completo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar el aceite de oliva restante en una {{@Sartén}} a fuego medio hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los pimientos rebozados hasta que estén dorados por todos los lados, girándolos con cuidado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los pimientos fritos y escurrir sobre papel absorbente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los pimientos sobre la salsa de tomate bien caliente repartida en el fondo del plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

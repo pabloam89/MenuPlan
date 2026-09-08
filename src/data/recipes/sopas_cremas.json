@@ -14364,10 +14364,18 @@
       }
     ],
     "steps": [
-      "Pelar y trocear las verduras, cocer en agua o caldo con sal 20 min hasta que estén tiernas.",
-      "Triturar hasta obtener una crema fina, rectificar de sal.",
-      "Cortar el pan en dados y tostar en una sartén con un poco de aceite hasta dorar.",
-      "Servir el puré con los picatostes por encima."
+      "Pelar patata y zanahoria, luego cortar en trozos medianos.",
+      "Cortar puerro en rodajas y calabacín en trozos medianos.",
+      "Llevar a ebullición una olla con agua y sal, añadir todas las verduras troceadas.",
+      "Cocer las verduras a fuego medio durante 20 min, hasta que estén tiernas.",
+      "Cortar pan de molde en dados pequeños de aproximadamente 1 cm.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Dorar los dados de pan en el aceite caliente, removiendo, hasta que estén dorados.",
+      "Retirar los picatostes de la sartén y reservar sobre papel absorbente.",
+      "Escurrir las verduras cocidas, reservando un poco del agua de cocción.",
+      "Triturar las verduras escurridas hasta obtener una crema fina y homogénea.",
+      "Añadir agua de cocción reservada si el puré ha quedado demasiado espeso, y remover.",
+      "Servir el puré en boles y repartir los picatostes por encima."
     ],
     "description": "Puré casero de verduras de siempre, con picatostes crujientes.",
     "estrella": true,
@@ -14375,7 +14383,72 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y {{Zanahoria}}, luego cortar en trozos medianos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Puerro}} en rodajas y {{Calabacín}} en trozos medianos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua y sal, añadir todas las verduras troceadas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer las verduras a fuego medio durante 20 min, hasta que estén tiernas.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Pan de molde}} en dados pequeños de aproximadamente 1 cm.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Dorar los dados de pan en el aceite caliente, removiendo, hasta que estén dorados.",
+        "minutes": 4,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Retirar los picatostes de la sartén y reservar sobre papel absorbente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las verduras cocidas, reservando un poco del agua de cocción.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar las verduras escurridas hasta obtener una crema fina y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir agua de cocción reservada si el puré ha quedado demasiado espeso, y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré en boles y repartir los picatostes por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_083",
@@ -14432,14 +14505,48 @@
       }
     ],
     "steps": [
-      "Cocer los huevos 10 min, enfriar, pelar y picar.",
-      "Llevar el caldo a ebullición, añadir los fideos y cocer 4-5 min.",
-      "Incorporar el jamón en tacos y el huevo picado.",
-      "Servir espolvoreado con perejil."
+      "Cocer huevo en agua a fuego fuerte durante 10 min hasta que estén duros.",
+      "Llevar caldo de pollo a ebullición en un cazo a fuego fuerte.",
+      "Enfriar los huevos bajo el grifo, pelar y picar en trozos pequeños.",
+      "Añadir fideos finos al caldo cuando rompa a hervir y cocer 5 min a fuego medio.",
+      "Incorporar jamón serrano en tacos y el huevo picado al caldo con los fideos.",
+      "Servir la sopa en boles y espolvorear perejil por encima."
     ],
     "description": "Sopa de fideos con jamón y huevo duro picado, la sopa de toda la vida.",
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "stepsRich": [
+      {
+        "text": "Cocer {{Huevo}} en agua a fuego fuerte durante 10 min hasta que estén duros.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Llevar {{Caldo de pollo}} a ebullición en un cazo a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Enfriar los huevos bajo el grifo, pelar y picar en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Fideos finos}} al caldo cuando rompa a hervir y cocer 5 min a fuego medio.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Incorporar {{Jamón serrano en tacos}} y el huevo picado al caldo con los fideos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la sopa en boles y espolvorear {{Perejil|gusto}} por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_084",
@@ -14498,17 +14605,75 @@
       }
     ],
     "steps": [
-      "Cocer la pechuga de pollo con las verduras troceadas en agua con sal 25-30 min hasta que el pollo esté hecho.",
-      "Retirar el pollo, desmenuzarlo y volver a incorporarlo al caldo.",
-      "Añadir los fideos y cocer 4-5 min más.",
-      "Servir caliente."
+      "Pelar zanahoria y cortar en rodajas finas.",
+      "Limpiar puerro y cortar en rodajas finas.",
+      "Cortar apio en trozos pequeños.",
+      "Verter agua en una olla y llevar a ebullición a fuego fuerte.",
+      "Añadir pechuga de pollo entera junto con la zanahoria, el puerro y el apio.",
+      "Cocer a fuego suave durante 25 min hasta que la pechuga esté hecha y las verduras tiernas.",
+      "Retirar la pechuga de pollo del caldo y desmenuzarla en trozos pequeños con la ayuda de 2 tenedores.",
+      "Incorporar el pollo desmenuzado al caldo y remover.",
+      "Añadir fideos finos al caldo y cocer a fuego medio durante 5 min hasta que estén tiernos.",
+      "Servir el caldo bien caliente en boles hondos."
     ],
     "description": "Caldo casero de pollo con verduras y fideos.",
     "estrella": true,
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Puerro}} y cortar en rodajas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Apio}} en trozos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Agua}} en una olla y llevar a ebullición a fuego fuerte.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pechuga de pollo}} entera junto con la zanahoria, el puerro y el apio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave durante 25 min hasta que la pechuga esté hecha y las verduras tiernas.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la pechuga de pollo del caldo y desmenuzarla en trozos pequeños con la ayuda de 2 tenedores.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el pollo desmenuzado al caldo y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Fideos finos}} al caldo y cocer a fuego medio durante 5 min hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el caldo bien caliente en boles hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_085",
@@ -14572,14 +14737,90 @@
       }
     ],
     "steps": [
-      "Sofreír la cebolla picada con aceite hasta transparentar, añadir el tomate y cocinar 5 min.",
-      "Incorporar el caldo de pescado y llevar a ebullición.",
-      "Añadir los fideos y cocer 4 min, incorporar el pescado troceado y cocinar 3-4 min más hasta que esté hecho.",
-      "Tostar el pan en dados y servir la sopa con los picatostes por encima."
+      "Picar cebolla en trozos finos.",
+      "Cortar merluza o pescado blanco en trozos de bocado.",
+      "Cortar pan de molde en dados pequeños y uniformes.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla picada hasta que esté transparente.",
+      "Añadir tomate triturado y sofreír a fuego medio hasta que reduzca.",
+      "Verter caldo de pescado y llevar a ebullición a fuego fuerte.",
+      "Añadir fideos finos y cocer a fuego medio hasta que estén tiernos.",
+      "Incorporar el pescado troceado y cocer hasta que esté hecho.",
+      "Retirar la olla del fuego y tapar para mantener el calor.",
+      "Calentar un chorrito de aceite de oliva en sartén a fuego fuerte.",
+      "Dorar los dados de pan en la sartén hasta que estén crujientes y dorados.",
+      "Servir la sopa en boles y colocar los picatostes por encima en el momento."
     ],
     "description": "Sopa de pescado sencilla con fideos y picatostes, sin mariscos caros.",
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} en trozos finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Merluza o pescado blanco}} en trozos de bocado.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pan de molde}} en dados pequeños y uniformes.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Caldo de pescado}} y llevar a ebullición a fuego fuerte.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Fideos finos}} y cocer a fuego medio hasta que estén tiernos.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el pescado troceado y cocer hasta que esté hecho.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la olla del fuego y tapar para mantener el calor.",
+        "minutes": 1,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar un chorrito de aceite de oliva en {{@Sartén}} a fuego fuerte.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los dados de pan en la sartén hasta que estén crujientes y dorados.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la sopa en boles y colocar los picatostes por encima en el momento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_086",
@@ -14635,10 +14876,14 @@
       }
     ],
     "steps": [
-      "Llevar el caldo a ebullición, añadir la zanahoria y la judía verde troceadas, cocer 10 min.",
-      "Incorporar la pasta y cocer 8-10 min más hasta que esté al dente.",
-      "Añadir el jamón en tacos al final.",
-      "Servir caliente."
+      "Pelar zanahoria y cortar en rodajas finas.",
+      "Cortar judía verde en trozos de unos 3 cm.",
+      "Llevar caldo de verduras a ebullición en una olla a fuego fuerte.",
+      "Añadir la zanahoria y la judía verde cuando el caldo rompa a hervir.",
+      "Cocer a fuego medio hasta que las verduras estén tiernas.",
+      "Añadir pasta pequeña y cocer a fuego medio hasta que esté al dente.",
+      "Incorporar jamón serrano en tacos y remover para integrar.",
+      "Servir la sopa caliente en boles."
     ],
     "description": "Sopa ligera de verduras con pasta pequeña y jamón serrano.",
     "estrella": true,
@@ -14646,7 +14891,49 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Judía verde}} en trozos de unos 3 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar {{Caldo de verduras}} a ebullición en una olla a fuego fuerte.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y la judía verde cuando el caldo rompa a hervir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que las verduras estén tiernas.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Pasta pequeña}} y cocer a fuego medio hasta que esté al dente.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Incorporar {{Jamón serrano en tacos}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la sopa caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "type": "completo",
@@ -14724,12 +15011,23 @@
       }
     ],
     "steps": [
-      "Cortar las tortillas en tiras finas y freírlas en el aceite hasta que estén doradas y crujientes. Reservar sobre papel absorbente.",
-      "En la misma cazuela, pochar la cebolla y el ajo picados hasta que estén transparentes.",
-      "Añadir el tomate troceado y cocinar 10 minutos, aplastándolo con la cuchara.",
-      "Triturar el sofrito y devolverlo a la cazuela con el caldo. Cocer 10 minutos a fuego suave y salar.",
-      "Servir la sopa bien caliente con las tiras de tortilla por encima.",
-      "Coronar con el aguacate en dados, una cucharada de queso crema y el cilantro picado."
+      "Cortar tortillas de maíz en tiras finas de unos 5 mm.",
+      "Calentar aceite de oliva en una cazuela a fuego fuerte hasta que esté bien caliente.",
+      "Freír las tiras de tortilla en el aceite caliente hasta que estén doradas y crujientes.",
+      "Retirar las tiras de tortilla y reservar sobre papel absorbente.",
+      "Picar cebolla y ajo finamente.",
+      "Sofreír la cebolla picada y el ajo picado en la misma cazuela a fuego medio hasta que estén transparentes.",
+      "Cortar tomate maduro en trozos irregulares.",
+      "Añadir el tomate troceado al sofrito y cocer a fuego medio, aplastando con una cuchara de vez en cuando.",
+      "Cortar aguacate en dados pequeños.",
+      "Triturar el sofrito de tomate con un túrmix hasta obtener una crema lisa.",
+      "Devolver el sofrito triturado a la cazuela y añadir caldo de pollo.",
+      "Llevar a ebullición y cocer a fuego suave hasta que la sopa esté bien integrada.",
+      "Añadir sal y remover para integrar.",
+      "Picar cilantro fresco finamente.",
+      "Servir la sopa bien caliente en boles y disponer las tiras de tortilla por encima.",
+      "Coronar cada bol con los dados de aguacate y una cucharada de queso crema.",
+      "Terminar con el cilantro picado por encima y servir de inmediato."
     ],
     "description": "La sopa mexicana de siempre: caldo de tomate suave, tiras de tortilla crujientes por encima y el contraste fresco del aguacate y la crema.",
     "mainIngredients": [
@@ -14742,6 +15040,96 @@
     "mainBase": "pan",
     "extraProteins": [
       "pollo"
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Tortillas de maíz}} en tiras finas de unos 5 mm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una cazuela a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las tiras de tortilla en el aceite caliente hasta que estén doradas y crujientes.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las tiras de tortilla y reservar sobre papel absorbente.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} y {{Ajo}} finamente.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el ajo picado en la misma cazuela a fuego medio hasta que estén transparentes.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} en trozos irregulares.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 5
+      },
+      {
+        "text": "Añadir el tomate troceado al sofrito y cocer a fuego medio, aplastando con una cuchara de vez en cuando.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Aguacate}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 7
+      },
+      {
+        "text": "Triturar el sofrito de tomate con un túrmix hasta obtener una crema lisa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Devolver el sofrito triturado a la cazuela y añadir {{Caldo de pollo}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar a ebullición y cocer a fuego suave hasta que la sopa esté bien integrada.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Picar {{Cilantro fresco}} finamente.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 11
+      },
+      {
+        "text": "Servir la sopa bien caliente en boles y disponer las tiras de tortilla por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Coronar cada bol con los dados de aguacate y una cucharada de {{Queso crema}}.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Terminar con el cilantro picado por encima y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ]
   },
   {
@@ -14811,18 +15199,94 @@
       }
     ],
     "steps": [
-      "Pochar la cebolla y el ajo picados en el aceite, a fuego suave, hasta que estén transparentes.",
-      "Añadir la calabaza en dados y el chile sin semillas, muy picado. Rehogar 5 minutos.",
-      "Cubrir con el caldo y cocer 20 minutos, hasta que la calabaza esté muy tierna.",
-      "Triturar hasta que quede fina y rectificar de sal.",
-      "Servir con los cacahuetes picados por encima, que es lo que le da el crujiente."
+      "Pelar cebolla y ajo, y picar ambos fino.",
+      "Retirar las semillas de chile fresco y picarlo fino.",
+      "Pelar calabaza y cortarla en dados de unos 3 cm.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla y el ajo picados hasta que estén transparentes.",
+      "Añadir la calabaza en dados y el chile picado a la olla.",
+      "Sofreír la calabaza y el chile durante 5 min, removiendo a menudo.",
+      "Añadir caldo de verduras y llevar a ebullición a fuego fuerte.",
+      "Cocer a fuego suave hasta que la calabaza esté muy tierna.",
+      "Picar cacahuetes tostados fino.",
+      "Triturar la sopa con un túrmix hasta obtener una crema fina.",
+      "Añadir sal y remover para integrar.",
+      "Servir la crema en boles y repartir los cacahuetes picados por encima."
     ],
     "description": "Dulce por la calabaza, con un punto justo de picante y el crujido de los cacahuetes. Una crema que no aburre.",
     "mainIngredients": [
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y {{Ajo}}, y picar ambos fino.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar las semillas de {{Chile fresco}} y picarlo fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Calabaza}} y cortarla en dados de unos 3 cm.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo picados hasta que estén transparentes.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la calabaza en dados y el chile picado a la olla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la calabaza y el chile durante 5 min, removiendo a menudo.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Caldo de verduras}} y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que la calabaza esté muy tierna.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Cacahuetes tostados}} fino.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 8
+      },
+      {
+        "text": "Triturar la sopa con un túrmix hasta obtener una crema fina.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema en boles y repartir los cacahuetes picados por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "type": "completo",
@@ -14883,17 +15347,62 @@
       }
     ],
     "steps": [
-      "Calentar el caldo sin que llegue a hervir: el miso no debe cocer o pierde el aroma.",
-      "Disolver el miso en un cazo con un poco de ese caldo caliente, hasta que no queden grumos.",
-      "Devolverlo a la olla y añadir la salsa de soja.",
-      "Cortar el tofu en dados y añadirlo. Dejar 3 minutos para que se caliente.",
-      "Servir con la cebolleta en aros finos y unas gotas de aceite de sésamo."
+      "Cortar tofu firme en dados de unos 2 cm.",
+      "Cortar cebolleta en aros finos y reservar.",
+      "Calentar caldo de verduras en una olla a fuego medio hasta que esté caliente pero sin que rompa a hervir.",
+      "Disolver miso en un cazo pequeño con un cacillo del caldo caliente, removiendo hasta que no queden grumos.",
+      "Añadir el miso disuelto a la olla con el caldo y remover para integrarlo.",
+      "Añadir salsa de soja y remover.",
+      "Añadir los dados de tofu firme y calentar a fuego suave durante 3 min, sin que la sopa hierva.",
+      "Servir la sopa en cuencos, repartir la cebolleta en aros por encima y añadir aceite de sésamo."
     ],
     "description": "Ligera, salada y reconfortante. Quince minutos y una cena que sienta bien.",
     "mainIngredients": [
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Tofu firme}} en dados de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Cebolleta}} en aros finos y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Caldo de verduras}} en una olla a fuego medio hasta que esté caliente pero sin que rompa a hervir.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Disolver {{Miso}} en un cazo pequeño con un cacillo del caldo caliente, removiendo hasta que no queden grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el miso disuelto a la olla con el caldo y remover para integrarlo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Salsa de soja}} y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los dados de tofu firme y calentar a fuego suave durante 3 min, sin que la sopa hierva.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir la sopa en cuencos, repartir la cebolleta en aros por encima y añadir {{Aceite de sésamo|chorrito}}.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

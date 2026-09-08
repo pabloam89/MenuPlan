@@ -20070,10 +20070,18 @@
       }
     ],
     "steps": [
-      "Escurrir bien el maíz y ponerlo en una ensaladera.",
-      "Cortar el aguacate en dados y los cherries por la mitad. Picar la cebolla morada muy fina.",
-      "Mezclarlo todo con cuidado para no deshacer el aguacate.",
-      "Aliñar con el zumo de la lima, el aceite y la sal, y terminar con el cilantro picado."
+      "Escurrir maíz y reservar en una ensaladera grande.",
+      "Cortar aguacate por la mitad, retirar el hueso y pelar.",
+      "Cortar el aguacate en dados de unos 2 cm.",
+      "Cortar tomate cherry por la mitad.",
+      "Picar cebolla morada muy fina.",
+      "Picar cilantro fresco fino.",
+      "Exprimir lima y reservar el zumo.",
+      "Añadir el aguacate, el tomate cherry y la cebolla morada al maíz en la ensaladera.",
+      "Mezclar con cuidado hasta que todo quede integrado sin deshacer el aguacate.",
+      "Añadir aceite de oliva, el zumo de lima y sal sobre la ensalada.",
+      "Remover suavemente para distribuir el aliño de manera uniforme.",
+      "Servir con el cilantro picado por encima."
     ],
     "description": "Fresca, crujiente y sin encender el fuego. El maíz dulce y la lima hacen que se coma sola.",
     "mainIngredients": [
@@ -20081,7 +20089,69 @@
     ],
     "tecnica": "crudo",
     "montaje": true,
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "stepsRich": [
+      {
+        "text": "Escurrir {{Maíz}} y reservar en una ensaladera grande.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Aguacate}} por la mitad, retirar el hueso y pelar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar el aguacate en dados de unos 2 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate cherry}} por la mitad.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla morada}} muy fina.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cilantro fresco}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Lima}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el aguacate, el tomate cherry y la cebolla morada al maíz en la ensaladera.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar con cuidado hasta que todo quede integrado sin deshacer el aguacate.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}}, el zumo de lima y {{Sal|gusto}} sobre la ensalada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover suavemente para distribuir el aliño de manera uniforme.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir con el cilantro picado por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "type": "completo",
@@ -20152,10 +20222,15 @@
       }
     ],
     "steps": [
-      "Cortar la col en juliana muy fina y rallar la zanahoria en tiras largas.",
-      "Batir el aceite de sésamo con la salsa de soja, el zumo de lima y la miel.",
-      "Mezclar la verdura con el aliño y dejar reposar 10 minutos, para que ablande un poco.",
-      "Servir con las semillas de sésamo tostadas y la cebolleta en aros."
+      "Cortar col china en juliana muy fina.",
+      "Rallar zanahoria en tiras largas.",
+      "Cortar cebolleta en aros finos.",
+      "Exprimir lima y reservar el zumo.",
+      "Mezclar aceite de sésamo, salsa de soja, el zumo de lima y miel en un bol hasta integrar.",
+      "Añadir la col, la zanahoria y la cebolleta al bol con el aliño y remover hasta que todo quede bien cubierto.",
+      "Dejar reposar 10 min para que las verduras ablanden ligeramente.",
+      "Tostar semillas de sésamo en una sartén a fuego medio hasta que estén doradas, sin aceite.",
+      "Servir la ensalada con las semillas de sésamo tostadas por encima."
     ],
     "description": "Crujiente y con un aliño que engancha: sésamo, soja y lima. Acompaña cualquier cosa y se hace en un momento.",
     "mainIngredients": [
@@ -20163,6 +20238,53 @@
     ],
     "tecnica": "crudo",
     "montaje": true,
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Col china}} en juliana muy fina.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar {{Zanahoria}} en tiras largas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Cebolleta}} en aros finos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Lima}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar {{Aceite de sésamo}}, {{Salsa de soja}}, el zumo de lima y {{Miel}} en un bol hasta integrar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la col, la zanahoria y la cebolleta al bol con el aliño y remover hasta que todo quede bien cubierto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar reposar 10 min para que las verduras ablanden ligeramente.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Tostar {{Semillas de sésamo}} en una sartén a fuego medio hasta que estén doradas, sin aceite.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la ensalada con las semillas de sésamo tostadas por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

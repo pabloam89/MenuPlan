@@ -21867,12 +21867,19 @@
       }
     ],
     "steps": [
-      "Salpimentar los lomos de merluza, pasarlos por harina y después por huevo batido.",
-      "Freír en aceite bien caliente hasta que estén dorados, unos 3-4 min por cada lado.",
-      "Escurrir sobre papel absorbente.",
-      "Laminar el hinojo muy fino y pelar la naranja en gajos.",
-      "Mezclar el hinojo, la naranja y las aceitunas negras, aliñar con un chorrito de aceite.",
-      "Servir la merluza con la ensalada al lado."
+      "Batir huevo en un bol hasta que esté homogéneo y reservar.",
+      "Laminar hinojo muy fino con una mandolina o cuchillo y reservar.",
+      "Pelar naranja al vivo y separar en gajos, reservar.",
+      "Salpimentar merluza en lomos por ambas caras.",
+      "Pasar los lomos por harina, sacudiendo el exceso.",
+      "Pasar los lomos enharinados por el huevo batido hasta que queden bien cubiertos.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír los lomos hasta que estén dorados por un lado, unos 3 min.",
+      "Dar la vuelta a los lomos y freír por el otro lado hasta que estén dorados, unos 3 min.",
+      "Escurrir los lomos sobre papel absorbente y reservar en caliente.",
+      "Mezclar el hinojo laminado, los gajos de naranja y aceitunas negras en un bol.",
+      "Aliñar la ensalada con un chorrito del aceite de oliva restante y remover con suavidad.",
+      "Servir los lomos de merluza con la ensalada de naranja, hinojo y aceitunas negras al lado."
     ],
     "description": "Merluza rebozada a la romana con una ensalada fresca de naranja, hinojo y aceitunas negras.",
     "estrella": true,
@@ -21881,7 +21888,77 @@
       "encurtido"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "stepsRich": [
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que esté homogéneo y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Hinojo}} muy fino con una mandolina o cuchillo y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Naranja}} al vivo y separar en gajos, reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Merluza en lomos}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar los lomos por {{Harina}}, sacudiendo el exceso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar los lomos enharinados por el huevo batido hasta que queden bien cubiertos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los lomos hasta que estén dorados por un lado, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a los lomos y freír por el otro lado hasta que estén dorados, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los lomos sobre papel absorbente y reservar en caliente.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar el hinojo laminado, los gajos de naranja y {{Aceitunas negras}} en un bol.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Aliñar la ensalada con un chorrito del aceite de oliva restante y remover con suavidad.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Servir los lomos de merluza con la ensalada de naranja, hinojo y aceitunas negras al lado.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "pescados_121",
@@ -21934,14 +22011,60 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 200°C.",
-      "Colocar los lomos de salmón en una bandeja de horno, salpimentar.",
-      "Regar con aceite de oliva y zumo de limón, espolvorear con ajo picado y eneldo.",
-      "Hornear 12-15 min hasta que esté hecho por dentro."
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Picar ajo muy fino.",
+      "Exprimir limón y reservar el zumo.",
+      "Colocar lomos de salmón en una bandeja de horno y salpimentar.",
+      "Regar el salmón con aceite de oliva y el zumo de limón reservado.",
+      "Repartir el ajo picado y eneldo sobre los lomos de salmón.",
+      "Hornear la bandeja en el horno a 200 °C durante 13 min, hasta que el salmón esté hecho por dentro.",
+      "Servir los lomos de salmón con el jugo de la bandeja por encima."
     ],
     "description": "Lomos de salmón al horno aromatizados con limón, ajo y eneldo fresco.",
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar {{Lomos de salmón}} en una bandeja de horno y salpimentar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar el salmón con {{Aceite de oliva|chorrito}} y el zumo de limón reservado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir el ajo picado y {{Eneldo|pizca}} sobre los lomos de salmón.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la bandeja en el horno a 200 °C durante 13 min, hasta que el salmón esté hecho por dentro.",
+        "minutes": 13,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir los lomos de salmón con el jugo de la bandeja por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pescados_122",
@@ -21994,15 +22117,61 @@
       }
     ],
     "steps": [
-      "Cortar la cebolla en juliana y pocharla en una sartén con aceite a fuego lento hasta que esté tierna, unos 15 min.",
-      "Añadir el tomate triturado y el vino blanco, cocinar 10 min.",
-      "Salpimentar el atún, incorporarlo a la salsa y cocinar 3-4 min por cada lado.",
-      "Servir caliente con la salsa por encima."
+      "Cortar cebolla en juliana fina.",
+      "Calentar aceite de oliva en sartén a fuego suave.",
+      "Sofreír la cebolla a fuego suave hasta que esté tierna y translúcida.",
+      "Añadir tomate triturado y vino blanco a la cebolla pochada.",
+      "Cocer la salsa a fuego medio hasta que reduzca y espese ligeramente.",
+      "Salpimentar atún fresco por ambas caras justo antes de incorporarlo.",
+      "Añadir el atún a la salsa y cocer a fuego medio durante 3 min por cada cara.",
+      "Servir el atún caliente con la salsa de cebolla y tomate por encima."
     ],
     "description": "Atún fresco cocinado con una salsa de cebolla pochada y tomate.",
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en juliana fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla a fuego suave hasta que esté tierna y translúcida.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y {{Vino blanco}} a la cebolla pochada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la salsa a fuego medio hasta que reduzca y espese ligeramente.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Salpimentar {{Atún fresco}} por ambas caras justo antes de incorporarlo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el atún a la salsa y cocer a fuego medio durante 3 min por cada cara.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el atún caliente con la salsa de cebolla y tomate por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pescados_123",
@@ -22062,11 +22231,14 @@
       }
     ],
     "steps": [
-      "Enharinar los boquerones.",
-      "Freír en aceite bien caliente hasta que estén dorados y crujientes, 2-3 min.",
-      "Escurrir en papel absorbente.",
-      "Pelar y cortar el pepino en dados pequeños, mezclar con el yogur y la menta picada.",
-      "Servir los boquerones con la ensalada de pepino al lado."
+      "Picar menta fresca finamente.",
+      "Pelar pepino y cortar en dados pequeños.",
+      "Mezclar el pepino con yogur natural y la menta picada hasta integrar.",
+      "Calentar aceite de oliva en una sartén a fuego fuerte hasta que esté bien caliente.",
+      "Enharinar boquerones limpios con harina, sacudiendo el exceso.",
+      "Freír los boquerones en tandas hasta que estén dorados y crujientes.",
+      "Escurrir los boquerones sobre papel absorbente.",
+      "Servir los boquerones junto a la ensalada de pepino y yogur."
     ],
     "description": "Boquerones fritos crujientes con una ensalada refrescante de pepino, yogur y menta.",
     "estrella": true,
@@ -22074,7 +22246,57 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "stepsRich": [
+      {
+        "text": "Picar {{Menta fresca}} finamente.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "salsa"
+      },
+      {
+        "text": "Pelar {{Pepino}} y cortar en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "salsa"
+      },
+      {
+        "text": "Mezclar el pepino con {{Yogur natural}} y la menta picada hasta integrar.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "salsa"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en una sartén a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Enharinar {{Boquerones limpios}} con {{Harina}}, sacudiendo el exceso.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Freír los boquerones en tandas hasta que estén dorados y crujientes.",
+        "minutes": 3,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Escurrir los boquerones sobre papel absorbente.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Servir los boquerones junto a la ensalada de pepino y yogur.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "pescados_124",
@@ -22127,14 +22349,72 @@
       }
     ],
     "steps": [
-      "Salpimentar los filetes de merluza y marcarlos a la plancha 3-4 min por cada lado.",
-      "Laminar el ajo y dorarlo en aceite caliente en una sartén aparte.",
-      "Retirar del fuego y añadir el pimentón y el vinagre, remover rápido.",
-      "Verter la ajada caliente por encima del pescado y servir."
+      "Salpimentar filetes de merluza por ambas caras.",
+      "Laminar ajo en láminas finas.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Cocinar los filetes de merluza en la plancha 3 min por cada cara hasta que estén dorados.",
+      "Calentar aceite de oliva en una sartén a fuego medio.",
+      "Sofreír el ajo laminado en el aceite caliente hasta que se dore ligeramente.",
+      "Retirar la sartén del fuego y añadir pimentón dulce removiendo rápido.",
+      "Añadir vinagre a la ajada y remover para integrar.",
+      "Verter la ajada caliente sobre los filetes de merluza y servir de inmediato."
     ],
     "description": "Filetes de merluza a la plancha con una ajada de ajo, pimentón y vinagre.",
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "stepsRich": [
+      {
+        "text": "Salpimentar {{Filetes de merluza}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocinar los filetes de merluza en la plancha 3 min por cada cara hasta que estén dorados.",
+        "minutes": 6,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una sartén a fuego medio.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Sofreír el ajo laminado en el aceite caliente hasta que se dore ligeramente.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Retirar la sartén del fuego y añadir {{Pimentón dulce|pizca}} removiendo rápido.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Añadir {{Vinagre}} a la ajada y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Verter la ajada caliente sobre los filetes de merluza y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "id": "pescados_125",
@@ -22192,18 +22472,71 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 200°C.",
-      "Cortar las verduras en tiras y colocarlas en una bandeja con aceite y sal.",
-      "Hornear 15 min.",
-      "Añadir los lomos de salmón salpimentados encima, regar con un poco de aceite.",
-      "Hornear 12-15 min más hasta que el salmón esté hecho."
+      "Precalentar el horno a 200 °C.",
+      "Cortar calabacín, pimiento rojo, berenjena y cebolla en tiras de grosor similar.",
+      "Disponer las verduras cortadas en una bandeja de horno en una sola capa.",
+      "Regar las verduras con aceite de oliva y salpimentar al gusto.",
+      "Hornear las verduras en el horno a 200 °C durante 15 min hasta que estén tiernas y ligeramente doradas.",
+      "Salpimentar lomos de salmón por ambos lados.",
+      "Colocar los lomos de salmón sobre las verduras y regar con un chorrito de aceite de oliva.",
+      "Hornear a 200 °C durante 12 min hasta que el salmón esté opaco y se desmenuce con facilidad.",
+      "Retirar la bandeja del horno y servir los lomos de salmón sobre la cama de verduras."
     ],
     "description": "Salmón al horno servido sobre una parrillada de verduras asadas.",
     "estrella": true,
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Calabacín}}, {{Pimiento rojo}}, {{Berenjena}} y {{Cebolla}} en tiras de grosor similar.",
+        "minutes": 8,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Disponer las verduras cortadas en una bandeja de horno en una sola capa.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar las verduras con {{Aceite de oliva|chorrito}} y salpimentar al gusto.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear las verduras en el horno a 200 °C durante 15 min hasta que estén tiernas y ligeramente doradas.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Salpimentar {{Lomos de salmón}} por ambos lados.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 4
+      },
+      {
+        "text": "Colocar los lomos de salmón sobre las verduras y regar con un chorrito de aceite de oliva.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 200 °C durante 12 min hasta que el salmón esté opaco y se desmenuce con facilidad.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir los lomos de salmón sobre la cama de verduras.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pescados_126",
@@ -22251,16 +22584,79 @@
       }
     ],
     "steps": [
-      "Laminar el ajo y confitarlo en el aceite a fuego muy suave hasta que esté dorado. Retirar y reservar.",
-      "En el mismo aceite, confitar los lomos de bacalao con la piel hacia arriba a fuego muy bajo, 8-10 min.",
-      "Retirar el pescado con cuidado y reservar el aceite.",
-      "Ligar el aceite con movimientos circulares (con ayuda de una cazuela o batidora de mano) hasta que emulsione y espese.",
-      "Napar el bacalao con la salsa y servir con el ajo dorado y la guindilla."
+      "Laminar ajo y cortar guindilla en rodajas finas.",
+      "Calentar aceite de oliva en una cazuela a fuego suave hasta que esté templado.",
+      "Añadir el ajo laminado y la guindilla al aceite templado.",
+      "Confitar el ajo y la guindilla a fuego muy suave hasta que el ajo esté dorado.",
+      "Retirar el ajo y la guindilla con una espumadera y reservar en un plato.",
+      "Añadir lomos de bacalao desalado al aceite con la piel hacia arriba.",
+      "Confitar los lomos a fuego muy suave hasta que estén opacos y la gelatina empiece a soltar.",
+      "Retirar los lomos con cuidado y reservar en un plato templado.",
+      "Mover la cazuela con el aceite en círculos suaves hasta que la gelatina emulsione y espese.",
+      "Napar los lomos de bacalao con el pil pil hasta cubrirlos bien.",
+      "Distribuir el ajo dorado y la guindilla por encima y servir de inmediato."
     ],
     "description": "Bacalao confitado a fuego suave con una salsa emulsionada de su propio aceite y ajo.",
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} y cortar {{Guindilla}} en rodajas finas.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una cazuela a fuego suave hasta que esté templado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y la guindilla al aceite templado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Confitar el ajo y la guindilla a fuego muy suave hasta que el ajo esté dorado.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el ajo y la guindilla con una espumadera y reservar en un plato.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Lomos de bacalao desalado}} al aceite con la piel hacia arriba.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Confitar los lomos a fuego muy suave hasta que estén opacos y la gelatina empiece a soltar.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar los lomos con cuidado y reservar en un plato templado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mover la cazuela con el aceite en círculos suaves hasta que la gelatina emulsione y espese.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Napar los lomos de bacalao con el pil pil hasta cubrirlos bien.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Distribuir el ajo dorado y la guindilla por encima y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pescados_127",
@@ -22313,16 +22709,82 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 200°C.",
-      "Cortar las patatas y la cebolla en rodajas finas, colocar en la base de una bandeja con aceite y sal.",
-      "Hornear 20 min.",
-      "Colocar la lubina limpia encima con rodajas de limón dentro, salpimentar y regar con aceite.",
-      "Hornear 20-25 min más hasta que esté hecha."
+      "Precalentar el horno a 200 °C.",
+      "Pelar patatas y cebolla.",
+      "Laminar las patatas y la cebolla en rodajas finas de unos 3 mm.",
+      "Cortar limón en rodajas finas.",
+      "Extender las patatas y la cebolla laminadas en la base de una bandeja de horno.",
+      "Regar las patatas y la cebolla con aceite de oliva y salpimentar.",
+      "Hornear la bandeja con las patatas y la cebolla en el horno a 200 °C durante 20 min.",
+      "Colocar lubina entera limpia encima de las patatas e introducir las rodajas de limón en el interior.",
+      "Salpimentar la lubina y regar con un chorrito de aceite de oliva.",
+      "Hornear a 200 °C hasta que la lubina esté hecha y la piel se dore, unos 20 min.",
+      "Servir la lubina sobre las patatas panadera directamente desde la bandeja."
     ],
     "description": "Lubina entera al horno sobre una cama de patatas panadera con limón.",
     "estrella": true,
     "tecnica": "horno",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pelar {{Patatas}} y {{Cebolla}}.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Laminar las patatas y la cebolla en rodajas finas de unos 3 mm.",
+        "minutes": 4,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Cortar {{Limón}} en rodajas finas.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Extender las patatas y la cebolla laminadas en la base de una bandeja de horno.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar las patatas y la cebolla con {{Aceite de oliva|chorrito}} y salpimentar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la bandeja con las patatas y la cebolla en el horno a 200 °C durante 20 min.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar {{Lubina entera limpia}} encima de las patatas e introducir las rodajas de limón en el interior.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Salpimentar la lubina y regar con un chorrito de aceite de oliva.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 200 °C hasta que la lubina esté hecha y la piel se dore, unos 20 min.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir la lubina sobre las patatas panadera directamente desde la bandeja.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pescados_128",
@@ -22376,17 +22838,96 @@
       }
     ],
     "steps": [
-      "Salpimentar las truchas y marcarlas a la plancha 3-4 min por cada lado hasta que estén hechas.",
-      "Tostar las almendras laminadas con el ajo picado en un poco de aceite hasta dorar.",
-      "Espolvorear las almendras y el perejil picado sobre las truchas.",
-      "Servir caliente."
+      "Picar ajo.",
+      "Picar perejil.",
+      "Salpimentar truchas limpias por ambas caras.",
+      "Calentar plancha a fuego fuerte con aceite de oliva.",
+      "Cocinar las truchas en la plancha caliente 4 min por el primer lado sin moverlas.",
+      "Dar la vuelta a las truchas y cocinar 4 min más hasta que estén hechas por dentro.",
+      "Calentar una sartén a fuego medio con un chorrito de aceite de oliva.",
+      "Sofreír el ajo picado 1 min hasta que empiece a dorarse.",
+      "Añadir almendras laminadas y saltear hasta que se doren, sin dejar de remover.",
+      "Retirar la sartén del fuego.",
+      "Disponer las truchas en los platos y repartir las almendras con el ajo por encima.",
+      "Espolvorear el perejil picado sobre las truchas y servir de inmediato."
     ],
     "description": "Truchas a la plancha con una guarnición crujiente de almendras tostadas al ajo.",
     "estrella": true,
     "mainIngredients": [
       "frutos_secos"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Truchas limpias}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Cocinar las truchas en la plancha caliente 4 min por el primer lado sin moverlas.",
+        "minutes": 4,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Dar la vuelta a las truchas y cocinar 4 min más hasta que estén hechas por dentro.",
+        "minutes": 4,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar una sartén a fuego medio con un chorrito de aceite de oliva.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Sofreír el ajo picado 1 min hasta que empiece a dorarse.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Añadir {{Almendras laminadas}} y saltear hasta que se doren, sin dejar de remover.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Retirar la sartén del fuego.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Disponer las truchas en los platos y repartir las almendras con el ajo por encima.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      },
+      {
+        "text": "Espolvorear el perejil picado sobre las truchas y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   },
   {
     "type": "principal",
@@ -22460,11 +23001,16 @@
       }
     ],
     "steps": [
-      "Pochar la cebolla en juliana y el ajo picado en el aceite, sin que cojan color.",
-      "Añadir el tomate rallado y el laurel, y cocinar 12 minutos a fuego medio.",
-      "Incorporar las aceitunas y las alcaparras escurridas. Salar con cuidado, que ya salan ellas.",
-      "Colocar los lomos de merluza sobre la salsa, tapar y cocer 8 minutos a fuego suave.",
-      "Servir el pescado con su salsa por encima."
+      "Cortar cebolla en juliana fina.",
+      "Picar ajo.",
+      "Rallar tomate maduro.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla y el ajo picado hasta que estén tiernos y sin que cojan color.",
+      "Añadir el tomate rallado y laurel. Remover para integrar.",
+      "Cocer la salsa a fuego medio hasta que reduzca y pierda el agua del tomate.",
+      "Añadir aceitunas y alcaparras a la salsa. Remover y probar antes de añadir sal.",
+      "Colocar merluza en lomos sobre la salsa. Tapar y cocer a fuego suave.",
+      "Servir los lomos con la salsa de tomate, aceitunas y alcaparras por encima."
     ],
     "description": "Merluza cocinada en una salsa de tomate con aceitunas y alcaparras. El punto salado de los encurtidos es lo que la hace distinta.",
     "mainIngredients": [
@@ -22472,6 +23018,58 @@
       "encurtido"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en juliana fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar {{Tomate maduro}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo picado hasta que estén tiernos y sin que cojan color.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate rallado y {{Laurel}}. Remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la salsa a fuego medio hasta que reduzca y pierda el agua del tomate.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Aceitunas}} y {{Alcaparras}} a la salsa. Remover y probar antes de añadir {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar {{Merluza en lomos}} sobre la salsa. Tapar y cocer a fuego suave.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir los lomos con la salsa de tomate, aceitunas y alcaparras por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]
