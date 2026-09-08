@@ -1028,6 +1028,8 @@ export function FeedScreen({
         <CookingStory
           group={storyOwner}
           profile={profiles[storyOwner.ownerId] ?? FIXTURE_PROFILE_FALLBACK[storyOwner.ownerId]}
+          // Para resolver a su slug a quien salga etiquetado en la cocinada.
+          profiles={{ ...FIXTURE_PROFILE_FALLBACK, ...profiles }}
           onClose={() => setStoryOwner(null)}
           onOpenRecipe={(c) => { setStoryOwner(null); openTarget("recipe", c.recipeId); }}
           onAskRecipe={(c) => onToast?.(`Le hemos pedido «${c.recipeName}»`)}

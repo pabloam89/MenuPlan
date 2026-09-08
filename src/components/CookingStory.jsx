@@ -42,7 +42,7 @@ const GREEN = "#2d5a3d";
  * casos ni se insinúa, porque un control que no hace nada es peor que no
  * tenerlo.
  */
-export function CookingStory({ group, profile, onClose, onOpenRecipe, onAskRecipe }) {
+export function CookingStory({ group, profile, profiles = {}, onClose, onOpenRecipe, onAskRecipe }) {
   const [idx, setIdx] = useState(0);
   // 0 = solo tu foto. Al arrastrar a la derecha asoma la del catálogo.
   const [wipe, setWipe] = useState(0);
@@ -84,7 +84,16 @@ export function CookingStory({ group, profile, onClose, onOpenRecipe, onAskRecip
   const stickerText = sealText(c.seal);
   const stickerColor = sealColor(c.seal);
   const pos = sealPos(c.seal);
-  const eaters = (c.eaters?.length ?? 0) + (c.guests?.length ?? 0);
+  // Los etiquetados, por su slug. `c.eaters` no entra: son tu casa, viajan
+  // anonimizados a proposito ({ avatar, role }, ver publishCooking) y no
+  // tienen cuenta que enseñar. Los invitados si son gente que existe.
+  const tagged = (c.guests ?? [])
+    .map((id) => {
+      const p = profiles[id];
+      if (!p) return null;
+      return { id, slug: p.username ? `@${p.username}` : p.display_name };
+    })
+    .filter((g) => g?.slug);
 
   const moveWipe = (e) => {
     if (!wipeRef.current || !stageRef.current) return;
@@ -123,9 +132,10 @@ export function CookingStory({ group, profile, onClose, onOpenRecipe, onAskRecip
             <span style={{ ...wipeTag, left: 12, opacity: wipe > 16 ? 1 : 0 }}>Así se supone</span>
           </>
         )}
-        {comparable && (
-          <span style={{ ...wipeTag, right: 12, opacity: wipe < 84 ? 1 : 0 }}>Así te quedó</span>
-        )}
+        {/* "Así te quedó" vivía aquí, etiquetando tu propia foto. Sobraba: es
+            la que estás viendo por defecto y nadie necesita que se lo digan.
+            "Así se supone" se queda porque sí nombra algo que aparece al
+            arrastrar y no se explica solo. */}
 
         <div style={scrim} />
 
@@ -165,10 +175,23 @@ export function CookingStory({ group, profile, onClose, onOpenRecipe, onAskRecip
           </span>
         )}
 
-        {eaters > 0 && (
-          <span style={eatersLine}>
-            {eaters === 1 ? "Lo comió 1" : `Lo comieron ${eaters}`}
-            {c.guests?.length > 0 && ` · ${c.guests.length} de fuera`}
+        {/* Quién estuvo, con su nombre. "Lo comieron 3" era un recuento: no
+            dice con quién, no lleva a ninguna parte y ocupa el mismo sitio que
+            los nombres, que sí son la gracia de haber etiquetado a alguien. */}
+        {tagged.length > 0 && (
+          <span style={taggedLine}>
+            {tagged.map((g) => g.slug).join(" · ")}
+          </span>
+        )}
+
+        {/* El plato al que se indexó, abajo a la derecha. Solo cuando hay foto
+            tuya Y foto de catálogo: sin la tuya la grande YA es la del plato y
+            la miniatura seria la misma imagen dos veces, y sin la del catálogo
+            (borrador, o receta sin foto) no hay nada que enseñar. Se desvanece
+            al arrastrar, cuando la oficial pasa a ocupar la pantalla. */}
+        {comparable && (
+          <span style={{ ...linkThumbWrap, opacity: wipe > 40 ? 0 : 1 }}>
+            <img src={deckImg(catalog, 160)} alt="" draggable={false} style={linkThumbImg} />
           </span>
         )}
 
@@ -262,10 +285,23 @@ const stickerChip = {
   maxWidth: "80%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
   pointerEvents: "none",
 };
-const eatersLine = {
-  position: "absolute", left: 16, bottom: 16, fontSize: 11.5, fontWeight: 700,
+const taggedLine = {
+  position: "absolute", left: 16, right: 88, bottom: 16, fontSize: 11.5, fontWeight: 800,
   color: "rgba(255,255,255,.92)", pointerEvents: "none",
+  textShadow: "0 1px 6px rgba(0,0,0,.5)",
+  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
 };
+// `pointerEvents: none` a proposito: cae dentro de la zona por la que se
+// arrastra el comparador, y un adorno no puede comerse el gesto. La puerta a
+// la receta es la chapa de la zona segura, que esta justo debajo.
+const linkThumbWrap = {
+  position: "absolute", right: 16, bottom: 16, width: 56, height: 56,
+  borderRadius: 14, overflow: "hidden", pointerEvents: "none",
+  border: "2px solid rgba(255,255,255,.9)",
+  boxShadow: "0 4px 14px rgba(0,0,0,.3)",
+  transition: "opacity .15s ease",
+};
+const linkThumbImg = { width: "100%", height: "100%", objectFit: "cover", display: "block" };
 const wipeTag = {
   position: "absolute", top: 68, padding: "5px 10px", borderRadius: 999,
   background: "rgba(0,0,0,.5)", color: "#fff", fontSize: 10.5, fontWeight: 800,
