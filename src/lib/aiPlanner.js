@@ -1124,12 +1124,14 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // 5. Pair "principal" recipes with garnishes (deterministic, no LLM).
   //    User-pinned combos (dish chosen from the catalog) take priority.
+  // Solo aplica lo que quien cocina fijó a mano: pairGarnishes ya no combina
+  // por su cuenta (ver el fichero). `safeGarnishes` y `garnishRepeat` eran
+  // argumentos de la combinatoria y ya no significan nada aquí.
   slotAssignments = pairGarnishes(
     slotAssignments,
     poolById,
     pinnedGarnishMap(data.fixedDishes),
     safeGarnishes,
-    data.garnishRepeat ?? "off",
   );
 
   // 5b. Aplica SOLO la salsa que la propia receta declara suya (sauceId) o la

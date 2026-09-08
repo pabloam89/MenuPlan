@@ -210,8 +210,11 @@ export function filterRecipes({
   // "preferred" (default) | "only" (only the user's recipes) | "catalog"
   // (only the bundled catalog). Set from data.recipeMode.
   recipeMode = "preferred",
-  // Set<string> of recipe ids the user favorited for this group (soft ranking
-  // signal only — annotates each recipe with `isFavorite`, never excludes).
+  // Set<string> of recipe ids the user favorited for this group. Soft ranking
+  // signal (annotates `isFavorite`, never excludes) EXCEPT con recipeMode
+  // "only", donde ademas hacen de salvoconducto: una favorita del catalogo
+  // cuenta como "mia" porque la pantalla ya la mete en "Mis recetas". Ver
+  // el paso 0.
   favoriteIds = null,
 } = {}) {
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
@@ -226,8 +229,26 @@ export function filterRecipes({
 
   // 0. Recipe-source mode (never applies to baby groups, which have their own
   // curated catalog). "only" = just the user's recipes; "catalog" = drop them.
+  //
+  // ── Qué cuenta como "mía" ────────────────────────────────────────────────
+  // Lo mismo que cuenta en la pantalla, y esa es toda la regla. "Mis recetas"
+  // del navegador de catálogo (ver mineRecipes en CatalogBrowserSheet) son las
+  // que has CREADO más las del catálogo que has marcado con corazón. Aquí se
+  // filtraba solo por `source === "user"`, así que las favoritas del catálogo
+  // se caían: las veías dentro de la carpeta "Mis recetas" y luego "Solo mis
+  // recetas" las excluía del menú. Dos pantallas con dos definiciones de la
+  // misma palabra.
+  //
+  // Y de las dos señales, la del corazón es la MÁS específica: `recipeMode` es
+  // una política general y el corazón es una decisión sobre una receta
+  // concreta. Que la política borre la decisión concreta va al revés de como
+  // funciona cualquier sistema de preferencias.
+  //
+  // Se usa `favoriteIds` (el del GRUPO, ver favoriteIdsForGroup) y no todas las
+  // favoritas: si marcaste algo para el menú de los niños, no tiene por qué
+  // entrar en el de los adultos. El corazón ya trae su alcance.
   if (!isBabyGroup && recipeMode === "only") {
-    pool = pool.filter((r) => r.source === "user");
+    pool = pool.filter((r) => r.source === "user" || favoriteIds?.has(r.id));
   } else if (!isBabyGroup && recipeMode === "catalog") {
     pool = pool.filter((r) => r.source !== "user");
   }
@@ -383,7 +404,17 @@ export function filterRecipes({
   // bebés no pasan por esta distinción: su pool ya está aislado al 100% a
   // "bebes" en el paso 0b y esas recetas siempre tienen foto propia, así que
   // filtrar por isPrimaryCatalog no les quita nada.
-  if (!isBabyGroup) pool = pool.filter(isPrimaryCatalog);
+  // El corazón es el salvoconducto: por defecto el fondo de armario no se
+  // propone nunca, pero si alguien lo marca a mano en sus recetas, entra. Es
+  // una decisión explícita sobre una receta concreta y gana a una política
+  // general — igual que en el paso 0.
+  //
+  // Esto ya no puede reabrir el "plato recargado": pairGarnishes dejó de
+  // combinar por su cuenta, así que un plato del fondo de armario llega al
+  // menú tal y como está escrito, sin guarnición pegada encima.
+  if (!isBabyGroup) {
+    pool = pool.filter((r) => isPrimaryCatalog(r) || favoriteIds?.has(r.id));
+  }
 
   const categories = new Set(pool.map((r) => r.category));
   if (pool.length < minRecipes) {

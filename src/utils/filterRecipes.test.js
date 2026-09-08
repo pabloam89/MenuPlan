@@ -500,3 +500,37 @@ describe("recipeViolatesHardSafety", () => {
     expect(recipeViolatesHardSafety(null, { allergies: ["Gluten"] })).toBe(true);
   });
 });
+
+describe("filterRecipes · recipeMode 'only' y favoritas", () => {
+  // "Mis recetas" en el navegador de catálogo son las CREADAS más las del
+  // catálogo marcadas con corazón (ver mineRecipes en CatalogBrowserSheet).
+  // Este test fija que el planificador use esa misma definición: verlas dentro
+  // de la carpeta y que luego "Solo mis recetas" las excluya era una
+  // contradicción entre dos pantallas.
+  const FAVORITA_DE_CATALOGO = "pasta_arroces_003";
+  const base = {
+    members: [{ id: "m1", name: "Ana", age: 35 }],
+    recipeMode: "only",
+    extraRecipes: [],
+  };
+
+  it("sin corazón, una del catálogo NO entra", () => {
+    const { recipes } = filterRecipes(base);
+    expect(recipes.some((r) => r.id === FAVORITA_DE_CATALOGO)).toBe(false);
+  });
+
+  it("con corazón, entra aunque no sea `source: user`", () => {
+    const { recipes } = filterRecipes({
+      ...base,
+      favoriteIds: new Set([FAVORITA_DE_CATALOGO]),
+    });
+    const encontrada = recipes.find((r) => r.id === FAVORITA_DE_CATALOGO);
+    expect(encontrada).toBeTruthy();
+    expect(encontrada.source).not.toBe("user");
+  });
+
+  it("sin corazón, el fondo de armario no se propone", () => {
+    const { recipes } = filterRecipes(base);
+    expect(recipes.every((r) => r.estrella || r.source === "user")).toBe(true);
+  });
+});
