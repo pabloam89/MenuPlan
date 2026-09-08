@@ -20,9 +20,7 @@
     "enrich:steps": "node scripts/enrich-recipe-steps.mjs",
     "check:wording": "node scripts/check-step-wording.mjs",
     "sync:mercadona": "node scripts/mercadona-sync.mjs",
-    "sync:mercadona:cache": "node scripts/mercadona-sync.mjs --cache",
-    "video:studio": "remotion studio remotion/index.jsx",
-    "video:render": "remotion render remotion/index.jsx PantallaRecetas out/pantalla-recetas.mp4"
+    "sync:mercadona:cache": "node scripts/mercadona-sync.mjs --cache"
   },
   "dependencies": {
     "@fal-ai/client": "^1.10.1",
