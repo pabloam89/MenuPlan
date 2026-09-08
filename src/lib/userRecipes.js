@@ -296,6 +296,8 @@ export function patchUserRecipeClassification(recipe, { usageTags, mealRole, qui
   const isGarnishOnly = type === "guarnicion";
   const qd = quickDinner ?? isMontaje(recipe);
   const roles = mealRole ?? recipe.mealRole ?? [];
+  // De donde vino esta receta, que no es lo mismo que en que se ha convertido.
+  const fromCatalogCombo = isCatalogGarnishCombo(recipe);
   const fallbackCategory =
     recipe.category && recipe.category !== "cenas_rapidas" && recipe.category !== "guarniciones"
       ? recipe.category
@@ -321,8 +323,21 @@ export function patchUserRecipeClassification(recipe, { usageTags, mealRole, qui
       : qd
         ? Array.from(new Set([...roles.filter((r) => r !== "guarnicion"), "cena"]))
         : roles,
-    pinnedGarnishId: type === "principal" ? recipe.pinnedGarnishId : undefined,
-    linkedCatalogId: tags.includes("guarnicion") ? recipe.linkedCatalogId : undefined,
+    // Los dos juntos NO son clasificacion, son PROCEDENCIA: de que plato del
+    // catalogo y con que guarnicion nacio esta receta (buildGarnishComboRecipe).
+    // De ahi sale su foto (dishImages.js#dishImageForRecipe) y su identidad de
+    // combo (isCatalogGarnishCombo), y nada de eso cambia porque reclasifiques
+    // el plato. Antes se borraban salvo que la receta fuera guarnicion — y un
+    // combo del catalogo es un PLATO, no una guarnicion —, asi que el primer
+    // toque a Tipo/Aplica lo dejaba sin foto y sin identidad, sin vuelta atras:
+    // el id de la receta empieza por "user_" y ahi dishImageForRecipe se rinde.
+    //
+    // Por SEPARADO si son clasificacion y se limpian igual que antes: una
+    // guarnicion fijada solo tiene sentido en un principal, y un
+    // `linkedCatalogId` suelto es el plato de referencia de una guarnicion
+    // (RecipePlanner), que deja de aplicar si ya no es guarnicion.
+    pinnedGarnishId: fromCatalogCombo || type === "principal" ? recipe.pinnedGarnishId : undefined,
+    linkedCatalogId: fromCatalogCombo || tags.includes("guarnicion") ? recipe.linkedCatalogId : undefined,
     source: "user",
   };
 }

@@ -658,6 +658,12 @@ function CookedDishPicker({ onSave, onCancel, saving, extraRecipes = [], recipeV
         const r = pool.find((x) => x.id === id);
         if (r) setSelected(r);
       }}
+      // La salida para lo que no está en ninguna lista. Apuntas lo que has
+      // cocinado ahora y la ficha ya la escribirás (o no): obligarte a que la
+      // receta exista antes de poder anotar un tupper es pedir el trabajo al
+      // revés. La hoja solo lo ofrece si escribes y no hay coincidencias, que
+      // es lo que evita acabar con catorce fichas de "pasta con tomate".
+      onCreateDraft={(name) => setSelected({ id: `draft_${Date.now().toString(36)}`, name, draft: true })}
       extraRecipes={extraRecipes}
       recipeVotes={recipeVotes}
       recipeCollections={recipeCollections}

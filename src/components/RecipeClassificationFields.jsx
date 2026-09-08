@@ -8,7 +8,7 @@ import {
   UtensilsCrossed,
   Zap,
 } from "./icons.jsx";
-import { deriveUsageTagsFromType, USAGE_TAGS } from "../lib/userRecipes.js";
+import { deriveUsageTagsFromType, isCatalogGarnishCombo, USAGE_TAGS } from "../lib/userRecipes.js";
 import { isMontaje } from "../data/recipeSchema.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
 
@@ -79,11 +79,16 @@ export function RecipeClassificationFields({ value, onChange }) {
   const comidaChecked = mealRole.some((r) => COMIDA_POSITIONS.includes(r));
   const selectedUsage = usageTags[0] ?? null;
 
+  // Misma regla que patchUserRecipeClassification: si los dos campos vienen
+  // juntos son la procedencia del combo de catálogo, y cambiar el Tipo no
+  // puede borrarla — es de donde sale la foto.
+  const fromCatalogCombo = isCatalogGarnishCombo(value);
+
   const setUsage = (id) => {
     onChange({
       usageTags: selectedUsage === id ? [] : [id],
-      pinnedGarnishId: id === "plato_normal" ? value.pinnedGarnishId : undefined,
-      linkedCatalogId: id === "guarnicion" ? value.linkedCatalogId : undefined,
+      pinnedGarnishId: fromCatalogCombo || id === "plato_normal" ? value.pinnedGarnishId : undefined,
+      linkedCatalogId: fromCatalogCombo || id === "guarnicion" ? value.linkedCatalogId : undefined,
     });
   };
 

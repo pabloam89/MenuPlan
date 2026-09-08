@@ -275,6 +275,44 @@ describe("patchUserRecipeClassification", () => {
     expect(next.montaje).toBe(true);
     expect(next.category).toBe("cenas_rapidas");
   });
+
+  it("no borra la procedencia de un combo del catálogo al reclasificarlo", () => {
+    // Un combo guardado desde el catálogo (buildGarnishComboRecipe) es un
+    // PLATO, no una guarnición. La regla vieja solo conservaba linkedCatalogId
+    // para guarniciones, así que el primer toque a Tipo/Aplica lo dejaba sin
+    // procedencia — y con eso sin foto, porque dishImageForRecipe se rinde en
+    // cuanto el id empieza por "user_".
+    const combo = {
+      id: "user_combo",
+      source: "user",
+      category: "carnes",
+      usageTags: ["plato_normal"],
+      type: "principal",
+      mealRole: ["segundo"],
+      linkedCatalogId: "carnes_032",
+      pinnedGarnishId: "guarniciones_024",
+    };
+    const next = patchUserRecipeClassification(combo, { quickDinner: true });
+    expect(next.linkedCatalogId).toBe("carnes_032");
+    expect(next.pinnedGarnishId).toBe("guarniciones_024");
+  });
+
+  it("sigue soltando el plato de referencia cuando algo deja de ser guarnición", () => {
+    // Sin `pinnedGarnishId` no hay combo: aquí `linkedCatalogId` es el plato de
+    // referencia de una guarnición (RecipePlanner), y deja de aplicar en cuanto
+    // la receta pasa a ser un plato normal.
+    const guarnicion = {
+      id: "user_guarni",
+      source: "user",
+      category: "guarniciones",
+      usageTags: ["guarnicion"],
+      type: "guarnicion",
+      mealRole: ["guarnicion"],
+      linkedCatalogId: "carnes_032",
+    };
+    const next = patchUserRecipeClassification(guarnicion, { usageTags: ["plato_normal"] });
+    expect(next.linkedCatalogId).toBeUndefined();
+  });
 });
 
 describe("isOwnCreatedRecipe", () => {
