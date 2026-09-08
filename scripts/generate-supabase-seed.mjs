@@ -329,7 +329,30 @@ console.log(`   ${recipes.length} recetas en total, versión de catálogo: v${CA
 let imageCount = 0;
 if (existsSync(IMAGES_PATH)) {
   const manifest = JSON.parse(readFileSync(IMAGES_PATH, "utf8"));
-  const entries = Object.entries(manifest);
+
+  // dish_images.recipe_id y .garnish_id son claves ajenas a recipes(id), así que
+  // una foto cuya receta ya no está en el catálogo tumba la carga entera con un
+  // 23503 — y lo hace A MITAD, con las recetas ya dentro y catalog_meta a punto
+  // de subir. Pasó con cenas_rapidas_011, ensaladas_verduras_014 y _019: tres
+  // recetas borradas del catálogo cuya foto se quedó en el manifiesto.
+  //
+  // Se filtran aquí y no se arregla el manifiesto porque el manifiesto no está
+  // mal: la foto existe en Blob y no molesta a nadie mientras nadie la busque.
+  // Lo que no puede es viajar a una tabla que exige que la receta exista.
+  const idsCatalogo = new Set(recipes.map((r) => r.id));
+  const vive = (comboId) => {
+    const plus = comboId.indexOf("+");
+    const recipeId = plus === -1 ? comboId : comboId.slice(0, plus);
+    const garnishId = plus === -1 ? null : comboId.slice(plus + 1);
+    return idsCatalogo.has(recipeId) && (garnishId === null || idsCatalogo.has(garnishId));
+  };
+  const todas = Object.entries(manifest);
+  const entries = todas.filter(([comboId]) => vive(comboId));
+  const huerfanas = todas.length - entries.length;
+  if (huerfanas > 0) {
+    console.log(`   ⚠️  ${huerfanas} foto/s sin receta en el catálogo, fuera del seed:`);
+    for (const [comboId] of todas.filter(([c]) => !vive(c)).slice(0, 10)) console.log(`      ${comboId}`);
+  }
   imageCount = entries.length;
   if (entries.length > 0) {
     const imageLines = [];
