@@ -1311,6 +1311,10 @@ export function PantryScreen({
   // (240px, 1:1) and wants to match it exactly — the onboarding wizard step
   // keeps the bigger original size, so this only shrinks it when asked.
   compactEmptyState = false,
+  // El paso «¿Qué tienes ya en casa?» del asistente pregunta cuánto debe pesar
+  // la despensa en el menú, pero solo si hay algo dentro — y quien sabe si lo
+  // hay es esta pantalla, no el paso que la envuelve.
+  onItemsCount = null,
 }) {
   const [items, setItems] = useState(() => (user ? [] : loadLocalPantry()));
   const [loading, setLoading] = useState(() => Boolean(user));
@@ -1509,6 +1513,11 @@ export function PantryScreen({
       active = false;
     };
   }, [user, pantryEpoch, pantryHouseholdId]);
+
+  useEffect(() => {
+    if (loading) return;
+    onItemsCount?.(items.length);
+  }, [items.length, loading, onItemsCount]);
 
   const handleRemove = async (id) => {
     setItems((prev) => prev.filter((i) => i.id !== id));

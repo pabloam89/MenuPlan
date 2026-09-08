@@ -1,12 +1,15 @@
 import { useState } from "react";
 import {
+  Ban,
   CalendarDays,
   Zap,
   ChefHat,
   Check,
   BookOpen,
   Globe,
+  Lock,
   Refrigerator,
+  Scale,
 } from "./icons.jsx";
 import { WizardSheet } from "./ui.jsx";
 
@@ -150,6 +153,131 @@ export function PantryPrefsSheet({ initial, onComplete, onClose }) {
           <PantryPrefOptionCard
             key={opt.id}
             img={opt.img}
+            Icon={opt.Icon}
+            iconColor={opt.iconColor}
+            iconBg={opt.iconBg}
+            title={opt.title}
+            subtitle={opt.subtitle}
+            selected={selected === opt.id}
+            onSelect={() => setSelected(opt.id)}
+          />
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onComplete(selected)}
+        style={{
+          display: "block",
+          width: "100%",
+          marginTop: 14,
+          padding: "12px 16px",
+          borderRadius: 14,
+          border: "none",
+          background: "#2d5a3d",
+          color: "#fff",
+          fontSize: 14,
+          fontWeight: 800,
+          cursor: "pointer",
+          fontFamily: "inherit",
+        }}
+      >
+        Guardar
+      </button>
+
+      <button
+        type="button"
+        onClick={onClose}
+        style={{
+          display: "block",
+          width: "100%",
+          marginTop: 8,
+          border: "none",
+          background: "transparent",
+          color: "#7a9080",
+          fontSize: 12.5,
+          fontWeight: 700,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          padding: "6px 2px",
+          textAlign: "center",
+        }}
+      >
+        Cerrar
+      </button>
+    </WizardSheet>
+  );
+}
+
+// ── ¿Cuánto pesa lo de casa en el menú? ────────────────────────────────────
+// La pregunta ("cuánto pesa la despensa", spectrum solo↔libre) se quitó del
+// asistente el 24-ago-2026 dándola por sobreentendida: "si añades algo,
+// cuenta". No contaba. `pantryMode` nace en "off" (App.jsx) y con "off" la
+// despensa ni siquiera viaja al planner (`pantryIngredients = []`), así que lo
+// añadido en el asistente solo servía para tachar «Ya en casa» en la compra.
+// Y desde entonces ningún sitio de la app escribía `pantryMode`: el único
+// control que quedaba, el ToggleSwitch de Pantry.jsx, cuelga de un
+// `onToggleHomeStock` que nadie pasaba, así que no se pintaba nunca.
+//
+// Vuelve, pero condicionada: solo se pregunta cuando ya hay algo en casa —
+// preguntarlo con la despensa vacía era justo lo que sobraba de la versión
+// anterior. Los cuatro modos son los cuatro que `buildUserMessage` sabe
+// traducir a instrucción (ver aiPlanner.js): prioridad máxima, prioridad
+// alta, desempate, y no mandarla.
+const PANTRY_MODE_QUESTION = {
+  title: "¿Cuánto tiramos de lo de casa?",
+  subtitle: "Lo que ya tienes puede pesar más o menos al armar el menú.",
+  options: [
+    {
+      id: "strict",
+      Icon: Lock,
+      iconColor: "#2d5a3d",
+      iconBg: "#e7f3ec",
+      title: "Solo con lo de casa",
+      subtitle: "Sin comprar. Solo si un hueco no sale de otra forma.",
+    },
+    {
+      id: "only",
+      Icon: Refrigerator,
+      iconColor: "#2f6d8a",
+      iconBg: "#e0eef5",
+      title: "Sobre todo lo de casa",
+      subtitle: "Partimos de tu despensa y compramos lo justo.",
+    },
+    {
+      id: "prefer",
+      Icon: Scale,
+      iconColor: "#8a5a00",
+      iconBg: "#fbeecd",
+      title: "Que desempate",
+      subtitle: "Entre dos platos parecidos, gana el que ya tienes.",
+    },
+    {
+      id: "off",
+      Icon: Ban,
+      iconColor: "#7a9080",
+      iconBg: "#eef2ef",
+      title: "Que no cuente",
+      subtitle: "El menú se arma sin mirar la despensa.",
+    },
+  ],
+};
+
+export function PantryModeSheet({ initial, onComplete, onClose }) {
+  const [selected, setSelected] = useState(initial ?? "prefer");
+
+  return (
+    <WizardSheet
+      icon={Refrigerator}
+      title={PANTRY_MODE_QUESTION.title}
+      subtitle={PANTRY_MODE_QUESTION.subtitle}
+      onClose={onClose}
+      maxWidth={360}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {PANTRY_MODE_QUESTION.options.map((opt) => (
+          <PantryPrefOptionCard
+            key={opt.id}
             Icon={opt.Icon}
             iconColor={opt.iconColor}
             iconBg={opt.iconBg}

@@ -1,5 +1,5 @@
 import { ETAPAS_BEBE, ETAPA_BEBE_INFO, etapaBebeDe } from "../lib/babyStage.js";
-import React, { Fragment, Suspense, lazy, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, Suspense, lazy, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -98,6 +98,7 @@ import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
 import { CatalogBrowserSheet, categoryColor } from "./CatalogBrowserSheet.jsx";
+import { PantryModeSheet } from "../components/ModeSheets.jsx";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { dishImageUrl } from "../assets/dishes/dishImages.js";
@@ -8716,6 +8717,34 @@ export function OnboardingPantryInventory({
   onNext, onBack, onFinish, onReset, nextLabel,
   user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, shopping, setShopping,
 }) {
+  const [showModeSheet, setShowModeSheet] = useState(false);
+
+  // La pregunta se hace sola la primera vez que hay algo en casa — con la
+  // despensa vacía no hay nada que ponderar. Quien sabe si hay algo es la
+  // pantalla de despensa, que avisa por `onItemsCount`.
+  const modeAsked = data.pantryModeSet === true;
+  const handlePantryCount = useCallback(
+    (count) => {
+      if (count > 0 && !modeAsked) setShowModeSheet(true);
+    },
+    [modeAsked],
+  );
+
+  // `useHomeStock` se mantiene en sincronía como el booleano heredado que es
+  // (off ⇄ false), igual que hace normalizeData en App.jsx.
+  const applyPantryMode = (mode) => {
+    setData((d) => ({ ...d, pantryMode: mode, pantryModeSet: true, useHomeStock: mode !== "off" }));
+    setShowModeSheet(false);
+  };
+
+  // Cerrar sin elegir es "ahora no": se queda como está, pero se da por
+  // preguntada para no reabrirse en cada cosa que añadas. El interruptor
+  // «Usar despensa» de la propia despensa la vuelve a abrir.
+  const dismissModeSheet = () => {
+    setData((d) => ({ ...d, pantryModeSet: true }));
+    setShowModeSheet(false);
+  };
+
   return (
     <OnboardingShell
       title="¿Qué tienes ya en casa?"
@@ -8745,8 +8774,21 @@ export function OnboardingPantryInventory({
           setData={setData}
           shopping={shopping}
           setShopping={setShopping}
+          onItemsCount={handlePantryCount}
+          useHomeStock={data.pantryMode !== "off"}
+          onToggleHomeStock={() =>
+            data.pantryMode === "off" ? setShowModeSheet(true) : applyPantryMode("off")
+          }
         />
       </Suspense>
+
+      {showModeSheet && (
+        <PantryModeSheet
+          initial={data.pantryMode === "off" ? "prefer" : data.pantryMode}
+          onComplete={applyPantryMode}
+          onClose={dismissModeSheet}
+        />
+      )}
     </OnboardingShell>
   );
 }
