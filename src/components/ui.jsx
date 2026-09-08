@@ -157,7 +157,18 @@ export function SegmentedTabButton({
 }) {
   const hasBadge = count > 0;
   const ariaLabel = hasBadge ? `${label}, ${count}` : label;
-  const iconColor = selected ? accent : "#9ab0a1";
+  // Seleccionada = relleno de su propio acento con texto blanco. La pastilla
+  // blanca sobre pista verde clara solo decia "esta es la activa"; con el
+  // acento dice ademas CUAL es, que es lo que se mira al volver a la pantalla.
+  // Es el mismo trato que el Chip seleccionado del sistema (6.1) y la variante
+  // `activeDark` del segmented (6.2).
+  const iconColor = selected ? "#fff" : "#9ab0a1";
+  const surface = selected
+    ? { background: accent, color: "#fff", boxShadow: "none" }
+    : { background: "transparent", color: "#7a9485", boxShadow: "none" };
+  const badgeTone = selected
+    ? { color: accent, background: "rgba(255,255,255,.92)" }
+    : { color: "#7a9485", background: "#dce8de" };
 
   if (Icon) {
     return (
@@ -171,11 +182,9 @@ export function SegmentedTabButton({
           padding: "5px 2px 6px",
           borderRadius: 9,
           border: "none",
-          background: selected ? "#fff" : "transparent",
-          color: selected ? "#142f1d" : "#7a9485",
+          ...surface,
           cursor: "pointer",
           fontFamily: "inherit",
-          boxShadow: selected ? "0 1px 4px rgba(0,0,0,.1)" : "none",
           transition: "all .15s",
           display: "flex",
           flexDirection: "column",
@@ -208,8 +217,7 @@ export function SegmentedTabButton({
                 fontWeight: 900,
                 lineHeight: "14px",
                 textAlign: "center",
-                color: selected ? accent : "#7a9485",
-                background: selected ? "#e4f3e9" : "#dce8de",
+                ...badgeTone,
               }}
             >
               {count}
@@ -244,13 +252,11 @@ export function SegmentedTabButton({
         padding: hasBadge ? "11px 4px 8px" : "9px 4px",
         borderRadius: 9,
         border: "none",
-        background: selected ? "#fff" : "transparent",
-        color: selected ? "#142f1d" : "#7a9485",
+        ...surface,
         fontSize,
         fontWeight: selected ? 800 : 700,
         cursor: "pointer",
         fontFamily: "inherit",
-        boxShadow: selected ? "0 1px 4px rgba(0,0,0,.1)" : "none",
         transition: "all .15s",
       }}
       {...rest}
@@ -270,8 +276,7 @@ export function SegmentedTabButton({
             fontWeight: 900,
             lineHeight: "15px",
             textAlign: "center",
-            color: selected ? accent : "#7a9485",
-            background: selected ? "#e4f3e9" : "#dce8de",
+            ...badgeTone,
             boxShadow: "0 0 0 1.5px #fff",
           }}
         >

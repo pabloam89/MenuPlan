@@ -927,8 +927,10 @@ export function CatalogBrowserSheet({
         <div style={{ padding: `12px ${px}px 0`, marginBottom: 12, flexShrink: 0 }}>
           <SegmentedTabBar>
             {[
-              { id: "mine", label: "Mis recetas", count: gatePickMinePlatoCount, Icon: NotebookPen },
-              { id: "catalog", label: "Catálogo", Icon: BookOpen },
+              // Un color por pestaña: el teal de la casa para lo tuyo, el verde
+              // de marca para el catálogo de HoMenu.
+              { id: "mine", label: "Mis recetas", count: gatePickMinePlatoCount, Icon: NotebookPen, accent: "#0f766e" },
+              { id: "catalog", label: "Catálogo", Icon: BookOpen, accent: GREEN },
             ].map((opt) => (
               <SegmentedTabButton
                 key={opt.id}
@@ -937,6 +939,7 @@ export function CatalogBrowserSheet({
                 label={opt.label}
                 count={opt.count ?? 0}
                 Icon={opt.Icon}
+                accent={opt.accent}
               />
             ))}
           </SegmentedTabBar>
@@ -1945,13 +1948,18 @@ function SelectedChip({ kind, label, onClear }) {
   const Icon = kind === "guarnicion" ? Salad : Utensils;
   return (
     <div
+      // Antes: borde verde, fondo verde, icono verde y texto verde. Cuatro
+      // tokens del mismo color hacían que el nombre del plato —lo único que
+      // hay que leer aquí— compitiera con su propia caja. Ahora la caja es
+      // neutra y el verde se reserva al icono, que es lo que dice "esto es lo
+      // que has elegido".
       style={{
         display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
-        borderRadius: 10, border: `1.5px solid ${GREEN}`, background: "#eaf6ee",
+        borderRadius: 10, border: "1.5px solid #e3ebe6", background: "#fff",
       }}
     >
       <Icon size={14} color={GREEN} style={{ flexShrink: 0 }} />
-      <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: GREEN, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {kind === "guarnicion" ? "Guarnición: " : "Plato: "}{label}
       </span>
       <button
@@ -1959,8 +1967,8 @@ function SelectedChip({ kind, label, onClear }) {
         onClick={onClear}
         aria-label="Quitar selección"
         style={{
-          width: 22, height: 22, borderRadius: 6, border: "none", background: "#fff",
-          color: GREEN, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          width: 22, height: 22, borderRadius: 6, border: "none", background: "#f0f4f1",
+          color: "#5a7066", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
         }}
       >
         <X size={12} />

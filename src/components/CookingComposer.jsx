@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { X, Camera, ImagePlus, Search, ChevronLeft, ChevronRight, ChevronDown, Check, Plus, Sparkles } from "./icons.jsx";
 import { Avatar } from "./ui.jsx";
+import { memberAvatarColor } from "../lib/stages.js";
 import { SEALS, STICKER_COLORS } from "../lib/cookings.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
@@ -142,6 +143,14 @@ export function CookingComposer({
     return [...hoy, ...myRecipes.filter((r) => !seen.has(r.id))];
   }, [todayDishes, myRecipes, searchPool]);
 
+  // Los ya marcados primero (sort estable), y tope de seis.
+  const shownFriends = useMemo(
+    () => [...friends]
+      .sort((a, b) => Number(guests.includes(b.id)) - Number(guests.includes(a.id)))
+      .slice(0, 6),
+    [friends, guests],
+  );
+
   const recipe = link?.recipe ?? null;
   const catalogPhoto = link && !link.draft ? dishImageForRecipe(recipe ?? link) : null;
   const canPublish = Boolean(link);
@@ -211,6 +220,11 @@ export function CookingComposer({
         gatePickType="plato"
         selectedPlatoId={link?.recipeId ?? null}
         onPickPlato={(id) => {
+          // `null` es la X del chip (y volver a tocar la tarjeta ya elegida):
+          // significa "quita la vinculación", no "no hagas nada". El guard de
+          // antes se lo tragaba, así que la X no despegaba el plato propuesto
+          // y no había forma de volver a "¿Qué has cocinado?".
+          if (id === null) { setLink(null); return; }
           const r = searchPool.find((x) => x.id === id);
           if (r) pickRecipe(r);
         }}
@@ -535,25 +549,33 @@ export function CookingComposer({
           </div>
         )}
 
-        {/* ── Quién comió: las caras, no un número ─────────────────────
-            "Comieron 4" es una estadística, y encima obligaba a abrir una hoja
-            para saber de quién hablaba. Tu casa son cuatro caras: enseñarlas
-            cuesta menos que la frase que las resume, y se tocan aquí mismo.
-            La hoja se queda solo para los invitados, que sí son una lista. */}
+        {/* ── Con quién: tus amigos, las caras ─────────────────────────
+            Aquí vivía tu casa. Pero esto es una historia en Gente, y en Gente
+            lo que se señala es a quién etiquetas: tu familia ya se da por
+            supuesta —viene marcada entera— y cambiarla es lo raro, no lo
+            común. Así que la fila la ocupan los amigos, cada uno con SU foto,
+            y quien no la tenga cae a sus iniciales sobre su propio color (el
+            verde para todos hacía que las caras sin foto fueran la misma
+            mancha repetida).
+
+            Los ya marcados se ordenan primero, para que elegir a alguien desde
+            la hoja se vea aquí aunque esté más allá del sexto. La casa sigue
+            editándose en la hoja, detrás del "+". */}
         <div className="mp-rise" style={{ ...eatersRow, "--d": ".12s" }}>
-          {members.map((m) => {
-            const on = eaters.includes(m.id);
+          {shownFriends.map((f) => {
+            const on = guests.includes(f.id);
+            const name = f.display_name ?? f.username ?? "?";
             return (
               <button
-                key={m.id}
+                key={f.id}
                 type="button"
                 aria-pressed={on}
-                aria-label={m.name}
-                title={m.name}
-                onClick={() => setEaters((p2) => (p2.includes(m.id) ? p2.filter((x) => x !== m.id) : [...p2, m.id]))}
+                aria-label={name}
+                title={name}
+                onClick={() => setGuests((p2) => (p2.includes(f.id) ? p2.filter((x) => x !== f.id) : [...p2, f.id]))}
                 style={{ ...eaterFace, opacity: on ? 1 : .3 }}
               >
-                <Avatar name={m.name ?? "?"} photo={m.avatar} size={38} color={GREEN} />
+                <Avatar name={name} photo={f.avatar_url} size={38} color={memberAvatarColor(f.id, friends)} />
               </button>
             );
           })}
@@ -561,12 +583,10 @@ export function CookingComposer({
           <button
             type="button"
             onClick={() => setView("guests")}
-            aria-label="Añadir invitados"
+            aria-label="Quién comió"
             style={eaterAdd}
           >
-            {guests.length > 0
-              ? <span style={{ fontSize: 12, fontWeight: 900, color: GREEN }}>+{guests.length}</span>
-              : <Plus size={16} strokeWidth={2.6} color={INK_SOFT} />}
+            <Plus size={16} strokeWidth={2.6} color={INK_SOFT} />
           </button>
         </div>
       </div>

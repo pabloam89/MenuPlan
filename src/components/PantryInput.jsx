@@ -653,6 +653,8 @@ function CookedDishPicker({ onSave, onCancel, saving, extraRecipes = [], recipeV
       gatePickSourceTabs
       gatePickType="plato"
       onPickPlato={(id) => {
+        // `null` = quitar la selección (la X del chip). Ver CookingComposer.
+        if (id === null) { setSelected(null); return; }
         const r = pool.find((x) => x.id === id);
         if (r) setSelected(r);
       }}
