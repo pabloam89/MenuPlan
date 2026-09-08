@@ -172,7 +172,27 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "cocina": "arabe",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes en el vaso, cocina a 100°C durante 18 minutos a velocidad cuchara. Después, tritura a velocidad progresiva 5-10 durante 1 minuto hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 23,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el calabacín y el pollo al vapor durante unos 18-20 minutos hasta que estén muy tiernos. Mientras, prepara el cuscús con el caldo casero y, una vez cocidos, tritura todos los ingredientes con el aceite de oliva hasta conseguir una crema lisa que se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el calabacín, el pollo, el cuscús y el caldo en la olla a presión y cocina durante 7 minutos desde que sube la válvula. Una vez despresurizada, añade el aceite de oliva y tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+      }
+    ]
   },
   {
     "id": "bebes_002",
@@ -306,7 +326,27 @@
     ],
     "kidFavourite": true,
     "tecnica": "sarten",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Corta la zanahoria y la patata a lo largo. Revisa la merluza para asegurarte de que no tiene espinas. Coloca todos los ingredientes en el recipiente Varoma con 500ml de agua en el vaso y cocina al vapor durante 20 minutos a velocidad Varoma."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 27,
+        "difficulty": "facil",
+        "prepSummary": "Corta la zanahoria y la patata a lo largo. Revisa la merluza para asegurarte de que no tiene espinas. Coloca todos los ingredientes en la cesta de la vaporera y cocina al vapor durante 25 minutos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 9,
+        "difficulty": "facil",
+        "prepSummary": "Corta la zanahoria y la patata a lo largo. Revisa la merluza para asegurarte de que no tiene espinas. Coloca todos los ingredientes en la olla express con 150ml de agua y cocina durante 7 minutos desde que sube la válvula."
+      }
+    ]
   },
   {
     "id": "bebes_003",
@@ -450,7 +490,27 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Introduce la calabaza, el boniato y el pavo troceados junto con el aceite de oliva en el vaso. Cocina a 100°C, velocidad 1, durante unos 18-20 minutos o hasta que estén muy tiernos."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta la calabaza, el boniato y el pavo en trozos pequeños. Cocínalos al vapor durante unos 18-20 minutos, o hasta que estén muy tiernos y se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "normal",
+        "prepSummary": "Introduce la calabaza, el boniato y el pavo troceados en la olla express con un chorrito de agua. Cierra y cocina a presión durante 5-7 minutos desde que sube la válvula."
+      }
+    ]
   },
   {
     "id": "bebes_004",
@@ -581,7 +641,27 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta las judías y la patata en trozos pequeños, y la ternera en dados. Cocina todos los ingredientes en el vaso con un poco de agua (100-150 ml) a 100°C, velocidad cuchara, durante 20-25 minutos hasta que se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Corta las judías y la patata en trozos pequeños, y la ternera en dados. Cocina todos los ingredientes en la vaporera durante 25-30 minutos hasta que se aplasten sin esfuerzo. Retira, añade el aceite de oliva y tritura con una batidora hasta obtener una crema lisa y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta las judías y la patata en trozos pequeños, y la ternera en dados. Cocina todos los ingredientes en la olla express con un poco de agua (100-150 ml) durante 8-10 minutos desde que sube la válvula, hasta que se aplasten sin esfuerzo."
+      }
+    ]
   },
   {
     "id": "bebes_005",
@@ -706,7 +786,27 @@
     ],
     "kidFavourite": true,
     "tecnica": "sarten",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 23,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el pollo troceado, los guisantes, el arroz y 200 ml de agua junto con el aceite en el vaso. Cocina a 100°C, velocidad 1, durante 22 minutos. Luego tritura a velocidad progresiva 5-10 hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Corta el pollo en trozos pequeños. Coloca el pollo, los guisantes y el arroz en la vaporera. Cocina al vapor durante 30 minutos, hasta que todos los ingredientes estén muy tiernos y se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el pollo troceado, los guisantes, el arroz y 200 ml de agua en la olla express. Cierra y cocina a presión durante 10 minutos. Deja que se libere la presión, añade el aceite y tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+      }
+    ]
   },
   {
     "id": "bebes_006",
@@ -857,7 +957,21 @@
     ],
     "kidFavourite": true,
     "tecnica": "sarten",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz en el vaso con 150ml de agua mientras cueces al vapor el brócoli y la merluza en el Varoma durante 18 minutos a temperatura Varoma. Retira las espinas del pescado, añade el aceite y tritura todo hasta obtener una crema lisa que se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Introduce el brócoli, la merluza y el arroz con 150ml de agua en la olla a presión. Cierra y cocina durante 8 minutos desde que sube la válvula."
+      }
+    ]
   },
   {
     "id": "bebes_007",
@@ -997,7 +1111,27 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el arroz, el pollo troceado a lo largo y la zanahoria en el vaso con 200 ml de agua. Cocina a 100°C, velocidad cuchara, durante 20 minutos y luego tritura a velocidad progresiva 5-10 hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz por separado en agua hirviendo hasta que esté muy tierno y, simultáneamente, cocina al vapor el pollo troceado a lo largo y la zanahoria durante 18 minutos hasta que se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el arroz, el pollo troceado a lo largo y la zanahoria en la olla express con 200 ml de agua, cierra y cocina durante 8 minutos desde que sube la válvula."
+      }
+    ]
   },
   {
     "id": "bebes_008",
@@ -1133,7 +1267,27 @@
     ],
     "kidFavourite": true,
     "tecnica": "sarten",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Introduce las lentejas rojas bien lavadas, la zanahoria y el calabacín troceados a lo largo en el vaso junto con 200ml de agua. Cocina a 100°C, velocidad cuchara, durante 25 minutos."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 32,
+        "difficulty": "facil",
+        "prepSummary": "Lava bien las lentejas rojas y trocea la zanahoria y el calabacín a lo largo. Coloca las lentejas y las verduras en la cesta de la vaporera y cocina durante 30 minutos, hasta que todos los ingredientes estén muy tiernos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Lava bien las lentejas rojas y trocea la zanahoria y el calabacín a lo largo. Introduce todos los ingredientes en la olla express junto con 200ml de agua. Cierra la olla y cocina durante 7 minutos desde que sube la válvula. Deja que pierda la presión de forma natural."
+      }
+    ]
   },
   {
     "id": "bebes_009",
@@ -1282,7 +1436,27 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Coloca el boniato, pavo y calabacín troceados a lo largo en el vaso con 200ml de agua. Cocina al vapor a 100°C, velocidad 1, durante 20-25 minutos, hasta que se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Trocea el boniato, pavo y calabacín a lo largo y colócalos en la vaporera. Cocina al vapor durante 20-25 minutos, hasta que estén muy tiernos y se aplasten sin esfuerzo. Pasa a un recipiente, añade el aceite de oliva y tritura hasta obtener una crema lisa y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el boniato, pavo y calabacín troceados a lo largo en la olla express con un vaso de agua. Cierra y cocina a fuego medio durante 8-10 minutos desde que suba la válvula. Libera la presión, y tritura con el aceite de oliva hasta obtener una crema lisa y homogénea."
+      }
+    ]
   },
   {
     "id": "bebes_010",
@@ -1447,7 +1621,27 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "sarten",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el puerro troceado, el salmón sin espinas ni piel, el arroz, el aceite de oliva y un poco de agua en el vaso. Cocina a 100°C durante unos 18-20 minutos hasta que todo esté muy tierno. Luego, tritura a velocidad alta hasta obtener una crema lisa y homogénea."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz en agua hasta que esté muy tierno. Mientras tanto, cocina al vapor el puerro troceado y el salmón sin espinas ni piel durante unos 12-15 minutos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el puerro troceado, el salmón sin espinas ni piel, el arroz, el aceite de oliva y un poco de agua en la olla a presión. Cocina durante 5-7 minutos desde que sube la válvula, luego despresuriza y tritura hasta obtener una crema lisa y homogénea."
+      }
+    ]
   },
   {
     "id": "bebes_012",
@@ -1584,7 +1778,39 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Corta la calabaza y la zanahoria a lo largo. Colócalas en una bandeja de horno con el aceite de oliva y asa a 180°C durante unos 30-35 minutos, o hasta que estén muy tiernas y se aplasten sin esfuerzo. Después, tritura con los garbanzos cocidos hasta obtener una crema lisa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Introduce la calabaza y la zanahoria troceadas a lo largo en el vaso. Añade los garbanzos cocidos y un poco de agua si es necesario. Cocina a 100°C, velocidad cuchara, durante unos 15-20 minutos, o hasta que las verduras estén muy tiernas."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta la calabaza y la zanahoria a lo largo. Cuécelas al vapor durante unos 15-20 minutos, o hasta que estén muy tiernas y se aplasten sin esfuerzo. Después, tritura junto con los garbanzos cocidos y el aceite de oliva hasta obtener una crema lisa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Corta la calabaza y la zanahoria a lo largo y ponlas en la olla express con un poco de agua. Cierra y cocina a fuego medio-alto durante 5-7 minutos desde que sube la válvula."
+      },
+      {
+        "appliance": "microondas",
+        "time": 7,
+        "difficulty": "facil",
+        "prepSummary": "Corta la calabaza y la zanahoria a lo largo. Colócalas en un recipiente apto para microondas con un chorrito de agua, tapa y cocina a máxima potencia durante 5-7 minutos, o hasta que estén muy tiernas y se aplasten sin esfuerzo."
+      }
+    ]
   },
   {
     "id": "bebes_013",
@@ -1731,7 +1957,33 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta el boniato y el tomate, cocínalos al vapor en el Thermomix hasta que estén muy tiernos (unos 15 minutos)."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta el boniato y el tomate, cuécelos al vapor hasta que estén muy tiernos (unos 15-18 minutos)."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta el boniato y el tomate, cocínalos en la olla express con un poco de agua hasta que estén muy blandos (unos 5-7 minutos desde que sube la válvula)."
+      },
+      {
+        "appliance": "microondas",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Corta el boniato y el tomate, cocínalos en un recipiente apto para microondas con un poco de agua hasta que estén muy tiernos (unos 8-10 minutos)."
+      }
+    ]
   },
   {
     "id": "bebes_014",
@@ -1868,7 +2120,21 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Introduce la ternera cortada a lo largo y las espinacas con el caldo y el aceite en el vaso. Cocina a 90°C durante 15 minutos a velocidad cuchara. Añade los copos de avena y cocina 3 minutos más a la misma temperatura y velocidad."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "En la olla exprés, cocina la ternera cortada a lo largo y las espinacas con el caldo y el aceite durante 7 minutos desde que sube la válvula. Despresuriza, añade los copos de avena y cocina 3 minutos más sin tapa a fuego medio."
+      }
+    ]
   },
   {
     "id": "bebes_015",
@@ -2009,7 +2275,21 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Trocea el calabacín y cuécelo en el vaso con un poco de agua durante 15 minutos a 100°C, velocidad cuchara. Incorpora la sémola y el huevo, y cocina 5 minutos más a la misma temperatura. Tritura a velocidad progresiva hasta obtener una crema lisa y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Corta el calabacín y cuécelo en la olla express con un poco de agua durante 5 minutos desde que sube la válvula. Despresuriza, añade la sémola y el huevo, y cocina a fuego suave 5 minutos más. Tritura con una batidora de mano hasta obtener una crema lisa y homogénea."
+      }
+    ]
   },
   {
     "id": "bebes_016",
@@ -2161,7 +2441,27 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Introduce la coliflor, la patata y el pollo troceados en el vaso con 100ml de agua. Cocina 20 minutos a 100°C, velocidad 1. Después, añade el aceite de oliva y tritura a velocidad progresiva 5-10 hasta obtener una crema lisa. Estará listo cuando se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta la coliflor, la patata y el pollo en trozos pequeños. Cuécelos al vapor durante unos 18 minutos hasta que estén muy tiernos. Tritura con un poco del agua de cocción y el aceite de oliva hasta conseguir una crema lisa. Estará listo cuando se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta la coliflor, la patata y el pollo en trozos pequeños. Ponlos en la olla express con 100ml de agua. Cierra y cocina 6 minutos desde que sube la válvula. Libera la presión, añade el aceite de oliva y tritura hasta obtener una crema lisa."
+      }
+    ]
   },
   {
     "id": "bebes_018",
@@ -2298,7 +2598,27 @@
     ],
     "kidFavourite": true,
     "tecnica": "sarten",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta la patata y el pavo en trozos pequeños. Cocínalos en el vaso de la Thermomix junto con la remolacha cocida y el aceite de oliva a 100°C durante unos 15-20 minutos, hasta que todos los ingredientes se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta la patata y el pavo en trozos pequeños. Cuécelos al vapor durante unos 15-20 minutos, hasta que estén tan blandos que se aplasten sin esfuerzo. Después, tritura junto con la remolacha cocida y el aceite de oliva hasta obtener una crema lisa y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta la patata y el pavo en trozos pequeños. Cuécelos en la olla express con un poco de agua durante 5-7 minutos desde que sube la válvula, hasta que estén tan blandos que se aplasten sin esfuerzo."
+      }
+    ]
   },
   {
     "id": "bebes_019",
@@ -2443,7 +2763,33 @@
     ],
     "kidFavourite": true,
     "tecnica": "sarten",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta el boniato a lo largo y colócalo con el salmón (revisa espinas) y las espinacas en el recipiente Varoma. Cocina al vapor a 100°C, velocidad 1, durante 15-18 minutos, hasta que todo se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta el boniato a lo largo y colócalo con el salmón (revisa espinas) y las espinacas en la cesta de la vaporera. Cocina al vapor durante 15-18 minutos, hasta que el boniato y el salmón se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta el boniato a lo largo y colócalo en la cesta de vapor de la olla express con un poco de agua en el fondo. Añade el salmón (revisa espinas) y las espinacas. Cierra la olla y cocina a presión durante 5-7 minutos."
+      },
+      {
+        "appliance": "microondas",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Corta el boniato a lo largo y colócalo en un recipiente apto para microondas con un chorrito de agua. Cocina a máxima potencia durante 5-7 minutos, hasta que esté muy tierno."
+      }
+    ]
   },
   {
     "id": "bebes_021",
@@ -2568,7 +2914,21 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el pollo y las espinacas en el vaso con 100ml de agua y cocina al vapor 15 minutos a 100°C, velocidad 1. Añade los garbanzos cocidos y el aceite, y tritura 1 minuto a velocidad progresiva 5-10 hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Coloca el pollo y las espinacas en la olla express con 100ml de agua y cocina 5 minutos desde que sube la válvula. Despresuriza, añade los garbanzos cocidos y el aceite, y tritura con una batidora de mano hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+      }
+    ]
   },
   {
     "id": "bebes_022",
@@ -2693,7 +3053,21 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "etapaBebe": "cremas"
+    "etapaBebe": "cremas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Introduce las lentejas, ternera y zanahoria troceada con agua en el vaso. Cocina a 100°C durante unos 25 minutos a velocidad cuchara, luego tritura a velocidad progresiva hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Introduce las lentejas, ternera y zanahoria troceada con agua en la olla express. Cierra y cocina a presión durante 10-12 minutos desde que sube la válvula, luego tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -2806,7 +3180,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Primero, cocina el brócoli hasta que esté muy tierno y tritúralo; luego, mézclalo con el requesón, el huevo y los copos de avena para formar las tortitas."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Primero, cocina el brócoli hasta que esté muy tierno y tritúralo; luego, mézclalo con el requesón, el huevo y los copos de avena para formar las tortitas."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -2905,7 +3293,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Forma las tortitas y colócalas separadas en la cesta de la airfryer, ligeramente engrasada. Cocina a 180°C durante 14 minutos, dándoles la vuelta a mitad del tiempo, hasta que el interior se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Forma las tortitas y colócalas sobre papel de horno en una bandeja. Hornea durante 20 minutos, dándoles la vuelta a mitad del tiempo, hasta que el interior se aplasta sin esfuerzo."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -2994,7 +3396,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Forma tortitas pequeñas y colócalas en la cesta de la airfryer, sobre papel de horno. Cocina a 180°C durante unos 14 minutos, dándoles la vuelta a mitad de cocción, hasta que se aplasten sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Forma tortitas pequeñas y distribúyelas en una bandeja de horno forrada con papel de hornear y ligeramente engrasada. Hornea a 180°C durante unos 18 minutos, dándoles la vuelta a mitad de cocción, hasta que se aplasten sin esfuerzo entre dos dedos."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3088,7 +3504,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Coloca los bocaditos en una bandeja con papel de horno y cocina durante 30 minutos, hasta que estén tiernos y se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los bocaditos separados en la cesta de la airfryer y cocina a 175°C durante unos 18 minutos, dándoles la vuelta a mitad. Estarán listos cuando el interior se aplasta sin esfuerzo."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3183,7 +3613,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 32,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los falafel separados en una bandeja de horno con papel vegetal. Cocina a 180°C durante unos 32 minutos. Estarán listos cuando el interior se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los falafel separados en la cesta de la airfryer. Cocina a 180°C durante unos 18 minutos, dándoles la vuelta a mitad del tiempo. Estarán listos cuando el interior se aplaste sin esfuerzo."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3278,7 +3722,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla los ingredientes, forma las tortitas y colócalas separadas en la cesta de la airfryer. Cocina a 180°C durante unos 14 minutos, dándoles la vuelta a mitad del tiempo, hasta que se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Mezcla los ingredientes, forma las tortitas y colócalas sobre papel de horno en una bandeja. Hornea durante unos 18 minutos hasta que estén cocidas y se aplasten sin esfuerzo."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3375,7 +3833,27 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Forma las mini hamburguesas y pincélalas ligeramente con aceite. Colócalas separadas en la cesta de la airfryer y cocina a 180°C durante 14 minutos, dándoles la vuelta a mitad del tiempo. Sabrás que están listas cuando el interior se aplaste sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Forma las mini hamburguesas y colócalas sobre papel de hornear en una bandeja. Hornea durante 18 minutos, dándoles la vuelta a mitad del tiempo. Están listas cuando el interior se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Forma las mini hamburguesas y colócalas sobre papel de hornear en la cesta de la vaporera. Cocina al vapor durante 12 minutos. Sabrás que están listas cuando el interior se aplaste sin esfuerzo entre dos dedos."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3465,7 +3943,45 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Forma las albóndigas y colócalas en una bandeja con el tomate triturado y un chorrito de aceite. Hornea a 180°C unos 35 minutos, hasta que se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Forma las albóndigas y colócalas en un recipiente apto para airfryer con el tomate triturado y un chorrito de aceite. Cocina a 180°C unos 18 minutos, hasta que se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Forma las albóndigas y colócalas en el recipiente Varoma. En el vaso, pon el tomate triturado con un chorrito de aceite. Cocina 25 minutos/Varoma/velocidad 1, hasta que las albóndigas se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Forma las albóndigas y colócalas en la vaporera. Cocina al vapor unos 25 minutos, hasta que se aplasten sin esfuerzo. Sirve acompañadas de tomate triturado cocinado aparte con un chorrito de aceite."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Forma las albóndigas y ponlas en la olla express con el tomate triturado y un chorrito de aceite. Cierra y cocina 10 minutos desde que sube la válvula, hasta que se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "microondas",
+        "time": 7,
+        "difficulty": "facil",
+        "prepSummary": "Forma las albóndigas y colócalas en un recipiente apto para microondas con el tomate triturado y un chorrito de aceite. Tapa y cocina a máxima potencia unos 7 minutos, hasta que se aplasten sin esfuerzo."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3558,7 +4074,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 16,
+        "difficulty": "facil",
+        "prepSummary": "Coloca las mini hamburguesas separadas en la cesta de la airfryer, ligeramente untadas con aceite. Cocina a 185°C durante 16 minutos, dándoles la vuelta a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Dispón las mini hamburguesas en una bandeja de horno con papel de hornear, ligeramente untadas con aceite. Hornea a 190°C durante 20 minutos, dándoles la vuelta a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3649,7 +4179,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Coloca las hamburguesas en una bandeja con papel de horno y cocina durante unos 25 minutos, dándoles la vuelta a mitad. Estarán listas cuando se aplasten sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Coloca las hamburguesas separadas en la cesta de la airfryer y cocina a 180°C durante unos 14 minutos, dándoles la vuelta a mitad. Están listas cuando el interior se aplasta sin esfuerzo entre dos dedos."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3740,7 +4284,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Forma las albóndigas y colócalas en una bandeja de horno. Hornea a 180°C durante unos 25 minutos, hasta que al aplastarlas entre dos dedos se deshagan sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Forma las albóndigas y colócalas separadas en la cesta de la airfryer. Cocina a 180°C durante unos 15 minutos, dándoles la vuelta a mitad, hasta que se aplasten sin esfuerzo entre dos dedos."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3810,7 +4368,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Coloca los bastones de boniato en una bandeja con papel de horno y un chorrito de aceite. Hornea durante 30 minutos, o hasta que el boniato se aplaste sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 185°C. Coloca los bastones de boniato con un chorrito de aceite en la cesta, asegurándote de que no se amontonen. Cocina durante 18 minutos, agitándolos a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3873,7 +4445,33 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los bastones de zanahoria en el recipiente Varoma. Vierte 500 ml de agua en el vaso, coloca el Varoma en su posición y cocina al vapor 25 minutos/Varoma/velocidad 1. Una vez cocidas, mezcla con el aceite de oliva. Deben aplastarse sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los bastones de zanahoria en la cesta de la vaporera. Cocina al vapor durante 20-25 minutos hasta que estén muy tiernas. Una vez cocidas, mezcla con el aceite de oliva. Deben aplastarse sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Introduce los bastones de zanahoria en la olla express con unos 100-150 ml de agua. Cierra la olla y cocina durante 7 minutos desde que sube la válvula. Libera la presión, escurre y mezcla con el aceite de oliva. Deben aplastarse sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "microondas",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los bastones de zanahoria en un recipiente apto para microondas con 2-3 cucharadas de agua. Tapa y cocina a máxima potencia (800W) durante 6-8 minutos. Escurre y mezcla con el aceite de oliva. Deben aplastarse sin esfuerzo entre dos dedos."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3935,7 +4533,45 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Bate los huevos con el aceite y vierte en un molde rectangular apto para airfryer. Cocina a 160°C durante 10-12 minutos hasta que esté bien cuajado y se aplaste sin esfuerzo. Una vez templado, corta en tiras."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Bate los huevos con el aceite y vierte en un molde rectangular apto para horno. Hornea a 170°C durante 15-18 minutos hasta que esté bien cuajado y se aplaste sin esfuerzo. Una vez templado, corta en tiras."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Bate los huevos con el aceite y vierte en un molde rectangular apto para Varoma. Coloca en el recipiente Varoma y cocina al vapor 20 minutos, Varoma, velocidad 1, con 500ml de agua en el vaso. Estará listo cuando se aplaste sin esfuerzo. Una vez templado, corta en tiras."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Bate los huevos con el aceite y vierte en un molde rectangular apto para vaporera. Cocina al vapor durante 18-20 minutos hasta que esté bien cuajado y se aplaste sin esfuerzo. Una vez templado, corta en tiras."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 10,
+        "difficulty": "normal",
+        "prepSummary": "Bate los huevos con el aceite y vierte en un molde rectangular apto para olla express. Coloca el molde sobre una rejilla con 200ml de agua en la base y cocina 5 minutos desde que sube la válvula. Despresuriza, y estará listo cuando se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "microondas",
+        "time": 2,
+        "difficulty": "facil",
+        "prepSummary": "Bate los huevos con el aceite y vierte en un molde rectangular apto para microondas. Cocina a máxima potencia durante 1-2 minutos, vigilando que cuaje y se aplaste sin esfuerzo. Una vez templado, corta en tiras."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -3998,7 +4634,33 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los arbolitos de brócoli en el recipiente Varoma. Vierte 500 ml de agua en el vaso, cierra y cocina 18 minutos, Varoma, velocidad 1. Estará listo cuando se aplaste sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los arbolitos de brócoli en la cesta de la vaporera. Cocina al vapor durante unos 15 minutos hasta que estén muy tiernos y se aplasten sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los arbolitos de brócoli en la cesta de vapor de la olla a presión con un poco de agua en el fondo. Cierra y cocina a fuego medio durante 5 minutos desde que sube la válvula. Estará listo cuando se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los arbolitos de brócoli en un recipiente apto para microondas con dos cucharadas de agua, tapa y cocina a máxima potencia durante 5 minutos. Estará listo cuando se aplaste sin esfuerzo entre dos dedos."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -4080,7 +4742,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Coloca las tiras de aguacate rebozadas en una bandeja con papel de horno y cocina durante 12-14 minutos, hasta que estén muy blandas y se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Coloca las tiras de aguacate rebozadas en la cesta, sin que se superpongan, y cocina durante 8-10 minutos, dándoles la vuelta a mitad. Están listas cuando se aplastan sin esfuerzo."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -4176,7 +4852,15 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 42,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la boloñesa de verduras y carne en una sartén hasta que las verduras estén muy blandas. Cocina la pasta hasta que esté muy blanda."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -4265,7 +4949,33 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el brócoli en el Varoma y el arroz en el cestillo a 100°C durante unos 25 minutos hasta que estén muy tiernos."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el brócoli y el arroz al vapor hasta que estén muy tiernos y se deshagan fácilmente. Machaca bien ambos ingredientes, añade las semillas de sésamo y el aceite de oliva, y mezcla hasta obtener una masa para formar las bolitas; deben aplastarse sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el brócoli y el arroz en la olla express hasta que estén muy blandos y se deshagan. Machaca bien ambos ingredientes, incorpora las semillas de sésamo y el aceite de oliva, y mezcla hasta formar una masa homogénea para las bolitas; deben aplastarse sin esfuerzo."
+      },
+      {
+        "appliance": "microondas",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el brócoli y el arroz en recipientes aptos para microondas con un poco de agua hasta que estén muy tiernos."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -4356,7 +5066,21 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Hornea los muffins en moldes individuales durante 30-35 minutos. Sabrás que están listos cuando el interior se aplaste sin esfuerzo al presionarlos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los muffins en moldes aptos para airfryer o directamente en la cesta (si la mezcla es firme) y cocina a 170°C durante unos 18 minutos. Están listos cuando el interior se aplasta sin esfuerzo."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -4453,7 +5177,27 @@
         "kind": "espera"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Corta el calabacín, la berenjena y el pimiento en bastones. Mézclalos con el tomate triturado y el aceite de oliva. Extiende en una bandeja de horno y cocina a 180°C durante unos 25-30 minutos, hasta que las verduras estén muy blandas."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Corta el calabacín, la berenjena y el pimiento en bastones. Colócalos en la vaporera junto con el tomate triturado y el aceite de oliva. Cocina al vapor durante unos 20-25 minutos, hasta que las verduras estén muy blandas."
+      },
+      {
+        "appliance": "microondas",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta el calabacín, la berenjena y el pimiento en bastones. Colócalos en un recipiente apto para microondas con el tomate triturado y el aceite de oliva. Cocina a máxima potencia durante 8-10 minutos, removiendo a mitad, hasta que las verduras estén muy blandas."
+      }
+    ]
   },
   {
     "category": "bebes",
@@ -4552,7 +5296,22 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 19,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla los ingredientes y forma las tortitas. Cocínalas separadas en la cesta de la airfryer a 180°C durante unos 14 minutos, dándoles la vuelta a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "horno",
+        "time": 23,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Mezcla los ingredientes, forma las tortitas y hornéalas sobre papel de horno en una bandeja durante unos 18 minutos, dándoles la vuelta a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -4657,7 +5416,22 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Forma pequeñas tortitas con la masa y colócalas separadas en la cesta de la airfryer. Cocina a 180°C durante unos 14 minutos, dándoles la vuelta a mitad del tiempo. Están listas cuando el interior se aplasta sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Forma pequeñas tortitas con la masa y colócalas sobre papel de horno en una bandeja. Hornea a 180°C durante unos 20 minutos, dándoles la vuelta a mitad del tiempo. Están listas cuando el interior se aplasta sin esfuerzo entre dos dedos."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -4756,7 +5530,9 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -4854,7 +5630,22 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 26,
+        "difficulty": "facil",
+        "prepSummary": "Pica finamente la pechuga de pavo y mézclala con el maíz, el huevo y los copos de avena. Forma las tortitas, rocía ligeramente la cesta de la airfryer con aceite de oliva y cocínalas a 180°C durante 14 minutos, dándoles la vuelta a mitad."
+      },
+      {
+        "appliance": "horno",
+        "time": 32,
+        "difficulty": "facil",
+        "prepSummary": "Pica finamente la pechuga de pavo y mézclala con el maíz, el huevo y los copos de avena. Forma las tortitas, colócalas sobre papel de horno en una bandeja ligeramente engrasada con aceite de oliva y hornea a 180°C durante 20 minutos."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -4945,7 +5736,28 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Una vez formadas las tortitas, colócalas separadas en la cesta de la airfryer y cocina a 180°C durante 12-15 minutos, dándoles la vuelta a mitad. Estarán listas cuando el interior se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Coloca las tortitas en una bandeja con papel de horno y hornea durante 18-20 minutos, volteándolas a mitad del tiempo. Sabrás que están listas cuando se aplasten sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las tortitas en la vaporera durante 15-20 minutos. Asegúrate de que estén bien blandas y se aplasten sin esfuerzo antes de ofrecerlas."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5037,7 +5849,22 @@
         "minutes": 6,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla el calabacín, la patata y la cebolla finamente picados o rallados con el huevo batido y el aceite de oliva. Vierte en un molde apto para horno y hornea a 180°C durante 40 minutos, hasta que el centro esté firme y se aplaste sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla el calabacín, la patata y la cebolla finamente picados o rallados con el huevo batido y el aceite de oliva. Vierte en un molde pequeño apto para airfryer y cocina a 180°C durante 25 minutos, hasta que el centro esté firme y se aplaste sin esfuerzo entre dos dedos."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5136,7 +5963,22 @@
         "minutes": 5,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla el brócoli cocido y finamente picado con el huevo batido, el requesón, la leche y el aceite. Vierte la mezcla en moldes individuales aptos para horno y cocina a 180°C durante 35 minutos, hasta que el centro esté cuajado y se aplaste sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla el brócoli cocido y finamente picado con el huevo batido, el requesón, la leche y el aceite."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5236,7 +6078,28 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 32,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Vierte la mezcla en moldes para muffins y hornea durante 32 minutos. Están listos cuando el interior se aplasta sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Coloca la mezcla en moldes aptos para airfryer y cocina a 170°C durante 18 minutos. Están listos cuando el interior se aplasta sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Vierte la mezcla en moldes aptos para vapor y cocina al vapor durante 25 minutos. Están listos cuando el interior se aplasta sin esfuerzo."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5335,7 +6198,28 @@
         "minutes": 5,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara las porciones con la mezcla de merluza (revisa bien las espinas), patata, zanahoria y huevo. Hornea a 180°C durante unos 25 minutos, o hasta que al pinchar se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 43,
+        "difficulty": "normal",
+        "prepSummary": "Una vez formadas las porciones con la mezcla de merluza (revisa bien las espinas), patata, zanahoria y huevo, cocínalas en la airfryer a 180°C durante 18 minutos, dándoles la vuelta a mitad, hasta que se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Tras cocinar al vapor la merluza (revisa bien las espinas), la patata y la zanahoria, mézclalas con el huevo y forma las porciones. Cuécelas al vapor unos 15 minutos hasta que se aplasten sin esfuerzo."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5426,7 +6310,22 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla todos los ingredientes, forma los nuggets y colócalos en una bandeja con papel de horno. Cocina a 190°C durante 30 minutos, hasta que se aplasten sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla todos los ingredientes, forma los nuggets y colócalos separados en la cesta de la airfryer. Cocina a 180°C durante 18 minutos, dándoles la vuelta a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5531,7 +6430,22 @@
         "minutes": 18,
         "kind": "pasivo"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 190°C. Una vez formadas las croquetas, colócalas en una bandeja con papel de horno y hornea durante unos 25-30 minutos. Estarán listas cuando estén firmes y el interior se aplaste sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 185°C. Coloca las croquetas formadas en la cesta, sin amontonar, y cocina durante unos 18 minutos, dándoles la vuelta a mitad del tiempo. Sabrás que están listas cuando el interior se aplaste sin esfuerzo entre dos dedos."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5627,7 +6541,22 @@
         "minutes": 18,
         "kind": "pasivo"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Coloca las bolitas en una bandeja con papel de horno y cocina durante 30 minutos. Estarán listas cuando se aplasten sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Coloca las bolitas separadas en la cesta y cocina durante 18 minutos, dándoles la vuelta a mitad del tiempo. Sabrás que están listas cuando se aplasten sin esfuerzo."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5725,7 +6654,22 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Forma las albóndigas y hornéalas a 180°C durante 35 minutos. Estarán listas cuando al aplastarlas entre dos dedos se deshagan sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 16,
+        "difficulty": "facil",
+        "prepSummary": "Coloca las albóndigas separadas en la cesta de la airfryer y cocina a 180°C durante 16 minutos, dándoles la vuelta a mitad. Están listas cuando al aplastarlas entre dos dedos se deshagan sin esfuerzo."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5818,7 +6762,22 @@
         "minutes": 3,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Coloca los bastones en una bandeja con papel de horno y cocina durante unos 28 minutos, hasta que el interior se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Coloca los bastones separados en la cesta y cocina durante unos 18 minutos, dándoles la vuelta a mitad del tiempo. Están listos cuando el interior se aplasta sin esfuerzo."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5905,7 +6864,40 @@
         "minutes": 5,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas y la cebolla hasta que estén muy tiernas. Mezcla con los huevos batidos y vierte en un molde rectangular apto para horno. Hornea a 180°C durante unos 20-25 minutos, hasta que esté firme y se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y cocina las patatas en el vaso o Varoma hasta que estén muy tiernas. Mezcla con los huevos batidos y vierte en un molde apto para Varoma. Cocina al vapor en el Varoma durante 20-25 minutos, hasta que esté firme y se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas y la cebolla al vapor hasta que estén muy tiernas. Mezcla con los huevos batidos y vierte en un molde rectangular apto para vaporera. Cocina al vapor durante 20-25 minutos, hasta que esté firme y se aplaste sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas y la cebolla en la olla a presión hasta que estén muy tiernas. Mezcla con los huevos batidos y vierte en un molde apto para olla a presión, colocándolo sobre una rejilla con agua."
+      },
+      {
+        "appliance": "microondas",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas y la cebolla troceadas en un recipiente apto para microondas con un poco de aceite hasta que estén muy tiernas (5-8 minutos). Mezcla con los huevos batidos y vierte en un molde rectangular apto para microondas."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -5973,7 +6965,34 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta la pera y la manzana en bastones. Colócalos en el recipiente Varoma y cocina al vapor durante 15 minutos, temperatura Varoma, velocidad 1, hasta que se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta la pera y la manzana en bastones. Colócalos en la cesta de la vaporera y cocina al vapor durante 15 minutos, hasta que estén muy blandos y se aplasten sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Corta la pera y la manzana en bastones. Colócalos en la cesta de vapor dentro de la olla express con un poco de agua. Cocina durante 3 minutos desde que sube la válvula, luego despresuriza y comprueba que se aplastan sin esfuerzo."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Corta la pera y la manzana en bastones. Ponlos en un recipiente apto para microondas con una cucharada de agua, tapa y cocina a máxima potencia (800W) durante 5 minutos, hasta que estén muy blandos y se aplasten sin esfuerzo."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -6052,7 +7071,34 @@
         "minutes": 4,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Revisa bien las tiras de bacalao para asegurar que no tienen espinas, colócalas en una bandeja con papel de horno, rocía con aceite y hornea durante unos 25 minutos. Estarán listas cuando se desmenucen y se aplasten sin esfuerzo entre dos dedos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Revisa bien las tiras de bacalao para asegurar que no tienen espinas. Colócalas separadas en la cesta de la airfryer, rocía con aceite y cocina a 180°C durante unos 14 minutos, dándoles la vuelta a mitad."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Revisa bien las tiras de bacalao para asegurar que no tienen espinas. Colócalas en el recipiente Varoma, rocía con aceite. Vierte 500ml de agua en el vaso y cocina al vapor 14 minutos, Varoma, velocidad 1."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Revisa bien las tiras de bacalao para asegurar que no tienen espinas. Colócalas en la cesta de la vaporera, rocía con aceite y cocina al vapor durante unos 14 minutos. Estarán listas cuando se desmenucen y se aplasten sin esfuerzo entre dos dedos."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -6144,7 +7190,34 @@
         "minutes": 4,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras a lo largo. Vierte 500ml de agua en el vaso, coloca el Varoma con las verduras y cocina 20-25 minutos, temperatura Varoma, velocidad 1, hasta que se aplasten sin esfuerzo. Retira el Varoma."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras a lo largo y cuécelas al vapor en la vaporera durante 20-25 minutos hasta que se aplasten sin esfuerzo. Prepara el cuscús aparte con agua muy caliente. Mezcla las verduras con el cuscús y forma las porciones deseadas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras a lo largo y cuécelas en la olla express con un poco de agua durante 5-8 minutos desde que sube la válvula, hasta que se aplasten sin esfuerzo. Prepara el cuscús aparte con agua muy caliente. Mezcla las verduras con el cuscús y forma las porciones deseadas."
+      },
+      {
+        "appliance": "microondas",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras a lo largo y ponlas en un recipiente apto para microondas con un chorrito de agua. Tapa y cocina a máxima potencia (800W) durante 5-10 minutos, o hasta que se aplasten sin esfuerzo. Prepara el cuscús en otro recipiente con agua caliente."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -6236,7 +7309,16 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pela y corta las zanahorias en bastones y cuécelas al vapor en el Varoma durante 18 minutos a temperatura Varoma, velocidad 1, hasta que se aplasten sin esfuerzo."
+      }
+    ],
+    "estrella": true
   },
   {
     "category": "bebes",
@@ -6332,6 +7414,27 @@
         "minutes": 6,
         "kind": "espera"
       }
-    ]
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "En una olla apta para horno, sofríe la cebolla picada muy fina con el aceite hasta que esté transparente. Añade el pollo troceado pequeño y la calabaza en dados pequeños, el arroz y unos 180ml de agua. Tapa y hornea a 180°C durante 35-40 minutos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Pon la cebolla en el vaso y pica 3 segundos/vel 5. Añade el aceite y sofríe 5 minutos/120°C/vel 1. Incorpora el pollo troceado pequeño, la calabaza en dados pequeños, el arroz y 180ml de agua. Cocina 20-25 minutos/90°C/giro inverso/vel cuchara."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "En la olla express, sofríe la cebolla picada muy fina con el aceite hasta que esté transparente. Añade el pollo troceado pequeño, la calabaza en dados pequeños, el arroz y 120ml de agua."
+      }
+    ],
+    "estrella": true
   }
 ]

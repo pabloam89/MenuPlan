@@ -12325,5 +12325,145 @@
     "name": "Salsa de Pedro Ximénez",
     "family": "salsas",
     "type": "dish"
+  },
+  {
+    "combo_id": "bebes_043",
+    "imageUrl": null,
+    "name": "Tortitas de calabaza y canela",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_044",
+    "imageUrl": null,
+    "name": "Gofres de espinacas y queso fresco",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_045",
+    "imageUrl": null,
+    "name": "Crepes de pera en tiras",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_046",
+    "imageUrl": null,
+    "name": "Tortitas de maíz y pavo",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_047",
+    "imageUrl": null,
+    "name": "Tortitas de lenteja roja y zanahoria",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_048",
+    "imageUrl": null,
+    "name": "Frittata al horno de calabacín y patata",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_049",
+    "imageUrl": null,
+    "name": "Mini quiche sin masa de brócoli",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_050",
+    "imageUrl": null,
+    "name": "Muffins de plátano y avena",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_051",
+    "imageUrl": null,
+    "name": "Pastel de merluza y patata en porciones",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_052",
+    "imageUrl": null,
+    "name": "Nuggets de pollo al horno con avena",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_053",
+    "imageUrl": null,
+    "name": "Croquetas al horno de merluza y calabacín",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_054",
+    "imageUrl": null,
+    "name": "Bolitas de quinoa, garbanzo y espinaca",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_055",
+    "imageUrl": null,
+    "name": "Albóndigas de pavo y manzana al horno",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_056",
+    "imageUrl": null,
+    "name": "Bastones de calabacín rebozado al horno",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_057",
+    "imageUrl": null,
+    "name": "Tortilla de patata en tiras, sin sal",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_058",
+    "imageUrl": null,
+    "name": "Bastones de pera y manzana al vapor",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_059",
+    "imageUrl": null,
+    "name": "Tiras de bacalao al horno con aceite",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_060",
+    "imageUrl": null,
+    "name": "Cuscús con verduras muy blandas",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_061",
+    "imageUrl": null,
+    "name": "Hummus suave con bastones de zanahoria",
+    "family": "bebes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "bebes_062",
+    "imageUrl": null,
+    "name": "Arroz meloso de calabaza y pollo",
+    "family": "bebes",
+    "type": "dish"
   }
 ]

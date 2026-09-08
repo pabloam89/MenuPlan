@@ -73,10 +73,67 @@ let files = ONLY_FILE ? [ONLY_FILE] : DEFAULT_FILES;
 if (PILOT) files = ["huevos.json"]; // small, varied category for a quick smoke test
 
 // ---- Prompt builder ----
+/**
+ * Las recetas de bebé NO pueden pasar por el prompt genérico.
+ *
+ * Ese prompt dice "eres un chef experto en cocina española" y nada más, así que
+ * devuelve lo que devolvería para un plato de adulto: salpimentar, dorar bien,
+ * que quede crujiente. Escrito en el `prepSummary` de una receta de bebé, eso
+ * es una instrucción que un padre lee y sigue. Por eso `bebes.json` estaba
+ * fuera de DEFAULT_FILES.
+ *
+ * Se puede levantar esa exclusión, pero solo dándole aquí lo que le faltaba:
+ * las reglas de seguridad y —esto es lo que más se escapa— la obligación de NO
+ * cambiar el formato. El formato es lo que hace que la receta sirva a esta
+ * edad: unos bastones en airfryer siguen teniendo que ser bastones, y una
+ * crema no se convierte en trozos porque el aparato sea otro.
+ */
+function buildBabyPrompt(recipe, ingredients) {
+  const cremas = (recipe.etapaBebe ?? "cremas") === "cremas";
+  const formato = cremas
+    ? `Es un PURÉ/CREMA para bebé: el resultado tiene que seguir siendo una crema lisa y homogénea. Un electrodoméstico que deje trozos NO vale.`
+    : `Es comida SÓLIDA en piezas que el bebé coge con la mano. El formato de "${recipe.name}" (tortita, bastón, tira, albóndiga, porción…) tiene que salir IGUAL del otro electrodoméstico. Si un aparato obliga a cambiar la forma, no lo propongas.`;
+
+  return `Eres un chef especializado en alimentación infantil de 6 a 12 meses. Analiza esta receta.
+
+RECETA: ${recipe.name}
+Etapa: ${cremas ? "cremas (purés)" : "sólidos (baby-led weaning)"}
+Técnica base: ${recipe.tecnica ?? "sartén/cazuela"}
+Tiempo base: ${recipe.time} min
+Ingredientes: ${ingredients}
+
+${formato}
+
+REGLAS QUE NO SE NEGOCIAN. El prepSummary lo lee un padre y lo hace tal cual:
+- NUNCA menciones sal, salpimentar, sazonar, caldo de brik, pastilla de caldo,
+  azúcar, miel ni queso curado o rallado de bolsa. Son las vías por las que
+  entra el sodio en un plato "sin sal".
+- NUNCA digas "crujiente", "bien dorado" ni "al dente". A esta edad se cocina
+  DE MÁS a propósito: todo tiene que aplastarse entre dos dedos.
+- Si la receta lleva pescado, recuerda revisar espinas.
+- No propongas trocear en rodajas ni en cubos redondos: siempre a lo largo.
+
+TAREA: de [${APPLIANCES.join(", ")}], di en cuáles se prepara ESTA receta con
+buen resultado y sin desvirtuarla. Sé restrictivo: es mejor devolver uno bueno
+que cuatro forzados. Excluye lo que no tenga sentido (airfryer para una crema,
+microondas para algo que necesita dorarse).
+
+Para cada uno devuelve:
+- "appliance": uno de [${APPLIANCES.join(", ")}]
+- "time": tiempo total estimado en minutos (entero)
+- "difficulty": una de [${DIFFICULTIES.join(", ")}]
+- "prepSummary": 1-2 frases en español, temperatura y tiempo concretos, y el
+  punto en que se sabe que está listo (que se aplaste sin esfuerzo)
+
+Responde SOLO con un array JSON válido, sin texto adicional. Si ninguno aplica, devuelve [].
+Ejemplo: [{"appliance":"airfryer","time":14,"difficulty":"facil","prepSummary":"Colócalos separados en la cesta y cocina a 180°C unos 14 minutos, dándoles la vuelta a mitad. Están listos cuando el interior se aplasta sin esfuerzo."}]`;
+}
+
 function buildPrompt(recipe) {
   const ingredients = (recipe.ingredients ?? [])
     .map((i) => `${i.name} (${i.amount}${i.unit})`)
     .join(", ");
+  if (recipe.category === "bebes") return buildBabyPrompt(recipe, ingredients);
   const base = recipe.requiredAppliance
     ? `técnica base: ${recipe.requiredAppliance}`
     : "técnica base: sartén/plancha/cazuela";
@@ -116,6 +173,23 @@ function extractJsonArray(text) {
   }
 }
 
+/**
+ * Recorta por la última frase COMPLETA que quepa, no por el carácter 280.
+ *
+ * El corte a pelo dejaba instrucciones a medias — "Añade el aceite de oliva al
+ * fin", "hasta obtener una crema lisa que se". Un prepSummary lo lee alguien
+ * que está cocinando: media frase es peor que una frase menos. Si ni la primera
+ * frase cabe, entonces sí se corta duro y se marca con puntos suspensivos, para
+ * que se vea que falta algo en vez de parecer el final.
+ */
+function recortar(texto, max) {
+  if (texto.length <= max) return texto;
+  const cabe = texto.slice(0, max);
+  const fin = Math.max(cabe.lastIndexOf(". "), cabe.lastIndexOf("! "), cabe.lastIndexOf("? "));
+  if (fin > 0) return cabe.slice(0, fin + 1);
+  return cabe.slice(0, max - 1).trimEnd() + "…";
+}
+
 function sanitizeMethods(raw) {
   if (!Array.isArray(raw)) return [];
   const seen = new Set();
@@ -129,7 +203,7 @@ function sanitizeMethods(raw) {
     if (!Number.isFinite(time) || time <= 0) continue;
     let difficulty = String(m.difficulty ?? "").toLowerCase().trim();
     if (!DIFFICULTIES.includes(difficulty)) difficulty = "facil"; // normalize any "muy_facil" etc.
-    const prepSummary = String(m.prepSummary ?? "").trim().slice(0, 280);
+    const prepSummary = recortar(String(m.prepSummary ?? "").trim(), 280);
     seen.add(appliance);
     out.push({ appliance, time, difficulty, prepSummary });
   }

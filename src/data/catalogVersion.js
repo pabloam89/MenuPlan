@@ -42,6 +42,17 @@
 // etapa (filterRecipes.js:252), no la estrella: son dos puertas distintas y
 // esta solo abre la de "existe en el catálogo".
 //
-// Sin subir este número no llegan a producción: Supabase está en 25 y empate
+// v27 (2026-09-08): segunda tanda de sólidos de bebé (bebes_043 → bebes_062),
+// con `estrella: true` puesta DESDE EL PRINCIPIO — el fallo de v25/v26 fue
+// justo ese, y repetirlo habría vuelto a dejar la teja a cero.
+//
+// Además, `methods[]` en las 59 recetas de bebé, que estaban a cero mientras
+// carnes iba 140/159. Los aparatos se reparten como tienen que repartirse:
+// airfryer 0 en cremas y 29 en sólidos, thermomix y olla exprés al revés.
+// El prompt de bebés es propio (gen-appliance-methods.mjs): el genérico dice
+// "chef experto en cocina española" y devolvía "salpimentar" en el resumen
+// que lee un padre.
+//
+// Sin subir este número no llegan a producción: Supabase está en 26 y empate
 // significa que gana la nube.
-export const BUNDLED_CATALOG_VERSION = 26;
+export const BUNDLED_CATALOG_VERSION = 27;

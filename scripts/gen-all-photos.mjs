@@ -113,14 +113,55 @@ function buildPrompt(dishName) {
 // con boloñesa devolvió croquetas y fusilli crudo en el mismo plato. Estas se
 // fotografían como cualquier otro plato del catálogo: son sólidas, pero se
 // comen con cuchara (pasta, pisto) o salen de un molde (muffins).
-const BEBES_NO_FINGER = new Set(["bebes_039", "bebes_041", "bebes_042"]);
+const BEBES_NO_FINGER = new Set([
+  "bebes_039", "bebes_041", "bebes_042",
+  // Segunda tanda. Mismo criterio: se comen con cuchara (cuscús, arroz meloso),
+  // salen de un molde (mini quiche, muffins) o son un untable con guarnición
+  // aparte (hummus con bastones). Pedirle "piezas sueltas que el bebé coge con
+  // la mano" a un arroz meloso devuelve cualquier cosa menos un arroz.
+  "bebes_049", "bebes_050", "bebes_060", "bebes_061", "bebes_062",
+]);
+
+/**
+ * La forma de CADA plato, deducida de su nombre.
+ *
+ * Sin esto el prompt listaba todas las formas posibles ("tortitas, mini
+ * hamburguesas, albóndigas, bastones, tiras o bolitas") para cualquier receta,
+ * y el modelo elegía una al azar: el pastel de merluza "en porciones" salió en
+ * dos redondas, una croqueta y una bola; la tortilla de patata "en tiras" salió
+ * en las porciones triangulares que la receta dice justamente que no hagas; y
+ * los bastones de fruta salieron en cubos, que es la forma prohibida.
+ *
+ * Cuando el nombre ya dice la forma, no hay que ofrecer un menú: hay que
+ * dictarla. El orden importa — "bastones de calabacín rebozado" es bastón, no
+ * rebozado, así que lo más específico va primero.
+ */
+const FORMA_POR_NOMBRE = [
+  [/^tortitas|^gofres/i, "tortitas o gofres redondeados y planos, del grosor de un dedo"],
+  [/^crepes/i, "rollitos de crepe cortados en tiras gruesas"],
+  [/^frittata|tortilla de patata|^tortilla francesa/i, "TIRAS rectangulares alargadas cortadas de una tortilla, nunca porciones triangulares ni cuñas"],
+  [/^pastel .* porciones|en porciones/i, "BARRITAS rectangulares alargadas cortadas de un pastel horneado, todas iguales"],
+  [/^nuggets/i, "nuggets alargados y rebozados"],
+  [/^croquetas/i, "croquetas alargadas y rebozadas"],
+  [/^bolitas/i, "bolitas ligeramente aplastadas"],
+  [/^albóndigas|^mini hamburguesa|^hamburguesa|^falafel|^bocaditos/i, "albóndigas o mini hamburguesas redondeadas"],
+  [/^bastones|en bastón/i, "BASTONES alargados del grosor y largo de un dedo, nunca cubos ni rodajas"],
+  [/^tiras de/i, "TIRAS alargadas, nunca cubos ni rodajas"],
+  [/brócoli al vapor/i, "árboles de brócoli enteros con su tallo"],
+];
+
+function formaDe(dishName) {
+  for (const [re, forma] of FORMA_POR_NOMBRE) if (re.test(dishName)) return forma;
+  return "piezas enteras y separadas (tortitas, albóndigas, bastones o tiras)";
+}
 
 function buildBabySolidsPrompt(dishName) {
   return (
     `Fotografía cenital de un plato de comida para bebé de "${dishName}". ` +
-    `Comida SÓLIDA en piezas que un bebé puede coger con la mano: se ven las formas ` +
-    `enteras y separadas (tortitas, mini hamburguesas, albóndigas, bastones, tiras o bolitas), ` +
-    `nunca trituradas ni convertidas en puré. ` +
+    `Comida SÓLIDA en piezas que un bebé puede coger con la mano. ` +
+    `LA FORMA DE LAS PIEZAS ES EXACTAMENTE ESTA Y NO OTRA: ${formaDe(dishName)}. ` +
+    `Todas las piezas del plato tienen la MISMA forma entre sí. ` +
+    `Nunca trituradas ni convertidas en puré. ` +
     `PROHIBIDO ABSOLUTAMENTE: cualquier puré, papilla, crema o masa batida homogénea. ` +
     `Tres o cuatro piezas bien separadas, del tamaño de un dedo o algo mayor, ` +
     `con textura visible y bordes definidos, ligeramente doradas cuando corresponda. ` +
