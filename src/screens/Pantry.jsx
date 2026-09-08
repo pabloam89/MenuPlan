@@ -2118,6 +2118,14 @@ export function PantryScreen({
                 onTabChange={setAddTab}
                 onSaved={handleSaved}
                 onUploadReceipt={canUploadReceipt ? () => setShowReceiptFlow(true) : null}
+                // "Plato cocinado" abre la hoja de Recetas, y la hoja necesita
+                // saber qué es tuyo para poder ofrecerte Mis recetas, las
+                // favoritas y tus carpetas. Crudas: la hoja añade ella sola las
+                // carpetas fijas (allFolders), y expandidas saldrían por duplicado.
+                extraRecipes={data?.userRecipes ?? []}
+                recipeVotes={data?.recipeVotes ?? {}}
+                recipeCollections={data?.recipeCollections ?? {}}
+                recipeFolders={data?.recipeFolders ?? []}
               />
             </div>
           </>

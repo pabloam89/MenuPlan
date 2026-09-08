@@ -12,9 +12,9 @@ import {
   stockFromPack,
   PACK_KINDS,
 } from "../lib/packUnits.js";
-import { guessShoppingAisle, isPerishableAisle, normalizeName } from "../lib/ingredientCategories.js";
+import { guessShoppingAisle, isPerishableAisle } from "../lib/ingredientCategories.js";
 import { IngredientPicker } from "../screens/RecipePlanner.jsx";
-import { GarnishPickerSheet } from "../screens/CatalogBrowserSheet.jsx";
+import { CatalogBrowserSheet, GarnishPickerSheet } from "../screens/CatalogBrowserSheet.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -438,102 +438,21 @@ function DishRolePicker({ value, onChange }) {
 
 // Categorías de platos para el grid (réplica del grid de ingredientes). El id
 // coincide con la category del catálogo y con /categories/{id}.png.
-const DISH_CATEGORIES = [
-  { id: "legumbres", label: "Legumbres" },
-  { id: "carnes", label: "Carne" },
-  { id: "pescados", label: "Pescado" },
-  { id: "pasta_arroces", label: "Pasta y arroz" },
-  { id: "sopas_cremas", label: "Sopas y cremas" },
-  { id: "huevos", label: "Huevos" },
-  { id: "ensaladas_verduras", label: "Verduras" },
-  { id: "platos_unicos", label: "Platos únicos" },
-  { id: "cenas_rapidas", label: "Cenas rápidas" },
-  { id: "bebes", label: "Bebés" },
-];
-
-// Tile cuadrada ilustrada de categoría de plato — mismo lenguaje visual que
-// CategoryCard del picker de ingredientes.
-function DishCategoryCard({ id, label, onSelect }) {
-  const img = categoryImageSrc(id);
-  const [failed, setFailed] = useState(false);
-  const showImg = Boolean(img) && !failed;
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(id)}
-      style={{
-        position: "relative", aspectRatio: "1 / 1", padding: 0, border: "none",
-        borderRadius: 14, overflow: "hidden", cursor: "pointer",
-        fontFamily: "inherit", background: "#eef4ef",
-      }}
-    >
-      {showImg ? (
-        <img
-          src={img}
-          alt=""
-          onError={() => setFailed(true)}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      ) : (
-        <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Soup size={30} color={GREEN} strokeWidth={1.8} />
-        </span>
-      )}
-      <span
-        style={{
-          position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 1, padding: "5px 6px 7px",
-          background: "linear-gradient(to top, rgba(20,47,29,.82) 0%, rgba(20,47,29,.4) 55%, transparent 100%)",
-          fontSize: 10.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.2,
-          textShadow: "0 1px 3px rgba(0,0,0,.4)",
-        }}
-      >
-        {label}
-      </span>
-    </button>
-  );
-}
-
-// Card de plato (foto + nombre) para el grid de una categoría / resultados.
-function DishThumbCard({ recipe, onSelect }) {
-  const [failed, setFailed] = useState(false);
-  const img = dishImageForRecipe(recipe);
-  const showImg = Boolean(img) && !failed;
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(recipe)}
-      style={{
-        position: "relative", aspectRatio: "1 / 1", padding: 0, border: "none",
-        borderRadius: 12, overflow: "hidden", cursor: "pointer", fontFamily: "inherit",
-        background: "#eef4ef",
-      }}
-    >
-      {showImg ? (
-        <img src={img} alt="" onError={() => setFailed(true)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-      ) : (
-        <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
-          <Soup size={22} color={GREEN} />
-        </span>
-      )}
-      <span
-        style={{
-          position: "absolute", left: 0, right: 0, bottom: 0, padding: "16px 6px 6px",
-          background: "linear-gradient(to top, rgba(20,47,29,.86) 0%, rgba(20,47,29,.42) 55%, transparent 100%)",
-          fontSize: 10.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.2,
-          textShadow: "0 1px 3px rgba(0,0,0,.45)",
-          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-        }}
-      >
-        {recipe.name}
-      </span>
-    </button>
-  );
-}
-
-// Alta de plato ya cocinado: grid de categorías (réplica) → platos de la
-// categoría → confirmar (raciones + nevera/congelador). El buscador es el
-// compartido de arriba (prop `query`); recipeRef enlaza con DishDetail luego.
-function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave, saving }) {
+/**
+ * Elegir el plato que has cocinado abre la HOJA DE RECETAS, no una copia.
+ *
+ * Tenía parrilla de categorías y buscador propios, montados sobre
+ * `recipeCatalogById` a secas. Eso dejaba fuera todo lo que el usuario ha
+ * hecho suyo —sus recetas, las favoritas y las carpetas— justo en la pantalla
+ * donde apunta lo que ACABA de cocinar, que es casi siempre algo suyo. Un
+ * segundo selector también significaba que cada carpeta nueva había que
+ * acordarse de añadirla aquí, y no se hizo.
+ *
+ * Mismo trato que el composer de la cocinada (CookingComposer): la hoja pone
+ * las pestañas Mis recetas / Favoritas / Catálogo y las carpetas, y aquí solo
+ * queda la ficha de "cuánto, dónde y cuándo" una vez elegido el plato.
+ */
+function CookedDishPicker({ onSave, onCancel, saving, extraRecipes = [], recipeVotes = {}, recipeCollections = {}, recipeFolders = [] }) {
   const [selected, setSelected] = useState(null);
   const [portions, setPortions] = useState(2);
   const [dishFrozen, setDishFrozen] = useState(true);
@@ -542,21 +461,12 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
   const [garnishId, setGarnishId] = useState(null);
   const [garnishOpen, setGarnishOpen] = useState(false);
   useEffect(() => { if (selected) { setDishRole(inferDishRole(selected)); setGarnishId(null); } }, [selected]);
-  // Volver a la parrilla de categorías (desde el botón externo) también cierra
-  // el detalle del plato abierto, para que "Categorías" siempre suba un nivel.
-  useEffect(() => { if (!dishCat) setSelected(null); }, [dishCat]);
 
-  const allRecipes = useMemo(() => Object.values(recipeCatalogById), []);
-  const q = normalizeName((query ?? "").trim());
-  const searching = q.length >= 2;
-
-  const results = useMemo(
-    () => (searching ? allRecipes.filter((r) => normalizeName(r.name).includes(q)).slice(0, 30) : []),
-    [searching, q, allRecipes],
-  );
-  const catDishes = useMemo(
-    () => (dishCat ? allRecipes.filter((r) => r.category === dishCat) : []),
-    [dishCat, allRecipes],
+  // Lo del usuario primero: si una receta suya comparte id con una del
+  // catálogo, la suya es la que vale.
+  const pool = useMemo(
+    () => [...extraRecipes, ...Object.values(recipeCatalogById)],
+    [extraRecipes],
   );
 
   if (selected) {
@@ -703,6 +613,10 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
             setDishFrozen(true);
             setDishDate("today");
             setGarnishId(null);
+            // Sin esto se vuelve al estado "sin plato elegido", que ahora es la
+            // hoja abierta: guardabas y te la encontrabas otra vez encima,
+            // tapando la fila recién añadida.
+            onCancel?.();
           }}
           style={{
             width: "100%", padding: "11px 12px", borderRadius: 12, border: "none",
@@ -733,40 +647,21 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
     );
   }
 
-  // Buscando: resultados en toda la biblioteca.
-  if (searching) {
-    return results.length > 0 ? (
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
-        {results.map((r) => (
-          <DishThumbCard key={r.id} recipe={r} onSelect={setSelected} />
-        ))}
-      </div>
-    ) : (
-      <p style={{ textAlign: "center", color: "#9ab0a1", fontSize: 12.5, margin: "20px 0 8px" }}>
-        No encontramos ese plato
-      </p>
-    );
-  }
-
-  // Categoría abierta: platos de esa categoría. El botón "Categorías" para
-  // volver vive ahora junto a la barra de búsqueda (en PantryInput).
-  if (dishCat) {
-    return (
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
-        {catDishes.map((r) => (
-          <DishThumbCard key={r.id} recipe={r} onSelect={setSelected} />
-        ))}
-      </div>
-    );
-  }
-
-  // Grid de categorías (réplica del grid de ingredientes).
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
-      {DISH_CATEGORIES.map((c) => (
-        <DishCategoryCard key={c.id} id={c.id} label={c.label} onSelect={onDishCatChange} />
-      ))}
-    </div>
+    <CatalogBrowserSheet
+      gatePick
+      gatePickSourceTabs
+      gatePickType="plato"
+      onPickPlato={(id) => {
+        const r = pool.find((x) => x.id === id);
+        if (r) setSelected(r);
+      }}
+      extraRecipes={extraRecipes}
+      recipeVotes={recipeVotes}
+      recipeCollections={recipeCollections}
+      recipeFolders={recipeFolders}
+      onClose={onCancel}
+    />
   );
 }
 
@@ -1370,6 +1265,15 @@ export function PantryInput({
   onTabChange,
   hideTabs = false,
   householdId = null,
+  // Fuentes de recetas para "Plato cocinado". Van al mismo sitio que en el
+  // composer de la cocinada: la hoja de Recetas las convierte en las pestañas
+  // Mis recetas / Favoritas / Catálogo y en las carpetas. Opcionales: un embed
+  // que no pase `data` (el paso "¿Qué repetimos?" del onboarding) sigue viendo
+  // el catálogo, solo que sin lo suyo.
+  extraRecipes = [],
+  recipeVotes = {},
+  recipeCollections = {},
+  recipeFolders = [],
 }) {
   const { user: authUser } = useAuth();
   const user = userProp ?? authUser;
@@ -1385,7 +1289,6 @@ export function PantryInput({
   const [photoError, setPhotoError] = useState("");
   const [pickQuery, setPickQuery] = useState("");
   const [pickAisle, setPickAisle] = useState(null);
-  const [dishCat, setDishCat] = useState(null);
   const [focusQtyIndex, setFocusQtyIndex] = useState(null);
   const fileInputRef = useRef(null);
   // Alta manual de un ingrediente (2026-08-28): popup centrado de un solo
@@ -1727,36 +1630,33 @@ export function PantryInput({
       {tab === "text" && (() => {
         const searching = pickQuery.trim().length > 0;
         const effMode = addCategory ?? "ingredient";
-        // Nivel abierto dentro del modo: categoría (aisle) o categoría de platos.
-        const subLevel = addCategory === "cooked_dish" ? dishCat : pickAisle;
+        // Nivel abierto dentro del modo. Solo lo tiene "ingrediente": el plato
+        // cocinado se elige en la hoja de Recetas, que se navega ella sola.
+        const subLevel = pickAisle;
         // El botón de volver acompaña a la barra solo cuando ya hay un modo
         // elegido y no estás buscando (buscar se limpia con su propia X).
         const showBack = Boolean(addCategory) && !searching;
         const handleBack = () => {
           setPickQuery("");
-          if (subLevel) {
-            setPickAisle(null);
-            setDishCat(null);
-          } else {
-            setAddCategory(null);
-            setPickAisle(null);
-            setDishCat(null);
-          }
+          setPickAisle(null);
+          if (!subLevel) setAddCategory(null);
         };
         return (
           <>
-            <PantrySearchBar
-              query={pickQuery}
-              onQueryChange={(v) => { setPickQuery(v); if (v) setPickAisle(null); }}
-              mode={effMode}
-              onBack={showBack ? handleBack : undefined}
-              backLabel={subLevel ? "Categorías" : "Volver"}
-            />
+            {addCategory !== "cooked_dish" && (
+              <PantrySearchBar
+                query={pickQuery}
+                onQueryChange={(v) => { setPickQuery(v); if (v) setPickAisle(null); }}
+                mode={effMode}
+                onBack={showBack ? handleBack : undefined}
+                backLabel={subLevel ? "Categorías" : "Volver"}
+              />
+            )}
 
             {!searching && !addCategory && (
               <AddModeIllustrations
                 active={addCategory}
-                onPick={(m) => { setAddCategory(m); setPickAisle(null); setDishCat(null); }}
+                onPick={(m) => { setAddCategory(m); setPickAisle(null); }}
               />
             )}
 
@@ -1777,13 +1677,15 @@ export function PantryInput({
               />
             )}
 
-            {effMode === "cooked_dish" && (searching || addCategory === "cooked_dish") && (
+            {addCategory === "cooked_dish" && (
               <CookedDishPicker
-                query={pickQuery}
-                dishCat={dishCat}
-                onDishCatChange={setDishCat}
                 onSave={handleSaveCookedDish}
+                onCancel={() => setAddCategory(null)}
                 saving={saving}
+                extraRecipes={extraRecipes}
+                recipeVotes={recipeVotes}
+                recipeCollections={recipeCollections}
+                recipeFolders={recipeFolders}
               />
             )}
 

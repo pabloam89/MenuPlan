@@ -3815,7 +3815,15 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
 // importador del menú del comedor reconoce los huecos que le pertenecen
 // (schedulePresets.js#outStateFor). Lo que se unifica es el color, no el dato.
 const CASA_COLOR = "#0f766e";  // teal fuerte
-const FUERA_COLOR = "#1e3a5f"; // azul navy
+// Violeta, no navy. El navy solo estaba a 39 grados de tono del teal de "en
+// casa": dos azul-verdosos oscuros pegados en celdas de 22px que el ojo no
+// separaba. Y no se arregla con brillo — este color se usa como fondo solido
+// con texto blanco encima (ScheduleCell y las dos rejillas de abajo), asi que
+// esta obligado a quedarse oscuro. La separacion tiene que venir del tono.
+// A 276 grados quedan los tres estados casi equidistantes en la rueda
+// —teal 175, violeta 276, rojo 6— y de paso contrasta mejor que el navy contra
+// el teal (2.22:1 frente a 2.10:1) y aguanta mejor el blanco (12.18:1).
+const FUERA_COLOR = "#4c2168"; // violeta
 // El comedor sale del navy y se queda con el rojo de la casa (#c0392b, el de
 // carnes y el de peligro). No es un color mas: de los tres estados "fuera",
 // el cole es el UNICO del que sabemos lo que van a comer —tiene su menu, y su
