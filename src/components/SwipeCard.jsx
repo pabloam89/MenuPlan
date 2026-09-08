@@ -95,8 +95,12 @@ export function PosterCorners({ difficulty = null, time = null, stats = null, in
  *
  * `children` se pinta encima, dentro del recorte: es donde el mazo mete sus
  * sellos de ME GUSTA / NO / NI FU NI FA.
+ *
+ * `compact` encoge texto, margenes y la ⓘ para cuando el cartel va a media
+ * anchura (la rejilla de dos columnas del perfil). Solo cambia el tamaño: la
+ * carta sigue siendo la misma en todas partes.
  */
-export function RecipePoster({ recipe, onInfo, onOwner = null, showOwner = true, when = null, stats = null, style, children }) {
+export function RecipePoster({ recipe, onInfo, onOwner = null, showOwner = true, when = null, stats = null, compact = false, style, children }) {
   const photo = dishImageForRecipe(recipe);
   const color = categoryColor(recipe.category);
 
@@ -129,16 +133,16 @@ export function RecipePoster({ recipe, onInfo, onOwner = null, showOwner = true,
         }}
       />
 
-      <PosterCorners difficulty={recipe.difficulty} time={recipe.time} stats={stats} />
+      <PosterCorners difficulty={recipe.difficulty} time={recipe.time} stats={stats} inset={compact ? 8 : 12} />
 
       {children}
 
       {/* Hueco a la derecha para la ⓘ, para que el nombre no pase por debajo. */}
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "18px 50px 18px 18px", color: "#fff", pointerEvents: "none" }}>
-        <div style={{ fontSize: 12, fontWeight: 700, opacity: .85, letterSpacing: ".4px", textTransform: "uppercase" }}>
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: compact ? "12px 36px 12px 12px" : "18px 50px 18px 18px", color: "#fff", pointerEvents: "none" }}>
+        <div style={{ fontSize: compact ? 10 : 12, fontWeight: 700, opacity: .85, letterSpacing: ".4px", textTransform: "uppercase" }}>
           {categoryLabel(recipe.category)}
         </div>
-        <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.2, marginTop: 4, textWrap: "balance" }}>
+        <div style={{ fontSize: compact ? 15 : 22, fontWeight: 800, lineHeight: 1.2, marginTop: compact ? 2 : 4, textWrap: "balance" }}>
           {recipe.name}
         </div>
         {/* De quién es la receta. Misma regla que la ficha grande (Menu.jsx):
@@ -213,14 +217,16 @@ export function RecipePoster({ recipe, onInfo, onOwner = null, showOwner = true,
           onPointerUp={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onInfo(); }}
           style={{
-            position: "absolute", right: 12, bottom: 16,
+            position: "absolute",
+            right: compact ? 6 : 12,
+            bottom: compact ? 10 : 16,
             padding: 4, border: "none", background: "transparent",
             color: "#fff", cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center",
             filter: "drop-shadow(0 1px 3px rgba(0,0,0,.5))",
           }}
         >
-          <Info size={28} strokeWidth={2.2} />
+          <Info size={compact ? 20 : 28} strokeWidth={2.2} />
         </button>
       )}
     </div>

@@ -285,11 +285,21 @@ export function PersonSheet({ user, userId, profile: seed = null, initialTab = "
                 return (
                   <button key={m.id} type="button" onClick={() => onOpenMenu?.(m)} style={menuRow}>
                     <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                      {/* Las dos lineas dicen SIEMPRE lo mismo: arriba qué
+                          semana es, abajo cuánto ocupa. Antes la de arriba era
+                          el título si lo había y el rango si no, así que dos
+                          filas seguidas podían estar contándote cosas
+                          distintas — de ahí que no se entendiera qué leías. El
+                          título, cuando existe, baja a la segunda línea. */}
                       <span style={{ display: "block", fontSize: 13, fontWeight: 800, color: INK }}>
-                        {m.title || weekLabel(m.week_start, m.week_end)}
+                        {weekLabel(m.week_start, m.week_end)}
                       </span>
-                      <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#8aa294", marginTop: 2 }}>
+                      <span style={{
+                        display: "block", fontSize: 11, fontWeight: 700, color: "#8aa294", marginTop: 2,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      }}>
                         {dias.length} {dias.length === 1 ? "día" : "días"}
+                        {m.title && ` · ${m.title}`}
                       </span>
                     </span>
                     <span style={{ display: "flex", gap: 3, flexShrink: 0 }}>
@@ -332,6 +342,7 @@ export function PersonSheet({ user, userId, profile: seed = null, initialTab = "
                     when={relativeTime(r.created_at)}
                     stats={stats[r.id] ?? null}
                     onInfo={() => onOpenRecipe?.(r)}
+                    compact
                     style={{ aspectRatio: "4 / 5", cursor: "pointer", boxShadow: "0 6px 20px rgba(20,47,29,.14)" }}
                   />
                 ))}
@@ -381,7 +392,9 @@ function _Stat({ n, label }) {
 }
 
 function weekLabel(a, b) {
-  if (!a) return "Menú";
+  // "Menú" no respondía a la pregunta que hace esta línea —qué semana es—, así
+  // que una fila sin fechas parecía tener nombre y las demás no.
+  if (!a) return "Sin fechas";
   const f = (s) => s.slice(8, 10) + "/" + s.slice(5, 7);
   return b ? `${f(a)} – ${f(b)}` : f(a);
 }
@@ -393,8 +406,10 @@ const backdrop = {
   display: "flex", alignItems: "stretch", justifyContent: "center",
 };
 
+// Fondo tintado, no blanco: las filas de Menús SON tarjetas blancas, y sobre
+// blanco no se veia donde empezaba cada una (DESIGN_SYSTEM §0.4).
 const screen = {
-  width: "100%", maxWidth: 420, background: "#fff",
+  width: "100%", maxWidth: 420, background: "#f7f9f7",
   display: "flex", flexDirection: "column", overflowY: "auto",
   boxShadow: "0 0 60px rgba(0,0,0,.35)",
 };
@@ -403,7 +418,9 @@ const header = {
   position: "relative",
   display: "flex", flexDirection: "column", alignItems: "center",
   padding: "26px 20px 18px",
-  background: "linear-gradient(180deg, #e9f4ed 0%, #fff 100%)",
+  // Cierra en el tinte de la pagina, no en blanco: si no, el degradado dejaba
+  // una costura donde termina la cabecera.
+  background: "linear-gradient(180deg, #e9f4ed 0%, #f7f9f7 100%)",
 };
 
 const closeBtn = {
@@ -470,10 +487,14 @@ const menuRow = {
   display: "flex", alignItems: "center", gap: 9, width: "100%",
   padding: "11px 12px", borderRadius: 13, marginBottom: 7,
   border: "1.5px solid #e0eae3", background: "#fff",
+  boxShadow: "0 1px 3px rgba(20,47,29,.05)",
   cursor: "pointer", fontFamily: "inherit", textAlign: "left",
 };
 
-const recipeCol = { display: "flex", flexDirection: "column", gap: 16 };
+// Dos columnas: a cartel por fila, veinte recetas eran un scroll interminable.
+// Los carteles son foto, que es justo lo que aguanta ir a media anchura — el
+// texto de encima se encoge con `compact`.
+const recipeCol = { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 };
 
 
 

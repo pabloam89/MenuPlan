@@ -6863,15 +6863,20 @@ const dishIngRowGridStyle = {
   minHeight: 36,
 };
 
+// Dos columnas FIJAS: "uds" y peso. Con flex cada celda se dimensionaba por su
+// contenido —y la vacia ("—") medía la mitad—, asi que el limite entre las dos
+// bailaba de fila en fila: las pastillas no caian nunca en la misma vertical y
+// la lista se leia como si se pisaran.
 const dishIngValueGroupStyle = {
-  display: "flex",
+  display: "grid",
+  gridTemplateColumns: "68px 58px",
   alignItems: "center",
-  justifyContent: "flex-end",
   gap: 5,
 };
 
 const dishIngQtyCellBase = {
-  minWidth: 40,
+  width: "100%",
+  boxSizing: "border-box",
   textAlign: "center",
   padding: "4px 7px",
   borderRadius: 7,
@@ -6899,8 +6904,10 @@ function DishIngredientQtyCell({ text, cellStyle, wrap = false }) {
   const isEmpty = text === "—";
   const style = {
     ...cellStyle,
-    ...(wrap ? { whiteSpace: "normal", maxWidth: 68 } : null),
-    ...(isEmpty ? { color: "#c2cfc7", background: "transparent", minWidth: 22 } : null),
+    ...(wrap ? { whiteSpace: "normal" } : null),
+    // La celda vacia se apaga, pero conserva el ancho de su columna: si
+    // encogiera, arrastraria a la de al lado y se perderia la tabulacion.
+    ...(isEmpty ? { color: "#c2cfc7", background: "transparent" } : null),
   };
   return <span style={style}>{text}</span>;
 }
