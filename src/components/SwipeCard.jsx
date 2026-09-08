@@ -8,6 +8,17 @@ import { MenuPlanBadge } from "./RecipeProvenance.jsx";
 const DIFFICULTY_LABEL = { facil: "Fácil", normal: "Media", elaborada: "Difícil" };
 const DIFFICULTY_COLOR = { facil: "#2d5a3d", normal: "#a97a1f", elaborada: "#c0392b" };
 
+// Las recetas semilla antiguas guardan la dificultad ya escrita ("Fácil",
+// "Normal"); el catálogo la guarda como clave ("facil", "normal"). Sin esto,
+// media app pinta la pill y la otra media no según de dónde venga el plato.
+function difficultyKey(difficulty) {
+  const raw = String(difficulty ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return raw in DIFFICULTY_LABEL ? raw : null;
+}
+
 // Tres salidas: derecha me gusta, izquierda no, abajo "ni fu ni fa". El eje
 // vertical ya no cambia de categoría — para eso está el control de arriba, que
 // además se ve; reutilizarlo para dos cosas hacía el gesto ambiguo.
@@ -30,6 +41,49 @@ const reduceMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /**
+ * Dificultad y tiempo, apiladas. Son los dos datos que se miran antes de
+ * decidir si hoy da la vida para cocinar algo, así que van juntas y pesan lo
+ * mismo.
+ *
+ * Vive aquí suelto porque lo pintan el cartel de una receta y las fichas del
+ * menú (Día y Semana): es el mismo dato sobre el mismo plato, y si cada
+ * pantalla se lo dibujara por su lado, el mismo plato acabaría con dos fichas
+ * distintas según por dónde llegaras.
+ *
+ * `compact` encoge texto y márgenes para las fichas a media anchura de la
+ * vista Semana. Solo cambia el tamaño.
+ */
+export function DishSpecPills({ difficulty = null, time = null, compact = false, align = "flex-start" }) {
+  const key = difficultyKey(difficulty);
+  const diffLabel = DIFFICULTY_LABEL[key];
+  const timeLabel = formatTime(time);
+  if (!diffLabel && !timeLabel) return null;
+  const badge = compact
+    ? { ...cornerBadge, fontSize: 9.5, padding: "3px 7px" }
+    : cornerBadge;
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: compact ? 4 : 6,
+        alignItems: align,
+        pointerEvents: "none",
+      }}
+    >
+      {diffLabel && (
+        <span style={{ ...badge, color: DIFFICULTY_COLOR[key] }}>{diffLabel}</span>
+      )}
+      {timeLabel && (
+        <span style={{ ...badge, color: "#42594c", gap: 4 }}>
+          <Clock size={compact ? 9 : 11} strokeWidth={2.6} /> {timeLabel}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
  * Las dos esquinas de un cartel de receta.
  *
  * Izquierda, apiladas: lo que la receta ES — cuánto cuesta hacerla y cuánto
@@ -42,24 +96,11 @@ const reduceMotion = () =>
  * el mismo plato acabaría con dos fichas distintas según por dónde llegaras.
  */
 export function PosterCorners({ difficulty = null, time = null, stats = null, inset = 12, statsTop = null }) {
-  const diffLabel = DIFFICULTY_LABEL[difficulty];
-  const timeLabel = formatTime(time);
   return (
     <>
-      {(diffLabel || timeLabel) && (
-        <div style={{ ...cornerStack, top: inset, left: inset, alignItems: "flex-start" }}>
-          {diffLabel && (
-            <span style={{ ...cornerBadge, color: DIFFICULTY_COLOR[difficulty] ?? "#2d5a3d" }}>
-              {diffLabel}
-            </span>
-          )}
-          {timeLabel && (
-            <span style={{ ...cornerBadge, color: "#42594c", gap: 4 }}>
-              <Clock size={11} strokeWidth={2.6} /> {timeLabel}
-            </span>
-          )}
-        </div>
-      )}
+      <div style={{ position: "absolute", top: inset, left: inset, pointerEvents: "none" }}>
+        <DishSpecPills difficulty={difficulty} time={time} />
+      </div>
 
       {stats && (
         <div style={{ ...cornerStack, top: statsTop ?? inset, right: inset, alignItems: "flex-end" }}>

@@ -124,6 +124,7 @@ import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx"
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
+import { DishSpecPills } from "../components/SwipeCard.jsx";
 import { RecipeClassificationFields } from "../components/RecipeClassificationFields.jsx";
 import { isUserRecipeOwner, patchUserRecipeClassification } from "../lib/userRecipes.js";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
@@ -658,7 +659,7 @@ function DishIcon({ recipe, size = 44, imageUrl = null }) {
   );
 }
 
-function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta de la semana", title = null }) {
+function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = null, title = null }) {
   const visual = visualForRecipe(recipe);
   const Icon = ICONS_BY_TYPE[recipe.iconType] ?? Utensils;
   const [imgFailed, setImgFailed] = useState(false);
@@ -753,18 +754,20 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta d
           color: showPhoto ? "#fff" : visual.ink,
         }}
       >
-        <div
-          style={{
-            fontSize: 10.5,
-            fontWeight: 800,
-            textTransform: "uppercase",
-            letterSpacing: 1.5,
-            opacity: showPhoto ? 0.85 : 0.62,
-            marginBottom: 4,
-          }}
-        >
-          {eyebrow}
-        </div>
+        {eyebrow && (
+          <div
+            style={{
+              fontSize: 10.5,
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: 1.5,
+              opacity: showPhoto ? 0.85 : 0.62,
+              marginBottom: 4,
+            }}
+          >
+            {eyebrow}
+          </div>
+        )}
         <div
           style={{
             fontSize: 24,
@@ -2168,6 +2171,12 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
             "linear-gradient(to top, rgba(0,0,0,.74) 0%, rgba(0,0,0,.25) 42%, rgba(0,0,0,0) 66%)",
         }}
       />
+      {/* Lo mismo que ve el cartel de una receta en Inspírate o en Gente: si
+          hoy da la vida para cocinar esto se decide con estos dos datos, y
+          hasta ahora había que abrir el plato para saberlos. */}
+      <div style={{ position: "absolute", top: compact ? 8 : 12, right: compact ? 8 : 12 }}>
+        <DishSpecPills difficulty={recipe.difficulty} time={recipe.time} compact={compact} align="flex-end" />
+      </div>
       {showGroup && badgeGroups.length > 0 && (
         <div style={{ position: "absolute", top: compact ? 8 : 12, left: compact ? 8 : 12, display: "flex", gap: 4 }}>
           {badgeGroups.map((gr) => (
@@ -2187,18 +2196,6 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
             marginBottom: compact ? 4 : 7,
           }}
         >
-          {/* Dot = recipe family (verdura, legumbre, pescado…), not the meal */}
-          <span
-            title={visual.label}
-            style={{
-              width: compact ? 7 : 9,
-              height: compact ? 7 : 9,
-              borderRadius: 999,
-              background: visual.accent,
-              flexShrink: 0,
-              boxShadow: "0 0 0 2px rgba(255,255,255,.6)",
-            }}
-          />
           <span
             style={{
               color: "rgba(255,255,255,.95)",
@@ -5891,7 +5888,7 @@ export function DishDetail({
           recipe={recipe}
           height={220}
           imageUrl={dishImageForRecipe(recipe)}
-          eyebrow={browse ? "Catálogo" : "Receta de la semana"}
+          eyebrow={browse ? "Catálogo" : null}
           title={displayName}
         />
 
