@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "com.homenu.app",
-        "sha256_cert_fingerprints": ["6A:9D:B0:41:61:FC:03:09:77:6C:74:D0:C6:DE:AD:B5:43:A6:13:B5:8E:ED:54:4B:9A:C7:B9:FB:7D:CA:0C:FD"]
+        "sha256_cert_fingerprints": ["92:FE:02:9F:DC:AD:81:CF:8B:91:23:49:7B:CF:81:24:46:7B:EC:3E:65:87:C4:14:7B:DF:CC:68:34:18:B1:4C"]
       }
     }]
