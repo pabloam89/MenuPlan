@@ -1047,7 +1047,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "postres_021",
@@ -1244,7 +1245,8 @@
     "mainIngredients": [
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "americana"
   },
   {
     "id": "postres_022",
@@ -1795,7 +1797,8 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "cocina": "francesa"
   },
   {
     "id": "postres_025",
@@ -2188,7 +2191,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "postres_027",
@@ -2401,7 +2405,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "americana"
   },
   {
     "id": "postres_028",
@@ -4042,5 +4047,80 @@
     ],
     "estrella": true,
     "tecnica": "horno"
+  },
+  {
+    "id": "postres_037",
+    "name": "Suspiro a la limeña",
+    "category": "postres",
+    "cocina": "peruana",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "principal",
+    "time": 40,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 8,
+    "carbs_g": 58,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Leche condensada",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Canela",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Extracto de vainilla",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Verter la leche condensada y la leche en un cazo de fondo grueso.",
+      "Cocer a fuego medio removiendo sin parar 25 min, hasta que espese y se vea el fondo del cazo.",
+      "Retirar del fuego y templar ligeramente.",
+      "Batir las yemas y añadirlas al manjar removiendo enérgicamente para que no cuajen.",
+      "Añadir la extracto de vainilla, mezclar y repartir en copas; enfriar en la nevera.",
+      "Hacer un almíbar con el azúcar y el vino blanco hasta punto de hebra.",
+      "Montar las claras a punto de nieve firme.",
+      "Verter el almíbar caliente en hilo sobre las claras sin dejar de batir hasta obtener un merengue brillante.",
+      "Cubrir las copas con el merengue y espolvorear canela por encima."
+    ],
+    "description": "Manjar blanco denso coronado con un merengue al oporto y canela. Dulce, muy dulce, y el postre peruano por excelencia.",
+    "estrella": false
   }
 ]

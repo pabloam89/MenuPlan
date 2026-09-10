@@ -196,6 +196,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "estrella": true
   },
   {
@@ -402,7 +403,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_003",
@@ -596,7 +598,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_004",
@@ -821,7 +824,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_005",
@@ -1029,7 +1033,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_006",
@@ -1471,7 +1476,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_008",
@@ -1662,7 +1668,8 @@
       }
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_009",
@@ -1670,6 +1677,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -2004,7 +2012,8 @@
     "montaje": true,
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_011",
@@ -2225,7 +2234,8 @@
       }
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_012",
@@ -2356,7 +2366,8 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_013",
@@ -2548,7 +2559,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_014",
@@ -2556,6 +2568,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -2881,7 +2894,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_016",
@@ -3090,7 +3104,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_017",
@@ -3296,7 +3311,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_018",
@@ -3468,7 +3484,8 @@
       }
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_019",
@@ -3669,7 +3686,8 @@
       }
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_020",
@@ -3819,7 +3837,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_021",
@@ -3986,7 +4005,8 @@
       "encurtido"
     ],
     "tecnica": "crudo",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_022",
@@ -3994,6 +4014,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -4340,7 +4361,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_024",
@@ -4522,7 +4544,8 @@
     ],
     "tecnica": "horno",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_025",
@@ -4788,7 +4811,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_026",
@@ -4946,7 +4970,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_027",
@@ -5096,7 +5121,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_028",
@@ -5331,7 +5357,8 @@
     "tecnica": "olla",
     "cocina": "arabe",
     "llevaSalsa": true,
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_029",
@@ -5752,7 +5779,8 @@
       "fruta"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_031",
@@ -5949,7 +5977,8 @@
       "frutos_secos"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_032",
@@ -6175,7 +6204,8 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "cocina": "india",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_033",
@@ -6366,7 +6396,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_034",
@@ -6588,7 +6619,8 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_035",
@@ -6764,7 +6796,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_036",
@@ -7021,7 +7054,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_037",
@@ -7246,7 +7280,8 @@
       "seta"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_038",
@@ -7459,7 +7494,8 @@
     "extraProteins": [
       "huevo"
     ],
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_039",
@@ -7703,7 +7739,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_040",
@@ -8212,7 +8249,8 @@
     "extraProteins": [
       "cerdo"
     ],
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_042",
@@ -8434,7 +8472,8 @@
       "frutos_secos"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_043",
@@ -8589,7 +8628,8 @@
       "encurtido"
     ],
     "tecnica": "crudo",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_044",
@@ -8819,7 +8859,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_045",
@@ -8977,7 +9018,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_046",
@@ -9194,7 +9236,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_047",
@@ -9393,7 +9436,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_048",
@@ -9626,7 +9670,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_049",
@@ -9779,7 +9824,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_050",
@@ -9902,7 +9948,8 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_051",
@@ -10088,7 +10135,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_052",
@@ -10333,7 +10381,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_053",
@@ -10525,7 +10574,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_054",
@@ -10752,7 +10802,8 @@
       "fruta"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_055",
@@ -11170,7 +11221,8 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_057",
@@ -11182,6 +11234,7 @@
     ],
     "type": "completo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "time": 40,
     "difficulty": "facil",
     "season": "all",
@@ -11595,7 +11648,8 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "cocina": "india",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_059",
@@ -11806,7 +11860,8 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_060",
@@ -11981,7 +12036,8 @@
     "montaje": true,
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_061",
@@ -12185,7 +12241,8 @@
       "seta"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_062",
@@ -12358,7 +12415,8 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_063",
@@ -12620,7 +12678,8 @@
     ],
     "occasion": "especial",
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_064",
@@ -12633,6 +12692,7 @@
     ],
     "type": "completo",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "time": 20,
     "difficulty": "facil",
     "season": "invierno",
@@ -12937,7 +12997,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_066",
@@ -13190,7 +13251,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_067",
@@ -13202,6 +13264,7 @@
     ],
     "type": "completo",
     "mainBase": "quinoa",
+    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "time": 35,
     "difficulty": "facil",
@@ -13457,6 +13520,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
@@ -13585,6 +13649,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos finos.",
@@ -13726,6 +13791,7 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Cortar {{Cebolla}} en dados finos.",
@@ -13864,6 +13930,7 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "stepsRich": [
       {
         "text": "Pelar {{Patatas}} y cortar en trozos de bocado.",
@@ -14005,6 +14072,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
@@ -14148,6 +14216,7 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
@@ -14303,6 +14372,7 @@
     "tecnica": "olla",
     "cocina": "mexicana",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Cortar {{Chorizo}} en dados de 1 cm.",
@@ -14470,6 +14540,7 @@
     "cocina": "asiatica",
     "llevaSalsa": true,
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos finos.",
@@ -14549,6 +14620,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -14724,6 +14796,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "extraProteins": [
       "cerdo"
     ],
@@ -14928,6 +15001,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -15126,6 +15200,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -15301,6 +15376,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "extraProteins": [
       "ternera",
       "cerdo"
@@ -15517,6 +15593,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -15696,6 +15773,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -15824,5 +15902,192 @@
         "kind": "emplatado"
       }
     ]
+  },
+  {
+    "id": "legumbres_083",
+    "name": "Dal makhani",
+    "category": "legumbres",
+    "cocina": "india",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "principal",
+    "time": 60,
+    "difficulty": "facil",
+    "season": "invierno",
+    "kcal": 420,
+    "protein_g": 18,
+    "carbs_g": 48,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Alubias rojas",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Nata líquida",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 15,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner las lentejas y las alubias rojas a remojo la noche anterior.",
+      "Cocerlas en agua abundante 40 min hasta que estén muy tiernas; reservar el caldo.",
+      "Derretir la mantequilla en una cazuela y pochar la cebolla picada 10 min.",
+      "Añadir el jengibre y el ajo rallados y sofreír 2 min.",
+      "Incorporar el comino y el curry en polvo y tostar 1 min.",
+      "Añadir el tomate triturado y cocer 10 min hasta que se concentre.",
+      "Volcar las legumbres escurridas y un poco de su caldo.",
+      "Cocer a fuego muy suave 20 min, machacando parte de las lentejas contra la cazuela para espesar.",
+      "Añadir la nata líquida y cocer 5 min más.",
+      "Rectificar de sal y servir con cilantro fresco picado."
+    ],
+    "description": "Lentejas negras guisadas muy lentamente con tomate, mantequilla y nata hasta quedar sedosas. El guiso vegetariano más goloso de la India.",
+    "estrella": false
+  },
+  {
+    "id": "legumbres_084",
+    "name": "Chana masala",
+    "category": "legumbres",
+    "cocina": "india",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "principal",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 380,
+    "protein_g": 16,
+    "carbs_g": 46,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Cúrcuma",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pochar la cebolla picada muy fina en aceite de oliva 12 min, hasta que empiece a dorarse.",
+      "Añadir el jengibre y el ajo rallados y sofreír 2 min.",
+      "Incorporar el comino, la cúrcuma y el curry en polvo y tostar 1 min sin dejar de remover.",
+      "Añadir el tomate triturado y cocer 10 min a fuego medio hasta que se separe el aceite.",
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Incorporar los garbanzos y un vaso de agua, y cocer 12 min a fuego suave.",
+      "Machacar un puñado de garbanzos contra la cazuela para espesar la salsa.",
+      "Rectificar de sal y exprimir el limón por encima.",
+      "Servir con abundante cilantro fresco picado."
+    ],
+    "description": "Garbanzos guisados en salsa de tomate y cebolla con especias tostadas y un golpe de limón al final. Vegano, de bote y listo en media hora.",
+    "estrella": false
   }
 ]

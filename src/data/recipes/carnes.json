@@ -5,6 +5,7 @@
     "category": "carnes",
     "mainProtein": "pollo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -518,6 +519,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo"
     ],
@@ -845,7 +847,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro"
   },
   {
     "id": "carnes_006",
@@ -1129,6 +1132,7 @@
     "baseDishId": "carnes_005",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -1515,6 +1519,7 @@
     ],
     "tecnica": "plancha",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "cocina": "americana"
   },
   {
@@ -6789,7 +6794,8 @@
     ],
     "occasion": "especial",
     "tecnica": "horno",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "baseMode": "dentro"
   },
   {
     "id": "carnes_039",
@@ -7444,7 +7450,8 @@
     ],
     "occasion": "especial",
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "cocina": "francesa"
   },
   {
     "id": "carnes_042",
@@ -7452,6 +7459,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -8031,6 +8039,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -8629,9 +8638,11 @@
     ],
     "tecnica": "crudo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "cocina": "francesa"
   },
   {
     "id": "carnes_047",
@@ -8838,6 +8849,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -10300,7 +10312,8 @@
     ],
     "occasion": "especial",
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro"
   },
   {
     "id": "carnes_054",
@@ -11633,6 +11646,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -11850,6 +11864,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -12094,6 +12109,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "cena"
@@ -12769,7 +12785,8 @@
     ],
     "estrella": true,
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "cocina": "americana"
   },
   {
     "id": "carnes_067",
@@ -12777,6 +12794,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -14150,6 +14168,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -14366,6 +14385,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -14790,6 +14810,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -15339,6 +15360,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "extraProteins": [
       "ternera"
     ]
@@ -15986,6 +16008,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -16355,6 +16378,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -17013,6 +17037,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -18575,6 +18600,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -18873,6 +18899,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "mealRole": [
       "segundo",
@@ -19148,7 +19175,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "americana"
   },
   {
     "id": "carnes_097",
@@ -19559,7 +19587,8 @@
     ],
     "occasion": "especial",
     "tecnica": "horno",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "aparte"
   },
   {
     "id": "carnes_099",
@@ -19760,7 +19789,8 @@
       "lacteo"
     ],
     "occasion": "especial",
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "cocina": "francesa"
   },
   {
     "id": "carnes_100",
@@ -19768,6 +19798,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -20024,6 +20055,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -20257,6 +20289,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -20745,7 +20778,9 @@
     ],
     "tecnica": "horno",
     "mainBase": "patatas",
-    "llevaSalsa": true
+    "baseMode": "dentro",
+    "llevaSalsa": true,
+    "cocina": "americana"
   },
   {
     "id": "carnes_104",
@@ -20753,6 +20788,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "mealRole": [
       "segundo",
@@ -21167,7 +21203,9 @@
     ],
     "occasion": "especial",
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro",
+    "cocina": "francesa"
   },
   {
     "id": "carnes_106",
@@ -21175,6 +21213,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -21400,6 +21439,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "mealRole": [
       "segundo",
@@ -21650,6 +21690,7 @@
     "category": "carnes",
     "mainProtein": "pollo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "mealRole": [
       "segundo",
@@ -21901,6 +21942,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -22118,6 +22160,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -22554,6 +22597,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "llevaSalsa": true
   },
   {
@@ -23189,6 +23233,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -24099,6 +24144,7 @@
     "category": "carnes",
     "mainProtein": "pollo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico",
@@ -24319,6 +24365,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico",
@@ -24516,6 +24563,7 @@
     "category": "carnes",
     "mainProtein": "pollo",
     "mainBase": "quinoa",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -24748,6 +24796,7 @@
     "category": "carnes",
     "mainProtein": "pollo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -25338,7 +25387,8 @@
     ],
     "tecnica": "sarten",
     "cocina": "mexicana",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "baseMode": "dentro"
   },
   {
     "id": "carnes_125",
@@ -25346,6 +25396,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -25460,6 +25511,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -25741,6 +25793,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -25866,6 +25919,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -26045,7 +26099,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "carnes_130",
@@ -26887,6 +26942,7 @@
     "category": "carnes",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -27287,6 +27343,7 @@
     ],
     "tecnica": "horno",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "llevaSalsa": true
   },
   {
@@ -28215,6 +28272,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -28514,6 +28572,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -29739,6 +29798,7 @@
     "estrella": true,
     "tecnica": "horno",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Precalentar el horno a 200 °C.",
@@ -30131,6 +30191,7 @@
     "kidFavourite": true,
     "tecnica": "plancha",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "stepsRich": [
       {
         "text": "Pelar {{Patatas}} y cortar en trozos de tamaño similar.",
@@ -30262,6 +30323,7 @@
     "estrella": true,
     "tecnica": "horno",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Precalentar el horno a 190 °C.",
@@ -31227,6 +31289,7 @@
     "tecnica": "sarten",
     "cocina": "mexicana",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "stepsRich": [
       {
         "text": "Cortar {{Filetes finos de ternera}} en tiras finas.",
@@ -31623,5 +31686,882 @@
         "kind": "emplatado"
       }
     ]
+  },
+  {
+    "id": "carnes_161",
+    "name": "Lomo saltado",
+    "category": "carnes",
+    "cocina": "peruana",
+    "mainProtein": "ternera",
+    "mainBase": "arroz",
+    "baseMode": "aparte",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 620,
+    "protein_g": 38,
+    "carbs_g": 52,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "soja"
+    ],
+    "ingredients": [
+      {
+        "name": "Solomillo de ternera",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla roja",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer el arroz en agua con sal y reservar tapado.",
+      "Cortar la patata en bastones y freírla hasta que esté dorada; escurrir sobre papel.",
+      "Cortar el solomillo de ternera en tiras gruesas y salpimentar.",
+      "Cortar la cebolla roja en gajos anchos y el tomate en gajos.",
+      "Calentar una sartén grande a fuego muy fuerte con aceite de oliva.",
+      "Saltear la ternera 2 min sin removerla demasiado, hasta que se dore por fuera; retirar.",
+      "En la misma sartén saltear el ajo picado y el ají amarillo 1 min.",
+      "Añadir la cebolla roja y saltear 2 min: tiene que quedar entera y crujiente, no pochada.",
+      "Incorporar el tomate, la salsa de soja y el vinagre, y saltear 1 min más.",
+      "Devolver la ternera a la sartén, añadir las patatas fritas y saltear todo junto 30 segundos.",
+      "Espolvorear cilantro fresco picado y servir con el arroz al lado."
+    ],
+    "description": "El plato bandera del Perú: tiras de ternera salteadas a fuego vivo con cebolla y tomate, salsa de soja y vinagre, servidas con patatas fritas y arroz blanco.",
+    "estrella": false
+  },
+  {
+    "id": "carnes_162",
+    "name": "Ají de gallina",
+    "category": "carnes",
+    "cocina": "peruana",
+    "mainProtein": "pollo",
+    "mainBase": "arroz",
+    "baseMode": "aparte",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 35,
+    "carbs_g": 45,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Pan de molde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Nueces",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Arroz",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer la pechuga de pollo en agua con sal 20 min; reservar el caldo.",
+      "Deshilachar el pollo con dos tenedores una vez templado.",
+      "Cocer las patatas enteras con piel y los huevos hasta que estén tiernos; pelar y cortar en rodajas.",
+      "Cocer el arroz en agua con sal y reservar.",
+      "Remojar el pan de molde en la leche hasta que se empape del todo.",
+      "Pochar la cebolla y el ajo picados en aceite de oliva a fuego suave 10 min.",
+      "Añadir el ají amarillo y sofreír 3 min más.",
+      "Triturar el sofrito con el pan remojado, las nueces y un poco de caldo hasta obtener una crema fina.",
+      "Volcar la crema en la cazuela y cocer a fuego suave 5 min, aclarando con caldo si espesa demasiado.",
+      "Incorporar el pollo deshilachado y el queso parmesano rallado, y calentar 3 min.",
+      "Servir sobre las rodajas de patata, con el arroz al lado y el huevo duro por encima."
+    ],
+    "description": "Pollo deshilachado en una crema suave y amarilla de ají, pan y leche, con nueces molidas. Se sirve con arroz blanco, patata cocida y huevo duro.",
+    "estrella": false
+  },
+  {
+    "id": "carnes_163",
+    "name": "Anticuchos de ternera",
+    "category": "carnes",
+    "cocina": "peruana",
+    "mainProtein": "ternera",
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "verano",
+    "kcal": 420,
+    "protein_g": 40,
+    "carbs_g": 8,
+    "fat_g": 25,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Solomillo de ternera",
+        "amount": 450,
+        "unit": "g"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Orégano",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar el solomillo de ternera en dados de bocado.",
+      "Triturar el ají amarillo con el ajo, el vinagre, el comino y el orégano hasta obtener una pasta.",
+      "Mezclar la carne con la pasta y macerar en la nevera al menos 2 horas.",
+      "Cocer las patatas con piel hasta que estén tiernas y cortarlas en rodajas gruesas.",
+      "Ensartar los dados de carne en brochetas, apretándolos poco para que se asen por igual.",
+      "Calentar la parrilla o una plancha a fuego fuerte.",
+      "Asar las brochetas 3 min por cada lado, pintándolas con la maceración sobrante.",
+      "Dorar también las rodajas de patata en la misma parrilla.",
+      "Servir las brochetas sobre las patatas, muy calientes."
+    ],
+    "description": "Brochetas de ternera maceradas en ají panca, vinagre y comino, asadas a la parrilla. El clásico de la calle limeña.",
+    "estrella": false
+  },
+  {
+    "id": "carnes_164",
+    "name": "Seco de res con frijoles",
+    "category": "carnes",
+    "cocina": "peruana",
+    "mainProtein": "ternera",
+    "mainBase": "arroz",
+    "baseMode": "aparte",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 90,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 680,
+    "protein_g": 42,
+    "carbs_g": 58,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Carne de ternera para guisar",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Alubias blancas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar la carne de ternera para guisar en dados grandes y salpimentarlos.",
+      "Dorar la carne por tandas en una cazuela con aceite de oliva y reservar.",
+      "Pochar la cebolla y el ajo picados en la misma cazuela 10 min.",
+      "Triturar el cilantro fresco con el ají amarillo y un poco de agua hasta obtener una pasta verde.",
+      "Añadir la pasta verde al sofrito y cocinar 5 min para que pierda el crudo.",
+      "Devolver la carne, cubrir con agua caliente y cocer tapado a fuego suave 60 min.",
+      "Añadir la zanahoria en rodajas y los guisantes, y cocer 15 min más hasta que la carne esté melosa.",
+      "Calentar las alubias blancas cocidas con un poco del jugo del guiso.",
+      "Cocer el arroz en agua con sal.",
+      "Servir el guiso con las alubias y el arroz al lado."
+    ],
+    "description": "Guiso lento de ternera en una base verde de cilantro y ají, servido con frijoles canarios y arroz. Plato de domingo del norte del Perú.",
+    "estrella": false
+  },
+  {
+    "id": "carnes_165",
+    "name": "Pollo a la brasa con ají",
+    "category": "carnes",
+    "cocina": "peruana",
+    "mainProtein": "pollo",
+    "mainBase": "patatas",
+    "baseMode": "aparte",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 75,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 650,
+    "protein_g": 45,
+    "carbs_g": 38,
+    "fat_g": 34,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "soja",
+      "lactosa",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Pollo entero",
+        "amount": 1200,
+        "unit": "g"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Romero",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Mayonesa",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Mezclar la salsa de soja, el ají amarillo, el comino, el romero y el ajo majado hasta formar una marinada.",
+      "Embadurnar el pollo entero por dentro y por fuera y macerar en la nevera al menos 4 horas.",
+      "Precalentar el horno a 200 °C.",
+      "Colocar el pollo en una bandeja y asar 35 min.",
+      "Cortar las patatas en gajos, aliñarlas con aceite de oliva y sal y añadirlas a la bandeja.",
+      "Asar 30 min más, regando el pollo con su jugo cada 10 min hasta que la piel quede lacada.",
+      "Triturar el ají amarillo con la mayonesa y el cilantro fresco para la salsa verde.",
+      "Sacar el pollo y dejarlo reposar 10 min antes de trincharlo.",
+      "Servir con las patatas y la salsa de ají aparte."
+    ],
+    "description": "Pollo entero macerado en soja, comino y ají panca, asado al horno hasta que la piel queda lacada. Con patatas y salsa de ají verde.",
+    "estrella": false
+  },
+  {
+    "id": "carnes_166",
+    "name": "Pollo tikka masala",
+    "category": "carnes",
+    "cocina": "india",
+    "mainProtein": "pollo",
+    "mainBase": "arroz",
+    "baseMode": "aparte",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 590,
+    "protein_g": 40,
+    "carbs_g": 48,
+    "fat_g": 25,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Cúrcuma",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Nata líquida",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz basmati",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar la pechuga de pollo en tacos grandes.",
+      "Mezclar el yogur natural con la mitad del curry en polvo, la cúrcuma, el jengibre y el ajo rallados y sal.",
+      "Macerar el pollo en esa mezcla al menos 1 hora en la nevera.",
+      "Precalentar el horno a 220 °C y asar el pollo 15 min hasta que se tueste por los bordes.",
+      "Mientras, pochar la cebolla picada en aceite de oliva 10 min.",
+      "Añadir el resto del curry en polvo y el comino, y tostar 1 min.",
+      "Incorporar el tomate triturado y cocer 15 min a fuego medio hasta que se concentre.",
+      "Triturar la salsa hasta que quede fina y devolverla a la sartén.",
+      "Añadir la nata líquida y cocer 3 min más.",
+      "Incorporar el pollo asado con sus jugos y dar un hervor de 5 min.",
+      "Cocer el arroz basmati y servirlo al lado, con cilantro fresco por encima."
+    ],
+    "description": "Tacos de pollo macerados en yogur y especias, asados y terminados en una salsa cremosa de tomate. El curry más pedido del mundo.",
+    "estrella": false
+  },
+  {
+    "id": "carnes_167",
+    "name": "Pollo tandoori al horno",
+    "category": "carnes",
+    "cocina": "india",
+    "mainProtein": "pollo",
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 45,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 380,
+    "protein_g": 42,
+    "carbs_g": 8,
+    "fat_g": 19,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Contramuslo de pollo",
+        "amount": 700,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Cúrcuma",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla roja",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Hacer cortes profundos en los contramuslos de pollo para que la marinada entre.",
+      "Frotar el pollo con sal y el zumo de medio limón y dejar 15 min.",
+      "Mezclar el yogur natural con el curry en polvo, el pimentón dulce, la cúrcuma, el comino, el jengibre y el ajo rallados.",
+      "Embadurnar el pollo con la marinada y dejar en la nevera al menos 3 horas.",
+      "Precalecalentar el horno a 220 °C con la rejilla en la parte alta.",
+      "Colocar el pollo sobre una rejilla con bandeja debajo para que gotee.",
+      "Asar 25 min, dar la vuelta y asar 10 min más hasta que los bordes estén tostados.",
+      "Cortar la cebolla roja en aros finos y aliñarla con el resto del limón.",
+      "Servir el pollo con los aros de cebolla encurtida por encima."
+    ],
+    "description": "Pollo macerado en yogur especiado y asado a horno fuerte, con la superficie tostada y el interior jugoso. Sin freír y con muy poca grasa.",
+    "estrella": false
+  },
+  {
+    "id": "carnes_168",
+    "name": "Korma de pollo suave",
+    "category": "carnes",
+    "cocina": "india",
+    "mainProtein": "pollo",
+    "mainBase": "arroz",
+    "baseMode": "aparte",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 610,
+    "protein_g": 36,
+    "carbs_g": 50,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Almendras",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Nata líquida",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Cúrcuma",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Canela",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz basmati",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Escaldar las almendras, pelarlas y triturarlas con un poco de agua hasta obtener una pasta.",
+      "Cortar la pechuga de pollo en tacos y salpimentar.",
+      "Dorar el pollo en aceite de oliva 4 min y reservar.",
+      "Pochar la cebolla picada 12 min a fuego suave, sin que llegue a tostarse.",
+      "Añadir el jengibre y el ajo rallados y sofreír 2 min.",
+      "Incorporar el curry en polvo, la cúrcuma y la canela y tostar 1 min.",
+      "Añadir la pasta de almendra y un vaso de agua, y cocer 5 min.",
+      "Devolver el pollo y cocer 10 min a fuego suave.",
+      "Retirar del fuego, añadir el yogur natural y la nata líquida y remover fuera del calor para que no se corte.",
+      "Cocer el arroz basmati y servirlo al lado."
+    ],
+    "description": "Curry cremoso de almendra y yogur, sin nada de picante. Es la puerta de entrada a la cocina india para los niños de la casa.",
+    "estrella": false
+  },
+  {
+    "id": "carnes_169",
+    "name": "Boeuf bourguignon",
+    "category": "carnes",
+    "cocina": "francesa",
+    "mainProtein": "ternera",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "principal",
+    "time": 180,
+    "difficulty": "elaborada",
+    "season": "invierno",
+    "kcal": 640,
+    "protein_g": 45,
+    "carbs_g": 22,
+    "fat_g": 34,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Carne de ternera para guisar",
+        "amount": 800,
+        "unit": "g"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Bacon",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Tomillo",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 30,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar la carne de ternera para guisar en dados grandes y secarlos bien con papel de cocina.",
+      "Salpimentar y dorar la carne por tandas en una cocotte con aceite de oliva; reservar.",
+      "Dorar el bacon en dados en la misma cazuela y reservarlo con la carne.",
+      "Pochar la cebolla y la zanahoria en dados 10 min, y añadir el ajo picado.",
+      "Devolver la carne y el bacon, espolvorear la harina de trigo y remover 2 min para que se tueste.",
+      "Verter el vino tinto y raspar el fondo de la cazuela con la cuchara.",
+      "Añadir el tomillo y el laurel, cubrir con agua caliente y llevar a hervor suave.",
+      "Tapar y cocer a fuego muy bajo 2 horas y media, hasta que la carne se deshaga.",
+      "Saltear los champiñones en la mantequilla a fuego fuerte hasta que estén dorados.",
+      "Incorporar los champiñones al guiso los últimos 15 min.",
+      "Rectificar de sal y dejar reposar antes de servir: al día siguiente está mejor."
+    ],
+    "description": "Ternera guisada durante horas en vino tinto de Borgoña con bacon, cebollitas y champiñones. El guiso francés por antonomasia.",
+    "estrella": false
   }
 ]

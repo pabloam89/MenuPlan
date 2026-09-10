@@ -5,6 +5,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -176,6 +177,7 @@
     "category": "pasta_arroces",
     "mainProtein": "ternera",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -386,6 +388,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "primero"
     ],
@@ -516,6 +519,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -678,6 +682,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -829,6 +834,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1006,6 +1012,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -1200,6 +1207,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -1387,6 +1395,7 @@
     "category": "pasta_arroces",
     "mainProtein": "huevo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1531,6 +1540,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -1675,6 +1685,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -1840,6 +1851,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -1988,6 +2000,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -2165,6 +2178,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -2339,6 +2353,7 @@
       "cerdo"
     ],
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -2513,6 +2528,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -2682,6 +2698,7 @@
     "category": "pasta_arroces",
     "mainProtein": "ternera",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -2905,6 +2922,7 @@
     "category": "pasta_arroces",
     "mainProtein": "ternera",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -3167,6 +3185,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -3320,6 +3339,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -3471,6 +3491,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_blanco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -3669,6 +3690,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -3796,6 +3818,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -3994,6 +4017,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -4127,6 +4151,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -4298,6 +4323,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -4461,6 +4487,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -4617,6 +4644,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -4748,6 +4776,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -4900,6 +4929,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -5099,6 +5129,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -5281,6 +5312,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -5510,6 +5542,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -5706,6 +5739,7 @@
     "category": "pasta_arroces",
     "mainProtein": "ternera",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -5910,6 +5944,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -6156,6 +6191,7 @@
     "category": "pasta_arroces",
     "mainProtein": "ternera",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -6382,6 +6418,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -6574,6 +6611,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -6736,6 +6774,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -6906,6 +6945,7 @@
     "category": "pasta_arroces",
     "mainProtein": "ternera",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -7226,6 +7266,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -7404,6 +7445,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -7606,6 +7648,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -7824,6 +7867,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -8060,6 +8104,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -8208,6 +8253,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -8344,6 +8390,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -8519,6 +8566,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -8689,6 +8737,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -8908,6 +8957,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -9053,6 +9103,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -9445,6 +9496,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -9738,7 +9790,8 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "mainBase": "pasta"
+    "mainBase": "pasta",
+    "baseMode": "dentro"
   },
   {
     "id": "pasta_arroces_055",
@@ -9746,6 +9799,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -9944,6 +9998,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -10251,6 +10306,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -10559,6 +10615,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -10840,6 +10897,7 @@
     "category": "pasta_arroces",
     "mainProtein": "ternera",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -11132,6 +11190,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -11275,6 +11334,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -11424,6 +11484,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -11588,6 +11649,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -11760,6 +11822,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -11916,6 +11979,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -12094,6 +12158,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -12257,6 +12322,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -12402,6 +12468,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -12576,6 +12643,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -12829,6 +12897,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -13083,6 +13152,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -13227,6 +13297,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -13396,6 +13467,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -13575,6 +13647,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -13772,6 +13845,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -13951,6 +14025,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -14130,6 +14205,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -14361,6 +14437,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "mealRole": [
       "plato_unico"
@@ -14543,6 +14620,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -14719,6 +14797,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -14895,6 +14974,7 @@
     "category": "pasta_arroces",
     "mainProtein": "huevo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -15064,6 +15144,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -15267,6 +15348,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -15467,6 +15549,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -15614,6 +15697,7 @@
     "category": "pasta_arroces",
     "mainProtein": "ternera",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "mealRole": [
       "plato_unico"
@@ -15804,6 +15888,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "mealRole": [
       "plato_unico"
@@ -16052,6 +16137,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -16225,6 +16311,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -16383,6 +16470,7 @@
     "category": "pasta_arroces",
     "mainProtein": "marisco",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -16547,6 +16635,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "mealRole": [
       "plato_unico",
@@ -16718,6 +16807,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -16889,6 +16979,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pollo",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -17056,6 +17147,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -17214,6 +17306,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -17359,6 +17452,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -17502,6 +17596,7 @@
     "category": "pasta_arroces",
     "mainProtein": "huevo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -17661,6 +17756,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -17824,6 +17920,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -17967,6 +18064,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -18186,6 +18284,7 @@
     "tecnica": "sarten",
     "cocina": "mexicana",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
@@ -18397,6 +18496,7 @@
     "tecnica": "sarten",
     "cocina": "asiatica",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Hervir agua con sal en un cazo a fuego fuerte.",
@@ -18577,6 +18677,7 @@
     "tecnica": "sarten",
     "cocina": "asiatica",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Llevar a ebullición agua con sal en un cazo. Añadir {{Arroz}} y cocer hasta que esté en su punto.",
@@ -18644,5 +18745,300 @@
         "kind": "emplatado"
       }
     ]
+  },
+  {
+    "id": "pasta_arroces_103",
+    "name": "Tallarines verdes con bistec",
+    "category": "pasta_arroces",
+    "cocina": "peruana",
+    "mainProtein": "ternera",
+    "mainBase": "pasta",
+    "baseMode": "aparte",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 640,
+    "protein_g": 36,
+    "carbs_g": 62,
+    "fat_g": 27,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Tallarines",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Queso fresco",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 120,
+        "unit": "ml"
+      },
+      {
+        "name": "Nueces",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Filete de ternera",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer los tallarines en abundante agua con sal según el paquete y reservar un vaso del agua de cocción.",
+      "Pochar la cebolla y el ajo picados en aceite de oliva 8 min a fuego suave.",
+      "Escaldar las espinacas 1 min y escurrirlas bien.",
+      "Triturar la albahaca fresca, las espinacas, el sofrito, las nueces, el queso fresco y la leche hasta obtener una crema verde.",
+      "Salpimentar los filetes de ternera.",
+      "Marcar los filetes en la plancha muy caliente 2 min por cada lado y dejarlos reposar.",
+      "Calentar la crema verde en una sartén amplia sin que llegue a hervir.",
+      "Saltear los tallarines en la crema, aflojando con agua de cocción hasta que napen.",
+      "Servir los tallarines con el filete cortado en tiras por encima."
+    ],
+    "description": "La versión peruana del pesto: albahaca y espinaca trituradas con queso y leche, muy cremosa, sobre tallarines y con un filete a la plancha encima.",
+    "estrella": false
+  },
+  {
+    "id": "pasta_arroces_104",
+    "name": "Arroz chaufa",
+    "category": "pasta_arroces",
+    "cocina": "peruana",
+    "mainProtein": "pollo",
+    "mainBase": "arroz",
+    "baseMode": "aparte",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 540,
+    "protein_g": 30,
+    "carbs_g": 62,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo",
+      "soja",
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de sésamo",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer el arroz, escurrirlo y extenderlo en una bandeja para que enfríe y suelte el vapor.",
+      "Cortar la pechuga de pollo en dados y salpimentar.",
+      "Batir los huevos y cuajarlos en tortilla fina; enrollarla y cortarla en tiras.",
+      "Calentar un wok o sartén grande a fuego muy fuerte con aceite de oliva.",
+      "Saltear el pollo hasta que esté dorado y reservar.",
+      "Saltear el jengibre y el ajo picados 30 segundos.",
+      "Añadir el pimiento rojo en dados y saltear 2 min.",
+      "Incorporar el arroz frío y saltear removiendo 3 min para que se suelte.",
+      "Devolver el pollo y las tiras de tortilla, y regar con la salsa de soja y el aceite de sésamo.",
+      "Añadir la cebolleta picada, saltear 1 min más y servir enseguida."
+    ],
+    "description": "El arroz frito peruano-chino: arroz salteado a fuego vivo con pollo, tortilla en tiras, cebolleta y soja. Resuelve una cena en 25 minutos.",
+    "estrella": false
+  },
+  {
+    "id": "pasta_arroces_105",
+    "name": "Biryani de pollo",
+    "category": "pasta_arroces",
+    "cocina": "india",
+    "mainProtein": "pollo",
+    "mainBase": "arroz",
+    "baseMode": "dentro",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 60,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 620,
+    "protein_g": 38,
+    "carbs_g": 66,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz basmati",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Contramuslo de pollo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Cúrcuma",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Almendras",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar el pollo en tacos y macerarlo con el yogur natural, el jengibre y el ajo rallados, el curry en polvo y la cúrcuma 1 hora.",
+      "Cortar la cebolla en pluma y freírla en aceite de oliva hasta que esté dorada y crujiente; reservar la mitad.",
+      "Guisar el pollo macerado con la otra mitad de la cebolla 20 min a fuego medio.",
+      "Lavar el arroz basmati hasta que el agua salga clara.",
+      "Hervir el arroz en agua con sal solo 5 min, hasta que esté a medio cocer; escurrir.",
+      "Infusionar el azafrán en la leche templada.",
+      "Montar en una cazuela: una capa de guiso de pollo y encima el arroz a medio cocer.",
+      "Regar la superficie con la leche de azafrán y repartir la cebolla frita reservada.",
+      "Tapar herméticamente y cocer a fuego muy suave 20 min sin destapar.",
+      "Dejar reposar 5 min, remover desde el fondo y servir con almendras y cilantro fresco."
+    ],
+    "description": "Arroz basmati y pollo especiado cocinados en capas y tapados, para que el arroz se perfume con el vapor del guiso. Plato de fiesta.",
+    "estrella": false
   }
 ]

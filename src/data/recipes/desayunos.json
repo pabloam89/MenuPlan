@@ -5,6 +5,7 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "avena",
+    "baseMode": "dentro",
     "mealRole": [
       "desayuno"
     ],
@@ -109,6 +110,7 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "avena",
+    "baseMode": "dentro",
     "mealRole": [
       "desayuno"
     ],
@@ -196,6 +198,7 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "avena",
+    "baseMode": "dentro",
     "mealRole": [
       "desayuno"
     ],
@@ -753,6 +756,7 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "avena",
+    "baseMode": "dentro",
     "mealRole": [
       "desayuno"
     ],
@@ -862,6 +866,7 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "avena",
+    "baseMode": "dentro",
     "mealRole": [
       "desayuno"
     ],
@@ -1061,6 +1066,7 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "desayuno"
     ],
@@ -1179,6 +1185,7 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "desayuno"
     ],
@@ -1274,6 +1281,7 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "desayuno"
     ],
@@ -1510,7 +1518,8 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "cocina": "americana"
   },
   {
     "id": "desayunos_022",
@@ -1885,6 +1894,7 @@
     "category": "desayunos",
     "mainProtein": "huevo",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "desayuno"
     ],

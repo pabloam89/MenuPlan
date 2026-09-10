@@ -2280,7 +2280,8 @@
       "encurtido"
     ],
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "aparte"
   },
   {
     "id": "ensaladas_verduras_015",
@@ -2476,6 +2477,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "llevaSalsa": true,
     "estrella": true
   },
@@ -2881,7 +2883,8 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "aparte"
   },
   {
     "id": "ensaladas_verduras_018",
@@ -4082,6 +4085,7 @@
     "tecnica": "crudo",
     "cocina": "italiana",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "llevaSalsa": true
   },
   {
@@ -4618,7 +4622,8 @@
       "lacteo"
     ],
     "tecnica": "crudo",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "baseMode": "dentro"
   },
   {
     "id": "ensaladas_verduras_035",
@@ -4802,7 +4807,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "mexicana",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "baseMode": "dentro"
   },
   {
     "id": "ensaladas_verduras_036",
@@ -5106,7 +5112,8 @@
       "frutos_secos"
     ],
     "tecnica": "crudo",
-    "mainBase": "pan"
+    "mainBase": "pan",
+    "baseMode": "dentro"
   },
   {
     "id": "ensaladas_verduras_038",
@@ -6023,6 +6030,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "quinoa",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -6505,7 +6513,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "aparte"
   },
   {
     "id": "ensaladas_verduras_047",
@@ -6656,7 +6665,8 @@
     "estrella": true,
     "montaje": true,
     "tecnica": "crudo",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "ensaladas_verduras_048",
@@ -7920,6 +7930,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "extraProteins": [
       "huevo"
     ],
@@ -8196,6 +8207,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "cuscus",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -8388,6 +8400,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "cuscus",
+    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "mealRole": [
       "primero",
@@ -8558,6 +8571,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -9452,7 +9466,8 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "ensaladas_verduras_065",
@@ -10315,6 +10330,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -10678,6 +10694,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -12065,7 +12082,8 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "ensaladas_verduras_081",
@@ -12073,6 +12091,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -13316,6 +13335,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -14166,6 +14186,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "quinoa",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -15972,6 +15993,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "cena"
@@ -16945,7 +16967,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "ensaladas_verduras_108",
@@ -17855,6 +17878,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -19268,6 +19292,7 @@
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mainBase": "pan",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -20286,5 +20311,552 @@
         "kind": "emplatado"
       }
     ]
+  },
+  {
+    "id": "ensaladas_verduras_126",
+    "name": "Papa a la huancaína",
+    "category": "ensaladas_verduras",
+    "cocina": "peruana",
+    "mainProtein": "none",
+    "mainBase": "patatas",
+    "baseMode": "aparte",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "principal",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 330,
+    "protein_g": 11,
+    "carbs_g": 32,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa",
+      "huevo",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Patata",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Queso fresco",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 120,
+        "unit": "ml"
+      },
+      {
+        "name": "Galletas María",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceitunas negras",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Lechuga",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer las patatas enteras con piel en agua con sal hasta que estén tiernas.",
+      "Cocer los huevos 10 min, enfriar y pelar.",
+      "Sofreír el ajo y el ají amarillo en aceite de oliva 3 min a fuego suave.",
+      "Triturar el sofrito con el queso fresco, la leche y las galletas María hasta obtener una crema lisa.",
+      "Rectificar de sal y textura: la salsa debe napar sin escurrirse.",
+      "Pelar las patatas y cortarlas en rodajas de un dedo de grosor.",
+      "Colocar las rodajas sobre una cama de hojas de lechuga.",
+      "Cubrir generosamente con la salsa huancaína.",
+      "Decorar con el huevo duro en cuartos y las aceitunas negras."
+    ],
+    "description": "Rodajas de patata cocida bañadas en una salsa cremosa de queso fresco y ají amarillo. El entrante más conocido de la cocina peruana.",
+    "estrella": false
+  },
+  {
+    "id": "ensaladas_verduras_127",
+    "name": "Causa limeña de pollo",
+    "category": "ensaladas_verduras",
+    "cocina": "peruana",
+    "mainProtein": "pollo",
+    "mainBase": "patatas",
+    "baseMode": "aparte",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "principal",
+    "time": 40,
+    "difficulty": "normal",
+    "season": "verano",
+    "kcal": 390,
+    "protein_g": 22,
+    "carbs_g": 34,
+    "fat_g": 19,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Patata",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Lima",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Mayonesa",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceitunas negras",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer las patatas con piel en agua con sal hasta que estén muy tiernas.",
+      "Pelar y pasar las patatas por un pasapurés en caliente; dejar templar.",
+      "Sofreír el ají amarillo 2 min y triturarlo hasta obtener una pasta.",
+      "Amasar el puré con la pasta de ají, el zumo de lima, el aceite de oliva y sal hasta que quede una masa amarilla y manejable.",
+      "Cocer la pechuga de pollo en agua con sal 20 min y deshilacharla.",
+      "Mezclar el pollo con la mayonesa y salpimentar.",
+      "Cortar el aguacate en láminas finas.",
+      "Montar en un molde: una capa de puré, el pollo, las láminas de aguacate y otra capa de puré.",
+      "Alisar la superficie y enfriar en la nevera al menos 1 hora.",
+      "Desmoldar y decorar con huevo duro y aceitunas negras."
+    ],
+    "description": "Pastel frío de puré de patata amarilla al ají y lima, relleno de pollo con mayonesa y aguacate. Se come frío, ideal para verano.",
+    "estrella": false
+  },
+  {
+    "id": "ensaladas_verduras_128",
+    "name": "Solterito arequipeño",
+    "category": "ensaladas_verduras",
+    "cocina": "peruana",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "principal",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "verano",
+    "kcal": 280,
+    "protein_g": 12,
+    "carbs_g": 26,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Guisantes",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Maíz",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Queso fresco",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla roja",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas negras",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer las guisantes en agua con sal 8 min y enfriarlas en agua con hielo.",
+      "Pelar las guisantes si la piel está dura.",
+      "Cocer el maíz 10 min y escurrir.",
+      "Cortar el tomate y el queso fresco en dados del mismo tamaño.",
+      "Cortar la cebolla roja en pluma fina y enjuagarla bajo el grifo para suavizarla.",
+      "Picar muy fino el ají amarillo.",
+      "Mezclar todos los ingredientes en un bol amplio con las aceitunas negras.",
+      "Aliñar con aceite de oliva, vinagre, sal y el perejil fresco picado.",
+      "Dejar reposar 10 min en frío antes de servir."
+    ],
+    "description": "Ensalada fría de habas, maíz, queso fresco y aceituna, aliñada con vinagre y ají. Fresca, crujiente y de una sola pieza.",
+    "estrella": false
+  },
+  {
+    "id": "ensaladas_verduras_129",
+    "name": "Palak paneer (espinacas con queso fresco)",
+    "category": "ensaladas_verduras",
+    "cocina": "india",
+    "mainProtein": "none",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "principal",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 360,
+    "protein_g": 19,
+    "carbs_g": 16,
+    "fat_g": 25,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espinacas",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Queso fresco",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Nata líquida",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Escaldar las espinacas 1 min en agua hirviendo y pasarlas a agua con hielo para fijar el color.",
+      "Escurrirlas muy bien y triturarlas hasta obtener un puré verde intenso.",
+      "Cortar el queso fresco en dados y dorarlos en la mantequilla por todas sus caras; reservar.",
+      "Pochar la cebolla picada en aceite de oliva 10 min.",
+      "Añadir el jengibre y el ajo rallados y sofreír 2 min.",
+      "Incorporar el comino y el curry en polvo y tostar 1 min.",
+      "Añadir el tomate rallado y cocer 8 min.",
+      "Volcar el puré de espinacas y cocer 5 min a fuego suave.",
+      "Añadir la nata líquida y rectificar de sal.",
+      "Incorporar los dados de queso dorados y servir enseguida."
+    ],
+    "description": "Crema verde de espinacas especiadas con dados de queso fresco dorados. Se hace en media hora y gusta hasta a quien recela de la verdura.",
+    "estrella": false
+  },
+  {
+    "id": "ensaladas_verduras_130",
+    "name": "Aloo gobi (patata y coliflor especiadas)",
+    "category": "ensaladas_verduras",
+    "cocina": "india",
+    "mainProtein": "none",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "principal",
+    "time": 40,
+    "difficulty": "facil",
+    "season": "invierno",
+    "kcal": 300,
+    "protein_g": 8,
+    "carbs_g": 40,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Patata",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Coliflor",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Cúrcuma",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y cortar la patata en dados de dos centímetros.",
+      "Separar la coliflor en ramilletes del mismo tamaño.",
+      "Calentar el aceite de oliva en una sartén amplia y dorar la patata 8 min; retirar.",
+      "Dorar la coliflor 6 min en la misma sartén y retirar.",
+      "Pochar la cebolla picada 8 min y añadir el jengibre y el ajo rallados.",
+      "Tostar el comino, la cúrcuma y el curry en polvo 1 min.",
+      "Añadir el tomate rallado y cocer 5 min.",
+      "Devolver la patata y la coliflor, salar y remover con cuidado.",
+      "Tapar y cocer a fuego muy suave 12 min, removiendo alguna vez, hasta que todo esté tierno.",
+      "Servir con cilantro fresco picado por encima."
+    ],
+    "description": "Patata y coliflor salteadas con cúrcuma y comino hasta quedar doradas por fuera y tiernas por dentro. Vegano y de una sola sartén.",
+    "estrella": false
+  },
+  {
+    "id": "ensaladas_verduras_131",
+    "name": "Ratatouille",
+    "category": "ensaladas_verduras",
+    "cocina": "francesa",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "principal",
+    "time": 60,
+    "difficulty": "facil",
+    "season": "verano",
+    "kcal": 220,
+    "protein_g": 5,
+    "carbs_g": 20,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Berenjena",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Tomillo",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 60,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar todas las verduras en dados de tamaño parecido.",
+      "Salar la berenjena y dejarla escurrir 20 min; secarla con papel.",
+      "Saltear la berenjena en aceite de oliva a fuego fuerte hasta que esté dorada; reservar.",
+      "Saltear el calabacín por separado 5 min y reservar.",
+      "Saltear los pimientos 8 min y reservar.",
+      "Pochar la cebolla y el ajo picados 10 min a fuego suave.",
+      "Añadir el tomate pelado y troceado y cocer 20 min hasta obtener una salsa espesa.",
+      "Devolver todas las verduras a la cazuela y mezclar con cuidado.",
+      "Añadir el tomillo, salpimentar y cocer 10 min más a fuego muy suave.",
+      "Fuera del fuego, añadir la albahaca fresca picada y dejar reposar antes de servir."
+    ],
+    "description": "Berenjena, calabacín, pimiento y tomate cocinados por separado y reunidos al final con hierbas provenzales. Vegano y mejor de un día para otro.",
+    "estrella": false
   }
 ]

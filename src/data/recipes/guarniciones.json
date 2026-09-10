@@ -9,6 +9,7 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 25,
     "difficulty": "facil",
     "season": "all",
@@ -511,6 +512,7 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "time": 45,
     "difficulty": "facil",
@@ -1596,6 +1598,7 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "time": 35,
     "difficulty": "normal",
     "season": "all",
@@ -1914,6 +1917,7 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "time": 55,
     "difficulty": "normal",
@@ -2058,6 +2062,7 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "time": 20,
     "difficulty": "facil",
     "season": "all",
@@ -2167,6 +2172,7 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "time": 25,
     "difficulty": "normal",
     "season": "all",
@@ -2305,6 +2311,7 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "time": 70,
     "difficulty": "normal",
@@ -2437,7 +2444,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 27,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "cocina": "francesa"
   },
   {
     "id": "guarniciones_042",
@@ -2974,6 +2982,7 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -3093,6 +3102,7 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -4633,6 +4643,7 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -4976,6 +4987,7 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "guarnicion"
     ],
@@ -5387,6 +5399,7 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -5521,5 +5534,156 @@
     "saturated_fat_g": 1,
     "sodium_mg": 390,
     "freezable": false
+  },
+  {
+    "id": "guarniciones_064",
+    "name": "Raita de pepino y yogur",
+    "category": "guarniciones",
+    "cocina": "india",
+    "mainProtein": "none",
+    "mealRole": [
+      "guarnicion"
+    ],
+    "type": "guarnicion",
+    "time": 10,
+    "difficulty": "facil",
+    "season": "verano",
+    "kcal": 90,
+    "protein_g": 5,
+    "carbs_g": 7,
+    "fat_g": 4,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Yogur natural",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 20,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Rallar el pepino con un rallador grueso.",
+      "Escurrir el pepino rallado apretándolo con las manos para que suelte el agua.",
+      "Tostar el comino en una sartén seca 30 segundos hasta que huela.",
+      "Batir el yogur natural con unas varillas hasta que quede liso.",
+      "Mezclar el yogur con el pepino escurrido y el comino tostado.",
+      "Picar muy fina la menta fresca y el cilantro fresco e incorporarlos.",
+      "Salar y añadir unas gotas de limón.",
+      "Enfriar en la nevera al menos 20 min antes de servir."
+    ],
+    "description": "Yogur batido con pepino rallado, comino y menta. Es el apagafuegos de la mesa india: refresca cualquier plato especiado.",
+    "estrella": false
+  },
+  {
+    "id": "guarniciones_065",
+    "name": "Pan naan casero",
+    "category": "guarniciones",
+    "cocina": "india",
+    "mainProtein": "none",
+    "mainBase": "pan",
+    "baseMode": "dentro",
+    "mealRole": [
+      "guarnicion"
+    ],
+    "type": "guarnicion",
+    "time": 90,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 280,
+    "protein_g": 8,
+    "carbs_g": 44,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Harina de trigo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Levadura química",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Mezclar la harina de trigo con la levadura química, el azúcar y una cucharadita de sal.",
+      "Añadir el yogur natural y la leche templada y amasar hasta obtener una masa blanda y algo pegajosa.",
+      "Amasar 8 min sobre la encimera hasta que quede lisa.",
+      "Tapar y dejar reposar 1 hora en un sitio templado.",
+      "Dividir la masa en seis bolas y estirarlas con el rodillo en óvalos de medio centímetro.",
+      "Calentar una sartén de fondo grueso a fuego fuerte, sin aceite.",
+      "Cocer cada pan 2 min por el primer lado, hasta que salgan burbujas grandes.",
+      "Dar la vuelta y cocer 1 min más, hasta que aparezcan manchas tostadas.",
+      "Derretir la mantequilla con el ajo picado.",
+      "Pintar los panes recién hechos con la mantequilla de ajo y espolvorear cilantro fresco."
+    ],
+    "description": "Pan plano de sartén, tierno y con burbujas tostadas, para mojar en cualquier curry. Sin horno: se hace en una sartén bien caliente.",
+    "estrella": false
   }
 ]
