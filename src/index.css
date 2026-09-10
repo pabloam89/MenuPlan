@@ -371,3 +371,37 @@ button {
   50%      { box-shadow: inset 0 0 0 3px rgba(255,255,255,.9); }
 }
 .mp-await { animation: mpAwait 1.4s ease-in-out infinite; }
+
+/* ── La barra de rehacer el menu ────────────────────────────────────────
+   Aparece cuando has tocado algun mando y desaparece al rehacer, asi que
+   entra DESPLEGANDOSE: la altura crece con ella. Sin eso, el menu entero
+   pegaba un salto de 54px hacia abajo justo cuando acababas de tocar un
+   slider, y el salto se leia como un error de la pagina y no como una
+   respuesta a lo que acababas de hacer. */
+@keyframes mpBarraRehacer {
+  from { opacity: 0; max-height: 0; }
+  to   { opacity: 1; max-height: 54px; }
+}
+.mp-barra-rehacer { animation: mpBarraRehacer .3s cubic-bezier(.2,.8,.3,1) both; }
+/* El tirador cambia de cursor mientras se arrastra: es la unica pista, en
+   raton, de que esto no se pulsa sino que se lleva. */
+.mp-barra-rehacer button:active { cursor: grabbing; }
+
+/* Las puntas del final de la barra de regenerar: se encienden en cadena hacia
+   la derecha. Son la unica pista de que el tirador se lleva y no se pulsa, asi
+   que apuntan al sitio exacto donde hay que soltarlo. */
+@keyframes mpDeslizPunta {
+  0%, 100% { opacity: .22; }
+  50%      { opacity: .95; }
+}
+.mp-desliz-punta { animation: mpDeslizPunta 1.5s ease-in-out infinite; }
+
+/* Y el tirador se asoma cada pocos segundos. Un icono quieto dentro de un
+   cuadrado blanco se lee como un boton; este se mueve solo un poco, lo justo
+   para que la mano entienda que va a alguna parte. */
+@keyframes mpDeslizTirador {
+  0%, 66%, 100% { transform: translateX(0); }
+  76%           { transform: translateX(5px); }
+  86%           { transform: translateX(0); }
+}
+.mp-desliz-tirador { animation: mpDeslizTirador 3.2s ease-in-out infinite; }

@@ -8,7 +8,6 @@ import {
   BookOpen,
   BookOpenCheck,
   CalendarDays,
-  CalendarRange,
   Check,
   ChefHat,
   ChevronDown,
@@ -25,6 +24,7 @@ import {
   IceCream,
   Minimize2,
   LayoutGrid,
+  Layers,
   Layers2,
   Download,
   Droplets,
@@ -1830,7 +1830,8 @@ export function DishCard({
               color: "#8d978f",
             }}
           >
-            <Clock3 size={13} strokeWidth={2.2} />
+            {/* Sin reloj, igual que en las pastillas de la foto: "25 min" ya
+                dice que es tiempo. Ver DishSpecPills. */}
             {method ? method.time : recipe.time} min
           </span>
           {method && MethodIcon && (
@@ -1960,15 +1961,28 @@ export function DishCard({
 // and fully isolated so the classic renderer above stays untouched.
 // ─────────────────────────────────────────────────────────────────────────
 
+// Tres tramos de tiempo, y solo tres. "Resumen" (`lista`) salió de aquí: era la
+// misma semana que ya enseña la vista Semana, puesta en rejilla, así que la
+// cuarta opción del selector no llevaba a ningún sitio nuevo. Su vista sigue
+// montada más abajo (DeckCalendar) y `deckView === "lista"` sigue funcionando:
+// está APARCADA, no borrada, por si vuelve con algo propio que contar.
 const DECK_VIEW_OPTIONS = [
   { id: "dia", label: "Día" },
   { id: "semana", label: "Semana" },
   { id: "mes", label: "Mes" },
-  { id: "lista", label: "Resumen" },
 ];
 
-const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers2, mes: CalendarRange, lista: LayoutGrid };
-const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", mes: "#8a5cc4", lista: "#5a5fc8" };
+// Tres formas distintas para tres tramos distintos, y ahí está el cambio: antes
+// Día era un calendario y Mes era OTRO calendario, y en este set de Nucleo los
+// cuatro glifos de calendario son el mismo marco vacío —se comprobó mirándolos,
+// no leyendo sus nombres—, así que el selector pedía elegir entre dos dibujos
+// iguales. Y "Semana" llevaba `Layers2`, que en esta misma pantalla ya significa
+// "1º y 2º" (dos platos) en el rosco y en la estructura del día.
+//
+// Ahora: un calendario (una fecha), una pila de hojas (varios días seguidos) y
+// una rejilla (que es literalmente lo que dibuja la vista de mes).
+const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers, mes: LayoutGrid };
+const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", mes: "#8a5cc4" };
 
 /** Flatten a day into photo tiles (one per dish/course, across visible groups).
  *  When the same dish (recipe + course) is planned for several groups in the
@@ -3147,7 +3161,7 @@ function DeckMonth({ menuWeeks, data, visibleGroups, onPickDay }) {
   if (!monthKey) {
     return (
       <div style={{ padding: "40px 20px", textAlign: "center" }}>
-        <CalendarRange size={32} color="#cdd8d0" strokeWidth={2} />
+        <LayoutGrid size={32} color="#cdd8d0" strokeWidth={2} />
         <p style={{ margin: "10px 0 0", fontSize: 13, fontWeight: 700, color: "#9ab0a1" }}>
           Aún no hay menú que poner en el calendario
         </p>
@@ -3335,7 +3349,7 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
 
 /**
  * Deck view selector — a pill showing the active view that unfolds an animated
- * menu (Día / Semana / Lista + week switcher + Vista clásica).
+ * menu (Día / Semana / Mes + week switcher + Vista clásica).
  */
 /** Circular icon for the view picker. Each view has its own accent colour;
  *  active state fills the disc, inactive shows the tinted ring + icon. */
@@ -4058,6 +4072,14 @@ export const MenuScreen = memo(function MenuScreen({
   onPublishToFeed = null,
   onUnpublishFromFeed = null,
   menuSharedInFeed = false,
+  // ── Wizard generativo (experimento local) ────────────────────────────────
+  // Dos nodos opcionales que el menú se limita a colocar: la fila de mandos
+  // bajo la cabecera y la burbuja flotante del bot. Van como props y no
+  // importados aquí para que esta pantalla NO dependa del wizard: con ambos a
+  // null —que es como los recibe todo lo demás— el menú se comporta
+  // exactamente igual que antes de que esto existiera.
+  wizardControls = null,
+  wizardBubble = null,
 }) {
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
@@ -4732,6 +4754,11 @@ export const MenuScreen = memo(function MenuScreen({
             )}
           </div>
         )}
+
+        {/* La fila de mandos del wizard, justo bajo el selector de vistas: se
+            lee como "esto de aquí arriba controla lo de abajo". Solo con menú
+            delante — sin platos que ajustar, un mando no significa nada. */}
+        {hasMenu && wizardControls}
       </div>
 
       {/* ── Second divider: end of nav zone (solo clásico; en deck sobra) ── */}
@@ -4994,6 +5021,10 @@ export const MenuScreen = memo(function MenuScreen({
           onClose={() => setPublishSheetOpen(false)}
         />
       )}
+
+      {/* La burbuja del bot va DESPUÉS de la nav: se posiciona ella sola por
+          encima, y montarla antes la dejaba tapada por la barra inferior. */}
+      {wizardBubble}
 
       <BottomNav active="menu" onNav={onNav} />
     </div>

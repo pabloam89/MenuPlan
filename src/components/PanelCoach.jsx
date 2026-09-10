@@ -17,9 +17,11 @@
  * y `onAplicar` de fuera, así que se recorre entero sin gastar API.
  */
 
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import { X, ArrowUp, Check } from "./icons.jsx";
 import { resumirAjuste, pintarAjuste } from "../lib/panelParser.js";
+import { pasoDeTecleo, tecleoInicial, textoDeTecleo } from "../lib/typewriter.js";
+import { ejemplosDelPanel } from "../lib/notepadFields.js";
 
 const ANCHO_MAX = 366;
 
@@ -27,10 +29,21 @@ const ANCHO_MAX = 366;
 const VISIBLES = 4;
 const HUECO = 14;
 
-export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, primeraVez = false }) {
+/**
+ * `titulo` y una lista de sugerencias vacía son lo que convierte esta burbuja
+ * en el ayudante de una pantalla que YA tiene mandos: cuando el reparto, la
+ * cocina o el tiempo están a un toque en la fila de arriba, cuatro tarjetas
+ * proponiendo lo mismo sobran y compiten con ellos. Sin sugerencias, la
+ * burbuja se queda con lo único que los controles no saben hacer: entender
+ * una frase.
+ */
+export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, primeraVez = false, titulo = "¿Qué necesitas?" }) {
   const [abierto, setAbierto] = useState(false);
   const [paso, setPaso] = useState(primeraVez ? "intro" : "ideas");
   const [texto, setTexto] = useState("");
+  // Los ejemplos que se teclean salen de la tabla de campos: anadir un eje
+  // anade su frase, y no hay una lista aparte que se quede vieja.
+  const ejemplos = useMemo(() => ejemplosDelPanel(), []);
   const [respuesta, setRespuesta] = useState(null);
   const [marcadas, setMarcadas] = useState([]);
   const [rect, setRect] = useState(null);
@@ -157,7 +170,11 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
 
             {paso === "ideas" && (
               <>
-                <div style={S.titulo}>¿Qué necesitas?</div>
+                <div style={S.titulo}>{titulo}</div>
+                {/* Sin sugerencias, la rejilla ni se monta: un contenedor
+                    vacío deja su hueco y la tarjeta abre con un salto de aire
+                    que parece que falta algo. */}
+                {visibles.length > 0 && (
                 <div style={S.rejilla}
                   onPointerDown={() => setCongelado(true)}
                   onPointerEnter={() => setCongelado(true)}>
@@ -191,7 +208,8 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
                     </button>
                   ))}
                 </div>
-                <Entrada texto={texto} setTexto={setTexto}
+                )}
+                <Entrada texto={texto} setTexto={setTexto} ejemplos={ejemplos}
                   onEnviar={() => preguntar()} onEscribir={() => setCongelado(true)} />
               </>
             )}
@@ -278,12 +296,38 @@ export function PanelCoach({ sugerencias = [], notepad, onConsultar, onAplicar, 
   );
 }
 
-function Entrada({ texto, setTexto, onEnviar, onEscribir }) {
+/**
+ * El campo, con el placeholder escribiéndose solo.
+ *
+ * Las frases de ejemplo se TECLEAN y se borran en bucle en vez de estar
+ * quietas: un "o escríbeme" fijo no enseña qué se puede pedir, y la gente
+ * escribe tres palabras o nada. Viendo "menos pescado" aparecer y "más cosas
+ * al horno" detrás, el registro esperado se entiende sin una línea de ayuda.
+ *
+ * Se para en cuanto el usuario escribe: un placeholder moviéndose detrás de lo
+ * que estás tecleando es ruido, y además ya ha hecho su trabajo.
+ */
+function Entrada({ texto, setTexto, onEnviar, onEscribir, ejemplos = [] }) {
+  const [tecleo, setTecleo] = useState(tecleoInicial);
+  const parado = texto.length > 0 || ejemplos.length === 0;
+
+  useEffect(() => {
+    if (parado) return;
+    const { estado, espera } = pasoDeTecleo(tecleo, ejemplos);
+    const t = setTimeout(() => setTecleo(estado), espera);
+    return () => clearTimeout(t);
+  }, [tecleo, ejemplos, parado]);
+
   return (
     <div style={S.entrada}>
-      <input className="mp-panel-input" value={texto} onChange={(e) => setTexto(e.target.value)}
+      <input
+        className="mp-panel-input"
+        value={texto}
+        onChange={(e) => { setTexto(e.target.value); onEscribir?.(); }}
         onKeyDown={(e) => { if (e.key === "Enter") onEnviar(); }}
-        placeholder="o escríbeme" style={S.input} />
+        placeholder={parado ? "escríbeme" : `${textoDeTecleo(tecleo, ejemplos)}|`}
+        style={S.input}
+      />
       <button type="button" onClick={onEnviar} disabled={!texto.trim()}
         style={{ ...S.enviar, ...(texto.trim() ? null : S.enviarOff) }} aria-label="Enviar">
         <ArrowUp size={15} color="#fff" />
@@ -298,6 +342,12 @@ const ANIM = `
 @keyframes panelPulso { 0%,100% { opacity:.25; transform:scale(.8) } 50% { opacity:1; transform:scale(1) } }
 @keyframes panelHalo { 0%,100% { opacity:.5; transform:scale(1) } 50% { opacity:0; transform:scale(1.5) } }
 @keyframes panelHecho { 0% { transform:scale(.4); opacity:0 } 60% { transform:scale(1.12) } 100% { transform:scale(1); opacity:1 } }
+/* El fondo de la tarjeta: una cinta de colores claros que se desplaza de
+   izquierda a derecha y va rotando el tono. Es lo unico que se mueve mientras
+   la tarjeta espera a que escribas, y dice "esto esta vivo" sin un spinner.
+   La cinta mide el triple de ancho que la tarjeta y se corre dos tercios, asi
+   que el bucle no tiene costura visible. */
+@keyframes panelCinta { 0% { background-position: 0% 50% } 100% { background-position: 200% 50% } }
 @media (prefers-reduced-motion: reduce) { [style*="panelCard"], [style*="panelPop"] { animation: none !important } }
 `;
 
@@ -317,12 +367,17 @@ const S = {
   },
   capa: { position: "fixed", inset: 0, zIndex: 300 },
   tarjeta: {
-    position: "fixed", background: "#f2f7f4", borderRadius: 24, padding: "18px 16px 16px",
+    position: "fixed", borderRadius: 24, padding: "18px 16px 16px",
     boxShadow: "0 20px 56px rgba(20,47,29,.4)",
-    animation: "panelPop .36s cubic-bezier(.34,1.56,.5,1) both",
+    // Colores CLAROS y muy poco saturados: debajo va texto de 16px, y un
+    // gradiente con fuerza se lo come. El verde de marca abre y cierra la
+    // cinta para que, se pare donde se pare, la tarjeta siga siendo de la app.
+    background: "linear-gradient(100deg, #eaf4ee, #f3f0e4, #e8f1f6, #f2ecf5, #eaf4ee)",
+    backgroundSize: "300% 100%",
+    animation: "panelPop .36s cubic-bezier(.34,1.56,.5,1) both, panelCinta 14s linear infinite",
   },
   flecha: {
-    position: "absolute", bottom: -9, width: 18, height: 18, background: "#f2f7f4",
+    position: "absolute", bottom: -9, width: 18, height: 18, background: "#eef3ef",
     transform: "rotate(45deg)", borderRadius: 3,
   },
   cerrar: {

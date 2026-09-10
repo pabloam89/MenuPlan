@@ -130,7 +130,11 @@ function proteinGroupsOf(recipe) {
 
 // Balanced weekly quotas used when the user hasn't set a meal style — includes
 // carbs, meat and eggs so the default menu isn't skewed all-healthy.
-const DEFAULT_FREQS = { carne: 3, pescado: 2, legumbres: 2, pasta_arroz: 2, huevos: 2, verdura: 3 };
+//
+// Exportado (y solo eso: los valores no cambian) porque lib/reparto.js lo usa
+// como punto de partida del eje de reparto, y tenerlo duplicado allí dejaba
+// dos defaults que se desincronizan en cuanto alguien afine uno de los dos.
+export const DEFAULT_FREQS = { carne: 3, pescado: 2, legumbres: 2, pasta_arroz: 2, huevos: 2, verdura: 3 };
 
 const DAY_SLUG = {
   Lun: "lun", Mar: "mar", Mié: "mie", Jue: "jue",

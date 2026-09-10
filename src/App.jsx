@@ -51,6 +51,11 @@ import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, ac
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
+// Wizard generativo (experimento local, rama wizard/generativo). Todo lo suyo
+// vive detrás de este hook: la fila de mandos sobre el menú, la burbuja del
+// bot y el modal que sale al dar a "Generar menú". Quitarlo es borrar sus
+// cuatro usos de aquí.
+import { useWizardMenu } from "./components/wizard/useWizardMenu.jsx";
 import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
@@ -59,6 +64,7 @@ import { getDayMeals, getMeals, DAYS } from "./lib/planner.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,
+  mismosGrupos,
   memberIsBaby,
   canSplitMenus,
   hasChildMember,
@@ -1768,13 +1774,26 @@ export default function App() {
   // re-runs the split once `groups` exists: `ensureGroupsIfMissing` only fires
   // on an empty list and the tier reconcile only runs when you re-pick the menu
   // model, so newcomers used to sit in `members` belonging to no group at all.
-  // Reconcile returns the same reference when nobody moved, which is what keeps
-  // this from looping.
+  //
+  // Y un BEBÉ además tiene que caer en el suyo. `reconcileGroupsWithMembers`
+  // coloca al recién llegado en un grupo que ya existe, así que un bebé añadido
+  // después del alta se quedaba dentro de "Familia": sin menú de bebé, sin
+  // avatares en la franja y —lo grave— comiendo del menú de los adultos. Si el
+  // bebé estaba desde el principio sí se separaba, porque ahí sí pasa por
+  // `migrateGroupsForBabies`. Era el mismo hogar con dos resultados distintos
+  // según el orden en que hubieras dado de alta a la gente.
+  //
+  // Quien no quiera la separación tiene la salida de siempre: marcar "ya come
+  // como un niño" (`notBaby`), que es lo que mira `memberIsBaby`.
   useEffect(() => {
     setData((d) => {
       if (d.groups.length === 0 || d.members.length === 0) return d;
-      const groups = reconcileGroupsWithMembers(d.members, d.groups);
-      return groups === d.groups ? d : { ...d, groups };
+      const conciliados = reconcileGroupsWithMembers(d.members, d.groups);
+      const siguientes = migrateGroupsForBabies(d.members, conciliados, d.menuModel);
+      // `migrateGroupsForBabies` SIEMPRE construye objetos nuevos, así que
+      // comparar referencias aquí dejaría el efecto girando para siempre: hay
+      // que mirar si de verdad se ha movido alguien.
+      return mismosGrupos(siguientes, d.groups) ? d : { ...d, groups: siguientes };
     });
   }, [data.members, data.groups]);
 
@@ -2168,6 +2187,21 @@ export default function App() {
   }, [data, showToast]);
 
   const handleRegenerate = useCallback(() => regenerateMenu(), [regenerateMenu]);
+
+  // Wizard generativo: el modal de entrada, la fila de mandos y la burbuja del
+  // bot. `onRegenerar` recibe el `data` ya actualizado porque `setData` no ha
+  // llegado todavía al render cuando esto se dispara — regenerar con el `data`
+  // viejo pintaría el menú de antes del ajuste.
+  const wizard = useWizardMenu({
+    data,
+    setData,
+    menuPlan,
+    onRegenerar: (nextData) => {
+      setScreen("menu");
+      regenerateMenu(nextData);
+    },
+    habilitado: !householdReadOnly,
+  });
 
   // ── Ad-hoc individual menus ──────────────────────────────────────────────
   // Auto-offer a separate 3-day menu when a member gets a heavy, hard-to-share
@@ -2855,11 +2889,25 @@ export default function App() {
     if (target === "shopping") trackEvent(user, "shopping_opened", "shopping");
   }, [screen, user]);
 
+  // ¿Te SALISTE del asistente a medias? Esa es la única condición que hace
+  // honesto el diálogo de "Continuar donde lo dejé". Antes bastaba con tener
+  // un menú generado, y entonces salía SIEMPRE: a quien terminó el asistente
+  // el mes pasado se le preguntaba si quería continuar algo que no había
+  // dejado a medias, y la respuesta correcta era siempre "empezar de cero".
+  // Una pregunta cuya respuesta es siempre la misma no es una pregunta, es un
+  // paso de más entre el botón y el asistente.
+  //
+  // Se pone al abandonar y se quita al volver a entrar. Vive en memoria a
+  // propósito: "lo dejé a medias" es algo que acabas de hacer, no un estado
+  // del hogar que deba sobrevivir a cerrar la app.
+  const [asistenteAMedias, setAsistenteAMedias] = useState(false);
+
   // Internal: navigate directly, no gate. Used after the resume dialog resolves.
   const _doGoToOnboardingStep = useCallback((step) => {
     dirRef.current = "forward";
     setFirstRunOnboarding(false);
     setQuickMenu(false);
+    setAsistenteAMedias(false);
     setOnbStep(step);
     setScreen("onboarding");
   }, []);
@@ -2867,6 +2915,7 @@ export default function App() {
   // Dialog state: when the user re-enters the wizard with data already saved,
   // ask whether to continue or start fresh instead of silently overwriting.
   const [onbResumeOpen, setOnbResumeOpen] = useState(false);
+
 
   const goToOnboardingStep = useCallback((step) => {
     _doGoToOnboardingStep(step);
@@ -3015,6 +3064,7 @@ export default function App() {
     forceModeStepRef.current = true;
     setQuickMenu(true);
     setFirstRunOnboarding(false);
+    setAsistenteAMedias(false);
     dirRef.current = "forward";
     setOnbStep(0); // quick: picker de ajustes (0), salta familia (1)
     setScreen("onboarding");
@@ -3025,18 +3075,24 @@ export default function App() {
       showToast("Solo lectura: no puedes generar menú aquí");
       return;
     }
-    // El modal "Continuar donde lo dejé / Empezar de cero" solo tiene sentido
-    // si ya existe un menú generado de verdad — tener familia configurada
-    // (p. ej. tras el first-run onboarding) no basta: para alguien que nunca
-    // ha generado nada, "continuar" no aplica y hay que entrar directo al
-    // journey de onboarding.
-    if ((data.members ?? []).length > 0 && planHasDishes(menuPlan)) {
+    // El punto de entrada es el ASISTENTE de pantallas. Hubo una versión que
+    // abría aquí un modal de voz o texto: la idea era entrar hablando, pero el
+    // asistente es donde están las preguntas que el motor necesita de verdad, y
+    // el resultado era que el modal pedía una frase y luego había que ir a los
+    // mandos igual. Se quitó entero (ver lib/wizardServices.js). Lo que se
+    // queda del wizard generativo es lo de después: la fila de mandos sobre el
+    // menú y la burbuja del bot, que es donde aporta.
+    //
+    // El diálogo "Continuar donde lo dejé / Empezar de cero" sale SOLO si te
+    // saliste del asistente a medias. En cualquier otro caso el botón hace lo
+    // que dice y entra directo.
+    if (asistenteAMedias && (data.members ?? []).length > 0) {
       setOnbResumeOpen(true);
     } else {
       setQuickMenu(false);
       _doGoToOnboardingStep(0);
     }
-  }, [data.members, menuPlan, _doGoToOnboardingStep, householdReadOnly, showToast]);
+  }, [asistenteAMedias, data.members, _doGoToOnboardingStep, householdReadOnly, showToast]);
 
   // "Continuar donde lo dejé": if they already generated a menu, land on the
   // last wizard step (CookTime, step 10) in quick mode so the user can review
@@ -4104,6 +4160,9 @@ export default function App() {
     setResetConfirm(null);
     setQuickMenu(false);
     setFirstRunOnboarding(false);
+    // Lo dejaste a medias: la próxima vez que le des a "Generar menú" tiene
+    // sentido ofrecerte seguir. Solo entonces.
+    setAsistenteAMedias(true);
     back(() => setScreen("dashboard"));
   }, []);
 
@@ -4606,6 +4665,8 @@ export default function App() {
               }}
               onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
               shoppingItems={shopping.items}
+              wizardControls={wizard.controls}
+              wizardBubble={wizard.bubble}
             />
           </div>
         )}
@@ -5071,6 +5132,7 @@ export default function App() {
           </div>
         )}
       </div>
+
 
       {isGeneratingMenu && <GeneratingScreen onStop={stopGeneration} />}
 

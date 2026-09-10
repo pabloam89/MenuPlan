@@ -200,6 +200,7 @@ export function proyectar(notepad) {
   const freqs = {};
   const freqsByGroup = {};
   const sesgos = {};
+  const reparto = {};
   const excluidos = [];
   const favoritos = [];
 
@@ -214,6 +215,14 @@ export function proyectar(notepad) {
       } else {
         freqs[valorId] = campo.valor;
       }
+    } else if (campoId === "reparto") {
+      // Sale APARTE de `freqs` y no se mezcla aquí a propósito. Son dos cosas
+      // distintas —un porcentaje de suma fija y un máximo semanal— y decidir
+      // cuál gana es una política de producto, no de proyección: la resuelve
+      // `freqsEfectivos()` en lib/reparto.js, donde se puede leer y cambiar.
+      // Mezclarlas aquí habría movido en silencio los freqs de quien ya tenía
+      // el wizard viejo contestado.
+      reparto[valorId] = campo.valor;
     } else if (campoId === "excluidos") {
       if (campo.valor) excluidos.push(valorId);
     } else if (campoId === "favoritos") {
@@ -225,7 +234,7 @@ export function proyectar(notepad) {
     }
   }
 
-  return { freqs, freqsByGroup, sesgos, excluidos, favoritos };
+  return { freqs, freqsByGroup, sesgos, reparto, excluidos, favoritos };
 }
 
 /**

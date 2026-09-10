@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { reconcileTierGroups, reconcileGroupsWithMembers } from "./groups.js";
+import { reconcileTierGroups, reconcileGroupsWithMembers, migrateGroupsForBabies, mismosGrupos } from "./groups.js";
 
 const adult = (id, name) => ({ id, name, age: 38, homeRole: "Adulto" });
 const kid = (id, name) => ({ id, name, age: 8, homeRole: "Hijo/a" });
@@ -110,5 +110,53 @@ describe("reconcileGroupsWithMembers", () => {
 
   it("leaves an empty group list alone", () => {
     expect(reconcileGroupsWithMembers([adult("a1")], [])).toEqual([]);
+  });
+});
+
+describe("un bebé que llega después del alta", () => {
+  // El fallo real: `reconcileGroupsWithMembers` mete al recién llegado en un
+  // grupo que ya existe, así que un bebé añadido más tarde se quedaba dentro de
+  // "Familia" —comiendo del menú de los adultos— mientras que el mismo hogar,
+  // dado de alta de golpe, sí se separaba. El efecto de App.jsx encadena ahora
+  // las dos funciones; esto fija esa pareja.
+  const bebe = { id: "b", name: "Bebé", age: 1 };
+  const papa = { id: "p", name: "Papá", age: 38 };
+  const mama = { id: "m", name: "Mamá", age: 37 };
+
+  it("sale del menú de la familia y estrena el suyo", () => {
+    const antes = [{ id: "g1", label: "Familia", memberIds: ["p", "m"], color: "#2d5a3d" }];
+    const miembros = [papa, mama, bebe];
+    const despues = migrateGroupsForBabies(
+      miembros,
+      reconcileGroupsWithMembers(miembros, antes),
+      "same",
+    );
+    expect(despues.map((g) => g.label)).toEqual(["Familia", "Bebé"]);
+    expect(despues.find((g) => g.label === "Familia").memberIds).toEqual(["p", "m"]);
+    expect(despues.find((g) => g.label === "Bebé").memberIds).toEqual(["b"]);
+  });
+
+  it("y el encadenado converge: repetirlo no mueve a nadie más", () => {
+    const miembros = [papa, mama, bebe];
+    const uno = migrateGroupsForBabies(
+      miembros,
+      reconcileGroupsWithMembers(miembros, [{ id: "g1", label: "Familia", memberIds: ["p", "m"], color: "#2d5a3d" }]),
+      "same",
+    );
+    const dos = migrateGroupsForBabies(miembros, reconcileGroupsWithMembers(miembros, uno), "same");
+    // Sin esto el efecto de App.jsx giraría para siempre: cada vuelta escribe
+    // objetos nuevos y la comparación estructural es lo único que lo para.
+    expect(mismosGrupos(uno, dos)).toBe(true);
+  });
+
+  it("marcado como «ya come como un niño», se queda con la familia", () => {
+    const miembros = [papa, mama, { ...bebe, notBaby: true }];
+    const despues = migrateGroupsForBabies(
+      miembros,
+      reconcileGroupsWithMembers(miembros, [{ id: "g1", label: "Familia", memberIds: ["p", "m"], color: "#2d5a3d" }]),
+      "same",
+    );
+    expect(despues.map((g) => g.label)).toEqual(["Familia"]);
+    expect(despues[0].memberIds).toContain("b");
   });
 });

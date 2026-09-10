@@ -9,8 +9,10 @@ import {
   Users,
   Menu as MenuIcon,
   UtensilsCrossed,
+  MessageCircle,
   MoreVertical,
   RotateCw,
+  SlidersHorizontal,
   ShoppingCart,
   ArrowRight,
   Share2,
@@ -133,12 +135,39 @@ export const RECIPES_COACH_STEPS = [
 ];
 
 // Tu menú screen: views, who-it's-for filter, a dish, + nav (shopping…).
+// Wizard generativo: el paseo de UNA vez tras la primera generación. Tres
+// pasos y ni uno más — lo que enseña no es la pantalla entera, sino que los
+// controles y la voz son la misma cosa. Por eso el segundo paso lo dice
+// explícitamente en vez de dejarlo adivinar.
+// Sin exportar, al revés que los demás: nadie de fuera los necesita
+// (coachAnchors.test.js lee este fichero como TEXTO), y cada export que no es
+// un componente añade un error de react-refresh a un fichero que ya arrastra
+// siete.
+const WIZARD_COACH_STEPS = [
+  {
+    selector: '[data-coach="wizard-controles"]',
+    Icon: SlidersHorizontal,
+    title: "Muévelo tú",
+    desc: "Cuánto de cada cosa, cuánto tiempo tienes, con qué lo haces.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="wizard-bot"]',
+    // Bocadillo y no micro: la burbuja es de escribir. El micro vivía en el
+    // modal de entrada, que ya no existe.
+    Icon: MessageCircle,
+    title: "O pídemelo",
+    desc: "Escríbelo con tus palabras y verás moverse esos mismos controles.",
+    place: "above",
+  },
+];
+
 export const MENU_COACH_STEPS = [
   {
     selector: '[data-coach="menu-viewmode"]',
     Icon: CalendarDays,
     title: "Cómo ves el menú",
-    desc: "Cuatro vistas: el día de hoy, la semana entera, el mes sobre el calendario o un resumen de todo.",
+    desc: "Tres vistas: el día de hoy, la semana entera o el mes sobre el calendario.",
     place: "below",
   },
   {
@@ -634,6 +663,14 @@ export function RecipesCoachTour({ onClose }) {
 
 export function MenuCoachTour({ onClose }) {
   return <ResolvingCoachTour steps={MENU_COACH_STEPS} grace={SCREEN_LOAD_GRACE} onClose={onClose} />;
+}
+
+export function WizardCoachTour({ onClose }) {
+  // Sin gracia de carga: se abre cuando la primera generación ya ha terminado,
+  // así que los tres destinos existen seguro. Y si alguno no —el panel no está
+  // montado, por ejemplo— ResolvingCoachTour lo descarta solo en vez de
+  // oscurecer la pantalla sin nada encendido.
+  return <ResolvingCoachTour steps={WIZARD_COACH_STEPS} grace={0} onClose={onClose} />;
 }
 
 export function ShoppingCoachTour({ onClose }) {

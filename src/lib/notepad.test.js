@@ -214,12 +214,13 @@ describe("el registro de campos", () => {
 // sitio y el planner lee de otro, en silencio.
 describe("la tabla y proyectar no se contradicen", () => {
   it("cada campo cae donde su fila dice", () => {
-    const valores = { freqs: 2, base: 1, cocina: 1, tecnica: 1, salsa: 1, esfuerzo: 1, excluidos: true, favoritos: true };
+    const valores = { freqs: 2, reparto: 20, base: 1, cocina: 1, tecnica: 1, salsa: 1, esfuerzo: 1, excluidos: true, favoritos: true };
     for (const c of CAMPOS) {
       const valor = c.dominio ? c.dominio[0] : "cilantro";
       const n = poner(libretaVacia(), rutaDe(c.id, valor), valores[c.id], { origen: "texto" });
       const v = proyectar(n);
       if (c.proyecta === "freqs") expect(v.freqs[valor]).toBeDefined();
+      else if (c.proyecta === "reparto") expect(v.reparto[valor]).toBeDefined();
       else if (c.proyecta === "excluidos") expect(v.excluidos).toContain(valor);
       else if (c.proyecta === "favoritos") expect(v.favoritos).toContain(valor);
       else expect(v.sesgos[c.id]?.[valor]).toBeDefined();

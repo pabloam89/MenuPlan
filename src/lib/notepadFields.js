@@ -29,6 +29,7 @@
  * y además es como habla la gente — nadie dice "para Lucía", dice "los niños".
  */
 
+
 /** Los tres verbos. No hay más: el pool cerrado es lo que hace fiable el panel. */
 export const VERBOS = ["mas", "menos", "nunca"];
 
@@ -60,11 +61,37 @@ export const CAMPOS = [
     ejemplo: "menos pescado",
   },
   {
+    id: "reparto",
+    grupo: "familia",
+    etiqueta: "El reparto de la semana",
+    dominio: FAMILIAS,
+    proyecta: "reparto",
+    // Suma fija: mover una familia mueve las demás (ver lib/reparto.js). Es el
+    // eje que hacía falta para un slider de proporciones y que `freqs` no
+    // podía ser: `freqs` son MÁXIMOS independientes, y el prompt del planner
+    // lo repite tres veces. Cambiarles el significado habría obligado a
+    // reescribir ese prompt y sus tests.
+    unidad: "% de la semana",
+    rango: [0, 100],
+    // Sin `ejemplo` a propósito: el parser NO puede escribir aquí hoy. `n` de
+    // AjusteSchema está acotado a 0..7 (veces por semana), así que un
+    // porcentaje no cabe en el contrato del panel. Se toca con el slider; el
+    // panel sigue hablando en veces por semana, que es como habla la gente.
+    ejemplo: null,
+    panel: false,
+  },
+  {
     id: "base",
     grupo: "base",
     etiqueta: "Pasta, arroz o patata",
     // Consume `mainBase` del catálogo (46 %). Es el único eje que separa la
     // pasta del arroz, que `freqs.pasta_arroz` mete en el mismo saco.
+    // Lista a mano, y es deuda conocida: ya ha derivado del catálogo —le falta
+    // `boniato`, y los platos escritos con `patata` en vez de `patatas` caen
+    // fuera del sesgo sin que nadie se entere. El arreglo es importar el enum
+    // `MAIN_BASES` de data/recipeSchema.js, que está en camino con la migración
+    // de `mainBase` a enum; hasta que ese enum exista, copiarlo aquí sería
+    // fabricar la tercera versión de la misma lista.
     dominio: ["pasta", "arroz", "patatas", "legumbre", "quinoa", "cuscus", "pan", "avena"],
     proyecta: "sesgos",
     unidad: "sesgo",
