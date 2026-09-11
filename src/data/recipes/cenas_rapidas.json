@@ -7,7 +7,6 @@
     "extraProteins": [
       "cerdo"
     ],
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -122,7 +121,6 @@
     "extraProteins": [
       "cerdo"
     ],
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -240,6 +238,7 @@
     "category": "cenas_rapidas",
     "mainProtein": "none",
     "mainBase": "quinoa",
+    "baseMode": "aparte",
     "mealRole": [
       "cena"
     ],
@@ -425,7 +424,6 @@
     "name": "Pan tumaca con embutido",
     "category": "cenas_rapidas",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -542,7 +540,6 @@
     "name": "Tostada de aguacate y tomate",
     "category": "cenas_rapidas",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -791,7 +788,8 @@
       "lacteo"
     ],
     "tecnica": "crudo",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro"
   },
   {
     "id": "cenas_rapidas_007",
@@ -915,7 +913,6 @@
     "name": "Bruschetta de tomate",
     "category": "cenas_rapidas",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -1241,15 +1238,13 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "crudo",
-    "mainBase": "pan"
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_012",
     "name": "Gazpacho con picatostes",
     "category": "cenas_rapidas",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -1394,7 +1389,6 @@
     "name": "Tostas de aguacate y huevo poché",
     "category": "cenas_rapidas",
     "mainProtein": "huevo",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -1552,7 +1546,6 @@
     "name": "Tortilla wrap de atún",
     "category": "cenas_rapidas",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],

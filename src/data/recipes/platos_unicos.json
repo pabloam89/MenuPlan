@@ -5,6 +5,7 @@
     "category": "platos_unicos",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -186,7 +187,6 @@
     "name": "Pizza casera",
     "category": "platos_unicos",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -578,7 +578,6 @@
     "name": "Empanada gallega de atún",
     "category": "platos_unicos",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -841,7 +840,6 @@
     "name": "Empanadillas de atún",
     "category": "platos_unicos",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -1403,6 +1401,7 @@
     "category": "platos_unicos",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -1582,7 +1581,6 @@
     "name": "Wrap de pollo",
     "category": "platos_unicos",
     "mainProtein": "pollo",
-    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -1951,7 +1949,6 @@
     "name": "Migas manchegas",
     "category": "platos_unicos",
     "mainProtein": "cerdo",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico"
     ],
@@ -2106,6 +2103,7 @@
     "category": "platos_unicos",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -2643,8 +2641,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo",
-    "mainBase": "pan"
+    "tecnica": "crudo"
   },
   {
     "id": "platos_unicos_015",
@@ -2652,6 +2649,7 @@
     "category": "platos_unicos",
     "mainProtein": "huevo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -2799,7 +2797,6 @@
     "name": "Bocadillo de tortilla",
     "category": "platos_unicos",
     "mainProtein": "huevo",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -2967,7 +2964,6 @@
     "name": "Burritos caseros de pollo",
     "category": "platos_unicos",
     "mainProtein": "pollo",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -3151,6 +3147,7 @@
     "category": "platos_unicos",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -3332,7 +3329,6 @@
     "extraProteins": [
       "cerdo"
     ],
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -3649,6 +3645,7 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro"
   }
 ]

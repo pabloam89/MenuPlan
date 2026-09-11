@@ -173,6 +173,7 @@
     "category": "sopas_cremas",
     "mainProtein": "none",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "primero"
     ],
@@ -773,8 +774,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo",
-    "mainBase": "pan"
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_006",
@@ -1164,8 +1164,7 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla",
-    "mainBase": "pan"
+    "tecnica": "olla"
   },
   {
     "id": "sopas_cremas_008",
@@ -1312,7 +1311,9 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro",
+    "cocina": "francesa"
   },
   {
     "id": "sopas_cremas_009",
@@ -1655,7 +1656,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "sopas_cremas_011",
@@ -2056,6 +2058,7 @@
     "category": "sopas_cremas",
     "mainProtein": "none",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "primero"
     ],
@@ -3338,7 +3341,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "sopas_cremas_021",
@@ -4387,8 +4391,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo",
-    "mainBase": "pan"
+    "tecnica": "crudo"
   },
   {
     "id": "sopas_cremas_027",
@@ -4571,7 +4574,8 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro"
   },
   {
     "id": "sopas_cremas_028",
@@ -5084,7 +5088,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "sopas_cremas_031",
@@ -6548,7 +6553,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro"
   },
   {
     "id": "sopas_cremas_040",
@@ -7123,6 +7129,7 @@
     "type": "completo",
     "requiredAppliance": "batidora",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 30,
     "difficulty": "facil",
     "season": "all",
@@ -7322,6 +7329,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 45,
     "difficulty": "normal",
     "season": "all",
@@ -8431,7 +8439,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "sopas_cremas_050",
@@ -9233,6 +9242,7 @@
     "type": "completo",
     "requiredAppliance": "batidora",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 45,
     "difficulty": "normal",
     "season": "verano",
@@ -9412,7 +9422,8 @@
       "fruta"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "cocina": "francesa"
   },
   {
     "id": "sopas_cremas_055",
@@ -10509,7 +10520,6 @@
     "freezable": false,
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "pan",
     "extraProteins": [
       "pollo"
     ]
@@ -10765,8 +10775,7 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha",
-    "mainBase": "pan"
+    "tecnica": "plancha"
   },
   {
     "id": "sopas_cremas_062",
@@ -11117,7 +11126,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "cocina": "francesa"
   },
   {
     "id": "sopas_cremas_064",
@@ -11288,7 +11298,8 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro"
   },
   {
     "id": "sopas_cremas_065",
@@ -11651,7 +11662,6 @@
       "cena"
     ],
     "type": "completo",
-    "mainBase": "pan",
     "time": 30,
     "difficulty": "facil",
     "kcal": 260,
@@ -12348,7 +12358,6 @@
     ],
     "type": "completo",
     "requiredAppliance": "horno",
-    "mainBase": "pan",
     "time": 50,
     "difficulty": "normal",
     "kcal": 340,
@@ -12531,7 +12540,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "cocina": "francesa"
   },
   {
     "id": "sopas_cremas_072",
@@ -13584,7 +13594,9 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro",
+    "cocina": "francesa"
   },
   {
     "id": "sopas_cremas_078",
@@ -14306,7 +14318,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "cocina": "francesa"
   },
   {
     "id": "sopas_cremas_082",
@@ -15037,7 +15050,6 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "cocina": "mexicana",
-    "mainBase": "pan",
     "extraProteins": [
       "pollo"
     ],
@@ -15404,5 +15416,108 @@
         "kind": "emplatado"
       }
     ]
+  },
+  {
+    "id": "sopas_cremas_090",
+    "name": "Chupe de camarones",
+    "category": "sopas_cremas",
+    "cocina": "peruana",
+    "mainProtein": "marisco",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "principal",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 430,
+    "protein_g": 28,
+    "carbs_g": 32,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "marisco",
+      "lactosa",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Gambas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Ají amarillo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Queso fresco",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar las gambas y reservar las cabezas y cáscaras.",
+      "Saltear las cabezas en aceite de oliva, cubrir con agua y cocer 15 min para hacer un fumet; colar.",
+      "Pochar la cebolla y el ajo picados en la cazuela 8 min.",
+      "Añadir el ají amarillo y el tomate rallado, y sofreír 5 min.",
+      "Verter el fumet colado y llevar a hervor.",
+      "Incorporar la patata en dados y el arroz, y cocer 15 min.",
+      "Añadir los guisantes y cocer 5 min más.",
+      "Bajar el fuego, verter la leche y calentar sin que llegue a hervir.",
+      "Añadir las gambas peladas y cocer 2 min, lo justo para que cambien de color.",
+      "Escalfar los huevos en la propia sopa 3 min.",
+      "Servir con el queso fresco en dados por encima."
+    ],
+    "description": "Sopa espesa y potente de gambas con patata, arroz, leche y huevo escalfado. El plato más reconocible de Arequipa.",
+    "estrella": false
   }
 ]

@@ -35,7 +35,14 @@ const CARB_PATTERNS = [
   // these were listed the menu could serve both on the same day undetected.
   // "empanad" (no boundary) catches empanada/empanadilla; "tosta" catches the
   // common short form used throughout the catalog alongside "tostada".
-  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|\btosta\b|bruschetta|rebanada|picatoste|pizza|wrap|burrito|quesadilla|empanad|migas|masa quebrada|hojaldre/, "pan"],
+  //
+  // La masa se detecta por el NOMBRE del plato, no por el ingrediente. Buscar
+  // "hojaldre" o "masa quebrada" en la lista de ingredientes metía aquí al
+  // Solomillo Wellington y a los dos vol-au-vent, donde la masa es el envoltorio
+  // y no el hidrato: que un Wellington chocara con una tosta el mismo día no es
+  // precisión, es un falso positivo. Una quiche o una tarta salada sí son masa
+  // —te comes la porción de masa—, y esas entran por su nombre.
+  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|\btosta\b|bruschetta|rebanada|picatoste|pizza|wrap|burrito|quesadilla|empanad|migas|quiche|\btarta (salada|fina|de puerros|de cebolla)/, "pan"],
   [/avena|porridge/, "avena"],
 ];
 

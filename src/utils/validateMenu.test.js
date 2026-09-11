@@ -1118,20 +1118,32 @@ describe("getCarbType: el mainBase declarado manda sobre el regex", () => {
     expect(getCarbType(trofie)).toBe("pasta");
   });
 
-  it("clasifica pastas y panes que el regex no nombra", () => {
-    // "Fettuccine Alfredo" y "Tacos de pollo" no tenían base NINGUNA: se podían
-    // servir espaguetis de comida y fettuccine de cena sin que saltara nada.
+  it("clasifica pastas que el regex no nombra", () => {
+    // "Fettuccine Alfredo" no tenía base NINGUNA: se podían servir espaguetis de
+    // comida y fettuccine de cena sin que saltara nada.
     const fettuccine = recipe({
       id: "fettuccine", name: "Fettuccine Alfredo", mainBase: "pasta",
       ingredients: [{ name: "Fettuccine" }, { name: "Nata" }],
     });
-    const tacos = recipe({
-      id: "tacos", name: "Tacos de pollo", mainBase: "pan",
-      ingredients: [{ name: "Tortillas de trigo" }, { name: "Pollo" }],
-    });
     expect(carbTypeFromText("Fettuccine Alfredo nata")).toBeNull();
     expect(getCarbType(fettuccine)).toBe("pasta");
-    expect(getCarbType(tacos)).toBe("pan");
+  });
+
+  it("el pan NO es una base: un taco se clasifica por el regex, no por mainBase", () => {
+    // `pan` salió de MAIN_BASES el 11 sep — ni uno de sus 83 platos se cocinaba
+    // "aparte", así que no era una olla, era una percepción. Sigue existiendo
+    // como carbType (lo pone CARB_PATTERNS), pero ya no como base declarable.
+    const tacos = recipe({
+      id: "tacos", name: "Tacos de pollo",
+      ingredients: [{ name: "Tortillas de trigo" }, { name: "Pollo" }],
+    });
+    expect(getCarbType(tacos)).toBeNull();
+    // Y lo que el regex sí nombra sigue contando como pan, sin declarar nada.
+    const bocadillo = recipe({
+      id: "boca", name: "Bocadillo de calamares",
+      ingredients: [{ name: "Pan" }, { name: "Calamares" }],
+    });
+    expect(getCarbType(bocadillo)).toBe("pan");
   });
 
   it("boniato cuenta como patatas aunque sea una base (olla) distinta", () => {
@@ -1222,23 +1234,23 @@ describe("getCarbType: el mainBase declarado manda sobre el regex", () => {
   // Sin este test, la tabla podía dejar de aplicarse a la regla 14 sin que
   // fallara nada: los dos platos dan carbType `null` por el regex, así que un
   // `getCarbType` que ignorase `mainBase` los daría por buenos en silencio.
-  it("dos cenas consecutivas de base pan chocan, aunque el regex no las nombre", () => {
+  it("dos cenas consecutivas de base pasta chocan, aunque el regex no las nombre", () => {
     const pool = [
       recipe({
-        id: "fajitas", name: "Fajitas de pollo",
-        category: "carnes", mainProtein: "pollo", mealRole: ["cena"],
-        mainBase: "pan", ingredients: [{ name: "Tortilla de trigo" }],
+        id: "fettuccine", name: "Fettuccine Alfredo",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Fettuccine" }],
       }),
       recipe({
-        id: "tacos", name: "Tacos de ternera",
-        category: "carnes", mainProtein: "ternera", mealRole: ["cena"],
-        mainBase: "pan", ingredients: [{ name: "Tortilla de maíz" }],
+        id: "orzo", name: "Orzo con verduras",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Orzo" }],
       }),
     ];
     const slots = [slot("lun_cena"), slot("mar_cena")];
     const assignments = [
-      { slotId: "lun_cena", recipeId: "fajitas" },
-      { slotId: "mar_cena", recipeId: "tacos" },
+      { slotId: "lun_cena", recipeId: "fettuccine" },
+      { slotId: "mar_cena", recipeId: "orzo" },
     ];
     const { violations } = validateMenu(assignments, pool, slots);
     expect(violations.map((v) => v.rule)).toContain("guarnicion_cena_consecutiva");
@@ -1250,20 +1262,20 @@ describe("getCarbType: el mainBase declarado manda sobre el regex", () => {
   it("las mismas dos cenas con un día de por medio no chocan", () => {
     const pool = [
       recipe({
-        id: "fajitas", name: "Fajitas de pollo",
-        category: "carnes", mainProtein: "pollo", mealRole: ["cena"],
-        mainBase: "pan", ingredients: [{ name: "Tortilla de trigo" }],
+        id: "fettuccine", name: "Fettuccine Alfredo",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Fettuccine" }],
       }),
       recipe({
-        id: "tacos", name: "Tacos de ternera",
-        category: "carnes", mainProtein: "ternera", mealRole: ["cena"],
-        mainBase: "pan", ingredients: [{ name: "Tortilla de maíz" }],
+        id: "orzo", name: "Orzo con verduras",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Orzo" }],
       }),
     ];
     const slots = [slot("lun_cena"), slot("mie_cena")];
     const assignments = [
-      { slotId: "lun_cena", recipeId: "fajitas" },
-      { slotId: "mie_cena", recipeId: "tacos" },
+      { slotId: "lun_cena", recipeId: "fettuccine" },
+      { slotId: "mie_cena", recipeId: "orzo" },
     ];
     const { violations } = validateMenu(assignments, pool, slots);
     expect(violations.map((v) => v.rule)).not.toContain("guarnicion_cena_consecutiva");

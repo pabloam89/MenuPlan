@@ -518,8 +518,6 @@
     "name": "Filetes de lomo empanados",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "segundo"
     ],
@@ -1518,8 +1516,6 @@
       "verdura"
     ],
     "tecnica": "plancha",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "cocina": "americana"
   },
   {
@@ -6793,9 +6789,7 @@
       "seta"
     ],
     "occasion": "especial",
-    "tecnica": "horno",
-    "mainBase": "pan",
-    "baseMode": "dentro"
+    "tecnica": "horno"
   },
   {
     "id": "carnes_039",
@@ -8637,8 +8631,6 @@
       "encurtido"
     ],
     "tecnica": "crudo",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "extraProteins": [
       "huevo"
     ],
@@ -12108,8 +12100,6 @@
     "name": "Hamburguesa gourmet con cheddar curado y bacon",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "cena"
@@ -22159,8 +22149,6 @@
     "name": "Hamburguesa de solomillo con patatas fritas y salsa de queso azul",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -23232,8 +23220,6 @@
     "name": "Smash burger con queso cheddar doble",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -24143,8 +24129,6 @@
     "name": "Wrap de pollo crujiente, aguacate y salsa césar",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico",
@@ -24364,8 +24348,6 @@
     "name": "Quesadillas de queso y jamón con guacamole",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico",
@@ -24795,8 +24777,6 @@
     "name": "Sándwich club de pollo, bacon y huevo",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -25386,17 +25366,13 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana",
-    "mainBase": "pan",
-    "baseMode": "dentro"
+    "cocina": "mexicana"
   },
   {
     "id": "carnes_125",
     "name": "Tosta de sobrasada y miel con queso",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -25510,8 +25486,6 @@
     "name": "Sándwich de pastrami y mostaza",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -25792,8 +25766,6 @@
     "name": "Tosta de paté, higos y rúcula",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -25918,8 +25890,6 @@
     "name": "Croque monsieur rápido",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -27342,8 +27312,6 @@
       "seta"
     ],
     "tecnica": "horno",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "llevaSalsa": true
   },
   {
@@ -28571,8 +28539,6 @@
     "name": "Calzone de jamón y queso",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -31288,8 +31254,6 @@
     ],
     "tecnica": "sarten",
     "cocina": "mexicana",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "stepsRich": [
       {
         "text": "Cortar {{Filetes finos de ternera}} en tiras finas.",

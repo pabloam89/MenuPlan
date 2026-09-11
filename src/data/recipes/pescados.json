@@ -179,6 +179,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -2849,6 +2850,7 @@
     "category": "pescados",
     "mainProtein": "marisco",
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -3631,7 +3633,6 @@
     "name": "Tosta de aguacate, huevo poché y salmón ahumado",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -3845,6 +3846,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -4068,7 +4070,6 @@
     "name": "Tosta de salmón ahumado, queso crema y eneldo",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -4205,6 +4206,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -4398,7 +4400,6 @@
     "name": "Tortilla wrap de atún y maíz",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -4554,7 +4555,6 @@
     "name": "Tosta de tomate rallado, anchoas y aceite",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -6839,6 +6839,7 @@
     "category": "pescados",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "primero"
@@ -8339,6 +8340,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 50,
     "difficulty": "normal",
     "apetecible": true,
@@ -10102,6 +10104,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "time": 35,
     "difficulty": "facil",
     "kcal": 646,
@@ -10325,6 +10328,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "time": 35,
     "difficulty": "facil",
     "kcal": 612,
@@ -14006,6 +14010,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -14742,6 +14747,7 @@
     "category": "pescados",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -15309,6 +15315,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -15719,7 +15726,8 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "olla",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "aparte"
   },
   {
     "id": "pescados_092",
@@ -15730,6 +15738,7 @@
       "pescado_blanco"
     ],
     "mainBase": "pasta",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -16872,8 +16881,7 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana",
-    "mainBase": "pan"
+    "cocina": "mexicana"
   },
   {
     "id": "pescados_098",
@@ -16881,6 +16889,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -17086,6 +17095,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -17509,6 +17519,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -17757,6 +17768,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -18217,6 +18229,7 @@
     "tecnica": "plancha",
     "cocina": "asiatica",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "llevaSalsa": true
   },
   {
@@ -18225,6 +18238,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -18478,6 +18492,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -18700,6 +18715,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -18930,7 +18946,6 @@
     "name": "Coca de recapte con sardinas ahumadas",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -19364,15 +19379,13 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "horno",
-    "mainBase": "pan"
+    "tecnica": "horno"
   },
   {
     "id": "pescados_109",
     "name": "Empanada de vieiras y gambas",
     "category": "pescados",
     "mainProtein": "marisco",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -19658,7 +19671,6 @@
     "name": "Tosta de tartar de atún y aguacate",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -20214,7 +20226,6 @@
     "name": "Empanada gallega de bonito",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -20512,7 +20523,6 @@
     "name": "Empanada de atún y pimientos",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -20979,8 +20989,7 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "horno",
-    "mainBase": "pan"
+    "tecnica": "horno"
   },
   {
     "id": "pescados_116",
@@ -20988,6 +20997,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -21411,7 +21421,6 @@
     "name": "Empanadillas de bonito y pimientos",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -21627,6 +21636,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -22725,6 +22735,7 @@
     "estrella": true,
     "tecnica": "horno",
     "mainBase": "patatas",
+    "baseMode": "aparte",
     "stepsRich": [
       {
         "text": "Precalentar el horno a 200 °C.",

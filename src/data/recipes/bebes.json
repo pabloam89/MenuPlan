@@ -4,7 +4,8 @@
     "name": "Puré de calabacín con pollo y cuscús",
     "category": "bebes",
     "mainProtein": "pollo",
-    "mainBase": "cuscús",
+    "mainBase": "cuscus",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -199,7 +200,8 @@
     "name": "Puré de zanahoria con merluza y patata",
     "category": "bebes",
     "mainProtein": "pescado_blanco",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -354,6 +356,7 @@
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "boniato",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -517,7 +520,8 @@
     "name": "Puré de judías verdes con ternera y patata",
     "category": "bebes",
     "mainProtein": "ternera",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -669,6 +673,7 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -814,6 +819,7 @@
     "category": "bebes",
     "mainProtein": "pescado_blanco",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -979,6 +985,7 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -1138,7 +1145,8 @@
     "name": "Puré de lentejas rojas con zanahoria y calabacín",
     "category": "bebes",
     "mainProtein": "legumbre",
-    "mainBase": "lentejas",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -1295,6 +1303,7 @@
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "boniato",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1464,6 +1473,7 @@
     "category": "bebes",
     "mainProtein": "pescado_azul",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1648,7 +1658,8 @@
     "name": "Puré de garbanzos con calabaza",
     "category": "bebes",
     "mainProtein": "legumbre",
-    "mainBase": "garbanzos",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -1818,6 +1829,7 @@
     "category": "bebes",
     "mainProtein": "huevo",
     "mainBase": "boniato",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1990,7 +2002,6 @@
     "name": "Papilla de avena con ternera y espinacas",
     "category": "bebes",
     "mainProtein": "ternera",
-    "mainBase": "avena",
     "mealRole": [
       "plato_unico"
     ],
@@ -2141,7 +2152,8 @@
     "name": "Crema de calabacín con huevo y sémola",
     "category": "bebes",
     "mainProtein": "huevo",
-    "mainBase": "sémola",
+    "mainBase": "cuscus",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -2296,7 +2308,8 @@
     "name": "Puré de coliflor con pollo y patata",
     "category": "bebes",
     "mainProtein": "pollo",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -2468,7 +2481,8 @@
     "name": "Puré de remolacha con pavo y patata",
     "category": "bebes",
     "mainProtein": "pavo",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -2626,6 +2640,7 @@
     "category": "bebes",
     "mainProtein": "pescado_azul",
     "mainBase": "boniato",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -2796,7 +2811,8 @@
     "name": "Puré de garbanzos con pollo y espinacas",
     "category": "bebes",
     "mainProtein": "pollo",
-    "mainBase": "garbanzos",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -2935,7 +2951,8 @@
     "name": "Puré de lentejas con ternera y zanahoria",
     "category": "bebes",
     "mainProtein": "ternera",
-    "mainBase": "lentejas",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -3337,7 +3354,6 @@
     "mainIngredients": [
       "fruta"
     ],
-    "mainBase": "avena",
     "tecnica": "sarten",
     "ingredients": [
       {
@@ -3435,6 +3451,7 @@
     "fat_g": 5,
     "allergens": [],
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "tecnica": "horno",
     "ingredients": [
       {
@@ -3543,6 +3560,7 @@
     "fat_g": 7,
     "allergens": [],
     "mainBase": "legumbre",
+    "baseMode": "dentro",
     "cocina": "arabe",
     "tecnica": "horno",
     "ingredients": [
@@ -4116,6 +4134,7 @@
       "gluten"
     ],
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "tecnica": "horno",
     "ingredients": [
       {
@@ -4221,6 +4240,7 @@
       "huevo"
     ],
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "tecnica": "horno",
     "ingredients": [
       {
@@ -4323,6 +4343,7 @@
     "fat_g": 5,
     "allergens": [],
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "mainIngredients": [
       "verdura"
     ],
@@ -4783,6 +4804,7 @@
       "gluten"
     ],
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "cocina": "italiana",
     "tecnica": "sarten",
     "ingredients": [
@@ -4887,6 +4909,7 @@
       "sesamo"
     ],
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -5003,6 +5026,7 @@
       "lactosa"
     ],
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "tecnica": "horno",
     "ingredients": [
       {
@@ -5215,7 +5239,6 @@
     "id": "bebes_043",
     "name": "Tortitas de calabaza y canela",
     "mainProtein": "huevo",
-    "mainBase": "avena",
     "time": 20,
     "kcal": 185,
     "protein_g": 8,
@@ -5532,7 +5555,8 @@
       }
     ],
     "methods": [],
-    "estrella": true
+    "estrella": true,
+    "cocina": "francesa"
   },
   {
     "category": "bebes",
@@ -5663,7 +5687,8 @@
     "id": "bebes_047",
     "name": "Tortitas de lenteja roja y zanahoria",
     "mainProtein": "legumbre",
-    "mainBase": "lentejas",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "time": 30,
     "kcal": 195,
     "protein_g": 11,
@@ -5775,7 +5800,8 @@
     "id": "bebes_048",
     "name": "Frittata al horno de calabacín y patata",
     "mainProtein": "huevo",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 40,
     "kcal": 230,
     "protein_g": 14,
@@ -5996,7 +6022,6 @@
     "id": "bebes_050",
     "name": "Muffins de plátano y avena",
     "mainProtein": "huevo",
-    "mainBase": "avena",
     "time": 32,
     "kcal": 225,
     "protein_g": 9,
@@ -6117,7 +6142,8 @@
     "id": "bebes_051",
     "name": "Pastel de merluza y patata en porciones",
     "mainProtein": "pescado_blanco",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 45,
     "kcal": 215,
     "protein_g": 20,
@@ -6343,7 +6369,8 @@
     "id": "bebes_053",
     "name": "Croquetas al horno de merluza y calabacín",
     "mainProtein": "pescado_blanco",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 40,
     "kcal": 200,
     "protein_g": 17,
@@ -6464,6 +6491,7 @@
     "name": "Bolitas de quinoa, garbanzo y espinaca",
     "mainProtein": "legumbre",
     "mainBase": "quinoa",
+    "baseMode": "aparte",
     "time": 35,
     "kcal": 215,
     "protein_g": 12,
@@ -6795,7 +6823,8 @@
     "id": "bebes_057",
     "name": "Tortilla de patata en tiras, sin sal",
     "mainProtein": "huevo",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 35,
     "kcal": 245,
     "protein_g": 13,
@@ -7116,7 +7145,8 @@
     "id": "bebes_060",
     "name": "Cuscús con verduras muy blandas",
     "mainProtein": "none",
-    "mainBase": "cuscús",
+    "mainBase": "cuscus",
+    "baseMode": "aparte",
     "time": 25,
     "kcal": 240,
     "protein_g": 8,
@@ -7235,7 +7265,8 @@
     "id": "bebes_061",
     "name": "Hummus suave con bastones de zanahoria",
     "mainProtein": "legumbre",
-    "mainBase": "garbanzos",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "time": 20,
     "kcal": 250,
     "protein_g": 11,
@@ -7337,6 +7368,7 @@
     "name": "Arroz meloso de calabaza y pollo",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "time": 35,
     "kcal": 285,
     "protein_g": 20,

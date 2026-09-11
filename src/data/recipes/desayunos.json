@@ -4,7 +4,6 @@
     "name": "Bol de yogur con fruta y avena",
     "category": "desayunos",
     "mainProtein": "none",
-    "mainBase": "avena",
     "mealRole": [
       "desayuno"
     ],
@@ -108,7 +107,6 @@
     "name": "Porridge de avena con plátano",
     "category": "desayunos",
     "mainProtein": "none",
-    "mainBase": "avena",
     "mealRole": [
       "desayuno"
     ],
@@ -195,7 +193,6 @@
     "name": "Batido de plátano, avena y canela",
     "category": "desayunos",
     "mainProtein": "none",
-    "mainBase": "avena",
     "mealRole": [
       "desayuno"
     ],
@@ -752,7 +749,6 @@
     "name": "Bowl de avena de un día para otro con manzana y canela",
     "category": "desayunos",
     "mainProtein": "none",
-    "mainBase": "avena",
     "mealRole": [
       "desayuno"
     ],
@@ -861,7 +857,6 @@
     "name": "Porridge de avena con plátano y miel",
     "category": "desayunos",
     "mainProtein": "none",
-    "mainBase": "avena",
     "mealRole": [
       "desayuno"
     ],
@@ -1060,7 +1055,6 @@
     "name": "Tostada francesa con canela y sirope de arce",
     "category": "desayunos",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "desayuno"
     ],
@@ -1178,7 +1172,6 @@
     "name": "Tostada de plátano, mantequilla de cacahuete y miel",
     "category": "desayunos",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "desayuno"
     ],
@@ -1273,7 +1266,6 @@
     "name": "Pan tumaca clásico con jamón",
     "category": "desayunos",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "desayuno"
     ],
@@ -1510,7 +1502,8 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "cocina": "americana"
   },
   {
     "id": "desayunos_022",
@@ -1884,7 +1877,6 @@
     "name": "Tostada de aguacate y huevo frito",
     "category": "desayunos",
     "mainProtein": "huevo",
-    "mainBase": "pan",
     "mealRole": [
       "desayuno"
     ],

@@ -76,13 +76,25 @@ const TYPES = ["completo", "principal", "guarnicion", "salsa", "base"];
  * se escribe siempre igual, no se puede agrupar por él. Ver
  * scripts/normalize-main-base.mjs, que hizo la limpieza.
  *
- * `pan` está aquí porque el catálogo lo usa (53 platos: Wellington,
- * hamburguesas, tostas), pero NO tiene base cocinable: nadie hace una tanda de
- * pan el domingo. Lo garantiza baseMode, no una excepción — ver abajo.
+ * `pan` y `avena` ESTUVIERON aquí y se sacaron (11 sep 2026), porque este campo
+ * responde a una sola pregunta: ¿qué se puede cocinar en una tanda aparte y
+ * repartir entre varios platos? Y el propio catálogo contestaba que no:
+ *
+ *   legumbre 80 · patatas 67 · pasta 52 · arroz 33 · quinoa 6 · cuscus 5 · boniato 4
+ *   pan 0 de 83   ·   avena 0 de 9        ← ni un solo plato marcado "aparte"
+ *
+ * Nadie hace una tanda de pan el domingo, y no hay entrada suya en bases.json.
+ * Tenerlos aquí mezclaba dos ejes: qué OLLA compartes (esto) y qué HIDRATO
+ * percibe el comensal (carbType). Son lo segundo, no lo primero, y como tal
+ * siguen vivos: `CARB_PATTERNS` en utils/validateMenu.js ya llamaba "pan" por su
+ * cuenta a 73 de esos 83 platos, así que la regla 9 apenas se entera.
+ *
+ * Al salir del enum, esas 92 recetas perdieron también su `baseMode` (que exige
+ * mainBase) — era "dentro" en las 92, o sea que no decía nada que no supiéramos.
  */
 const MAIN_BASES = [
   "arroz", "pasta", "patatas", "boniato", "legumbre",
-  "quinoa", "cuscus", "pan", "avena",
+  "quinoa", "cuscus",
 ];
 
 /**
@@ -152,8 +164,6 @@ const CARB_TYPE_BY_BASE = {
   legumbre: null,
   quinoa: "quinoa",
   cuscus: "cuscus",
-  pan: "pan",
-  avena: "avena",
 };
 
 const MEAL_ROLES = [

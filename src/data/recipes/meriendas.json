@@ -95,7 +95,6 @@
     "name": "Tostada de plátano y miel",
     "category": "meriendas",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "merienda"
     ],
@@ -178,7 +177,6 @@
     "extraProteins": [
       "cerdo"
     ],
-    "mainBase": "pan",
     "mealRole": [
       "merienda"
     ],
@@ -272,7 +270,6 @@
     "extraProteins": [
       "pavo"
     ],
-    "mainBase": "pan",
     "mealRole": [
       "merienda"
     ],

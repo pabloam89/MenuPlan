@@ -4084,8 +4084,6 @@
     ],
     "tecnica": "crudo",
     "cocina": "italiana",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "llevaSalsa": true
   },
   {
@@ -4621,9 +4619,7 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo",
-    "mainBase": "pan",
-    "baseMode": "dentro"
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_035",
@@ -4806,9 +4802,7 @@
       "seta"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana",
-    "mainBase": "pan",
-    "baseMode": "dentro"
+    "cocina": "mexicana"
   },
   {
     "id": "ensaladas_verduras_036",
@@ -5111,9 +5105,7 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "crudo",
-    "mainBase": "pan",
-    "baseMode": "dentro"
+    "tecnica": "crudo"
   },
   {
     "id": "ensaladas_verduras_038",
@@ -19291,8 +19283,6 @@
     "name": "Pizza casera con burrata y rúcula",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
