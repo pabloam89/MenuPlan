@@ -11,6 +11,7 @@ import {
   selectReplacementCandidates,
   callModel,
   poolForWeek,
+  createPlannerStats,
 } from "./aiPlanner.js";
 import { getCarbType, validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -1367,6 +1368,43 @@ describe("generateMenuWithAI groupCache", () => {
     const second = await generateMenuWithAI(data, { groupCache });
     expect(offline).not.toHaveBeenCalled();
     expect(second.plan[group.id]["Lun-Cena"]).toEqual(first.plan[group.id]["Lun-Cena"]);
+  });
+
+  it("records calls, tokens and reused groups in the stats object", async () => {
+    const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 1 };
+    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
+    const segundo = pool.find((r) => r.mealRole.includes("segundo") && r.id !== primero?.id);
+    const cena = pool.find((r) => r.mealRole.includes("cena"));
+    const slots = [
+      { slotId: "lun_comida_1", recipeId: primero.id },
+      { slotId: "lun_comida_2", recipeId: segundo.id },
+      { slotId: "lun_cena", recipeId: cena.id },
+    ];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          content: [{ text: JSON.stringify({ slots }) }],
+          usage: { input_tokens: 100, output_tokens: 40, cache_read_input_tokens: 900 },
+        }),
+      }),
+    );
+
+    const stats = createPlannerStats();
+    const groupCache = new Map();
+    await generateMenuWithAI(data, { groupCache, stats });
+    expect(stats.llmCalls).toBeGreaterThanOrEqual(1);
+    expect(stats.plannerCalls).toBe(1);
+    expect(stats.llmCalls).toBe(stats.plannerCalls + stats.formatRetries + stats.correctionCalls);
+    expect(stats.outputTokens).toBe(40 * stats.llmCalls);
+    expect(stats.cacheReadTokens).toBe(900 * stats.llmCalls);
+
+    await generateMenuWithAI(data, { groupCache, stats });
+    expect(stats.groupsReused).toBe(1);
   });
 });
 
