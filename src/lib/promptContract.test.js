@@ -3,6 +3,13 @@ import { SYSTEM_PROMPTS, PROMPT_ALLERGEN_IDS } from "../../api/_prompts.js";
 import { EU_ALLERGENS } from "./allergens.js";
 import { STEP_PARTS } from "./recipeSteps.js";
 import { CAMPOS } from "./notepadFields.js";
+import { AjusteSchema } from "./panelParser.js";
+import {
+  PANEL_EMITE_REGLAS,
+  PROMESAS_DE_NO_SABER,
+  CLAVES_NUEVAS_DEL_PANEL,
+  ExtensionReglaSchema,
+} from "./reglas.js";
 import { APPLIANCE_LABELS } from "./applianceMethods.js";
 import { CARB_TYPE_BY_BASE, MAIN_BASES } from "../data/recipeSchema.js";
 
@@ -118,4 +125,104 @@ describe("server-owned system prompts", () => {
       expect(prompt, `${task} has an unresolved \${...}`).not.toMatch(/\$\{/);
     }
   });
+});
+
+// ── El contrato de la zona de reglas (11 sep 2026) ──────────────────────────
+// El panel puede DECIR lo que quiera y solo puede HACER lo que pase por
+// `valorValido`. La zona de reglas (src/lib/reglas.js) añade un eje nuevo
+// —sujeto, ámbito y vigencia— que el parser todavía NO emite, y encenderlo es
+// una decisión del dueño, no una refactorización.
+//
+// Lo peligroso de un interruptor así es quedarse a medias en cualquiera de las
+// dos direcciones:
+//   · bandera encendida y prompt sin actualizar → el modelo sigue contestando
+//     "lo de que sea solo para tu hija no sé hacerlo" cuando ya sabe;
+//   · prompt actualizado y bandera apagada → el modelo promete sujetos y
+//     fechas, los emite, y el parser los tira en silencio. Que es exactamente
+//     el fallo que la cabecera de notepadFields.js describe.
+// Estos tests atan las dos direcciones a la MISMA constante.
+
+describe("la zona de reglas y el prompt del panel", () => {
+  it("mientras el panel no emita reglas, el prompt sigue prometiendo que no sabe", () => {
+    if (PANEL_EMITE_REGLAS) return;
+    for (const promesa of PROMESAS_DE_NO_SABER) {
+      expect(
+        SYSTEM_PROMPTS.panel,
+        `el panel ya no promete «${promesa}» pero PANEL_EMITE_REGLAS sigue false`,
+      ).toContain(promesa);
+    }
+  });
+
+  it("T16 — y no documenta ninguna clave que el parser no sepa recoger, en NINGUNA parte", () => {
+    if (PANEL_EMITE_REGLAS) return;
+    // Antes esto solo miraba la línea `Cada ajuste es {…}`, y era un colador:
+    // el prompt tiene además el ejemplo de JSON, el bloque de campos y la
+    // lista de "lo que no sabes hacer". Una clave anunciada en cualquiera de
+    // esos sitios hace que el modelo la emita, y `AjusteSchema` la tira en
+    // silencio. Así que se busca ENTRECOMILLADA en el prompt entero, que es
+    // como aparece cada vez que se documenta una clave de verdad.
+    for (const clave of CLAVES_NUEVAS_DEL_PANEL) {
+      expect(
+        SYSTEM_PROMPTS.panel,
+        `el prompt ya anuncia "${clave}" pero PANEL_EMITE_REGLAS sigue false`,
+      ).not.toContain(`"${clave}"`);
+    }
+    // Y la línea de la forma del ajuste sigue existiendo y sigue limpia: si
+    // alguien la renombra, este test deja de comprobar lo que cree.
+    const forma = SYSTEM_PROMPTS.panel.match(/Cada ajuste es \{[^}]*\}/)?.[0] ?? "";
+    expect(forma.length).toBeGreaterThan(10);
+    for (const clave of CLAVES_NUEVAS_DEL_PANEL) {
+      expect(forma).not.toContain(clave);
+    }
+  });
+
+  it("la extensión propuesta no pisa ninguna clave que AjusteSchema ya use", () => {
+    // `ambito` YA existe en AjusteSchema y significa otra cosa: el grupo
+    // (todos/ninos/adultos/bebes), no el día ni la semana. Por eso la clave
+    // nueva se llama `ambito_regla` — reutilizar el nombre habría hecho que
+    // "para los niños" y "los miércoles" compitieran por el mismo campo.
+    const yaHay = Object.keys(AjusteSchema.shape);
+    expect(yaHay).toContain("ambito");
+    for (const clave of CLAVES_NUEVAS_DEL_PANEL) {
+      expect(yaHay, `"${clave}" ya existe en AjusteSchema con otro significado`).not.toContain(clave);
+    }
+    expect(Object.keys(ExtensionReglaSchema.shape).sort()).toEqual([...CLAVES_NUEVAS_DEL_PANEL].sort());
+  });
+
+  it("las tres claves nuevas son opcionales: un ajuste de hoy sigue valiendo", () => {
+    // La propiedad que hace que activar esto NO sea un cambio con riesgo: la
+    // extensión es puramente aditiva.
+    expect(ExtensionReglaSchema.safeParse({}).success).toBe(true);
+    expect(
+      AjusteSchema.safeParse({ campo: "freqs", valor: "pescado", op: "menos", n: 1 }).success,
+    ).toBe(true);
+  });
+
+  // ── Cuando el dueño encienda PANEL_EMITE_REGLAS ──────────────────────────
+  // Este es el test que pasa a mandar, y el cambio que hay que hacerle al
+  // prompt del panel (api/_prompts.js) para que pase. Se deja escrito y
+  // APAGADO a propósito: encenderlo cambia lo que el modelo puede hacer con
+  // una frase del usuario, y eso no se activa de rebote en un refactor.
+  //
+  // En "LO QUE PUEDES HACER", tres claves más:
+  //   - "sujeto": {"tipo":"casa"|"grupo"|"miembro"|"invitado","ref":…,"nombre":…,"n":…}.
+  //     SIEMPRE la pones. Si el usuario habla de una persona con nombre y no
+  //     sabes su id, NO inventes uno: usa "pendiente" y no emitas el ajuste.
+  //   - "ambito_regla": {"dias":["Mié"],"comidas":["Comida"],"semanas":["2026-09-07"]}.
+  //     Los días con la abreviatura de tres letras; las semanas por su LUNES.
+  //   - "vigencia": {"desde":"2026-09-11","hasta":"2026-09-30"}, en ISO.
+  // Y en "LO QUE NO SABES HACER" desaparecen las dos primeras líneas (persona
+  // con nombre, fechas y días) — que son justo las que pinea el primer test.
+  //
+  // it("el prompt documenta las tres claves nuevas", () => {
+  //   if (!PANEL_EMITE_REGLAS) return;
+  //   for (const clave of CLAVES_NUEVAS_DEL_PANEL) {
+  //     expect(SYSTEM_PROMPTS.panel).toContain(`"${clave}"`);
+  //   }
+  //   for (const promesa of PROMESAS_DE_NO_SABER) {
+  //     expect(SYSTEM_PROMPTS.panel).not.toContain(promesa);
+  //   }
+  //   // Y los cuatro sujetos, enumerados: el modelo no puede inventarse uno.
+  //   for (const tipo of SUJETOS) expect(SYSTEM_PROMPTS.panel).toContain(`"${tipo}"`);
+  // });
 });
