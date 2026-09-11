@@ -113,16 +113,23 @@ jobs:
             --max-turns 80
             --allowedTools Bash,Read,Write,Edit,Glob,Grep
 
-      # Aviso por WhatsApp vía CallMeBot: el informe breve que deja el agente en
-      # .ops/aviso.txt, o una alerta si el propio agente no ha podido ejecutarse.
-      # Los días sin fallos no se envía nada. Lo manda este paso y no el agente,
-      # para que el agente nunca tenga las claves de WhatsApp.
+      # Aviso de fallos: el informe breve que deja el agente en .ops/aviso.txt,
+      # o una alerta si el propio agente no ha podido ejecutarse. Los días sin
+      # fallos no se publica ni se envía nada. Lo hace este paso y no el agente,
+      # para que el aviso salga aunque el agente falle y para que el agente
+      # nunca tenga estas claves.
       #
-      # Secreto CALLMEBOT_DESTINOS: una persona por línea, "telefono apikey"
-      # (p. ej. "+34600111222 1234567"). Sin el secreto, no se avisa y ya.
-      - name: Avisar por WhatsApp
+      # 1. Email: se publica como comentario en el issue "Agente de fallos:
+      #    informe diario" mencionando a AVISO_MENCIONES (variable del repo en
+      #    Settings → Secrets and variables → Actions → Variables, p. ej.
+      #    "@algbarc-design @pabloam89"). GitHub envía el email a cada mención.
+      # 2. WhatsApp vía CallMeBot, solo si existe el secreto CALLMEBOT_DESTINOS:
+      #    una persona por línea, "telefono apikey" (p. ej. "+34600111222 1234567").
+      - name: Avisar
         if: always() && steps.config.outputs.listo == 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
+          MENCIONES: ${{ vars.AVISO_MENCIONES || '@algbarc-design' }}
           CALLMEBOT_DESTINOS: ${{ secrets.CALLMEBOT_DESTINOS }}
           ESTADO: ${{ job.status }}
           HAY_FALLOS: ${{ steps.datos.outputs.hay_fallos }}
@@ -139,8 +146,26 @@ jobs:
             echo "Sin fallos: no se avisa."
             exit 0
           fi
+          # 1. Issue + email a las menciones.
+          titulo="Agente de fallos: informe diario"
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "\"$titulo\" in:title" --json number --jq '.[0].number // empty' || true)
+          if [ -z "$issue" ]; then
+            issue=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$titulo" \
+              --body "Informes breves del agente de fallos (.github/workflows/agente-fallos.yml)." \
+              | grep -oE '[0-9]+$' || true)
+          fi
+          printf '%s\n\n%s\n' "$texto" "$MENCIONES" > "$RUNNER_TEMP/aviso-comentario.md"
+          if [ -n "$issue" ] && gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" \
+              --body-file "$RUNNER_TEMP/aviso-comentario.md" >/dev/null; then
+            echo "Informe publicado en el issue #$issue"
+          else
+            echo "::warning::No se pudo publicar el informe en el issue"
+          fi
+
+          # 2. WhatsApp, si está configurado.
           if [ -z "$CALLMEBOT_DESTINOS" ]; then
-            echo "::warning::Sin aviso de WhatsApp: falta el secreto CALLMEBOT_DESTINOS"
+            echo "WhatsApp: sin el secreto CALLMEBOT_DESTINOS, no se envía."
             exit 0
           fi
           # CallMeBot responde 200 incluso con una apikey inválida, así que el
