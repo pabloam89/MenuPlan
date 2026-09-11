@@ -26,21 +26,25 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       }
@@ -144,11 +148,13 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -219,21 +225,25 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       }
@@ -334,26 +344,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -464,21 +479,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Ajetes tiernos",
+        "ingredientId": "ajetes-tiernos",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Gambas",
+        "ingredientId": "gambas",
         "amount": 80,
         "unit": "g"
       }
@@ -570,21 +589,25 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       }
@@ -698,11 +721,13 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       }
@@ -786,21 +811,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Espárragos trigueros",
+        "ingredientId": "esparragos",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -897,31 +926,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 120,
         "unit": "ml"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 30,
         "unit": "g"
       }
@@ -1036,26 +1071,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Atún en conserva",
+        "ingredientId": "atun-lata",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Mayonesa",
+        "ingredientId": "mayonesa",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Pimiento morrón",
+        "ingredientId": "pimiento-verde",
         "amount": 30,
         "unit": "g"
       }
@@ -1165,26 +1205,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Gambas peladas",
+        "ingredientId": "gambas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -1282,21 +1327,25 @@
     "ingredients": [
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -1419,41 +1468,49 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       }
@@ -1587,36 +1644,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Lechuga",
+        "ingredientId": "lechuga",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceitunas",
+        "ingredientId": "aceitunas",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -1735,26 +1799,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Setas variadas",
+        "ingredientId": "setas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -1870,46 +1939,55 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       }
@@ -2081,21 +2159,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -2208,26 +2290,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Gambas peladas congeladas",
+        "ingredientId": "gambas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -2343,26 +2430,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Salmón ahumado",
+        "ingredientId": "salmon-ahumado",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Cebollino",
+        "ingredientId": "cebollino",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 10,
         "unit": "g"
       }
@@ -2465,41 +2557,49 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Queso curado",
+        "ingredientId": "queso",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebollino",
+        "ingredientId": "cebollino",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -2647,36 +2747,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Queso de cabra",
+        "ingredientId": "queso-cabra",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -2816,36 +2923,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -2964,36 +3078,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Gambas peladas",
+        "ingredientId": "gambas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Mango",
+        "ingredientId": "mango",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Lima",
+        "ingredientId": "lima",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       }
@@ -3117,36 +3238,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Queso brie",
+        "ingredientId": "queso-brie",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Nueces",
+        "ingredientId": "nueces",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Canónigos",
+        "ingredientId": "lechuga",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pera",
+        "ingredientId": "pera",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -3285,31 +3413,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Bacon en lonchas",
+        "ingredientId": "bacon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Rúcula",
+        "ingredientId": "rucula",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -3409,36 +3543,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Queso feta",
+        "ingredientId": "queso-feta",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Menta fresca",
+        "ingredientId": "menta",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 8,
         "unit": "ml"
       }
@@ -3584,36 +3725,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Rúcula",
+        "ingredientId": "rucula",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Parmesano en virutas",
+        "ingredientId": "parmesano",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 8,
         "unit": "ml"
       }
@@ -3739,36 +3887,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Salmón ahumado",
+        "ingredientId": "salmon-ahumado",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Eneldo fresco",
+        "ingredientId": "eneldo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 10,
         "unit": "g"
       }
@@ -3882,31 +4037,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Muffin inglés",
+        "ingredientId": "muffin-ingle",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 15,
         "unit": "ml"
       }
@@ -4065,21 +4226,25 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       }
@@ -4194,31 +4359,37 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Foie mi-cuit",
+        "ingredientId": "foie",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Vino Pedro Ximénez",
+        "ingredientId": "vino-blanco",
         "amount": 20,
         "unit": "ml"
       }
@@ -4358,26 +4529,31 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Queso curado",
+        "ingredientId": "queso",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       }
@@ -4523,26 +4699,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Boletus",
+        "ingredientId": "boletus",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       }
@@ -4652,26 +4833,31 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 70,
         "unit": "ml"
       }
@@ -4812,26 +4998,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Setas silvestres variadas",
+        "ingredientId": "setas",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 6,
         "unit": "g"
       }
@@ -4948,21 +5139,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Gambas peladas",
+        "ingredientId": "gambas",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Ajetes",
+        "ingredientId": "ajete",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -5057,26 +5252,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Espárragos verdes",
+        "ingredientId": "esparragos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 15,
         "unit": "ml"
       }
@@ -5242,21 +5442,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Parmesano en virutas",
+        "ingredientId": "parmesano",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       }
@@ -5338,41 +5542,49 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -5501,26 +5713,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Gambas peladas",
+        "ingredientId": "gambas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -5643,26 +5860,31 @@
     "ingredients": [
       {
         "name": "Masa quebrada",
+        "ingredientId": "masa-quebrada",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Panceta ahumada",
+        "ingredientId": "panceta",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Nata",
+        "ingredientId": "nata",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Queso gruyère rallado",
+        "ingredientId": "queso",
         "amount": 60,
         "unit": "g"
       }
@@ -5838,31 +6060,37 @@
     "ingredients": [
       {
         "name": "Masa quebrada",
+        "ingredientId": "masa-quebrada",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Queso de cabra",
+        "ingredientId": "queso-cabra",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Nata",
+        "ingredientId": "nata",
         "amount": 120,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -6030,31 +6258,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Salmón ahumado",
+        "ingredientId": "salmon-ahumado",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pan de masa madre",
+        "ingredientId": "pan",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Eneldo fresco",
+        "ingredientId": "eneldo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -6183,31 +6417,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Atún en conserva",
+        "ingredientId": "atun-lata",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       }
@@ -6336,21 +6576,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Bacalao desalado desmigado",
+        "ingredientId": "bacalao",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       }
@@ -6477,31 +6721,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Nata",
+        "ingredientId": "nata",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -6640,26 +6890,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Mayonesa",
+        "ingredientId": "mayonesa",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Mostaza",
+        "ingredientId": "mostaza",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Cebollino",
+        "ingredientId": "cebollino",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 2,
         "unit": "g"
       }
@@ -6778,26 +7033,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Queso gruyère rallado",
+        "ingredientId": "queso",
         "amount": 100,
         "unit": "g"
       }
@@ -6937,31 +7197,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 50,
         "unit": "g"
       }
@@ -7104,41 +7370,49 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Judías verdes",
+        "ingredientId": "judia-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       }
@@ -7317,36 +7591,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Yogur griego",
+        "ingredientId": "yogur",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Pan",
+        "ingredientId": "pan",
         "amount": 100,
         "unit": "g"
       }
@@ -7474,31 +7755,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Pan de masa madre",
+        "ingredientId": "pan",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -7619,21 +7906,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Queso en lonchas",
+        "ingredientId": "queso-en-lonchas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -7750,21 +8041,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       }
@@ -7889,21 +8184,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Morcilla de Burgos",
+        "ingredientId": "morcilla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -8007,26 +8306,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Espárragos trigueros",
+        "ingredientId": "esparragos",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -8146,31 +8450,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Cebollino",
+        "ingredientId": "cebollino",
         "amount": 5,
         "unit": "g"
       }
@@ -8320,26 +8630,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -8480,41 +8795,49 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 8,
         "unit": "ud"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Espinacas",
+        "ingredientId": "espinacas",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       }
@@ -8657,31 +8980,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Queso mozzarella rallado",
+        "ingredientId": "mozzarella",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 2,
         "unit": "g"
       }
@@ -8803,31 +9132,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       }
@@ -8981,36 +9316,43 @@
     "ingredients": [
       {
         "name": "Pan rústico",
+        "ingredientId": "pan",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón ibérico en lonchas",
+        "ingredientId": "jamon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Trufa negra fresca",
+        "ingredientId": "trufa-negra",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Aceite de trufa",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -9144,46 +9486,55 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pan rústico",
+        "ingredientId": "pan",
         "amount": 80,
         "unit": "g"
       }
@@ -9319,51 +9670,61 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Tortilla de maíz",
+        "ingredientId": "tortilla-de-maiz",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Chile jalapeño",
+        "ingredientId": "cayena",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Judías negras cocidas",
+        "ingredientId": "judia-negra",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 5,
         "unit": "g"
       }
@@ -9498,26 +9859,31 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 50,
         "unit": "ml"
       }
@@ -9666,51 +10032,61 @@
     "ingredients": [
       {
         "name": "Arroz arborio",
+        "ingredientId": "arroz-arborio",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Setas variadas",
+        "ingredientId": "setas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 600,
         "unit": "ml"
       },
       {
         "name": "Queso parmesano rallado",
+        "ingredientId": "parmesano",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -9880,36 +10256,43 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Gambas peladas",
+        "ingredientId": "gambas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Mayonesa",
+        "ingredientId": "mayonesa",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Guisantes cocidos",
+        "ingredientId": "guisantes",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceitunas",
+        "ingredientId": "aceitunas",
         "amount": 30,
         "unit": "g"
       }
@@ -10057,51 +10440,61 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Carne de txangurro",
+        "ingredientId": "carne-de-txangurro",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Tomate frito",
+        "ingredientId": "tomate-frito",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Brandy",
+        "ingredientId": "brandy",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -10272,31 +10665,37 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Queso azul",
+        "ingredientId": "queso-azul",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Nueces",
+        "ingredientId": "nueces",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Pan rústico",
+        "ingredientId": "pan",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -10432,26 +10831,31 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Pimiento verde italiano",
+        "ingredientId": "pimiento-verde",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 55,
         "unit": "ml"
       }
@@ -10596,46 +11000,55 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Menta fresca",
+        "ingredientId": "menta",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -10784,41 +11197,49 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Setas variadas",
+        "ingredientId": "setas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Jamón serrano en taquitos",
+        "ingredientId": "jamon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pan rústico",
+        "ingredientId": "pan",
         "amount": 80,
         "unit": "g"
       }
@@ -10956,31 +11377,37 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Pulpo cocido",
+        "ingredientId": "pulpo",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 50,
         "unit": "ml"
       }
@@ -11130,46 +11557,55 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -11322,36 +11758,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Bacalao desalado desmigado",
+        "ingredientId": "bacalao",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -11476,46 +11919,55 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Queso feta",
+        "ingredientId": "queso-feta",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pan rústico",
+        "ingredientId": "pan",
         "amount": 80,
         "unit": "g"
       }
@@ -11652,36 +12104,43 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Burrata",
+        "ingredientId": "burrata",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pan rústico",
+        "ingredientId": "pan",
         "amount": 80,
         "unit": "g"
       }
@@ -11811,46 +12270,55 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano en lonchas",
+        "ingredientId": "jamon",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Boletus",
+        "ingredientId": "boletus",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva para freír",
+        "ingredientId": "aceite-oliva",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -12024,26 +12492,31 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano en lonchas",
+        "ingredientId": "jamon",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva para freír",
+        "ingredientId": "aceite-oliva",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -12171,41 +12644,49 @@
     "ingredients": [
       {
         "name": "Masa quebrada",
+        "ingredientId": "masa-quebrada",
         "amount": 230,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Setas variadas",
+        "ingredientId": "setas",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Queso de cabra",
+        "ingredientId": "queso-cabra",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       }
@@ -12413,41 +12894,49 @@
     "ingredients": [
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Queso parmesano rallado",
+        "ingredientId": "parmesano",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       }
@@ -12636,21 +13125,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Bacon en tiras",
+        "ingredientId": "bacon",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -12740,21 +13233,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Espárragos trigueros",
+        "ingredientId": "esparragos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       }
@@ -12865,21 +13362,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Patatas",
+        "ingredientId": "patata",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       }
@@ -12988,21 +13489,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Jamón cocido en tacos",
+        "ingredientId": "jamon-york",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Queso curado rallado",
+        "ingredientId": "queso",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -13096,21 +13601,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       }
@@ -13205,26 +13714,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 6,
         "unit": "ud"
       },
       {
         "name": "Atún en lata",
+        "ingredientId": "atun-lata",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -13342,21 +13856,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Salchichas frescas",
+        "ingredientId": "salchicha",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Patatas",
+        "ingredientId": "patata",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       }
@@ -13464,46 +13982,55 @@
     "ingredients": [
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Queso fresco",
+        "ingredientId": "queso-fresco",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }

@@ -206,6 +206,23 @@ const IngredientSchema = z.object({
   name: z.string().min(1),
   amount: z.number().nonnegative(),
   unit: z.enum(UNITS),
+  // El id canónico en src/data/ingredients.json (11 sep 2026).
+  //
+  // Hasta ahora el enlace receta → ingrediente iba SOLO por texto: `name` se
+  // resolvía contra nombre y alias con resolveIngredientId(). Funcionaba —las
+  // 7.415 líneas del catálogo resuelven— pero era una búsqueda difusa en la
+  // fuente de verdad: no se podía cruzar de verdad, y una grafía nueva rompía
+  // el enlace en silencio. Postgres sí tenía recipe_ingredients.ingredient_id
+  // con su FK… y el cliente no lee esa tabla.
+  //
+  // Es opcional en el esquema para que una receta de usuario o una generada
+  // por IA con un ingrediente que no está en el catálogo siga siendo válida
+  // (ahí `null` significa "no sé qué ingrediente es", nunca "no tiene"). Que
+  // en el CATÁLOGO esté SIEMPRE y apunte a un id real lo exige
+  // scripts/validate-catalog.mjs, que además comprueba que coincide con lo que
+  // resuelve `name`: si algún día discrepan, que reviente el build y no la
+  // lista de la compra. Se rellena con scripts/add-ingredient-ids.mjs.
+  ingredientId: z.string().min(1).optional(),
 });
 
 const MethodSchema = z.object({

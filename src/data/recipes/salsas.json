@@ -29,26 +29,31 @@
     "ingredients": [
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Vinagre de Jerez",
+        "ingredientId": "vinagre-de-jerez",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Mostaza de Dijon",
+        "ingredientId": "mostaza",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -126,21 +131,25 @@
     "ingredients": [
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva suave",
+        "ingredientId": "aceite-oliva",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 5,
         "unit": "ml"
       }
@@ -215,31 +224,37 @@
     "ingredients": [
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -349,31 +364,37 @@
     "ingredients": [
       {
         "name": "Caldo de carne",
+        "ingredientId": "caldo-de-carne",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 10,
         "unit": "g"
       }
@@ -486,31 +507,37 @@
     "ingredients": [
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Alcaparras",
+        "ingredientId": "alcaparras",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -603,31 +630,37 @@
     "ingredients": [
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Comino",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -722,36 +755,43 @@
     "ingredients": [
       {
         "name": "Pimiento choricero (ñora)",
+        "ingredientId": "pimiento-choricero",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Pimentón picante",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Comino",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -842,36 +882,43 @@
     "ingredients": [
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Orégano seco",
+        "ingredientId": "oregano",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 90,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -961,26 +1008,31 @@
     "ingredients": [
       {
         "name": "Mostaza de Dijon",
+        "ingredientId": "mostaza",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 1,
         "unit": "g"
       }
@@ -1051,46 +1103,55 @@
     "ingredients": [
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pimiento choricero (ñora)",
+        "ingredientId": "pimiento-choricero",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Almendra tostada",
+        "ingredientId": "almendras",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Avellana tostada",
+        "ingredientId": "avellanas",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Pan frito",
+        "ingredientId": "pan",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -1190,26 +1251,31 @@
     "ingredients": [
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -1289,31 +1355,37 @@
     "ingredients": [
       {
         "name": "Yogur griego",
+        "ingredientId": "yogur",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Eneldo fresco",
+        "ingredientId": "eneldo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -1408,21 +1480,25 @@
     "ingredients": [
       {
         "name": "Miso blanco",
+        "ingredientId": "miso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Mirin",
+        "ingredientId": "mirin",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 20,
         "unit": "ml"
       }
@@ -1492,16 +1568,19 @@
     "ingredients": [
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Ralladura de limón",
+        "ingredientId": "limon",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       }
@@ -1571,26 +1650,31 @@
     "ingredients": [
       {
         "name": "Filetes de anchoa en aceite",
+        "ingredientId": "anchoa-en-aceite",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -1678,21 +1762,25 @@
     "ingredients": [
       {
         "name": "Harissa",
+        "ingredientId": "harissa",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Yogur griego",
+        "ingredientId": "yogur",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 1,
         "unit": "g"
       }
@@ -1769,26 +1857,31 @@
     "ingredients": [
       {
         "name": "Pistacho pelado",
+        "ingredientId": "pistacho",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 70,
         "unit": "ml"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 3,
         "unit": "g"
       }
@@ -1870,16 +1963,19 @@
     "ingredients": [
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Salvia fresca",
+        "ingredientId": "salvia",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 5,
         "unit": "ml"
       }
@@ -1961,26 +2057,31 @@
     "ingredients": [
       {
         "name": "Zumo de naranja",
+        "ingredientId": "naranja",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Jengibre fresco rallado",
+        "ingredientId": "jengibre",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Salsa de soja",
+        "ingredientId": "salsa-soja",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Maicena",
+        "ingredientId": "maicena",
         "amount": 5,
         "unit": "g"
       }
@@ -2060,26 +2161,31 @@
     "ingredients": [
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva suave",
+        "ingredientId": "aceite-oliva",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Azafrán en hebras",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 5,
         "unit": "ml"
       }
@@ -2175,31 +2281,37 @@
     "ingredients": [
       {
         "name": "Salsa de soja",
+        "ingredientId": "salsa-soja",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de sésamo",
+        "ingredientId": "aceite-de-sesamo",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Semillas de sésamo",
+        "ingredientId": "sesamo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Jengibre fresco rallado",
+        "ingredientId": "jengibre",
         "amount": 5,
         "unit": "g"
       }
@@ -2286,21 +2398,25 @@
     "ingredients": [
       {
         "name": "Queso roquefort",
+        "ingredientId": "roquefort",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Yogur griego",
+        "ingredientId": "yogur",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -2389,21 +2505,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de girasol",
+        "ingredientId": "aceite-girasol",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -2508,36 +2628,43 @@
     "ingredients": [
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Pimentón picante",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Cayena",
+        "ingredientId": "guindilla",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 5,
         "unit": "g"
       }
@@ -2641,26 +2768,31 @@
     "ingredients": [
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       }
@@ -2746,26 +2878,31 @@
     "ingredients": [
       {
         "name": "Yema de huevo",
+        "ingredientId": "yema-de-huevo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 1,
         "unit": "g"
       }
@@ -2865,26 +3002,31 @@
     "ingredients": [
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -2970,21 +3112,25 @@
     "ingredients": [
       {
         "name": "Vino Pedro Ximénez",
+        "ingredientId": "vino-blanco",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Chalota",
+        "ingredientId": "chalota",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 1,
         "unit": "g"
       }

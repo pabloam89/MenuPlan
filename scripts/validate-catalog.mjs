@@ -76,6 +76,39 @@ if (existsSync(INGREDIENTS_PATH)) {
     errors.push(`Ingrediente "${name}" no está en ingredients.json — añádelo a mano (el catálogo es fuente, no se regenera)`);
   }
 
+  // El enlace por id (ingredientId, ver IngredientSchema). En el CATÁLOGO es
+  // obligatorio en toda línea y tiene que apuntar a un id real — en el esquema
+  // es opcional solo para que una receta de usuario con un ingrediente fuera
+  // del catálogo siga siendo válida. Y tiene que coincidir con lo que resuelve
+  // el nombre por etiqueta: si `name` y `ingredientId` dicen ingredientes
+  // distintos, uno de los dos miente y no hay forma de saber cuál desde la
+  // lista de la compra. Mejor aquí. Se rellena con scripts/add-ingredient-ids.mjs.
+  const idByLabel = new Map();
+  for (const ing of ingredients) {
+    for (const label of [ing.name, ...ing.aliases]) idByLabel.set(normalizeName(label), ing.id);
+  }
+  const knownIds = new Set(ingredients.map((i) => i.id));
+  let sinId = 0;
+  for (const r of recipes) {
+    for (const line of r.ingredients ?? []) {
+      if (!line.ingredientId) {
+        sinId++;
+        continue;
+      }
+      if (!knownIds.has(line.ingredientId)) {
+        errors.push(`[${r.id}] "${line.name}" apunta a ingredientId "${line.ingredientId}", que no existe en ingredients.json`);
+        continue;
+      }
+      const byLabel = idByLabel.get(normalizeName(line.name));
+      if (byLabel && byLabel !== line.ingredientId) {
+        errors.push(`[${r.id}] "${line.name}" lleva ingredientId "${line.ingredientId}" pero su nombre resuelve a "${byLabel}"`);
+      }
+    }
+  }
+  if (sinId > 0) {
+    errors.push(`${sinId} líneas de ingrediente sin ingredientId — ejecuta: npx vite-node scripts/add-ingredient-ids.mjs`);
+  }
+
   // Sustituciones (Fase 3). Una que apunte a un ingrediente inexistente no da
   // error en runtime: simplemente no se aplica nunca, y "no se adapta" pasa
   // mucho más desapercibido que "revienta".

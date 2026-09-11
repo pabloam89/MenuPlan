@@ -24,21 +24,25 @@
     "ingredients": [
       {
         "name": "Kéfir",
+        "ingredientId": "kefir",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Fresas",
+        "ingredientId": "fresa",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 10,
         "unit": "ml"
       }
@@ -115,16 +119,19 @@
     "ingredients": [
       {
         "name": "Pan",
+        "ingredientId": "pan",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 20,
         "unit": "ml"
       }
@@ -197,21 +204,25 @@
     "ingredients": [
       {
         "name": "Pan de barra",
+        "ingredientId": "pan",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -291,16 +302,19 @@
     "ingredients": [
       {
         "name": "Pan de barra",
+        "ingredientId": "pan",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Queso en lonchas",
+        "ingredientId": "queso-en-lonchas",
         "amount": 50,
         "unit": "g"
       }
@@ -370,16 +384,19 @@
     "ingredients": [
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Nueces",
+        "ingredientId": "nueces",
         "amount": 40,
         "unit": "g"
       }
@@ -450,11 +467,13 @@
     "ingredients": [
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Cacao en polvo",
+        "ingredientId": "cacao",
         "amount": 30,
         "unit": "g"
       }

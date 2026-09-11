@@ -25,26 +25,31 @@
     "ingredients": [
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Fresas",
+        "ingredientId": "fresa",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 15,
         "unit": "ml"
       }
@@ -128,21 +133,25 @@
     "ingredients": [
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 350,
         "unit": "ml"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 15,
         "unit": "ml"
       }
@@ -214,26 +223,31 @@
     "ingredients": [
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 350,
         "unit": "ml"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Canela molida",
+        "ingredientId": "canela",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 20,
         "unit": "ml"
       }
@@ -307,26 +321,31 @@
     "ingredients": [
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Piña natural",
+        "ingredientId": "pina",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Jengibre fresco",
+        "ingredientId": "jengibre",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 150,
         "unit": "ml"
       }
@@ -414,21 +433,25 @@
     "ingredients": [
       {
         "name": "Frutos rojos congelados",
+        "ingredientId": "frutos-rojos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 15,
         "unit": "ml"
       }
@@ -499,26 +522,31 @@
     "ingredients": [
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 350,
         "unit": "ml"
       },
       {
         "name": "Cacao en polvo",
+        "ingredientId": "cacao",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Avellanas",
+        "ingredientId": "avellanas",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 10,
         "unit": "ml"
       }
@@ -593,26 +621,31 @@
     "ingredients": [
       {
         "name": "Mango congelado",
+        "ingredientId": "mango",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Plátano congelado",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Leche de coco",
+        "ingredientId": "leche-coco",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Coco rallado",
+        "ingredientId": "coco",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Zumo de lima",
+        "ingredientId": "lima",
         "amount": 10,
         "unit": "ml"
       }
@@ -684,21 +717,25 @@
     "ingredients": [
       {
         "name": "Yogur griego",
+        "ingredientId": "yogur",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Granola",
+        "ingredientId": "granola",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Frutos rojos",
+        "ingredientId": "frutos-rojos",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 15,
         "unit": "ml"
       }
@@ -770,31 +807,37 @@
     "ingredients": [
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Canela molida",
+        "ingredientId": "canela",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 20,
         "unit": "ml"
       }
@@ -878,21 +921,25 @@
     "ingredients": [
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 350,
         "unit": "ml"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 25,
         "unit": "ml"
       }
@@ -969,26 +1016,31 @@
     "ingredients": [
       {
         "name": "Pulpa de açaí congelada",
+        "ingredientId": "pulpa-de-acai-congelada",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Plátano congelado",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Frutos rojos",
+        "ingredientId": "frutos-rojos",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Coco rallado",
+        "ingredientId": "coco",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Granola",
+        "ingredientId": "granola",
         "amount": 20,
         "unit": "g"
       }
@@ -1077,31 +1129,37 @@
     "ingredients": [
       {
         "name": "Pan",
+        "ingredientId": "pan",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Canela molida",
+        "ingredientId": "canela",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sirope de arce",
+        "ingredientId": "sirope-de-arce",
         "amount": 30,
         "unit": "ml"
       }
@@ -1193,21 +1251,25 @@
     "ingredients": [
       {
         "name": "Pan",
+        "ingredientId": "pan",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Mantequilla de cacahuete",
+        "ingredientId": "mantequilla-de-cacahuete",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 15,
         "unit": "ml"
       }
@@ -1286,31 +1348,37 @@
     "ingredients": [
       {
         "name": "Pan rústico",
+        "ingredientId": "pan",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -1398,41 +1466,49 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 140,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Sirope de arce",
+        "ingredientId": "sirope-de-arce",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Frutos rojos",
+        "ingredientId": "frutos-rojos",
         "amount": 100,
         "unit": "g"
       }
@@ -1533,46 +1609,55 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 140,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 220,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Nata para montar",
+        "ingredientId": "nata-para-montar",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Fresas",
+        "ingredientId": "fresa",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Azúcar glas",
+        "ingredientId": "azucar-glas",
         "amount": 5,
         "unit": "g"
       }
@@ -1703,26 +1788,31 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Cebollino fresco",
+        "ingredientId": "cebollino",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -1807,21 +1897,25 @@
     "ingredients": [
       {
         "name": "Requesón",
+        "ingredientId": "requeson",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Nueces",
+        "ingredientId": "nueces",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Canela molida",
+        "ingredientId": "canela",
         "amount": 1,
         "unit": "g"
       }
@@ -1898,31 +1992,37 @@
     "ingredients": [
       {
         "name": "Pan",
+        "ingredientId": "pan",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
