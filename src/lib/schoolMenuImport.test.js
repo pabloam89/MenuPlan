@@ -101,6 +101,19 @@ describe("selectBestWeek", () => {
 // ---------------------------------------------------------------------------
 
 describe("importSchoolMenuFile (CSV, local path)", () => {
+  // 20 s, y no es que la importación sea lenta: es la única prueba del fichero
+  // que llega a `importSchoolMenuFile`, y esa función hace
+  // `await import("./menuParser.js")` DENTRO del cuerpo (schoolMenuImport.js:593)
+  // para que el catálogo no entre en el chunk inicial. Cargar ese grafo —los 16
+  // JSON de recetas, 5 MB— por el pipeline de Vite se cobra contra el
+  // presupuesto de ESTA prueba, no contra el `transform` de la suite: medido,
+  // 5,1 s de los que el round-trip a Supabase son ~230 ms y el emparejamiento
+  // con el catálogo 11 ms. Con el timeout de 5 s por defecto rozaba el límite y
+  // pasó a rojo cuando el catálogo de esta rama creció.
+  //
+  // Se sube el presupuesto en vez de volver estático ese import: hacerlo
+  // estático arreglaría la prueba y metería el catálogo en el chunk de arranque,
+  // que es justo lo contrario de lo que se quiere.
   it("imports a CSV file without touching the network", async () => {
     const csv = `día,primero,segundo,postre
 Lunes,Lentejas estofadas,Pollo asado,Manzana
@@ -115,5 +128,5 @@ Viernes,Judías,Croquetas,Fruta`;
     expect(weeks.length).toBeGreaterThan(0);
     expect(entries["Lun-Primero"]).toBe("Lentejas estofadas");
     expect(entries["Vie-Postre"]).toBe("Fruta");
-  });
+  }, 20000);
 });

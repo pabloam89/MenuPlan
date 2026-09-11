@@ -113,12 +113,41 @@ function norm(s) {
     .trim();
 }
 
+// Normalizing a recipe name costs a toLowerCase + an NFD decomposition + a
+// regex pass, and the same names get normalized over and over: every fixed
+// dish is matched against the WHOLE catalog (1011 recipes), and the school
+// menu importer does that once per keyword of every dish it reads \u2014 fifteen
+// dishes times several keywords times 1011. That was 5 s of wall clock in
+// schoolMenuImport, enough to blow a 5 s test timeout, and the same cost lands
+// on the user when they import their school's PDF.
+//
+// A WeakMap keyed on the recipe object needs no invalidation: catalog entries
+// are frozen for the life of the module, and a rehydrated recipe is a new
+// object that simply gets its own entry.
+const normNameCache = new WeakMap();
+
+function recipeNorm(recipe) {
+  if (!recipe || typeof recipe !== "object") return norm(recipe?.name);
+  const hit = normNameCache.get(recipe);
+  if (hit !== undefined) return hit;
+  const value = norm(recipe.name);
+  normNameCache.set(recipe, value);
+  return value;
+}
+
 export function recipeMatchesFixedDish(recipe, fixedDish) {
   // Exact match when the dish was chosen from the catalog browser.
   if (fixedDish?.catalogId) return recipe?.id === fixedDish.catalogId;
-  const wanted = norm(fixedDish?.name);
+  return matchesWantedName(recipe, norm(fixedDish?.name));
+}
+
+// The half of recipeMatchesFixedDish that runs per candidate, with the fixed
+// dish's own name already normalized by the caller. Hoisting that out of the
+// loop is most of the win: filtering the catalog normalized the SAME wanted
+// string 1011 times per call.
+function matchesWantedName(recipe, wanted) {
   if (!wanted) return false;
-  const name = norm(recipe?.name);
+  const name = recipeNorm(recipe);
   return name.includes(wanted) || wanted.includes(name);
 }
 
@@ -375,5 +404,7 @@ export function catalogMatchesForFixedDish(fixedDish, catalog = recipeCatalog) {
     return exact ? [exact] : [];
   }
   if (!fixedDish?.name) return [];
-  return catalog.filter((r) => recipeMatchesFixedDish(r, fixedDish));
+  const wanted = norm(fixedDish.name);
+  if (!wanted) return [];
+  return catalog.filter((r) => matchesWantedName(r, wanted));
 }
