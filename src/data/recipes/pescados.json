@@ -4764,25 +4764,25 @@
         "text": "Cortar {{Aguacate}} en dados pequeños.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Pepino}} en dados pequeños.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Eneldo fresco}} fino.",
         "minutes": 1,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar el aguacate y el pepino con la mitad del eneldo picado, {{Zumo de limón}}, {{Sal|gusto}} y {{Aceite de oliva virgen extra|chorrito}}.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar {{Pimienta negra|gusto}} los lomos de salmón por ambas caras.",
@@ -5329,37 +5329,37 @@
         "text": "Pelar {{Pomelo}} a vivo sobre un bol para recoger el jugo que suelte.",
         "minutes": 3,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Separar los gajos de pomelo y reservar junto con el jugo.",
         "minutes": 1,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Menta fresca}} finamente.",
         "minutes": 1,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Aguacate}} en dados.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar en un bol los gajos de pomelo, el aguacate y la menta picada.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Añadir {{Zumo de lima}}, {{Sal|gusto}} y la mitad de {{Aceite de oliva virgen extra}}. Remover con cuidado.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Secar {{Langostinos pelados}} con papel absorbente hasta que estén bien secos.",
@@ -6233,31 +6233,31 @@
         "text": "Hervir agua con {{Sal|gusto}} en un cazo a fuego fuerte.",
         "minutes": 3,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Cocer {{Guisantes}} en el agua hirviendo hasta que estén tiernos.",
         "minutes": 5,
         "kind": "pasivo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir los guisantes y triturarlos con {{Caldo de verduras}}, {{Mantequilla}} y {{Menta fresca}} hasta obtener un puré fino.",
         "minutes": 2,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Colar el puré por un colador fino hasta que esté sedoso.",
         "minutes": 2,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar el puré con {{Pimienta negra}} y reservar caliente tapado.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Panceta ahumada en lonchas finas}} en tiras.",
@@ -9051,49 +9051,49 @@
         "text": "Pelar {{Pepino}}, cortar por la mitad a lo largo y retirar las semillas con una cuchara.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Cortar el pepino pelado en medias lunas finas.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Laminar {{Cebolla morada}} en juliana muy fina.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Eneldo fresco}} fino.",
         "minutes": 1,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Exprimir {{Limón}} y reservar el zumo.",
         "minutes": 1,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar {{Yogur natural}} con el eneldo picado, el zumo de limón y {{Lomos de salmón|gusto}} en un bol hasta obtener un aliño homogéneo.",
         "minutes": 2,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Añadir el pepino y la cebolla morada al aliño y mezclar bien.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Reservar la ensalada en la nevera hasta el momento de servir.",
         "minutes": 5,
         "kind": "espera",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar {{Lomos de salmón}} por ambos lados.",
@@ -22262,19 +22262,19 @@
         "text": "Picar {{Menta fresca}} finamente.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Pelar {{Pepino}} y cortar en dados pequeños.",
         "minutes": 3,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar el pepino con {{Yogur natural}} y la menta picada hasta integrar.",
         "minutes": 1,
         "kind": "prep",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|abundante}} en una sartén a fuego fuerte hasta que esté bien caliente.",
@@ -22906,25 +22906,25 @@
         "text": "Calentar una sartén a fuego medio con un chorrito de aceite de oliva.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Sofreír el ajo picado 1 min hasta que empiece a dorarse.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Añadir {{Almendras laminadas}} y saltear hasta que se doren, sin dejar de remover.",
         "minutes": 2,
         "kind": "activo",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Retirar la sartén del fuego.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Disponer las truchas en los platos y repartir las almendras con el ajo por encima.",

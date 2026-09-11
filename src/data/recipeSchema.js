@@ -363,6 +363,45 @@ export const RecipeSchema = z
     //
     // Deliberadamente NO incluye guisos y estofados: tienen su jugo, pero eso
     // ya lo dice `tecnica`, y mezclarlos dejaba el filtro sin filo.
+    //
+    // ── APARTE vs DENTRO: el criterio, fijado el 11 sep 2026 ────────────────
+    // Esa exclusión de los guisos estaba tanteando una distinción que no se
+    // llegó a nombrar, y que es la misma que `baseMode` hace con la fécula:
+    //
+    //   APARTE  se puede servir en un cuenco al lado, Y el plato sigue siendo
+    //           ese plato sin ella. Hacen falta LAS DOS cosas.
+    //   DENTRO  no es escindible de la preparación: sus ingredientes no se
+    //           pueden atribuir por separado.
+    //
+    // Casos que costaron y cómo se resolvieron, para que no haya que volver a
+    // discutirlos:
+    //
+    //   · REDUCCIONES — hay un test mecánico, comprobable en los propios pasos:
+    //     ¿el líquido de la salsa ha cocinado el ingrediente principal?
+    //       NO  → aparte. El magret con reducción de frutos rojos: la reducción
+    //             se hace en un cazo y nunca tocó el pato.
+    //       SÍ  → dentro. La carrillada al vino: esa reducción ES el líquido de
+    //             braseado, y la carne soltó sus jugos en él.
+    //
+    //   · MANTEQUILLAS COMPUESTAS (Café de París, de perejil) → aparte. Se hacen
+    //     en bol, se enfrían, se cortan en rodajas y se posan. Un entrecot sin
+    //     ella sigue siendo un entrecot.
+    //
+    //   · BACALAO AL PIL-PIL → dentro. La salsa se emulsiona con el aceite de
+    //     confitar el propio bacalao y su gelatina: no hay frontera que trazar.
+    //
+    //   · PATATAS BRAVAS → dentro. La brava es separable, pero unas bravas sin
+    //     brava son patatas fritas: falla la segunda cláusula. Y para lo que de
+    //     verdad importa —¿se le puede quitar a un alérgico?— la respuesta es
+    //     que no, porque entonces se le está dando otro plato.
+    //
+    // Medido sobre el catálogo: ~8 % de los platos llevan salsa aparte. La señal
+    // está en el nombre (la preposición: "con salsa X" ≈ aparte, "en salsa X" /
+    // "al X" ≈ dentro) y, mejor todavía, en el texto de los últimos pasos
+    // ("aparte", "al lado", "en un cuenco"), que acertó el 100 % de las veces.
+    // Ojo con cinco familias de falso positivo del "con X": gratinados,
+    // portadores (un wrap con césar la lleva dentro), glaseados que se pincelan,
+    // aliños, y los "con X" donde X no es una salsa.
     llevaSalsa: z.boolean().optional(),
     // Etapa del bebé, solo para category "bebes". "Bebé" no es una etapa: son
     // tres, y hasta ahora las 19 recetas eran todas del primer tramo — un niño

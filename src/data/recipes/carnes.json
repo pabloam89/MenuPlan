@@ -29892,25 +29892,25 @@
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego suave.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Sofreír la cebolla en la sartén a fuego suave hasta que esté tierna.",
         "minutes": 15,
         "kind": "pasivo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Añadir {{Azúcar}} y {{Vino blanco}} a la cebolla y remover.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Cocinar a fuego suave hasta que la cebolla caramelice y el vino evapore.",
         "minutes": 10,
         "kind": "pasivo",
-        "part": "salsa"
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar {{Filetes de lomo de cerdo}} por ambas caras.",
