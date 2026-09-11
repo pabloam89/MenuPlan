@@ -6,7 +6,7 @@
  */
 
 import { HEALTH_PROFILE_BADGE } from "../lib/healthProfileMatch.js";
-import { isMontaje } from "../data/recipeSchema.js";
+import { CARB_TYPE_BY_BASE, isMontaje } from "../data/recipeSchema.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
 // presence-based profile ("must contain iron-rich flag") rather than
@@ -19,8 +19,11 @@ const CORRECTABLE_HEALTH_PROFILES = new Set(
 );
 
 // ── Carb-type extraction ─────────────────────────────────────────
-// Used to detect same-day "guarnición" repetition without catalog edits.
-// Matches recipe name + ingredient list, most specific pattern first.
+// Used to detect same-day "guarnición" repetition. The DECLARED `mainBase`
+// wins when the recipe has one (see getCarbType + CARB_TYPE_BY_BASE in
+// data/recipeSchema.js); these patterns are the fallback for the ~500 recipes
+// that don't declare it, matched against recipe name + ingredient list, most
+// specific pattern first.
 const CARB_PATTERNS = [
   [/arroz|paella|risotto/, "arroz"],
   [/pasta|macarr[oó]n|espagueti|tallar[íi]n|fideo|fideu[áa]|penne|lasa[ñn]a|can+elones|ravioli/, "pasta"],
@@ -35,6 +38,13 @@ const CARB_PATTERNS = [
   [/\bpan\b|s[áa]ndwich|bocadillo|tostada|\btosta\b|bruschetta|rebanada|picatoste|pizza|wrap|burrito|quesadilla|empanad|migas|masa quebrada|hojaldre/, "pan"],
   [/avena|porridge/, "avena"],
 ];
+
+// The whole carb vocabulary, derived from the patterns instead of retyped —
+// exported so the test suite can cross-check CARB_TYPE_BY_BASE against it. A
+// base mapped to a carbType this list doesn't contain would classify declared
+// dishes differently from undeclared ones, which is exactly the drift the
+// table exists to end.
+export const CARB_TYPES = CARB_PATTERNS.map(([, carbType]) => carbType);
 
 // Text-only carb classifier — exported so aiPlanner.js can classify the
 // school menu's free-text dish names (which have no ingredients array) with
@@ -51,7 +61,33 @@ export function carbTypeFromText(text) {
   return null;
 }
 
+/**
+ * El tipo de hidrato de un PLATO del catálogo (no de un texto suelto).
+ *
+ * El `mainBase` declarado manda sobre el regex, traducido por la tabla
+ * CARB_TYPE_BY_BASE (data/recipeSchema.js), que es donde se explica el porqué
+ * de sus dos únicas entradas no-identidad (boniato → "patatas", legumbre →
+ * null). Antes se ignoraba el campo declarado y se clasificaba SIEMPRE por
+ * regex sobre nombre + ingredientes, y eso hacía dos cosas mal:
+ *
+ *   · leía un ingrediente secundario como si fuera la base del plato — el
+ *     "Trofie al pesto genovés" contaba como patatas (el pesto genovés lleva
+ *     patata) y por tanto NO chocaba con otra pasta el mismo día;
+ *   · no veía lo que su vocabulario no nombra — "Fettuccine Alfredo",
+ *     "Linguine alle vongole" o unos "Tacos de pollo" no tenían base ninguna,
+ *     así que espaguetis de comida + fettuccine de cena pasaban sin más.
+ *
+ * Medido contra el catálogo: 36 de 934 recetas cambian de carbType (26 del
+ * catálogo estrella). Ver el bloque CARB_TYPE_BY_BASE para el reparto.
+ *
+ * Un plato SIN `mainBase` sigue clasificándose por regex, que es lo que
+ * mantiene cubiertas las ~500 recetas que no declaran el campo (y las 109 que
+ * hoy solo tienen carbType gracias a él).
+ */
 export function getCarbType(recipe) {
+  if (recipe?.mainBase && Object.hasOwn(CARB_TYPE_BY_BASE, recipe.mainBase)) {
+    return CARB_TYPE_BY_BASE[recipe.mainBase];
+  }
   return carbTypeFromText([recipe.name, ...recipe.ingredients.map((i) => i.name)].join(" "));
 }
 
