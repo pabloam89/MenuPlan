@@ -72,6 +72,9 @@ jobs:
         if: steps.config.outputs.listo == 'true'
         env:
           OPS_DB_URL: ${{ secrets.OPS_DB_URL }}
+          # El pooler de Supabase exige SSL: sin esto psql reintenta sin cifrar
+          # y el error real (p. ej. contraseña) queda tapado por otro de SSL.
+          PGSSLMODE: require
         run: |
           command -v psql >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client; }
           mkdir -p .ops
