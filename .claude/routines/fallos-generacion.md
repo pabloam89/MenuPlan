@@ -98,8 +98,7 @@ Ejemplo:
 ➜ Ya resuelto en fb13d76
 ```
 
-Escríbelo en `.ops/aviso.txt` (el workflow lo envía como notificación; no se
-commitea) y publica el mismo texto como comentario en el issue abierto
-**"Agente de fallos: informe diario"** (búscalo con `gh issue list --state open
---search "Agente de fallos: informe diario in:title"`; créalo con
-`gh issue create` si no existe).
+Escríbelo **solo** en `.ops/aviso.txt` (no se commitea). Al terminar, el
+workflow lo publica en el issue "Agente de fallos: informe diario", que es lo
+que envía el email al equipo, y por WhatsApp si está configurado. **No publiques
+tú comentarios en ese issue**: saldrían duplicados.
