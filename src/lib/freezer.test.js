@@ -5,6 +5,7 @@ import {
   assignFreezerToSlot,
   catalogIdOfPlanRecipe,
   clearFreezerFromSlot,
+  canFreezeRecipe,
   cookedAgoLabel,
   cookedEatersFor,
   fridgePortionsFor,
@@ -21,6 +22,24 @@ import {
   slotUsesPrepared,
   splitSlotPortions,
 } from "./freezer.js";
+
+describe("canFreezeRecipe", () => {
+  // Estricto: solo `true` abre el congelador. El riesgo es asimétrico —negar
+  // el congelador a un guiso solo pierde comodidad; ofrecérselo a unas
+  // croquetas arruina la cena— así que ausente y false cuentan igual.
+  it("solo freezable === true abre la puerta", () => {
+    expect(canFreezeRecipe({ freezable: true })).toBe(true);
+    expect(canFreezeRecipe({ freezable: false })).toBe(false);
+    expect(canFreezeRecipe({})).toBe(false);
+    expect(canFreezeRecipe({ freezable: "true" })).toBe(false);
+    expect(canFreezeRecipe({ freezable: 1 })).toBe(false);
+  });
+
+  it("sin receta no hay congelador", () => {
+    expect(canFreezeRecipe(null)).toBe(false);
+    expect(canFreezeRecipe(undefined)).toBe(false);
+  });
+});
 
 function frozenDish(recipeRef, portions, extra = {}) {
   return {
