@@ -1,4 +1,6 @@
 output/
+# Proyecto nativo de iOS (Capacitor): solo se compila en un Mac, Vercel no lo necesita.
+ios/
 public/dishes/
 dish-gallery/
 # scripts/ (not scripts) so the negation below can still re-include one file —

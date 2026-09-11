@@ -23,6 +23,10 @@
     "sync:mercadona:cache": "node scripts/mercadona-sync.mjs --cache"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/browser": "^8.0.4",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@fal-ai/client": "^1.10.1",
     "@google/genai": "^2.9.0",
     "@supabase/supabase-js": "^2.108.2",
@@ -36,6 +40,7 @@
     "zod": "^4.4.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
     "@eslint/js": "^9.39.4",
     "@remotion/cli": "^4.0.520",
     "@remotion/google-fonts": "^4.0.520",
