@@ -112,3 +112,54 @@ jobs:
             --model claude-sonnet-5
             --max-turns 80
             --allowedTools Bash,Read,Write,Edit,Glob,Grep
+
+      # Aviso por WhatsApp vía CallMeBot: el informe breve que deja el agente en
+      # .ops/aviso.txt, o una alerta si el propio agente no ha podido ejecutarse.
+      # Los días sin fallos no se envía nada. Lo manda este paso y no el agente,
+      # para que el agente nunca tenga las claves de WhatsApp.
+      #
+      # Secreto CALLMEBOT_DESTINOS: una persona por línea, "telefono apikey"
+      # (p. ej. "+34600111222 1234567"). Sin el secreto, no se avisa y ya.
+      - name: Avisar por WhatsApp
+        if: always() && steps.config.outputs.listo == 'true'
+        env:
+          CALLMEBOT_DESTINOS: ${{ secrets.CALLMEBOT_DESTINOS }}
+          ESTADO: ${{ job.status }}
+          HAY_FALLOS: ${{ steps.datos.outputs.hay_fallos }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ISSUES_URL: ${{ github.server_url }}/${{ github.repository }}/issues
+        run: |
+          if [ "$ESTADO" != "success" ]; then
+            texto="⚠️ HoMenu: el agente de fallos no ha podido ejecutarse hoy. $RUN_URL"
+          elif [ -s .ops/aviso.txt ]; then
+            texto="$(head -c 900 .ops/aviso.txt)"
+          elif [ "$HAY_FALLOS" = "true" ]; then
+            texto="🟡 HoMenu: hay fallos nuevos, pero el agente no dejó resumen. $ISSUES_URL"
+          else
+            echo "Sin fallos: no se avisa."
+            exit 0
+          fi
+          if [ -z "$CALLMEBOT_DESTINOS" ]; then
+            echo "::warning::Sin aviso de WhatsApp: falta el secreto CALLMEBOT_DESTINOS"
+            exit 0
+          fi
+          # CallMeBot responde 200 incluso con una apikey inválida, así que el
+          # éxito se lee del cuerpo. El cuerpo no se imprime: el log es público
+          # y puede repetir el teléfono.
+          respuesta="$(mktemp)"
+          n=0
+          while IFS=' ,;' read -r telefono apikey _; do
+            [ -n "$telefono" ] && [ -n "$apikey" ] || continue
+            n=$((n + 1))
+            code=$(curl -sS -G "https://api.callmebot.com/whatsapp.php" \
+              --data-urlencode "phone=$telefono" \
+              --data-urlencode "text=$texto" \
+              --data-urlencode "apikey=$apikey" \
+              -o "$respuesta" -w "%{http_code}" || echo "000")
+            if [ "$code" = "200" ] && grep -qiE "queued|sent" "$respuesta"; then
+              echo "Aviso $n enviado"
+            else
+              echo "::warning::Aviso $n no enviado (HTTP $code). Revisa teléfono y apikey de la línea $n."
+            fi
+          done <<< "$CALLMEBOT_DESTINOS"
+          rm -f "$respuesta"
