@@ -34,6 +34,7 @@ import { dominantComponentOf } from "./dominantComponent.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
 import { normalizeKidDinnerConfig, schoolAvoidCategories, householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
+import { apiUrl } from "./apiUrl.js";
 import { lowerFirst } from "./dishNaming.js";
 
 // School-menu avoidance categories for the kids' cena. Historically the kids'
@@ -288,7 +289,7 @@ export async function callModel(body, signal, { onResult } = {}) {
     let response;
     let payload;
     try {
-      response = await fetch("/api/generate", {
+      response = await fetch(apiUrl("/api/generate"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

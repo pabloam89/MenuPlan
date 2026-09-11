@@ -69,6 +69,7 @@ import {
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
+import { apiUrl } from "../lib/apiUrl.js";
 import { adaptationsNeededFor } from "../lib/substitutions.js";
 import { matchingHealthProfiles } from "../lib/healthProfileMatch.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
@@ -5855,7 +5856,7 @@ export function DishDetail({
       }
 
       try {
-        const r = await fetch("/api/recipe-steps", {
+        const r = await fetch(apiUrl("/api/recipe-steps"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

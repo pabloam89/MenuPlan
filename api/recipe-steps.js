@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { Redis } from "@upstash/redis";
-import { blocked } from "./_guard.js";
+import { blocked, cors } from "./_guard.js";
 
 // Lazy, server-side cache of appliance-adapted recipe steps.
 //
@@ -230,6 +230,7 @@ async function generateSteps({ name, applianceLabel, prepSummary, ingredients, b
 }
 
 export default async function handler(req, res) {
+  if (cors(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

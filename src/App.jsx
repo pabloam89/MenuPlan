@@ -50,6 +50,7 @@ const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").the
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
+import { apiUrl } from "./lib/apiUrl.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 // Wizard generativo (experimento local, rama wizard/generativo). Todo lo suyo
@@ -4233,7 +4234,7 @@ export default function App() {
   const doDeleteAccount = useCallback(async () => {
     if (user?.id && session?.access_token) {
       try {
-        const res = await fetch("/api/delete-account", {
+        const res = await fetch(apiUrl("/api/delete-account"), {
           method: "POST",
           headers: { Authorization: `Bearer ${session.access_token}` },
         });

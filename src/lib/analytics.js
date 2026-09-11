@@ -1,3 +1,4 @@
+import { apiUrl } from "./apiUrl.js";
 import { supabase } from "./supabase.js";
 
 const deviceType = () =>
@@ -36,7 +37,7 @@ let flushTimer = null;
 // auth.uid(), so their events go through /api/track instead (service-role
 // insert, user_id null) tagged with a random per-browser id. Kept in a separate
 // queue: a batch never mixes the two paths.
-const GUEST_TRACK_URL = "/api/track";
+const GUEST_TRACK_URL = apiUrl("/api/track");
 const ANON_ID_KEY = "mp_anon_id";
 let guestQueue = [];
 let anonId = null;

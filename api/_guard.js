@@ -62,6 +62,28 @@ function clientIp(req) {
   return req.headers["x-real-ip"] || "unknown";
 }
 
+// Origen de la app iOS (Capacitor): la web va empaquetada y se sirve desde
+// capacitor://localhost, así que sus peticiones a /api son cross-origin.
+const APP_ORIGINS = new Set(["capacitor://localhost"]);
+
+/**
+ * CORS solo para la app nativa. Una petición con otro Origin (la web, el TWA)
+ * no recibe ninguna cabecera nueva y sigue su camino igual que antes.
+ * @returns {boolean} true si ya se ha respondido (preflight OPTIONS).
+ */
+export function cors(req, res) {
+  const origin = req.headers.origin;
+  if (!APP_ORIGINS.has(origin)) return false;
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Vary", "Origin");
+  if (req.method !== "OPTIONS") return false;
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Max-Age", "86400");
+  res.status(204).end();
+  return true;
+}
+
 /**
  * Rejects requests whose Origin belongs to another site. A missing Origin is
  * allowed on purpose: non-browser clients and some privacy proxies strip it,
@@ -72,6 +94,7 @@ function clientIp(req) {
 export function isCrossOrigin(req) {
   const origin = req.headers.origin;
   if (!origin) return false;
+  if (APP_ORIGINS.has(origin)) return false;
   const host = req.headers["x-forwarded-host"] || req.headers.host;
   if (!host) return false;
   try {

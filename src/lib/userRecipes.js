@@ -2,6 +2,7 @@ import { z } from "zod";
 import { uid } from "./groups.js";
 import { callModel, extractJson, AIPlannerError, ICON_TYPE_MAP, CATEGORY_ICON } from "./aiPlanner.js";
 import { FAST_MODEL } from "./aiModels.js";
+import { apiUrl } from "./apiUrl.js";
 import { EU_ALLERGENS } from "./allergens.js";
 import { normalizeRichSteps, richToPlainSteps } from "./recipeSteps.js";
 import { computeRecipeNutrition } from "./ingredients.js";
@@ -465,7 +466,7 @@ export function buildGarnishComboRecipe(recipe, garnish) {
 export async function generateDishPhotoWithAI(dishName, { signal, category, steps } = {}) {
   let response;
   try {
-    response = await fetch("/api/generate-dish-photo", {
+    response = await fetch(apiUrl("/api/generate-dish-photo"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ dishName, category, steps }),
