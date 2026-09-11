@@ -70,14 +70,36 @@ No tienes acceso a la base de datos. Las consultas están en
 
 ## 4. Informe
 
-Publica el informe como comentario en el issue abierto titulado
-**"Agente de fallos: informe diario"** (créalo si no existe, con
-`gh issue create`; búscalo con `gh issue list --state open --search
-"Agente de fallos: informe diario in:title"`). En español y breve:
+El equipo lo lee en el móvil: **lo más corto posible**. Sin saludos, sin
+resumen de menús, sin tablas ni títulos.
 
-- **Resumen**: menús generados, grupos de fallos, p50/p90 de tiempo.
-- **Fallos**: tipo, mensaje (solo si existe en el código), fallos, personas,
-  clasificación, acción.
-- **Urgente** (si hay): qué pasa y qué tiene que hacer una persona.
-- **PRs abiertos**: enlace y una línea por PR.
-- **Pendiente de decisión humana**: lo que no has tocado y por qué.
+Un bloque de **2 líneas por grupo de fallos**, como mucho 3 bloques (si hay
+más, una última línea: `+N fallos más en el issue`). Todo el informe en menos
+de 600 caracteres.
+
+```
+<urgencia> <qué falla, dicho para producto> (<fallos> fallos, <personas> personas)
+➜ <arreglo propuesto>
+```
+
+- `<urgencia>`: 🔴 hay usuarios afectados ahora y hay que actuar hoy (p. ej.
+  crédito de Anthropic agotado, un error que tumba la generación a muchos);
+  🟡 vigilar (pocos casos, cortes de red); 🟢 sin urgencia o ya resuelto.
+- `<arreglo propuesto>`, una frase: `PR #N <enlace>`, `ya resuelto en <commit>`,
+  una acción humana concreta (`recargar crédito en console.anthropic.com`), o
+  `requiere decisión: <qué>` cuando no puedes tocarlo tú.
+
+Ejemplo:
+
+```
+🔴 Nadie puede generar menú: crédito de Anthropic agotado (14 fallos, 11 personas)
+➜ Recargar crédito en console.anthropic.com
+🟢 Cortes de conexión en móvil antes del arreglo de reintentos (4 fallos, 2 personas)
+➜ Ya resuelto en fb13d76
+```
+
+Escríbelo en `.ops/aviso.txt` (el workflow lo envía como notificación; no se
+commitea) y publica el mismo texto como comentario en el issue abierto
+**"Agente de fallos: informe diario"** (búscalo con `gh issue list --state open
+--search "Agente de fallos: informe diario in:title"`; créalo con
+`gh issue create` si no existe).
