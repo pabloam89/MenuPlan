@@ -431,10 +431,35 @@ export function reglaVigente(regla, hoyISO) {
  *
  * Sin ventana cae a `reglaVigente(regla, hoy)`, para que llamar a esto sin
  * saber de qué semana hablamos siga siendo seguro.
+ *
+ * ── Con ventana NO se mira "hoy", y es deliberado ─────────────────────────
+ * Una regla ya vencida puede seguir cubriendo los días YA PASADOS de la
+ * semana que se está planificando, hasta que la poda se la lleve. Parece una
+ * incoherencia con `podarReglasVencidas` y no lo es: son dos preguntas
+ * distintas. La poda contesta "¿esto sigue puesto?" —y por eso mira hoy—;
+ * esto contesta "¿cubre alguno de los días que estoy planificando?", que es
+ * una propiedad del calendario, no del reloj.
+ *
+ * Cortar además por hoy tendría un precio peor que la rareza que evita: el
+ * menú dependería del DÍA EN QUE SE PULSA EL BOTÓN. Regenerar el lunes y
+ * regenerar el jueves la misma semana darían menús distintos sin que el
+ * usuario hubiera cambiado nada, que es exactamente la clase de fallo que no
+ * se puede explicar ni reproducir.
+ *
+ * Y en la práctica casi no aparece: la semana en curso se genera desde hoy
+ * (`startDayIdx > 0`), así que su `inicioISO` ES hoy y un `hasta` de ayer da
+ * "no" él solo. La discrepancia solo asoma regenerando la semana entera
+ * desde el lunes — y ahí la respuesta correcta es justamente la de aquí.
  */
 export function reglaTocaLaVentana(regla, ventana, hoyISO) {
-  const inicioISO = ventana?.inicioISO ?? ventana?.startISO ?? null;
-  const finISO = ventana?.finISO ?? ventana?.endISO ?? null;
+  // Un solo nombre de contrato: `inicioISO` / `finISO`. Sin alias con `??`
+  // para `startISO` / `endISO`: un alias es un contrato que se calla — quien
+  // pasara `{startISO}` creyendo pasar otra cosa vería que "funciona" y nadie
+  // se enteraría, que es la forma de fallo que este fichero existe para
+  // prohibir. Quien venga de `weekMeta[w]` traduce en la llamada (ver el
+  // JSDoc de `proyectarReglas`).
+  const inicioISO = ventana?.inicioISO ?? null;
+  const finISO = ventana?.finISO ?? null;
   if (!inicioISO || !finISO) return reglaVigente(regla, hoyISO) ? "total" : "no";
 
   const { desde, hasta } = regla?.vigencia ?? {};
@@ -551,12 +576,17 @@ function grupoAnfitrion(groups, grupoRef) {
  *   `members`, `excluidos`, `sesgos` y `cocinas`.
  *
  * @param {object} ctx
- *   `{ hoy: "YYYY-MM-DD", semana: { inicioISO, finISO, dias } }`, tal cual
- *   salen de `computeWeekRange` / `weekMeta[w]` — se aceptan también sus
- *   nombres originales (`startISO`, `endISO`, `activeDays`), que es como los
- *   devuelve `computeWeekRange` hoy, para que se pueda pasar `weekMeta[w]`
- *   sin traducir. OJO: `inicioISO` es el primer día ACTIVO, NO el lunes;
- *   quien compare semanas normaliza dentro (ver `tocaLaSemana`).
+ *   `{ hoy: "YYYY-MM-DD", semana: { inicioISO, finISO, dias } }`. Esos tres
+ *   nombres y no otros: `weekMeta[w]` los llama `startISO`, `endISO` y
+ *   `activeDays`, y aceptar las dos formas con un `??` sería un contrato que
+ *   se calla —quien pasara el objeto equivocado vería que "funciona"—, así
+ *   que traduce el enganche, en una línea:
+ *
+ *     semana: { inicioISO: startISO, finISO: endISO, dias: activeDays }
+ *
+ *   (`weekMeta` no se toca: es de la generación, no de aquí.)
+ *   OJO: `inicioISO` es el primer día ACTIVO, NO el lunes; quien compare
+ *   semanas normaliza dentro (ver `tocaLaSemana`).
  *
  * @returns {{ delta: object, avisos: Array, aplicadas: string[] }}
  *   `delta` trae SOLO las claves que alguna regla ha tocado. Se consume UNA
@@ -567,8 +597,9 @@ function grupoAnfitrion(groups, grupoRef) {
  *
  *   1. weekData = { ...working, groups, schedule: weekSchedule, menuWeek,
  *                   schoolMenus }   ← SIN las banderas derivadas
- *   2. const { delta, avisos } = proyectarReglas(weekData.reglas, weekData,
- *                                  { hoy, semana: weekMeta[w] })
+ *   2. const { startISO, endISO, activeDays } = weekMeta[w];
+ *      const { delta, avisos } = proyectarReglas(weekData.reglas, weekData,
+ *        { hoy, semana: { inicioISO: startISO, finISO: endISO, dias: activeDays } })
  *   3. const conReglas = { ...weekData, ...delta }
  *   4. conReglas.kidDinnerMatchesAdultLunch =
  *        deriveKidDinnerMatchesAdultLunch(conReglas)
@@ -602,9 +633,12 @@ function grupoAnfitrion(groups, grupoRef) {
 export function proyectarReglas(reglas, data, ctx = {}) {
   const hoy = ctx.hoy ?? isoLocal(new Date());
   const semana = ctx.semana ?? null;
-  const inicioISO = semana?.inicioISO ?? semana?.startISO ?? null;
-  const finISO = semana?.finISO ?? semana?.endISO ?? null;
-  const diasActivos = semana?.dias ?? semana?.activeDays ?? DAYS;
+  // Un solo nombre por clave. Ver el @param ctx: quien venga de `weekMeta[w]`
+  // traduce en la llamada, y así pasar el objeto equivocado falla en vez de
+  // "funcionar" leyendo la semana entera por defecto.
+  const inicioISO = semana?.inicioISO ?? null;
+  const finISO = semana?.finISO ?? null;
+  const diasActivos = semana?.dias ?? DAYS;
   const ventana = { inicioISO, finISO };
   const fechas = fechasDeLaSemana(inicioISO, diasActivos);
 
@@ -655,7 +689,11 @@ export function proyectarReglas(reglas, data, ctx = {}) {
 
   /** Las personas a las que apunta un sujeto ya existente. */
   const personasDe = (sujeto) => {
-    if (sujeto.tipo === "casa") return miembros;
+    // Una regla sobre la casa habla de la CASA, no de quien viene de visita.
+    // `miembros` ya trae dentro a los invitados que materializó la pasada 1,
+    // así que devolverlo entero hacía que "el sábado comemos todos en casa"
+    // sentara también al tío del miércoles — y lo contara en la compra.
+    if (sujeto.tipo === "casa") return miembros.filter((m) => !m.invitado);
     if (sujeto.tipo === "invitado") {
       // Un invitado múltiple son N personas con ids derivados, así que el
       // `ref` del sujeto no es el id de nadie: hay que expandirlo. (La pasada
@@ -779,7 +817,8 @@ export function proyectarReglas(reglas, data, ctx = {}) {
         aviso(regla, "sujeto_desconocido");
         continue;
       }
-      let huecos = huecosDe(regla.ambito, regla.salvedad, comidasPlanificadas, diasActivos);
+      const huecosPedidos = huecosDe(regla.ambito, regla.salvedad, comidasPlanificadas, diasActivos);
+      let huecos = huecosPedidos;
       // `presente` SÍ sabe de días, así que una vigencia que cubre media
       // semana se recorta de verdad en vez de ensancharse con un aviso.
       if (cobertura === "parcial" && fechas) {
@@ -792,7 +831,22 @@ export function proyectarReglas(reglas, data, ctx = {}) {
           return true;
         });
       }
-      if (huecos.length === 0) continue;
+      if (huecos.length === 0) {
+        // Quedarse sin huecos significa dos cosas muy distintas, y callarse
+        // las dos era tratar como iguales un no-evento y un incumplimiento.
+        //
+        //  · No había ninguno ya ANTES de filtrar por fechas: el ámbito pedía
+        //    días que esta semana no se planifican ("los domingos" en una
+        //    semana que acaba el viernes). Ahí callar es lo correcto — es el
+        //    mismo silencio que el de una regla de otra semana.
+        //  · Los había y se los comió la vigencia: el usuario pidió algo
+        //    dentro de una ventana que SÍ toca esta semana, y no ha pasado
+        //    nada. Eso se dice.
+        if (huecosPedidos.length > 0) {
+          aviso(regla, "no_soportado", "su vigencia no alcanza ningún día de los que se planifican");
+        }
+        continue;
+      }
       for (const persona of personas) {
         for (const { dia, comida } of huecos) {
           schedule[slotKey(persona.id, dia, comida)] = efecto.valor;
@@ -808,7 +862,17 @@ export function proyectarReglas(reglas, data, ctx = {}) {
       const valor = String(efecto.valor).trim().toLowerCase();
       // El eje de destino (`dislikes` / `data.excluidos`) es por semana, no por
       // día: si la regla pedía menos, se aplica de más y se dice.
-      if (ambitoRecorta(regla, comidasPlanificadas)) {
+      //
+      // Y se mide contra TODAS las comidas, no solo contra las que planifica
+      // el LLM. `planExtraMealsForGroup` construye sus dislikes con
+      // `...(data.excluidos ?? [])` y `members.flatMap(m => m.dislikes)`
+      // (aiPlanner.js:1472), así que una exclusión llega también al desayuno,
+      // la merienda y el postre. En una casa con desayuno activo, una regla
+      // que nombra "comida y cena" acaba aplicándose a cinco comidas: eso es
+      // aplicar de más, y hay que decirlo. (El `sesgo` de abajo se mide
+      // contra las planificadas porque a él le pasa lo contrario: esa misma
+      // función llama a `filterOffMenuRecipes` SIN sesgos ni cocinas.)
+      if (ambitoRecorta(regla, todasLasComidas)) {
         aviso(regla, "ambito_ignorado", "se aplica a toda la semana");
       }
       if (cobertura === "parcial") {
@@ -854,6 +918,12 @@ export function proyectarReglas(reglas, data, ctx = {}) {
         aviso(regla, "no_soportado", "un sesgo solo se sabe aplicar a toda la casa");
         continue;
       }
+      // Contra las comidas PLANIFICADAS, y aquí sí: un sesgo no sale de
+      // comida y cena. `planExtraMealsForGroup` llama a
+      // `filterOffMenuRecipes` sin sesgos ni cocinas, así que nombrar "comida
+      // y cena" en una casa con desayuno no está pidiendo de menos — el
+      // desayuno nunca iba a mirar el sesgo. Es la cara opuesta de la
+      // asimetría que documenta la rama `excluir` de arriba.
       if (ambitoRecorta(regla, comidasPlanificadas)) {
         aviso(regla, "ambito_ignorado", "se aplica a toda la semana");
       }

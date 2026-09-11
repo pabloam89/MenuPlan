@@ -799,3 +799,191 @@ describe("el ámbito por día se aplica de más, y lo dice", () => {
     expect(delta.schedule[slotKey("p1", "Vie", "Comida")]).toBeUndefined();
   });
 });
+
+// ═══ Anotaciones del cierre del paso 4 ═══════════════════════════════════════
+
+describe("N1 — el contrato de `ctx.semana` tiene un solo nombre", () => {
+  // Antes se aceptaban los dos juegos de claves con `??`. Un alias así es un
+  // contrato que se calla: quien pasara `weekMeta[w]` crudo creyendo pasar
+  // otra cosa vería que "funciona" y nadie se enteraría nunca.
+  it("traducido se aplica; crudo no se aplica, y además lo dice", () => {
+    const { startISO, endISO, activeDays } = computeWeekRange(1, 0);
+    const regla = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      ambito: { semanas: [lunesDe(startISO)] },
+      efecto: { tipo: "sesgo", valor: { campo: "tecnica", valor: "horno", peso: 1 } },
+      hoy: hoyReal(),
+    });
+
+    const traducido = proyectarReglas([regla], CASA(), {
+      hoy: hoyReal(),
+      semana: { inicioISO: startISO, finISO: endISO, dias: activeDays },
+    });
+    expect(traducido.aplicadas).toEqual([regla.id]);
+
+    const crudo = proyectarReglas([regla], CASA(), {
+      hoy: hoyReal(),
+      semana: { startISO, endISO, activeDays },
+    });
+    expect(crudo.aplicadas).toEqual([]);
+    expect(crudo.avisos[0].motivo).toBe("no_soportado");
+  });
+
+  it("y `reglaTocaLaVentana` con las claves de weekMeta cae a «hoy», no a la semana", () => {
+    const { startISO, endISO } = computeWeekRange(2, 0);
+    const regla = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      efecto: { tipo: "excluir", valor: "picante" },
+      vigencia: { hasta: hoyReal() },
+      hoy: hoyReal(),
+    });
+    // Con los nombres buenos: dentro de dos semanas ya no vale.
+    expect(reglaTocaLaVentana(regla, { inicioISO: startISO, finISO: endISO }, hoyReal())).toBe("no");
+    // Con los de weekMeta: no hay ventana que valga, así que cae a hoy — y hoy
+    // sí vale. Ese "total" silencioso es justo lo que el alias escondía.
+    expect(reglaTocaLaVentana(regla, { startISO, endISO }, hoyReal())).toBe("total");
+  });
+});
+
+describe("N2 — una regla vencida todavía cubre los días pasados de la semana en curso", () => {
+  // Correcto por diseño. `podarReglasVencidas` contesta "¿sigue puesta?" y
+  // `reglaTocaLaVentana` contesta "¿cubre algún día de los que planifico?".
+  // Cortar además por hoy haría que el menú dependiera del día en que se
+  // pulsa el botón, que es un fallo que no se puede ni explicar ni reproducir.
+  const SEMANA = { inicioISO: "2026-09-07", finISO: "2026-09-13", dias: [...DAYS] };
+  const regla = nuevaRegla({
+    sujeto: { tipo: "casa" },
+    efecto: { tipo: "excluir", valor: "picante" },
+    vigencia: { hasta: "2026-09-09" },
+    hoy: "2026-09-07",
+  });
+
+  it("la poda dice que ya no está puesta", () => {
+    expect(reglaVigente(regla, "2026-09-11")).toBe(false);
+    expect(podarReglasVencidas([regla], "2026-09-11").vencidas).toEqual([regla]);
+  });
+
+  it("y aun así se aplica a esa semana, se regenere el lunes o el viernes", () => {
+    expect(reglaTocaLaVentana(regla, SEMANA, "2026-09-11")).toBe("parcial");
+    const viernes = proyectarReglas([regla], CASA(), { hoy: "2026-09-11", semana: SEMANA });
+    const lunes = proyectarReglas([regla], CASA(), { hoy: "2026-09-07", semana: SEMANA });
+    expect(viernes.aplicadas).toEqual([regla.id]);
+    expect(lunes.aplicadas).toEqual(viernes.aplicadas);
+    expect(lunes.delta.excluidos).toEqual(viernes.delta.excluidos);
+  });
+
+  it("en la semana en curso generada desde hoy la rareza ni aparece", () => {
+    // `startDayIdx > 0`: el primer día activo ES hoy, así que un `hasta` de
+    // ayer da "no" él solo, sin necesidad de mirar el reloj.
+    const desdeHoy = { inicioISO: "2026-09-11", finISO: "2026-09-13", dias: ["Vie", "Sáb", "Dom"] };
+    const ayer = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      efecto: { tipo: "excluir", valor: "picante" },
+      vigencia: { hasta: "2026-09-10" },
+      hoy: "2026-09-01",
+    });
+    expect(reglaTocaLaVentana(ayer, desdeHoy, "2026-09-11")).toBe("no");
+  });
+});
+
+describe("N3 — el ámbito de comidas se mide contra un destino distinto según el efecto", () => {
+  // `planExtraMealsForGroup` mete `data.excluidos` y `m.dislikes` en los
+  // dislikes del desayuno/merienda/postre (aiPlanner.js:1472), pero llama a
+  // `filterOffMenuRecipes` SIN sesgos ni cocinas. O sea: una exclusión llega a
+  // cinco comidas y un sesgo solo a dos.
+  const CON_DESAYUNO = () => ({ ...CASA(), extraMeals: { desayuno: "variado" } });
+
+  it("«comida y cena» en una casa con desayuno: la exclusión avisa…", () => {
+    const regla = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      ambito: { comidas: ["Comida", "Cena"] },
+      efecto: { tipo: "excluir", valor: "picante" },
+      hoy: HOY,
+    });
+    const { avisos, aplicadas } = proyectarReglas([regla], CON_DESAYUNO(), ctx());
+    expect(aplicadas).toEqual([regla.id]);
+    expect(avisos.map((a) => a.motivo)).toEqual(["ambito_ignorado"]);
+  });
+
+  it("…y el sesgo no, porque el desayuno nunca iba a mirarlo", () => {
+    const regla = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      ambito: { comidas: ["Comida", "Cena"] },
+      efecto: { tipo: "sesgo", valor: { campo: "tecnica", valor: "horno", peso: 1 } },
+      hoy: HOY,
+    });
+    const { avisos, aplicadas } = proyectarReglas([regla], CON_DESAYUNO(), ctx());
+    expect(aplicadas).toEqual([regla.id]);
+    expect(avisos).toEqual([]);
+  });
+
+  it("sin comidas extra las dos callan: no hay nada que se aplique de más", () => {
+    const regla = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      ambito: { comidas: ["Comida", "Cena"] },
+      efecto: { tipo: "excluir", valor: "picante" },
+      hoy: HOY,
+    });
+    expect(proyectarReglas([regla], CASA(), ctx()).avisos).toEqual([]);
+  });
+});
+
+describe("N4 — «la casa» no incluye a quien viene de visita", () => {
+  const visita = nuevaRegla({
+    sujeto: { tipo: "invitado", nombre: "Mi tío" },
+    ambito: { dias: ["Mié"], comidas: ["Comida"] },
+    efecto: { tipo: "presente", valor: "casa" },
+    hoy: HOY,
+  });
+  const todos = nuevaRegla({
+    sujeto: { tipo: "casa" },
+    ambito: { dias: ["Sáb"] },
+    efecto: { tipo: "presente", valor: "casa" },
+    hoy: HOY,
+  });
+
+  it("el sábado se sienta la familia, no el tío del miércoles", () => {
+    const { delta } = proyectarReglas([visita, todos], CASA(), ctx());
+    expect(delta.schedule[slotKey("p1", "Sáb", "Comida")]).toBe("casa");
+    expect(delta.schedule[slotKey(visita.sujeto.ref, "Sáb", "Comida")]).toBe("fuera");
+  });
+
+  it("y por tanto no infla los comensales de ese sábado", () => {
+    const { data } = aplicarReglas({ ...CASA(), reglas: [visita, todos] }, ctx());
+    const adultos = data.groups.find((g) => g.label === "Adultos");
+    expect(eatersForSlot(adultos, data.members, data.schedule, "Sáb", "Comida").length).toBe(2);
+    expect(eatersForSlot(adultos, data.members, data.schedule, "Mié", "Comida").length).toBe(3);
+  });
+});
+
+describe("N5 — quedarse sin huecos significa dos cosas distintas", () => {
+  it("días que esta semana no se planifican: se calla", () => {
+    const semana = { inicioISO: LUNES, finISO: "2026-09-11", dias: ["Lun", "Mar", "Mié", "Jue", "Vie"] };
+    const regla = nuevaRegla({
+      sujeto: { tipo: "miembro", ref: "p1" },
+      ambito: { dias: ["Dom"] },
+      efecto: { tipo: "presente", valor: "fuera" },
+      hoy: HOY,
+    });
+    const { delta, avisos, aplicadas } = proyectarReglas([regla], CASA(), { hoy: HOY, semana });
+    expect(aplicadas).toEqual([]);
+    expect(avisos).toEqual([]);
+    expect(delta.schedule).toBeUndefined();
+  });
+
+  it("la vigencia se come los huecos que sí había: se dice", () => {
+    const semana = { inicioISO: LUNES, finISO: DOMINGO, dias: [...DAYS] };
+    const regla = nuevaRegla({
+      sujeto: { tipo: "miembro", ref: "p1" },
+      ambito: { dias: ["Lun"] },
+      vigencia: { desde: "2026-09-10" },
+      efecto: { tipo: "presente", valor: "fuera" },
+      hoy: HOY,
+    });
+    const { delta, avisos, aplicadas } = proyectarReglas([regla], CASA(), { hoy: HOY, semana });
+    expect(aplicadas).toEqual([]);
+    expect(delta.schedule).toBeUndefined();
+    expect(avisos[0].motivo).toBe("no_soportado");
+    expect(avisos[0].detalle).toContain("vigencia");
+  });
+});
