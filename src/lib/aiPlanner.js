@@ -158,11 +158,15 @@ export function extractJson(text) {
 }
 
 export class AIPlannerError extends Error {
-  constructor(message, { cause, raw } = {}) {
+  constructor(message, { cause, raw, network, diagnostics } = {}) {
     super(message);
     this.name = "AIPlannerError";
     if (cause) this.cause = cause;
     if (raw) this.raw = raw;
+    // `network`: the request never got a response (fetch rejected), as opposed
+    // to an error the API actually returned. `diagnostics` travels to analytics.
+    if (network) this.network = true;
+    if (diagnostics) this.diagnostics = diagnostics;
   }
 }
 
@@ -182,6 +186,20 @@ const DEFAULT_MAX_TOKENS = 1024;
 const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 529]);
 const RETRY_DELAYS_MS = [600, 1500];
 
+// A rejected fetch ("Load failed" on iOS, "Failed to fetch" on Chrome) means the
+// connection dropped before any response arrived. In production this only shows
+// up on mobile: a planner call carries the whole catalog and can sit silent for
+// tens of seconds, long enough for a WiFi↔4G handoff or a carrier proxy to cut
+// it. Like a 529, the same call moments later usually works — and a single
+// dropped call used to sink the whole multi-week generation with no retry.
+const NETWORK_ERROR_MESSAGE = "No se pudo contactar con el servicio de IA. Comprueba la conexión.";
+const NETWORK_RETRY_DELAYS_MS = [1000, 2500, 5000];
+// When the page went to the background mid-request (screen locked, app
+// switched) the OS suspended it and killed the fetch — nothing wrong with the
+// network. Those drops wait until the user is back and retry without spending a
+// network retry, capped so bouncing in and out can't loop forever.
+const MAX_BACKGROUND_RETRIES = 3;
+
 function sleep(ms, signal) {
   return new Promise((resolve, reject) => {
     const t = setTimeout(resolve, ms);
@@ -192,10 +210,83 @@ function sleep(ms, signal) {
   });
 }
 
+function isPageHidden() {
+  return typeof document !== "undefined" && document.visibilityState === "hidden";
+}
+
+function waitUntilVisible(signal) {
+  if (signal?.aborted) return Promise.reject(new DOMException("Aborted", "AbortError"));
+  if (!isPageHidden()) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      document.removeEventListener("visibilitychange", onChange);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const onChange = () => {
+      if (isPageHidden()) return;
+      cleanup();
+      resolve();
+    };
+    const onAbort = () => {
+      cleanup();
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    document.addEventListener("visibilitychange", onChange);
+    signal?.addEventListener("abort", onAbort);
+  });
+}
+
+// Remembers whether the page was hidden at any point while a request was in flight.
+function watchHidden() {
+  if (typeof document === "undefined") return { wasHidden: () => false, stop: () => {} };
+  let hidden = isPageHidden();
+  const onChange = () => {
+    if (isPageHidden()) hidden = true;
+  };
+  document.addEventListener("visibilitychange", onChange);
+  return {
+    wasHidden: () => hidden || isPageHidden(),
+    stop: () => document.removeEventListener("visibilitychange", onChange),
+  };
+}
+
 export async function callModel(body, signal) {
-  let lastError;
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+  const startedAt = Date.now();
+  let statusRetries = 0;
+  let networkRetries = 0;
+  let backgroundRetries = 0;
+
+  // Dropped connection: waits (and returns, so the loop retries) or throws once
+  // the retries are spent.
+  const afterNetworkError = async (err, wasHidden) => {
+    if (err?.name === "AbortError") throw err;
+    if (wasHidden && backgroundRetries < MAX_BACKGROUND_RETRIES) {
+      backgroundRetries++;
+      await waitUntilVisible(signal);
+      return;
+    }
+    if (networkRetries < NETWORK_RETRY_DELAYS_MS.length) {
+      await sleep(NETWORK_RETRY_DELAYS_MS[networkRetries++], signal);
+      await waitUntilVisible(signal);
+      return;
+    }
+    throw new AIPlannerError(NETWORK_ERROR_MESSAGE, {
+      cause: err,
+      network: true,
+      diagnostics: {
+        cause: `${err?.name ?? "Error"}: ${err?.message ?? ""}`,
+        hiddenDuringRequest: wasHidden,
+        callElapsedMs: Date.now() - startedAt,
+        networkRetries,
+        backgroundRetries,
+      },
+    });
+  };
+
+  for (;;) {
+    const hidden = watchHidden();
     let response;
+    let payload;
     try {
       response = await fetch("/api/generate", {
         method: "POST",
@@ -203,12 +294,17 @@ export async function callModel(body, signal) {
         body: JSON.stringify(body),
         signal,
       });
+      // Read the body inside the same try: the connection can also drop while
+      // it streams in, which is the same failure as a rejected fetch.
+      if (response.ok) payload = await response.json();
     } catch (err) {
-      if (err?.name === "AbortError") throw err;
-      throw new AIPlannerError(
-        "No se pudo contactar con el servicio de IA. Comprueba la conexión.",
-        { cause: err },
-      );
+      if (err instanceof SyntaxError) {
+        throw new AIPlannerError("Respuesta no JSON del proxy.", { cause: err });
+      }
+      await afterNetworkError(err, hidden.wasHidden());
+      continue;
+    } finally {
+      hidden.stop();
     }
 
     if (!response.ok) {
@@ -219,21 +315,14 @@ export async function callModel(body, signal) {
       } catch {
         detail = await response.text().catch(() => "");
       }
-      lastError = new AIPlannerError(
+      const error = new AIPlannerError(
         `La IA respondió con un error (HTTP ${response.status}). ${detail}`.trim(),
       );
-      if (RETRYABLE_STATUSES.has(response.status) && attempt < RETRY_DELAYS_MS.length) {
-        await sleep(RETRY_DELAYS_MS[attempt], signal);
+      if (RETRYABLE_STATUSES.has(response.status) && statusRetries < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[statusRetries++], signal);
         continue;
       }
-      throw lastError;
-    }
-
-    let payload;
-    try {
-      payload = await response.json();
-    } catch (err) {
-      throw new AIPlannerError("Respuesta no JSON del proxy.", { cause: err });
+      throw error;
     }
 
     const text = payload?.content?.[0]?.text;
@@ -242,7 +331,6 @@ export async function callModel(body, signal) {
     }
     return text;
   }
-  throw lastError;
 }
 
 // ── System prompt ───────────────────────────────────────────────
@@ -1524,7 +1612,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   return out;
 }
 
-export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL } = {}) {
+export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL, groupCache = null } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
@@ -1536,11 +1624,28 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     throw new AIPlannerError("Ningún grupo tiene miembros asignados.");
   }
 
-  const results = await Promise.all(
-    activeGroups.map((group) =>
-      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode),
-    ),
-  );
+  // Groups are independent, so one whose connection dropped (even after
+  // callModel's own retries) gets one more go on its own instead of failing the
+  // rest. `groupCache` (a Map keyed by group id, owned by the caller) keeps the
+  // groups that did come back, so retrying the whole generation later redoes
+  // only the missing ones. Hydration below only reads these results.
+  const runGroup = async (group) => {
+    const cached = groupCache?.get(group.id);
+    if (cached) return cached;
+    const run = () =>
+      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode);
+    let result;
+    try {
+      result = await run();
+    } catch (err) {
+      if (!err?.network || signal?.aborted) throw err;
+      await waitUntilVisible(signal);
+      result = await run();
+    }
+    groupCache?.set(group.id, result);
+    return result;
+  };
+  const results = await Promise.all(activeGroups.map(runGroup));
 
   const multi = results.length > 1;
   const plan = { _warnings: [] };
