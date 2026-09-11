@@ -1251,6 +1251,125 @@ describe("callModel retry on transient overload", () => {
   });
 });
 
+describe("callModel retry on a dropped connection", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  const ok = { ok: true, json: async () => ({ content: [{ text: "hola" }] }) };
+
+  it("retries when fetch rejects (mobile 'Load failed') and succeeds on the next try", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("Load failed"))
+      .mockResolvedValueOnce(ok);
+    vi.stubGlobal("fetch", fetchMock);
+
+    const promise = callModel({ model: "m", max_tokens: 10, messages: [] });
+    await vi.runAllTimersAsync();
+    expect(await promise).toBe("hola");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("treats a body that drops mid-read like a rejected fetch", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => { throw new TypeError("network error"); } })
+      .mockResolvedValueOnce(ok);
+    vi.stubGlobal("fetch", fetchMock);
+
+    const promise = callModel({ model: "m", max_tokens: 10, messages: [] });
+    await vi.runAllTimersAsync();
+    expect(await promise).toBe("hola");
+  });
+
+  it("gives up after the network retries, flagging the error with its diagnostics", async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError("Load failed"));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const promise = callModel({ model: "m", max_tokens: 10, messages: [] });
+    const settled = promise.catch((e) => e);
+    await vi.runAllTimersAsync();
+    const err = await settled;
+    expect(err).toBeInstanceOf(AIPlannerError);
+    expect(err.network).toBe(true);
+    expect(err.diagnostics).toMatchObject({ cause: "TypeError: Load failed", hiddenDuringRequest: false, networkRetries: 3 });
+    // Initial attempt + 3 network retries.
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("waits until the page is visible again when the drop happened in the background", async () => {
+    const doc = new EventTarget();
+    doc.visibilityState = "hidden";
+    vi.stubGlobal("document", doc);
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("Load failed"))
+      .mockResolvedValueOnce(ok);
+    vi.stubGlobal("fetch", fetchMock);
+
+    const promise = callModel({ model: "m", max_tokens: 10, messages: [] });
+    await vi.runAllTimersAsync();
+    // Still in the background: no retry burned while the OS keeps the page suspended.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    doc.visibilityState = "visible";
+    doc.dispatchEvent(new Event("visibilitychange"));
+    await vi.runAllTimersAsync();
+    expect(await promise).toBe("hola");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry once the caller aborts", async () => {
+    const abortError = new DOMException("Aborted", "AbortError");
+    const fetchMock = vi.fn().mockRejectedValue(abortError);
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(callModel({ model: "m", max_tokens: 10, messages: [] })).rejects.toBe(abortError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("generateMenuWithAI groupCache", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("reuses groups that already came back instead of calling the model again", async () => {
+    const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 1 };
+    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
+    const segundo = pool.find((r) => r.mealRole.includes("segundo") && r.id !== primero?.id);
+    const cena = pool.find((r) => r.mealRole.includes("cena"));
+    const slots = [
+      { slotId: "lun_comida_1", recipeId: primero.id },
+      { slotId: "lun_comida_2", recipeId: segundo.id },
+      { slotId: "lun_cena", recipeId: cena.id },
+    ];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ content: [{ text: JSON.stringify({ slots }) }] }) }),
+    );
+
+    const groupCache = new Map();
+    const first = await generateMenuWithAI(data, { groupCache });
+    expect(groupCache.has(group.id)).toBe(true);
+
+    // The retry would now lose its connection — but the cached group never asks.
+    const offline = vi.fn().mockRejectedValue(new TypeError("Load failed"));
+    vi.stubGlobal("fetch", offline);
+    const second = await generateMenuWithAI(data, { groupCache });
+    expect(offline).not.toHaveBeenCalled();
+    expect(second.plan[group.id]["Lun-Cena"]).toEqual(first.plan[group.id]["Lun-Cena"]);
+  });
+});
+
 // D4c (Fase 5): "strict" ("cosas distintas cada semana") reparte el pool en
 // buckets disjuntos best-effort, sin dependencia entre semanas (paralelizable).
 describe("poolForWeek — variedad multi-semana", () => {
