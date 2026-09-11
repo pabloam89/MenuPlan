@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import {
   parseSchoolMenuText,
   parseSchoolMenuCsv,
@@ -101,19 +101,25 @@ describe("selectBestWeek", () => {
 // ---------------------------------------------------------------------------
 
 describe("importSchoolMenuFile (CSV, local path)", () => {
-  // 20 s, y no es que la importación sea lenta: es la única prueba del fichero
-  // que llega a `importSchoolMenuFile`, y esa función hace
-  // `await import("./menuParser.js")` DENTRO del cuerpo (schoolMenuImport.js:593)
-  // para que el catálogo no entre en el chunk inicial. Cargar ese grafo —los 16
-  // JSON de recetas, 5 MB— por el pipeline de Vite se cobra contra el
-  // presupuesto de ESTA prueba, no contra el `transform` de la suite: medido,
-  // 5,1 s de los que el round-trip a Supabase son ~230 ms y el emparejamiento
-  // con el catálogo 11 ms. Con el timeout de 5 s por defecto rozaba el límite y
-  // pasó a rojo cuando el catálogo de esta rama creció.
+  // `importSchoolMenuFile` hace `await import("./menuParser.js")` DENTRO del
+  // cuerpo (schoolMenuImport.js:593), a propósito, para que el catálogo no
+  // entre en el chunk de arranque. En el test eso significa que cargar el grafo
+  // —los 16 JSON de recetas, 5 MB— por el pipeline de Vite se cobraba contra el
+  // cronómetro de ESTA prueba: medido, ~5 s de los que Supabase son ~230 ms y
+  // el emparejamiento 11 ms. Con la suite entera en marcha rozaba cualquier
+  // timeout razonable (5 s, luego 20 s) y caía en rojo sin que hubiera nada
+  // roto.
   //
-  // Se sube el presupuesto en vez de volver estático ese import: hacerlo
-  // estático arreglaría la prueba y metería el catálogo en el chunk de arranque,
-  // que es justo lo contrario de lo que se quiere.
+  // Se precalienta aquí, con su propio margen, y no se vuelve estático el
+  // import de producción: hacerlo estático arreglaría la prueba y metería el
+  // catálogo en el chunk inicial, que es justo lo contrario de lo que se
+  // quiere. El import dinámico sigue igual; simplemente ya está en caché
+  // cuando la prueba llega a él. La afirmación del test —que el camino CSV no
+  // toca la red— no cambia: eso es sobre fetch, no sobre el coste de cargar.
+  beforeAll(async () => {
+    await import("./menuParser.js");
+  }, 120_000);
+
   it("imports a CSV file without touching the network", async () => {
     const csv = `día,primero,segundo,postre
 Lunes,Lentejas estofadas,Pollo asado,Manzana
@@ -128,5 +134,5 @@ Viernes,Judías,Croquetas,Fruta`;
     expect(weeks.length).toBeGreaterThan(0);
     expect(entries["Lun-Primero"]).toBe("Lentejas estofadas");
     expect(entries["Vie-Postre"]).toBe("Fruta");
-  }, 20000);
+  });
 });
