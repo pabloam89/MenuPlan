@@ -4342,8 +4342,8 @@
     "carbs_g": 28,
     "fat_g": 5,
     "allergens": [],
-    "mainBase": "patatas",
-    "baseMode": "dentro",
+    "mainBase": "boniato",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],

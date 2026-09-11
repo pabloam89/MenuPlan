@@ -21,7 +21,7 @@ ESTRUCTURA DE UN DÍA EN ESPAÑA:
 - COMIDA (mediodía): primero ligero (sopa, crema, ensalada, verdura, legumbre) + segundo principal (carne, pescado, huevo), o un plato_unico solo.
   - Plato único (paella, cocido, pizza): va solo, sin primero ni segundo. Pon el plato_unico en el slot _1 y omite el slot _2.
   - Nunca dos platos de cuchara el MISMO DÍA (ni primero+segundo, ni comida+cena). Cuenta como plato de cuchara todo lo de category "sopas_cremas" o "legumbres", y cualquier receta con mainProtein "legumbre".
-  - Primero y segundo no comparten proteína (mainProtein) ni base de carbohidrato. La base la da el campo "mainBase" del catálogo (arroz/pasta/patatas/quinoa/cuscus): si ambos platos traen el mismo mainBase, es una repetición y NO vale. Un plato sin mainBase no tiene base de carbohidrato dominante.
+  - Primero y segundo no comparten proteína (mainProtein) ni base de carbohidrato. La base la da el campo "mainBase" del catálogo (arroz/pasta/patatas/boniato/quinoa/cuscus): si ambos platos traen el mismo mainBase, es una repetición y NO vale. Un plato sin mainBase no tiene base de carbohidrato dominante.
   - PESO DE LA COMIDA: primero + segundo NO deben sumar más de 850 kcal entre los dos (usa el campo "kcal" del catálogo). Si el segundo es contundente, el primero debe ser ligero.
   - COHERENCIA DE CARGA: no combines dos platos contundentes/feculentos el mismo mediodía. Si el primero ya es un plato abundante de arroz/pasta/patata (type "completo", o mainBase arroz/pasta/patatas, p. ej. "Arroz con tomate frito"), el segundo debe ser una proteína ligera a la plancha/horno acompañada de verdura, y NUNCA otro plato con carbohidrato ni pan (nada de hamburguesas con pan, bocadillos, perritos, empanados/rebozados con guarnición de patatas). Un primero feculento pide un segundo sencillo, no otro plato "de relleno".
 - CENA: un solo plato, siempre más ligero que la comida.
@@ -69,7 +69,7 @@ RESTRICCIONES POR SLOT:
   Un plato de solo cena (p. ej. quesadillas, tostas, wraps) NUNCA va en una comida. Un "plato_unico" (lasaña, paella, carbonara…) ES la comida entera: no lo pongas de primero con un segundo detrás, solo en un hueco marcado como plato único.
 - Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
 - Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
-- Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/quinoa/cuscús) en la CENA de ese día.
+- Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/boniato/quinoa/cuscús) en la CENA de ese día.
 - Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
 - Si un slot trae preferType "plato_unico" (excepción marcada por el usuario), asígnale una receta con mealRole "plato_unico" (paella, pizza, guiso completo…). Ese día NO lleva primero ni segundo: solo el slot _comida_1 con ese plato.
 - Si un slot trae preferType "cena_rapida", asígnale una receta de category "cenas_rapidas" (sándwich, tosta, ensalada, revuelto…): algo ligero y rápido (≤ 15 min).
