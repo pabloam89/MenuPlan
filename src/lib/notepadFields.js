@@ -29,6 +29,8 @@
  * y además es como habla la gente — nadie dice "para Lucía", dice "los niños".
  */
 
+import { COCINAS, MAIN_BASES, TECNICAS } from "../data/recipeSchema.js";
+
 /** Los tres verbos. No hay más: el pool cerrado es lo que hace fiable el panel. */
 export const VERBOS = ["mas", "menos", "nunca"];
 
@@ -60,12 +62,37 @@ export const CAMPOS = [
     ejemplo: "menos pescado",
   },
   {
+    id: "reparto",
+    grupo: "familia",
+    etiqueta: "El reparto de la semana",
+    dominio: FAMILIAS,
+    proyecta: "reparto",
+    // Suma fija: mover una familia mueve las demás (ver lib/reparto.js). Es el
+    // eje que hacía falta para un slider de proporciones y que `freqs` no
+    // podía ser: `freqs` son MÁXIMOS independientes, y el prompt del planner
+    // lo repite tres veces. Cambiarles el significado habría obligado a
+    // reescribir ese prompt y sus tests.
+    unidad: "% de la semana",
+    rango: [0, 100],
+    // Sin `ejemplo` a propósito: el parser NO puede escribir aquí hoy. `n` de
+    // AjusteSchema está acotado a 0..7 (veces por semana), así que un
+    // porcentaje no cabe en el contrato del panel. Se toca con el slider; el
+    // panel sigue hablando en veces por semana, que es como habla la gente.
+    ejemplo: null,
+    panel: false,
+  },
+  {
     id: "base",
     grupo: "base",
     etiqueta: "Pasta, arroz o patata",
     // Consume `mainBase` del catálogo (46 %). Es el único eje que separa la
     // pasta del arroz, que `freqs.pasta_arroz` mete en el mismo saco.
-    dominio: ["pasta", "arroz", "patatas", "legumbre", "quinoa", "cuscus", "pan", "avena"],
+    // Importado, no copiado: este dominio era una lista escrita a mano que ya
+    // había derivado del catálogo — le faltaba `boniato` y el campo era string
+    // libre, así que los 8 platos con `patata` (en vez de `patatas`) caían
+    // fuera del sesgo sin que nadie se enterara. Ahora MAIN_BASES es enum y
+    // esta es la misma lista, no una copia que se pueda volver a quedar atrás.
+    dominio: MAIN_BASES,
     proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "echo de menos más pasta",
@@ -75,8 +102,10 @@ export const CAMPOS = [
     grupo: "cocina",
     etiqueta: "De dónde es el plato",
     // Consume `cocina`. Ausente = española, así que "española" no está en el
-    // dominio: pedir más española es pedir menos de todo lo demás.
-    dominio: ["italiana", "asiatica", "mexicana", "arabe", "francesa", "americana", "india", "peruana"],
+    // dominio: pedir más española es pedir menos de todo lo demás. La lista
+    // es la del schema, no una copia: si allí entra una cocina, aquí se puede
+    // pedir sin tocar nada.
+    dominio: COCINAS,
     proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "más comida mexicana",
@@ -85,7 +114,7 @@ export const CAMPOS = [
     id: "tecnica",
     grupo: "estilo",
     etiqueta: "Cómo está hecho",
-    dominio: ["horno", "plancha", "sarten", "olla", "crudo"],
+    dominio: TECNICAS,
     proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "más cosas al horno",

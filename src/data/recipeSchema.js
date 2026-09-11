@@ -43,6 +43,20 @@ const MAIN_PROTEINS = [
   "pescado_azul", "pescado_blanco", "pollo", "ternera",
 ];
 
+// Los dos ejes de estilo, con nombre y exportados (11 sep 2026). Hasta ahora
+// eran arrays inline dentro del schema, y por eso vivían TRES veces: aquí, como
+// literal repetido en lib/notepadFields.js (el dominio que el panel puede
+// emitir) y en prosa dentro de api/_prompts.js. Tres copias a mano de la misma
+// lista es como se descuadran: aquí es la fuente, los otros dos la importan, y
+// promptContract.test.js comprueba que el prompt la repite tal cual.
+const TECNICAS = ["horno", "plancha", "sarten", "olla", "crudo"];
+// AUSENTE = española (ver el comentario de `cocina` más abajo): por eso
+// "espanola" no está en la lista, y por eso el panel no puede pedirla.
+const COCINAS = [
+  "italiana", "asiatica", "mexicana", "arabe",
+  "francesa", "americana", "india", "peruana",
+];
+
 // Eje de composición NO proteica y NO feculenta: cubre lo que hoy no se captura
 // en ningún sitio. Deliberadamente sin solape semántico con MAIN_PROTEINS
 // (proteína dominante) ni con `mainBase` (base de carbohidrato: arroz/pasta/
@@ -357,19 +371,16 @@ export const RecipeSchema = z
     // Se resuelve con una prioridad (nombre → electrodoméstico → pasos), que
     // da un reparto que sí distingue: olla 38%, sartén 29%, horno 20%, crudo
     // 14%, plancha 10%. Ver scripts/mark-catalog-axes.mjs.
-    tecnica: z.enum(["horno", "plancha", "sarten", "olla", "crudo"]).optional(),
+    tecnica: z.enum(TECNICAS).optional(),
     // De dónde es el plato. AUSENTE = española, que es lo que este catálogo es
     // de serie: marcar 580 recetas como "espanola" sería ruido para decir lo
     // obvio. Sale solo del NOMBRE — derivarlo de los ingredientes hacía
     // "asiáticas" a unas costillas BBQ por llevar salsa de soja, y mexicana a
     // la tortilla de jamón y queso.
-    cocina: z.enum([
-      "italiana", "asiatica", "mexicana", "arabe",
-      // Añadidas al medir la convención: 30 platos de nombre inequívocamente
-      // extranjero (quiche lorraine, ceviche, hamburguesa, pollo al curry)
-      // contaban como españoles por omisión.
-      "francesa", "americana", "india", "peruana",
-    ]).optional(),
+    // Las cuatro últimas se añadieron al medir la convención: 30 platos de
+    // nombre inequívocamente extranjero (quiche lorraine, ceviche, hamburguesa,
+    // pollo al curry) contaban como españoles por omisión.
+    cocina: z.enum(COCINAS).optional(),
     // El plato TRAE salsa escrita dentro. No es `sauceId` —que fija UNA salsa
     // concreta a mano y no lo usa nadie— sino "esto es un plato de salsa".
     //
@@ -686,7 +697,7 @@ export function effectiveRecipeTime(recipe, eaters) {
   return recipe.time * (1 + 0.12 * extra);
 }
 
-export { CARB_TYPE_BY_BASE, DEPRECATED_CATEGORIES, MAIN_BASES, MAIN_INGREDIENTS, SAUCE_COMPAT_TAGS };
+export { CARB_TYPE_BY_BASE, COCINAS, DEPRECATED_CATEGORIES, MAIN_BASES, MAIN_INGREDIENTS, SAUCE_COMPAT_TAGS, TECNICAS };
 
 /**
  * Validates every recipe in `recipes` against RecipeSchema.
