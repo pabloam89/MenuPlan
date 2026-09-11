@@ -27,10 +27,13 @@ const TOPICS = [
   // Ojo: el ON/OFF del desayuno sigue viviendo en "¿Dónde coméis?" (7); aquí
   // solo se afina la variedad (10) y merienda/postre (11).
   { id: "extras",     title: "¿Queréis desayunos?",                      steps: [10, 11] },
-  { id: "despensa",   title: "¿Queréis usar lo que hay en casa?",        steps: [12] },
-  { id: "cocina",     title: "¿Cuánto os gusta cocinar?",                steps: [13] },
-  { id: "electros",   title: "¿Qué tenéis en la cocina?",                steps: [14] },
-  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [15] },
+  // Dos pasos: lo que hay en casa (12) y cuánto pesa al armar el menú (13).
+  // Van juntos bajo el mismo tema porque la segunda no se entiende sin haber
+  // visto la primera.
+  { id: "despensa",   title: "¿Queréis usar lo que hay en casa?",        steps: [12, 13] },
+  { id: "cocina",     title: "¿Cuánto os gusta cocinar?",                steps: [14] },
+  { id: "electros",   title: "¿Qué tenéis en la cocina?",                steps: [15] },
+  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [16] },
 ];
 
 /**

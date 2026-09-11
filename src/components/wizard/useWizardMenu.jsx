@@ -59,7 +59,7 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
 
   const recuento = useMemo(() => recuentoDelMenu(menuPlan, recipeCatalogById), [menuPlan]);
 
-  /** Guarda una libreta nueva en `data`, con sus freqs ya proyectados. */
+  /** Guarda una libreta nueva en `data`, con su vista ya proyectada. */
   const guardar = useCallback((libreta, extra = {}) => {
     const vista = proyectar(libreta);
     const siguiente = {
@@ -69,6 +69,12 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
       // El motor sigue leyendo `data.freqs`: la libreta es la fuente, esto es
       // la vista que ella misma calcula.
       freqs: freqsEfectivos({ freqs: { ...data?.freqs, ...vista.freqs }, reparto: vista.reparto }),
+      // Y `data.cocinas`, por el mismo camino: cuántos platos de cada cocina
+      // extranjera quiere la casa. Lo lee `filterRecipes` como puerta de
+      // entrada (las que están a cero no entran) y el prompt del planner como
+      // cuota. Se proyecta aquí y no se lee de la libreta en el motor, para que
+      // aiPlanner siga sin saber que la libreta existe.
+      cocinas: vista.sesgos?.cocina ?? {},
     };
     setData(siguiente);
     return siguiente;

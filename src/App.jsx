@@ -10,6 +10,7 @@ import {
   OnboardingMealExtrasComidas,
   OnboardingMealExtrasOtros,
   OnboardingPantryInventory,
+  OnboardingPantryMode,
   OnboardingSchedule,
   OnboardingSchoolMenu,
   OnboardingCooking,
@@ -4213,15 +4214,17 @@ export default function App() {
   // is on the kids' menu (pure babies don't use the school cafeteria flow).
   // Orden de `onbScreens`: 0 Ajustes (picker) · 1 Familia · 2 Alergias · 3 Modelo · 4 Cole ·
   // 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras-Comidas ·
-  // 11 Extras-Otros · 12 Tu despensa · 13 Cocina · 14 Electrodomésticos ·
-  // 15 Tiempos. Los índices de
-  // abajo dependen de ese orden.
+  // 11 Extras-Otros · 12 Tu despensa · 13 Cuánto pesa la despensa ·
+  // 14 Cocina · 15 Electrodomésticos · 16 Tiempos. Los índices de
+  // abajo dependen de ese orden — y también los de SCOPE_TOPIC_STEPS, en
+  // screens/ScopePickerScreen.jsx, que es lo que decide qué pasos abre cada
+  // modo del picker. Mover un paso obliga a tocar los dos sitios.
   // "Ajustes despensa" (¿cuándo se da por gastado?) vivió aquí como paso 13
   // condicional un día (2026-08-25) — se quitó al día siguiente: la pregunta
   // se entiende mejor mirando la despensa real que a mitad del asistente, así
   // que ahora es un sheet contextual en Compra → En casa (icono de ajustes +
   // primer aviso tras generar un menú), no un paso del wizard.
-  const ONB_STEP_COUNT = 16;
+  const ONB_STEP_COUNT = 17;
   // «¿Cómo coméis en casa?» (mismo/separado) ya no se pregunta cuando hay niños:
   // esa decisión la deriva ahora la pantalla «¿Cómo comen los niños?» (paso 7).
   // Solo sobreviviría para hogares adulto+niño… que es justo cuando hay niños,
@@ -4502,7 +4505,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCooking
+    <OnboardingPantryMode
       data={data}
       setData={setData}
       onNext={nextOf(13)}
@@ -4510,7 +4513,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingAppliances
+    <OnboardingCooking
       data={data}
       setData={setData}
       onNext={nextOf(14)}
@@ -4518,11 +4521,19 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCookTime
+    <OnboardingAppliances
       data={data}
       setData={setData}
       onNext={nextOf(15)}
       onBack={backOf(15)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingCookTime
+      data={data}
+      setData={setData}
+      onNext={nextOf(16)}
+      onBack={backOf(16)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,

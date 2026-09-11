@@ -1307,6 +1307,8 @@ export function PantryScreen({
   // that menu-generation setting doesn't apply.
   useHomeStock = null,
   onToggleHomeStock = null,
+  // Pestaña de arranque ("add" | "inventory"). Sin ella manda el defecto.
+  initialTab = null,
   // Compra's "En casa" tab (2026-08-25) sits next to Comprado's empty state
   // (240px, 1:1) and wants to match it exactly — the onboarding wizard step
   // keeps the bigger original size, so this only shrinks it when asked.
@@ -1333,8 +1335,11 @@ export function PantryScreen({
   // the picked mode. Local state, so leaving without adding anything resets it
   // back to the illustration on the next visit.
   const [addTab, setAddTab] = useState("text");
-  // Doble segmented control: Añadir (default) · Inventario. Visitantes solo ven inventario.
-  const [mainTab, setMainTab] = useState(readOnly ? "inventory" : "add");
+  // Doble segmented control: Añadir (default) · Inventario. Visitantes solo ven
+  // inventario, y quien lo pida por `initialTab` también — el asistente arranca
+  // en Inventario porque a esa pantalla se va a ver qué hay en casa, no a dar
+  // de alta a ciegas.
+  const [mainTab, setMainTab] = useState(readOnly ? "inventory" : (initialTab ?? "add"));
   // Filtro de ubicación de la pestaña Inventario (card nevera/despensa/congelador).
   const [locationFilters, setLocationFilters] = useState(() => new Set());
   // Cómo se agrupa el inventario (2026-08-25, tras fusionar Comprado+En casa):

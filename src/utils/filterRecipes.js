@@ -7,6 +7,7 @@ import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 import { isMontaje, effectiveRecipeTime } from "../data/recipeSchema.js";
 import { resolveIngredientId } from "../lib/ingredients.js";
+import { esAnadido } from "../lib/cocinaTopes.js";
 
 // Off-menu categories: the optional desayuno/merienda/postre pool. They live in
 // the same catalog but must never be picked by the comida/cena planner (see the
@@ -210,6 +211,10 @@ export function filterRecipes({
   // "preferred" (default) | "only" (only the user's recipes) | "catalog"
   // (only the bundled catalog). Set from data.recipeMode.
   recipeMode = "preferred",
+  // Cuántos platos de cada cocina extranjera quiere la casa esta semana
+  // ({ peruana: 1, india: 0, ... }). `null` = nadie lo ha tocado, y entonces
+  // esto no filtra nada: es el comportamiento de siempre.
+  cocinas = null,
   // Set<string> of recipe ids the user favorited for this group. Soft ranking
   // signal (annotates `isFavorite`, never excludes) EXCEPT con recipeMode
   // "only", donde ademas hacen de salvoconducto: una favorita del catalogo
@@ -279,6 +284,31 @@ export function filterRecipes({
   // (fruit, yogur, kéfir, pan), never candidates for the comida/cena planner.
   // Same guard style as the baby isolation above.
   pool = pool.filter((r) => !OFF_MENU_CATEGORIES.has(r.category));
+
+  // 0d. Cocinas extranjeras — PUERTA DE ENTRADA, no un sesgo.
+  //
+  // Una cocina extranjera está APAGADA salvo que la casa la pida. Es al revés
+  // que el resto de filtros de este fichero, y a propósito: `cocina` está
+  // ausente en 554 de las 711 recetas servibles, y ausente significa española
+  // por convención. Sin esta puerta, un plato peruano entra en tu semana lo
+  // hayas pedido o no, y el mando de Cocina del menú se pasó meses guardando un
+  // número que no cambiaba un solo plato.
+  //
+  // Solo se cae lo que está EXPLÍCITAMENTE a cero, y solo si es un añadido:
+  //   · sin `cocina`  → se queda siempre (es el fondo de armario español)
+  //   · italiana      → se queda siempre (ver SIEMPRE_ENCENDIDAS: en este
+  //                     catálogo es sinónimo de pasta, y la pasta ya se pide
+  //                     desde el reparto)
+  //   · pedida (> 0)  → se queda, y la cuota del prompt intentará colocarla
+  //   · a 0           → fuera
+  //
+  // No puede vaciar el pool: apagarlo todo quita 157 de 711.
+  if (cocinas && Object.keys(cocinas).length > 0) {
+    pool = pool.filter((r) => {
+      if (!r.cocina || !esAnadido(r.cocina)) return true;
+      return (cocinas[r.cocina] ?? 0) > 0;
+    });
+  }
 
   // 1. Allergens — exclude any recipe containing a blocked allergen. Declared
   // `allergens` cover 8 of the 14 UE allergens; the ingredient-name safety net

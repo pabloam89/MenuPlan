@@ -5,6 +5,8 @@ import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
+import { esAnadido, topeDe } from "./cocinaTopes.js";
+import { ajustarCuota } from "./cuotaCocinas.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { isMontaje } from "../data/recipeSchema.js";
@@ -491,6 +493,11 @@ export function buildGroupContext(data, group) {
       recipeMode: data.recipeMode ?? "preferred",
       // Favorites that apply to THIS group (scope "all" or this group's label).
       favoriteIds: favoriteIdsForGroup(data.recipeVotes, group.label),
+      // Cocinas extranjeras pedidas desde la fila de mandos del menú. Vista
+      // proyectada de la libreta (ver useWizardMenu), no la libreta: aquí es un
+      // mapa cocina → platos por semana. `undefined` para quien nunca lo ha
+      // tocado, y entonces filterRecipes no filtra nada.
+      cocinas: data.cocinas ?? null,
     },
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
@@ -514,7 +521,7 @@ export function buildGroupContext(data, group) {
 // pantryMode: "strict" (solo con lo de casa, sin comprar) | "only" (partir de
 // lo de casa, fuerte) | "prefer"/"off" (preferencia blanda). "off" nunca llega
 // aquí con nombres porque App vacía la lista antes.
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = []) {
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null) {
   const catalog = decisionCatalog(filteredRecipes);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
@@ -550,6 +557,26 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
     parts.push(
       `\nINGREDIENTES QUE EL USUARIO YA TIENE EN CASA:\n${pantryNames.map((n) => `- ${n}`).join("\n")}` +
         pantryInstruction,
+    );
+  }
+
+  // Cocinas pedidas desde la fila de mandos del menú. La PUERTA ya se aplicó
+  // en filterRecipes (lo que está a cero no está en este pool), así que aquí
+  // solo queda pedir que lo pedido se coloque de verdad — una puerta quita
+  // candidatos, no pone platos. Si el modelo no lo cumple, lo repara después
+  // `ajustarCuota` (lib/cuotaCocinas.js), que es lo que convierte esto en una
+  // promesa y no en una sugerencia.
+  const cocinasPedidas = Object.entries(cocinas ?? {})
+    .filter(([cocina, n]) => Number(n) > 0 && esAnadido(cocina))
+    .map(([cocina, n]) => [cocina, Math.min(Number(n), topeDe(cocina))])
+    .filter(([, n]) => n > 0);
+  if (cocinasPedidas.length > 0) {
+    const lista = cocinasPedidas
+      .map(([cocina, n]) => `- ${cocina}: ${n} ${n === 1 ? "plato" : "platos"}`)
+      .join("\n");
+    parts.push(
+      `\nCOCINAS QUE LA CASA QUIERE ESTA SEMANA:\n${lista}` +
+        `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): coloca ESE número de platos de cada una de esas cocinas, repartidos por la semana y no seguidos. Las recetas de esas cocinas llevan su campo "cocina" en el catálogo de arriba. No pongas más de los pedidos, y no metas platos de otras cocinas extranjeras que no estén en esta lista. Nunca rompas por esto las demás reglas: alergias, complementación escolar, tipo de plato, ni dos veces la misma proteína en comidas seguidas.`,
     );
   }
 
@@ -908,6 +935,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     frozenDishes,
     ctx.filterOpts.recipeMode ?? "preferred",
     fridgeDishes,
+    ctx.filterOpts.cocinas,
   );
 
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
@@ -1125,6 +1153,32 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     filteredPool,
     achievableFreqs,
   });
+
+  // 4d. Cuota de cocinas. La puerta de filterRecipes ya impidió que entrara lo
+  //     que la casa NO pidió; esto comprueba que lo que SÍ pidió está puesto, y
+  //     si falta lo coloca sobre huecos neutros (plato sin `cocina`, que es de
+  //     lo que sobra). Va DESPUÉS de los platos fijados y de breakProteinClusters
+  //     para no deshacer su trabajo, y nunca toca un hueco fijado o forzado.
+  //
+  //     Sin esta pasada, el mando de Cocina cumpliría "casi siempre" —el modelo
+  //     se salta instrucciones— y un control que cumple cuatro de cada cinco
+  //     veces no se lee como que a veces falla: se lee como que no hace nada.
+  if (ctx.filterOpts.cocinas && Object.keys(ctx.filterOpts.cocinas).length > 0) {
+    const forzados = new Set(ctx.slots.filter((sl) => sl.preferType).map((sl) => sl.slotId));
+    const fijados = new Set(allFixedDishIds(data.fixedDishes));
+    const cuota = ajustarCuota(slotAssignments, {
+      pedido: ctx.filterOpts.cocinas,
+      recetaDe: (id) => poolById[id] ?? recipeCatalogById[id] ?? null,
+      candidatos: filteredPool,
+      bloqueado: (slotId, recipeId) => forzados.has(slotId) || fijados.has(recipeId),
+    });
+    slotAssignments = cuota.asignaciones;
+    for (const [cocina, cuantos] of Object.entries(cuota.sinSitio)) {
+      warnings.push(
+        `${group.label}: no cabían ${cuantos} plato(s) de cocina ${cocina} esta semana (el catálogo se queda corto o los huecos estaban ocupados).`,
+      );
+    }
+  }
 
   // 5. Pair "principal" recipes with garnishes (deterministic, no LLM).
   //    User-pinned combos (dish chosen from the catalog) take priority.

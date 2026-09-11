@@ -3472,7 +3472,7 @@ function DeckNav({ value, onChange, options }) {
 }
 
 /** Mini "N de X" week stepper shown next to DeckNav when there are multiple weeks. */
-function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen }) {
+function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen, style }) {
   const btn = (Icon, onClick, disabled) => (
     <button
       type="button"
@@ -3490,7 +3490,7 @@ function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen }) {
     </button>
   );
   return (
-    <div style={{ display: "inline-flex", alignItems: "center", background: "#eef4ef", borderRadius: 999, padding: "3px 6px 3px 4px", gap: 1 }}>
+    <div style={{ display: "inline-flex", alignItems: "center", background: "#eef4ef", borderRadius: 999, padding: "3px 6px 3px 4px", gap: 1, ...style }}>
       {btn(ChevronLeft, onPrev, weekIdx <= 0)}
       <button
         type="button"
@@ -4726,16 +4726,29 @@ export const MenuScreen = memo(function MenuScreen({
 
         {/* View controls — deck: vistas (izq) · semana (centro) · filtro círculo (der) */}
         {hasMenu && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
             {/* The coach anchor hugs the view switch alone: the filter circle at
                 the far right gets its own step, and a spotlight over the whole
                 row would highlight both at once. */}
             <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
               <DeckNav value={deckView} onChange={setDeckView} options={DECK_VIEW_OPTIONS} />
             </div>
-            <div style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
+            {/* Centrado en la FRANJA, no en el hueco que sobra. Con
+                `flex: 1 + center` el paso de semanas se centraba entre el
+                selector de vistas y el filtro, así que sin avatares —el caso
+                normal, una casa con un solo menú— se quedaba flotando a medio
+                camino: ni en el centro ni pegado a nada. Absoluto y al 50 %
+                está donde se espera, y no se mueve cuando aparecen los
+                avatares. Cabe de sobra: 110 + 70 + 42 en 420. */}
+            <div
+              style={{
+                position: "absolute", left: "50%", transform: "translateX(-50%)",
+                display: "flex", justifyContent: "center", pointerEvents: "none",
+              }}
+            >
               {menuWeeks.length > 1 && (
                 <DeckWeekStepper
+                  style={{ pointerEvents: "auto" }}
                   weekIdx={Math.max(0, currentWeekIdx)}
                   weekTotal={menuWeeks.length}
                   onPrev={() => currentWeekIdx > 0 && onSwitchWeek?.(menuWeeks[currentWeekIdx - 1].weekStart)}
@@ -4744,6 +4757,7 @@ export const MenuScreen = memo(function MenuScreen({
                 />
               )}
             </div>
+            <span style={{ flex: 1, minWidth: 0 }} />
             {multiGroup && (
               <DeckFilter
                 groups={data.groups}
