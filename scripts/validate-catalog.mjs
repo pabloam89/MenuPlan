@@ -60,7 +60,8 @@ if (existsSync(INGREDIENTS_PATH)) {
 
   // Cobertura: cada ingrediente que usa una receta tiene que resolver contra el
   // catálogo. Si no, es que se añadió una receta sin regenerarlo
-  // (npm run build:ingredients).
+  // (el catálogo de ingredientes es fuente; se edita a mano — ver la
+  // cabecera de scripts/build-ingredient-catalog.mjs).
   const labels = new Set();
   for (const ing of ingredients) {
     for (const label of [ing.name, ...ing.aliases]) labels.add(normalizeName(label));
@@ -72,7 +73,7 @@ if (existsSync(INGREDIENTS_PATH)) {
     }
   }
   for (const name of sinResolver) {
-    errors.push(`Ingrediente "${name}" no está en ingredients.json — regenera con npm run build:ingredients`);
+    errors.push(`Ingrediente "${name}" no está en ingredients.json — añádelo a mano (el catálogo es fuente, no se regenera)`);
   }
 
   // Sustituciones (Fase 3). Una que apunte a un ingrediente inexistente no da
