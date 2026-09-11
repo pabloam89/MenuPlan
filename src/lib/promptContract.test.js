@@ -40,6 +40,7 @@ describe("server-owned system prompts", () => {
     // Keep in sync with the `task:` values sent from src/lib.
     const tasksUsedByClient = [
       "planner",
+      "planner-compact",
       "steps",
       "school-menu",
       "suggest-ingredients",
@@ -49,6 +50,17 @@ describe("server-owned system prompts", () => {
       expect(Object.keys(SYSTEM_PROMPTS)).toContain(task);
       expect(SYSTEM_PROMPTS[task].length).toBeGreaterThan(50);
     }
+  });
+
+  it("planner-compact keeps every planner rule and only swaps the format sections", () => {
+    const planner = SYSTEM_PROMPTS.planner;
+    const compact = SYSTEM_PROMPTS["planner-compact"];
+    const rules = planner.slice(0, planner.indexOf("FORMATO DE RESPUESTA"));
+    expect(rules.length).toBeGreaterThan(1000);
+    expect(compact.startsWith(rules)).toBe(true);
+    expect(compact).toContain("FORMATO DEL CATÁLOGO");
+    expect(compact).toContain('{"slots":{"lun_comida_1":"sopas_003"');
+    expect(compact).not.toContain('"recipeId":"sopas_003"');
   });
 
   it("no prompt carries an unresolved template placeholder", () => {
