@@ -250,7 +250,7 @@ function watchHidden() {
   };
 }
 
-export async function callModel(body, signal) {
+export async function callModel(body, signal, { onResult } = {}) {
   const startedAt = Date.now();
   let statusRetries = 0;
   let networkRetries = 0;
@@ -329,8 +329,58 @@ export async function callModel(body, signal) {
     if (typeof text !== "string" || text.length === 0) {
       throw new AIPlannerError("La IA devolvió una respuesta vacía.", { raw: payload });
     }
+    onResult?.({
+      ms: Date.now() - startedAt,
+      usage: payload.usage,
+      statusRetries,
+      networkRetries,
+      backgroundRetries,
+    });
     return text;
   }
+}
+
+// Per-generation counters sent with menu_generated / generation_failed: how many
+// model calls a menú took and why, how long they ran, and their tokens. Flat
+// numbers so they stay easy to query from user_events.metadata. `llmMs` sums
+// every call, so it exceeds wall-clock time when weeks/groups run in parallel.
+export function createPlannerStats() {
+  return {
+    llmCalls: 0,
+    plannerCalls: 0,
+    formatRetries: 0,
+    correctionCalls: 0,
+    llmMs: 0,
+    slowestCallMs: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    statusRetries: 0,
+    networkRetries: 0,
+    backgroundRetries: 0,
+    invalidFirstPass: 0,
+    fallbackUsed: 0,
+    groupsReused: 0,
+  };
+}
+
+function recordCall(stats, kind, result) {
+  if (!stats) return;
+  stats.llmCalls++;
+  if (kind === "planner") stats.plannerCalls++;
+  else if (kind === "correction") stats.correctionCalls++;
+  else stats.formatRetries++;
+  stats.llmMs += result.ms;
+  stats.slowestCallMs = Math.max(stats.slowestCallMs, result.ms);
+  const usage = result.usage ?? {};
+  stats.inputTokens += usage.input_tokens ?? 0;
+  stats.outputTokens += usage.output_tokens ?? 0;
+  stats.cacheReadTokens += usage.cache_read_input_tokens ?? 0;
+  stats.cacheWriteTokens += usage.cache_creation_input_tokens ?? 0;
+  stats.statusRetries += result.statusRetries;
+  stats.networkRetries += result.networkRetries;
+  stats.backgroundRetries += result.backgroundRetries;
 }
 
 // ── System prompt ───────────────────────────────────────────────
@@ -917,7 +967,7 @@ export function poolForWeek(pool, crossWeek, slotCount) {
 // ── Generation ──────────────────────────────────────────────────
 
 // Exported for tests only — not used elsewhere outside this module.
-export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer") {
+export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null } = {}) {
   const ctx = buildGroupContext(data, group);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
@@ -1028,10 +1078,11 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
   // Haiku); format/correction retries stay on the cheap FAST_MODEL.
-  const request = (messages, model = plannerModel) =>
+  const request = (messages, model = plannerModel, kind = "planner") =>
     callModel(
       { model, max_tokens: DEFAULT_MAX_TOKENS, task: "planner", messages },
       signal,
+      { onResult: (result) => recordCall(stats, kind, result) },
     );
 
   // 1. First LLM call
@@ -1052,6 +1103,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
         },
       ],
       RETRY_MODEL,
+      "format_retry",
     );
     try {
       parsed = extractJson(retryText);
@@ -1086,6 +1138,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
         },
       ],
       RETRY_MODEL,
+      "format_retry",
     );
     try {
       parsed = extractJson(retryText);
@@ -1117,6 +1170,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs);
     if (finalCheck.valid) break;
+    if (attempt === 0 && stats) stats.invalidFirstPass++;
 
     if (attempt < MAX_RETRIES - 1) {
       const correctionMsg = buildCorrectionMessage(finalCheck.violations);
@@ -1127,6 +1181,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
           { role: "user", content: correctionMsg },
         ],
         attempt === 0 ? plannerModel : RETRY_MODEL,
+        "correction",
       );
       try {
         const retryParsed = extractJson(retryText);
@@ -1143,6 +1198,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // 3. Apply deterministic fallback if still invalid after retries.
   if (!finalCheck.valid) {
+    if (stats) stats.fallbackUsed++;
     slotAssignments = applyFallback(
       slotAssignments,
       finalCheck.violations,
@@ -1612,7 +1668,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   return out;
 }
 
-export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL, groupCache = null } = {}) {
+export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL, groupCache = null, stats = null } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
@@ -1631,9 +1687,12 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // only the missing ones. Hydration below only reads these results.
   const runGroup = async (group) => {
     const cached = groupCache?.get(group.id);
-    if (cached) return cached;
+    if (cached) {
+      if (stats) stats.groupsReused++;
+      return cached;
+    }
     const run = () =>
-      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode);
+      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode, { stats });
     let result;
     try {
       result = await run();

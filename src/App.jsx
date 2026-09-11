@@ -48,7 +48,7 @@ const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").t
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
-import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
@@ -1884,6 +1884,7 @@ export default function App() {
       plannerModel: null,
       reusedGroups: countCachedGroups(),
     };
+    const plannerStats = createPlannerStats();
     try {
       const weekOffsets = (Array.isArray(working.menuWeekOffsets) && working.menuWeekOffsets.length
         ? [...new Set(working.menuWeekOffsets)]
@@ -1999,6 +2000,7 @@ export default function App() {
           crossWeek,
           plannerModel: planner.model,
           groupCache,
+          stats: plannerStats,
         });
 
         // The planner picks from recipeCatalog.js, but buildShoppingList (and the
@@ -2098,7 +2100,15 @@ export default function App() {
       registerRecipes(allRecipes);
       setMenuPlan(firstWeekPlan);
       const isFirstMenu = (data.menuHistory ?? []).length === 0;
-      trackEvent(user, "menu_generated", "menu", { groupCount: groups.length, memberCount: working.members.length, weekCount, plannerModel: planner.model, plannerVariant: planner.variant });
+      trackEvent(user, "menu_generated", "menu", {
+        groupCount: groups.length,
+        memberCount: working.members.length,
+        weekCount,
+        plannerModel: planner.model,
+        plannerVariant: planner.variant,
+        elapsedMs: Date.now() - startedAt,
+        ...plannerStats,
+      });
       if (isFirstMenu) upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
 
       const newMenu = {
@@ -2216,6 +2226,7 @@ export default function App() {
         online: typeof navigator !== "undefined" ? navigator.onLine : undefined,
         elapsedMs: Date.now() - startedAt,
         ...genStats,
+        ...plannerStats,
         cachedGroups: countCachedGroups(),
       });
       setMenuError({
