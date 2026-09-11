@@ -129,7 +129,7 @@ jobs:
         if: always() && steps.config.outputs.listo == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          MENCIONES: ${{ vars.AVISO_MENCIONES || '@algbarc-design' }}
+          MENCIONES: ${{ vars.AVISO_MENCIONES || '@algbarc-design @pabloam89' }}
           CALLMEBOT_DESTINOS: ${{ secrets.CALLMEBOT_DESTINOS }}
           ESTADO: ${{ job.status }}
           HAY_FALLOS: ${{ steps.datos.outputs.hay_fallos }}
