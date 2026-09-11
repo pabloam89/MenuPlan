@@ -32,23 +32,41 @@
  *   --nutrients       solo estima los nutrientes secundarios
  *   --thaw            solo decide freezable y genera los pasos de descongelado
  *                     (sin ninguna de las cuatro, hace las cuatro)
+ *   --parts           MODO APARTE (ver abajo): solo asigna `part` a los pasos
+ *                     que YA existen. Ignora --base/--appliances/--nutrients/--thaw.
  *   --category=carnes limita a una categoría (nombre del fichero sin .json)
  *   --ids=a,b,c       limita a ids concretos (repesca tras el lint de estilo)
+ *   --ids-file=ruta   lo mismo, pero leyendo un id por línea (una lista de 300
+ *                     ids no cabe en la línea de comandos de Windows)
  *   --limit=N         procesa como mucho N recetas (piloto)
  *   --force           regenera aunque ya exista (pisa también lo escrito a mano)
  *   --dry-run         no escribe nada, solo muestra lo que haría
- *   --model=<id>      override del modelo (por defecto claude-sonnet-4-6)
+ *   --model=<id>      override del modelo (por defecto claude-sonnet-4-6, o
+ *                     claude-sonnet-5 en modo --parts)
  *   --concurrency=N   recetas en vuelo a la vez (por defecto 4)
+ *
+ * ── MODO `--parts` ──────────────────────────────────────────────────────────
+ * Las cuatro tareas de arriba REESCRIBEN texto. `part` no puede ir con ellas:
+ * pedirlo dentro de la llamada grande obliga a regenerar `steps` enteros, y eso
+ * pisaría el wording ya curado de 985 recetas para cambiar un campo de una
+ * palabra. Así que `--parts` hace una llamada distinta: manda los `stepsRich`
+ * TAL CUAL están (texto, kind, minutes, marcadores) y pide SOLO el reparto por
+ * componente, índice a índice. Escribe únicamente `stepsRich[i].part`; que el
+ * resto del paso no se mueve lo comprueba assertOnlyPartChanged() con una huella
+ * del texto/kind/minutes/during antes y después, y si algo cambió, revienta.
+ *
+ * A quién preguntarle sale de scripts/select-recipes-for-parts.mjs (puerta de
+ * dos etapas + las ya etiquetadas), no de todo el catálogo.
  */
 
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "fs";
-import { join, dirname } from "path";
+import { join, dirname, isAbsolute } from "path";
 import { fileURLToPath } from "url";
 
 // Mismo normalizador que usan la app y el asistente de recetas, para que el
 // formato no se bifurque entre lo que hornea este script y lo que valida y
 // pinta el cliente.
-import { normalizeRichSteps, stripStepMarkers } from "../src/lib/recipeSteps.js";
+import { normalizeRichSteps, stripStepMarkers, STEP_PARTS } from "../src/lib/recipeSteps.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -57,10 +75,26 @@ const APPLIANCE_STEPS_PATH = join(ROOT, "src", "data", "recipeStepsByAppliance.j
 // Ledger local (no viaja al bundle): ids cuyos pasos base ya reescribimos, para
 // que una segunda pasada sea reanudable sin ensuciar los JSON de receta.
 const BASE_LEDGER_PATH = join(__dirname, ".enrich-base-done.json");
+// Ledger propio de --parts. Hace falta uno aparte porque el modo re-etiqueta a
+// propósito las recetas que YA tienen `part` (las 141 salieron del criterio
+// físico viejo), así que "ya tiene part" no puede ser la señal de "hecho".
+const PARTS_LEDGER_PATH = join(__dirname, ".enrich-parts-done.json");
 
 // Sonnet fuerte: el mismo que usa el planner (lib/aiModels.js PLANNER_MODEL).
 // Es one-off, así que priorizamos calidad sobre coste/latencia.
 const DEFAULT_MODEL = "claude-sonnet-4-6";
+// En --parts vamos a la generación actual de esa gama. Es UNA pasada sobre ~300
+// recetas y la salida es minúscula (una palabra por paso), así que el coste
+// total está en céntimos: la única variable que importa aquí es acertar el
+// criterio aparte/dentro, que es un juicio fino y con casos límite.
+const DEFAULT_PARTS_MODEL = "claude-sonnet-5";
+// $ por millón de tokens, solo para el presupuesto del --dry-run.
+const PRICES = {
+  "claude-sonnet-5": { in: 2, out: 10 },
+  "claude-sonnet-4-6": { in: 3, out: 15 },
+  "claude-opus-5": { in: 5, out: 25 },
+  "claude-haiku-4-5": { in: 1, out: 5 },
+};
 
 const APPLIANCE_LABELS = {
   airfryer: "Airfryer",
@@ -78,23 +112,45 @@ const val = (name) => {
   const hit = args.find((a) => a.startsWith(`--${name}=`));
   return hit ? hit.slice(name.length + 3) : null;
 };
+// `--parts` no es "una tarea más": es otra llamada, con otro prompt y otro
+// contrato de escritura. Anula las cuatro para que no se pueda pedir a la vez
+// "solo el part" y "reescribe los pasos".
+const DO_PARTS = has("--parts");
 const onlyBase = has("--base");
 const onlyAppliances = has("--appliances");
 const onlyNutrients = has("--nutrients");
 const onlyThaw = has("--thaw");
-const doAll = !onlyBase && !onlyAppliances && !onlyNutrients && !onlyThaw;
-const DO_BASE = doAll || onlyBase;
-const DO_APPLIANCES = doAll || onlyAppliances;
-const DO_NUTRIENTS = doAll || onlyNutrients;
-const DO_THAW = doAll || onlyThaw;
+const doAll = !DO_PARTS && !onlyBase && !onlyAppliances && !onlyNutrients && !onlyThaw;
+const DO_BASE = !DO_PARTS && (doAll || onlyBase);
+const DO_APPLIANCES = !DO_PARTS && (doAll || onlyAppliances);
+const DO_NUTRIENTS = !DO_PARTS && (doAll || onlyNutrients);
+const DO_THAW = !DO_PARTS && (doAll || onlyThaw);
 const CATEGORY = val("category");
 // Lista de ids concretos, para repescar las recetas que falló el lint de estilo
-// sin volver a pagar por las 274.
-const IDS = val("ids") ? new Set(val("ids").split(",").map((s) => s.trim()).filter(Boolean)) : null;
+// sin volver a pagar por las 274. `--ids-file` es la misma lista en un fichero:
+// los ~300 ids de --parts no caben en la línea de comandos de Windows (8191
+// caracteres) y se truncarían en silencio.
+const idsFilePath = val("ids-file");
+const idsFromFile = idsFilePath
+  ? readFileSync(isAbsolute(idsFilePath) ? idsFilePath : join(ROOT, idsFilePath), "utf8")
+      .split(/\r?\n/)
+  : [];
+const idsFromFlag = val("ids") ? val("ids").split(",") : [];
+const rawIds = [...idsFromFlag, ...idsFromFile].map((s) => s.trim()).filter(Boolean);
+// Si se pidió filtrar y la lista sale vacía, ABORTAR. Caer a `null` aquí
+// significa "todo el catálogo": un fichero de ids vacío o mal generado
+// convertiría una pasada dirigida de 314 recetas en una de 985, en silencio
+// y pagando por ello.
+if ((idsFilePath || val("ids")) && rawIds.length === 0) {
+  console.error("No hay ni un id que procesar: --ids/--ids-file dieron una lista vacía.");
+  process.exit(1);
+}
+const IDS = rawIds.length > 0 ? new Set(rawIds) : null;
 const LIMIT = val("limit") ? Number(val("limit")) : Infinity;
 const FORCE = has("--force");
 const DRY_RUN = has("--dry-run");
-const MODEL = val("model") || process.env.ENRICH_MODEL || DEFAULT_MODEL;
+const MODEL = val("model") || process.env.ENRICH_MODEL
+  || (DO_PARTS ? DEFAULT_PARTS_MODEL : DEFAULT_MODEL);
 const CONCURRENCY = Math.max(1, Number(val("concurrency")) || 4);
 // Reintentos ante sobrecarga (429/529) y respuestas que no parsean.
 const MAX_ATTEMPTS = 4;
@@ -162,6 +218,77 @@ function nonNegNumber(v) {
 }
 
 // ── LLM ──────────────────────────────────────────────────────────────────────
+
+/**
+ * El criterio de `part`, en un solo sitio: lo usan el prompt grande (que genera
+ * pasos nuevos) y el de `--parts` (que solo reparte los que ya hay). Si vivieran
+ * por separado, una pasada de cada tipo dejaría el catálogo con dos criterios.
+ *
+ * Es el criterio APARTE/DENTRO que fijó el dueño el 11 sep 2026 y que está
+ * escrito entero en src/data/recipeSchema.js (comentario de `llevaSalsa`).
+ * SUSTITUYE al criterio FÍSICO que había aquí antes ("¿se cocinan en dos
+ * cazos distintos?"), que es el que produjo las 141 etiquetas inconsistentes:
+ * una reducción hecha en la misma sartén salía 'principal' y la misma reducción
+ * en un cazo aparte salía 'salsa', cuando cocina son la misma cosa.
+ */
+const PART_CRITERION = [
+  "COMPONENTE DEL PLATO (`part`, eje aparte de `kind`):",
+  "· `kind` es de TIEMPO (¿hay que estar delante?); `part` es de QUÉ COMPONENTE",
+  "  del plato trabaja el paso, para que el cocinero pueda hacer cada uno por su",
+  "  lado y para poder decirle a un alérgico qué se le puede quitar. Son",
+  "  independientes: un paso puede ser kind:'pasivo' y part:'salsa' a la vez.",
+  "",
+  "· EL CRITERIO ES APARTE vs DENTRO. No es físico: da igual si hay uno o dos",
+  "  cazos. Un componente va APARTE cuando se cumplen LAS DOS cosas:",
+  "    1. se puede servir en un cuenco al lado, y",
+  "    2. el plato SIGUE SIENDO ESE PLATO sin él.",
+  "  Si falla cualquiera de las dos, va DENTRO: no es escindible, y sus",
+  "  ingredientes no se pueden atribuir por separado.",
+  "",
+  "· MAPEO A `part`:",
+  "    · componente APARTE  → sus pasos llevan 'salsa' o 'guarnicion'.",
+  "    · componente DENTRO  → sus pasos son 'principal'. No hay parte separable",
+  "      que etiquetar: la preparación entera es el plato.",
+  "    · 'principal' es también el cuerpo del plato, y admite más de un",
+  "      componente si ninguno es un acompañamiento claro.",
+  "    · 'combinado' es el emplatado o la junta final de los componentes ya",
+  "      hechos.",
+  "",
+  "· TEST MECÁNICO DE LAS REDUCCIONES Y SALSAS DE COCCIÓN, comprobable en los",
+  "  propios pasos: ¿el líquido de la salsa ha COCINADO el ingrediente principal?",
+  "    · NO → aparte ('salsa'). El magret con reducción de frutos rojos: la",
+  "      reducción se hace en un cazo y nunca tocó el pato.",
+  "    · SÍ → dentro ('principal'). La carrillada al vino: esa reducción ES el",
+  "      líquido de braseado y la carne soltó sus jugos en él.",
+  "",
+  "· CASOS YA RESUELTOS, no vuelvas a discutirlos:",
+  "    · Mantequillas compuestas (Café de París, de perejil) → APARTE. Se hacen",
+  "      en bol, se enfrían, se cortan y se posan; un entrecot sin ella sigue",
+  "      siendo un entrecot.",
+  "    · Bacalao al pil-pil → DENTRO. La salsa se emulsiona con el aceite de",
+  "      confitar el propio bacalao: no hay frontera que trazar.",
+  "    · Patatas bravas → DENTRO. La brava es separable, pero unas bravas sin",
+  "      brava son patatas fritas: falla la cláusula 2.",
+  "    · Trucha a la navarra con almendras → las almendras NO son salsa ni",
+  "      guarnición: se doran en la misma grasa y se echan encima. Todo",
+  "      'principal'.",
+  "    · Guisos, potajes y técnicas integrales (al ajillo, en salsa verde,",
+  "      adobos, gratinados, glaseados que se pincelan, aliños de ensalada) →",
+  "      DENTRO, un solo componente.",
+  "    · Un wrap o un bocadillo con su salsa → DENTRO: el pan es el portador,",
+  "      la salsa va untada y no se sirve al lado.",
+  "· El criterio es SIMÉTRICO para la guarnición: un puré que se hace en su cazo",
+  "  y se sirve al lado es 'guarnicion'; las patatas que se guisan CON la carne",
+  "  y han cogido su jugo son 'principal'.",
+  "",
+  "· RECETA MONOCOMPONENTE → NINGÚN `part`, en ningún paso. Si al aplicar el",
+  "  criterio no queda ni un componente aparte, la receta se queda entera sin",
+  "  este campo (es el caso de la gran mayoría del catálogo, y la UI la pinta",
+  "  igual que siempre, sin pestañas). No etiquetes 'principal' en todos los",
+  "  pasos para 'no dejarlo vacío': una receta con un solo valor de `part` es",
+  "  ruido. O hay al menos un componente aparte, o no hay `part`.",
+];
+
 const SYSTEM = [
   "Eres un chef español que redacta recetas claras y con oficio para una app.",
   "Devuelves SIEMPRE un único JSON válido, sin markdown ni texto fuera del JSON.",
@@ -231,37 +358,10 @@ const SYSTEM = [
   "  necesita para llegar a ese punto.",
   "· Todos los ingredientes de la lista deben aparecer y usarse en algún paso.",
   "",
-  "COMPONENTE DEL PLATO (`part`, eje aparte de `kind`):",
-  "· `kind` es de TIEMPO (¿hay que estar delante?); `part` es de QUÉ PARTE del",
-  "  plato trabaja el paso, para que el cocinero pueda hacer cada componente por",
-  "  su lado. Son independientes: un mismo paso puede ser kind:'pasivo' y",
-  "  part:'salsa' a la vez.",
-  "· CRITERIO — es puramente físico, no de \"forma clásica de plato\": ¿hay AL",
-  "  MENOS DOS componentes que se cocinan en su propio cazo/sartén/bandeja, en",
-  "  procesos independientes, y que solo se juntan al final? Si sí, etiqueta.",
-  "  No hace falta que la receta tenga la forma clásica proteína+guarnición+",
-  "  salsa — un plato de tres elementos fritos por separado (p. ej. huevo +",
-  "  patatas fritas + un pisto, cada uno en su sartén) cuenta exactamente igual:",
-  "  las patatas fritas son part:'guarnicion' aunque el plato no tenga ni salsa",
-  "  ni una sola 'proteína principal' obvia — lo que importa es que se fríen",
-  "  aparte, no qué papel narrativo tiene cada cosa.",
-  "· Encaja el componente que NO sea claramente guarnición/salsa/combinado en",
-  "  'principal' (el cuerpo del plato — en el ejemplo de arriba, el pisto Y el",
-  "  huevo, que se cocinan como el plato de fondo mientras las patatas van",
-  "  aparte). 'principal' admite más de un componente si ninguno es un",
-  "  acompañamiento claro; lo único que NUNCA se separa es la técnica de",
-  "  cocinado integral de un guiso (al ajillo, en salsa verde, adobos) — eso es",
-  "  un solo componente, 'principal' o sin `part`.",
-  "· Si la receta es de verdad una sola técnica de principio a fin (sin ningún",
-  "  cazo/sartén paralelo que se junte al final), no pongas `part` en ningún",
-  "  paso — se queda sin este campo, como hasta ahora. Pero NO uses eso como",
-  "  excusa por defecto: si hay un proceso claramente aparte, etiquétalo.",
-  "· Valores: 'principal' (el/los componente(s) de fondo), 'guarnicion' (un",
-  "  acompañamiento que esta MISMA receta prepara aparte, aunque sea tan",
-  "  sencillo como unas patatas fritas), 'salsa' (una salsa o aliño preparado",
-  "  aparte dentro de esta receta), 'combinado' (el paso o pasos finales que",
-  "  juntan los componentes ya hechos — puede coincidir con kind:'emplatado' o",
-  "  ser un paso previo de mezclar/montar).",
+  ...PART_CRITERION,
+  "· REGLA MECÁNICA: todo paso kind:'emplatado' es part:'combinado' — medido,",
+  "  91 de 91 en el catálogo. Si la receta no lleva `part`, tampoco lo lleva el",
+  "  emplatado.",
   "· Cuando SÍ apliques `part`, agrupa los pasos de cada componente seguidos",
   "  (todos los de 'salsa' juntos, luego todos los de 'principal', etc.) y",
   "  termina con uno o más pasos part:'combinado'. No los intercales sueltos.",
@@ -387,7 +487,39 @@ const SYSTEM = [
   "    · Entre 3 y 6 pasos. Termina con un 'emplatado'.",
 ].join("\n");
 
-async function callModel(payload) {
+/**
+ * Prompt del modo `--parts`. No hereda nada del de arriba a propósito: aquí el
+ * modelo no redacta, así que las reglas de estilo, marcadores, paralelos,
+ * electrodomésticos y congelación no solo sobran — invitan a reescribir. Lo
+ * único que comparte es el criterio, que es el mismo objeto literal.
+ */
+const PARTS_SYSTEM = [
+  "Eres un chef español clasificando los pasos de una receta YA ESCRITA.",
+  "Devuelves SIEMPRE un único JSON válido, sin markdown ni texto fuera del JSON.",
+  "",
+  "NO REDACTAS NADA. No reescribes, no corriges, no reordenas, no partes ni",
+  "juntas pasos, no tocas los tiempos ni el tipo de paso. Aunque veas una errata",
+  "o un paso mejorable, lo dejas como está: tu única salida es una etiqueta por",
+  "paso. Cualquier texto que devuelvas se ignora.",
+  "",
+  ...PART_CRITERION,
+  "",
+  "FORMATO DE SALIDA:",
+  '· Devuelve { "parts": { "<índice>": "principal" | "guarnicion" | "salsa" |',
+  '  "combinado" | null } } con UNA entrada por cada paso que recibes, usando el',
+  "  índice `i` que viene en cada uno. null = ese paso no lleva `part`.",
+  "· Si la receta es monocomponente, devuelve null en TODOS los índices.",
+  "· Si etiquetas, etiqueta TODOS los pasos: no dejes null sueltos en una receta",
+  "  que sí usa el eje (un paso sin `part` cae en 'principal' por defecto en la",
+  "  app, y eso mete ingredientes en la pestaña equivocada).",
+  "· Los pasos que te llegan con `part_fijado` YA ESTÁN DECIDIDOS por una regla",
+  "  mecánica del proyecto: repite ese valor tal cual y no lo discutas. Hoy la",
+  "  regla es una sola: kind:'emplatado' → 'combinado'. La excepción es la",
+  "  receta monocomponente: si devuelves null en todo lo demás, devuelve null",
+  "  también ahí.",
+].join("\n");
+
+async function callModel(payload, system = SYSTEM, maxTokens = 8000) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -400,8 +532,8 @@ async function callModel(payload) {
       // Holgado a propósito: solo se paga por lo que se genera, y quedarse corto
       // no degrada la respuesta, la corta a media llave y tira la receta entera
       // (una receta con 5 electrodomésticos enriquecidos pasa de 2800 de sobra).
-      max_tokens: 8000,
-      system: SYSTEM,
+      max_tokens: maxTokens,
+      system,
       messages: [{ role: "user", content: JSON.stringify(payload) }],
     }),
   });
@@ -417,11 +549,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Con concurrencia alta la API devuelve 429/529 a ratos; son transitorios y se
 // resuelven esperando. Un 400 (payload mal formado) no mejora reintentando.
-async function callModelWithRetry(payload, label) {
+async function callModelWithRetry(payload, label, system, maxTokens) {
   let lastErr;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      return await callModel(payload);
+      return await callModel(payload, system, maxTokens);
     } catch (err) {
       lastErr = err;
       const msg = String(err?.message ?? err);
@@ -490,9 +622,101 @@ function enrichPayload(recipe, appliances, { wantBase, wantNutrients, wantThaw }
   };
 }
 
+// ── Modo --parts ─────────────────────────────────────────────────────────────
+
+/**
+ * La regla mecánica, aplicada ANTES de llamar: kind:'emplatado' → 'combinado'.
+ * Medido sobre las 141 recetas ya etiquetadas: 91 de 91 emplatados llevan
+ * 'combinado'. Lo que es determinista no se le pregunta a un modelo — se le
+ * dice, para que no lo contradiga y para no pagarlo.
+ * @returns {Record<number, string>} índice → part ya decidida
+ */
+function mechanicalParts(stepsRich) {
+  const fixed = {};
+  (stepsRich ?? []).forEach((s, i) => {
+    if (s?.kind === "emplatado") fixed[i] = "combinado";
+  });
+  return fixed;
+}
+
+/**
+ * Huella de todo lo que --parts NO puede tocar. Si cambia entre el antes y el
+ * después de aplicar la respuesta, es que se ha colado una reescritura: la
+ * pasada de `part` no vale para nada si se lleva por delante el wording curado.
+ */
+function stepFingerprint(stepsRich) {
+  return JSON.stringify((stepsRich ?? []).map((s) => [s?.text, s?.kind, s?.minutes, s?.during]));
+}
+
+function assertOnlyPartChanged(before, after, label) {
+  if (stepFingerprint(before) !== stepFingerprint(after)) {
+    throw new Error(`${label}: --parts ha modificado texto/kind/minutes/during — abortado`);
+  }
+}
+
+function partsPayload(recipe) {
+  const fixed = mechanicalParts(recipe.stepsRich);
+  return {
+    receta: recipe.name,
+    categoria: recipe.category,
+    tipo: recipe.type,
+    // Los ingredientes hacen falta para decidir: sin la lista no se sabe si el
+    // "puré" del paso 4 es un componente con entidad o dos cucharadas de algo.
+    ingredientes: (recipe.ingredients ?? []).map((i) => i.name),
+    pasos: (recipe.stepsRich ?? []).map((s, i) => {
+      const out = { i, text: s.text, kind: s.kind ?? null, minutes: s.minutes ?? null };
+      if (fixed[i]) out.part_fijado = fixed[i];
+      return out;
+    }),
+    devuelve_solo: ["parts"],
+  };
+}
+
+/**
+ * Escribe SOLO `stepsRich[i].part`. Reconstruye cada paso desde el original y
+ * añade (o quita) el campo: ni siquiera se copia el texto que venga en la
+ * respuesta, que es la forma segura de que una reescritura no pueda colarse.
+ * Devuelve null si el modelo no devolvió nada aplicable.
+ */
+function applyParts(recipe, out) {
+  const raw = out?.parts;
+  if (!raw || typeof raw !== "object") return null;
+
+  const before = recipe.stepsRich;
+  const fixed = mechanicalParts(before);
+
+  const assigned = before.map((s, i) => {
+    const v = raw[String(i)] ?? raw[i];
+    return STEP_PARTS.includes(v) ? v : null;
+  });
+
+  // Lo que hace que una receta esté DESGLOSADA es que tenga al menos un
+  // componente aparte: una 'salsa' o una 'guarnicion'. Sin eso, lo que queda
+  // ('principal' en todo, o 'principal' + el 'combinado' del emplatado) no es
+  // un desglose — es una pestaña única, o dos donde la segunda es "servir".
+  // El criterio ya lo dice: o hay un componente aparte, o no hay `part`.
+  const isMono = !assigned.some((p) => p === "salsa" || p === "guarnicion");
+
+  const after = before.map((s, i) => {
+    const { part: _drop, ...rest } = s;
+    if (isMono) return rest;
+    // La regla mecánica gana siempre: si el modelo la contradijo, se corrige.
+    const part = fixed[i] ?? assigned[i];
+    return part ? { ...rest, part } : rest;
+  });
+
+  assertOnlyPartChanged(before, after, `${recipe.id} — ${recipe.name}`);
+  recipe.stepsRich = after;
+  return { parts: [...new Set(after.map((s) => s.part).filter(Boolean))] };
+}
+
+/** Estimación grosera de tokens (≈4 caracteres por token) para el presupuesto. */
+const estimateTokens = (text) => Math.ceil(String(text).length / 4);
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 const applianceSteps = loadJson(APPLIANCE_STEPS_PATH, {});
 const baseLedger = loadJson(BASE_LEDGER_PATH, {});
+const partsLedger = loadJson(PARTS_LEDGER_PATH, {});
 
 const files = readdirSync(RECIPES_DIR).filter((f) => f.endsWith(".json"));
 
@@ -511,6 +735,16 @@ for (const file of files) {
     if (tasks.length >= LIMIT) break;
     if (!recipe?.id) continue;
     if (IDS && !IDS.has(recipe.id)) continue;
+
+    // --parts va por su cuenta: ni comparte llamada ni criterio de pendiente.
+    if (DO_PARTS) {
+      // Sin stepsRich no hay pasos que repartir. Y el ledger, no el `part` que
+      // ya tenga: re-etiquetar las 141 con el criterio nuevo es el objetivo.
+      if (!Array.isArray(recipe.stepsRich) || recipe.stepsRich.length === 0) continue;
+      if (!FORCE && partsLedger[recipe.id]) continue;
+      tasks.push({ path, recipe, parts: true, appliances: [], missingAppliances: [] });
+      continue;
+    }
 
     const appliances = DO_APPLIANCES ? (recipe.methods ?? []).map((m) => m.appliance) : [];
     // Una receta que ya trae stepsRich (escrita a mano o de una pasada previa al
@@ -534,6 +768,45 @@ for (const file of files) {
   if (tasks.length >= LIMIT) break;
 }
 
+if (DRY_RUN && DO_PARTS) {
+  // Presupuesto real de la pasada: se cuenta lo que se va a mandar de verdad
+  // (el mismo payload que construye partsPayload) más el prompt de sistema,
+  // que va íntegro en cada llamada porque aquí no hay caché entre recetas.
+  const systemTokens = estimateTokens(PARTS_SYSTEM);
+  let pasos = 0;
+  let inTokens = 0;
+  let outTokens = 0;
+  let yaEtiquetadas = 0;
+
+  for (const t of tasks) {
+    const n = t.recipe.stepsRich.length;
+    pasos += n;
+    if (t.recipe.stepsRich.some((s) => s.part)) yaEtiquetadas += 1;
+    inTokens += systemTokens + estimateTokens(JSON.stringify(partsPayload(t.recipe)));
+    // La salida es un mapa índice → palabra: ~10 tokens por paso, más las
+    // llaves. Es lo que hace que este modo sea barato aunque el modelo sea caro.
+    outTokens += 10 * n + 20;
+    console.log(`· ${t.recipe.id} — ${t.recipe.name} … ${n} pasos`
+      + `${t.recipe.stepsRich.some((s) => s.part) ? " (re-etiqueta)" : ""}`);
+  }
+
+  const price = PRICES[MODEL];
+  const cost = price
+    ? (inTokens / 1e6) * price.in + (outTokens / 1e6) * price.out
+    : null;
+
+  console.log(`\n✅ Dry-run --parts — no se ha llamado a la API.`);
+  console.log(`   recetas ………………… ${tasks.length} (${yaEtiquetadas} ya tienen \`part\` y se re-etiquetan)`);
+  console.log(`   pasos ……………………… ${pasos}`);
+  console.log(`   modelo ……………………… ${MODEL}`);
+  console.log(`   tokens entrada ≈ ${inTokens.toLocaleString("es-ES")} (incluye ${systemTokens} de sistema × ${tasks.length} llamadas)`);
+  console.log(`   tokens salida  ≈ ${outTokens.toLocaleString("es-ES")}`);
+  console.log(cost == null
+    ? `   coste ………………………… sin precio conocido para ${MODEL}`
+    : `   coste estimado ≈ $${cost.toFixed(2)} (batch −50 %: $${(cost / 2).toFixed(2)})`);
+  process.exit(0);
+}
+
 if (DRY_RUN) {
   for (const t of tasks) {
     console.log(
@@ -552,6 +825,7 @@ if (DRY_RUN) {
 const dirtyPaths = new Set();
 let touchedApplianceFile = false;
 let touchedLedger = false;
+let touchedPartsLedger = false;
 let ok = 0;
 let failed = 0;
 
@@ -565,6 +839,10 @@ function flush() {
   if (touchedLedger) {
     saveJson(BASE_LEDGER_PATH, baseLedger);
     touchedLedger = false;
+  }
+  if (touchedPartsLedger) {
+    saveJson(PARTS_LEDGER_PATH, partsLedger);
+    touchedPartsLedger = false;
   }
 }
 
@@ -648,6 +926,26 @@ async function worker() {
     const task = queue.shift();
     const label = `${task.recipe.id} — ${task.recipe.name}`;
     try {
+      if (task.parts) {
+        // max_tokens corto a propósito: la respuesta es un mapa de índices a
+        // una palabra. Si se desborda, es que el modelo se ha puesto a redactar.
+        const out = await callModelWithRetry(
+          partsPayload(task.recipe), label, PARTS_SYSTEM, 2000,
+        );
+        const applied = applyParts(task.recipe, out);
+        // Sin `parts` en la respuesta no hay nada que escribir: cuenta como
+        // fallo para que la siguiente pasada lo repesque (el ledger no se marca).
+        if (!applied) throw new Error("respuesta sin `parts`");
+        dirtyPaths.add(task.path);
+        partsLedger[task.recipe.id] = true;
+        touchedPartsLedger = true;
+        ok += 1;
+        const desglose = applied.parts.length ? applied.parts.join("+") : "sin part (monocomponente)";
+        console.log(`✓ [${ok + failed}/${total}] ${label} → ${desglose}`);
+        if ((ok + failed) % SAVE_EVERY === 0) flush();
+        continue;
+      }
+
       const payload = enrichPayload(task.recipe, task.missingAppliances, {
         wantBase: task.needBase,
         wantNutrients: task.needNutrients,
@@ -665,10 +963,17 @@ async function worker() {
   }
 }
 
-console.log(`Enriqueciendo ${total} receta(s) con ${MODEL} (concurrencia ${CONCURRENCY})…\n`);
+console.log(DO_PARTS
+  ? `Asignando \`part\` a ${total} receta(s) con ${MODEL} (concurrencia ${CONCURRENCY})…\n`
+  : `Enriqueciendo ${total} receta(s) con ${MODEL} (concurrencia ${CONCURRENCY})…\n`);
 await Promise.all(Array.from({ length: Math.min(CONCURRENCY, total) }, worker));
 flush();
 
-console.log(`\n✅ Enriquecimiento completado — ${ok} ok, ${failed} fallidas de ${total}.`);
+console.log(`\n✅ ${DO_PARTS ? "Asignación de `part`" : "Enriquecimiento"} completada — ${ok} ok, ${failed} fallidas de ${total}.`);
 if (failed > 0) console.log("   Vuelve a lanzar el script: las fallidas se reintentan solas.");
-console.log("   Pasa scripts/check-step-wording.mjs y revisa el diff antes de commitear.");
+console.log(DO_PARTS
+  // Sin check-step-wording: --parts no toca texto, así que el lint de estilo no
+  // tiene nada que mirar. Lo que hay que revisar es el diff, que debe ser solo
+  // líneas `"part":` entrando o saliendo.
+  ? "   Revisa el diff: solo deben aparecer líneas \"part\". Cualquier otra cosa es un fallo."
+  : "   Pasa scripts/check-step-wording.mjs y revisa el diff antes de commitear.");
