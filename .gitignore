@@ -49,6 +49,10 @@ scripts/prompt-test/
 # Caché del CLI de Supabase
 supabase/.temp/
 
+# Datos que descarga el agente de fallos (.github/workflows/agente-fallos.yml)
+# antes de arrancar. Nunca se commitean: el repo es público.
+.ops/
+
 # Vídeos renderizados con Remotion (`npm run video:render`) y su caché de
 # bundle. Los mp4 se regeneran; solo se commitea el que acabe usando la app.
 /out/
