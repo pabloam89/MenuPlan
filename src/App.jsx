@@ -49,7 +49,7 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
-import { resolvePlannerModel } from "./lib/aiModels.js";
+import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 // Wizard generativo (experimento local, rama wizard/generativo). Todo lo suyo
@@ -1947,6 +1947,8 @@ export default function App() {
       // so every week/group of the same menú uses the same variant.
       const planner = resolvePlannerModel();
       genStats.plannerModel = planner.model;
+      const plannerFormat = resolvePlannerFormat();
+      genStats.plannerFormat = plannerFormat;
 
       // "spread" necesita que cada semana vea el resultado de la anterior (no
       // hay independencia entre semanas), así que se genera en serie —
@@ -2001,6 +2003,7 @@ export default function App() {
           plannerModel: planner.model,
           groupCache,
           stats: plannerStats,
+          plannerFormat,
         });
 
         // The planner picks from recipeCatalog.js, but buildShoppingList (and the
@@ -2106,6 +2109,7 @@ export default function App() {
         weekCount,
         plannerModel: planner.model,
         plannerVariant: planner.variant,
+        plannerFormat,
         elapsedMs: Date.now() - startedAt,
         ...plannerStats,
       });

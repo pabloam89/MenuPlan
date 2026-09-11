@@ -100,3 +100,29 @@ export function resolvePlannerModel() {
 
   return { model: PLANNER_MODEL, variant: "sonnet", source: "default" };
 }
+
+const PLANNER_FORMATS = new Set(["json", "compact"]);
+
+/**
+ * Wire format for the menu planner: "json" (the original catalog of JSON
+ * objects + array answer, task "planner") or "compact" ("|" table + slotId→
+ * recipeId map, task "planner-compact"). Same precedence as the model:
+ * `?plannerFormat=` → localStorage `mp_planner_format` → env
+ * `VITE_PLANNER_FORMAT` → "json". Unknown values are ignored.
+ */
+export function resolvePlannerFormat() {
+  try {
+    const q = new URLSearchParams(window.location.search).get("plannerFormat");
+    if (PLANNER_FORMATS.has(q)) return q;
+  } catch {
+    // no window (tests/SSR) — fall through
+  }
+  try {
+    const ls = localStorage.getItem("mp_planner_format");
+    if (PLANNER_FORMATS.has(ls)) return ls;
+  } catch {
+    // localStorage unavailable — fall through
+  }
+  const env = import.meta.env?.VITE_PLANNER_FORMAT;
+  return PLANNER_FORMATS.has(env) ? env : "json";
+}

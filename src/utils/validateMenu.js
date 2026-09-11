@@ -927,11 +927,13 @@ export function validateMenu(
 /**
  * Build a correction prompt from validation violations.
  */
-export function buildCorrectionMessage(violations) {
+// `slotsShape` echoes the answer format the planner was asked for: the JSON
+// array by default, a slotId→recipeId map for the "planner-compact" task.
+export function buildCorrectionMessage(violations, slotsShape = '{"slots":[...]}') {
   const lines = violations.map(
     (v) => `- [${v.rule}] ${v.slotId}: ${v.message}`,
   );
-  return `Tu asignación viola estas reglas:\n${lines.join("\n")}\n\nCorrige SOLO los slots afectados y devuelve el JSON completo {"slots":[...]} con TODOS los slots (corregidos y no corregidos).`;
+  return `Tu asignación viola estas reglas:\n${lines.join("\n")}\n\nCorrige SOLO los slots afectados y devuelve el JSON completo ${slotsShape} con TODOS los slots (corregidos y no corregidos).`;
 }
 
 /**

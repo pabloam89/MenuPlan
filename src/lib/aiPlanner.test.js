@@ -12,6 +12,7 @@ import {
   callModel,
   poolForWeek,
   createPlannerStats,
+  compactCatalogTable,
 } from "./aiPlanner.js";
 import { getCarbType, validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -43,6 +44,57 @@ describe("buildUserMessage pantry section", () => {
     expect(textBlock.text).toContain("- cebolla");
     expect(textBlock.text).toContain("SECUNDARIA a todas las demás reglas");
     expect(textBlock.text).toContain("No fuerces recetas que no encajen");
+  });
+});
+
+describe("compact planner format", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("compactCatalogTable keeps every field as a column and encodes lists and booleans", () => {
+    const table = compactCatalogTable([
+      { id: "a_1", name: "Sopa|ajo", mealRole: ["primero"], kidFriendly: true, tupperFriendly: false, time: 20 },
+      { id: "b_2", name: "Tortilla", mealRole: ["cena", "segundo"], favorite: true, rareField: "x" },
+    ]);
+    expect(table.split("\n")).toEqual([
+      "id|name|mealRole|time|kidFriendly|tupperFriendly|favorite|rareField",
+      "a_1|Sopa ajo|primero|20|1|0||",
+      "b_2|Tortilla|cena,segundo||||1|x",
+    ]);
+  });
+
+  it("buildUserMessage sends the table and words the flags for it", () => {
+    const [catalogBlock, textBlock] = buildUserMessage(
+      [{ id: "a", name: "A", category: "huevos", mealRole: ["cena"], isFavorite: true }],
+      SLOTS, CONFIG, {}, [], [], "prefer", [], "preferred", [], null, "compact",
+    );
+    expect(catalogBlock.text).toBe("Catálogo:\nid|name|category|mealRole|favorite\na|A|huevos|cena|1");
+    expect(catalogBlock.cache_control).toEqual({ type: "ephemeral" });
+    expect(textBlock.text).toContain("las marcadas con favorite = 1");
+    expect(textBlock.text).not.toContain('"favorite": true');
+  });
+
+  it("generateMenuWithAI asks for planner-compact and accepts the slotId→recipeId map", async () => {
+    const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 1 };
+    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
+    const segundo = pool.find((r) => r.mealRole.includes("segundo") && r.id !== primero?.id);
+    const cena = pool.find((r) => r.mealRole.includes("cena"));
+    const answer = { slots: { lun_comida_1: primero.id, lun_comida_2: segundo.id, lun_cena: cena.id } };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ content: [{ text: JSON.stringify(answer) }] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { plan } = await generateMenuWithAI(data, { plannerFormat: "compact" });
+    const sent = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(sent.task).toBe("planner-compact");
+    expect(sent.messages[0].content[0].text).toMatch(/^Catálogo:\nid\|name\|/);
+    expect(plan[group.id]["Lun-Cena"]?.recipeId).toBeTruthy();
   });
 });
 
