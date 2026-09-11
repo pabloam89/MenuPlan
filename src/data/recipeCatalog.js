@@ -13,6 +13,7 @@ import meriendas from "./recipes/meriendas.json";
 import postres from "./recipes/postres.json";
 import guarniciones from "./recipes/guarniciones.json";
 import salsas from "./recipes/salsas.json";
+import bases from "./recipes/bases.json";
 import { validateRecipes } from "./recipeSchema.js";
 import { deriveHealthFlags } from "../lib/healthFlags.js";
 import { supabase } from "../lib/supabase.js";
@@ -40,11 +41,11 @@ const JSON_RECIPES = [
   ...postres,
 ];
 
-// guarniciones.json and salsas.json each live outside the main comida/cena
-// catalog (never occupy a menu slot themselves — see MEAL_ROLES "guarnicion"/
-// "salsa" in recipeSchema.js), so they're validated alongside `recipes` but
-// not folded into it. Every consumer that needs them imports the JSON file
-// directly (pairGarnishes.js, Menu.jsx, etc).
+// guarniciones.json, salsas.json y bases.json viven fuera del catálogo de
+// comida/cena (nunca ocupan un hueco de menú por sí mismos — ver MEAL_ROLES
+// "guarnicion"/"salsa"/"base" en recipeSchema.js), así que se validan junto a
+// `recipes` pero no se mezclan con él. Cada consumidor que los necesita importa
+// el JSON directamente (pairGarnishes.js, bases.js, Menu.jsx, etc).
 function validateCatalog(recipes, sideCatalogs) {
   const seen = new Set();
   const errors = [];
@@ -61,15 +62,35 @@ function validateCatalog(recipes, sideCatalogs) {
   return errors;
 }
 
-// JSON is validated unconditionally at import time — it's bundled with the
-// app, so a broken JSON catalog must fail loudly regardless of whether
-// Supabase is reachable.
-const jsonErrors = validateCatalog(JSON_RECIPES, [guarniciones, salsas]);
-if (jsonErrors.length > 0) {
-  throw new Error(
-    `Catálogo de recetas inválido (${jsonErrors.length} error/es):\n` +
-      jsonErrors.map((e) => `  - ${e}`).join("\n"),
-  );
+// El JSON bundleado se valida SOLO en desarrollo y en los tests.
+//
+// Antes corría sin condición, y eso son ~210 ms de hilo principal bloqueado
+// —medido sobre las 1011 recetas— antes del primer pixel, EN CADA CARGA DE
+// PÁGINA, para revalidar un fichero que no puede haber cambiado desde que se
+// construyó la app.
+//
+// Por qué es seguro quitarlo de producción, que era la duda razonable del
+// comentario anterior ("debe fallar ruidosamente pase lo que pase"):
+// `scripts/validate-catalog.mjs` corre en `prebuild` Y en `pretest`
+// (package.json), así que un catálogo inválido no llega a haber build. El JSON
+// va empaquetado dentro del bundle: entre el build y el runtime no hay nadie
+// que pueda tocarlo. Esta comprobación era un tirante sobre unos tirantes.
+//
+// Lo que NO se toca es la validación del catálogo REMOTO (más abajo, en
+// loadRecipes): esos datos llegan por red, son los únicos que pueden venir
+// corruptos o de una versión que este código no conoce, y ahí la validación es
+// la puerta que impide servirlos.
+//
+// `import.meta.env.DEV` es `true` bajo vitest, así que las pruebas siguen
+// validando el catálogo entero igual que antes.
+if (import.meta.env.DEV) {
+  const jsonErrors = validateCatalog(JSON_RECIPES, [guarniciones, salsas, bases]);
+  if (jsonErrors.length > 0) {
+    throw new Error(
+      `Catálogo de recetas inválido (${jsonErrors.length} error/es):\n` +
+        jsonErrors.map((e) => `  - ${e}`).join("\n"),
+    );
+  }
 }
 
 // Supabase stores columns as snake_case (see supabase/migrations/0001_recipe_catalog.sql);
