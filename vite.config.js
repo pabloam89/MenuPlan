@@ -144,7 +144,7 @@ export default defineConfig(({ mode }) => {
           name: 'HoMenu',
           short_name: 'HoMenu',
           description: 'El menú familiar de la semana, resuelto.',
-          theme_color: '#7e14ff',
+          theme_color: '#2d5a3d',
           background_color: '#ffffff',
           display: 'standalone',
           orientation: 'portrait',

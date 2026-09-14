@@ -9,7 +9,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "time": 25,
     "difficulty": "facil",
     "season": "all",
@@ -125,7 +124,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 9,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "dentro"
   },
   {
     "id": "guarniciones_025",
@@ -532,7 +532,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "time": 45,
     "difficulty": "facil",
@@ -658,7 +657,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 1,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_029",
@@ -1672,7 +1672,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "time": 35,
     "difficulty": "normal",
     "season": "all",
@@ -1841,7 +1840,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 4,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_037",
@@ -1991,7 +1991,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "time": 55,
     "difficulty": "normal",
@@ -2131,7 +2130,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 10,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_039",
@@ -2143,7 +2143,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "time": 20,
     "difficulty": "facil",
     "season": "all",
@@ -2244,7 +2243,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 2,
     "sodium_mg": 290,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_040",
@@ -2256,7 +2256,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "time": 25,
     "difficulty": "normal",
     "season": "all",
@@ -2389,7 +2388,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 4,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_041",
@@ -2401,7 +2401,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "time": 70,
     "difficulty": "normal",
@@ -2543,6 +2542,7 @@
     "saturated_fat_g": 27,
     "sodium_mg": 420,
     "freezable": false,
+    "baseMode": "dentro",
     "cocina": "francesa"
   },
   {
@@ -3100,7 +3100,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -3218,7 +3217,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 1,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_046",
@@ -3226,7 +3226,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -3385,7 +3384,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_047",
@@ -4841,7 +4841,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -5021,7 +5020,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_059",
@@ -5198,7 +5198,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "mealRole": [
       "guarnicion"
     ],
@@ -5352,7 +5351,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "id": "guarniciones_061",
@@ -5629,7 +5629,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -5769,7 +5768,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 1,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_064",

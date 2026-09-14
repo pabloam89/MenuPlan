@@ -587,6 +587,10 @@ export function decisionCatalog(filteredRecipes) {
     // otherwise "Judías verdes rehogadas" reads as mainProtein "none" and it
     // can't tell the dish carries meat.
     if (r.extraProteins?.length) entry.extraProteins = r.extraProteins;
+    // The "cocinas" instruction in buildUserMessage tells the model these
+    // recipes carry their "cocina" field — without it here it had nothing to
+    // go on and only ajustarCuota's post-pass placed them.
+    if (r.cocina) entry.cocina = r.cocina;
     if (r.category === "bebes") {
       entry.protein_g = r.protein_g ?? 0;
     }

@@ -159,11 +159,15 @@ export function extractJson(text) {
 }
 
 export class AIPlannerError extends Error {
-  constructor(message, { cause, raw } = {}) {
+  constructor(message, { cause, raw, network, diagnostics } = {}) {
     super(message);
     this.name = "AIPlannerError";
     if (cause) this.cause = cause;
     if (raw) this.raw = raw;
+    // `network`: the request never got a response (fetch rejected), as opposed
+    // to an error the API actually returned. `diagnostics` travels to analytics.
+    if (network) this.network = true;
+    if (diagnostics) this.diagnostics = diagnostics;
   }
 }
 
@@ -183,6 +187,20 @@ const DEFAULT_MAX_TOKENS = 1024;
 const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 529]);
 const RETRY_DELAYS_MS = [600, 1500];
 
+// A rejected fetch ("Load failed" on iOS, "Failed to fetch" on Chrome) means the
+// connection dropped before any response arrived. In production this only shows
+// up on mobile: a planner call carries the whole catalog and can sit silent for
+// tens of seconds, long enough for a WiFi↔4G handoff or a carrier proxy to cut
+// it. Like a 529, the same call moments later usually works — and a single
+// dropped call used to sink the whole multi-week generation with no retry.
+const NETWORK_ERROR_MESSAGE = "No se pudo contactar con el servicio de IA. Comprueba la conexión.";
+const NETWORK_RETRY_DELAYS_MS = [1000, 2500, 5000];
+// When the page went to the background mid-request (screen locked, app
+// switched) the OS suspended it and killed the fetch — nothing wrong with the
+// network. Those drops wait until the user is back and retry without spending a
+// network retry, capped so bouncing in and out can't loop forever.
+const MAX_BACKGROUND_RETRIES = 3;
+
 function sleep(ms, signal) {
   return new Promise((resolve, reject) => {
     const t = setTimeout(resolve, ms);
@@ -193,10 +211,83 @@ function sleep(ms, signal) {
   });
 }
 
-export async function callModel(body, signal) {
-  let lastError;
-  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+function isPageHidden() {
+  return typeof document !== "undefined" && document.visibilityState === "hidden";
+}
+
+function waitUntilVisible(signal) {
+  if (signal?.aborted) return Promise.reject(new DOMException("Aborted", "AbortError"));
+  if (!isPageHidden()) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      document.removeEventListener("visibilitychange", onChange);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const onChange = () => {
+      if (isPageHidden()) return;
+      cleanup();
+      resolve();
+    };
+    const onAbort = () => {
+      cleanup();
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    document.addEventListener("visibilitychange", onChange);
+    signal?.addEventListener("abort", onAbort);
+  });
+}
+
+// Remembers whether the page was hidden at any point while a request was in flight.
+function watchHidden() {
+  if (typeof document === "undefined") return { wasHidden: () => false, stop: () => {} };
+  let hidden = isPageHidden();
+  const onChange = () => {
+    if (isPageHidden()) hidden = true;
+  };
+  document.addEventListener("visibilitychange", onChange);
+  return {
+    wasHidden: () => hidden || isPageHidden(),
+    stop: () => document.removeEventListener("visibilitychange", onChange),
+  };
+}
+
+export async function callModel(body, signal, { onResult } = {}) {
+  const startedAt = Date.now();
+  let statusRetries = 0;
+  let networkRetries = 0;
+  let backgroundRetries = 0;
+
+  // Dropped connection: waits (and returns, so the loop retries) or throws once
+  // the retries are spent.
+  const afterNetworkError = async (err, wasHidden) => {
+    if (err?.name === "AbortError") throw err;
+    if (wasHidden && backgroundRetries < MAX_BACKGROUND_RETRIES) {
+      backgroundRetries++;
+      await waitUntilVisible(signal);
+      return;
+    }
+    if (networkRetries < NETWORK_RETRY_DELAYS_MS.length) {
+      await sleep(NETWORK_RETRY_DELAYS_MS[networkRetries++], signal);
+      await waitUntilVisible(signal);
+      return;
+    }
+    throw new AIPlannerError(NETWORK_ERROR_MESSAGE, {
+      cause: err,
+      network: true,
+      diagnostics: {
+        cause: `${err?.name ?? "Error"}: ${err?.message ?? ""}`,
+        hiddenDuringRequest: wasHidden,
+        callElapsedMs: Date.now() - startedAt,
+        networkRetries,
+        backgroundRetries,
+      },
+    });
+  };
+
+  for (;;) {
+    const hidden = watchHidden();
     let response;
+    let payload;
     try {
       response = await fetch("/api/generate", {
         method: "POST",
@@ -204,12 +295,17 @@ export async function callModel(body, signal) {
         body: JSON.stringify(body),
         signal,
       });
+      // Read the body inside the same try: the connection can also drop while
+      // it streams in, which is the same failure as a rejected fetch.
+      if (response.ok) payload = await response.json();
     } catch (err) {
-      if (err?.name === "AbortError") throw err;
-      throw new AIPlannerError(
-        "No se pudo contactar con el servicio de IA. Comprueba la conexión.",
-        { cause: err },
-      );
+      if (err instanceof SyntaxError) {
+        throw new AIPlannerError("Respuesta no JSON del proxy.", { cause: err });
+      }
+      await afterNetworkError(err, hidden.wasHidden());
+      continue;
+    } finally {
+      hidden.stop();
     }
 
     if (!response.ok) {
@@ -220,30 +316,72 @@ export async function callModel(body, signal) {
       } catch {
         detail = await response.text().catch(() => "");
       }
-      lastError = new AIPlannerError(
+      const error = new AIPlannerError(
         `La IA respondió con un error (HTTP ${response.status}). ${detail}`.trim(),
       );
-      if (RETRYABLE_STATUSES.has(response.status) && attempt < RETRY_DELAYS_MS.length) {
-        await sleep(RETRY_DELAYS_MS[attempt], signal);
+      if (RETRYABLE_STATUSES.has(response.status) && statusRetries < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[statusRetries++], signal);
         continue;
       }
-      throw lastError;
-    }
-
-    let payload;
-    try {
-      payload = await response.json();
-    } catch (err) {
-      throw new AIPlannerError("Respuesta no JSON del proxy.", { cause: err });
+      throw error;
     }
 
     const text = payload?.content?.[0]?.text;
     if (typeof text !== "string" || text.length === 0) {
       throw new AIPlannerError("La IA devolvió una respuesta vacía.", { raw: payload });
     }
+    onResult?.({
+      ms: Date.now() - startedAt,
+      usage: payload.usage,
+      statusRetries,
+      networkRetries,
+      backgroundRetries,
+    });
     return text;
   }
-  throw lastError;
+}
+
+// Per-generation counters sent with menu_generated / generation_failed: how many
+// model calls a menú took and why, how long they ran, and their tokens. Flat
+// numbers so they stay easy to query from user_events.metadata. `llmMs` sums
+// every call, so it exceeds wall-clock time when weeks/groups run in parallel.
+export function createPlannerStats() {
+  return {
+    llmCalls: 0,
+    plannerCalls: 0,
+    formatRetries: 0,
+    correctionCalls: 0,
+    llmMs: 0,
+    slowestCallMs: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    statusRetries: 0,
+    networkRetries: 0,
+    backgroundRetries: 0,
+    invalidFirstPass: 0,
+    fallbackUsed: 0,
+    groupsReused: 0,
+  };
+}
+
+function recordCall(stats, kind, result) {
+  if (!stats) return;
+  stats.llmCalls++;
+  if (kind === "planner") stats.plannerCalls++;
+  else if (kind === "correction") stats.correctionCalls++;
+  else stats.formatRetries++;
+  stats.llmMs += result.ms;
+  stats.slowestCallMs = Math.max(stats.slowestCallMs, result.ms);
+  const usage = result.usage ?? {};
+  stats.inputTokens += usage.input_tokens ?? 0;
+  stats.outputTokens += usage.output_tokens ?? 0;
+  stats.cacheReadTokens += usage.cache_read_input_tokens ?? 0;
+  stats.cacheWriteTokens += usage.cache_creation_input_tokens ?? 0;
+  stats.statusRetries += result.statusRetries;
+  stats.networkRetries += result.networkRetries;
+  stats.backgroundRetries += result.backgroundRetries;
 }
 
 // ── System prompt ───────────────────────────────────────────────
@@ -526,8 +664,44 @@ export function buildGroupContext(data, group) {
 // pantryMode: "strict" (solo con lo de casa, sin comprar) | "only" (partir de
 // lo de casa, fuerte) | "prefer"/"off" (preferencia blanda). "off" nunca llega
 // aquí con nombres porque App vacía la lista antes.
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null) {
+// Preferred column order for the compact ("planner-compact") catalog table.
+// Any other field a recipe carries is appended after these, and a column no
+// recipe uses is left out, so the table always holds what the JSON form did.
+const COMPACT_CATALOG_COLUMNS = [
+  "id", "name", "category", "mainProtein", "mealRole", "time", "kcal",
+  "kidFriendly", "tupperFriendly", "mainBase", "extraProteins", "cocina",
+  "protein_g", "carbs_g", "fat_g", "healthFlags", "pantryScore", "favorite", "own",
+];
+
+function compactCell(value) {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "boolean") return value ? "1" : "0";
+  if (Array.isArray(value)) return value.join(",");
+  return String(value).replace(/[|\r\n]+/g, " ");
+}
+
+/**
+ * The decision catalog as a "|"-separated table: a header line, then one line
+ * per recipe. Same content as the JSON form without repeating every field name
+ * for each of ~240 recipes. Exported for tests.
+ */
+export function compactCatalogTable(catalog) {
+  const known = new Set(COMPACT_CATALOG_COLUMNS);
+  const extra = [...new Set(catalog.flatMap((r) => Object.keys(r)))].filter((k) => !known.has(k));
+  const columns = [...COMPACT_CATALOG_COLUMNS, ...extra].filter((c) =>
+    catalog.some((r) => r[c] !== undefined),
+  );
+  return [
+    columns.join("|"),
+    ...catalog.map((r) => columns.map((c) => compactCell(r[c])).join("|")),
+  ].join("\n");
+}
+
+// `format`: "json" (task "planner") or "compact" (task "planner-compact").
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null, format = "json") {
   const catalog = decisionCatalog(filteredRecipes);
+  // How a boolean catalog flag reads in each format, for the instructions below.
+  const flagText = (field) => (format === "compact" ? `${field} = 1` : `"${field}": true`);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
     if (s.position) out.position = s.position;
@@ -562,7 +736,9 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
         // en casa", que es una preferencia difusa y dejaba media despensa sin
         // tocar; el objetivo real de quien elige esto es que no se le eche a
         // perder nada. Lo que sobre después, libre.
-        ? `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): GASTA esta lista. Coloca platos que usen estos ingredientes hasta agotarlos, empezando por los que antes se estropean (fresco antes que seco o congelado). No es una preferencia difusa: el objetivo es que al acabar la semana no quede nada de esta lista sin usar. Los huecos que sobren después, elígelos con total libertad del catálogo. Nunca rompas por esto las demás reglas (complementación escolar, variedad, alergias, tipo de plato) ni fuerces combinaciones sin sentido culinario: si un ingrediente no encaja en ningún hueco, déjalo fuera antes que forzarlo.`
+        ? `
+
+INSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): GASTA esta lista. Coloca platos que usen estos ingredientes hasta agotarlos, empezando por los que antes se estropean (fresco antes que seco o congelado). No es una preferencia difusa: el objetivo es que al acabar la semana no quede nada de esta lista sin usar. Los huecos que sobren después, elígelos con total libertad del catálogo. Nunca rompas por esto las demás reglas (complementación escolar, variedad, alergias, tipo de plato) ni fuerces combinaciones sin sentido culinario: si un ingrediente no encaja en ningún hueco, déjalo fuera antes que forzarlo.`
         : `\n\nINSTRUCCIÓN ADICIONAL: Cuando haya dos recetas equivalentes para un hueco, prioriza la que use más ingredientes de esta lista. Esta preferencia es SECUNDARIA a todas las demás reglas (complementación escolar, variedad, alergias). No fuerces recetas que no encajen solo por usar ingredientes disponibles.`;
     parts.push(
       `\nINGREDIENTES QUE EL USUARIO YA TIENE EN CASA:\n${pantryNames.map((n) => `- ${n}`).join("\n")}` +
@@ -620,7 +796,7 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
   // instruction never confuses the model when there's nothing to prioritize.
   if (catalog.some((r) => r.favorite)) {
     parts.push(
-      `\nRECETAS FAVORITAS DEL USUARIO: las marcadas con "favorite": true en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre otras equivalentes. Es una preferencia fuerte pero no absoluta: no repitas la misma favorita más de lo razonable ni rompas la variedad del menú solo por incluirlas.`,
+      `\nRECETAS FAVORITAS DEL USUARIO: las marcadas con ${flagText("favorite")} en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre otras equivalentes. Es una preferencia fuerte pero no absoluta: no repitas la misma favorita más de lo razonable ni rompas la variedad del menú solo por incluirlas.`,
     );
   }
 
@@ -628,8 +804,8 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
   if (ownRecipes.length > 0 && recipeMode !== "catalog") {
     parts.push(
       recipeMode === "only"
-        ? `\nRECETAS PROPIAS DEL USUARIO: las marcadas con "own": true. El menú DEBE usar EXCLUSIVAMENTE estas recetas (${ownRecipes.length} disponibles). Repite las que hagan falta para cubrir todos los huecos, respetando tipo de plato, tiempo, variedad y todas las demás reglas.`
-        : `\nRECETAS PROPIAS DEL USUARIO: las marcadas con "own": true en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre las del catálogo. Es una preferencia fuerte: incluye al menos una receta propia en la semana si alguna encaja, y no las ignores sistemáticamente a favor del catálogo.`,
+        ? `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")}. El menú DEBE usar EXCLUSIVAMENTE estas recetas (${ownRecipes.length} disponibles). Repite las que hagan falta para cubrir todos los huecos, respetando tipo de plato, tiempo, variedad y todas las demás reglas.`
+        : `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")} en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre las del catálogo. Es una preferencia fuerte: incluye al menos una receta propia en la semana si alguna encaja, y no las ignores sistemáticamente a favor del catálogo.`,
     );
   }
 
@@ -642,7 +818,7 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
   return [
     {
       type: "text",
-      text: `Catálogo:\n${JSON.stringify(catalog)}`,
+      text: `Catálogo:\n${format === "compact" ? compactCatalogTable(catalog) : JSON.stringify(catalog)}`,
       cache_control: { type: "ephemeral" },
     },
     { type: "text", text: parts.join("\n") },
@@ -776,9 +952,23 @@ const SlotAssignmentSchema = z.object({
   recipeId: z.string().min(1),
 });
 
-const LLMResponseSchema = z.object({
-  slots: z.array(SlotAssignmentSchema).min(1),
-});
+// "planner-compact" answers {"slots":{"lun_cena":"huevos_004",...}}. Normalize
+// that map to the array shape so everything downstream sees a single format.
+function normalizeSlotsShape(value) {
+  const slots = value?.slots;
+  if (!slots || typeof slots !== "object" || Array.isArray(slots)) return value;
+  return {
+    ...value,
+    slots: Object.entries(slots).map(([slotId, recipeId]) => ({ slotId, recipeId })),
+  };
+}
+
+const LLMResponseSchema = z.preprocess(
+  normalizeSlotsShape,
+  z.object({
+    slots: z.array(SlotAssignmentSchema).min(1),
+  }),
+);
 
 // ── Cross-week variety (parallel-safe) ──────────────────────────
 // Multi-week menús are generated in parallel (see App.jsx#regenerateMenu), so a
@@ -839,7 +1029,7 @@ export function poolForWeek(pool, crossWeek, slotCount) {
 // ── Generation ──────────────────────────────────────────────────
 
 // Exported for tests only — not used elsewhere outside this module.
-export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer") {
+export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null, format = "json" } = {}) {
   const ctx = buildGroupContext(data, group);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
@@ -952,14 +1142,22 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     ctx.filterOpts.recipeMode ?? "preferred",
     fridgeDishes,
     ctx.filterOpts.cocinas,
+    format,
   );
 
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
   // Haiku); format/correction retries stay on the cheap FAST_MODEL.
-  const request = (messages, model = plannerModel) =>
+  // Answer shape echoed in retry/correction messages, matching the task's format.
+  const slotsShape =
+    format === "compact"
+      ? '{"slots":{"slotId":"recipeId",...}}'
+      : '{"slots":[{"slotId":"...","recipeId":"..."},...]}';
+  const task = format === "compact" ? "planner-compact" : "planner";
+  const request = (messages, model = plannerModel, kind = "planner") =>
     callModel(
-      { model, max_tokens: DEFAULT_MAX_TOKENS, task: "planner", messages },
+      { model, max_tokens: DEFAULT_MAX_TOKENS, task, messages },
       signal,
+      { onResult: (result) => recordCall(stats, kind, result) },
     );
 
   // 1. First LLM call
@@ -976,10 +1174,11 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
         {
           role: "user",
           content:
-            'Tu respuesta no contiene JSON válido. Devuelve SOLO esto, sin texto adicional: {"slots":[{"slotId":"...","recipeId":"..."},...]}',
+            `Tu respuesta no contiene JSON válido. Devuelve SOLO esto, sin texto adicional: ${slotsShape}`,
         },
       ],
       RETRY_MODEL,
+      "format_retry",
     );
     try {
       parsed = extractJson(retryText);
@@ -1007,13 +1206,14 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
         { role: "assistant", content: text },
         {
           role: "user",
-          content: `El JSON no cumple el formato. Devuelve SOLO {"slots":[{"slotId":"...","recipeId":"..."},...]}\nErrores:\n${schemaResult.error.issues
+          content: `El JSON no cumple el formato. Devuelve SOLO ${slotsShape}\nErrores:\n${schemaResult.error.issues
             .slice(0, 5)
             .map((i) => `${i.path.join(".")}: ${i.message}`)
             .join("\n")}`,
         },
       ],
       RETRY_MODEL,
+      "format_retry",
     );
     try {
       parsed = extractJson(retryText);
@@ -1045,9 +1245,10 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs);
     if (finalCheck.valid) break;
+    if (attempt === 0 && stats) stats.invalidFirstPass++;
 
     if (attempt < MAX_RETRIES - 1) {
-      const correctionMsg = buildCorrectionMessage(finalCheck.violations);
+      const correctionMsg = buildCorrectionMessage(finalCheck.violations, slotsShape);
       const retryText = await request(
         [
           { role: "user", content: userMessage },
@@ -1055,6 +1256,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
           { role: "user", content: correctionMsg },
         ],
         attempt === 0 ? plannerModel : RETRY_MODEL,
+        "correction",
       );
       try {
         const retryParsed = extractJson(retryText);
@@ -1071,6 +1273,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // 3. Apply deterministic fallback if still invalid after retries.
   if (!finalCheck.valid) {
+    if (stats) stats.fallbackUsed++;
     slotAssignments = applyFallback(
       slotAssignments,
       finalCheck.violations,
@@ -1558,7 +1761,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   return out;
 }
 
-export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL } = {}) {
+export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL, groupCache = null, stats = null, plannerFormat = "json" } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
@@ -1570,11 +1773,31 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     throw new AIPlannerError("Ningún grupo tiene miembros asignados.");
   }
 
-  const results = await Promise.all(
-    activeGroups.map((group) =>
-      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode),
-    ),
-  );
+  // Groups are independent, so one whose connection dropped (even after
+  // callModel's own retries) gets one more go on its own instead of failing the
+  // rest. `groupCache` (a Map keyed by group id, owned by the caller) keeps the
+  // groups that did come back, so retrying the whole generation later redoes
+  // only the missing ones. Hydration below only reads these results.
+  const runGroup = async (group) => {
+    const cached = groupCache?.get(group.id);
+    if (cached) {
+      if (stats) stats.groupsReused++;
+      return cached;
+    }
+    const run = () =>
+      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode, { stats, format: plannerFormat });
+    let result;
+    try {
+      result = await run();
+    } catch (err) {
+      if (!err?.network || signal?.aborted) throw err;
+      await waitUntilVisible(signal);
+      result = await run();
+    }
+    groupCache?.set(group.id, result);
+    return result;
+  };
+  const results = await Promise.all(activeGroups.map(runGroup));
 
   const multi = results.length > 1;
   const plan = { _warnings: [] };

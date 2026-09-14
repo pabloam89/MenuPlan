@@ -48,8 +48,8 @@ const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").t
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
-import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds } from "./lib/aiPlanner.js";
-import { resolvePlannerModel } from "./lib/aiModels.js";
+import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
+import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 // Wizard generativo (experimento local, rama wizard/generativo). Todo lo suyo
@@ -1229,6 +1229,11 @@ export default function App() {
   );
   const lastRegenerateArgs = useRef(null);
   const generateAbortRef = useRef(null);
+  // Groups the last failed generation already got back, per week offset, so
+  // "Reintentar" redoes only what failed instead of every group of every week.
+  // Only reused for the very same inputs (the `nextData ?? data` object that
+  // attempt ran with); cleared once a generation succeeds.
+  const partialGenerationRef = useRef(null);
   // Warn at most once per session if localStorage writes start failing
   // (full quota, private-mode Safari) — see the debounced saveState effect
   // below. Without this, the app silently stops persisting ANY state
@@ -1889,12 +1894,28 @@ export default function App() {
     generateAbortRef.current = ctrl;
     setIsGeneratingMenu(true);
     setMenuError(null);
+    const inputs = nextData ?? data;
+    if (partialGenerationRef.current?.inputs !== inputs) {
+      partialGenerationRef.current = { inputs, groupsByWeek: new Map() };
+    }
+    const partial = partialGenerationRef.current;
+    const countCachedGroups = () =>
+      [...partial.groupsByWeek.values()].reduce((n, cache) => n + cache.size, 0);
+    const startedAt = Date.now();
+    const genStats = {
+      weekCount: null,
+      groupCount: groups.length,
+      plannerModel: null,
+      reusedGroups: countCachedGroups(),
+    };
+    const plannerStats = createPlannerStats();
     try {
       const weekOffsets = (Array.isArray(working.menuWeekOffsets) && working.menuWeekOffsets.length
         ? [...new Set(working.menuWeekOffsets)]
         : [working.menuWeek?.offset ?? 0]
       ).sort((a, b) => a - b);
       const weekCount = weekOffsets.length;
+      genStats.weekCount = weekCount;
       const baseStartDayIdx = working.menuWeek?.startDayIdx ?? 0;
       // startISO/endISO por semana, calculados antes de generar — se usan como
       // clave estable para deshacer/rehacer la bajada "al generar" (decisión D)
@@ -1949,6 +1970,9 @@ export default function App() {
       // Planner model for THIS generation (A/B Sonnet vs Haiku). Resolved once
       // so every week/group of the same menú uses the same variant.
       const planner = resolvePlannerModel();
+      genStats.plannerModel = planner.model;
+      const plannerFormat = resolvePlannerFormat();
+      genStats.plannerFormat = plannerFormat;
 
       // "spread" necesita que cada semana vea el resultado de la anterior (no
       // hay independencia entre semanas), así que se genera en serie —
@@ -2021,12 +2045,20 @@ export default function App() {
           : pantryMultiWeek === "spread" ? spreadPantry
           : offset === weekOffsets[0] ? pantryIngredients : [];
 
+        let groupCache = partial.groupsByWeek.get(offset);
+        if (!groupCache) {
+          groupCache = new Map();
+          partial.groupsByWeek.set(offset, groupCache);
+        }
         const { plan, recipes } = await generateMenuWithAI(weekData, {
           signal: ctrl.signal,
           pantryIngredients: weekPantry,
           pantryMode,
           crossWeek,
           plannerModel: planner.model,
+          groupCache,
+          stats: plannerStats,
+          plannerFormat,
         });
 
         // The planner picks from recipeCatalog.js, but buildShoppingList (and the
@@ -2057,6 +2089,8 @@ export default function App() {
       });
 
       if (ctrl.signal.aborted) return;
+      // Every group came back: nothing left to reuse on a later retry.
+      if (partialGenerationRef.current === partial) partialGenerationRef.current = null;
 
       // D (consumo, "al generar el menú"): baja de la despensa real, semana a
       // semana y EN SERIE (recargando stock entre cada una), lo que esa
@@ -2124,7 +2158,16 @@ export default function App() {
       registerRecipes(allRecipes);
       setMenuPlan(firstWeekPlan);
       const isFirstMenu = (data.menuHistory ?? []).length === 0;
-      trackEvent(user, "menu_generated", "menu", { groupCount: groups.length, memberCount: working.members.length, weekCount, plannerModel: planner.model, plannerVariant: planner.variant });
+      trackEvent(user, "menu_generated", "menu", {
+        groupCount: groups.length,
+        memberCount: working.members.length,
+        weekCount,
+        plannerModel: planner.model,
+        plannerVariant: planner.variant,
+        plannerFormat,
+        elapsedMs: Date.now() - startedAt,
+        ...plannerStats,
+      });
       if (isFirstMenu) upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
 
       const newMenu = {
@@ -2231,7 +2274,20 @@ export default function App() {
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
-      trackEvent(user, "generation_failed", "menu", { error: err?.message });
+      // Enough context to tell a dropped mobile connection (and whether the app
+      // was in the background) apart from an actual API or planner error.
+      trackEvent(user, "generation_failed", "menu", {
+        error: err?.message,
+        network: Boolean(err?.network),
+        cause: err?.cause ? String(err.cause?.message ?? err.cause).slice(0, 300) : undefined,
+        ...(err?.diagnostics ?? {}),
+        visibility: typeof document !== "undefined" ? document.visibilityState : undefined,
+        online: typeof navigator !== "undefined" ? navigator.onLine : undefined,
+        elapsedMs: Date.now() - startedAt,
+        ...genStats,
+        ...plannerStats,
+        cachedGroups: countCachedGroups(),
+      });
       setMenuError({
         message: err?.message || "No se pudo generar el menú.",
         cause: err?.cause,
