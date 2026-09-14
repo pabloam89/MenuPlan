@@ -299,6 +299,26 @@ export const RecipeSchema = z
     // "dentro": el generador de sesiones ignora lo que no está marcado en vez
     // de suponer (ver lib/bases.js).
     baseMode: z.enum(["aparte", "dentro"]).optional(),
+    // ── Preparaciones batcheables que NO son fécula ────────────────────────
+    // `mainBase` responde "¿qué hidrato lleva este plato?" y alimenta carbType
+    // y las reglas de variedad. El sofrito no es un hidrato, y un plato puede
+    // llevar arroz Y sofrito — así que meterlo en MAIN_BASES habría roto el eje
+    // y solo habría dejado declarar uno de los dos.
+    //
+    // Esto es la otra pregunta: ¿qué preparaciones admite este plato YA HECHAS?
+    // Es una lista porque la respuesta honesta suele ser más de una. El sofrito
+    // es el caso grande: lo llevan 260 platos del recetario estrella, más que
+    // las siete bases de fécula juntas, y es casi todo trabajo de manos — que
+    // es lo único que de verdad se ahorra (ver fraccionActiva en lib/bases.js).
+    //
+    // Riesgo asimétrico, y al revés que en `baseMode`: tener sofrito hecho y no
+    // usarlo no estropea nada, mientras que precocer el arroz de un risotto sí.
+    // Por eso aquí se puede marcar con menos miedo.
+    basesAparte: z.array(z.string().min(1)).optional(),
+    // Solo en recetas `type: "base"`: con qué clave la buscan los platos. Para
+    // las siete de fécula es su `mainBase`; existe para que una base que no es
+    // fécula (el sofrito) tenga nombre propio sin colarse en MAIN_BASES.
+    baseKey: z.string().min(1).optional(),
     // ── Campos solo de type "base" ─────────────────────────────────────────
     // Cuánto produce una tanda. Una base rinde 600 g de arroz cocido, no "4
     // raciones": `baseServings` es la unidad del que se come un plato, y aquí
@@ -588,12 +608,15 @@ export const RecipeSchema = z
           message: `"${id}": type "base" requiere rinde — una base sin rendimiento no se puede repartir entre platos`,
         });
       }
-      // Sin `mainBase` la base no se puede emparejar con ningún plato: es la
-      // clave del join, no un adorno. Una base huérfana es dato muerto.
-      if (!recipe.mainBase) {
+      // Sin clave la base no se puede emparejar con ningún plato: es el join,
+      // no un adorno. Una base huérfana es dato muerto. La clave es `mainBase`
+      // para las siete de fécula y `baseKey` para las que no lo son — el
+      // sofrito no es un hidrato y no podía entrar en MAIN_BASES sin romper
+      // carbType y las reglas de variedad.
+      if (!recipe.mainBase && !recipe.baseKey) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `"${id}": type "base" requiere mainBase — es la clave por la que los platos la encuentran`,
+          message: `"${id}": type "base" requiere mainBase o baseKey — es la clave por la que los platos la encuentran`,
         });
       }
     } else if (mealRole.includes("base")) {

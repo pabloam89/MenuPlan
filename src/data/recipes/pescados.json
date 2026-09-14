@@ -501,7 +501,10 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_004",
@@ -2275,7 +2278,10 @@
     "extraProteins": [
       "marisco"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_017",
@@ -2812,7 +2818,10 @@
       }
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_020",
@@ -3780,7 +3789,10 @@
       }
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_026",
@@ -7142,6 +7154,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -7787,7 +7802,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_047",
@@ -8020,7 +8038,10 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_048",
@@ -8535,7 +8556,10 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_051",
@@ -8722,6 +8746,9 @@
     "type": "completo",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "time": 50,
     "difficulty": "normal",
     "apetecible": true,
@@ -9235,7 +9262,10 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_054",
@@ -11717,7 +11747,10 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_068",
@@ -12334,7 +12367,10 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_071",
@@ -12657,7 +12693,10 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_073",
@@ -13510,7 +13549,10 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_077",
@@ -13720,7 +13762,10 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_078",
@@ -13984,7 +14029,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_079",
@@ -14683,6 +14731,9 @@
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -15262,7 +15313,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_086",
@@ -15463,6 +15517,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -16078,6 +16135,9 @@
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -16517,6 +16577,9 @@
     ],
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -17112,7 +17175,10 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_095",
@@ -20298,7 +20364,10 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_109",
@@ -20592,7 +20661,10 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_110",
@@ -21187,7 +21259,10 @@
     ],
     "occasion": "especial",
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_113",
@@ -21494,7 +21569,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_114",
@@ -21781,7 +21859,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_115",
@@ -21994,6 +22075,9 @@
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "cena"
@@ -22647,7 +22731,10 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "pescados_119",
@@ -23251,6 +23338,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -24185,6 +24275,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   }
 ]

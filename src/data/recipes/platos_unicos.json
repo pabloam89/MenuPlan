@@ -862,7 +862,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "platos_unicos_005",
@@ -1057,7 +1060,10 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "platos_unicos_006",
@@ -1451,6 +1457,9 @@
     "mainProtein": "ternera",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -2180,6 +2189,9 @@
     "mainProtein": "none",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -3779,6 +3791,9 @@
     ],
     "tecnica": "sarten",
     "mainBase": "patatas",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   }
 ]

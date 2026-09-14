@@ -336,7 +336,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_003",
@@ -623,7 +626,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_004",
@@ -825,6 +831,9 @@
     "tecnica": "horno",
     "extraProteins": [
       "ternera"
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -1152,7 +1161,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_007",
@@ -1392,6 +1404,9 @@
     "tecnica": "horno",
     "extraProteins": [
       "ternera"
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -3565,7 +3580,10 @@
       "verdura",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_023",
@@ -5006,7 +5024,10 @@
       "seta"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_036",
@@ -14661,7 +14682,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_092",
@@ -14874,6 +14898,9 @@
     "mainProtein": "none",
     "mainBase": "quinoa",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "cena"
@@ -16773,6 +16800,9 @@
     "mainProtein": "none",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "cena"
@@ -18753,6 +18783,9 @@
     "mainProtein": "none",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -19572,7 +19605,10 @@
       "verdura"
     ],
     "occasion": "especial",
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_118",
@@ -19851,6 +19887,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -20183,7 +20222,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_120",
@@ -20601,7 +20643,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_122",
@@ -21665,7 +21710,10 @@
       "Incorporar los dados de queso dorados y servir enseguida."
     ],
     "description": "Crema verde de espinacas especiadas con dados de queso fresco dorados. Se hace en media hora y gusta hasta a quien recela de la verdura.",
-    "estrella": false
+    "estrella": false,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "ensaladas_verduras_130",
@@ -21675,6 +21723,9 @@
     "mainProtein": "none",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -21869,6 +21920,9 @@
       "Fuera del fuego, añadir la albahaca fresca picada y dejar reposar antes de servir."
     ],
     "description": "Berenjena, calabacín, pimiento y tomate cocinados por separado y reunidos al final con hierbas provenzales. Vegano y mejor de un día para otro.",
-    "estrella": false
+    "estrella": false,
+    "basesAparte": [
+      "sofrito"
+    ]
   }
 ]

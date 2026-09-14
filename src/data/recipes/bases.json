@@ -761,5 +761,142 @@
         "kind": "activo"
       }
     ]
+  },
+  {
+    "id": "bases_008",
+    "name": "Sofrito base",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "sofrito",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 700,
+      "unit": "g"
+    },
+    "time": 35,
+    "minutosFijos": 30,
+    "minutosPorRacion": 1.5,
+    "capacidadMax": 16,
+    "difficulty": "facil",
+    "kcal": 95,
+    "protein_g": 1,
+    "carbs_g": 7,
+    "fat_g": 7,
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 1,
+    "sodium_mg": 320,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "ingredientId": "tomate",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 6,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y picar fino cebolla y ajo.",
+      "Despepitar y picar pimiento rojo y pimiento verde en dados pequeños.",
+      "Rallar tomate y reservar.",
+      "Calentar aceite de oliva virgen extra en una sartén amplia y pochar la cebolla con sal a fuego suave hasta que esté transparente.",
+      "Añadir ajo y los pimientos y seguir pochando hasta que estén tiernos.",
+      "Incorporar el tomate y cocinar a fuego medio hasta que pierda el agua y el sofrito se oscurezca.",
+      "Dejar templar y repartir en botes o en bolsas planas de congelación."
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar fino {{Cebolla}} y {{Ajo}}.",
+        "minutes": 8,
+        "kind": "prep"
+      },
+      {
+        "text": "Despepitar y picar {{Pimiento rojo}} y {{Pimiento verde}} en dados pequeños.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar {{Tomate}} y reservar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva virgen extra}} en una {{@Sartén}} amplia y pochar la cebolla con {{Sal}} a fuego suave hasta que esté transparente.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo y los pimientos y seguir pochando hasta que estén tiernos.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el tomate y cocinar a fuego medio hasta que pierda el agua y el sofrito se oscurezca.",
+        "minutes": 12,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar y repartir en botes o en bolsas planas de congelación.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar el bote a la nevera la noche antes, o descongelar la bolsa en el microondas a media potencia.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar en la sartén un par de minutos antes de usarlo.",
+        "minutes": 2,
+        "kind": "activo"
+      }
+    ],
+    "description": "La base de medio recetario español: cebolla, ajo y pimiento pochados despacio con tomate. Es lo que más manos pide de un guiso y lo que mejor se guarda — en la nevera aguanta cuatro días y en el congelador, meses."
   }
 ]

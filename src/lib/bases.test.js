@@ -4,6 +4,7 @@ import {
   MIN_PLATOS_POR_BASE,
   baseDeReceta,
   coberturaDeBases,
+  fraccionActiva,
   sesionDeBases,
   tiempoDeBase,
   usaBase,
@@ -26,8 +27,19 @@ describe("el catálogo de bases", () => {
     expect(new Set(vistos).size).toBe(vistos.length);
   });
 
-  it("solo declara mainBase del vocabulario cerrado", () => {
-    for (const b of BASES) expect(MAIN_BASES).toContain(b.mainBase);
+  // Una base se encuentra por su `mainBase` (las siete de fécula) o por su
+  // `baseKey` (las que no son fécula, como el sofrito). Lo que no puede es no
+  // tener ninguna de las dos: sería una base que ningún plato puede pedir.
+  it("toda base tiene clave, y si es de fécula esa clave es del vocabulario cerrado", () => {
+    for (const b of BASES) {
+      expect(b.mainBase ?? b.baseKey, `${b.name} no tiene clave`).toBeTruthy();
+      if (b.mainBase) expect(MAIN_BASES).toContain(b.mainBase);
+    }
+  });
+
+  it("las claves no se repiten: dos bases con la misma clave se taparian", () => {
+    const claves = BASES.map((b) => b.baseKey ?? b.mainBase);
+    expect(new Set(claves).size).toBe(claves.length);
   });
 
   it("ninguna base ocupa un hueco de menú", () => {
@@ -198,7 +210,10 @@ describe("sesionDeBases", () => {
   });
 
   it("un plan vacío no es un error", () => {
-    expect(sesionDeBases({}, recetas, opts)).toEqual({ bases: [], minutosTotales: 0, ahorroTotal: 0 });
+    expect(sesionDeBases({}, recetas, opts)).toEqual({
+      bases: [], minutosTotales: 0, ahorroTotal: 0,
+      minutosActivosTotales: 0, ahorroActivoTotal: 0,
+    });
     expect(sesionDeBases(null, recetas, opts).bases).toEqual([]);
   });
 });
@@ -211,5 +226,54 @@ describe("coberturaDeBases sobre el catálogo real", () => {
         MIN_PLATOS_POR_BASE,
       );
     }
+  });
+});
+
+describe("tiempo activo: el numero que de verdad importa", () => {
+  // El fallo que esto arregla: se le enseñaba al usuario un ahorro de ~66
+  // minutos por semana que, medido en atención, eran 6. El resto era la olla
+  // sola. Nadie dice "no tengo tiempo" porque el reloj corra.
+  it("separa estar delante de que la olla hierva sola", () => {
+    const base = {
+      id: "b", minutosFijos: 60, minutosPorRacion: 0, capacidadMax: 20,
+      stepsRich: [
+        { text: "Picar.", minutes: 6, kind: "prep" },
+        { text: "Hervir.", minutes: 54, kind: "pasivo" },
+      ],
+    };
+    expect(fraccionActiva(base)).toBeCloseTo(0.1, 5);
+    const t = tiempoDeBase(base, [4, 4]);
+    // Dos platos, una sola olla: se ahorran los 60 fijos del segundo…
+    expect(t.ahorro).toBe(60);
+    // …pero solo 6 de ellos eran tuyos.
+    expect(t.ahorroActivo).toBe(6);
+  });
+
+  it("una base que es todo trabajo de manos ahorra lo que dice", () => {
+    // El sofrito: 20 minutos de picar y pochar, cero de espera. Aqui el
+    // ahorro de reloj y el de atencion coinciden, y por eso es la base mas
+    // valiosa aunque tarde menos que una olla de garbanzos.
+    const sofrito = {
+      id: "s", minutosFijos: 20, minutosPorRacion: 0, capacidadMax: 20,
+      stepsRich: [{ text: "Picar y pochar.", minutes: 20, kind: "activo" }],
+    };
+    const t = tiempoDeBase(sofrito, [4, 4]);
+    expect(t.ahorro).toBe(20);
+    expect(t.ahorroActivo).toBe(20);
+  });
+
+  it("sin pasos que mirar no inventa: cuenta todo como activo", () => {
+    expect(fraccionActiva({ id: "x" })).toBe(1);
+    expect(fraccionActiva(null)).toBe(1);
+  });
+
+  it("las bases reales del catalogo ahorran mucho menos de lo que parecia", () => {
+    // Guarda de regresion sobre el dato real: si alguien vuelve a poner el
+    // ahorro de reloj delante del usuario, esto no lo pilla — pero si alguien
+    // borra los `kind` de las bases, si.
+    const pasta = BASES.find((b) => b.mainBase === "pasta");
+    const legumbre = BASES.find((b) => b.mainBase === "legumbre");
+    expect(fraccionActiva(pasta)).toBeLessThan(0.3);
+    expect(fraccionActiva(legumbre)).toBeLessThan(0.1);
   });
 });

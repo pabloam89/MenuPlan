@@ -4700,6 +4700,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {

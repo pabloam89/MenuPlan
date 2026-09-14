@@ -39,8 +39,10 @@ const NO_VIAJAN = {
   // Cero recetas del catálogo lo escriben: es un campo de las recetas propias
   // del usuario, que van por otra tabla (user_recipes) y otro mapeador.
   scalesWithEaters: "0 filas en el catálogo; es de user_recipes",
-  // Los cuatro de rendimiento de una BASE. Solo los llevan las 7 recetas
-  // `type: "base"`, que son off-menu y hoy no se sirven desde la nube.
+  // Todo lo que sigue solo lo llevan las recetas `type: "base"`, y esas NO se
+  // sirven nunca desde Supabase: bases.json se importa directamente en
+  // recipeCatalog.js, siempre desde el bundle. Serían columnas muertas.
+  baseKey: "solo recetas type:base, que van siempre en el bundle",
   rinde: "solo las 7 recetas type:base",
   minutosFijos: "solo las 7 recetas type:base",
   minutosPorRacion: "solo las 7 recetas type:base",
@@ -60,6 +62,7 @@ const FILA_COMPLETA = {
   main_protein: "pollo",
   main_base: "arroz",
   base_mode: "aparte",
+  bases_aparte: ["sofrito"],
   montaje: false,
   apetecible: true,
   estrella: true,

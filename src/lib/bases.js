@@ -35,21 +35,54 @@ import { catalogIdOfPlanRecipe } from "./freezer.js";
 /** Todas las bases del catálogo. */
 export const BASES = basesCatalog;
 
-/** mainBase → receta de base. La clave del emparejamiento es `mainBase`. */
-const BASE_POR_MAIN_BASE = new Map(BASES.map((b) => [b.mainBase, b]));
+/**
+ * clave → receta de base. La clave es `baseKey` y, si no lo trae, `mainBase`:
+ * las siete de fécula se buscan por su hidrato desde siempre, y las que no son
+ * fécula (el sofrito) traen `baseKey` propio para no tener que colarse en
+ * MAIN_BASES, que es el eje del hidrato y no el de "qué se puede batchear".
+ */
+const BASE_POR_CLAVE = new Map(BASES.map((b) => [b.baseKey ?? b.mainBase, b]));
 
-/** La base de una receta, o null si ese plato no puede aprovechar ninguna. */
-export function baseDeReceta(receta) {
-  if (!receta?.mainBase) return null;
+/**
+ * TODAS las bases que un plato puede aprovechar ya hechas. Son dos caminos
+ * distintos y un plato puede recorrer los dos — un salteado de arroz con
+ * sofrito aprovecha las dos cosas:
+ *
+ *   1. su fécula, si está marcada `baseMode: "aparte"`
+ *   2. lo que declare en `basesAparte` (sofrito y compañía)
+ *
+ * @returns {object[]} sin repetir, vacío si el plato no aprovecha ninguna.
+ */
+export function basesDeReceta(receta) {
+  const out = [];
   // Lo que no está marcado "aparte" no entra: ver la nota sobre el riesgo
   // asimétrico en la cabecera.
-  if (receta.baseMode !== "aparte") return null;
-  return BASE_POR_MAIN_BASE.get(receta.mainBase) ?? null;
+  if (receta?.mainBase && receta.baseMode === "aparte") {
+    const b = BASE_POR_CLAVE.get(receta.mainBase);
+    if (b) out.push(b);
+  }
+  for (const clave of receta?.basesAparte ?? []) {
+    const b = BASE_POR_CLAVE.get(clave);
+    if (b && !out.includes(b)) out.push(b);
+  }
+  return out;
 }
 
-/** ¿Este plato aprovecha una base ya cocinada? */
+/**
+ * La base de FÉCULA de una receta, o null. Se queda con este nombre y este
+ * significado porque es lo que preguntan la ficha y el generador: "¿este plato
+ * lleva arroz que pueda tener hecho?". Para la sesión de batch cooking hace
+ * falta `basesDeReceta`, que además ve el sofrito.
+ */
+export function baseDeReceta(receta) {
+  if (!receta?.mainBase) return null;
+  if (receta.baseMode !== "aparte") return null;
+  return BASE_POR_CLAVE.get(receta.mainBase) ?? null;
+}
+
+/** ¿Este plato aprovecha alguna base ya cocinada? */
 export function usaBase(receta) {
-  return baseDeReceta(receta) !== null;
+  return basesDeReceta(receta).length > 0;
 }
 
 /**
@@ -76,6 +109,40 @@ export function usaBase(receta) {
  * @param {number|number[]} raciones
  * @returns {{ tandas: number, minutos: number, minutosSueltos: number, ahorro: number }}
  */
+/**
+ * Qué parte del tiempo de una base es TUYA — estar delante picando o
+ * removiendo— y qué parte es la olla sola.
+ *
+ * Es la corrección más importante de todo esto, porque el número que
+ * enseñábamos medía lo que no duele. Medido sobre las propias bases:
+ *
+ *   pasta     20 min de reloj →   3 de estar delante
+ *   arroz     29                →   8
+ *   patatas   45                →   9
+ *   legumbre  549               →  19   (el resto es remojo y hervor)
+ *
+ * Una semana entera de tandas ahorra ~66 minutos de reloj y ~6 de atención.
+ * "No tengo tiempo" nunca significó que el reloj corriera: significa que no
+ * puedes estar ahí. Por eso las listas de batch cooking de verdad están
+ * llenas de sofritos y bandejas de verdura y no de ollas de arroz.
+ *
+ * Se deriva de los pasos de la propia base (`kind`), no de un campo nuevo a
+ * mano: el dato ya existe en las 985 recetas con `stepsRich`.
+ * @returns {number} entre 0 y 1; 1 si la base no tiene pasos que mirar.
+ */
+export function fraccionActiva(base) {
+  const pasos = base?.stepsRich ?? [];
+  let activos = 0;
+  let total = 0;
+  for (const paso of pasos) {
+    const min = Number(paso?.minutes) || 0;
+    total += min;
+    // `prep` cuenta como activo: picar es lo que mas cansa de una base.
+    if (paso?.kind === "activo" || paso?.kind === "prep") activos += min;
+  }
+  return total > 0 ? activos / total : 1;
+}
+
 export function tiempoDeBase(base, raciones) {
   const porPlato = (Array.isArray(raciones) ? raciones : [raciones])
     .map((n) => Math.max(0, Math.floor(Number(n) || 0)))
@@ -105,11 +172,19 @@ export function tiempoDeBase(base, raciones) {
   // PLATO, y ahí está el ahorro de verdad.
   const minutosSueltos = porPlato.reduce((s, n) => s + minutosDe(n), 0);
 
+  const ahorro = Math.max(0, Math.round(minutosSueltos - minutos));
+  const activa = fraccionActiva(base);
   return {
     tandas: Math.ceil(total / capacidad),
     minutos: Math.round(minutos),
     minutosSueltos: Math.round(minutosSueltos),
-    ahorro: Math.max(0, Math.round(minutosSueltos - minutos)),
+    ahorro,
+    // Los dos, y el que se le enseña al usuario es `ahorroActivo`. `ahorro`
+    // se queda porque también significa algo: es ESPERA que te quitas de
+    // encima un martes (no cenas mas tarde por esperar al arroz). Pero no es
+    // "tienes una hora mas", y enseñarlo como si lo fuera era mentir.
+    ahorroActivo: Math.round(ahorro * activa),
+    minutosActivos: Math.round(Math.round(minutos) * activa),
   };
 }
 
@@ -153,14 +228,15 @@ export function sesionDeBases(plan, recetasPorId, opts = {}) {
       for (const rid of [slot.firstRecipeId, slot.recipeId]) {
         if (!rid) continue;
         const receta = get(catalogIdOfPlanRecipe(rid));
-        const base = baseDeReceta(receta);
-        if (!base) continue;
-
         const eaters = Math.max(1, Number(slot.eaters) || 1);
-        const entrada = porBase.get(base.id) ?? { base, raciones: 0, huecos: [] };
-        entrada.raciones += eaters;
-        entrada.huecos.push({ groupId, clave, recipeId: rid, nombre: receta.name, raciones: eaters });
-        porBase.set(base.id, entrada);
+        // Un plato puede alimentar varias tandas a la vez: su fécula y su
+        // sofrito. Contarlo en una sola dejaba la mitad del ahorro fuera.
+        for (const base of basesDeReceta(receta)) {
+          const entrada = porBase.get(base.id) ?? { base, raciones: 0, huecos: [] };
+          entrada.raciones += eaters;
+          entrada.huecos.push({ groupId, clave, recipeId: rid, nombre: receta.name, raciones: eaters });
+          porBase.set(base.id, entrada);
+        }
       }
     }
   }
@@ -173,12 +249,18 @@ export function sesionDeBases(plan, recetasPorId, opts = {}) {
     const t = tiempoDeBase(entrada.base, entrada.huecos.map((h) => h.raciones));
     bases.push({ ...entrada, ...t });
   }
-  bases.sort((a, b) => b.ahorro - a.ahorro || b.raciones - a.raciones);
+  // Se ordena por el ahorro ACTIVO, no por el de reloj: lo que mas arriba
+  // aparece tiene que ser lo que mas trabajo te quita, no lo que mas tiempo
+  // pasa en el fuego. Con el orden viejo, una olla de legumbre (549 min de
+  // reloj, 19 tuyos) tapaba a cualquier cosa que de verdad ahorrara manos.
+  bases.sort((a, b) => b.ahorroActivo - a.ahorroActivo || b.ahorro - a.ahorro || b.raciones - a.raciones);
 
   return {
     bases,
     minutosTotales: bases.reduce((s, b) => s + b.minutos, 0),
+    minutosActivosTotales: bases.reduce((s, b) => s + b.minutosActivos, 0),
     ahorroTotal: bases.reduce((s, b) => s + b.ahorro, 0),
+    ahorroActivoTotal: bases.reduce((s, b) => s + b.ahorroActivo, 0),
   };
 }
 
@@ -192,9 +274,9 @@ export function sesionDeBases(plan, recetasPorId, opts = {}) {
 export function coberturaDeBases(recetas) {
   const conteo = new Map();
   for (const r of recetas ?? []) {
-    const base = baseDeReceta(r);
-    if (!base) continue;
-    conteo.set(base.id, (conteo.get(base.id) ?? 0) + 1);
+    for (const base of basesDeReceta(r)) {
+      conteo.set(base.id, (conteo.get(base.id) ?? 0) + 1);
+    }
   }
   return conteo;
 }

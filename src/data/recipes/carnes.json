@@ -531,7 +531,10 @@
     "extraProteins": [
       "ternera"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_004",
@@ -879,7 +882,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_006",
@@ -1176,6 +1182,9 @@
     "mainProtein": "ternera",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -1776,7 +1785,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_011",
@@ -2783,7 +2795,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_016",
@@ -2997,7 +3012,10 @@
     "mainIngredients": [
       "frutos_secos"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_017",
@@ -3171,7 +3189,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_018",
@@ -3685,7 +3706,10 @@
       "seta"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_021",
@@ -3903,7 +3927,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_022",
@@ -4122,7 +4149,10 @@
       }
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_023",
@@ -4581,7 +4611,10 @@
     ],
     "tecnica": "sarten",
     "llevaSalsa": true,
-    "cocina": "india"
+    "cocina": "india",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_026",
@@ -4791,6 +4824,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "ternera"
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -5141,7 +5177,10 @@
     "mainIngredients": [
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_029",
@@ -5352,7 +5391,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_030",
@@ -5718,7 +5760,10 @@
     "mainIngredients": [
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_032",
@@ -6060,7 +6105,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_034",
@@ -6246,7 +6294,10 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_035",
@@ -6768,7 +6819,10 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_038",
@@ -7765,6 +7819,9 @@
     "mainProtein": "ternera",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -9219,6 +9276,9 @@
     "mainProtein": "ternera",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -10017,7 +10077,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_051",
@@ -10523,7 +10586,10 @@
       "seta"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_053",
@@ -11146,7 +11212,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_056",
@@ -12874,7 +12943,10 @@
     "extraProteins": [
       "cerdo"
     ],
-    "cocina": "americana"
+    "cocina": "americana",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_065",
@@ -14393,7 +14465,10 @@
       "frutos_secos"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_072",
@@ -15477,7 +15552,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_077",
@@ -15486,6 +15564,9 @@
     "mainProtein": "ternera",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -16061,6 +16142,9 @@
     "tecnica": "olla",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "extraProteins": [
       "ternera"
     ]
@@ -16732,7 +16816,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_082",
@@ -18266,7 +18353,10 @@
       "seta"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_089",
@@ -19468,7 +19558,10 @@
       "seta"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_095",
@@ -19477,6 +19570,9 @@
     "mainProtein": "cerdo",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -19789,6 +19885,9 @@
     "mainProtein": "ternera",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "requiredAppliance": "horno",
     "mealRole": [
       "segundo",
@@ -20493,7 +20592,10 @@
     "occasion": "especial",
     "tecnica": "horno",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_099",
@@ -24783,7 +24885,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_117",
@@ -24974,7 +25079,10 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_118",
@@ -25234,7 +25342,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_119",
@@ -28573,7 +28684,10 @@
       "seta"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_137",
@@ -28831,7 +28945,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_138",
@@ -29281,7 +29398,10 @@
     "mainIngredients": [
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "carnes_140",
@@ -29537,6 +29657,9 @@
     "mainProtein": "ternera",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -31052,6 +31175,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -31307,6 +31433,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -32022,6 +32151,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -33226,6 +33358,9 @@
     "mainProtein": "pollo",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -33431,6 +33566,9 @@
     "mainProtein": "ternera",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -33641,6 +33779,9 @@
     "mainProtein": "pollo",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -33867,6 +34008,9 @@
     "mainProtein": "pollo",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -34087,6 +34231,9 @@
       "Rectificar de sal y dejar reposar antes de servir: al día siguiente está mejor."
     ],
     "description": "Ternera guisada durante horas en vino tinto de Borgoña con bacon, cebollitas y champiñones. El guiso francés por antonomasia.",
-    "estrella": false
+    "estrella": false,
+    "basesAparte": [
+      "sofrito"
+    ]
   }
 ]

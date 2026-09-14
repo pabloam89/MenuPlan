@@ -31,6 +31,13 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RECIPES_DIR = join(__dirname, "..", "src", "data", "recipes");
 const DRY = process.argv.includes("--dry");
+// Rehacer una base concreta, PISANDO lo que ya tenga. Existe porque el
+// criterio de `legumbre` estaba mal (ver sus reglas) y sin esto la unica
+// forma de corregir 60 recetas era a mano. Se pide por su nombre a proposito:
+// un `--force` global volveria a pisar lo revisado a mano de las otras bases,
+// que es justo lo que este script promete no hacer.
+//   node scripts/mark-base-mode.mjs --rehacer=legumbre
+const REHACER = (process.argv.find((a) => a.startsWith("--rehacer=")) ?? "").split("=")[1] || null;
 
 /**
  * Reglas por base: lista ORDENADA de [regex sobre el nombre, modo]. Gana la
@@ -93,11 +100,46 @@ const REGLAS = {
   // guiso se monta encima. Por eso aquí el reparto va al revés que en el arroz
   // y "aparte" es el caso normal, no la excepción.
   //
-  // El falafel es la excepción de verdad: se hace con garbanzo REMOJADO en
-  // crudo, y con garbanzo cocido se deshace en la sartén.
+  // La legumbre era el agujero grande: `porDefecto: "aparte"` con una sola
+  // excepción (falafel) marcaba el cocido madrileño, la fabada, los potajes y
+  // los judiones como si el garbanzo se cociera aparte. En un cocido el
+  // garbanzo cuece DENTRO del caldo con la carne durante horas: eso ES el
+  // plato, y tener garbanzos hechos del domingo no te da un cocido, te da
+  // garbanzos y un caldo que no los ha visto.
+  //
+  // El test mecánico es el mismo que el de las salsas: ¿la legumbre ha cocido
+  // en el caldo del plato? Si el acompañamiento pide cocción larga (chorizo,
+  // morcilla, costilla, carne, bacalao) el guiso se hace entero y la legumbre
+  // se empapa → DENTRO. Si el acompañamiento es rápido (espinacas, tomate, un
+  // huevo encima) la legumbre entra ya cocida y solo se saltea → APARTE, que
+  // es justo como se cocina con bote.
   legumbre: {
-    reglas: [[/falafel/i, "dentro"]],
-    porDefecto: "aparte",
+    reglas: [
+      // Se hace CON la legumbre cruda o en remojo: no hay tanda que reutilizar.
+      [/falafel/i, "dentro"],
+      // Lenteja roja: se deshace dentro del plato, es el espesante.
+      [/lenteja(s)? roja/i, "dentro"],
+      // Lo que se construye a partir de legumbre YA cocida, sin excepción.
+      [/hummus|ensalada|pur[eé]|hamburguesa|tortita|bocadito|bolita|crujiente|frito|fritos|saltead|papilla/i, "aparte"],
+      // Ropa vieja: se hace CON las sobras de un cocido, o sea con el garbanzo
+      // ya cocido. El nombre lleva "cocido" pero es el caso contrario.
+      [/ropa vieja/i, "aparte"],
+      // Cremas: se trituran, y se trituran legumbres YA cocidas.
+      [/^crema de|crema de (garbanzo|lenteja|alubia|jud[ií]a)/i, "aparte"],
+      // Buñuelo: como el falafel, se hace con garbanzo crudo en remojo.
+      [/bu[ñn]uelo/i, "dentro"],
+      // El plato es de OTRA cosa y la legumbre acompaña: entra ya cocida.
+      [/^jud[ií]as verdes/i, "aparte"],
+      // Acompañamiento RAPIDO: la legumbre entra ya cocida y solo se saltea.
+      // Es el caso del bote, y es como se cocina de verdad entre semana.
+      [/con (espinacas|tomate|setas|jud[ií]as verdes|piñones)|a la andaluza|con curry y espinacas/i, "aparte"],
+      // Los nombres que son guiso por definición.
+      [/potaje|puchero|cocido|fabada|judiones|frijoles|estofad|guisad|a la riojana|a la jardinera|al curry|curry (rojo|verde)/i, "dentro"],
+      // "X con Y" donde Y pide cocción larga: el guiso se hace entero.
+      [/alubiada|con (chorizo|morcilla|salchich|costilla|butifarra|panceta|tocino|jam[oó]n|ternera|pollo|bacalao|calamares|pulpo|almejas|langostinos|compango|verduras|calabaza|boletus|castañas|manzana)/i, "dentro"],
+    ],
+    // Lo que no casa nada se queda SIN MARCAR a propósito: el riesgo es
+    // asimétrico y una legumbre sin revisar no debe proponer tanda.
   },
   // Se cuecen, se enfrían y se usan. No hay caso "dentro" en este catálogo.
   quinoa: { reglas: [], porDefecto: "aparte" },
@@ -126,7 +168,8 @@ for (const file of readdirSync(RECIPES_DIR)) {
   for (let i = 0; i < recipes.length; i++) {
     const r = recipes[i];
     if (!r.mainBase || r.type === "base") continue;
-    if (r.baseMode) { conteo[r.baseMode] = (conteo[r.baseMode] ?? 0) + 1; continue; }
+    const rehaciendo = REHACER && r.mainBase === REHACER;
+    if (r.baseMode && !rehaciendo) { conteo[r.baseMode] = (conteo[r.baseMode] ?? 0) + 1; continue; }
 
     const regla = REGLAS[r.mainBase];
     if (!regla) continue;
@@ -139,12 +182,16 @@ for (const file of readdirSync(RECIPES_DIR)) {
 
     if (!modo) {
       sinDecidir.push(`${r.mainBase.padEnd(9)} ${r.name}`);
+      // Al rehacer, "ninguna regla casa" tiene que BORRAR la marca vieja: si
+      // no, la que estaba mal sobrevive a la correccion sin que nadie lo vea.
+      if (rehaciendo && r.baseMode) { delete r.baseMode; tocado = true; marcadas++; }
       continue;
     }
 
     // Insertado justo detrás de mainBase, que es donde se lee.
     const out = {};
     for (const [k, v] of Object.entries(r)) {
+      if (k === "baseMode") continue; // se reescribe junto a mainBase
       out[k] = v;
       if (k === "mainBase") out.baseMode = modo;
     }

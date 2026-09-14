@@ -36,6 +36,10 @@ export function rowToRecipe(row) {
     // recetas y es la clave entera del batch cooking; sin esta línea, una
     // receta servida desde la nube no propone ni una sola tanda.
     ...(row.base_mode ? { baseMode: row.base_mode } : {}),
+    // Las preparaciones batcheables que no son fécula (hoy, el sofrito: 265
+    // platos). Sin esta línea, una receta servida desde la nube no propone
+    // ninguna tanda de sofrito — que es la que más trabajo ahorra.
+    ...(row.bases_aparte?.length ? { basesAparte: row.bases_aparte } : {}),
     // Ejes separados (migración 0023_recipe_axes.sql). Los booleanos se
     // distinguen de "la columna no existe todavía" igual que freezable: un
     // `montaje: false` es un juicio ya tomado y debe sobrevivir el viaje.

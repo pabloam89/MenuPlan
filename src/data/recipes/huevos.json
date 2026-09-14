@@ -693,7 +693,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_007",
@@ -1615,7 +1618,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_014",
@@ -2140,7 +2146,10 @@
     ],
     "tecnica": "sarten",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_018",
@@ -4855,6 +4864,9 @@
     "mainProtein": "huevo",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "segundo",
       "cena",
@@ -5728,7 +5740,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_041",
@@ -6736,7 +6751,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_047",
@@ -8840,7 +8858,10 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_060",
@@ -9025,7 +9046,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_061",
@@ -9360,7 +9384,10 @@
       "frutos_secos"
     ],
     "kidFavourite": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_063",
@@ -9729,7 +9756,10 @@
     ],
     "tecnica": "sarten",
     "cocina": "arabe",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_065",
@@ -9917,7 +9947,10 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_066",
@@ -10102,6 +10135,9 @@
     "type": "completo",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "time": 35,
     "difficulty": "normal",
     "apetecible": true,
@@ -10709,7 +10745,10 @@
       "lacteo"
     ],
     "tecnica": "plancha",
-    "occasion": "especial"
+    "occasion": "especial",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_070",
@@ -12191,7 +12230,10 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_078",
@@ -12981,7 +13023,10 @@
     ],
     "tecnica": "horno",
     "llevaSalsa": true,
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "huevos_082",
@@ -13450,6 +13495,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -13952,6 +14000,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {

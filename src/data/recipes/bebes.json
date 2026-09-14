@@ -1175,7 +1175,7 @@
     "category": "bebes",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -5873,7 +5873,7 @@
     "name": "Tortitas de lenteja roja y zanahoria",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "time": 30,
     "kcal": 195,
     "protein_g": 11,

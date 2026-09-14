@@ -170,7 +170,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_002",
@@ -500,7 +503,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_004",
@@ -992,7 +998,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_007",
@@ -1360,6 +1369,9 @@
     "tecnica": "olla",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "cocina": "francesa"
   },
   {
@@ -1522,7 +1534,10 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_010",
@@ -1714,7 +1729,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_011",
@@ -1915,7 +1933,10 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "estrella": true
+    "estrella": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_012",
@@ -2119,7 +2140,10 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_013",
@@ -2449,7 +2473,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_015",
@@ -2781,7 +2808,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_017",
@@ -2952,7 +2982,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_018",
@@ -3455,7 +3488,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_021",
@@ -3825,7 +3861,10 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_023",
@@ -4241,7 +4280,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_025",
@@ -4747,7 +4789,10 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_028",
@@ -4911,7 +4956,10 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_029",
@@ -5106,7 +5154,10 @@
     "extraProteins": [
       "pollo"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_030",
@@ -5284,7 +5335,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_031",
@@ -6123,6 +6177,9 @@
     "tecnica": "olla",
     "extraProteins": [
       "pollo"
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -6418,7 +6475,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_038",
@@ -6603,7 +6663,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_039",
@@ -6995,7 +7058,10 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_041",
@@ -7204,7 +7270,10 @@
     "freezable": false,
     "estrella": true,
     "tecnica": "olla",
-    "occasion": "especial"
+    "occasion": "especial",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_042",
@@ -7632,6 +7701,9 @@
     "type": "completo",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "time": 45,
     "difficulty": "normal",
     "season": "all",
@@ -8062,7 +8134,10 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_046",
@@ -8443,7 +8518,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_048",
@@ -8803,7 +8881,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_050",
@@ -9185,7 +9266,10 @@
       "lacteo"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_052",
@@ -9399,7 +9483,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_053",
@@ -9626,7 +9713,10 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_054",
@@ -10039,7 +10129,10 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_056",
@@ -11247,7 +11340,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_062",
@@ -11428,7 +11524,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_063",
@@ -11614,7 +11713,10 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_064",
@@ -11793,7 +11895,10 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_065",
@@ -12168,6 +12273,9 @@
     "tecnica": "olla",
     "extraProteins": [
       "pollo"
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -12486,7 +12594,10 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_069",
@@ -12729,7 +12840,10 @@
     ],
     "tecnica": "olla",
     "llevaSalsa": true,
-    "occasion": "especial"
+    "occasion": "especial",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_070",
@@ -13098,7 +13212,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_072",
@@ -13630,7 +13747,10 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_075",
@@ -14015,7 +14135,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_077",
@@ -14201,6 +14324,9 @@
     "tecnica": "olla",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "cocina": "francesa"
   },
   {
@@ -14387,7 +14513,10 @@
       "seta",
       "frutos_secos"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_079",
@@ -14722,7 +14851,10 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_081",
@@ -14960,7 +15092,10 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "sopas_cremas_082",
@@ -15498,6 +15633,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -15839,6 +15977,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -16003,6 +16144,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "sofrito"
     ]
   },
   {
@@ -16241,6 +16385,9 @@
       "Servir con el queso fresco en dados por encima."
     ],
     "description": "Sopa espesa y potente de gambas con patata, arroz, leche y huevo escalfado. El plato más reconocible de Arequipa.",
-    "estrella": false
+    "estrella": false,
+    "basesAparte": [
+      "sofrito"
+    ]
   }
 ]

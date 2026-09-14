@@ -204,7 +204,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "estrella": true
   },
   {
@@ -420,7 +423,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_003",
@@ -857,7 +863,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_005",
@@ -1074,7 +1080,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_006",
@@ -1533,7 +1542,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_008",
@@ -1733,7 +1742,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_009",
@@ -1742,6 +1754,9 @@
     "mainProtein": "legumbre",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -2322,7 +2337,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_012",
@@ -2662,7 +2680,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_014",
@@ -2671,6 +2692,9 @@
     "mainProtein": "legumbre",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -3231,7 +3255,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_017",
@@ -3446,7 +3473,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_018",
@@ -3626,7 +3656,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_019",
@@ -3836,7 +3869,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_020",
@@ -5033,7 +5069,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_026",
@@ -6522,7 +6561,10 @@
     "llevaSalsa": true,
     "cocina": "india",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_033",
@@ -6973,7 +7015,7 @@
     ],
     "tecnica": "sarten",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_035",
@@ -7427,7 +7469,7 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_037",
@@ -7663,7 +7705,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_038",
@@ -8143,7 +8188,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_040",
@@ -8675,7 +8723,10 @@
       "cerdo"
     ],
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_042",
@@ -8908,7 +8959,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_043",
@@ -9315,7 +9366,10 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_045",
@@ -9707,7 +9761,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_047",
@@ -9915,7 +9972,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_048",
@@ -10158,7 +10218,10 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_049",
@@ -10642,7 +10705,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_052",
@@ -10897,7 +10963,10 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_053",
@@ -11097,7 +11166,10 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_054",
@@ -11332,7 +11404,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_055",
@@ -11568,7 +11643,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_056",
@@ -11782,6 +11860,9 @@
     "type": "completo",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "time": 40,
     "difficulty": "facil",
     "season": "all",
@@ -12213,7 +12294,10 @@
     "llevaSalsa": true,
     "cocina": "india",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_059",
@@ -12433,7 +12517,10 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_060",
@@ -12829,7 +12916,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_062",
@@ -13011,7 +13101,10 @@
     "estrella": true,
     "tecnica": "sarten",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_063",
@@ -13285,7 +13378,7 @@
     "occasion": "especial",
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_064",
@@ -13615,7 +13708,10 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_066",
@@ -13880,7 +13976,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_067",
@@ -14164,7 +14260,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
@@ -14300,7 +14399,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos finos.",
@@ -14449,6 +14551,9 @@
     "tecnica": "olla",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Cortar {{Cebolla}} en dados finos.",
@@ -14595,6 +14700,9 @@
     "tecnica": "olla",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar {{Patatas}} y cortar en trozos de bocado.",
@@ -14742,7 +14850,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
@@ -14893,6 +15004,9 @@
     "tecnica": "olla",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
@@ -15068,7 +15182,10 @@
     "tecnica": "olla",
     "cocina": "mexicana",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Cortar {{Chorizo}} en dados de 1 cm.",
@@ -15246,7 +15363,10 @@
     "cocina": "asiatica",
     "llevaSalsa": true,
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos finos.",
@@ -15326,7 +15446,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mainIngredients": [
       "verdura"
     ],
@@ -15512,7 +15635,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "extraProteins": [
       "cerdo"
     ],
@@ -15728,7 +15854,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mainIngredients": [
       "verdura"
     ],
@@ -15938,7 +16067,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mainIngredients": [
       "verdura"
     ],
@@ -16124,7 +16256,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "extraProteins": [
       "ternera",
       "cerdo"
@@ -16352,7 +16487,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mainIngredients": [
       "verdura"
     ],
@@ -16783,7 +16921,10 @@
       "Rectificar de sal y servir con cilantro fresco picado."
     ],
     "description": "Lentejas negras guisadas muy lentamente con tomate, mantequilla y nata hasta quedar sedosas. El guiso vegetariano más goloso de la India.",
-    "estrella": false
+    "estrella": false,
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_084",
@@ -16886,6 +17027,9 @@
       "Servir con abundante cilantro fresco picado."
     ],
     "description": "Garbanzos guisados en salsa de tomate y cebolla con especias tostadas y un golpe de limón al final. Vegano, de bote y listo en media hora.",
-    "estrella": false
+    "estrella": false,
+    "basesAparte": [
+      "sofrito"
+    ]
   }
 ]
