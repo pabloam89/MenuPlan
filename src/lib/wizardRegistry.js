@@ -445,6 +445,79 @@ export const PREGUNTAS = [
     orden: 80,
   },
   {
+    id: "tanda",
+    tema: "tiempo",
+    label: "¿Cómo prefieres cocinar?",
+    corto: "Tandas",
+    color: "#5a5fc8",
+    control: "cards-ab",
+    fuente: "data",
+    // No hay campo `batchCooking`: esto ES un perfil de tiempo, y `cookTime`
+    // ya separa entre semana de fin de semana. Un flag nuevo habría sido un
+    // campo más sin lector, y el reparto de minutos ya lo lee el planner por
+    // `maxCookTime`.
+    //
+    // Se reconoce por la ASIMETRÍA: si el finde tiene mucho más presupuesto
+    // que el diario, es que cocinas en tanda. Es la misma idea que `lee` de
+    // la pregunta del tiempo, que deduce el nivel de los minutos guardados.
+    lee: (data) => {
+      const ct = data?.cookTime;
+      if (!ct) return null;
+      const diario = ct.weekday?.Comida;
+      const finde = ct.weekend?.Comida;
+      // `cookTime` guardado como un número suelto (forma antigua, y la que
+      // usan varios fixtures) significa EL MISMO presupuesto todos los días.
+      // Eso ya es una respuesta: cocinas cada día. Devolver null aquí dejaba
+      // la pregunta pendiente para siempre en esos saves.
+      if (!diario || !finde) return "cada_dia";
+      return finde >= diario * 2 ? "tanda" : "cada_dia";
+    },
+    escribe: (data, id) => {
+      const base = data?.cookTime ?? COOK_TIME_DEFAULTS;
+      // "Cada día" NO pisa lo que acabas de contestar en la pregunta del
+      // tiempo: iguala el finde al diario y se acabó. "En tanda" deja el
+      // diario como esté —esa respuesta sigue siendo tuya— y abre el finde,
+      // que es lo único que esta pregunta añade.
+      const diario = base.weekday?.Comida ?? COOK_TIME_DEFAULTS.weekday.Comida;
+      const finde = id === "tanda" ? Math.max(90, diario * 3) : diario;
+      const mismo = (obj, min) => Object.fromEntries(Object.keys(obj ?? {}).map((m) => [m, min]));
+      return {
+        ...data,
+        cookTime: {
+          ...base,
+          weekday: mismo(base.weekday, diario),
+          weekend: mismo(base.weekend, finde),
+        },
+      };
+    },
+    opciones: [
+      { valor: "cada_dia", etiqueta: "Cada día", detalle: "Cocino lo del día, cada día" },
+      { valor: "tanda", etiqueta: "En tanda", detalle: "Dejo cosas hechas y entre semana monto" },
+    ],
+    arteOpcionesLlenas: true,
+    arteOpciones: {
+      cada_dia: "/avatares/cards/wizard_timing/clasico.jpg",
+      tanda: "/avatares/cards/wizard_timing/batch.jpg",
+    },
+    // Detrás del tiempo, porque la respuesta se apoya en ella: "voy con el
+    // tiempo justo... y por eso cocino el domingo" solo se puede decir en ese
+    // orden.
+    requiere: ["tiempo"],
+    // Solo se pregunta a quien le sirve. A quien ha dicho que tiene un rato
+    // para cocinar entre semana no hay que ofrecerle cocinar el domingo: no
+    // se pinta en gris ni se explica, simplemente no está.
+    activa: (data) => {
+      const nivel = data?.cookTime ? cookLevelForMinutes(data.cookTime?.weekday?.Comida) : null;
+      return nivel === "con_prisa" || nivel === "normal" || nivel === "depende";
+    },
+    refina: null,
+    anula: [],
+    delegable: true,
+    parser: false,
+    enControles: true,
+    orden: 82,
+  },
+  {
     id: "esfuerzo",
     tema: "tiempo",
     label: "¿Qué tal se te da cocinar?",
