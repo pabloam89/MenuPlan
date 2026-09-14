@@ -7418,82 +7418,98 @@
       {
         "text": "Marcar la piel de {{Pechuga de pato}} con cortes en rombo sin llegar a la carne.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar las pechugas con {{Sal|gusto}} y {{Pimienta negra|pizca}} por ambos lados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rallar la piel de 1 {{Naranja}} y reservar. Pelar en vivo la otra naranja y sacar los gajos; reservar.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar las pechugas en {{@Sartén}} fría con la piel hacia abajo y calentar a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar a fuego medio hasta que la piel esté dorada y crujiente y la grasa se derrita.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a las pechugas y cocinar a fuego medio hasta que estén rosadas por dentro.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar las pechugas de la sartén y tapar con papel de aluminio para que reposen.",
         "minutes": 8,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Retirar el exceso de grasa de la sartén dejando solo una cucharada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Azúcar}} a la sartén y calentar a fuego medio hasta que se caramelice ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Vinagre de vino blanco}} y raspar el fondo de la sartén para desglasar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Zumo de naranja}} y la ralladura de naranja reservada; remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Caldo de pollo}} y reducir a fuego medio hasta que la salsa espese ligeramente.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Retirar la sartén del fuego y añadir {{Cointreau}}; flambear con cuidado hasta que se apague la llama.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Mantequilla}} fría y remover hasta que la salsa quede brillante y ligada.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cortar las pechugas en lonchas y disponerlas en el plato.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Napar las lonchas con la salsa de naranja y decorar con los gajos de naranja reservados.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -7626,17 +7642,20 @@
       {
         "text": "Laminar la piel de {{Magret de pato}} con cortes en rombo sin llegar a la carne.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar el magret por ambas caras con {{Sal|gusto}} y {{Pimienta negra|pizca}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Chalota}} en brunoise fina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Colocar el magret en {{@Sartén}} fría con la piel hacia abajo a fuego medio.",
@@ -7708,7 +7727,7 @@
         "text": "Laminar el magret en lonchas finas en diagonal.",
         "minutes": 2,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir las lonchas napadas con la salsa de frutos rojos.",
@@ -7981,8 +8000,8 @@
         "text": "Pelar {{Patata}} y cortar en trozos.",
         "minutes": 4,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 13
+        "during": 13,
+        "part": "guarnicion"
       },
       {
         "text": "Cocer la patata en agua con {{Sal|gusto}} hasta que esté tierna.",
@@ -8486,29 +8505,29 @@
         "text": "Picar {{Ajo}} fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 3
+        "during": 3,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Solomillo de ternera}} en medallones de unos 3 cm de grosor.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 3
+        "during": 3,
+        "part": "principal"
       },
       {
         "text": "Salpimentar los medallones con {{Sal|gusto}} y {{Pimienta negra|gusto}} por ambas caras.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 3
+        "during": 3,
+        "part": "principal"
       },
       {
         "text": "Picar {{Perejil fresco}} fino y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 3
+        "during": 3,
+        "part": "principal"
       },
       {
         "text": "Añadir {{Sal|gusto}} a las patatas y remover para distribuir.",
@@ -9103,8 +9122,8 @@
         "text": "Sacar {{Presa ibérica}} de la nevera para que atempere mientras el pimiento reposa.",
         "minutes": 10,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Pelar y despepitar el pimiento asado, retirando bien la piel quemada.",
@@ -9408,8 +9427,8 @@
         "text": "Pelar y cortar {{Patata}} en trozos medianos.",
         "minutes": 5,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 8
+        "during": 8,
+        "part": "guarnicion"
       },
       {
         "text": "Cocer la patata en una olla con agua y sal al gusto. Hervir hasta que esté tierna.",
@@ -9421,8 +9440,8 @@
         "text": "Calentar {{Leche}} en un cazo a fuego suave hasta que esté caliente. Reservar.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 10
+        "during": 10,
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir la patata cocida y triturar en la misma olla con {{Mantequilla}} y la leche caliente hasta obtener un puré liso.",
@@ -9440,28 +9459,28 @@
         "text": "Picar {{Perejil fresco}} muy fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 8
+        "during": 8,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 8
+        "during": 8,
+        "part": "salsa"
       },
       {
         "text": "Rallar la piel de {{Limón}} con un rallador fino para obtener la ralladura.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 8
+        "during": 8,
+        "part": "salsa"
       },
       {
         "text": "Mezclar el perejil picado, el ajo picado y la ralladura de limón en un bol pequeño para formar la gremolata.",
         "minutes": 1,
         "kind": "prep",
-        "part": "principal"
+        "part": "salsa"
       },
       {
         "text": "Disponer una base de puré de patata en cada plato y colocar encima un trozo de ossobuco con su salsa.",
@@ -9721,7 +9740,7 @@
         "text": "Cortar la pluma ibérica en lonchas.",
         "minutes": 1,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Disponer las lonchas en el plato, napar con la salsa y servir con la pera caramelizada.",
@@ -10615,22 +10634,22 @@
         "text": "Rallar la piel de 1 {{Naranja}} y reservar la ralladura.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Marcar la piel de {{Pechuga de pato}} con cortes en rombo con un cuchillo.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Salpimentar {{Sal|gusto}} y {{Pimienta negra|gusto}} las pechugas de pato por ambas caras.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Escurrir el boniato cocido y triturarlo en un bol con {{Mantequilla}} y {{Nata para cocinar}} hasta obtener un puré fino.",
@@ -10684,7 +10703,7 @@
         "text": "Cortar las pechugas reposadas en lonchas de unos 5 mm.",
         "minutes": 1,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Disponer una base generosa de puré de boniato en cada plato y colocar las lonchas de pato encima.",
@@ -11230,12 +11249,14 @@
       {
         "text": "Rallar {{Jengibre fresco}} y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Cebollino}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Salsa de soja}}, {{Mirin}}, {{Vinagre de arroz}}, el jengibre rallado y {{Aceite de sésamo}} en un bol hasta integrar.",
@@ -11576,62 +11597,74 @@
       {
         "text": "Rallar {{Ajo}} sobre un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Rallar la piel de {{Limón}} y exprimir la mitad de su zumo sobre el mismo bol.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Eneldo fresco}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Yogur griego}}, el eneldo picado, {{Sal|gusto}} y {{Pimienta negra|pizca}} al bol con el ajo, la ralladura y el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar bien hasta obtener una salsa homogénea y reservar en frío.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Aplanar {{Pechuga de pollo}} ligeramente con la mano o la palma hasta que tengan un grosor uniforme.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar las pechugas por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} con {{Aceite de oliva|chorrito}} a fuego fuerte hasta que empiece a humear.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar las pechugas en la plancha y cocinar 5 min por el primer lado, hasta que se doren.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a las pechugas y cocinar 5 min por el otro lado, hasta que estén bien hechas por dentro.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar las pechugas de la plancha y dejar reposar 2 min sobre la tabla.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cortar las pechugas en lonchas y servir con la salsa de yogur por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 0,
@@ -12561,7 +12594,7 @@
         "text": "Cortar unas rodajas del cilindro de mantequilla de perejil.",
         "minutes": 1,
         "kind": "prep",
-        "part": "combinado"
+        "part": "salsa"
       },
       {
         "text": "Colocar las rodajas de mantequilla de perejil sobre los entrecots calientes y dejar que se derritan.",
@@ -13199,8 +13232,8 @@
         "text": "Mezclar {{Tomate frito}}, {{Vinagre de manzana}}, {{Miel}}, {{Mostaza}} y {{Salsa de soja}} en un cazo.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Cocer la salsa a fuego suave hasta que espese ligeramente, unos 8 min.",
@@ -13254,7 +13287,7 @@
         "text": "Retirar el costillar del horno y dejar reposar 5 min antes de cortar.",
         "minutes": 5,
         "kind": "espera",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Cortar el costillar entre hueso y hueso y servir con el resto de la salsa aparte.",
@@ -13524,7 +13557,7 @@
         "text": "Salar {{Sal|gusto}} las patatas fritas reservadas.",
         "minutes": 1,
         "kind": "activo",
-        "part": "combinado"
+        "part": "guarnicion"
       },
       {
         "text": "Servir las milanesas calientes junto a las patatas fritas.",
@@ -13655,77 +13688,92 @@
       {
         "text": "Retirar {{Filete de solomillo de ternera}} de la nevera y dejar atemperar 15 min antes de cocinar.",
         "minutes": 15,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Escurrir {{Pimienta verde en grano}} y machacar ligeramente la mitad con el dorso de un cuchillo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar los filetes con {{Sal|gusto}} por ambas caras justo antes de cocinar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} y la mitad de {{Mantequilla}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Marcar los filetes 2 min por cada lado hasta que estén dorados por fuera y rosados por dentro.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los filetes a un plato y reservar los jugos que hayan quedado en la sartén.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar la sartén del fuego y añadir {{Brandy}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Flambear con cuidado acercando una llama hasta que el brandy arda y dejar que la llama se apague sola.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Volver a poner la sartén a fuego medio y añadir la pimienta verde machacada y el resto de la pimienta.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Caldo de carne}} y dejar reducir 1 min hasta que el líquido se evapore ligeramente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Incorporar {{Nata para cocinar}} y la mantequilla restante, removiendo para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cocer a fuego medio 3 min, removiendo de vez en cuando, hasta que la salsa espese y nape la cuchara.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Devolver los filetes a la sartén con los jugos reservados y napar con la salsa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Calentar 1 min a fuego suave hasta que los filetes estén calientes sin sobrecocer.",
         "minutes": 1,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "combinado"
       },
       {
         "text": "Servir los filetes en el plato con la salsa de pimienta verde por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -14894,22 +14942,22 @@
         "text": "Cortar {{Pimiento rojo}} en trozos grandes y pelar {{Ajo}}.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Triturar el pimiento rojo y el ajo con {{Pimentón picante|pizca}}, {{Comino molido|pizca}}, {{Vinagre de vino}} y {{Sal|gusto}} hasta obtener una pasta.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Aceite de oliva virgen extra}} en hilo fino mientras se tritura hasta obtener una salsa fina y homogénea.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Escurrir las patatas fritas sobre papel de cocina y salar al gusto.",
@@ -15170,7 +15218,7 @@
         "text": "Devolver los solomillos a la sartén y calentar 1 min hasta que estén bien integrados.",
         "minutes": 1,
         "kind": "activo",
-        "part": "combinado"
+        "part": "salsa"
       },
       {
         "text": "Servir los solomillos napados con la salsa de pimienta y acompañados de las patatas paja.",
@@ -15624,8 +15672,8 @@
         "text": "Pelar y cortar {{Patata}} en trozos regulares.",
         "minutes": 4,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Hervir agua con sal en un cazo y cocer las patatas troceadas 20 min, hasta que estén tiernas.",
@@ -15637,8 +15685,8 @@
         "text": "Calentar {{Leche}} en un cazo pequeño a fuego suave hasta que esté caliente, sin que hierva.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 11
+        "during": 11,
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir las patatas cocidas y triturarlas en el mismo cazo.",
@@ -15668,7 +15716,7 @@
         "text": "Devolver la carne desmechada a la cazuela con la salsa triturada y remover hasta integrar bien.",
         "minutes": 2,
         "kind": "activo",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir una base de puré de patata en el plato y disponer la carne mechada con su salsa por encima.",
@@ -16809,47 +16857,54 @@
       {
         "text": "Mezclar {{Pimentón dulce}}, {{Comino molido}}, {{Ajo en polvo}} y {{Cúrcuma}} en un bol hasta integrar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva}}, {{Zumo de limón}} y {{Sal|gusto}} al bol y mezclar hasta obtener una pasta homogénea.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Incorporar {{Carne de cerdo en dados (aguja o secreto)}} al bol y remover hasta que todos los dados queden bien cubiertos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Tapar el bol y refrigerar hasta que la carne haya marinado al menos 30 min.",
         "minutes": 30,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y cortar en bastones uniformes de unos 1 cm de grosor.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Secar los bastones de patata con papel de cocina para eliminar el exceso de humedad.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Machacar o picar fino {{Ajo}} hasta obtener una pasta muy fina.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Colocar {{Huevo}} y el ajo picado en el vaso de la batidora. Añadir una pizca de sal.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Triturar con la batidora a velocidad baja, añadiendo {{Aceite de oliva|chorrito}} en hilo muy fino y constante.",
@@ -18300,68 +18355,81 @@
       {
         "text": "Sacar {{Solomillo de ternera}} de la nevera para que atempere.",
         "minutes": 15,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Salpimentar el solomillo por ambas caras con {{Sal|gusto}} y {{Pimienta negra|pizca}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Marcar el solomillo 2 min por cada cara hasta que esté dorado por fuera y rosado por dentro.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el solomillo de la sartén y reservar en un plato.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego a medio y añadir {{Nata para cocinar}} a la misma sartén, removiendo para recoger los jugos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Queso de cabra en rulo}} en trozos pequeños.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Añadir el queso de cabra troceado a la sartén y remover hasta que se funda por completo.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Incorporar {{Miel}} y remover hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que esté cremosa y homogénea.",
         "minutes": 2,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Devolver el solomillo a la sartén y napar con la salsa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Calentar 1 min a fuego suave hasta que el solomillo esté bien caliente.",
         "minutes": 1,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "combinado"
       },
       {
         "text": "Servir el solomillo con la salsa de queso de cabra y miel por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 0,
@@ -19073,7 +19141,7 @@
         "text": "Picar {{Cebolleta}} fina y reservar para el emplatado.",
         "minutes": 1,
         "kind": "prep",
-        "part": "principal"
+        "part": "combinado"
       },
       {
         "text": "Batir {{Huevo}} en un bol hasta que esté homogéneo.",
@@ -19591,8 +19659,8 @@
         "text": "Pelar y cortar {{Patata}} en trozos medianos.",
         "minutes": 5,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 8
+        "during": 8,
+        "part": "guarnicion"
       },
       {
         "text": "Cocer las patatas en una olla con agua y sal a fuego fuerte hasta que estén tiernas.",
@@ -19628,19 +19696,19 @@
         "text": "Retirar el laurel y triturar la salsa de cocción con un batidor hasta obtener una crema homogénea.",
         "minutes": 3,
         "kind": "activo",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Colar la salsa triturada a través de un colador fino y verter en la cazuela limpia.",
         "minutes": 3,
         "kind": "activo",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Reducir la salsa colada a fuego medio hasta que nape el dorso de una cuchara.",
         "minutes": 10,
         "kind": "activo",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Disponer el puré de patata en la base del plato y colocar las carrilladas encima.",
@@ -19845,107 +19913,90 @@
       {
         "text": "Pelar {{Patata}} y cortar en trozos de tamaño similar.",
         "minutes": 5,
-        "kind": "prep",
-        "part": "guarnicion"
+        "kind": "prep"
       },
       {
         "text": "Cocer la patata en una olla con agua abundante y sal hasta que esté tierna.",
         "minutes": 20,
-        "kind": "pasivo",
-        "part": "guarnicion"
+        "kind": "pasivo"
       },
       {
         "text": "Picar {{Cebolla}}, {{Zanahoria}} y {{Ajo}} fino.",
         "minutes": 5,
         "kind": "paralelo",
-        "part": "principal",
         "during": 1
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla, la zanahoria y el ajo hasta que estén blandos.",
         "minutes": 8,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y dorar a fuego fuerte, deshaciendo los grumos.",
         "minutes": 5,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Incorporar {{Tomate triturado}}, {{Caldo de carne}}, {{Salsa Worcestershire}} y {{Tomillo|pizca}}.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Cocer a fuego medio hasta que la salsa espese. Salpimentar y reservar.",
         "minutes": 15,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
         "kind": "paralelo",
-        "part": "guarnicion",
         "during": 7
       },
       {
         "text": "Calentar {{Leche}} en un cazo a fuego suave hasta que esté caliente.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "guarnicion",
         "during": 7
       },
       {
         "text": "Escurrir la patata cocida y triturar en el mismo cazo.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "guarnicion"
+        "kind": "prep"
       },
       {
         "text": "Añadir la leche caliente y la mitad de {{Mantequilla}} al puré y mezclar hasta que esté cremoso.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Extender la carne guisada en una fuente de horno formando una capa uniforme.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Cubrir la carne con el puré y alisar la superficie con un tenedor.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Repartir {{Queso rallado}} y el resto de la mantequilla en trocitos por encima.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Hornear a 200 °C hasta que la superficie esté dorada.",
         "minutes": 18,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Servir la fuente bien caliente en la mesa.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 5,
@@ -21067,22 +21118,22 @@
         "text": "Limpiar {{Boletus}} y cortar en trozos medianos.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Perejil fresco}} fino y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 3
+        "during": 3,
+        "part": "combinado"
       },
       {
         "text": "Destapar las patatas, subir a fuego medio y remover hasta que estén doradas. Salpimentar.",
@@ -21558,15 +21609,15 @@
         "text": "Mezclar {{Ketchup}}, {{Miel}}, {{Vinagre de manzana}}, {{Mostaza}}, {{Pimentón ahumado}} y {{Ajo en polvo}} en un bol hasta obtener la salsa barbacoa.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Pelar {{Boniato}} y cortar en trozos medianos.",
         "minutes": 5,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Llevar a ebullición un cazo con agua con sal y cocer el boniato hasta que esté tierno.",
@@ -21578,8 +21629,8 @@
         "text": "Calentar {{Leche}} en un cazo pequeño a fuego suave hasta que esté caliente.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 6
+        "during": 6,
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir el boniato cocido.",
@@ -21627,7 +21678,7 @@
         "text": "Retirar el costillar del horno y cortar entre hueso y hueso.",
         "minutes": 2,
         "kind": "activo",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir el costillar sobre el puré de boniato.",
@@ -22250,15 +22301,15 @@
         "text": "Pelar {{Patata}} y cortar en bastones de 1 cm de grosor.",
         "minutes": 5,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Sacar {{Chuletón de ternera}} de la nevera para que atempere al menos 20 min antes de cocinarlo.",
         "minutes": 20,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de girasol}} en una sartén honda a fuego fuerte hasta que alcance 180 °C.",
@@ -22505,22 +22556,22 @@
         "text": "Mezclar {{Ketchup}}, {{Miel}}, {{Vinagre de manzana}}, {{Pimentón ahumado}}, {{Mostaza}} y {{Ajo en polvo}} en un bol hasta obtener la salsa BBQ.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Pelar {{Patata}} y cortar en trozos medianos.",
         "minutes": 5,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Llevar a ebullición un cazo con agua y sal, añadir la patata y cocer hasta que esté tierna.",
         "minutes": 20,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Leche}} en un cazo pequeño a fuego suave hasta que esté caliente, sin llegar a hervir.",
@@ -22735,31 +22786,34 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y cortarla en rodajas finas de unos 3 mm.",
         "minutes": 4,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Colocar la patata y la cebolla en una fuente de horno.",
         "minutes": 1,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "principal"
       },
       {
         "text": "Regar con la mitad de {{Aceite de oliva}}, salpimentar y mezclar bien hasta cubrir todas las rodajas.",
         "minutes": 1,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "principal"
       },
       {
         "text": "Salpimentar {{Muslos y contramuslos de pollo}} por todas las caras.",
@@ -23020,15 +23074,15 @@
         "text": "Picar {{Chalota}} muy fina.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Presa ibérica}} por ambas caras.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Plancha}} a fuego fuerte.",
@@ -23082,7 +23136,7 @@
         "text": "Cortar la presa ibérica en lonchas de unos 2 cm.",
         "minutes": 1,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir las lonchas napadas con la salsa de pimienta verde y las patatas fritas al lado.",
@@ -23239,15 +23293,15 @@
         "text": "Pelar {{Patata}} y cortar en bastones de grosor uniforme.",
         "minutes": 5,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de girasol}} en una olla a fuego fuerte hasta que alcance 180 °C.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Freír los bastones de patata en el aceite de girasol caliente hasta que estén dorados y crujientes.",
@@ -23265,8 +23319,8 @@
         "text": "Desmenuzar {{Queso azul}} en un cazo pequeño y añadir {{Nata para cocinar}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Calentar la mezcla a fuego suave, remover hasta que el queso azul se funda y la salsa esté homogénea.",
@@ -23296,7 +23350,7 @@
         "text": "Laminar {{Tomate}} y {{Cebolla morada}} en rodajas finas; separar hojas de {{Lechuga}}.",
         "minutes": 2,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Colocar lechuga, tomate y cebolla morada sobre la base del pan de hamburguesa tostado.",
@@ -23462,15 +23516,15 @@
         "text": "Laminar {{Ajo}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Picar {{Menta fresca}} muy fina.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 1
+        "during": 1,
+        "part": "salsa"
       },
       {
         "text": "Mezclar la menta picada con {{Vinagre de vino blanco}} y {{Azúcar}} en un cazo.",
@@ -24407,26 +24461,22 @@
       {
         "text": "Extender la mezcla de salsas sobre la base de pan tostado.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Añadir la cebolla en juliana y {{Pepinillos en rodajas}} sobre la salsa.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Apilar 2 hamburguesas con queso por ración sobre los pepinillos.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Cerrar con la tapa de pan tostado y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 2,
@@ -25328,32 +25378,38 @@
       {
         "text": "Cortar {{Pechuga de pollo}} en tiras de unos 2 cm de grosor y salpimentar.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Batir {{Huevo}} en un bol.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pasar cada tira de pollo por {{Harina}}, luego por el huevo batido y finalmente por {{Pan rallado}}, presionando para que el rebozado se adhiera bien.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de girasol}} en {{@Sartén}} a fuego fuerte hasta que alcance unos 175 °C.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír las tiras de pollo rebozadas hasta que estén doradas y crujientes por fuera y cocidas por dentro.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir el pollo frito sobre papel absorbente y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar {{Yogur natural}}, {{Parmesano rallado}}, {{Anchoas en aceite}}, {{Ajo}}, {{Zumo de limón}} y {{Mostaza de Dijon}} hasta obtener una salsa homogénea.",
@@ -25365,13 +25421,13 @@
         "text": "Laminar {{Aguacate}}, cortar {{Lechuga}} en juliana y cortar {{Tomate}} en dados.",
         "minutes": 3,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Calentar {{Tortillas de trigo grandes}} en {{@Sartén}} a fuego medio, 30 segundos por cada lado, hasta que estén flexibles.",
         "minutes": 1,
         "kind": "activo",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Repartir la lechuga, el tomate y el aguacate sobre cada tortilla.",
@@ -25588,7 +25644,7 @@
         "text": "Cortar cada quesadilla en triángulos.",
         "minutes": 1,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir las quesadillas calientes acompañadas del guacamole.",
@@ -25727,7 +25783,8 @@
       {
         "text": "Enjuagar {{Quinoa}} bajo agua fría hasta que el agua salga clara.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición una olla con agua y {{Sal|gusto}}, añadir la quinoa y cocer a fuego medio.",
@@ -25751,29 +25808,29 @@
         "text": "Pelar {{Zanahoria}} y cortarla en bastones finos.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Pepino}} en medias lunas y {{Tomate cherry}} por la mitad.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Aguacate}} en láminas.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Exprimir {{Limón}} y rociar las láminas de aguacate con unas gotas de zumo para que no se oxiden.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
@@ -26032,26 +26089,22 @@
       {
         "text": "Montar el primer piso: colocar una tostada, disponer la lechuga, las rodajas de tomate y los filetes de pollo.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Cubrir con una segunda tostada con la cara de mayonesa hacia abajo.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Añadir encima el bacon crujiente y los huevos fritos.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Cerrar con la tercera tostada, sujetar con palillos y cortar en triángulos para servir.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 2,
@@ -26429,7 +26482,7 @@
         "text": "Calentar {{Tortillas de trigo}} en {{@Sartén}} limpia, 20 segundos por cada lado, hasta que estén flexibles.",
         "minutes": 2,
         "kind": "activo",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Rellenar cada tortilla con el pollo salteado y una cucharada generosa de pico de gallo.",
@@ -27521,22 +27574,22 @@
         "text": "Cortar {{Aguacate}} en dados.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Exprimir {{Lima}} y reservar el zumo.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Cilantro fresco}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar el aguacate en dados con {{Maíz dulce cocido}}, el cilantro picado y la mitad del zumo de lima.",
@@ -27859,15 +27912,15 @@
         "text": "Cortar {{Aguacate}} en dados de unos 2 cm.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Cilantro fresco}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Dar la vuelta a los filetes y cocinar 5 min más hasta que estén hechos por dentro.",
@@ -27879,22 +27932,22 @@
         "text": "Exprimir {{Lima}} y reservar el zumo.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 6
+        "during": 6,
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar el aguacate en dados con {{Maíz dulce cocido}} y el cilantro picado en un bol.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 6
+        "during": 6,
+        "part": "guarnicion"
       },
       {
         "text": "Aliñar la ensalada con el zumo de lima, {{Aceite de oliva|chorrito}} y sal al gusto.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 6
+        "during": 6,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los filetes de la plancha y reposar 3 min antes de cortar.",
@@ -28223,7 +28276,7 @@
         "text": "Picar {{Tomate}} y {{Cebolla morada}} en dados pequeños y reservar.",
         "minutes": 3,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir el arroz blanco cocido y reservar caliente.",
@@ -29632,92 +29685,77 @@
       {
         "text": "Escurrir las patatas cocidas y volcarlas en un bol grande.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Añadir {{Mantequilla}} y {{Leche}} a las patatas escurridas.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Triturar las patatas con la mantequilla y la leche hasta obtener un puré suave.",
         "minutes": 3,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Salpimentar el puré con {{Pimienta negra|pizca}} y reservar.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla y la zanahoria picadas hasta que estén blandas.",
         "minutes": 6,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y deshacer los grumos con una cuchara.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Dorar la carne a fuego medio-fuerte hasta que esté bien dorada.",
         "minutes": 8,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Guisantes}}, {{Caldo de carne}} y {{Tomate concentrado}}; remover para integrar.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Cocer a fuego medio hasta que la salsa reduzca y espese.",
         "minutes": 10,
-        "kind": "pasivo",
-        "part": "guarnicion"
+        "kind": "pasivo"
       },
       {
         "text": "Verter el relleno de carne en una fuente de horno formando una capa uniforme.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Cubrir el relleno con el puré de patata y alisar la superficie con un tenedor creando surcos.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Hornear a 200 °C hasta que la superficie esté dorada.",
         "minutes": 22,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Reposar la fuente fuera del horno antes de servir.",
         "minutes": 5,
-        "kind": "espera",
-        "part": "combinado"
+        "kind": "espera"
       },
       {
         "text": "Servir en plato hondo racionando con una espátula.",
         "minutes": 2,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 5,
@@ -30533,83 +30571,99 @@
       {
         "text": "Cortar {{Col china}} en tiras muy finas y picar fino.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salar la col picada y dejar reposar hasta que suelte agua.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Escurrir la col apretándola con las manos para eliminar el exceso de agua.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar fino {{Cebolleta}}, {{Jengibre fresco}} y {{Ajo}}.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol {{Carne picada de cerdo}}, la col escurrida, la cebolleta, el jengibre y el ajo picados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Añadir 10 ml de {{Salsa de soja}} y {{Aceite de sésamo}} al bol y mezclar hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar una cucharadita de relleno en el centro de cada {{Obleas para gyoza}}.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Humedecer los bordes de cada oblea con agua y cerrar en forma de media luna haciendo pliegues para sellar.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio-alto.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar las gyozas con la base plana hacia abajo en la sartén caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dorar la base de las gyozas hasta que esté crujiente y dorada.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir 60 ml de agua a la sartén y tapar de inmediato.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer al vapor, tapado, hasta que la masa esté translúcida.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Mezclar el resto de la salsa de soja con {{Vinagre de arroz}} y {{Semillas de sésamo}} en un bol pequeño.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 12
+        "during": 12,
+        "part": "salsa"
       },
       {
         "text": "Destapar la sartén y dejar evaporar el agua restante hasta que la base recupere el crujiente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir las gyozas calientes acompañadas de la salsa de soja y sésamo.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -30829,29 +30883,29 @@
         "text": "Cortar {{Aguacate}} en dados de tamaño similar.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 6
+        "during": 6,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Tomate}} en dados y reservar junto al aguacate.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 6
+        "during": 6,
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir {{Maíz cocido}} y añadir al bol con el aguacate y el tomate.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 6
+        "during": 6,
+        "part": "guarnicion"
       },
       {
         "text": "Exprimir {{Lima}} sobre la ensalada y aliñar con un chorrito de aceite de oliva.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 6
+        "during": 6,
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir el pollo frito sobre papel absorbente para retirar el exceso de aceite.",
@@ -31202,7 +31256,8 @@
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego suave.",
@@ -31502,22 +31557,22 @@
         "text": "Picar {{Cebollino}} fino y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Salpimentar {{Filetes de cerdo}} por ambas caras.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Dorar los filetes de cerdo 3 min por cada lado hasta que estén dorados y cocinados en el centro.",
@@ -31783,15 +31838,15 @@
         "text": "Desgranar {{Granada}} sobre un bol.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Desmenuzar {{Queso de cabra}} en trozos irregulares.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Cocinar las chuletas en la plancha caliente 4 min por cada lado hasta que estén doradas.",
@@ -31803,15 +31858,15 @@
         "text": "Mezclar {{Canónigos}} con los granos de granada y el queso de cabra desmenuzado en un bol.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 4
+        "during": 4,
+        "part": "guarnicion"
       },
       {
         "text": "Aliñar la ensalada con {{Aceite de oliva|chorrito}} y {{Vinagre balsámico|chorrito}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 4
+        "during": 4,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar las chuletas de la plancha y dejar reposar 2 min antes de servir.",
@@ -32140,15 +32195,15 @@
         "text": "Cocer el segundo {{Huevo}} en un cazo con agua a fuego fuerte hasta que rompa a hervir, luego 10 min.",
         "minutes": 12,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 8
+        "during": 8,
+        "part": "guarnicion"
       },
       {
         "text": "Cocer {{Judías verdes}} en otro cazo con agua hirviendo a fuego fuerte 9 min hasta que estén tiernas.",
         "minutes": 9,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir las judías verdes y refrescar bajo agua fría para cortar la cocción.",
@@ -32279,7 +32334,7 @@
         "text": "Laminar {{Champiñones}}.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Rallar {{Zanahoria}}.",
@@ -32321,13 +32376,13 @@
         "text": "Saltear los champiñones laminados en la misma plancha a fuego fuerte hasta que se doren.",
         "minutes": 4,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Añadir {{Vino blanco}} y remover hasta que se evapore el alcohol.",
         "minutes": 2,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Servir los filetes de ternera con los champiñones salteados y la ensalada de zanahoria al lado.",
@@ -32447,37 +32502,44 @@
       {
         "text": "Exprimir {{Naranja}} y {{Lima}} en un bol.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Ajo}} y añadirlo al bol junto con {{Pimentón dulce}}, {{Orégano}} y {{Sal|gusto}}.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar la mezcla del bol hasta obtener un adobo homogéneo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar {{Lomo de cerdo en filetes}} en una fuente y cubrir con el adobo por todos lados.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Tapar la fuente y refrigerar hasta que el adobo penetre en la carne.",
         "minutes": 60,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Precalentar el horno a 160 °C.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Regar la carne con {{Aceite de oliva|chorrito}}, tapar la fuente con papel de aluminio y meter en el horno.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Hornear la carne tapada a 160 °C hasta que esté tan tierna que se deshaga al tocarla con el tenedor.",
@@ -32489,15 +32551,15 @@
         "text": "Laminar {{Cebolla morada}} en juliana fina.",
         "minutes": 4,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 7
+        "during": 7,
+        "part": "guarnicion"
       },
       {
         "text": "Cubrir la cebolla con {{Vinagre de vino}} y una pizca de sal en un bol.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 7
+        "during": 7,
+        "part": "guarnicion"
       },
       {
         "text": "Reposar la cebolla encurtida en el bol hasta que ablande y tome color.",
@@ -32674,19 +32736,19 @@
         "text": "Cortar {{Aguacate}} por la mitad, retirar el hueso y extraer la pulpa con una cuchara.",
         "minutes": 2,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Lima}} y reservar el zumo.",
         "minutes": 1,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "salsa"
       },
       {
         "text": "Machacar la pulpa de aguacate con el zumo de lima y {{Sal|gusto}} hasta obtener una pasta homogénea.",
         "minutes": 2,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "salsa"
       },
       {
         "text": "Marcar la ternera en la misma sartén a fuego fuerte sin mover durante 2 min hasta que se dore.",
@@ -32704,7 +32766,7 @@
         "text": "Calentar {{Tortillas de trigo}} en la misma sartén, 30 segundos por cada lado, hasta que estén templadas.",
         "minutes": 2,
         "kind": "activo",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir la ternera con verduras, el guacamole y las tortillas en el centro de la mesa para montar al momento.",

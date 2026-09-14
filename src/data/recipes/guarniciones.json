@@ -1475,8 +1475,8 @@
         "text": "Triturar {{Tomate maduro}}, {{Pimiento choricero}}, {{Almendra tostada}}, {{Avellana tostada}} y {{Pan frito}} en el vaso de la batidora.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Ajo}}, {{Aceite de oliva}} y {{Vinagre de Jerez}} al vaso y triturar hasta obtener una salsa espesa y homogénea.",
@@ -1764,92 +1764,77 @@
       {
         "text": "Pelar {{Patata}} y cortar en dados irregulares de unos 3 cm.",
         "minutes": 5,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Picar {{Ajo}} fino y dividir en 2 partes: una para la salsa brava y otra para el alioli.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} honda a fuego medio hasta que esté caliente.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Freír las patatas en el aceite caliente hasta que estén doradas y crujientes por fuera y tiernas por dentro.",
         "minutes": 12,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en un cazo a fuego suave hasta que esté templado.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la mitad del ajo picado en el cazo a fuego suave hasta que empiece a dorarse.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Retirar el cazo del fuego y añadir {{Pimentón picante}} removiendo para que no se queme.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Cayena molida}} al cazo y volver al fuego suave.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Cocer la salsa a fuego suave hasta que espese ligeramente.",
         "minutes": 6,
-        "kind": "pasivo",
-        "part": "salsa"
+        "kind": "pasivo"
       },
       {
         "text": "Poner {{Huevo}} en un vaso alto junto con la otra mitad del ajo picado y {{Limón}}.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "guarnicion"
+        "kind": "prep"
       },
       {
         "text": "Triturar con batidora de mano arrancando desde el fondo hasta que emulsione.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Añadir aceite de oliva en hilo fino mientras se tritura hasta que el alioli espese.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Escurrir las patatas fritas sobre papel absorbente y salar con {{Sal|gusto}}.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Repartir las patatas en el plato y cubrir con la salsa brava.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Añadir el alioli en líneas por encima y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 4,

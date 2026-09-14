@@ -775,37 +775,44 @@
       {
         "text": "Pelar {{Patata}} y cortar en trozos de tamaño similar.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cubrir la patata con agua fría en un cazo, llevar a ebullición a fuego fuerte y cocer a fuego medio hasta que esté tierna, unos 18 min.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego medio con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar {{Salchichas frescas}} en la plancha caliente y dorar por todos los lados hasta que estén doradas y cocidas por dentro, unos 8 min.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir la patata cocida y devolver al cazo a fuego suave para evaporar el exceso de humedad, 1 min.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Añadir {{Mantequilla}} y {{Leche}} a la patata escurrida y aplastar con un tenedor o pasapurés hasta obtener un puré liso.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir el puré en el plato y colocar las salchichas encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -894,42 +901,50 @@
       {
         "text": "Cortar {{Tomate}} en dados pequeños y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Cebolla}} muy fina y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Cilantro}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Partir {{Limón}} por la mitad y exprimir el zumo en un bol.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Partir {{Aguacate}} por la mitad, retirar el hueso y extraer la pulpa con una cuchara al bol con el zumo de limón.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Aplastar la pulpa de aguacate con un tenedor hasta obtener una textura grumosa al gusto.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir el tomate, la cebolla y el cilantro al bol y mezclar hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Disponer {{Nachos de maíz}} en un plato amplio y servir el guacamole en un bol aparte para mojar.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 7,

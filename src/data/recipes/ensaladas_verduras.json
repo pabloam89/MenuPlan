@@ -4330,24 +4330,28 @@
       {
         "text": "Precalentar el horno a 200 °C con función grill.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebolla}} en dados muy finos y dividir en dos partes iguales.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Tomate}} en dados pequeños y reservar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Picar {{Cilantro fresco}} fino y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "salsa"
       },
       {
         "text": "Abrir {{Aguacate}}, retirar el hueso y volcar la pulpa en un bol.",
@@ -4395,7 +4399,7 @@
         "text": "Retirar la fuente del horno y repartir el tomate picado, la cebolla restante y {{Jalapeños en vinagre}} sobre los nachos.",
         "minutes": 1,
         "kind": "activo",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir de inmediato con el guacamole reservado a un lado.",
@@ -4535,80 +4539,95 @@
       {
         "text": "Rallar {{Calabacín}} con un rallador fino sobre un bol.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar el calabacín rallado con {{Sal|gusto}} y colocarlo en un colador sobre el fregadero.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Dejar reposar el calabacín en el colador 10 min para que suelte el agua.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebolleta}} muy fina.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Picar {{Eneldo fresco}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Yogur griego}} con el eneldo picado y {{Sal|gusto}} en un bol pequeño hasta integrar.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Escurrir el calabacín apretando con fuerza con las manos hasta que quede lo más seco posible.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Batir {{Huevo}} en un bol grande.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Añadir el calabacín escurrido, {{Harina de trigo}}, {{Queso parmesano rallado}} y la cebolleta picada al bol.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar bien hasta obtener una masa espesa y homogénea.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Depositar 2 cucharadas de masa por tortita en la sartén, aplanando ligeramente cada una.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer las tortitas 3 min por el primer lado hasta que se doren y cuajen los bordes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a las tortitas y cocer 3 min más por el otro lado hasta que estén doradas.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir las tortitas calientes con la salsa de yogur griego al lado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -4720,42 +4739,50 @@
       {
         "text": "Escurrir {{Tomate triturado de bote}} presionando con un colador para eliminar el exceso de líquido.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir el tomate escurrido en el fondo de 2 platos formando una base uniforme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Salpimentar el tomate con {{Sal|gusto}} y {{Pimienta negra|pizca}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva virgen extra|chorrito}} sobre el tomate de cada plato.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir {{Burrata}} y colocarla en el centro de cada plato, entera o partida por la mitad.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Espolvorear {{Orégano seco|pizca}} sobre la burrata y el tomate.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Tostar {{Pan rústico}} en una tostadora o sartén a fuego medio hasta que esté crujiente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir la ensalada con el pan tostado aparte para mojar.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -7877,27 +7904,32 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sumergir {{Bogavante}} en el agua hirviendo y cocer 9 min.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar el bogavante y sumergirlo en agua con hielo hasta que esté frío para cortar la cocción.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Extraer la carne de la cola y las pinzas con cuidado hasta que quede entera.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar la carne del bogavante en medallones.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Verter {{Huevo}} en un vaso de batidora junto con {{Sal|gusto}}.",
@@ -7921,19 +7953,19 @@
         "text": "Lavar {{Lechugas variadas}} y escurrirlas bien.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Aguacate}} en láminas.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
         "minutes": 1,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Repartir las lechugas variadas en la base de 2 platos.",
@@ -8333,37 +8365,44 @@
       {
         "text": "Mezclar {{Mayonesa}}, {{Ketchup}} y {{Limón}} en un bol pequeño hasta obtener una salsa rosa homogénea.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Lavar {{Canónigos}} bajo el grifo y escurrir bien.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} por la mitad, retirar el hueso y laminar la pulpa.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir los canónigos escurridos en la base de 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir las láminas de aguacate, {{Gambas cocidas peladas}} y los tomates cherry sobre los canónigos.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Napar con la salsa rosa y servir enseguida.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -8465,47 +8504,56 @@
       {
         "text": "Lavar {{Canónigos}} bajo agua fría y escurrir bien.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir los canónigos escurridos en una ensaladera o en 2 platos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Descorazonar {{Manzana}} y cortar en láminas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio sin aceite y tostar {{Nueces}} hasta que desprendan aroma tostado.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar las nueces de la sartén y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Desmenuzar {{Queso azul}} en trozos irregulares.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva|chorrito}}, {{Vinagre de Módena}} y {{Miel}} en un bol hasta emulsionar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Repartir las láminas de manzana, las nueces y el queso azul sobre la base de canónigos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar la ensalada con el aliño justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -9961,74 +10009,62 @@
       {
         "text": "Cortar {{Pechuga de pollo}} en tiras finas y salpimentar.",
         "minutes": 3,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Batir {{Huevo}} en un bol hasta que esté homogéneo.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Pasar cada tira de pollo por {{Harina}}, luego por el huevo batido y por último por {{Pan rallado}}, presionando bien.",
         "minutes": 4,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{Aceite de oliva suave para freír|abundante}} en {{@Sartén}} a fuego medio-fuerte hasta que esté caliente.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Freír las tiras de pollo empanadas hasta que estén doradas y crujientes, unos 3 min por cada lado.",
         "minutes": 6,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Escurrir el pollo frito sobre papel absorbente y reservar.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Lavar y escurrir {{Mezclum de hojas}} y repartir sobre los platos.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "guarnicion"
+        "kind": "prep"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "guarnicion"
+        "kind": "prep"
       },
       {
         "text": "Laminar {{Aguacate}} y repartir sobre las hojas junto con los tomates cherry.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "guarnicion"
+        "kind": "prep"
       },
       {
         "text": "Mezclar {{Aceite de oliva}} con {{Vinagre de vino}} en un bol pequeño hasta integrar.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "salsa"
+        "kind": "prep"
       },
       {
         "text": "Colocar las tiras de pollo crujiente sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Aliñar con el vinagre y el aceite de oliva y servir enseguida para que el pollo conserve el crujiente.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 5,
@@ -10442,7 +10478,7 @@
         "text": "Lavar y trocear {{Lechuga romana}} en trozos grandes y repartir en los platos.",
         "minutes": 3,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Aliñar la lechuga con la salsa César y remover hasta que quede bien cubierta.",
@@ -10710,27 +10746,32 @@
       {
         "text": "Lavar {{Brotes tiernos}} bajo agua fría y escurrir bien.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva|chorrito}}, {{Miel}}, {{Mostaza de Dijon}} y {{Vinagre de vino}} en un bol hasta emulsionar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Repartir los brotes tiernos en los platos y distribuir los tomates cherry por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar con la vinagreta justo antes de servir y remover con suavidad hasta que las hojas queden bien cubiertas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -11984,57 +12025,68 @@
       {
         "text": "Lavar {{Col kale}}, retirar el tallo central duro y cortar en tiras finas.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Masajear el kale con {{Sal|gusto}} y un chorrito de {{Aceite de oliva virgen extra|chorrito}} durante 1-2 min hasta que se ablande y oscurezca ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Manzana}}, descorazonar y laminar en láminas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rociar la manzana laminada con {{Zumo de limón}} para evitar la oxidación.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio sin aceite y tostar {{Nueces}} 2-3 min, removiendo, hasta que estén doradas y aromáticas.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar las nueces de la sartén y dejar enfriar sobre una superficie plana.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol el aceite de oliva virgen extra restante, el zumo de limón restante y {{Miel}} hasta obtener el aliño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Rallar {{Queso parmesano}} en virutas finas con un pelador o rallador.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer el kale masajeado en un bol grande y añadir la manzana laminada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Verter el aliño sobre la ensalada y remover con cuidado hasta cubrir bien.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir las nueces tostadas y el queso parmesano en virutas por encima y servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -12314,7 +12366,8 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Coliflor}} en ramilletes de tamaño similar para que se asen de manera uniforme.",
@@ -12332,7 +12385,7 @@
         "text": "Picar {{Perejil fresco}} fino y reservar.",
         "minutes": 1,
         "kind": "prep",
-        "part": "salsa"
+        "part": "combinado"
       },
       {
         "text": "Disponer los ramilletes en una bandeja de horno en una sola capa.",
@@ -12356,8 +12409,8 @@
         "text": "Mezclar {{Tahini}}, {{Zumo de limón}}, el ajo picado y {{Agua}} hasta obtener una salsa cremosa y homogénea.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Retirar la coliflor del horno y disponer en una fuente.",
@@ -13180,57 +13233,68 @@
       {
         "text": "Salpimentar {{Langostinos pelados}} con {{Sal|gusto}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} con {{Aceite de oliva|chorrito}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Saltear los langostinos 2-3 min hasta que estén rosados y reservar para que enfríen.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Mayonesa}} con {{Curry en polvo}} y {{Zumo de limón}} hasta obtener una salsa homogénea.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Aguacate}} por la mitad, deshuesar y cortar en dados.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rociar los dados de aguacate con el zumo de limón restante para que no se oxiden.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir {{Canónigos}} como base en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar encima los dados de aguacate y los langostinos fríos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir los tomates cherry sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Napar con la salsa de curry o servirla aparte en un cuenco.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -13350,52 +13414,62 @@
       {
         "text": "Laminar {{Cebolla morada}} en aros muy finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Remolacha cocida}} en dados o láminas uniformes.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Naranja}} a lo vivo, retirando toda la piel blanca.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar las naranjas en rodajas o gajos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir {{Rúcula}} como base en una fuente amplia.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer la remolacha y los gajos de naranja sobre la rúcula.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir la cebolla morada laminada por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir {{Aceitunas negras}} por toda la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}}, {{Vinagre de jerez}} y {{Sal|gusto}} en un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Aliñar la ensalada con la mezcla y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -15327,7 +15401,7 @@
         "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
         "minutes": 3,
         "kind": "activo",
-        "part": "principal"
+        "part": "salsa"
       },
       {
         "text": "Tostar {{Almendras}} y {{Avellanas}} en una sartén sin aceite a fuego medio hasta que estén doradas.",
@@ -15912,63 +15986,75 @@
       {
         "text": "Retirar las capas exteriores y la parte verde más dura de {{Puerro}}.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar los puerros en trozos de 6-8 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Lavar los trozos de puerro bajo el grifo hasta eliminar toda la tierra entre las capas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar los trozos de puerro en una cazuela baja y cubrir con {{Aceite de oliva}} hasta la mitad de su altura.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Confitar a fuego suave, con el aceite apenas burbujeando, hasta que los puerros estén muy tiernos al pincharlos.",
         "minutes": 30,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los puerros del aceite y reservar 2 cucharadas del aceite de confitar en un bol aparte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dejar templar los puerros escurridos.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Picar {{Perejil fresco}} fino y reservar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Mostaza de Dijon}}, {{Vinagre de jerez}} y {{Sal|gusto}} al bol con el aceite de confitar reservado.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Mezclar enérgicamente hasta obtener una vinagreta homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Disponer los puerros templados en una fuente y rociar con la vinagreta de mostaza.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con el perejil fresco picado y servir templado o a temperatura ambiente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,
@@ -16097,7 +16183,8 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Calabaza}} y cortarla en gajos grandes.",
@@ -16133,15 +16220,15 @@
         "text": "Mezclar {{Tahini}} con {{Zumo de limón}}, {{Agua}} y {{Sal|gusto}} hasta obtener una salsa cremosa.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Perejil fresco}} fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "combinado",
-        "during": 4
+        "during": 4,
+        "part": "guarnicion"
       },
       {
         "text": "Disponer los gajos de calabaza en una fuente.",
@@ -18301,59 +18388,70 @@
       {
         "text": "Lavar y pelar {{Zanahoria}}, luego cortar en rodajas de 0,5 cm.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Judías verdes}} y retirar los extremos; cortar en trozos de 4 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Calabacín}} y {{Brócoli}}; cortar el calabacín en medias lunas y el brócoli en ramilletes.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar agua a ebullición en una olla con cesto de vapor a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar la zanahoria y las judías verdes en el cesto; tapar y cocer al vapor hasta que estén tiernas pero firmes.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Zumo de naranja}}, {{Zumo de limón}}, {{Mostaza}} y {{Miel}} en un bol hasta integrar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Aceite de oliva|chorrito}} poco a poco al bol sin dejar de batir hasta emulsionar la vinagreta.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Retirar la zanahoria y las judías verdes del cesto; reservar en la fuente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar el calabacín y el brócoli en el cesto; tapar y cocer al vapor hasta que estén tiernos pero firmes.",
         "minutes": 6,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar el calabacín y el brócoli del cesto y añadir a la fuente junto al resto de las verduras.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Regar las verduras con la vinagreta de cítricos y servir templadas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 6,
@@ -18785,76 +18883,64 @@
       {
         "text": "Hornear la calabaza 25 min hasta que empiece a ablandarse.",
         "minutes": 25,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Picar {{Cebolla}}, {{Pimiento rojo}}, {{Calabacín}}, {{Champiñones}} y {{Ajo}} en trozos pequeños.",
         "minutes": 5,
         "kind": "paralelo",
-        "part": "principal",
         "during": 4
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla, el ajo, el pimiento rojo, el calabacín y los champiñones 6 min hasta que estén tiernos.",
         "minutes": 6,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Arroz}} al sofrito y remover 2 min para que se impregne.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Verter {{Caldo de verduras}} y cocer a fuego medio 10 min hasta que el arroz esté casi al dente.",
         "minutes": 10,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Picar {{Perejil}} fino y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
         "during": 9
       },
       {
         "text": "Retirar la calabaza del horno y girarla boca arriba con cuidado.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Rellenar las mitades de calabaza con el sofrito de arroz repartiéndolo a partes iguales.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Cubrir cada mitad con {{Queso rallado}} a partes iguales.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Hornear 20 min hasta que la calabaza esté tierna y el queso se haya dorado.",
         "minutes": 20,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Espolvorear el perejil picado sobre la calabaza y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 5,
@@ -19918,166 +20004,140 @@
       {
         "text": "Cortar {{Berenjena}} en láminas de 0,5 cm de grosor.",
         "minutes": 5,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Salar las láminas de berenjena y dejar reposar para que suelten el amargor.",
         "minutes": 20,
-        "kind": "espera",
-        "part": "principal"
+        "kind": "espera"
       },
       {
         "text": "Picar {{Cebolla}} en daditos finos.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "principal",
         "during": 1
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
         "during": 1
       },
       {
         "text": "Secar las láminas de berenjena con papel de cocina para eliminar el exceso de humedad.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte y marcar las láminas de berenjena hasta que estén doradas por ambos lados.",
         "minutes": 8,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Reservar las láminas de berenjena marcadas en un plato.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en una sartén a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado hasta que estén transparentes.",
         "minutes": 6,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y dorar deshaciendo los grumos hasta que esté bien cocinada.",
         "minutes": 5,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Vino tinto}} y remover hasta que se evapore el alcohol.",
         "minutes": 3,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Tomate triturado}}, {{Canela}}, {{Sal|gusto}} y {{Pimienta|gusto}}; remover para integrar.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Cocer la salsa de carne a fuego suave, tapada, hasta que espese y los sabores se concentren.",
         "minutes": 20,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
         "during": 12
       },
       {
         "text": "Añadir {{Harina}} a la mantequilla fundida y remover sin parar hasta obtener un roux dorado.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover hasta que la bechamel espese y esté lisa.",
         "minutes": 8,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} a la bechamel y salpimentar; retirar del fuego y reservar.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Precalentar el horno a 190 °C.",
         "minutes": 10,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Disponer una capa de láminas de berenjena en el fondo de una fuente de horno.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "combinado",
         "during": 17
       },
       {
         "text": "Cubrir la capa de berenjena con la mitad de la salsa de carne, extendiéndola de forma uniforme.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "combinado",
         "during": 17
       },
       {
         "text": "Repetir con otra capa de berenjena y el resto de la salsa de carne.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "combinado",
         "during": 17
       },
       {
         "text": "Verter la bechamel sobre las capas cubriendo toda la superficie de forma uniforme.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "combinado",
         "during": 17
       },
       {
         "text": "Repartir {{Queso rallado}} sobre la bechamel de manera uniforme.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "combinado",
         "during": 17
       },
       {
         "text": "Hornear la fuente en el horno a 190 °C hasta que la superficie esté dorada y gratinada.",
         "minutes": 35,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Retirar la fuente del horno y dejar reposar antes de cortar y servir.",
         "minutes": 10,
-        "kind": "espera",
-        "part": "combinado"
+        "kind": "espera"
       },
       {
         "text": "Servir la moussaka cortada en porciones.",
         "minutes": 2,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 5,

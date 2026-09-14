@@ -2900,53 +2900,63 @@
       {
         "text": "Picar {{Ajo}} muy fino y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Perejil}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Limón}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Rodajas de emperador}} por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté muy caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva|chorrito}} sobre la plancha y colocar las rodajas de emperador.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar las rodajas de emperador 3 min por el primer lado sin moverlas, hasta que se doren.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a las rodajas de emperador y cocinar 3 min por el segundo lado hasta que estén hechas.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol el ajo picado, el perejil picado y el zumo de limón hasta obtener una salsa homogénea.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 7
+        "during": 7,
+        "part": "salsa"
       },
       {
         "text": "Retirar las rodajas de emperador de la plancha y verter la salsa por encima. Servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 0,
@@ -3937,26 +3947,22 @@
       {
         "text": "Untar cada rebanada de pan tostado con el aguacate machacado de forma generosa.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Repartir {{Salmón ahumado}} en láminas sobre el aguacate de cada tosta.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Colocar un huevo poché encima de cada tosta con cuidado para no romper la yema.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Terminar con {{Eneldo fresco}} picado, un hilo de {{Aceite de oliva virgen extra|chorrito}} y pimienta negra al gusto.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 5,
@@ -4960,7 +4966,8 @@
       {
         "text": "Retirar {{Lomos de salmón}} de la nevera y dejar atemperar 10 min antes de cocinar.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} en dados pequeños.",
@@ -5931,17 +5938,20 @@
       {
         "text": "Picar {{Chalota}} muy fina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar {{Lomos de rodaballo}} con {{Sal|gusto}} y {{Pimienta negra|pizca}} por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Plancha}} a fuego fuerte hasta que humee ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los lomos de rodaballo en {{@Plancha}} y cocinar 3 min por cada lado hasta que estén dorados.",
@@ -7454,62 +7464,74 @@
       {
         "text": "Retirar las espinas del {{Lomo de salmón fresco con piel}} pasando los dedos a contrapelo y extrayéndolas con unas pinzas.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Eneldo fresco}} fino y dividirlo en dos partes iguales; reservar cada mitad por separado.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Machacar ligeramente {{Pimienta negra en grano machacada}} con el reverso de un cuchillo hasta obtener trozos gruesos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol {{Sal gruesa}}, {{Azúcar}}, la pimienta machacada y la primera mitad del eneldo picado hasta integrar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Extender la mezcla de curado sobre toda la superficie del lomo de salmón, cubriéndolo por completo por ambos lados.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Envolver el salmón cubierto con film transparente, apretando bien para que la mezcla quede en contacto con la carne.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar el salmón envuelto en una bandeja y disponer encima un peso (p. ej. una tabla con botes) para prensarlo.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Curar el salmón en la nevera durante 720 min (12 h); pasado ese tiempo, dar la vuelta al paquete y desechar el líquido.",
         "minutes": 720,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Curar el salmón 720 min más en la nevera (otras 12 h), completando así las 24 h mínimas de curado.",
         "minutes": 720,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Retirar el film y aclarar el salmón bajo un chorro de agua fría para eliminar el exceso de mezcla de curado.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Secar el salmón con papel absorbente, presionando con suavidad por todas las caras hasta que quede bien seco.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cubrir la superficie del salmón con la segunda mitad del eneldo picado, presionando para que se adhiera a la carne.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol {{Mostaza de Dijon}}, {{Miel}} y {{Vinagre de vino blanco}} hasta integrar.",
@@ -7527,7 +7549,7 @@
         "text": "Cortar el salmón en lonchas muy finas en diagonal, con el cuchillo inclinado, separándolas con cuidado.",
         "minutes": 5,
         "kind": "activo",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir las lonchas de salmón en el plato y acompañar con la salsa de mostaza y eneldo aparte o en hilo por encima.",
@@ -9286,53 +9308,63 @@
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Perejil}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Limón}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Lomos de merluza}} por ambos lados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} con {{Aceite de oliva|chorrito}} a fuego fuerte hasta que humee.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los lomos de merluza con la piel hacia abajo y cocinar 3 min hasta que la piel esté dorada.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol el resto del aceite de oliva, el zumo de limón, el ajo picado y el perejil picado.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Dar la vuelta a los lomos de merluza y cocinar 2 min más hasta que estén hechos por dentro.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los lomos de merluza de la plancha y colocar en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar con la salsa de limón y perejil y servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -9631,57 +9663,68 @@
       {
         "text": "Picar {{Perejil}} fino y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Limón}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Filetes de lenguado}} por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pasar los filetes de lenguado por {{Harina}}, sacudiendo bien el exceso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Plancha}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir la mitad de {{Mantequilla}} y fundir hasta que deje de burbujear.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los filetes de lenguado en la plancha y dorar 1 min por cada lado, hasta que estén dorados.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los filetes de lenguado y reservar en los platos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar a fuego suave y añadir el resto de la mantequilla a la misma plancha hasta que tome un tono avellana.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir el zumo de limón y remover para ligar la salsa con los jugos de la plancha.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter la salsa sobre los filetes de lenguado y espolvorear el perejil picado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -10453,42 +10496,50 @@
       {
         "text": "Picar {{Eneldo fresco}} fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar en un bol {{Mostaza de Dijon}}, {{Miel}}, {{Nata para cocinar}} y el eneldo picado hasta obtener una salsa homogénea.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Lomos de salmón}} por ambos lados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} con {{Aceite de oliva|chorrito}} a fuego fuerte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los lomos de salmón con la piel hacia abajo y dorar 4 min a fuego medio-alto hasta que la piel esté crujiente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a los lomos de salmón y cocinar 2 min más a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Verter la salsa de mostaza alrededor del salmón y calentar 2 min a fuego suave hasta que esté caliente sin que hierva.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Napar los lomos de salmón con la salsa de la plancha y servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 0,
@@ -10925,7 +10976,7 @@
         "text": "Picar {{Perejil}} fino.",
         "minutes": 1,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir los lomos de bacalao desalado junto con las patatas fritas, la mayonesa de ajo aparte y el perejil picado por encima.",
@@ -11802,36 +11853,36 @@
         "text": "Picar {{Ajo}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Tomate maduro}} en trozos.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Añadir el tomate, el ajo, {{Ñora hidratada}}, {{Almendras tostadas}} y {{Pan frito}} al vaso de la batidora.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Vinagre de vino}} y {{Aceite de oliva}} al vaso de la batidora.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Triturar todo hasta obtener una salsa romesco fina y homogénea.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Retirar la bandeja del horno y dejar reposar la costra de sal intacta.",
@@ -12048,7 +12099,7 @@
         "text": "Cortar {{Limón}} en gajos.",
         "minutes": 1,
         "kind": "prep",
-        "part": "principal"
+        "part": "combinado"
       },
       {
         "text": "Servir las rodajas de emperador con la salsa tártara aparte y los gajos de limón.",
@@ -13259,122 +13310,146 @@
       {
         "text": "Picar {{Cebolla}} muy fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Fundir {{Mantequilla}} en una sartén a fuego suave.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla picada en la mantequilla fundida hasta que esté transparente.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Bacalao desalado desmigado}} y sofreír removiendo durante 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar {{Harina de trigo}} y remover sin parar durante 2 min hasta que no coja color.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Leche entera}} en un cazo a fuego suave hasta que esté caliente sin llegar a hervir.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Verter la leche caliente sobre la mezcla poco a poco sin dejar de remover hasta obtener una bechamel espesa y sin grumos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer la bechamel a fuego muy suave removiendo con frecuencia hasta que esté muy espesa y se despegue de los bordes.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Extender la masa en una bandeja y cubrir con film a piel para que no forme costra.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Enfriar la masa en la nevera hasta que esté completamente fría y firme.",
         "minutes": 180,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Batir {{Huevo}} en un bol hondo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Poner {{Pan rallado}} en otro bol o bandeja plana.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Formar las croquetas con las manos tomando porciones de masa fría y dándoles forma alargada.",
         "minutes": 8,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pasar cada croqueta por el huevo batido y escurrir el exceso.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rebozar cada croqueta en el pan rallado presionando bien para que quede bien cubierta.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Ajo}} y retirar el germen interior.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Majar el ajo en un mortero con una pizca de sal hasta obtener una pasta fina.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Aceite de girasol}} en hilo muy fino sobre el ajo majado sin dejar de remover en círculos hasta emulsionar el alioli.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Reservar el alioli en un bol tapado en la nevera.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{Aceite de oliva suave|abundante}} en una sartén honda a fuego fuerte hasta alcanzar unos 180 °C.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír las croquetas en tandas sin amontonarlas hasta que estén doradas por todos los lados.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las croquetas sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir las croquetas calientes con el alioli aparte.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -13765,85 +13840,85 @@
         "text": "Cortar {{Cebolla}} en dados pequeños.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en dados pequeños.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Calabacín}} y {{Berenjena}} en dados pequeños.",
         "minutes": 3,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén amplia a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Sofreír la cebolla y el ajo picado hasta que estén transparentes.",
         "minutes": 5,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Añadir el pimiento rojo y el pimiento verde y sofreír hasta que se ablanden.",
         "minutes": 5,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Añadir el calabacín y la berenjena y sofreír removiendo de vez en cuando.",
         "minutes": 10,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Añadir {{Tomate triturado}}, remover y tapar la sartén.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Cocer a fuego suave hasta que las verduras estén tiernas y el pisto espese.",
         "minutes": 15,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "principal"
       },
       {
         "text": "Dorar {{Bacalao desalado en lomos}} por el lado de la piel hasta que esté dorado.",
         "minutes": 3,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a los lomos y dorar por el otro lado hasta que la carne esté opaca.",
         "minutes": 3,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "principal"
       },
       {
         "text": "Retirar los lomos y reservar.",
         "minutes": 1,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} a fuego medio-fuerte.",
@@ -15271,72 +15346,86 @@
       {
         "text": "Secar {{Lenguado limpio}} por ambas caras con papel de cocina hasta eliminar toda la humedad.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar los lenguados por ambos lados con {{Sal|gusto}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Enharinar los lenguados pasándolos por {{Harina de trigo}} y sacudir el exceso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Perejil}} finamente y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Limón}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio-alto y fundir un tercio de {{Mantequilla}} hasta que empiece a espumar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los lenguados en la sartén y cocinar 3 min por el primer lado hasta que estén dorados.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a los lenguados y cocinar 3 min por el segundo lado hasta que estén dorados y hechos por dentro.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar los lenguados de la sartén y reservar en los platos de servicio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Limpiar la sartén con papel de cocina para eliminar los restos de harina quemada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Fundir el resto de la mantequilla en la sartén a fuego medio, removiendo, hasta que tome color avellana y huela a tostado.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Retirar la sartén del fuego y añadir el zumo de limón reservado, removiendo para emulsionar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter la mantequilla avellana sobre los lenguados reservados en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear el perejil picado sobre los lenguados y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 0,
@@ -15476,52 +15565,62 @@
       {
         "text": "Cortar {{Calamares limpios con sus tintas}} en anillas los cuerpos y en trozos los tentáculos.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebolla}}, {{Pimiento verde}} y {{Ajo}} muy finos.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla, el pimiento y el ajo a fuego suave hasta que estén tiernos.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Añadir los calamares y saltear a fuego medio hasta que suelten su agua.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Verter {{Vino blanco}} y remover hasta que se evapore el alcohol.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que la salsa espese.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Disolver {{Bolsitas de tinta de calamar}} en {{Caldo de pescado}} removiendo hasta integrar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Verter el caldo con la tinta en la cazuela y remover para mezclar con la salsa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Tapar la cazuela y cocer a fuego suave hasta que los calamares estén tiernos.",
         "minutes": 35,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Hervir agua con sal en un cazo a fuego fuerte hasta que rompa a hervir.",
@@ -15686,68 +15785,81 @@
       {
         "text": "Pelar y picar {{Ajo}} muy fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Secar {{Langostinos frescos con cáscara}} con papel de cocina para que no suelten agua en la plancha.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Introducir el ajo picado y {{Huevo}} en un vaso de batidora alto.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Aceite de girasol}} en hilo muy fino sobre el huevo y el ajo, batiendo sin mover el brazo de la batidora hasta que emulsione.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Sal gorda|gusto}} al alioli y reservar en frío.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte sin aceite hasta que humee ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los langostinos en la plancha muy caliente en una sola capa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Salar los langostinos con {{Sal gorda}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar 2 min por el primer lado hasta que la cáscara empiece a ponerse roja.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a los langostinos y cocinar 2 min más hasta que estén completamente rojos y la carne opaca.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Limón}} en gajos.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los langostinos de la plancha y colocarlos en una fuente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir de inmediato con los gajos de limón y el alioli aparte.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 0,
@@ -17299,15 +17411,15 @@
         "text": "Secar {{Salmonetes limpios}} con papel de cocina mientras hornea el tomate.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Raspar la pulpa de {{Pimiento choricero o ñora hidratado}} con una cuchara, desechando la piel.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Retirar el tomate y el ajo del horno cuando estén blandos y dejar templar 5 min.",
@@ -18143,8 +18255,8 @@
         "text": "Laminar {{Ajo}} en láminas finas.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva suave}} en {{@Sartén}} a fuego suave. Sofreír el ajo laminado hasta que empiece a dorarse.",
@@ -18198,25 +18310,25 @@
         "text": "Colar el aceite de confitar en un cazo, dejando en el colador la gelatina que ha soltado el bacalao.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Añadir la gelatina del colador al cazo. Mover el cazo en círculos a fuego muy suave, incorporando el aceite poco a poco.",
         "minutes": 4,
         "kind": "activo",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Continuar moviendo el cazo hasta que la salsa emulsione y adquiera un color blanquecino y textura untuosa.",
         "minutes": 2,
         "kind": "activo",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Picar {{Perejil}} fino.",
         "minutes": 1,
         "kind": "prep",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Repartir el puré de coliflor en la base de los platos. Colocar encima los lomos de bacalao confitado.",
@@ -18399,15 +18511,15 @@
         "text": "Picar {{Chalota}} muy fina mientras las patatas confitan.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Alcaparras}} finamente y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Retirar las patatas del fuego, salpimentar y reservar en un lugar templado.",
@@ -18431,8 +18543,8 @@
         "text": "Cortar {{Mantequilla}} en dados fríos mientras la reducción se concentra.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 9
+        "during": 9,
+        "part": "salsa"
       },
       {
         "text": "Bajar el fuego al mínimo e incorporar los dados de mantequilla fría de uno en uno, batiendo sin parar.",
@@ -18859,22 +18971,22 @@
         "text": "Rallar {{Jengibre fresco}} y picar {{Ajo}} muy fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 1
+        "during": 1,
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Salsa de soja}}, {{Miel}}, el jengibre rallado y el ajo picado en un cazo pequeño.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 1
+        "during": 1,
+        "part": "salsa"
       },
       {
         "text": "Disolver {{Maicena}} en una cucharadita de agua fría.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 1
+        "during": 1,
+        "part": "salsa"
       },
       {
         "text": "Llevar el cazo a fuego medio y añadir la maicena disuelta, removiendo hasta que la salsa espese y quede brillante.",
@@ -19158,15 +19270,15 @@
         "text": "Laminar {{Ajo}} en láminas finas.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Perejil}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Salpimentar las patatas confitadas y reservar en la sartén fuera del fuego.",
@@ -19388,54 +19500,54 @@
         "text": "Pelar {{Patata}} y laminar en rodajas finas de unos 3 mm.",
         "minutes": 4,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 0
+        "during": 0,
+        "part": "guarnicion"
       },
       {
         "text": "Pelar {{Cebolla}} y cortar en aros finos.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 0
+        "during": 0,
+        "part": "guarnicion"
       },
       {
         "text": "Disponer las patatas y la cebolla en una bandeja de horno en capas uniformes.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Regar las patatas y la cebolla con {{Aceite de oliva|chorrito}} y salpimentar.",
         "minutes": 1,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Hornear la bandeja a 200 °C durante 20 min, hasta que las patatas empiecen a estar tiernas.",
         "minutes": 20,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Tostar {{Pan}} en {{@Sartén}} sin aceite a fuego medio hasta que esté dorado.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Tostar {{Almendra tostada}} en la misma sartén a fuego medio hasta que tome color.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Asar {{Tomate}} y {{Ajo}} con piel en la sartén a fuego medio hasta que estén blandos.",
         "minutes": 8,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Pelar el tomate y el ajo asados cuando estén templados.",
@@ -19634,15 +19746,15 @@
         "text": "Rallar {{Jengibre fresco}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 1
+        "during": 1,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 1
+        "during": 1,
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Salsa de soja}}, {{Miel}}, el jengibre rallado y el ajo picado en un cazo pequeño.",
@@ -19872,76 +19984,64 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}}, {{Berenjena}} y {{Cebolla}} en tiras.",
         "minutes": 8,
         "kind": "paralelo",
-        "part": "guarnicion",
         "during": 5
       },
       {
         "text": "Cortar {{Tomate}} en tiras.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
         "during": 5
       },
       {
         "text": "Repartir las verduras cortadas en una bandeja y regar con {{Aceite de oliva|chorrito}}.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "guarnicion"
+        "kind": "prep"
       },
       {
         "text": "Salpimentar las verduras y asar a 200 °C durante 35 min, removiendo a media cocción, hasta que estén tiernas y doradas.",
         "minutes": 35,
-        "kind": "pasivo",
-        "part": "guarnicion"
+        "kind": "pasivo"
       },
       {
         "text": "Estirar la masa fermentada con un rodillo hasta formar un rectángulo fino sobre una bandeja forrada con papel vegetal.",
         "minutes": 5,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Repartir las verduras asadas sobre la masa dejando un borde libre de 1 cm.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Hornear a 200 °C durante 15 min hasta que la base empiece a dorarse.",
         "minutes": 15,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Distribuir {{Sardinas ahumadas}} por encima de la coca.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Hornear 5 min más a 200 °C hasta que las sardinas estén calientes.",
         "minutes": 5,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Retirar del horno y dejar templar antes de cortar.",
         "minutes": 5,
-        "kind": "espera",
-        "part": "combinado"
+        "kind": "espera"
       },
       {
         "text": "Cortar la coca en porciones y servir.",
         "minutes": 2,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 5,
@@ -20769,74 +20869,88 @@
       {
         "text": "Desmigar {{Bacalao desalado (desmigado)}} en trozos pequeños, comprobando que no queden espinas.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Perejil}} muy fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar la mitad de {{Ajo}} muy fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Batir {{Huevo}} en un bol grande hasta que estén homogéneos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Harina}}, {{Levadura química}} y {{Leche}} al bol y mezclar hasta obtener una masa sin grumos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar el bacalao desmigado, el perejil picado y el ajo picado a la masa y mezclar bien.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Tapar el bol y dejar reposar la masa 15 min en la nevera.",
         "minutes": 15,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Machacar la otra mitad del ajo y mezclar con {{Mayonesa}} hasta obtener un alioli suave.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Reservar el alioli en la nevera hasta el momento de servir.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Calentar {{Aceite de oliva suave|abundante}} en {{@Sartén}} honda a fuego medio-fuerte hasta alcanzar 180 °C.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Formar los buñuelos con 2 cucharas cogiendo porciones de masa y depositarlas con cuidado en el aceite caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír los buñuelos en tandas 3 min, hasta que estén dorados por todos los lados, dándoles la vuelta a mitad.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los buñuelos sobre papel absorbente para retirar el exceso de aceite.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir los buñuelos calientes acompañados del alioli.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -22640,81 +22754,96 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y laminar en rodajas finas de 3 mm.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Pelar {{Cebolla}} y cortar en aros finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Disponer la patata y la cebolla en una bandeja de horno.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Regar con {{Aceite de oliva|chorrito}}, salpimentar y mezclar bien hasta cubrir.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Hornear la bandeja 20 min hasta que las patatas empiecen a dorarse por los bordes.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Rallar {{Jengibre fresco}} finamente.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol {{Salsa de soja}}, {{Miel}}, el ajo picado y el jengibre rallado.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Remover el glaseado hasta obtener una mezcla homogénea y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Retirar la bandeja del horno y colocar {{Lomos de salmón}} sobre la cama de patatas.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Pincelar los lomos de salmón generosamente con el glaseado de soja y miel.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Hornear 13 min más hasta que el salmón esté opaco y el glaseado brille.",
         "minutes": 13,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebollino}} fino y espolvorear sobre el salmón.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir los lomos de salmón sobre las patatas panaderas directamente en la bandeja.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -22823,52 +22952,62 @@
       {
         "text": "Batir {{Huevo}} en un bol hasta que esté homogéneo y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Hinojo}} muy fino con una mandolina o cuchillo y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Pelar {{Naranja}} al vivo y separar en gajos, reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar {{Merluza en lomos}} por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pasar los lomos por {{Harina}}, sacudiendo el exceso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pasar los lomos enharinados por el huevo batido hasta que queden bien cubiertos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír los lomos hasta que estén dorados por un lado, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a los lomos y freír por el otro lado hasta que estén dorados, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los lomos sobre papel absorbente y reservar en caliente.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar el hinojo laminado, los gajos de naranja y {{Aceitunas negras}} en un bol.",
@@ -23317,17 +23456,20 @@
       {
         "text": "Salpimentar {{Filetes de merluza}} por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Ajo}} en láminas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar los filetes de merluza en la plancha 3 min por cada cara hasta que estén dorados.",
@@ -23848,56 +23990,47 @@
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Cocinar las truchas en la plancha caliente 4 min por el primer lado sin moverlas.",
         "minutes": 4,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Dar la vuelta a las truchas y cocinar 4 min más hasta que estén hechas por dentro.",
         "minutes": 4,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Calentar una sartén a fuego medio con un chorrito de aceite de oliva.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Sofreír el ajo picado 1 min hasta que empiece a dorarse.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Almendras laminadas}} y saltear hasta que se doren, sin dejar de remover.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Retirar la sartén del fuego.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Disponer las truchas en los platos y repartir las almendras con el ajo por encima.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Espolvorear el perejil picado sobre las truchas y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ]
   },

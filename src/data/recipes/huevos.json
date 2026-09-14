@@ -1710,56 +1710,66 @@
       {
         "text": "Llevar una olla con agua abundante a ebullición a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Introducir {{Huevo}} con cuidado y cocer a fuego medio durante 10 min.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Lechuga}} en trozos y distribuir en una fuente o bol grande.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Tomate}} en gajos y añadir sobre la lechuga.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Pepino}} en rodajas y añadir a la fuente.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Añadir {{Aceitunas}} a la fuente con el resto de la ensalada.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir los huevos y sumergir en agua fría durante 2 min hasta que estén templados.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar los huevos y cortar cada uno en 4 cuartos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Aliñar la ensalada con {{Aceite de oliva|chorrito}} y {{Vinagre|chorrito}}, y remover con suavidad.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Disponer los cuartos de huevo sobre la ensalada y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -2053,22 +2063,22 @@
         "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Calabacín}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Pelar {{Tomate maduro}} y cortar en dados pequeños.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Calentar un chorrito de aceite de oliva en una cazuela a fuego medio.",
@@ -2820,22 +2830,22 @@
         "text": "Cortar {{Tomate}} en gajos y disponer en un plato.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 0
+        "during": 0,
+        "part": "guarnicion"
       },
       {
         "text": "Añadir {{Albahaca fresca}} troceada sobre el tomate.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 0
+        "during": 0,
+        "part": "guarnicion"
       },
       {
         "text": "Aliñar el tomate con {{Aceite de oliva|chorrito}} y {{Vinagre de vino}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Batir {{Huevo}} en un bol con {{Sal|gusto}} hasta obtener una mezcla homogénea.",
@@ -2981,17 +2991,20 @@
       {
         "text": "Cortar {{Aguacate}} en dados de 1 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Tomate}} en dados de 1 cm.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Albahaca fresca}} en trozos gruesos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar el aguacate, el tomate y la albahaca en un bol.",
@@ -3138,62 +3151,74 @@
       {
         "text": "Cortar {{Aguacate}} y {{Mango}} en dados de 1 cm.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Cilantro fresco}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Exprimir {{Lima}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar el aguacate, el mango y el cilantro picado en un bol.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Aliñar la mezcla con el zumo de lima y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Batir {{Huevo|gusto}} en un bol hasta que queden homogéneos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Saltear {{Gambas peladas}} 2 min hasta que cambien de color.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego a fuego suave y verter el huevo batido sobre las gambas.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Remover con espátula sin parar hasta que el huevo cuaje cremoso.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar la sartén del fuego en cuanto el revuelto esté jugoso.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir el revuelto en 2 platos y servir con la ensalada de aguacate, mango y cilantro al lado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -3463,44 +3488,52 @@
       {
         "text": "Calentar {{@Sartén}} a fuego fuerte sin aceite hasta que esté bien caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Bacon en lonchas}} en una sola capa y dorar hasta que esté crujiente, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el bacon y escurrir sobre papel absorbente. Reservar la grasa en la sartén.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Aguacate}} y colocarlo en un bol junto con {{Rúcula}}.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Aliñar la ensalada con {{Aceite de oliva|chorrito}} y {{Vinagre de vino}}. Reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Freír {{Huevo}} en la grasa del bacon a fuego medio hasta que la clara esté cuajada y la yema líquida.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir los huevos fritos y el bacon crujiente entre 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir la ensalada de aguacate y rúcula aliñada junto al resto del plato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,
@@ -3604,7 +3637,8 @@
       {
         "text": "Cortar {{Calabacín}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte y saltear el calabacín hasta que esté tierno y ligeramente dorado.",
@@ -3616,15 +3650,15 @@
         "text": "Cortar {{Tomate cherry}} por la mitad.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Menta fresca}} en trozos gruesos.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Batir {{Huevo}} en un bol con {{Sal|gusto}}.",
@@ -3660,8 +3694,8 @@
         "text": "Mezclar los tomates cherry con la menta picada, el aceite de oliva restante y {{Vinagre de vino}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 8
+        "during": 8,
+        "part": "guarnicion"
       },
       {
         "text": "Dar la vuelta a la tortilla con ayuda de un plato y cuajar 3 min más por el otro lado.",
@@ -3802,8 +3836,8 @@
         "text": "Batir {{Huevo}} en un bol hasta integrar.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Tostar {{Piñones}} en una sartén pequeña sin aceite a fuego medio hasta que doren ligeramente.",
@@ -3945,51 +3979,61 @@
       {
         "text": "Batir {{Huevo}} en un bol hasta homogeneizar; salpimentar al gusto.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} en láminas y reservar en un bol.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Eneldo fresco}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar {{Aceite de oliva|chorrito}}, {{Zumo de limón}} y el eneldo picado en un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Aliñar las láminas de aguacate con la mezcla de aceite, limón y eneldo; reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Fundir {{Mantequilla}} en {{@Sartén}} a fuego suave hasta que espume sin dorarse.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Verter el huevo batido en la sartén y remover despacio con espátula a fuego suave.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar la sartén del fuego cuando el huevo cuaje en grumos cremosos y aún brille.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Salmón ahumado}} en tiras y disponer sobre el revuelto repartido en 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir la ensalada de aguacate aliñada junto al plato de revuelto y salmón.",
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,
@@ -5340,7 +5384,7 @@
         "text": "Separar 2 yemas de {{Huevo}} y reservar las claras junto al resto de huevos enteros.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "principal"
       },
       {
         "text": "Batir las 2 yemas con {{Zumo de limón}} al baño maría a fuego suave.",
@@ -7262,78 +7306,93 @@
       {
         "text": "Llevar a ebullición agua en un cazo a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer {{Huevo}} desde que rompa a hervir, a fuego medio, durante 10 min.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Precalentar el horno a 200 °C con función gratinador.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Retirar los huevos del cazo y sumergirlos en agua fría hasta que estén templados.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar los huevos y cortar cada uno por la mitad a lo largo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Jamón cocido}} en tiras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar durante 1 min hasta obtener una pasta homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Leche}} poco a poco sin dejar de remover a fuego medio hasta que la bechamel esté fina.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar la bechamel y retirar el cazo del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Colocar los huevos con el corte hacia arriba en una fuente de horno y distribuir el jamón cocido entre ellos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cubrir con la bechamel caliente hasta que los huevos queden completamente cubiertos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Queso rallado}} de manera uniforme por toda la superficie.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Gratinar en el horno a 200 °C durante 10 min hasta que la superficie esté dorada y burbujeante.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "combinado"
       },
       {
         "text": "Servir caliente directamente de la fuente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -7657,67 +7716,80 @@
       {
         "text": "Rallar {{Ajo}} muy fino sobre un bol pequeño.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Yogur griego}} al bol con el ajo rallado y mezclar hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar el yogur con ajo al gusto y remover.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir el yogur en 2 platos hondos y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Tostar {{Pan}} en {{@Sartén}} a fuego medio hasta que esté crujiente por ambos lados.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar agua en una cazuela con {{Vinagre}} hasta que rompa a hervir suave.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escalfar {{Huevo}} de 2 en 2: cascar cada uno en un cuenco y deslizar al agua con cuidado.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer los huevos 3 min hasta que la clara esté cuajada y la yema líquida.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar los huevos con espumadera y escurrir sobre papel de cocina.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Fundir {{Mantequilla}} en un cazo pequeño a fuego suave hasta que empiece a dorarse.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Retirar el cazo del fuego e incorporar {{Pimentón dulce}}, removiendo rápido para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Colocar los huevos escalfados sobre el yogur de cada plato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar con la mantequilla de pimentón y servir de inmediato con el pan tostado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -8512,41 +8584,44 @@
       {
         "text": "Pelar {{Patata}} y cortar en trozos de tamaño similar.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cocer las patatas en una olla con agua con sal hasta que estén tiernas.",
         "minutes": 17,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Leche}} y {{Mantequilla}} en un cazo a fuego suave hasta que la mantequilla se funda.",
         "minutes": 3,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir bien las patatas cocidas y pasarlas por el pasapurés sobre un bol grande.",
         "minutes": 2,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Añadir la leche caliente al puré poco a poco, removiendo hasta obtener una textura cremosa.",
         "minutes": 2,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar el puré y reservar tapado para que se mantenga caliente.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Cebollino}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición agua en una cazuela ancha con {{Vinagre}} a fuego medio.",
@@ -9565,73 +9640,87 @@
       {
         "text": "Picar {{Cebolla}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pimiento rojo}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} amplia a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla y el pimiento en la sartén hasta que estén blandos, unos 8 min a fuego medio.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Añadir el ajo picado, {{Comino molido|pizca}} y {{Pimentón dulce|pizca}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Remover hasta que las especias desprendan aroma, unos 1 min a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar {{Tomate triturado}} y salpimentar al gusto.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que espese, unos 10 min.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Hacer 4 huecos en la salsa con una cuchara.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cascar {{Huevo}} con cuidado y depositar uno en cada hueco de la salsa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Tapar la sartén y cocer a fuego suave hasta que la clara cuaje y la yema quede líquida, unos 6 min.",
         "minutes": 6,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Tostar {{Pan rústico}} al gusto.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 11
+        "during": 11,
+        "part": "guarnicion"
       },
       {
         "text": "Servir la shakshuka directamente en la sartén acompañada del pan tostado para mojar.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -10135,86 +10224,72 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Saltear las setas cortadas a fuego fuerte durante 5 min hasta que se doren.",
         "minutes": 5,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Retirar las setas de la sartén y reservar.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Sofreír la cebolla y el ajo picados en la misma sartén a fuego medio hasta que estén tiernos.",
         "minutes": 4,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Arroz arborio}} y remover 1 min hasta que los granos estén nacarados.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Vino blanco}} y remover sin parar hasta que se evapore por completo.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Incorporar un cucharón de caldo caliente y remover hasta que el arroz lo absorba.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Continuar añadiendo caldo cucharón a cucharón, removiendo sin parar, durante 12 min.",
         "minutes": 12,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Incorporar las setas reservadas al risotto y seguir removiendo 5 min hasta que el arroz esté al dente.",
         "minutes": 5,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Retirar el risotto del fuego y añadir {{Mantequilla}} y {{Queso parmesano rallado}}.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Remover con energía hasta que la mantequilla y el parmesano se integren y el risotto quede cremoso.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Calentar un chorrito de aceite de oliva en otra {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Cascar {{Huevo}} uno a uno y freír a fuego fuerte hasta que el borde esté crujiente y la yema líquida.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Repartir el risotto en 2 platos y colocar un huevo frito encima de cada uno.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "estrella": true,
@@ -10726,72 +10801,86 @@
       {
         "text": "Cortar {{Pan rústico}} en rebanadas gruesas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Tostar las rebanadas en el tostador o en una sartén seca a fuego medio hasta que estén crujientes.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Trocear {{Nueces}} en trozos gruesos y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{Nata para cocinar}} en un cazo a fuego suave.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Desmenuzar {{Queso azul}} dentro del cazo cuando la nata esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Remover hasta que el queso se funda y la salsa quede homogénea, sin que llegue a hervir.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Retirar el cazo del fuego y reservar la salsa caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Llevar a ebullición agua en un cazo amplio con {{Vinagre}}.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego hasta mantener un hervor suave; remover el agua para crear un remolino.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cascar {{Huevo}} uno a uno sobre el remolino y escalfar 3 min cada uno.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sacar los huevos con una espumadera y escurrir sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir las rebanadas de pan tostado en los platos y colocar 2 huevos escalfados sobre cada una.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Napar con la salsa de queso azul caliente y esparcir las nueces por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir inmediatamente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -11081,83 +11170,99 @@
       {
         "text": "Picar {{Cebolleta}} muy fina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{Mantequilla}} y {{Aceite de oliva|chorrito}} en un cazo a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Sofreír la cebolleta picada hasta que esté translúcida, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Guisantes}} y {{Caldo de verduras}}. Llevar a ebullición.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cocer a fuego medio hasta que los guisantes estén tiernos, unos 8 min.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Retirar del fuego. Añadir {{Nata para cocinar}} y {{Menta fresca}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Triturar el conjunto hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Llevar a ebullición abundante agua en un cazo. Añadir {{Vinagre}}.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "principal"
       },
       {
         "text": "Reducir el fuego hasta que el agua apenas se mueva. Remover para crear un remolino suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cascar {{Huevo}} de uno en uno en un bol pequeño y deslizarlo con cuidado al centro del remolino.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer cada huevo poché 3 min hasta que la clara esté cuajada y la yema líquida.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar cada huevo con una espumadera y escurrir sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repetir con los huevos restantes de uno en uno.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir la crema de guisantes caliente en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar 2 huevos poché sobre la crema en cada plato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con unas hojas de menta fresca y un hilo de aceite de oliva.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -11272,71 +11377,84 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Setas variadas}}.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Picar {{Perejil fresco}} fino y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír las setas laminadas y el ajo picado hasta que se doren y suelten el agua.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Jamón serrano en taquitos}} y saltear 1 min hasta que tome color.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir la mezcla de setas y jamón en 2 cazuelitas individuales aptas para horno.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Verter {{Nata para cocinar}} a partes iguales sobre cada cazuelita.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cascar {{Huevo}} encima de cada cazuelita, 2 huevos por ración.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear 10 min hasta que la clara cuaje y la yema quede semilíquida.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pan rústico}} en rebanadas y tostar en el horno los últimos 3 min.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 10
+        "during": 10,
+        "part": "guarnicion"
       },
       {
         "text": "Espolvorear el perejil picado sobre cada cazuelita y servir muy caliente con el pan tostado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -13424,8 +13542,8 @@
         "text": "Cortar {{Chorizo}} en rodajas de unos 5 mm.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar las patatas con una espumadera y escurrir sobre papel absorbente. Reservar.",
@@ -13437,13 +13555,13 @@
         "text": "Freír las rodajas de chorizo en la misma sartén a fuego medio hasta que estén crujientes, unos 3 min.",
         "minutes": 3,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Retirar el chorizo y escurrir sobre papel absorbente. Reservar.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Freír {{Huevo}} de uno en uno en el aceite restante a fuego medio hasta que la clara esté cuajada y la yema líquida.",
@@ -13645,42 +13763,50 @@
       {
         "text": "Cortar {{Pimiento verde}} en tiras finas.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Chorizo}} en rodajas de 1 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Sofreír las tiras de pimiento verde hasta que estén tiernas.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Añadir las rodajas de chorizo y sofreír hasta que estén doradas y suelten su grasa.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar el chorizo y los pimientos y reservar en un plato.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Freír {{Huevo}} de uno en uno en el aceite de la sartén a fuego medio hasta que la clara esté cuajada.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir los huevos fritos junto al chorizo y los pimientos reservados.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ]
   },
@@ -13925,19 +14051,19 @@
         "text": "Cortar {{Salchichas frescas}} por la mitad a lo largo.",
         "minutes": 1,
         "kind": "prep",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Freír las salchichas en la misma sartén a fuego medio hasta que estén doradas por todos los lados.",
         "minutes": 6,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Retirar las salchichas y reservar en un plato.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Freír {{Huevo}} de uno en uno en la sartén a fuego medio hasta que la clara esté cuajada y el borde dorado.",
@@ -14068,97 +14194,116 @@
       {
         "text": "Calentar el horno a 220 °C con el grill activado.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Tomate maduro}}, {{Cebolla}} y {{Ajo}} por la mitad y disponerlos en una bandeja.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Regar la bandeja con {{Aceite de oliva|chorrito}} y hornear bajo el grill hasta que las pieles se chamusquen.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Disponer {{Pimiento verde}} en otra bandeja y asar bajo el grill hasta que la piel se ampolle por todos los lados.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar los pimientos del horno y taparlos con un paño o bolsa durante 10 min para que suden.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Retirar los tomates, la cebolla y el ajo del horno y triturar hasta obtener una salsa homogénea.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Colar la salsa sobre un cazo, salpimentar con {{Sal|gusto}} y mantener a fuego suave hasta servir.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Pelar los pimientos con cuidado, abrirlos por un lado con un corte longitudinal y retirar las semillas.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Queso fresco}} en bastones y rellenar el interior de cada pimiento con ellos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cerrar con cuidado cada pimiento relleno presionando los bordes para que no se abra.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Separar las claras de {{Huevo}} de las yemas y reservar ambas en boles distintos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Montar las claras a punto de nieve firme con unas varillas.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar las yemas a las claras montadas con movimientos suaves y envolventes hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Extender {{Harina}} en un plato llano y pasar cada pimiento relleno por la harina cubriéndolo bien.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Sacudir el exceso de harina y sumergir cada pimiento en el huevo montado hasta cubrirlo por completo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar el aceite de oliva restante en una {{@Sartén}} a fuego medio hasta que esté bien caliente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír los pimientos rebozados hasta que estén dorados por todos los lados, girándolos con cuidado.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los pimientos fritos y escurrir sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir los pimientos sobre la salsa de tomate bien caliente repartida en el fondo del plato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ]
   }

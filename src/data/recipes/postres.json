@@ -3088,22 +3088,26 @@
       {
         "text": "Sumergir {{Hojas de gelatina}} en un bol con agua fría hasta que estén blandas.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Nata para montar}}, {{Leche}}, {{Azúcar}} y {{Extracto de vainilla}} en un cazo a fuego medio hasta que esté caliente sin que llegue a hervir.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las hojas de gelatina y añadirlas al cazo fuera del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Remover hasta que la gelatina se disuelva por completo en la mezcla de nata.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir la mezcla en 4 moldes o vasos individuales.",

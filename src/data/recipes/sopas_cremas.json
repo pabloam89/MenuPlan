@@ -11139,15 +11139,15 @@
         "text": "Untar una cara de cada rebanada de {{Pan de molde}} con {{Mantequilla}}.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 5
+        "during": 5,
+        "part": "guarnicion"
       },
       {
         "text": "Colocar {{Queso cheddar en lonchas}} entre 2 rebanadas, con la mantequilla hacia afuera.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 5
+        "during": 5,
+        "part": "guarnicion"
       },
       {
         "text": "Verter {{Caldo de verduras}} en la olla y llevar a ebullición.",
@@ -11165,22 +11165,22 @@
         "text": "Calentar {{@Sartén}} a fuego medio.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Tostar los sándwiches hasta que estén dorados por un lado.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Dar la vuelta a los sándwiches y tostar hasta que estén dorados y el queso cheddar esté fundido.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Triturar la sopa hasta obtener una crema fina.",
@@ -12061,32 +12061,38 @@
       {
         "text": "Pelar {{Cebolla}} y {{Puerro}}, y picarlos en trozos pequeños.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y cortarla en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla y el puerro picados hasta que estén transparentes.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir la patata en dados y {{Caldo de pollo}}, y llevar a ebullición.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego medio durante 10 min, hasta que la patata esté tierna.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar el aceite de oliva restante en {{@Sartén}} a fuego fuerte.",
@@ -13899,47 +13905,56 @@
       {
         "text": "Lavar {{Espárragos verdes}} y retirar la parte final dura del tallo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar los espárragos en trozos, reservando las puntas para emplatar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y picar {{Cebolla}}.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y cortarla en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir los dados de patata y los trozos de espárrago y saltear 2 min a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Verter {{Caldo de verduras}} y llevar a ebullición a fuego fuerte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego medio hasta que la patata y los espárragos estén tiernos.",
         "minutes": 13,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio con un chorrito de aceite de oliva.",
@@ -15719,90 +15734,107 @@
       {
         "text": "Cortar {{Tortillas de maíz}} en tiras finas de unos 5 mm.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en una cazuela a fuego fuerte hasta que esté bien caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír las tiras de tortilla en el aceite caliente hasta que estén doradas y crujientes.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar las tiras de tortilla y reservar sobre papel absorbente.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebolla}} y {{Ajo}} finamente.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado en la misma cazuela a fuego medio hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Tomate maduro}} en trozos irregulares.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Añadir el tomate troceado al sofrito y cocer a fuego medio, aplastando con una cuchara de vez en cuando.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} en dados pequeños.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 7
+        "during": 7,
+        "part": "guarnicion"
       },
       {
         "text": "Triturar el sofrito de tomate con un túrmix hasta obtener una crema lisa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Devolver el sofrito triturado a la cazuela y añadir {{Caldo de pollo}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición y cocer a fuego suave hasta que la sopa esté bien integrada.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Sal|gusto}} y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cilantro fresco}} finamente.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 11
+        "during": 11,
+        "part": "guarnicion"
       },
       {
         "text": "Servir la sopa bien caliente en boles y disponer las tiras de tortilla por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Coronar cada bol con los dados de aguacate y una cucharada de {{Queso crema}}.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con el cilantro picado por encima y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ]
   },

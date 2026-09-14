@@ -539,7 +539,17 @@ async function callModel(payload, system = SYSTEM, maxTokens = 8000) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error?.message || `Anthropic HTTP ${res.status}`);
-  const text = data?.content?.[0]?.text ?? "";
+  // El PRIMER bloque de tipo `text`, no `content[0]` a secas: la respuesta
+  // puede traer delante bloques de otro tipo (razonamiento), y entonces
+  // content[0].text es undefined y la receta se tiraba entera con
+  // "respuesta no-JSON" — reintentando tres veces, y pagando las cuatro.
+  //
+  // Se vio en el piloto de --parts: fallaban 8 de 15, y las 8 eran las
+  // DIFÍCILES (magret con salsa de frutos rojos, rabo de toro al vino, pato
+  // con reducción de Cointreau…), que son justo los casos límite del criterio
+  // aparte/dentro. O sea que el fallo no era aleatorio: se comía exactamente
+  // las recetas para las que habíamos escrito el criterio.
+  const text = (data?.content ?? []).find((b) => b?.type === "text")?.text ?? "";
   const parsed = extractJson(text);
   if (!parsed) throw new Error("respuesta no-JSON");
   return parsed;
