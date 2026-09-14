@@ -7203,7 +7203,8 @@
     "sodium_mg": 620,
     "freezable": false,
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "occasion": "especial"
   },
   {
     "id": "sopas_cremas_042",
@@ -7862,7 +7863,8 @@
     "sodium_mg": 720,
     "freezable": false,
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "occasion": "especial"
   },
   {
     "id": "sopas_cremas_045",
@@ -12726,7 +12728,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "occasion": "especial"
   },
   {
     "id": "sopas_cremas_070",

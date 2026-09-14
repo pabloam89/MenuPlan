@@ -14877,7 +14877,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_077",
@@ -15121,7 +15122,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_078",
