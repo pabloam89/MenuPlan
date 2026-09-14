@@ -258,3 +258,40 @@ describe("las tildes no se saltan la guarda", () => {
     expect(pareceDestructivo("borra el menú entero")).toBe(true);
   });
 });
+
+describe("cocina es una cuenta por semana, no un sesgo", () => {
+  // El slider y el bot tienen que escribir en la MISMA escala: con dos, pedirlo
+  // por voz y moverlo a mano ponían números distintos en el mismo campo y
+  // ganaba el último en tocar, por accidente.
+  const pedir = (n, op) => aplicarAjuste(n, { campo: "cocina", valor: "mexicana", op }, {});
+  const cuanta = (n) => proyectar(n).sesgos.cocina.mexicana;
+
+  it("«más mexicana» suma un plato", () => {
+    expect(cuanta(pedir(libretaVacia(), "mas"))).toBe(1);
+    expect(cuanta(pedir(pedir(libretaVacia(), "mas"), "mas"))).toBe(2);
+  });
+
+  it("«menos» resta, y no baja de cero", () => {
+    const dos = pedir(pedir(libretaVacia(), "mas"), "mas");
+    expect(cuanta(pedir(dos, "menos"))).toBe(1);
+    expect(cuanta(pedir(libretaVacia(), "menos"))).toBe(0);
+  });
+
+  it("no pasa de cinco: una cocina no puede dominar la semana", () => {
+    let n = libretaVacia();
+    for (let i = 0; i < 9; i++) n = pedir(n, "mas");
+    expect(cuanta(n)).toBe(5);
+  });
+
+  it("«nunca» la deja en cero", () => {
+    const tres = pedir(pedir(pedir(libretaVacia(), "mas"), "mas"), "mas");
+    expect(cuanta(pedir(tres, "nunca"))).toBe(0);
+  });
+
+  it("los otros ejes de sesgo siguen siendo -1/0/1", () => {
+    // `tecnica`, `base`, `salsa` y `esfuerzo` no son cuentas: no hay "tres
+    // platos al horno por semana" que el motor sepa leer.
+    const n = aplicarAjuste(libretaVacia(), { campo: "tecnica", valor: "horno", op: "mas" }, {});
+    expect(proyectar(n).sesgos.tecnica.horno).toBe(1);
+  });
+});

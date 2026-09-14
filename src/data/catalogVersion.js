@@ -55,4 +55,30 @@
 //
 // Sin subir este número no llegan a producción: Supabase está en 26 y empate
 // significa que gana la nube.
-export const BUNDLED_CATALOG_VERSION = 27;
+// v28 (2026-09-10): las BASES, que es la mitad que le faltaba al batch cooking.
+//
+// Tres cosas, y el orden importa porque cada una habilita la siguiente:
+//
+// 1. `mainBase` deja de ser string libre y pasa a enum (MAIN_BASES). Convivían
+//    `patata` (8 recetas) y `patatas` (81), más `cuscús`/`cuscus`/`sémola` y
+//    `lentejas`/`garbanzos` pisando a `legumbre` — 17 recetas, todas de bebés.
+//    No rompía nada, que es lo peor: el sesgo "más patatas" del panel se
+//    saltaba en silencio esas 8 porque comparaba contra su propio dominio
+//    cerrado. Ver scripts/normalize-main-base.mjs.
+//
+// 2. `baseMode` ("aparte" | "dentro") en 448 platos. Es la distinción que
+//    `mainBase` no daba: dice QUÉ fécula lleva el plato, no si esa fécula se
+//    puede tener hecha del domingo. El arroz de un bowl se hierve aparte (247
+//    platos); el de un risotto se cocina dentro absorbiendo su caldo (201), y
+//    precocinarlo no ahorra: arruina el plato. Ver scripts/mark-base-mode.mjs.
+//
+// 3. bases.json: 7 recetas nuevas con `type: "base"`, off-menu como las
+//    salsas. `pan` y `avena` no tienen base y no es un olvido — sus 92 platos
+//    están todos marcados "dentro", así que no hay tanda que cocinar.
+//
+// Sin subir este número no llegan: Supabase está en 27 y empate significa que
+// gana la nube. Y aquí el empate haría algo peor que servir datos viejos —
+// devolvería `mainBase` sucio a un campo que ya es enum, y el catálogo remoto
+// fallaría la validación entera al cargar (recipeCatalog.js cae al bundle,
+// así que es seguro, pero el hot-swap dejaría de servir para nada).
+export const BUNDLED_CATALOG_VERSION = 28;

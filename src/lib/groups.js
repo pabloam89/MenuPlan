@@ -205,6 +205,27 @@ export function reconcileTierGroups(members, groups) {
 }
 
 /**
+ * ¿Son los mismos menús, con la misma gente en cada uno?
+ *
+ * Existe porque `migrateGroupsForBabies` reconstruye siempre los objetos: en el
+ * efecto que concilia la familia con los menús, comparar referencias dejaría el
+ * estado girando en bucle aunque no se hubiera movido nadie. Compara lo que de
+ * verdad importa —qué menús hay y quién come en cada uno—, no la identidad de
+ * los objetos ni el orden dentro de cada lista de miembros.
+ */
+export function mismosGrupos(a, b) {
+  if (a === b) return true;
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+  return a.every((g, i) => {
+    const o = b[i];
+    if (!o || g.id !== o.id || g.label !== o.label) return false;
+    if (g.memberIds.length !== o.memberIds.length) return false;
+    const suyos = new Set(o.memberIds);
+    return g.memberIds.every((id) => suyos.has(id));
+  });
+}
+
+/**
  * Put every member on some menu after the roster changed.
  *
  * `reconcileTierGroups` only understands an Adultos/Niños/Bebé split and hands

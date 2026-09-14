@@ -32,7 +32,12 @@ export const TIPOS = ["propuestas", "limites", "no_entendido"];
 /** Nunca más de cuatro tarjetas: a partir de ahí es un menú, no una respuesta. */
 export const MAX_OPCIONES = 4;
 
-const AjusteSchema = z.object({
+// Exportado desde que hubo un segundo parser (el del modal de entrada, ya
+// retirado) que emitía los MISMOS ajustes: dos definiciones del contrato eran
+// la forma segura de que una de las dos se quedara vieja. Sigue exportado
+// porque el siguiente que traduzca frases a la libreta tiene que pasar por
+// aquí, no escribir su propio esquema.
+export const AjusteSchema = z.object({
   campo: z.string(),
   valor: z.string(),
   op: z.enum(["mas", "menos", "nunca"]),
@@ -188,6 +193,16 @@ export function aplicarAjuste(notepad, ajuste, { frase, fecha }) {
     valor = ajuste.op === "nunca";
   } else if (campo.proyecta === "favoritos") {
     valor = ajuste.op !== "nunca";
+  } else if (ajuste.campo === "cocina") {
+    // `cocina` es una CUENTA por semana (0-5), no un sesgo -1/0/1: el usuario
+    // no sube ni baja un "normal" de cocina peruana que no existe, pide un
+    // añadido. Así que "más mexicana" suma un plato y "menos" resta uno, sobre
+    // la misma escala que mueve el slider — con dos escalas, pedirlo por voz y
+    // moverlo a mano escribían números distintos en el mismo campo y ganaba el
+    // último en tocar, por accidente.
+    const actual = valorDe(notepad, path, 0);
+    const propuesto = ajuste.op === "mas" ? actual + 1 : ajuste.op === "menos" ? actual - 1 : 0;
+    valor = Math.max(0, Math.min(5, propuesto));
   } else {
     valor = ajuste.op === "mas" ? 1 : ajuste.op === "menos" ? -1 : 0;
   }
