@@ -6,6 +6,7 @@ import {
   normalizarReglas,
   nuevaRegla,
   reglaDeInvitado,
+  invitadosPorHueco,
   reglaVigente,
   reglaTocaLaVentana,
   podarReglasVencidas,
@@ -1047,5 +1048,42 @@ describe("reglaDeInvitado: el \"+\" de la tarjeta de un plato", () => {
     const ids = (d) => (d.delta.members ?? []).filter((m) => m.invitado).map((m) => m.id);
     expect(ids(a)).toEqual(ids(b));
     expect(ids(a).length).toBe(1);
+  });
+});
+
+describe("invitadosPorHueco: la chapa de la tarjeta", () => {
+  it("cuenta los invitados de cada hueco, sumando reglas distintas", () => {
+    const a = reglaDeInvitado({ dia: "Mié", comida: "Cena", grupoRef: "g_ad", semanaISO: LUNES, hoy: HOY });
+    const b = reglaDeInvitado({ dia: "Mié", comida: "Cena", n: 2, grupoRef: "g_ad", semanaISO: LUNES, hoy: HOY });
+    const mapa = invitadosPorHueco([a, b], { semanaISO: LUNES });
+    expect(mapa["g_ad|Mié|Cena"]).toBe(3);
+    expect(mapa["g_ad|Jue|Cena"]).toBeUndefined();
+  });
+
+  it("no cuenta la semana que no se está mirando", () => {
+    const r = reglaDeInvitado({ dia: "Mié", comida: "Cena", grupoRef: "g_ad", semanaISO: LUNES, hoy: HOY });
+    expect(invitadosPorHueco([r], { semanaISO: "2026-09-14" })).toEqual({});
+  });
+
+  it("una regla que no apunta a un hueco concreto no lleva chapa", () => {
+    // "Mi hermano come aquí toda la semana" es una visita de verdad, pero no
+    // se puede pintar en UN plato: no tiene día.
+    const r = nuevaRegla({
+      sujeto: { tipo: "invitado", n: 1 },
+      ambito: { comidas: ["Cena"] },
+      efecto: { tipo: "presente", valor: "casa" },
+      hoy: HOY,
+    });
+    expect(invitadosPorHueco([r], { semanaISO: LUNES })).toEqual({});
+  });
+
+  it("un `excluir` sobre un invitado no sienta a nadie", () => {
+    const r = nuevaRegla({
+      sujeto: { tipo: "invitado", n: 1 },
+      ambito: { dias: ["Mié"], comidas: ["Cena"] },
+      efecto: { tipo: "excluir", valor: "marisco" },
+      hoy: HOY,
+    });
+    expect(invitadosPorHueco([r], { semanaISO: LUNES })).toEqual({});
   });
 });

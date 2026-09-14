@@ -391,6 +391,49 @@ export function reglaDeInvitado({ dia, comida, n = 1, nombre, grupoRef, semanaIS
   });
 }
 
+/**
+ * Cuántos invitados tiene cada hueco, para pintarlo en la tarjeta del plato.
+ *
+ * Sale de las REGLAS, no de un campo en el hueco. Podría haberse guardado un
+ * `slot.invitados` al añadirlos y habría sido más cómodo — y habría creado dos
+ * verdades con vidas distintas: el menú se regenera y la regla no, así que a
+ * la primera regeneración el número del hueco y el de la regla habrían dejado
+ * de coincidir sin que nadie se enterara.
+ *
+ * Solo cuenta reglas de invitado con efecto `presente`: un `excluir` sobre un
+ * invitado no añade a nadie a la mesa.
+ *
+ * @param {Array} reglas
+ * @param {{semanaISO?: string, hoy?: string}} [opts]
+ *   `semanaISO` es cualquier día de la semana que se está mirando; se normaliza
+ *   a su lunes. Sin él no se filtra por semana.
+ * @returns {Record<string, number>} clave `"<grupoRef|'*'>|<día>|<comida>"`
+ */
+export function invitadosPorHueco(reglas, { semanaISO, hoy } = {}) {
+  const out = {};
+  const lunes = semanaISO ? lunesDe(semanaISO) : null;
+  for (const regla of normalizarReglas(reglas)) {
+    if (regla.sujeto.tipo !== "invitado") continue;
+    if (regla.efecto.tipo !== "presente") continue;
+    if (hoy && !reglaVigente(regla, hoy)) continue;
+    const semanas = regla.ambito?.semanas;
+    if (lunes && semanas?.length && !semanas.some((w) => lunesDe(w) === lunes)) continue;
+    const dias = regla.ambito?.dias ?? [];
+    const comidas = regla.ambito?.comidas ?? [];
+    // Sin día o sin comida la regla no apunta a un hueco concreto, y este mapa
+    // es solo para pintar huecos: una visita "toda la semana" no lleva chapa.
+    if (dias.length === 0 || comidas.length === 0) continue;
+    const grupo = regla.sujeto.grupoRef ?? "*";
+    for (const dia of dias) {
+      for (const comida of comidas) {
+        const clave = `${grupo}|${dia}|${comida}`;
+        out[clave] = (out[clave] ?? 0) + (regla.sujeto.n ?? 1);
+      }
+    }
+  }
+  return out;
+}
+
 // ── Fechas ─────────────────────────────────────────────────────────────────
 
 /**
