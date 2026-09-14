@@ -16,50 +16,78 @@
  * fuera y aparece en el resumen final para revisión manual.
  *
  *   node scripts/apply-bedca-nutrition.mjs [--dry-run] [--min-score=1]
+ *        [--review=a.json,b.json] [--choices=output/bedca-choices.json]
+ *
+ * ── Decisiones explícitas (--choices) ──────────────────────────────────────
+ * Sin --choices este script decide solo, por score de nombre. Eso deja fuera a
+ * propósito todo lo que no sea una coincidencia literal, y son la mayoría: el
+ * catálogo dice "Pechuga de pollo" donde BEDCA dice "Pollo, pechuga, cruda".
+ * --choices es el canal para meter una decisión TOMADA (por Pablo o por
+ * scripts/bedca-select.mjs): un JSON
+ *
+ *   { "<ingredientId>": { "foodId": 1065 | null, "motivo": "...", ... } }
+ *
+ * foodId = se aplica ESE candidato aunque su score sea bajo (alguien lo ha
+ *          mirado), pero SIGUE pasando el filtro de Atwater: una decisión
+ *          humana no arregla una fila corrupta de BEDCA.
+ * null   = decidido que NINGÚN candidato vale. Se salta y no vuelve a
+ *          proponerse, que es distinto de "todavía no se ha mirado".
+ * Un ingrediente sin entrada en el fichero sigue el camino automático de
+ * siempre. Los ids que no estén en el informe se avisan, no se ignoran.
  */
-import { readFileSync, writeFileSync } from "fs";
-import { join, dirname } from "path";
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { join, dirname, resolve } from "path";
 import { fileURLToPath } from "url";
+
+import { atwaterCheck } from "./lib/bedcaAtwater.mjs";
+import { statesCompatible, looksLikeOtherFood } from "./lib/bedcaState.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const REVIEW_PATH = join(ROOT, "output", "bedca-nutrition-review.json");
 const CATALOG_PATH = join(ROOT, "src", "data", "ingredients.json");
 
 const DRY_RUN = process.argv.includes("--dry-run");
 const minScoreArg = process.argv.find((a) => a.startsWith("--min-score"));
 const MIN_SCORE = minScoreArg ? Number(minScoreArg.split("=")[1] ?? process.argv[process.argv.indexOf(minScoreArg) + 1]) : 1;
-// Asimétrico a propósito, y NO en porcentaje relativo a lo esperado (un
-// alimento casi sin proteína/carbos/grasa —alcohol puro— tendría un "esperado"
-// cercano a 0, y cualquier kcal real dispararía un porcentaje absurdo sin
-// significar nada malo). kcal POR DEBAJO de lo que ya garantizan sus propias
-// macros (fórmula de Atwater, 4/4/9 kcal/g) no tiene explicación legítima —
-// es justo el bug real que este script encontró en BEDCA: "Kéfir" tenía dos
-// filas con los MISMOS macros pero una decía 0,8 kcal/100g y la otra 63,9 (la
-// consistente con Atwater). kcal POR ENCIMA sí tiene explicaciones legítimas
-// que el 4/4/9 no cuenta —el alcohol aporta ~7 kcal/g y aparece con
-// normalidad en vino/cerveza/licores—, así que ahí no se compara contra lo
-// esperado: solo se pone un techo físico absoluto (nada comestible real
-// supera con holgura la grasa pura, 900 kcal/100g) para pillar un kJ
-// etiquetado como kcal por error, no una razón nutricional de verdad.
-const LOW_TOLERANCE_ABS = 5; // kcal de margen fijo, además del relativo
-const LOW_TOLERANCE_REL = 0.15;
-const ABSOLUTE_KCAL_CEILING = 920;
-
-function atwaterDeviation({ kcal100g, protein100g, carbs100g, fat100g }) {
-  const expectedMin = 4 * protein100g + 4 * carbs100g + 9 * fat100g;
-  const diff = kcal100g - expectedMin;
-  const tooLow = diff < -Math.max(expectedMin * LOW_TOLERANCE_REL, LOW_TOLERANCE_ABS);
-  const tooHigh = kcal100g > ABSOLUTE_KCAL_CEILING;
-  return { diff, ok: !tooLow && !tooHigh };
+function argValue(flag, fallback) {
+  const arg = process.argv.find((a) => a.startsWith(`--${flag}=`));
+  return arg ? arg.split("=").slice(1).join("=") : fallback;
+}
+// Varios informes separados por coma: el original y la repesca de
+// scripts/bedca-repesca.mjs, que aporta candidatos a los que salieron a cero.
+const REVIEW_PATHS = argValue("review", "output/bedca-nutrition-review.json").split(",").map((p) => resolve(ROOT, p.trim()));
+const CHOICES_PATH = argValue("choices", null);
+// Los umbrales y el porqué viven en scripts/lib/bedcaAtwater.mjs, compartidos
+// con el triaje para que no se bifurquen.
+function atwaterDeviation(nutrition, foodName, ingredientName) {
+  const { diff, ok } = atwaterCheck(nutrition, foodName, ingredientName);
+  return { diff, ok };
 }
 
-function bestValidCandidate(candidates) {
+// Las dos reglas duras del triaje (scripts/lib/bedcaState.mjs), aplicadas
+// también aquí. No son un lujo: el camino automático se guía por un score de
+// nombre, y la repesca por sinónimo devuelve score 1 POR CONSTRUCCIÓN —lo pone
+// el diccionario escrito a mano, no el parecido—, así que sin esto una pasada
+// con --review=...,bedca-repesca-review.json escribía con un ✅ "Corvina ←
+// Lubina", "Cúrcuma ← Curry" y "Cebolleta ← Cebolla, hervida". Nada de eso es
+// un fallo de la repesca —su trabajo es CONSEGUIR candidato—: es que elegir
+// entre ellos es una decisión, y las decisiones entran por --choices
+// (scripts/bedca-select.mjs o a mano), nunca por score.
+function hardFilter(ingredientName, candidate) {
+  if (!statesCompatible(ingredientName, candidate.foodName)) {
+    return `estado de cocinado distinto ("${candidate.foodName}")`;
+  }
+  const other = looksLikeOtherFood(ingredientName, candidate.foodName);
+  if (other.other) return `${other.reason} ("${candidate.foodName}")`;
+  return null;
+}
+
+function bestValidCandidate(candidates, ingredientName) {
   const scored = candidates.map((c) => {
-    const { diff, ok } = atwaterDeviation(c.nutrition);
-    return { ...c, diff, deviation: Math.abs(diff), atwaterOk: ok };
+    const { diff, ok } = atwaterDeviation(c.nutrition, c.foodName, ingredientName);
+    return { ...c, diff, deviation: Math.abs(diff), atwaterOk: ok, veto: hardFilter(ingredientName, c) };
   });
-  const eligible = scored.filter((c) => c.score >= MIN_SCORE && c.atwaterOk);
+  const eligible = scored.filter((c) => c.score >= MIN_SCORE && c.atwaterOk && !c.veto);
   if (eligible.length === 0) return { accepted: null, rejectedReason: reasonFor(scored) };
   // Entre empates de score, gana el más consistente con Atwater.
   eligible.sort((a, b) => b.score - a.score || a.deviation - b.deviation);
@@ -70,25 +98,84 @@ function reasonFor(scored) {
   if (scored.length === 0) return "sin candidatos";
   const best = [...scored].sort((a, b) => b.score - a.score || a.deviation - b.deviation)[0];
   if (best.score < MIN_SCORE) return `mejor score ${best.score} < ${MIN_SCORE}`;
+  if (best.veto) return `${best.veto}: es una decisión, va por --choices`;
   return `kcal fuera de rango frente a sus macros (Atwater ${best.diff >= 0 ? "+" : ""}${best.diff.toFixed(0)} kcal/100g) en el mejor candidato por nombre`;
 }
 
-const review = JSON.parse(readFileSync(REVIEW_PATH, "utf8"));
+// Fusión de informes por ingrediente: se acumulan candidatos, sin duplicar
+// foodId, en el orden en que llegan los ficheros.
+const review = [];
+const reviewIndex = new Map();
+for (const path of REVIEW_PATHS) {
+  for (const entry of JSON.parse(readFileSync(path, "utf8"))) {
+    const existing = reviewIndex.get(entry.ingredientId);
+    if (!existing) {
+      const copy = { ...entry, candidates: [...entry.candidates] };
+      reviewIndex.set(entry.ingredientId, copy);
+      review.push(copy);
+      continue;
+    }
+    const seen = new Set(existing.candidates.map((c) => c.foodId));
+    for (const c of entry.candidates) if (!seen.has(c.foodId)) existing.candidates.push(c);
+  }
+}
+
+const choices = CHOICES_PATH && existsSync(resolve(ROOT, CHOICES_PATH))
+  ? JSON.parse(readFileSync(resolve(ROOT, CHOICES_PATH), "utf8"))
+  : null;
+if (CHOICES_PATH && !choices) {
+  console.error(`❌ No existe el fichero de decisiones ${CHOICES_PATH}`);
+  process.exit(1);
+}
+
 const original = readFileSync(CATALOG_PATH, "utf8");
 const usesCrlf = original.includes("\r\n");
 const catalog = JSON.parse(original);
 const byId = new Map(catalog.map((ing) => [ing.id, ing]));
 
 let applied = 0, skippedNoCandidates = 0, skippedFiltered = 0, skippedAlreadySet = 0;
+let appliedByChoice = 0, skippedByChoice = 0;
 const rejectedLog = [];
+
+if (choices) {
+  const unknown = Object.keys(choices).filter((id) => !reviewIndex.has(id));
+  if (unknown.length > 0) console.warn(`⚠️  ${unknown.length} decisiones apuntan a ingredientes que no están en el informe: ${unknown.join(", ")}`);
+}
 
 for (const entry of review) {
   const ing = byId.get(entry.ingredientId);
   if (!ing) continue; // catálogo cambió desde que se generó el informe
   if (ing.nutrition != null) { skippedAlreadySet++; continue; }
+
+  // Una decisión explícita gana al score, pero no al filtro de Atwater.
+  const choice = choices?.[entry.ingredientId];
+  if (choice !== undefined) {
+    if (choice?.foodId == null) {
+      skippedByChoice++;
+      continue;
+    }
+    const chosen = entry.candidates.find((c) => c.foodId === choice.foodId);
+    if (!chosen) {
+      rejectedLog.push(`${entry.ingredientId.padEnd(28)} decisión con foodId ${choice.foodId}, que no está entre sus candidatos`);
+      skippedFiltered++;
+      continue;
+    }
+    const { ok, diff } = atwaterDeviation(chosen.nutrition, chosen.foodName, ing.name);
+    if (!ok) {
+      rejectedLog.push(`${entry.ingredientId.padEnd(28)} decidido "${chosen.foodName}" pero sus kcal no cuadran con sus macros (Atwater ${diff >= 0 ? "+" : ""}${diff.toFixed(0)})`);
+      skippedFiltered++;
+      continue;
+    }
+    ing.nutrition = chosen.nutrition;
+    applied++;
+    appliedByChoice++;
+    console.log(`✅  ${entry.ingredientId.padEnd(28)} ← "${chosen.foodName}" (decidido${choice.motivo ? `: ${choice.motivo}` : ""})`);
+    continue;
+  }
+
   if (entry.candidates.length === 0) { skippedNoCandidates++; continue; }
 
-  const { accepted, rejectedReason } = bestValidCandidate(entry.candidates);
+  const { accepted, rejectedReason } = bestValidCandidate(entry.candidates, ing.name);
   if (!accepted) {
     skippedFiltered++;
     rejectedLog.push(`${entry.ingredientId.padEnd(28)} ${rejectedReason}`);
@@ -105,7 +192,7 @@ if (!DRY_RUN && applied > 0) {
   writeFileSync(CATALOG_PATH, usesCrlf ? json.replaceAll("\n", "\r\n") : json, "utf8");
 }
 
-console.log(`\n✨  ${DRY_RUN ? "[dry-run] " : ""}Aplicados: ${applied}. Sin candidatos: ${skippedNoCandidates}. Filtrados (score/Atwater): ${skippedFiltered}. Ya tenían nutrición: ${skippedAlreadySet}.`);
+console.log(`\n✨  ${DRY_RUN ? "[dry-run] " : ""}Aplicados: ${applied}${choices ? ` (${appliedByChoice} por decisión explícita)` : ""}. Sin candidatos: ${skippedNoCandidates}. Filtrados (score/Atwater): ${skippedFiltered}. Ya tenían nutrición: ${skippedAlreadySet}.${choices ? ` Decididos a null: ${skippedByChoice}.` : ""}`);
 if (rejectedLog.length > 0) {
   console.log(`\nFiltrados (para revisar a mano más adelante, bajando --min-score o mirando el candidato manualmente):`);
   for (const line of rejectedLog) console.log(`  ${line}`);

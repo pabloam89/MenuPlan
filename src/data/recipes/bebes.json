@@ -5,7 +5,6 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "cuscus",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -27,26 +26,31 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Cuscús",
+        "ingredientId": "cuscus",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       },
       {
         "name": "Caldo casero sin sal",
+        "ingredientId": "caldo-de-verduras",
         "amount": 200,
         "unit": "ml"
       }
@@ -193,7 +197,8 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el calabacín, el pollo, el cuscús y el caldo en la olla a presión y cocina durante 7 minutos desde que sube la válvula. Una vez despresurizada, añade el aceite de oliva y tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_002",
@@ -201,7 +206,6 @@
     "category": "bebes",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -223,21 +227,25 @@
     "ingredients": [
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Merluza",
+        "ingredientId": "merluza",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -348,7 +356,8 @@
         "difficulty": "facil",
         "prepSummary": "Corta la zanahoria y la patata a lo largo. Revisa la merluza para asegurarte de que no tiene espinas. Coloca todos los ingredientes en la olla express con 150ml de agua y cocina durante 7 minutos desde que sube la válvula."
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "id": "bebes_003",
@@ -356,7 +365,6 @@
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "boniato",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -376,21 +384,25 @@
     "ingredients": [
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -513,7 +525,8 @@
         "difficulty": "normal",
         "prepSummary": "Introduce la calabaza, el boniato y el pavo troceados en la olla express con un chorrito de agua. Cierra y cocina a presión durante 5-7 minutos desde que sube la válvula."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_004",
@@ -521,7 +534,6 @@
     "category": "bebes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -540,21 +552,25 @@
     "ingredients": [
       {
         "name": "Judías verdes",
+        "ingredientId": "judia-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ternera magra",
+        "ingredientId": "ternera-magra",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -665,7 +681,8 @@
         "difficulty": "facil",
         "prepSummary": "Corta las judías y la patata en trozos pequeños, y la ternera en dados. Cocina todos los ingredientes en la olla express con un poco de agua (100-150 ml) durante 8-10 minutos desde que sube la válvula, hasta que se aplasten sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "id": "bebes_005",
@@ -673,7 +690,6 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "arroz",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -692,21 +708,25 @@
     "ingredients": [
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -811,7 +831,8 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el pollo troceado, los guisantes, el arroz y 200 ml de agua en la olla express. Cierra y cocina a presión durante 10 minutos. Deja que se libere la presión, añade el aceite y tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_006",
@@ -819,7 +840,6 @@
     "category": "bebes",
     "mainProtein": "pescado_blanco",
     "mainBase": "arroz",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -841,21 +861,25 @@
     "ingredients": [
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Merluza",
+        "ingredientId": "merluza",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -977,7 +1001,8 @@
         "difficulty": "normal",
         "prepSummary": "Introduce el brócoli, la merluza y el arroz con 150ml de agua en la olla a presión. Cierra y cocina durante 8 minutos desde que sube la válvula."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_007",
@@ -985,7 +1010,6 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "arroz",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -1004,21 +1028,25 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -1138,7 +1166,8 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el arroz, el pollo troceado a lo largo y la zanahoria en la olla express con 200 ml de agua, cierra y cocina durante 8 minutos desde que sube la válvula."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_008",
@@ -1146,7 +1175,6 @@
     "category": "bebes",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -1165,21 +1193,25 @@
     "ingredients": [
       {
         "name": "Lentejas rojas",
+        "ingredientId": "lentejas-rojas",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -1295,7 +1327,8 @@
         "difficulty": "facil",
         "prepSummary": "Lava bien las lentejas rojas y trocea la zanahoria y el calabacín a lo largo. Introduce todos los ingredientes en la olla express junto con 200ml de agua. Cierra la olla y cocina durante 7 minutos desde que sube la válvula. Deja que pierda la presión de forma natural."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_009",
@@ -1303,7 +1336,6 @@
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "boniato",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1323,21 +1355,25 @@
     "ingredients": [
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -1465,7 +1501,8 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el boniato, pavo y calabacín troceados a lo largo en la olla express con un vaso de agua. Cierra y cocina a fuego medio durante 8-10 minutos desde que suba la válvula. Libera la presión, y tritura con el aceite de oliva hasta obtener una crema lisa y homogénea."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_010",
@@ -1473,7 +1510,6 @@
     "category": "bebes",
     "mainProtein": "pescado_azul",
     "mainBase": "arroz",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1495,21 +1531,25 @@
     "ingredients": [
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salmón fresco",
+        "ingredientId": "salmon-fresco",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -1651,7 +1691,8 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el puerro troceado, el salmón sin espinas ni piel, el arroz, el aceite de oliva y un poco de agua en la olla a presión. Cocina durante 5-7 minutos desde que sube la válvula, luego despresuriza y tritura hasta obtener una crema lisa y homogénea."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_012",
@@ -1659,7 +1700,6 @@
     "category": "bebes",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -1678,21 +1718,25 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -1821,7 +1865,8 @@
         "difficulty": "facil",
         "prepSummary": "Corta la calabaza y la zanahoria a lo largo. Colócalas en un recipiente apto para microondas con un chorrito de agua, tapa y cocina a máxima potencia durante 5-7 minutos, o hasta que estén muy tiernas y se aplasten sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_013",
@@ -1829,7 +1874,6 @@
     "category": "bebes",
     "mainProtein": "huevo",
     "mainBase": "boniato",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1851,21 +1895,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate natural",
+        "ingredientId": "tomate",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -1995,15 +2043,14 @@
         "difficulty": "facil",
         "prepSummary": "Corta el boniato y el tomate, cocínalos en un recipiente apto para microondas con un poco de agua hasta que estén muy tiernos (unos 8-10 minutos)."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_014",
     "name": "Papilla de avena con ternera y espinacas",
     "category": "bebes",
     "mainProtein": "ternera",
-    "mainBase": "avena",
-    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -2024,26 +2071,31 @@
     "ingredients": [
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Ternera magra",
+        "ingredientId": "ternera-magra",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       },
       {
         "name": "Caldo casero sin sal",
+        "ingredientId": "caldo-de-verduras",
         "amount": 200,
         "unit": "ml"
       }
@@ -2155,7 +2207,6 @@
     "category": "bebes",
     "mainProtein": "huevo",
     "mainBase": "cuscus",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -2178,21 +2229,25 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Sémola de trigo",
+        "ingredientId": "semola-de-trigo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -2303,7 +2358,8 @@
         "difficulty": "facil",
         "prepSummary": "Corta el calabacín y cuécelo en la olla express con un poco de agua durante 5 minutos desde que sube la válvula. Despresuriza, añade la sémola y el huevo, y cocina a fuego suave 5 minutos más. Tritura con una batidora de mano hasta obtener una crema lisa y homogénea."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_016",
@@ -2311,7 +2367,6 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -2330,21 +2385,25 @@
     "ingredients": [
       {
         "name": "Coliflor",
+        "ingredientId": "coliflor",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -2476,7 +2535,8 @@
         "difficulty": "facil",
         "prepSummary": "Corta la coliflor, la patata y el pollo en trozos pequeños. Ponlos en la olla express con 100ml de agua. Cierra y cocina 6 minutos desde que sube la válvula. Libera la presión, añade el aceite de oliva y tritura hasta obtener una crema lisa."
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "id": "bebes_018",
@@ -2484,7 +2544,6 @@
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -2503,21 +2562,25 @@
     "ingredients": [
       {
         "name": "Remolacha cocida",
+        "ingredientId": "remolacha",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -2634,7 +2697,8 @@
         "difficulty": "facil",
         "prepSummary": "Corta la patata y el pavo en trozos pequeños. Cuécelos en la olla express con un poco de agua durante 5-7 minutos desde que sube la válvula, hasta que estén tan blandos que se aplasten sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "id": "bebes_019",
@@ -2642,7 +2706,6 @@
     "category": "bebes",
     "mainProtein": "pescado_azul",
     "mainBase": "boniato",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -2664,21 +2727,25 @@
     "ingredients": [
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salmón fresco",
+        "ingredientId": "salmon-fresco",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -2806,7 +2873,8 @@
         "difficulty": "facil",
         "prepSummary": "Corta el boniato a lo largo y colócalo en un recipiente apto para microondas con un chorrito de agua. Cocina a máxima potencia durante 5-7 minutos, hasta que esté muy tierno."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_021",
@@ -2814,7 +2882,6 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -2833,21 +2900,25 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -2946,7 +3017,8 @@
         "difficulty": "facil",
         "prepSummary": "Coloca el pollo y las espinacas en la olla express con 100ml de agua y cocina 5 minutos desde que sube la válvula. Despresuriza, añade los garbanzos cocidos y el aceite, y tritura con una batidora de mano hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "bebes_022",
@@ -2954,7 +3026,6 @@
     "category": "bebes",
     "mainProtein": "ternera",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -2973,21 +3044,25 @@
     "ingredients": [
       {
         "name": "Lentejas rojas",
+        "ingredientId": "lentejas-rojas",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Ternera magra",
+        "ingredientId": "ternera-magra",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -3086,7 +3161,8 @@
         "difficulty": "facil",
         "prepSummary": "Introduce las lentejas, ternera y zanahoria troceada con agua en la olla express. Cierra y cocina a presión durante 10-12 minutos desde que sube la válvula, luego tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "category": "bebes",
@@ -3122,26 +3198,31 @@
     "ingredients": [
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Requesón",
+        "ingredientId": "requeson",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3247,26 +3328,31 @@
     "ingredients": [
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3356,27 +3442,29 @@
     "mainIngredients": [
       "fruta"
     ],
-    "mainBase": "avena",
-    "baseMode": "dentro",
     "tecnica": "sarten",
     "ingredients": [
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3455,31 +3543,35 @@
     "fat_g": 5,
     "allergens": [],
     "mainBase": "legumbre",
-    "baseMode": "aparte",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       }
@@ -3539,7 +3631,8 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los bocaditos separados en la cesta de la airfryer y cocina a 175°C durante unos 18 minutos, dándoles la vuelta a mitad. Estarán listos cuando el interior se aplasta sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "category": "bebes",
@@ -3564,32 +3657,36 @@
     "fat_g": 7,
     "allergens": [],
     "mainBase": "legumbre",
-    "baseMode": "dentro",
     "cocina": "arabe",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -3649,7 +3746,8 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los falafel separados en la cesta de la airfryer. Cocina a 180°C durante unos 18 minutos, dándoles la vuelta a mitad del tiempo. Estarán listos cuando el interior se aplaste sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "category": "bebes",
@@ -3685,26 +3783,31 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Queso fresco",
+        "ingredientId": "queso-fresco",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3790,26 +3893,31 @@
     "ingredients": [
       {
         "name": "Merluza en lomos",
+        "ingredientId": "merluza-lomos",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Pan rallado",
+        "ingredientId": "pan-rallado",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3906,26 +4014,31 @@
     "ingredients": [
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Pan rallado",
+        "ingredientId": "pan-rallado",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4037,26 +4150,31 @@
     "ingredients": [
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Pan rallado",
+        "ingredientId": "pan-rallado",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -4138,31 +4256,35 @@
       "gluten"
     ],
     "mainBase": "legumbre",
-    "baseMode": "aparte",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4216,7 +4338,8 @@
         "difficulty": "facil",
         "prepSummary": "Coloca las hamburguesas separadas en la cesta de la airfryer y cocina a 180°C durante unos 14 minutos, dándoles la vuelta a mitad. Están listas cuando el interior se aplasta sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "category": "bebes",
@@ -4244,31 +4367,35 @@
       "huevo"
     ],
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Lomos de salmón",
+        "ingredientId": "salmon",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4322,7 +4449,8 @@
         "difficulty": "facil",
         "prepSummary": "Forma las albóndigas y colócalas separadas en la cesta de la airfryer. Cocina a 180°C durante unos 15 minutos, dándoles la vuelta a mitad, hasta que se aplasten sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "category": "bebes",
@@ -4346,8 +4474,7 @@
     "carbs_g": 28,
     "fat_g": 5,
     "allergens": [],
-    "mainBase": "patatas",
-    "baseMode": "dentro",
+    "mainBase": "boniato",
     "mainIngredients": [
       "verdura"
     ],
@@ -4355,11 +4482,13 @@
     "ingredients": [
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 140,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4407,7 +4536,8 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta la airfryer a 185°C. Coloca los bastones de boniato con un chorrito de aceite en la cesta, asegurándote de que no se amontonen. Cocina durante 18 minutos, agitándolos a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "category": "bebes",
@@ -4438,11 +4568,13 @@
     "ingredients": [
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -4526,11 +4658,13 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4627,11 +4761,13 @@
     "ingredients": [
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 110,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -4718,16 +4854,19 @@
     "ingredients": [
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -4808,37 +4947,42 @@
       "gluten"
     ],
     "mainBase": "pasta",
-    "baseMode": "aparte",
     "cocina": "italiana",
     "tecnica": "sarten",
     "ingredients": [
       {
         "name": "Pasta pequeña",
+        "ingredientId": "pasta",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4886,7 +5030,8 @@
         "difficulty": "normal",
         "prepSummary": "Prepara la boloñesa de verduras y carne en una sartén hasta que las verduras estén muy blandas. Cocina la pasta hasta que esté muy blanda."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "category": "bebes",
@@ -4913,7 +5058,6 @@
       "sesamo"
     ],
     "mainBase": "arroz",
-    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -4922,21 +5066,25 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Semillas de sésamo",
+        "ingredientId": "sesamo",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5002,7 +5150,8 @@
         "difficulty": "facil",
         "prepSummary": "Cocina el brócoli y el arroz en recipientes aptos para microondas con un poco de agua hasta que estén muy tiernos."
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "category": "bebes",
@@ -5030,31 +5179,35 @@
       "lactosa"
     ],
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5108,7 +5261,8 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los muffins en moldes aptos para airfryer o directamente en la cesta (si la mezcla es firme) y cocina a 170°C durante unos 18 minutos. Están listos cuando el interior se aplasta sin esfuerzo."
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "category": "bebes",
@@ -5141,31 +5295,37 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Berenjena",
+        "ingredientId": "berenjena",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 7,
         "unit": "ml"
       }
@@ -5243,8 +5403,6 @@
     "id": "bebes_043",
     "name": "Tortitas de calabaza y canela",
     "mainProtein": "huevo",
-    "mainBase": "avena",
-    "baseMode": "dentro",
     "time": 20,
     "kcal": 185,
     "protein_g": 8,
@@ -5261,26 +5419,31 @@
     "ingredients": [
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Canela molida",
+        "ingredientId": "canela",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5376,31 +5539,37 @@
     "ingredients": [
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Queso fresco",
+        "ingredientId": "queso-fresco",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5495,26 +5664,31 @@
     "ingredients": [
       {
         "name": "Pera",
+        "ingredientId": "pera",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 35,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 70,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5596,26 +5770,31 @@
     "ingredients": [
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Maíz",
+        "ingredientId": "maiz",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5694,7 +5873,6 @@
     "name": "Tortitas de lenteja roja y zanahoria",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
     "time": 30,
     "kcal": 195,
     "protein_g": 11,
@@ -5708,21 +5886,25 @@
     "ingredients": [
       {
         "name": "Lentejas rojas",
+        "ingredientId": "lentejas-rojas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -5788,7 +5970,8 @@
         "prepSummary": "Cocina las tortitas en la vaporera durante 15-20 minutos. Asegúrate de que estén bien blandas y se aplasten sin esfuerzo antes de ofrecerlas."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "baseMode": "aparte"
   },
   {
     "category": "bebes",
@@ -5807,7 +5990,6 @@
     "name": "Frittata al horno de calabacín y patata",
     "mainProtein": "huevo",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "time": 40,
     "kcal": 230,
     "protein_g": 14,
@@ -5823,26 +6005,31 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 10,
         "unit": "ml"
       }
@@ -5896,7 +6083,8 @@
         "prepSummary": "Mezcla el calabacín, la patata y la cebolla finamente picados o rallados con el huevo batido y el aceite de oliva. Vierte en un molde pequeño apto para airfryer y cocina a 180°C durante 25 minutos, hasta que el centro esté firme y se aplaste sin esfuerzo entre dos dedos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "baseMode": "dentro"
   },
   {
     "category": "bebes",
@@ -5931,26 +6119,31 @@
     "ingredients": [
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Requesón",
+        "ingredientId": "requeson",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -6028,8 +6221,6 @@
     "id": "bebes_050",
     "name": "Muffins de plátano y avena",
     "mainProtein": "huevo",
-    "mainBase": "avena",
-    "baseMode": "dentro",
     "time": 32,
     "kcal": 225,
     "protein_g": 9,
@@ -6047,26 +6238,31 @@
     "ingredients": [
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 2,
         "unit": "g"
       }
@@ -6151,7 +6347,6 @@
     "name": "Pastel de merluza y patata en porciones",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "time": 45,
     "kcal": 215,
     "protein_g": 20,
@@ -6168,26 +6363,31 @@
     "ingredients": [
       {
         "name": "Merluza en lomos",
+        "ingredientId": "merluza-lomos",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6253,7 +6453,8 @@
         "prepSummary": "Tras cocinar al vapor la merluza (revisa bien las espinas), la patata y la zanahoria, mézclalas con el huevo y forma las porciones. Cuécelas al vapor unos 15 minutos hasta que se aplasten sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "baseMode": "dentro"
   },
   {
     "category": "bebes",
@@ -6285,21 +6486,25 @@
     "ingredients": [
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6378,7 +6583,6 @@
     "name": "Croquetas al horno de merluza y calabacín",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "time": 40,
     "kcal": 200,
     "protein_g": 17,
@@ -6396,31 +6600,37 @@
     "ingredients": [
       {
         "name": "Merluza en lomos",
+        "ingredientId": "merluza-lomos",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6480,7 +6690,8 @@
         "prepSummary": "Precalienta la airfryer a 185°C. Coloca las croquetas formadas en la cesta, sin amontonar, y cocina durante unos 18 minutos, dándoles la vuelta a mitad del tiempo. Sabrás que están listas cuando el interior se aplaste sin esfuerzo entre dos dedos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "baseMode": "dentro"
   },
   {
     "category": "bebes",
@@ -6499,7 +6710,6 @@
     "name": "Bolitas de quinoa, garbanzo y espinaca",
     "mainProtein": "legumbre",
     "mainBase": "quinoa",
-    "baseMode": "aparte",
     "time": 35,
     "kcal": 215,
     "protein_g": 12,
@@ -6513,26 +6723,31 @@
     "ingredients": [
       {
         "name": "Quinoa",
+        "ingredientId": "quinoa",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       }
@@ -6592,7 +6807,8 @@
         "prepSummary": "Precalienta la airfryer a 180°C. Coloca las bolitas separadas en la cesta y cocina durante 18 minutos, dándoles la vuelta a mitad del tiempo. Sabrás que están listas cuando se aplasten sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "baseMode": "aparte"
   },
   {
     "category": "bebes",
@@ -6626,26 +6842,31 @@
     "ingredients": [
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 110,
         "unit": "g"
       },
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6739,21 +6960,25 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6832,7 +7057,6 @@
     "name": "Tortilla de patata en tiras, sin sal",
     "mainProtein": "huevo",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "time": 35,
     "kcal": 245,
     "protein_g": 13,
@@ -6848,21 +7072,25 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 12,
         "unit": "ml"
       }
@@ -6934,7 +7162,8 @@
         "prepSummary": "Cocina las patatas y la cebolla troceadas en un recipiente apto para microondas con un poco de aceite hasta que estén muy tiernas (5-8 minutos). Mezcla con los huevos batidos y vierte en un molde rectangular apto para microondas."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "baseMode": "dentro"
   },
   {
     "category": "bebes",
@@ -6965,11 +7194,13 @@
     "ingredients": [
       {
         "name": "Pera",
+        "ingredientId": "pera",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 1,
         "unit": "ud"
       }
@@ -7060,16 +7291,19 @@
     "ingredients": [
       {
         "name": "Bacalao desalado",
+        "ingredientId": "bacalao",
         "amount": 110,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 2,
         "unit": "g"
       }
@@ -7154,7 +7388,6 @@
     "name": "Cuscús con verduras muy blandas",
     "mainProtein": "none",
     "mainBase": "cuscus",
-    "baseMode": "aparte",
     "time": 25,
     "kcal": 240,
     "protein_g": 8,
@@ -7170,26 +7403,31 @@
     "ingredients": [
       {
         "name": "Cuscús",
+        "ingredientId": "cuscus",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -7255,7 +7493,8 @@
         "prepSummary": "Corta las verduras a lo largo y ponlas en un recipiente apto para microondas con un chorrito de agua. Tapa y cocina a máxima potencia (800W) durante 5-10 minutos, o hasta que se aplasten sin esfuerzo. Prepara el cuscús en otro recipiente con agua caliente."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "baseMode": "aparte"
   },
   {
     "category": "bebes",
@@ -7274,7 +7513,6 @@
     "name": "Hummus suave con bastones de zanahoria",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
-    "baseMode": "aparte",
     "time": 20,
     "kcal": 250,
     "protein_g": 11,
@@ -7290,26 +7528,31 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       }
@@ -7357,7 +7600,8 @@
         "prepSummary": "Pela y corta las zanahorias en bastones y cuécelas al vapor en el Varoma durante 18 minutos a temperatura Varoma, velocidad 1, hasta que se aplasten sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "baseMode": "aparte"
   },
   {
     "category": "bebes",
@@ -7376,7 +7620,6 @@
     "name": "Arroz meloso de calabaza y pollo",
     "mainProtein": "pollo",
     "mainBase": "arroz",
-    "baseMode": "dentro",
     "time": 35,
     "kcal": 285,
     "protein_g": 20,
@@ -7390,26 +7633,31 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Contramuslo de pollo",
+        "ingredientId": "contramuslos-de-pollo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -7475,6 +7723,7 @@
         "prepSummary": "En la olla express, sofríe la cebolla picada muy fina con el aceite hasta que esté transparente. Añade el pollo troceado pequeño, la calabaza en dados pequeños, el arroz y 120ml de agua."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "baseMode": "dentro"
   }
 ]

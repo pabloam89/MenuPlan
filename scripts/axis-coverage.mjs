@@ -77,7 +77,11 @@ const PETICIONES = [
   ["italiana",            (r) => r.cocina === "italiana"],
   ["asiática",            (r) => r.cocina === "asiatica"],
   ["mexicana",            (r) => r.cocina === "mexicana"],
-  ["mediterránea",        (r) => r.cocina === "mediterranea"],
+  // "mediterranea" NO es un valor de COCINAS: el schema dice que `cocina`
+  // AUSENTE es española (ver recipeSchema.js), así que esta fila medía un
+  // valor que no existe y salía 0 para siempre. Lo que de verdad hay detrás
+  // de la petición es el fondo español/mediterráneo, que es el defecto.
+  ["española/mediterránea", (r) => !r.cocina],
 ];
 
 const filas = PETICIONES.map(([label, match]) => {
@@ -115,3 +119,58 @@ if (faltan.length > 0) {
   }
 }
 void norm;
+
+// ── Ejes PROPUESTOS (paso 7 del plan de datos) ──────────────────────────────
+// La pregunta no es "¿cabe otro eje?" sino "¿hace falta un campo nuevo para
+// servirlo?". Cada propuesta se mide con el mejor apaño que se puede hacer HOY
+// con los datos que ya hay. Que el apaño llegue al listón no significa que el
+// eje se pueda exponer: significa que el pool da, y que el problema —si lo
+// hay— es la CALIDAD de la etiqueta, no la cantidad de recetas.
+const txt = (r) => norm([r.name, r.description, ...(r.steps ?? [])].join(" "));
+const ings = (r) => norm((r.ingredients ?? []).map((i) => i.name).join(" "));
+
+const PROPUESTAS = [
+  // TEXTURA — el único eje que exigiría curar receta a receta: no hay ningún
+  // campo del que se deduzca. El apaño por palabras es justo lo que no vale
+  // (mete "tostada" en crujiente), y por eso su número aquí engaña al alza.
+  ["textura crujiente", "curación por receta", (r) => /crujient|rebozad|empanad|frito|fritas|tempura|panko|gratinad/.test(txt(r))],
+  ["textura cremosa", "curación por receta", (r) => /crema|cremos|pure|risotto|hummus|veloute|bechamel/.test(txt(r))],
+  // …salvo "blandito", que ya está curado y se llama kidFriendly.
+  ["textura blanda", "ya existe: kidFriendly", (r) => r.kidFriendly === true],
+
+  // TEMPERATURA — ya es `tecnica: "crudo"` más los fríos de cuchara. No hace
+  // falta campo nuevo: hace falta que el eje "sin cocinar" se llame frío.
+  ["plato frío", "ya existe: tecnica", (r) => r.tecnica === "crudo" || /gazpacho|salmorejo|vichyssoise|ajoblanco/.test(txt(r))],
+
+  // CARGA DE COCINA — `difficulty` y `time` ya están en todas. Lo que falta no
+  // es el dato, es el consumidor: el CAMPO `esfuerzo` de la libreta no lo lee
+  // nadie (notepadFields.js).
+  ["carga baja", "ya existe: difficulty+time", (r) => r.difficulty === "facil" && (r.time ?? 99) <= 25],
+  ["carga alta", "ya existe: difficulty+time", (r) => (r.time ?? 0) >= 45 || r.difficulty === "dificil"],
+
+  // PROCESADO — el único que sí pide dato nuevo, pero en el INGREDIENTE (383
+  // filas), no en la receta (844). Una bandera por ingrediente sirve a todas
+  // las recetas que lo llevan; al revés hay que curar cada plato. El apaño de
+  // abajo es una lista de nombres, que es exactamente lo que esa bandera
+  // sustituiría.
+  ["sin ultraprocesados", "pide bandera en ingredients.json", (r) => !/chorizo|salchich|bacon|panceta|jamon cocido|fiambre|surimi|nugget|precocinad|tomate frito|hojaldre|masa quebrada|sobrasada|morcilla|mortadela|salami|pepperoni|frankfurt/.test(ings(r))],
+];
+
+console.log("\n\nEjes PROPUESTOS — ¿da el pool, y hace falta campo nuevo?\n");
+console.log("eje".padEnd(22) + "total".padStart(6) + "1º".padStart(6) + "2º".padStart(6) + "cena".padStart(6) + "   de dónde sale");
+console.log("-".repeat(78));
+for (const [label, origen, match] of PROPUESTAS) {
+  const hit = estrella.filter(match);
+  const primero = hit.filter((r) => roles(r).includes("primero") || roles(r).includes("plato_unico")).length;
+  const segundo = hit.filter((r) => roles(r).includes("segundo")).length;
+  const cena = hit.filter((r) => roles(r).includes("cena") || roles(r).includes("plato_unico")).length;
+  console.log(
+    label.padEnd(22) + String(hit.length).padStart(6) + String(primero).padStart(6)
+    + String(segundo).padStart(6) + String(cena).padStart(6) + "   " + origen,
+  );
+}
+console.log(
+  "\nNinguno se queda corto de pool: el más flaco (plato frío) son 76 recetas y"
+  + "\ntodos llegan a dos roles. El cuello de botella no es cuántas recetas hay,"
+  + "\nes de dónde sale la etiqueta — y solo textura exige curar receta a receta.",
+);

@@ -1,0 +1,765 @@
+[
+  {
+    "id": "bases_001",
+    "name": "Arroz blanco rehogado",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "arroz",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 800,
+      "unit": "g"
+    },
+    "time": 20,
+    "minutosFijos": 18,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 290,
+    "protein_g": 6,
+    "carbs_g": 55,
+    "fat_g": 6,
+    "fiber_g": 1,
+    "sugar_g": 0,
+    "saturated_fat_g": 1,
+    "sodium_mg": 480,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "ingredientId": "arroz",
+        "amount": 280,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 560,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y laminar ajo.",
+      "Calentar aceite de oliva virgen extra en una cazuela y dorar el ajo a fuego suave.",
+      "Añadir arroz y rehogar removiendo hasta que el grano se vuelva translúcido.",
+      "Verter agua y sal, subir el fuego y llevar a ebullición.",
+      "Bajar el fuego, tapar y cocer sin destapar hasta que el grano esté suelto.",
+      "Retirar del fuego, dejar reposar tapado y remover con un tenedor para soltar el grano.",
+      "Extender en una bandeja para que enfríe rápido y repartir en táperes."
+    ],
+    "description": "Arroz blanco rehogado con ajo, la base de una olla que da para varios platos de la semana.",
+    "stepsRich": [
+      {
+        "text": "Pelar y laminar {{Ajo}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva virgen extra}} en una {{@Cazuela}} y dorar el ajo a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y rehogar removiendo hasta que el grano se vuelva translúcido.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Agua}} y {{Sal|gusto}}, subir el fuego y llevar a ebullición.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego, tapar y cocer sin destapar hasta que el grano esté suelto.",
+        "minutes": 16,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego, dejar reposar tapado y remover con un tenedor para soltar el grano.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Extender en una bandeja para que enfríe rápido y repartir en táperes.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar la ración del congelador y pasarla a un bol.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar con una cucharada de agua y tapar el bol.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar en el microondas removiendo a mitad, hasta que el grano vuelva a estar suelto.",
+        "minutes": 3,
+        "kind": "activo"
+      }
+    ]
+  },
+  {
+    "id": "bases_002",
+    "name": "Pasta cocida al dente",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 700,
+      "unit": "g"
+    },
+    "time": 12,
+    "minutosFijos": 10,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 300,
+    "protein_g": 11,
+    "carbs_g": 60,
+    "fat_g": 3,
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 0,
+    "sodium_mg": 520,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "gluten"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Pasta corta",
+        "ingredientId": "pasta-corta",
+        "amount": 320,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 3000,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Llevar agua a ebullición en una olla grande y añadir sal.",
+      "Echar pasta corta de golpe y remover para que no se pegue.",
+      "Cocer un minuto MENOS de lo que diga el paquete: va a recalentarse después.",
+      "Escurrir sin enjuagar y devolver a la olla.",
+      "Remover con aceite de oliva virgen extra para que no se apelmace al enfriar.",
+      "Repartir en táperes y guardar en la nevera."
+    ],
+    "description": "Pasta hervida un punto por debajo, lista para saltear con cualquier salsa de la semana.",
+    "stepsRich": [
+      {
+        "text": "Llevar {{Agua}} a ebullición en una {{@Olla}} grande y añadir {{Sal|gusto}}.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Echar {{Pasta corta}} de golpe y remover para que no se pegue.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer un minuto MENOS de lo que diga el paquete: va a recalentarse después.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir sin enjuagar y devolver a la olla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con {{Aceite de oliva virgen extra}} para que no se apelmace al enfriar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en táperes y guardar en la nevera.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
+  },
+  {
+    "id": "bases_003",
+    "name": "Patatas cocidas",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "patatas",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 900,
+      "unit": "g"
+    },
+    "time": 30,
+    "minutosFijos": 28,
+    "minutosPorRacion": 1,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 190,
+    "protein_g": 4,
+    "carbs_g": 43,
+    "fat_g": 0,
+    "fiber_g": 4,
+    "sugar_g": 2,
+    "saturated_fat_g": 0,
+    "sodium_mg": 380,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 1000,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 2000,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 20,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar patata y dejarlas enteras con piel: así no se aguan al cocer.",
+      "Cubrir con agua fría en una olla, añadir sal y llevar a ebullición.",
+      "Cocer hasta que un cuchillo entre sin resistencia en la más gorda.",
+      "Escurrir y dejar templar lo justo para poder manipularlas.",
+      "Pelar en caliente, que la piel sale sola, y trocear al tamaño que pida cada plato.",
+      "Repartir en táperes y guardar en la nevera."
+    ],
+    "description": "Patatas cocidas enteras con piel, la base de ensaladas, revueltos, purés y guarniciones.",
+    "stepsRich": [
+      {
+        "text": "Lavar {{Patata}} y dejarlas enteras con piel: así no se aguan al cocer.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir con {{Agua}} fría en una {{@Olla}}, añadir {{Sal|gusto}} y llevar a ebullición.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer hasta que un cuchillo entre sin resistencia en la más gorda.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir y dejar templar lo justo para poder manipularlas.",
+        "minutes": 8,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar en caliente, que la piel sale sola, y trocear al tamaño que pida cada plato.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en táperes y guardar en la nevera.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
+  },
+  {
+    "id": "bases_004",
+    "name": "Legumbre cocida",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "legumbre",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 1000,
+      "unit": "g"
+    },
+    "time": 60,
+    "minutosFijos": 55,
+    "minutosPorRacion": 1,
+    "capacidadMax": 16,
+    "difficulty": "facil",
+    "kcal": 320,
+    "protein_g": 17,
+    "carbs_g": 50,
+    "fat_g": 5,
+    "fiber_g": 12,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 300,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Garbanzos secos",
+        "ingredientId": "garbanzos",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 2000,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "ingredientId": "laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 10,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner garbanzos secos en remojo con agua abundante la noche anterior.",
+      "Dejar reposar en remojo un mínimo de 8 h.",
+      "Escurrir el remojo y pasar los garbanzos a una olla.",
+      "Cubrir con agua caliente, añadir laurel y llevar a ebullición.",
+      "Bajar el fuego y cocer a fuego lento hasta que estén tiernos, retirando la espuma.",
+      "Añadir sal al final de la cocción, nunca al principio, o la piel se endurece.",
+      "Escurrir reservando el caldo aparte, que vale para sopas y guisos de la semana.",
+      "Repartir en táperes con un poco de su caldo y guardar."
+    ],
+    "description": "Una olla de garbanzos o lentejas cocidos, con su caldo: la base de guisos, ensaladas y cremas.",
+    "stepsRich": [
+      {
+        "text": "Poner {{Garbanzos secos}} en remojo con agua abundante la noche anterior.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Dejar reposar en remojo un mínimo de 8 h.",
+        "minutes": 480,
+        "kind": "espera"
+      },
+      {
+        "text": "Escurrir el remojo y pasar los garbanzos a una {{@Olla}}.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con {{Agua}} caliente, añadir {{Laurel}} y llevar a ebullición.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego y cocer a fuego lento hasta que estén tiernos, retirando la espuma.",
+        "minutes": 50,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} al final de la cocción, nunca al principio, o la piel se endurece.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir reservando el caldo aparte, que vale para sopas y guisos de la semana.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en táperes con un poco de su caldo y guardar.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar la ración del congelador a la nevera la noche anterior.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Escurrir el caldo sobrante y pasar a un cazo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar a fuego suave con un chorro de agua hasta que rompa a hervir.",
+        "minutes": 5,
+        "kind": "activo"
+      }
+    ]
+  },
+  {
+    "id": "bases_005",
+    "name": "Quinoa cocida",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "quinoa",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 700,
+      "unit": "g"
+    },
+    "time": 20,
+    "minutosFijos": 18,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 220,
+    "protein_g": 8,
+    "carbs_g": 39,
+    "fat_g": 4,
+    "fiber_g": 5,
+    "sugar_g": 1,
+    "saturated_fat_g": 0,
+    "sodium_mg": 300,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Quinoa",
+        "ingredientId": "quinoa",
+        "amount": 240,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 480,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Enjuagar quinoa bajo el grifo en un colador fino hasta que el agua salga clara.",
+      "Pasar a un cazo con agua y sal y llevar a ebullición.",
+      "Tapar, bajar el fuego y cocer hasta que el grano abra su germen en espiral.",
+      "Retirar del fuego y dejar reposar tapada.",
+      "Soltar el grano con un tenedor y repartir en táperes."
+    ],
+    "description": "Quinoa enjuagada y cocida, lista para bowls, ensaladas y rellenos.",
+    "stepsRich": [
+      {
+        "text": "Enjuagar {{Quinoa}} bajo el grifo en un colador fino hasta que el agua salga clara.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar a un {{@Cazo}} con {{Agua}} y {{Sal|gusto}} y llevar a ebullición.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar, bajar el fuego y cocer hasta que el grano abra su germen en espiral.",
+        "minutes": 14,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar tapada.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Soltar el grano con un tenedor y repartir en táperes.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar la ración del congelador y pasarla a un bol tapado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar en el microondas removiendo a mitad, hasta que esté caliente.",
+        "minutes": 3,
+        "kind": "activo"
+      }
+    ]
+  },
+  {
+    "id": "bases_006",
+    "name": "Cuscús hidratado",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "cuscus",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 600,
+      "unit": "g"
+    },
+    "time": 8,
+    "minutosFijos": 6,
+    "minutosPorRacion": 0.3,
+    "capacidadMax": 10,
+    "difficulty": "facil",
+    "kcal": 220,
+    "protein_g": 7,
+    "carbs_g": 45,
+    "fat_g": 2,
+    "fiber_g": 3,
+    "sugar_g": 0,
+    "saturated_fat_g": 0,
+    "sodium_mg": 320,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "gluten"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Cuscús",
+        "ingredientId": "cuscus",
+        "amount": 240,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 260,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner cuscús en un bol amplio con sal.",
+      "Calentar agua hasta que hierva y verterla sobre el cuscús.",
+      "Tapar el bol y dejar que absorba sin tocarlo.",
+      "Añadir aceite de oliva virgen extra y soltar el grano con un tenedor.",
+      "Repartir en táperes y guardar en la nevera."
+    ],
+    "description": "Cuscús hidratado y suelto, la base más rápida de todas: cinco minutos y está.",
+    "stepsRich": [
+      {
+        "text": "Poner {{Cuscús}} en un bol amplio con {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Agua}} hasta que hierva y verterla sobre el cuscús.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar el bol y dejar que absorba sin tocarlo.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva virgen extra}} y soltar el grano con un tenedor.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en táperes y guardar en la nevera.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
+  },
+  {
+    "id": "bases_007",
+    "name": "Boniato asado",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "boniato",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 800,
+      "unit": "g"
+    },
+    "time": 45,
+    "minutosFijos": 42,
+    "minutosPorRacion": 1,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 200,
+    "protein_g": 3,
+    "carbs_g": 45,
+    "fat_g": 2,
+    "fiber_g": 6,
+    "sugar_g": 12,
+    "saturated_fat_g": 0,
+    "sodium_mg": 220,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Boniato",
+        "ingredientId": "boniato",
+        "amount": 1000,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200 grados.",
+      "Lavar boniato y pincharlos varias veces con un tenedor.",
+      "Untar con aceite de oliva virgen extra y sal y colocar en una bandeja.",
+      "Asar hasta que estén blandos por dentro y la piel arrugada.",
+      "Dejar templar antes de manipular.",
+      "Pelar, trocear y repartir en táperes."
+    ],
+    "description": "Boniato asado entero al horno, dulce y listo para bowls, purés y guarniciones.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el {{@Horno}} a 200 grados.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Lavar {{Boniato}} y pincharlos varias veces con un tenedor.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Untar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}} y colocar en una bandeja.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Asar hasta que estén blandos por dentro y la piel arrugada.",
+        "minutes": 40,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar antes de manipular.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar, trocear y repartir en táperes.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar la ración del congelador a la nevera la noche anterior.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar en el horno o en una sartén hasta que vuelva a dorarse por fuera.",
+        "minutes": 8,
+        "kind": "activo"
+      }
+    ]
+  }
+]

@@ -24,26 +24,31 @@
     "ingredients": [
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Naranja",
+        "ingredientId": "naranja",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Fresas",
+        "ingredientId": "fresa",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       }
@@ -146,16 +151,19 @@
     "ingredients": [
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Nueces",
+        "ingredientId": "nueces",
         "amount": 40,
         "unit": "g"
       }
@@ -226,11 +234,13 @@
     "ingredients": [
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Naranja",
+        "ingredientId": "naranja",
         "amount": 1,
         "unit": "ud"
       }
@@ -298,16 +308,19 @@
     "ingredients": [
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 1,
         "unit": "ud"
       }
@@ -423,6 +436,7 @@
     "ingredients": [
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 250,
         "unit": "g"
       }
@@ -470,16 +484,19 @@
     "ingredients": [
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Fresas",
+        "ingredientId": "fresa",
         "amount": 100,
         "unit": "g"
       }
@@ -552,6 +569,7 @@
     "ingredients": [
       {
         "name": "Yogur de sabores",
+        "ingredientId": "yogur",
         "amount": 250,
         "unit": "g"
       }
@@ -600,21 +618,25 @@
     "ingredients": [
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Canela",
+        "ingredientId": "canela",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 1,
         "unit": "ud"
       }
@@ -728,31 +750,37 @@
     "ingredients": [
       {
         "name": "Queso crema",
+        "ingredientId": "queso-crema",
         "amount": 600,
         "unit": "g"
       },
       {
         "name": "Nata para montar",
+        "ingredientId": "nata-para-montar",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 220,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 5,
         "unit": "ud"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -885,26 +913,31 @@
     "ingredients": [
       {
         "name": "Manzana reineta",
+        "ingredientId": "manzana",
         "amount": 1000,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Hojaldre",
+        "ingredientId": "hojaldre",
         "amount": 230,
         "unit": "g"
       },
       {
         "name": "Canela en polvo",
+        "ingredientId": "canela",
         "amount": 2,
         "unit": "g"
       }
@@ -1080,41 +1113,49 @@
     "ingredients": [
       {
         "name": "Chocolate negro",
+        "ingredientId": "chocolate",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Nueces",
+        "ingredientId": "nueces",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cacao en polvo",
+        "ingredientId": "cacao",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -1277,56 +1318,67 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 140,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 360,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Agua fría",
+        "ingredientId": "agua",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Ralladura de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Maicena",
+        "ingredientId": "maicena",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Yema de huevo",
+        "ingredientId": "yema-de-huevo",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Clara de huevo",
+        "ingredientId": "clara-de-huevo",
         "amount": 4,
         "unit": "ud"
       }
@@ -1544,41 +1596,49 @@
     "ingredients": [
       {
         "name": "Bizcochos de soletilla",
+        "ingredientId": "bizcocho-de-soletilla",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Café espresso",
+        "ingredientId": "cafe-espresso",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Mascarpone",
+        "ingredientId": "mascarpone",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Yema de huevo",
+        "ingredientId": "yema-de-huevo",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Clara de huevo",
+        "ingredientId": "clara-de-huevo",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cacao en polvo",
+        "ingredientId": "cacao",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Licor de café",
+        "ingredientId": "licor-de-cafe",
         "amount": 30,
         "unit": "ml"
       }
@@ -1709,16 +1769,19 @@
     "ingredients": [
       {
         "name": "Chocolate negro",
+        "ingredientId": "chocolate",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 1,
         "unit": "g"
       }
@@ -1828,41 +1891,49 @@
     "ingredients": [
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 800,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Canela en polvo",
+        "ingredientId": "canela",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Azúcar moreno",
+        "ingredientId": "azucar-moreno",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -2018,41 +2089,49 @@
     "ingredients": [
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Nata para montar",
+        "ingredientId": "nata-para-montar",
         "amount": 500,
         "unit": "ml"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Chocolate negro",
+        "ingredientId": "chocolate",
         "amount": 200,
         "unit": "g"
       }
@@ -2223,46 +2302,55 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Azúcar moreno",
+        "ingredientId": "azucar-moreno",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Chocolate negro",
+        "ingredientId": "chocolate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Bicarbonato",
+        "ingredientId": "bicarbonato",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Extracto de vainilla",
+        "ingredientId": "extracto-de-vainilla",
         "amount": 5,
         "unit": "ml"
       }
@@ -2437,66 +2525,79 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 280,
         "unit": "g"
       },
       {
         "name": "Cacao en polvo",
+        "ingredientId": "cacao",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Bicarbonato",
+        "ingredientId": "bicarbonato",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Suero de leche",
+        "ingredientId": "leche",
         "amount": 240,
         "unit": "ml"
       },
       {
         "name": "Colorante rojo alimentario",
+        "ingredientId": "colorante",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Extracto de vainilla",
+        "ingredientId": "extracto-de-vainilla",
         "amount": 5,
         "unit": "ml"
       },
       {
         "name": "Queso crema",
+        "ingredientId": "queso-crema",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Azúcar glas",
+        "ingredientId": "azucar-glas",
         "amount": 250,
         "unit": "g"
       }
@@ -2677,71 +2778,85 @@
     "ingredients": [
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 280,
         "unit": "g"
       },
       {
         "name": "Azúcar moreno",
+        "ingredientId": "azucar-moreno",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Aceite de girasol",
+        "ingredientId": "aceite-girasol",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Canela en polvo",
+        "ingredientId": "canela",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Bicarbonato",
+        "ingredientId": "bicarbonato",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Nueces",
+        "ingredientId": "nueces",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Queso crema",
+        "ingredientId": "queso-crema",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Azúcar glas",
+        "ingredientId": "azucar-glas",
         "amount": 180,
         "unit": "g"
       }
@@ -2913,36 +3028,43 @@
     "ingredients": [
       {
         "name": "Nata para montar",
+        "ingredientId": "nata-para-montar",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Extracto de vainilla",
+        "ingredientId": "extracto-de-vainilla",
         "amount": 5,
         "unit": "ml"
       },
       {
         "name": "Hojas de gelatina",
+        "ingredientId": "hoja-de-gelatina",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Frutos rojos",
+        "ingredientId": "frutos-rojos",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 30,
         "unit": "ml"
       }
@@ -2966,22 +3088,26 @@
       {
         "text": "Sumergir {{Hojas de gelatina}} en un bol con agua fría hasta que estén blandas.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Nata para montar}}, {{Leche}}, {{Azúcar}} y {{Extracto de vainilla}} en un cazo a fuego medio hasta que esté caliente sin que llegue a hervir.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las hojas de gelatina y añadirlas al cazo fuera del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Remover hasta que la gelatina se disuelva por completo en la mezcla de nata.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir la mezcla en 4 moldes o vasos individuales.",
@@ -3069,21 +3195,25 @@
     "ingredients": [
       {
         "name": "Nata para montar",
+        "ingredientId": "nata-para-montar",
         "amount": 500,
         "unit": "ml"
       },
       {
         "name": "Leche condensada",
+        "ingredientId": "leche-condensada",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Extracto de vainilla",
+        "ingredientId": "extracto-de-vainilla",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 1,
         "unit": "g"
       }
@@ -3194,21 +3324,25 @@
     "ingredients": [
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 350,
         "unit": "ml"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Ralladura de limón",
+        "ingredientId": "limon",
         "amount": 5,
         "unit": "g"
       }
@@ -3339,31 +3473,37 @@
     "ingredients": [
       {
         "name": "Chocolate negro",
+        "ingredientId": "chocolate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Yema de huevo",
+        "ingredientId": "yema-de-huevo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 60,
         "unit": "g"
       }
@@ -3512,46 +3652,55 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Ron",
+        "ingredientId": "ron",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ralladura de limón",
+        "ingredientId": "limon",
         "amount": 5,
         "unit": "g"
       }
@@ -3716,41 +3865,49 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Azúcar glas",
+        "ingredientId": "azucar-glas",
         "amount": 270,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Extracto de vainilla",
+        "ingredientId": "extracto-de-vainilla",
         "amount": 5,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Clara de huevo",
+        "ingredientId": "clara-de-huevo",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 5,
         "unit": "ml"
       }
@@ -3884,41 +4041,49 @@
     "ingredients": [
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 125,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Aceite de girasol",
+        "ingredientId": "aceite-girasol",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 16,
         "unit": "g"
       },
       {
         "name": "Ralladura de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -4075,36 +4240,43 @@
     "ingredients": [
       {
         "name": "Leche condensada",
+        "ingredientId": "leche-condensada",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Canela",
+        "ingredientId": "canela",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Extracto de vainilla",
+        "ingredientId": "extracto-de-vainilla",
         "amount": 5,
         "unit": "ml"
       }
@@ -4114,7 +4286,7 @@
       "Cocer a fuego medio removiendo sin parar 25 min, hasta que espese y se vea el fondo del cazo.",
       "Retirar del fuego y templar ligeramente.",
       "Batir las yemas y añadirlas al manjar removiendo enérgicamente para que no cuajen.",
-      "Añadir la extracto de vainilla, mezclar y repartir en copas; enfriar en la nevera.",
+      "Añadir el extracto de vainilla, mezclar y repartir en copas; enfriar en la nevera.",
       "Hacer un almíbar con el azúcar y el vino blanco hasta punto de hebra.",
       "Montar las claras a punto de nieve firme.",
       "Verter el almíbar caliente en hilo sobre las claras sin dejar de batir hasta obtener un merengue brillante.",

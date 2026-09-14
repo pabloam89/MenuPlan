@@ -9,7 +9,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "time": 25,
     "difficulty": "facil",
     "season": "all",
@@ -26,26 +25,31 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Leche entera",
+        "ingredientId": "leche",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Nuez moscada molida",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -120,7 +124,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 9,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "dentro"
   },
   {
     "id": "guarniciones_025",
@@ -146,26 +151,31 @@
     "ingredients": [
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Tomillo fresco",
+        "ingredientId": "tomillo",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -266,26 +276,31 @@
     "ingredients": [
       {
         "name": "Coles de Bruselas",
+        "ingredientId": "coles-de-bruselas",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Panceta ahumada en taquitos",
+        "ingredientId": "panceta",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Vinagre balsámico",
+        "ingredientId": "vinagre-balsamico",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -395,26 +410,31 @@
     "ingredients": [
       {
         "name": "Espárragos trigueros",
+        "ingredientId": "esparragos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -512,7 +532,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "time": 45,
     "difficulty": "facil",
@@ -528,31 +547,37 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Romero fresco",
+        "ingredientId": "romero",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -632,7 +657,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 1,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_029",
@@ -659,26 +685,31 @@
     "ingredients": [
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -767,36 +798,43 @@
     "ingredients": [
       {
         "name": "Champiñones enteros",
+        "ingredientId": "champinon",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Guindilla seca",
+        "ingredientId": "guindilla",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -895,31 +933,37 @@
     "ingredients": [
       {
         "name": "Coliflor",
+        "ingredientId": "coliflor",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Cebollino",
+        "ingredientId": "cebollino",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -1048,36 +1092,43 @@
     "ingredients": [
       {
         "name": "Alcachofa",
+        "ingredientId": "alcachofa",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano en virutas",
+        "ingredientId": "jamon",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -1191,31 +1242,37 @@
     "ingredients": [
       {
         "name": "Setas variadas",
+        "ingredientId": "setas",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Jamón ibérico en taquitos",
+        "ingredientId": "jamon",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -1316,51 +1373,61 @@
     "ingredients": [
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Pimiento choricero",
+        "ingredientId": "pimiento-choricero",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Almendra tostada",
+        "ingredientId": "almendras",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Avellana tostada",
+        "ingredientId": "avellanas",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Pan frito",
+        "ingredientId": "pan",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Vinagre de Jerez",
+        "ingredientId": "vinagre-de-jerez",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -1408,8 +1475,8 @@
         "text": "Triturar {{Tomate maduro}}, {{Pimiento choricero}}, {{Almendra tostada}}, {{Avellana tostada}} y {{Pan frito}} en el vaso de la batidora.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Ajo}}, {{Aceite de oliva}} y {{Vinagre de Jerez}} al vaso y triturar hasta obtener una salsa espesa y homogénea.",
@@ -1481,36 +1548,43 @@
     "ingredients": [
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Queso de cabra",
+        "ingredientId": "queso-cabra",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Nuez",
+        "ingredientId": "nueces",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Tomillo fresco",
+        "ingredientId": "tomillo",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -1598,7 +1672,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "time": 35,
     "difficulty": "normal",
     "season": "all",
@@ -1615,46 +1688,55 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pimentón picante",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Cayena molida",
+        "ingredientId": "guindilla",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -1681,99 +1763,85 @@
       {
         "text": "Pelar {{Patata}} y cortar en dados irregulares de unos 3 cm.",
         "minutes": 5,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Picar {{Ajo}} fino y dividir en 2 partes: una para la salsa brava y otra para el alioli.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} honda a fuego medio hasta que esté caliente.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Freír las patatas en el aceite caliente hasta que estén doradas y crujientes por fuera y tiernas por dentro.",
         "minutes": 12,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en un cazo a fuego suave hasta que esté templado.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la mitad del ajo picado en el cazo a fuego suave hasta que empiece a dorarse.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Retirar el cazo del fuego y añadir {{Pimentón picante}} removiendo para que no se queme.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Cayena molida}} al cazo y volver al fuego suave.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Cocer la salsa a fuego suave hasta que espese ligeramente.",
         "minutes": 6,
-        "kind": "pasivo",
-        "part": "salsa"
+        "kind": "pasivo"
       },
       {
         "text": "Poner {{Huevo}} en un vaso alto junto con la otra mitad del ajo picado y {{Limón}}.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "guarnicion"
+        "kind": "prep"
       },
       {
         "text": "Triturar con batidora de mano arrancando desde el fondo hasta que emulsione.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Añadir aceite de oliva en hilo fino mientras se tritura hasta que el alioli espese.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Escurrir las patatas fritas sobre papel absorbente y salar con {{Sal|gusto}}.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Repartir las patatas en el plato y cubrir con la salsa brava.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       },
       {
         "text": "Añadir el alioli en líneas por encima y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "fiber_g": 4,
     "sugar_g": 3,
     "saturated_fat_g": 4,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_037",
@@ -1801,31 +1869,37 @@
     "ingredients": [
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Pasas",
+        "ingredientId": "pasas",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -1917,7 +1991,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "time": 55,
     "difficulty": "normal",
@@ -1935,36 +2008,43 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Tomillo fresco",
+        "ingredientId": "tomillo",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -2050,7 +2130,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 10,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_039",
@@ -2062,7 +2143,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "time": 20,
     "difficulty": "facil",
     "season": "all",
@@ -2077,16 +2157,19 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 350,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -2160,7 +2243,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 2,
     "sodium_mg": 290,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_040",
@@ -2172,7 +2256,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "time": 25,
     "difficulty": "normal",
     "season": "all",
@@ -2189,31 +2272,37 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 350,
         "unit": "ml"
       },
       {
         "name": "Parmesano rallado",
+        "ingredientId": "parmesano",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -2299,7 +2388,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 4,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_041",
@@ -2311,7 +2401,6 @@
     ],
     "type": "guarnicion",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "time": 70,
     "difficulty": "normal",
@@ -2330,41 +2419,49 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Leche entera",
+        "ingredientId": "leche",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Queso gruyere rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Nuez moscada molida",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -2445,6 +2542,7 @@
     "saturated_fat_g": 27,
     "sodium_mg": 420,
     "freezable": false,
+    "baseMode": "dentro",
     "cocina": "francesa"
   },
   {
@@ -2474,36 +2572,43 @@
     "ingredients": [
       {
         "name": "Coliflor",
+        "ingredientId": "coliflor",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Leche entera",
+        "ingredientId": "leche",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Nuez moscada molida",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -2663,41 +2768,49 @@
     "ingredients": [
       {
         "name": "Endivia",
+        "ingredientId": "endivia",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Leche entera",
+        "ingredientId": "leche",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Nuez moscada molida",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -2864,26 +2977,31 @@
     "ingredients": [
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 450,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Canela molida",
+        "ingredientId": "canela",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Leche entera",
+        "ingredientId": "leche",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -2982,7 +3100,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -3002,31 +3119,37 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 12,
         "unit": "g"
       },
       {
         "name": "Romero fresco",
+        "ingredientId": "romero",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -3094,7 +3217,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 1,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_046",
@@ -3102,7 +3226,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -3124,41 +3247,49 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Mostaza de Dijon",
+        "ingredientId": "mostaza",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -3253,7 +3384,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_047",
@@ -3279,41 +3411,49 @@
     "ingredients": [
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Miel",
+        "ingredientId": "miel",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Tomillo fresco",
+        "ingredientId": "tomillo",
         "amount": 2,
         "unit": "g"
       }
@@ -3409,16 +3549,19 @@
     "ingredients": [
       {
         "name": "Pimiento de padrón",
+        "ingredientId": "pimiento-verde",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Sal en escamas",
+        "ingredientId": "sal-escamas",
         "amount": 3,
         "unit": "g"
       }
@@ -3501,26 +3644,31 @@
     "ingredients": [
       {
         "name": "Berenjena",
+        "ingredientId": "berenjena",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Miel de caña",
+        "ingredientId": "miel",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -3609,31 +3757,37 @@
     "ingredients": [
       {
         "name": "Guisantes congelados",
+        "ingredientId": "guisantes",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Menta fresca",
+        "ingredientId": "menta",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Nata líquida",
+        "ingredientId": "nata",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -3750,26 +3904,31 @@
     "ingredients": [
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -3872,16 +4031,19 @@
     "ingredients": [
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 70,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -3965,31 +4127,37 @@
     "ingredients": [
       {
         "name": "Espárragos blancos en conserva",
+        "ingredientId": "esparragos-blancos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo cocido",
+        "ingredientId": "huevos",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -4070,26 +4238,31 @@
     "ingredients": [
       {
         "name": "Judía verde",
+        "ingredientId": "judia-verde",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -4207,31 +4380,37 @@
     "ingredients": [
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Jengibre fresco",
+        "ingredientId": "jengibre",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Nata líquida",
+        "ingredientId": "nata",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -4337,46 +4516,55 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 2,
         "unit": "g"
       }
@@ -4538,36 +4726,43 @@
     "ingredients": [
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Tomillo fresco",
+        "ingredientId": "tomillo",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -4643,7 +4838,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -4667,31 +4861,37 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -4817,7 +5017,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_059",
@@ -4846,36 +5047,43 @@
     "ingredients": [
       {
         "name": "Champiñón grande",
+        "ingredientId": "champinon",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Pan rallado",
+        "ingredientId": "pan-rallado",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -4987,7 +5195,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "dentro",
     "mealRole": [
       "guarnicion"
     ],
@@ -5008,31 +5215,37 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -5135,7 +5348,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "baseMode": "dentro"
   },
   {
     "id": "guarniciones_061",
@@ -5164,46 +5378,55 @@
     "ingredients": [
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Salsa de soja",
+        "ingredientId": "salsa-soja",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Jengibre fresco",
+        "ingredientId": "jengibre",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de sésamo",
+        "ingredientId": "aceite-de-sesamo",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sésamo tostado",
+        "ingredientId": "sesamo",
         "amount": 5,
         "unit": "g"
       }
@@ -5297,21 +5520,25 @@
     "ingredients": [
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 2,
         "unit": "g"
       }
@@ -5399,7 +5626,6 @@
     "category": "guarniciones",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "aparte",
     "mealRole": [
       "guarnicion"
     ],
@@ -5419,31 +5645,37 @@
     "ingredients": [
       {
         "name": "Patata baby",
+        "ingredientId": "patata",
         "amount": 450,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 12,
         "unit": "g"
       },
       {
         "name": "Romero fresco",
+        "ingredientId": "romero",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -5533,7 +5765,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 1,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "baseMode": "aparte"
   },
   {
     "id": "guarniciones_064",
@@ -5561,31 +5794,37 @@
     "ingredients": [
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Comino",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Menta fresca",
+        "ingredientId": "menta",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 20,
         "unit": "g"
       }
@@ -5609,8 +5848,6 @@
     "category": "guarniciones",
     "cocina": "india",
     "mainProtein": "none",
-    "mainBase": "pan",
-    "baseMode": "dentro",
     "mealRole": [
       "guarnicion"
     ],
@@ -5632,41 +5869,49 @@
     "ingredients": [
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 10,
         "unit": "g"
       }
