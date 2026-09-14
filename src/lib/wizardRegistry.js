@@ -452,25 +452,22 @@ export const PREGUNTAS = [
     color: "#5a5fc8",
     control: "cards-ab",
     fuente: "data",
-    // No hay campo `batchCooking`: esto ES un perfil de tiempo, y `cookTime`
-    // ya separa entre semana de fin de semana. Un flag nuevo habría sido un
-    // campo más sin lector, y el reparto de minutos ya lo lee el planner por
-    // `maxCookTime`.
+    // La respuesta se guarda EXPLÍCITA en `cookTime.tanda`, no se deduce.
     //
-    // Se reconoce por la ASIMETRÍA: si el finde tiene mucho más presupuesto
-    // que el diario, es que cocinas en tanda. Es la misma idea que `lee` de
-    // la pregunta del tiempo, que deduce el nivel de los minutos guardados.
+    // El primer intento la dedujo de la asimetría —"si el finde tiene el doble
+    // que el diario, es que cocinas en tanda"— y estaba mal por dos sitios: el
+    // valor POR DEFECTO de la app ya es 30 entre semana y 60 el finde, o sea
+    // exactamente el doble, así que quien no hubiera tocado nada salía marcado
+    // "en tanda" sin pedirlo; y como siempre devolvía algo, la pregunta nacía
+    // contestada y el wizard no la enseñaba nunca.
+    //
+    // Con la bandera hay dos lectores de verdad y ninguno inventado: esta fila
+    // la lee para marcar la card, y el planner lee los MINUTOS que escribe al
+    // lado (maxCookTime), que es donde está el efecto real — un domingo con 90
+    // minutos admite un guiso que un martes de 20 no.
     lee: (data) => {
-      const ct = data?.cookTime;
-      if (!ct) return null;
-      const diario = ct.weekday?.Comida;
-      const finde = ct.weekend?.Comida;
-      // `cookTime` guardado como un número suelto (forma antigua, y la que
-      // usan varios fixtures) significa EL MISMO presupuesto todos los días.
-      // Eso ya es una respuesta: cocinas cada día. Devolver null aquí dejaba
-      // la pregunta pendiente para siempre en esos saves.
-      if (!diario || !finde) return "cada_dia";
-      return finde >= diario * 2 ? "tanda" : "cada_dia";
+      const t = data?.cookTime?.tanda;
+      return t === true ? "tanda" : t === false ? "cada_dia" : null;
     },
     escribe: (data, id) => {
       const base = data?.cookTime ?? COOK_TIME_DEFAULTS;
@@ -485,6 +482,7 @@ export const PREGUNTAS = [
         ...data,
         cookTime: {
           ...base,
+          tanda: id === "tanda",
           weekday: mismo(base.weekday, diario),
           weekend: mismo(base.weekend, finde),
         },
@@ -503,13 +501,11 @@ export const PREGUNTAS = [
     // tiempo justo... y por eso cocino el domingo" solo se puede decir en ese
     // orden.
     requiere: ["tiempo"],
-    // Solo se pregunta a quien le sirve. A quien ha dicho que tiene un rato
-    // para cocinar entre semana no hay que ofrecerle cocinar el domingo: no
-    // se pinta en gris ni se explica, simplemente no está.
-    activa: (data) => {
-      const nivel = data?.cookTime ? cookLevelForMinutes(data.cookTime?.weekday?.Comida) : null;
-      return nivel === "con_prisa" || nivel === "normal" || nivel === "depende";
-    },
+    // Se pregunta a todo el mundo. Hubo un `activa` que se la escondía a quien
+    // contestaba "tengo un rato para cocinar" — sonaba fino y era falso:
+    // tener tiempo un domingo es justo lo que hace falta para cocinar en
+    // tanda, y además dejaba la pregunta invisible para media casa.
+    activa: null,
     refina: null,
     anula: [],
     delegable: true,

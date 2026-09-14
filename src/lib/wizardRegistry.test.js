@@ -446,7 +446,16 @@ describe("el wizard se acorta mientras hablas", () => {
       ...CIMIENTOS,
       mealStructure: "primero_segundo",
       cookLevel: "normal",
-      cookTime: 30,
+      // La forma de verdad, no un número suelto: desde que existe la pregunta
+      // de las tandas hacen falta los dos presupuestos y la bandera. Un
+      // `cookTime: 30` a secas dejaba la pregunta de tandas pendiente, y este
+      // test dice "con TODO contestado".
+      cookTime: {
+        mode: "shared",
+        weekday: { Comida: 30, Cena: 30 },
+        weekend: { Comida: 30, Cena: 30 },
+        tanda: false,
+      },
       // `kitchenTools`, que es lo que lee el motor. Este fixture decía
       // `appliances` — el mismo campo huérfano al que apuntaba Trastos, así que
       // el test daba por contestada una pregunta que en realidad no movía nada.
