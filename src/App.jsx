@@ -10,6 +10,7 @@ import {
   OnboardingMealExtrasComidas,
   OnboardingMealExtrasOtros,
   OnboardingPantryInventory,
+  OnboardingPantryMode,
   OnboardingSchedule,
   OnboardingSchoolMenu,
   OnboardingCooking,
@@ -51,6 +52,11 @@ import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, ac
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
+// Wizard generativo (experimento local, rama wizard/generativo). Todo lo suyo
+// vive detrás de este hook: la fila de mandos sobre el menú, la burbuja del
+// bot y el modal que sale al dar a "Generar menú". Quitarlo es borrar sus
+// cuatro usos de aquí.
+import { useWizardMenu } from "./components/wizard/useWizardMenu.jsx";
 import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
@@ -59,6 +65,7 @@ import { getDayMeals, getMeals, DAYS } from "./lib/planner.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,
+  mismosGrupos,
   memberIsBaby,
   canSplitMenus,
   hasChildMember,
@@ -88,6 +95,7 @@ import {
   orderedWeeks,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
+import { proyectarReglas, reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
   saveMenu as saveMenuRemote,
   loadMenuSummaries as loadMenuSummariesRemote,
@@ -269,6 +277,14 @@ const RESET_VARIANTS = {
 
 const INITIAL_DATA = {
   members: [],
+  // Las reglas de la casa: lo que la libreta no puede decir porque tiene
+  // nombre propio, fecha o excepción. "El miércoles viene mi hermano", "Lucía
+  // no cena en casa hasta el día 20", "pasta los viernes, salvo el 26".
+  //
+  // Se guardan LAS REGLAS, nunca sus efectos: los invitados que produce una
+  // regla viven solo dentro del delta de una generación y se tiran con ella
+  // (ver lib/reglas.js). Borrar una visita es borrar su regla.
+  reglas: [],
   dislikes: [],
   customAllergies: [],
   customDislikes: [],
@@ -284,15 +300,18 @@ const INITIAL_DATA = {
   // How «En casa» stock feeds menu generation:
   //   "only"   → strong bias: build the menu mostly from what's at home
   //   "prefer" → soft, secondary preference (the historical useHomeStock:true)
-  //   "off"    → ignore the pantry when planning
-  // useHomeStock is kept in sync as a legacy boolean (off ⇄ false).
+  // useHomeStock is kept in sync as a legacy boolean.
   //
-  // Default "off": aprovechar lo de casa es una decisión que hay que TOMAR, no
-  // un supuesto. El asistente se puede saltar entero desde el paso 0 ("Generar
-  // menú" sin abrir ningún paso), y con "prefer" de partida el menú saldría
-  // sesgado por un inventario que nadie ha rellenado. Mismo criterio que
-  // hasBudget: false — lo que no se ha preguntado, no se aplica.
-  pantryMode: "off",
+  // Hubo un cuarto, "off" (ignorar la despensa al planificar). Se quitó: nadie
+  // rellena el inventario para que luego no cuente. Sigue siendo un valor que
+  // el motor entiende —para no romper un save viejo— pero ya no lo produce
+  // nadie salvo el modo básico, que simplifica por su cuenta (resolveModeData).
+  //
+  // Default "only" — "aprovecha todo lo que hay en casa, y el resto lo eliges
+  // tú". Es lo que hace quien cocina: no dejar que se eche a perder lo que ya
+  // compró. "prefer" (romper empates) sigue existiendo en el motor pero ya no
+  // se ofrece ni se siembra: era una diferencia que no se nota.
+  pantryMode: "only",
   // ¿Se ha elegido el modo de despensa a propósito? Sirve para distinguir un
   // "prefer" que puso el usuario de uno que puso un default antiguo: sin este
   // flag no se pueden separar, y los saves de entonces llevan "prefer" escrito.
@@ -475,11 +494,26 @@ function resolveModeData(data) {
     extraMeals: { desayuno: "off", merienda: "off", postre: "off", postreTipo: "inmediato", postreInmediato: "mix" },
     // Sin cenas rápidas.
     slotType: cleanedSlotType,
-    // Nivel de cocina normal.
-    cookLevel: "normal",
-    // Despensa: no la tenemos en cuenta mientras no se diga lo contrario.
-    pantryMode: "off",
-    useHomeStock: false,
+    // Nivel de cocina normal... salvo que lo hayas elegido tu desde la fila de
+    // mandos del menu (`cookLevelManual`, ver el mando "Esfuerzo" en
+    // lib/wizardRegistry.js). Mismo trato que `manualSlotType` aqui arriba: el
+    // modo basico simplifica lo que NO has contestado, no lo que acabas de
+    // decidir. Sin esto el mando se pintaba y no cambiaba el menu.
+    cookLevel: data.cookLevelManual ? (data.cookLevel ?? "normal") : "normal",
+    // La despensa NO se toca aquí, y es un cambio respecto a antes: el modo
+    // básico forzaba `pantryMode: "off"`, o sea que a casi todo el mundo —el
+    // básico es el defecto— la despensa no le contaba para nada.
+    //
+    // Se cae por lo mismo que se cayó la opción "Que no cuente": nadie rellena
+    // el inventario para que luego no cuente. Y arrastraba un daño que no se
+    // veía: los platos YA COCINADOS (tuppers de nevera y congelador) salen de
+    // la misma lista que los ingredientes (ver frozenDishes/fridgeDishes en
+    // lib/aiPlanner.js), así que apagarla no solo quitaba el sesgo — dejaba de
+    // ofrecerte un táper que caduca en tres días.
+    //
+    // Ahora el modo de despensa es de quien lo elige, no del modo básico, y
+    // manda igual sobre ingredientes y sobre platos hechos: quien sube algo
+    // quiere que entre en el menú, y lo que se gradúa es cuánto pesa.
     // Multisemana: cosas distintas cada semana (sin repetir platos).
     menuVarietyPref: "strict",
     // Estilo de comida: equilibrado, sin diferenciar por grupo.
@@ -687,29 +721,26 @@ function migrate(state) {
   }
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
-  // Los saves anteriores a `pantryModeSet` llevan el pantryMode que les escribió
-  // el normalizador viejo (useHomeStock:true → "prefer"), no una elección de
-  // nadie — así que la tarjeta del asistente decía "Aprovechamos lo que hay" en
-  // cuentas que nunca lo habían pedido. Se apaga una vez; el flag queda
-  // guardado (en false: sigue sin elegirse) y la migración no se repite.
-  if (typeof d.pantryModeSet !== "boolean") {
-    d.pantryModeSet = false;
-    d.pantryMode = "off";
-    d.useHomeStock = false;
-  }
-  if (typeof d.useHomeStock !== "boolean") d.useHomeStock = false;
-  // pantryMode is the richer 4-way successor to the useHomeStock boolean.
-  // "strict" (solo con lo de casa, sin comprar) is the newest, strongest tier.
+  // `pantryModeSet` marca si la elección es de alguien o del normalizador.
+  if (typeof d.pantryModeSet !== "boolean") d.pantryModeSet = false;
+  // El asistente ofrece DOS (ver PANTRY_MODES en screens/Onboarding.jsx), y la
+  // diferencia entre ellas es una sola pregunta: ¿compro o no compro? Las dos
+  // aprovechan todo lo que hay en casa.
   //
-  // Sin un pantryMode válido guardado no hay elección que respetar: el
-  // useHomeStock:true de los saves antiguos era el default de entonces, no algo
-  // que nadie marcase, así que sembrar "prefer" desde ahí dejaba la despensa
-  // sesgando el menú sin que se hubiera pedido. Se siembra "off" y se pide
-  // desde la pantalla de despensa como cualquier otro ajuste.
-  if (!["strict", "only", "prefer", "off"].includes(d.pantryMode)) {
-    d.pantryMode = "off";
-    d.useHomeStock = false;
+  // "off" (ignorar la despensa) y "prefer" (romper empates) siguen siendo
+  // valores que el motor entiende —para no romper un save viejo a mitad de
+  // lectura— pero ya no los ofrece ni los siembra nadie. "off" se cayó porque
+  // nadie rellena el inventario para que luego no cuente; "prefer" porque la
+  // diferencia no se nota.
+  //
+  // Se siembra "only". Reactiva la despensa en cuentas que estaban en "off"
+  // sin haberlo elegido, y ese es el cambio que se busca: lo que ya compraste
+  // deja de echarse a perder mientras el menú te manda a comprar otra cosa.
+  if (!["strict", "only", "prefer"].includes(d.pantryMode)) {
+    d.pantryMode = "only";
   }
+  d.useHomeStock = d.pantryMode !== "off";
+  if (typeof d.pantryHasItems !== "boolean") d.pantryHasItems = false;
   // ── Modo básico / avanzado ──
   const looksEstablished =
     (Array.isArray(d.members) && d.members.length > 0) ||
@@ -1768,13 +1799,26 @@ export default function App() {
   // re-runs the split once `groups` exists: `ensureGroupsIfMissing` only fires
   // on an empty list and the tier reconcile only runs when you re-pick the menu
   // model, so newcomers used to sit in `members` belonging to no group at all.
-  // Reconcile returns the same reference when nobody moved, which is what keeps
-  // this from looping.
+  //
+  // Y un BEBÉ además tiene que caer en el suyo. `reconcileGroupsWithMembers`
+  // coloca al recién llegado en un grupo que ya existe, así que un bebé añadido
+  // después del alta se quedaba dentro de "Familia": sin menú de bebé, sin
+  // avatares en la franja y —lo grave— comiendo del menú de los adultos. Si el
+  // bebé estaba desde el principio sí se separaba, porque ahí sí pasa por
+  // `migrateGroupsForBabies`. Era el mismo hogar con dos resultados distintos
+  // según el orden en que hubieras dado de alta a la gente.
+  //
+  // Quien no quiera la separación tiene la salida de siempre: marcar "ya come
+  // como un niño" (`notBaby`), que es lo que mira `memberIsBaby`.
   useEffect(() => {
     setData((d) => {
       if (d.groups.length === 0 || d.members.length === 0) return d;
-      const groups = reconcileGroupsWithMembers(d.members, d.groups);
-      return groups === d.groups ? d : { ...d, groups };
+      const conciliados = reconcileGroupsWithMembers(d.members, d.groups);
+      const siguientes = migrateGroupsForBabies(d.members, conciliados, d.menuModel);
+      // `migrateGroupsForBabies` SIEMPRE construye objetos nuevos, así que
+      // comparar referencias aquí dejaría el efecto girando para siempre: hay
+      // que mirar si de verdad se ha movido alguien.
+      return mismosGrupos(siguientes, d.groups) ? d : { ...d, groups: siguientes };
     });
   }, [data.members, data.groups]);
 
@@ -1915,7 +1959,7 @@ export default function App() {
       let spreadPantry = pantryIngredients;
       const effectiveConcurrency = pantryMultiWeek === "spread" ? 1 : WEEK_CONCURRENCY;
       const weekResults = await mapWithConcurrency(weekOffsets, effectiveConcurrency, async (offset, w) => {
-        const { startDayIdx, days, startISO, endISO } = weekMeta[w];
+        const { startDayIdx, days, activeDays, startISO, endISO } = weekMeta[w];
         const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
           ? working.schedule
           : (working.menuWeekOverrides?.[offset] ?? working.schedule);
@@ -1930,10 +1974,41 @@ export default function App() {
           schedule: weekSchedule,
           menuWeek: { offset, startDayIdx, days },
           schoolMenus: schoolMenusForWeekIndex(working.schoolMenus, w),
-          // kidDinnerConfig manda: derivamos el flag legacy que consume el
-          // planner a partir de la config por niño + el horario de esta semana.
-          kidDinnerMatchesAdultLunch: deriveKidDinnerMatchesAdultLunch({ ...working, schedule: weekSchedule }),
         };
+
+        // ── Las reglas, justo antes de generar ──────────────────────────
+        // Una regla ("el miércoles viene mi hermano", "Lucía no cena en casa
+        // hasta el día 20") se convierte aquí en un delta sobre `data.*` que
+        // el motor ya entiende: un invitado es una PERSONA temporal con su
+        // horario, no un número suelto, así que a partir de este punto
+        // `eatersForSlot` lo cuenta, el plato escala y la compra sube — sin
+        // que nada de aguas abajo sepa que existen las reglas.
+        //
+        // El delta se consume UNA vez y se tira: no se persiste jamás. Es lo
+        // que impide que se acumule gente fantasma en la casa.
+        //
+        // `activeDays` y NO `days`: son cosas distintas y weekMeta trae las
+        // dos. `days` son los días que el usuario eligió; `activeDays` los
+        // que esta semana tiene de verdad. Pasar el otro haría que una regla
+        // "los sábados" se aplicara en una semana que empieza en miércoles.
+        const { delta: deltaReglas, avisos: avisosReglas } = proyectarReglas(
+          weekData.reglas,
+          weekData,
+          { hoy: isoLocalDate(new Date()), semana: { inicioISO: startISO, finISO: endISO, dias: activeDays } },
+        );
+        if (avisosReglas.length > 0) {
+          // Todavía sin sitio en la UI. Se registran para no perderlos en
+          // silencio: un aviso es "te he entendido y esto NO lo he hecho", y
+          // callarlo es peor que no entender.
+          console.warn("[reglas] avisos sin pintar:", avisosReglas);
+        }
+        Object.assign(weekData, deltaReglas);
+
+        // DESPUÉS del delta, no antes: se calcula sobre el horario, y un
+        // `presente` sobre un niño en Cena lo deja obsoleto — el flag diría
+        // "la cena del niño copia la comida del adulto" para un niño que esa
+        // noche no está en casa.
+        weekData.kidDinnerMatchesAdultLunch = deriveKidDinnerMatchesAdultLunch(weekData);
         const crossWeek = varietyPref === "relaxed" || weekCount <= 1
           ? null
           : { weekIndex: w, weekCount, varietyPref };
@@ -2168,6 +2243,21 @@ export default function App() {
   }, [data, showToast]);
 
   const handleRegenerate = useCallback(() => regenerateMenu(), [regenerateMenu]);
+
+  // Wizard generativo: el modal de entrada, la fila de mandos y la burbuja del
+  // bot. `onRegenerar` recibe el `data` ya actualizado porque `setData` no ha
+  // llegado todavía al render cuando esto se dispara — regenerar con el `data`
+  // viejo pintaría el menú de antes del ajuste.
+  const wizard = useWizardMenu({
+    data,
+    setData,
+    menuPlan,
+    onRegenerar: (nextData) => {
+      setScreen("menu");
+      regenerateMenu(nextData);
+    },
+    habilitado: !householdReadOnly,
+  });
 
   // ── Ad-hoc individual menus ──────────────────────────────────────────────
   // Auto-offer a separate 3-day menu when a member gets a heavy, hard-to-share
@@ -2855,11 +2945,25 @@ export default function App() {
     if (target === "shopping") trackEvent(user, "shopping_opened", "shopping");
   }, [screen, user]);
 
+  // ¿Te SALISTE del asistente a medias? Esa es la única condición que hace
+  // honesto el diálogo de "Continuar donde lo dejé". Antes bastaba con tener
+  // un menú generado, y entonces salía SIEMPRE: a quien terminó el asistente
+  // el mes pasado se le preguntaba si quería continuar algo que no había
+  // dejado a medias, y la respuesta correcta era siempre "empezar de cero".
+  // Una pregunta cuya respuesta es siempre la misma no es una pregunta, es un
+  // paso de más entre el botón y el asistente.
+  //
+  // Se pone al abandonar y se quita al volver a entrar. Vive en memoria a
+  // propósito: "lo dejé a medias" es algo que acabas de hacer, no un estado
+  // del hogar que deba sobrevivir a cerrar la app.
+  const [asistenteAMedias, setAsistenteAMedias] = useState(false);
+
   // Internal: navigate directly, no gate. Used after the resume dialog resolves.
   const _doGoToOnboardingStep = useCallback((step) => {
     dirRef.current = "forward";
     setFirstRunOnboarding(false);
     setQuickMenu(false);
+    setAsistenteAMedias(false);
     setOnbStep(step);
     setScreen("onboarding");
   }, []);
@@ -2867,6 +2971,7 @@ export default function App() {
   // Dialog state: when the user re-enters the wizard with data already saved,
   // ask whether to continue or start fresh instead of silently overwriting.
   const [onbResumeOpen, setOnbResumeOpen] = useState(false);
+
 
   const goToOnboardingStep = useCallback((step) => {
     _doGoToOnboardingStep(step);
@@ -3015,6 +3120,7 @@ export default function App() {
     forceModeStepRef.current = true;
     setQuickMenu(true);
     setFirstRunOnboarding(false);
+    setAsistenteAMedias(false);
     dirRef.current = "forward";
     setOnbStep(0); // quick: picker de ajustes (0), salta familia (1)
     setScreen("onboarding");
@@ -3025,18 +3131,24 @@ export default function App() {
       showToast("Solo lectura: no puedes generar menú aquí");
       return;
     }
-    // El modal "Continuar donde lo dejé / Empezar de cero" solo tiene sentido
-    // si ya existe un menú generado de verdad — tener familia configurada
-    // (p. ej. tras el first-run onboarding) no basta: para alguien que nunca
-    // ha generado nada, "continuar" no aplica y hay que entrar directo al
-    // journey de onboarding.
-    if ((data.members ?? []).length > 0 && planHasDishes(menuPlan)) {
+    // El punto de entrada es el ASISTENTE de pantallas. Hubo una versión que
+    // abría aquí un modal de voz o texto: la idea era entrar hablando, pero el
+    // asistente es donde están las preguntas que el motor necesita de verdad, y
+    // el resultado era que el modal pedía una frase y luego había que ir a los
+    // mandos igual. Se quitó entero (ver lib/wizardServices.js). Lo que se
+    // queda del wizard generativo es lo de después: la fila de mandos sobre el
+    // menú y la burbuja del bot, que es donde aporta.
+    //
+    // El diálogo "Continuar donde lo dejé / Empezar de cero" sale SOLO si te
+    // saliste del asistente a medias. En cualquier otro caso el botón hace lo
+    // que dice y entra directo.
+    if (asistenteAMedias && (data.members ?? []).length > 0) {
       setOnbResumeOpen(true);
     } else {
       setQuickMenu(false);
       _doGoToOnboardingStep(0);
     }
-  }, [data.members, menuPlan, _doGoToOnboardingStep, householdReadOnly, showToast]);
+  }, [asistenteAMedias, data.members, _doGoToOnboardingStep, householdReadOnly, showToast]);
 
   // "Continuar donde lo dejé": if they already generated a menu, land on the
   // last wizard step (CookTime, step 10) in quick mode so the user can review
@@ -3469,6 +3581,111 @@ export default function App() {
     });
     showToast("Encaje de la receta actualizado");
   }, [selectedSlot, data.members, user, showToast]);
+
+  /**
+   * "Esta noche somos uno más", desde los controles de un plato.
+   *
+   * No escribe un comensal: escribe una REGLA. La diferencia importa — un
+   * invitado es una persona temporal con su horario, y en cuanto lo es, todo
+   * lo demás funciona sin tocarlo: `eatersForSlot` lo cuenta, la receta escala
+   * sus cantidades y la lista de la compra sube. Un campo "comensales: +1"
+   * habría necesitado un camino nuevo en los cuatro sitios.
+   *
+   * La regla se acota a ESTA semana con la fecha real del día: sin eso, la
+   * visita del miércoles vendría todos los miércoles.
+   */
+  // Los invitados de la semana que se está mirando, por hueco. Sale de las
+  // reglas y no de un campo en el plan: ver invitadosPorHueco en lib/reglas.js.
+  const invitadosDeLaSemana = useMemo(() => {
+    const { dates } = getWeekDatesByMenuWeek({
+      offset: data.menuWeek?.offset ?? 0,
+      startDayIdx: data.menuWeek?.startDayIdx ?? 0,
+    });
+    const primer = dates ? Object.values(dates)[0] : null;
+    return invitadosPorHueco(data.reglas, {
+      semanaISO: primer ? isoLocalDate(primer) : undefined,
+    });
+  }, [data.reglas, data.menuWeek]);
+
+  /**
+   * Cuántos comensales de más tiene este plato. FIJA el total, no suma.
+   *
+   * El contador de la tarjeta parte de los que ya hay y puede bajar a cero, así
+   * que "añadir" y "quitar" son la misma acción con otro número. Pensarlo como
+   * un delta obligaba a la UI a saber cuántos había y a mandar la diferencia:
+   * dos sitios donde equivocarse en vez de uno.
+   *
+   * Hace las dos cosas, y las dos hacen falta:
+   *   · reescribe las REGLAS del hueco (quita las que había, pone una si n>0),
+   *     que es lo que sobrevive a regenerar el menú;
+   *   · y ajusta `slot.eaters` del plan que ya está en pantalla, que es lo que
+   *     leen la ficha del plato y la lista de la compra AHORA.
+   */
+  const handleSetGuests = useCallback(async (selection, total) => {
+    if (householdReadOnly || !selection?.day || !selection?.meal) return;
+    const { groupId, day, meal } = selection;
+    const n = Math.max(0, Math.min(20, Math.round(Number(total) || 0)));
+
+    const { dates } = getWeekDatesByMenuWeek({
+      offset: data.menuWeek?.offset ?? 0,
+      startDayIdx: data.menuWeek?.startDayIdx ?? 0,
+    });
+    const fecha = dates?.[day];
+    const semanaISO = fecha ? isoLocalDate(fecha) : undefined;
+    const hueco = { dia: day, comida: meal, grupoRef: groupId, semanaISO };
+
+    const antes = invitadosDeLaSemana[`${groupId}|${day}|${meal}`] ?? 0;
+    if (antes === n) return;
+
+    setData((d) => {
+      const limpias = sinInvitadosDelHueco(d.reglas, hueco);
+      if (n === 0) return { ...d, reglas: limpias };
+      const regla = reglaDeInvitado({ dia: day, comida: meal, n, grupoRef: groupId, semanaISO });
+      return { ...d, reglas: regla ? [...limpias, regla] : limpias };
+    });
+
+    const delta = n - antes;
+    const grupos =
+      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const key = `${day}-${meal}`;
+      const prev = plan[groupId]?.[key];
+      if (!prev) return plan;
+      const next = {
+        ...plan,
+        [groupId]: {
+          ...(plan[groupId] ?? {}),
+          [key]: { ...prev, eaters: Math.max(1, (Number(prev.eaters) || 1) + delta) },
+        },
+      };
+      const sh = buildShoppingList(next, grupos, getDayMeals(data), pantryIngredients);
+      setShopping((prevSh) => {
+        // Se conservan las marcas de "ya lo tengo": tocar los comensales no
+        // puede desmarcar media compra.
+        const flags = Object.fromEntries(
+          prevSh.items.map((i) => [
+            normalizeIngredientKey(i.name, i.unit ?? "ud"),
+            { have: i.have, atHome: i.atHome },
+          ]),
+        );
+        return {
+          items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
+            ...it,
+            have: flags[it.id]?.have ?? false,
+            atHome: flags[it.id]?.atHome ?? false,
+          })),
+        };
+      });
+      return next;
+    });
+
+    showToast(
+      n === 0 ? `Sin invitados el ${day}`
+      : n === 1 ? `Un comensal más el ${day}`
+      : `${n} comensales más el ${day}`,
+    );
+  }, [householdReadOnly, data, user, showToast, invitadosDeLaSemana]);
 
   const handleReplaceSlot = useCallback(async (selection, { sameCategory = false, reason = null } = {}) => {
     if (householdReadOnly) return;
@@ -4104,6 +4321,9 @@ export default function App() {
     setResetConfirm(null);
     setQuickMenu(false);
     setFirstRunOnboarding(false);
+    // Lo dejaste a medias: la próxima vez que le des a "Generar menú" tiene
+    // sentido ofrecerte seguir. Solo entonces.
+    setAsistenteAMedias(true);
     back(() => setScreen("dashboard"));
   }, []);
 
@@ -4154,15 +4374,17 @@ export default function App() {
   // is on the kids' menu (pure babies don't use the school cafeteria flow).
   // Orden de `onbScreens`: 0 Ajustes (picker) · 1 Familia · 2 Alergias · 3 Modelo · 4 Cole ·
   // 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras-Comidas ·
-  // 11 Extras-Otros · 12 Tu despensa · 13 Cocina · 14 Electrodomésticos ·
-  // 15 Tiempos. Los índices de
-  // abajo dependen de ese orden.
+  // 11 Extras-Otros · 12 Tu despensa · 13 Cuánto pesa la despensa ·
+  // 14 Cocina · 15 Electrodomésticos · 16 Tiempos. Los índices de
+  // abajo dependen de ese orden — y también los de SCOPE_TOPIC_STEPS, en
+  // screens/ScopePickerScreen.jsx, que es lo que decide qué pasos abre cada
+  // modo del picker. Mover un paso obliga a tocar los dos sitios.
   // "Ajustes despensa" (¿cuándo se da por gastado?) vivió aquí como paso 13
   // condicional un día (2026-08-25) — se quitó al día siguiente: la pregunta
   // se entiende mejor mirando la despensa real que a mitad del asistente, así
   // que ahora es un sheet contextual en Compra → En casa (icono de ajustes +
   // primer aviso tras generar un menú), no un paso del wizard.
-  const ONB_STEP_COUNT = 16;
+  const ONB_STEP_COUNT = 17;
   // «¿Cómo coméis en casa?» (mismo/separado) ya no se pregunta cuando hay niños:
   // esa decisión la deriva ahora la pantalla «¿Cómo comen los niños?» (paso 7).
   // Solo sobreviviría para hogares adulto+niño… que es justo cuando hay niños,
@@ -4178,6 +4400,12 @@ export default function App() {
   const basicMode = !data.expertMode;
   // Presupuesto semanal / Tu compra (paso 6): ya cableado (toggle, cards y precios Mercadona).
   const skipBudgetStep = false;
+  // "¿Cuánto tiramos de lo de casa?" (13) solo si hay algo en casa. Con la
+  // nevera vacía es la pregunta más tonta del asistente, y encima bloquearía
+  // el Continuar por una respuesta que no significa nada. Lo apunta la pantalla
+  // anterior (ver `apuntarCuantos` en OnboardingPantryInventory): la despensa
+  // no vive en `data`, así que sin ese rastro aquí no hay forma de saberlo.
+  const skipPantryMode = data.pantryHasItems !== true;
   // El perfil (quién come + qué evitáis) ya está hecho: se rellenó en el alta.
   const profileAlreadySetUp = (data.members?.length ?? 0) > 0;
   // Pasos que ha pedido ajustar el picker (paso 0). Vacío = no ha pedido
@@ -4201,6 +4429,7 @@ export default function App() {
       (i === 3 && skipMenuModel) ||
       (i === 4 && skipSchoolMenu) ||
       (i === 6 && skipBudgetStep) ||
+      (i === 13 && skipPantryMode) ||
       (i === 8 && (skipKidsDinner || basicMode)) ||
       (basicMode && (i === 9 || i === 10 || i === 11)) ||
       // Avatares (1) y alergias (2) son perfil, no asistente: se rellenan en el
@@ -4212,7 +4441,7 @@ export default function App() {
       // alergias"): ahí el paso 2 ES el destino, y ocultarlo hacía que el
       // normalizador saltase al siguiente visible (la semana del menú).
       (!firstRunOnboarding && !editPreferencesOrigin && profileAlreadySetUp && (i === 1 || i === 2)),
-    [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode, firstRunOnboarding, profileAlreadySetUp, editPreferencesOrigin, scopeSteps]
+    [skipMenuModel, skipSchoolMenu, skipKidsDinner, skipPantryMode, quickMenu, basicMode, firstRunOnboarding, profileAlreadySetUp, editPreferencesOrigin, scopeSteps]
   );
   const stepNeighbor = useCallback(
     (from, dir) => {
@@ -4443,7 +4672,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCooking
+    <OnboardingPantryMode
       data={data}
       setData={setData}
       onNext={nextOf(13)}
@@ -4451,7 +4680,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingAppliances
+    <OnboardingCooking
       data={data}
       setData={setData}
       onNext={nextOf(14)}
@@ -4459,11 +4688,19 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCookTime
+    <OnboardingAppliances
       data={data}
       setData={setData}
       onNext={nextOf(15)}
       onBack={backOf(15)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingCookTime
+      data={data}
+      setData={setData}
+      onNext={nextOf(16)}
+      onBack={backOf(16)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
@@ -4579,6 +4816,8 @@ export default function App() {
               restrictionConflicts={restrictionConflicts}
               onDishTap={handleDishTap}
               onDishReplace={householdReadOnly ? undefined : handleReplaceSlot}
+              onSetGuests={householdReadOnly ? undefined : handleSetGuests}
+              invitadosPorHueco={invitadosDeLaSemana}
               onDishClear={householdReadOnly ? undefined : handleClearSlot}
               onSlotStructure={householdReadOnly ? undefined : handleSlotStructure}
               onDishSwap={householdReadOnly ? undefined : handleSwapSlots}
@@ -4606,6 +4845,8 @@ export default function App() {
               }}
               onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
               shoppingItems={shopping.items}
+              wizardControls={wizard.controls}
+              wizardBubble={wizard.bubble}
             />
           </div>
         )}
@@ -5072,6 +5313,7 @@ export default function App() {
         )}
       </div>
 
+
       {isGeneratingMenu && <GeneratingScreen onStop={stopGeneration} />}
 
       {individualPrompt && (
@@ -5100,6 +5342,12 @@ export default function App() {
           scopeGroups={favoriteScopeGroups}
           onSetFavoriteScope={householdReadOnly ? undefined : (scope) => handleSetFavoriteScope(selectedSlot.recipe.id, scope)}
           onClose={() => setSelectedSlot(null)}
+          // Tocar el nombre o la cara de quien subió la receta abre su perfil,
+          // por el mismo camino que ya usa un enlace compartido (?u=): el feed
+          // es quien monta PersonSheet, así que se navega allí con la persona
+          // ya elegida. Sin esto el nombre era texto muerto en una ficha donde
+          // todo lo demás se toca.
+          onOpenPerson={(id) => { setSelectedSlot(null); setDeepLinkPerson(id); handleNav("feed"); }}
           onReject={householdReadOnly || selectedSlot.browse ? undefined : () => handleReplaceSlot(selectedSlot)}
           day={selectedSlot.day ?? null}
           meal={selectedSlot.meal ?? null}
