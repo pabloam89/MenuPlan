@@ -342,6 +342,55 @@ export function nuevaRegla({ sujeto, efecto, ambito = {}, vigencia = {}, salveda
   return normalizarRegla(regla);
 }
 
+/**
+ * La regla de "esta noche somos uno más", escrita desde un hueco concreto del
+ * menú. Es el atajo que necesita el "+" de la tarjeta de un plato: la UI sabe
+ * qué día y qué comida está tocando y poco más, y esto la libra de tener que
+ * conocer la forma de una regla.
+ *
+ * ── Por qué esto NO es un campo "comensales: +1" ──────────────────────────
+ * Porque un invitado es una PERSONA, no un número. En cuanto lo es, todo lo
+ * demás funciona sin tocarlo: `eatersForSlot` lo cuenta, el plato escala sus
+ * cantidades y `buildShoppingList` sube la compra. Un número suelto habría
+ * necesitado un camino nuevo en los cuatro sitios — y habría dejado la casa
+ * con comensales fantasma que no salen en ningún menú ni en ningún avatar.
+ *
+ * ── Lo que NO hace ────────────────────────────────────────────────────────
+ * No persiste a nadie. Devuelve una REGLA; la persona solo existe dentro del
+ * delta de una generación y se tira con ella (ver la invariante 1 de la
+ * cabecera). Borrar el invitado es borrar su regla, y por eso la regla se
+ * queda con un id que la UI puede guardar en la tarjeta.
+ *
+ * @param {{dia: string, comida: string, n?: number, nombre?: string,
+ *          grupoRef?: string, semanaISO?: string, hoy?: string}} opts
+ *   `dia` y `comida` en el vocabulario del menú ("Mié", "Cena"). `semanaISO`
+ *   acota la regla a UNA semana — es el lunes de esa semana, y sin él la
+ *   visita vendría todas las semanas, que casi nunca es lo que se quiere al
+ *   pulsar un "+" en un hueco.
+ * @returns {object} regla ya normalizada, lista para `data.reglas`.
+ */
+export function reglaDeInvitado({ dia, comida, n = 1, nombre, grupoRef, semanaISO, hoy }) {
+  return nuevaRegla({
+    sujeto: { tipo: "invitado", n, ...(nombre ? { nombre } : {}), ...(grupoRef ? { grupoRef } : {}) },
+    ambito: {
+      dias: [dia],
+      comidas: [comida],
+      ...(semanaISO ? { semanas: [lunesDe(semanaISO)] } : {}),
+    },
+    // `presente` lleva DÓNDE come, no un booleano: es el mismo vocabulario que
+    // `schedule` (casa / tupper / fuera / cole). Un invitado come en casa — si
+    // se lleva táper no es un invitado, es otra cosa.
+    efecto: { tipo: "presente", valor: "casa" },
+    origen: "manual",
+    frase: nombre
+      ? `${nombre} come en casa el ${dia} (${comida.toLowerCase()})`
+      : n === 1
+        ? `Un invitado más el ${dia} (${comida.toLowerCase()})`
+        : `${n} invitados más el ${dia} (${comida.toLowerCase()})`,
+    hoy,
+  });
+}
+
 // ── Fechas ─────────────────────────────────────────────────────────────────
 
 /**

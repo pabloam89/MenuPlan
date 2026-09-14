@@ -5,6 +5,7 @@ import {
   normalizarRegla,
   normalizarReglas,
   nuevaRegla,
+  reglaDeInvitado,
   reglaVigente,
   reglaTocaLaVentana,
   podarReglasVencidas,
@@ -985,5 +986,66 @@ describe("N5 — quedarse sin huecos significa dos cosas distintas", () => {
     expect(delta.schedule).toBeUndefined();
     expect(avisos[0].motivo).toBe("no_soportado");
     expect(avisos[0].detalle).toContain("vigencia");
+  });
+});
+
+describe("reglaDeInvitado: el \"+\" de la tarjeta de un plato", () => {
+  it("un invitado en un hueco suma un comensal SOLO en ese hueco", () => {
+    const data = CASA();
+    const regla = reglaDeInvitado({ dia: "Mié", comida: "Cena", semanaISO: LUNES, hoy: HOY });
+    const { delta } = proyectarReglas([regla], data, ctx());
+    const grupos = delta.groups ?? data.groups;
+    const miembros = delta.members ?? data.members;
+    const schedule = delta.schedule ?? data.schedule;
+    const adultos = grupos.find((g) => g.id === "g_ad");
+
+    // El miércoles a cenar son tres; el resto de la semana siguen siendo dos.
+    expect(eatersForSlot(adultos, miembros, schedule, "Mié", "Cena").length).toBe(3);
+    expect(eatersForSlot(adultos, miembros, schedule, "Mié", "Comida").length).toBe(2);
+    expect(eatersForSlot(adultos, miembros, schedule, "Jue", "Cena").length).toBe(2);
+  });
+
+  it("se sienta con los adultos, nunca en el menú de los niños", () => {
+    const data = CASA();
+    const { delta } = proyectarReglas(
+      [reglaDeInvitado({ dia: "Sáb", comida: "Comida", n: 2, semanaISO: LUNES, hoy: HOY })],
+      data, ctx(),
+    );
+    const ninos = (delta.groups ?? data.groups).find((g) => g.id === "g_ni");
+    const miembros = delta.members ?? data.members;
+    const schedule = delta.schedule ?? data.schedule;
+    expect(eatersForSlot(ninos, miembros, schedule, "Sáb", "Comida").length).toBe(2);
+    // Y los dos invitados sí están, con los adultos.
+    const adultos = (delta.groups ?? data.groups).find((g) => g.id === "g_ad");
+    expect(eatersForSlot(adultos, miembros, schedule, "Sáb", "Comida").length).toBe(4);
+  });
+
+  it("con nombre, el invitado se llama por su nombre", () => {
+    const data = CASA();
+    const regla = reglaDeInvitado({ dia: "Vie", comida: "Cena", nombre: "mi hermano", semanaISO: LUNES, hoy: HOY });
+    expect(regla.frase).toContain("mi hermano");
+    const { delta } = proyectarReglas([regla], data, ctx());
+    expect((delta.members ?? []).some((m) => m.name === "mi hermano" && m.invitado)).toBe(true);
+  });
+
+  it("acotada a UNA semana: la siguiente no trae invitado", () => {
+    const data = CASA();
+    const regla = reglaDeInvitado({ dia: "Mié", comida: "Cena", semanaISO: LUNES, hoy: HOY });
+    // La misma regla, mirada desde la semana siguiente.
+    const otraSemana = ctx({ semana: { inicioISO: "2026-09-14", finISO: "2026-09-20", dias: [...DAYS] } });
+    const { delta } = proyectarReglas([regla], data, otraSemana);
+    const miembros = delta.members ?? data.members;
+    const adultos = (delta.groups ?? data.groups).find((g) => g.id === "g_ad");
+    expect(eatersForSlot(adultos, miembros, delta.schedule ?? data.schedule, "Mié", "Cena").length).toBe(2);
+  });
+
+  it("proyectar dos veces da la MISMA persona, no dos", () => {
+    const data = CASA();
+    const regla = reglaDeInvitado({ dia: "Mié", comida: "Cena", semanaISO: LUNES, hoy: HOY });
+    const a = proyectarReglas([regla], data, ctx());
+    const b = proyectarReglas([regla], data, ctx());
+    const ids = (d) => (d.delta.members ?? []).filter((m) => m.invitado).map((m) => m.id);
+    expect(ids(a)).toEqual(ids(b));
+    expect(ids(a).length).toBe(1);
   });
 });
