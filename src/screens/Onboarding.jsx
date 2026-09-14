@@ -8722,6 +8722,20 @@ export function OnboardingPantryInventory({
   onNext, onBack, onFinish, onReset, nextLabel,
   user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, shopping, setShopping,
 }) {
+  // Cuántas cosas hay en casa, apuntado en `data` para que lo pueda leer el
+  // paso siguiente. La despensa vive en Supabase/localStorage, no en `data`, y
+  // quien sabe cuánto hay es esta pantalla — que lo cuenta y avisa por
+  // `onItemsCount`. Sin este dato, "¿cuánto tiramos de lo de casa?" se
+  // preguntaría con la nevera vacía, que es la pregunta más tonta del
+  // asistente.
+  const apuntarCuantos = useCallback(
+    (count) => {
+      const hay = count > 0;
+      setData((d) => (d.pantryHasItems === hay ? d : { ...d, pantryHasItems: hay }));
+    },
+    [setData],
+  );
+
   return (
     <OnboardingShell
       title="¿Qué tienes ya en casa?"
@@ -8754,6 +8768,7 @@ export function OnboardingPantryInventory({
           shopping={shopping}
           setShopping={setShopping}
           initialTab="inventory"
+          onItemsCount={apuntarCuantos}
         />
       </Suspense>
     </OnboardingShell>
@@ -9529,37 +9544,42 @@ export function OnboardingAppliances({ data, setData, onNext, onBack, onFinish, 
  * tenéis en la cocina?". Se llega habiendo visto ya lo que hay en casa, que es
  * exactamente el contexto que la pregunta necesita.
  *
- * ── Y con las cuatro ilustraciones ────────────────────────────────────────
- * Las cuatro cards de Midjourney llevaban en `public/avatares/cards` desde
- * agosto sin que las usara nadie: se dibujaron para esta pregunta y se
- * quedaron huérfanas cuando se quitó del asistente. Cuentan los cuatro modos
- * mejor que sus iconos — una nevera abierta de par en par frente a alguien
- * leyendo un recetario de espaldas a ella se entiende sin leer el título.
+ * ── Dos, no cuatro ────────────────────────────────────────────────────────
+ * Hubo cuatro. Cayeron dos, y por el mismo motivo cada una:
+ *
+ *   · "Que no cuente" (`off`) — nadie rellena el inventario para que luego no
+ *     cuente. Tenía la coartada de que la despensa también tacha «Ya en casa»
+ *     en la compra (y eso sigue funcionando), pero pedirle a alguien que
+ *     declare que no quiere lo que acaba de apuntar no es una pregunta.
+ *   · "Que desempate" (`prefer`) — sigue existiendo en el motor, pero como
+ *     card no se sostenía: "rompe empates" es una diferencia que no se nota
+ *     con la despensa vacía y es difícil de imaginar con la despensa llena.
+ *
+ * Quedan las dos que sí se distinguen mirándolas, y la diferencia es una sola
+ * pregunta: ¿compro o no compro? Las dos aprovechan TODO lo que hay en casa.
+ *
+ * Las ilustraciones son de Midjourney y llevaban en `public/avatares/cards`
+ * desde agosto sin usarse: se dibujaron para esta pregunta y se quedaron
+ * huérfanas cuando se quitó del asistente.
  */
 const PANTRY_MODES = [
   {
     id: "strict",
+    // Nevera abierta y nada más: ni una bolsa a la vista.
     img: "/avatares/cards/casa_solo.jpg",
     title: "Solo con lo de casa",
     subtitle: "Sin comprar. Solo si un hueco no sale de otra forma.",
   },
   {
     id: "only",
-    img: "/avatares/cards/casa_partir.jpg",
-    title: "Sobre todo lo de casa",
-    subtitle: "Partimos de tu despensa y compramos lo justo.",
-  },
-  {
-    id: "prefer",
+    // La MISMA nevera, con la compra en la mano. Antes iba `casa_partir`, donde
+    // las bolsas quedan a un lado y el recorte de la tarjeta se las comía: dos
+    // cards con una nevera cada una y ninguna diferencia visible. La diferencia
+    // entre los dos modos es literalmente "¿compro o no compro?", así que es lo
+    // único que tienen que decir los dibujos.
     img: "/avatares/cards/casa_encuenta.jpg",
-    title: "Que desempate",
-    subtitle: "Entre dos platos parecidos, gana el que ya tienes.",
-  },
-  {
-    id: "off",
-    img: "/avatares/cards/casa_libre.jpg",
-    title: "Que no cuente",
-    subtitle: "El menú se arma sin mirar la despensa.",
+    title: "Sobre todo lo de casa",
+    subtitle: "Gastamos todo lo que tienes y compramos lo que falte.",
   },
 ];
 
@@ -9577,19 +9597,26 @@ export function OnboardingPantryMode({ data, setData, onNext, onBack, onFinish, 
   return (
     <OnboardingShell
       title="¿Cuánto tiramos de lo de casa?"
-      subtitle="Lo que ya tienes puede pesar más o menos al armar el menú."
+      subtitle="Las dos aprovechan todo lo que tienes. La diferencia es si compramos o no."
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
       finishLabel={finishLabel}
+      // Sin elegir no se pasa. Este paso solo sale cuando hay algo en casa
+      // (ver `skipPantryMode` en App.jsx), así que la pregunta siempre tiene
+      // sentido cuando se ve — y con dos cards, saltársela sin contestar sería
+      // dejar que decida un defecto habiendo tenido la respuesta delante.
+      nextDisabled={elegido == null}
     >
+      {/* Una columna: con dos cards apiladas el arte se ve a lo ancho entero, y
+          la pregunta se resuelve de un vistazo — que es de lo que va tenerlas
+          reducidas a dos. */}
       <div
         style={{
           height: "100%", minHeight: 0,
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gridTemplateRows: "1fr 1fr",
+          gridTemplateRows: "repeat(2, 1fr)",
           gap: 8,
         }}
       >
@@ -9601,6 +9628,11 @@ export function OnboardingPantryMode({ data, setData, onNext, onBack, onFinish, 
             subtitle={m.subtitle}
             fillHeight
             compact
+            // Centrado, no el "center 28%" por defecto: el arte es cuadrado y
+            // subirlo recortaba justo lo de abajo — que es donde están las
+            // bolsas de la compra, o sea lo único que distingue una card de la
+            // otra.
+            imgPosition="center"
             accent={CARD_ACCENT_TEAL}
             active={elegido === m.id}
             onClick={() => elegir(m.id)}

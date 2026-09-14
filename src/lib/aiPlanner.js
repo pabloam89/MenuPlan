@@ -726,7 +726,14 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
       pantryMode === "strict"
         ? `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD MÁXIMA): El usuario quiere cocinar SOLO con lo que ya tiene en casa, sin comprar. Para CADA hueco, elige exclusivamente recetas cuyos ingredientes principales estén en esta lista. Solo si es imposible cubrir un hueco con lo disponible, recurre a una receta con ingredientes de fuera, y reduce esos casos al mínimo absoluto. Nunca rompas las demás reglas (complementación escolar, alergias) ni fuerces combinaciones sin sentido culinario.`
         : pantryMode === "only"
-        ? `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): Construye el menú usando SOBRE TODO ingredientes de esta lista. Para cada hueco, elige preferentemente recetas cuyos ingredientes principales estén ya en casa; solo recurre a recetas con ingredientes fuera de esta lista cuando no haya ninguna opción razonable que encaje con las demás reglas (complementación escolar, variedad, alergias, tipo de plato). Esta preferencia es FUERTE, pero nunca rompas esas reglas ni fuerces combinaciones que no tengan sentido culinario.`
+        // "Sobre todo lo de casa" = GASTAR lo que hay, no "preferir" lo que
+        // hay. Decía "elige preferentemente recetas cuyos ingredientes estén
+        // en casa", que es una preferencia difusa y dejaba media despensa sin
+        // tocar; el objetivo real de quien elige esto es que no se le eche a
+        // perder nada. Lo que sobre después, libre.
+        ? `
+
+INSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): GASTA esta lista. Coloca platos que usen estos ingredientes hasta agotarlos, empezando por los que antes se estropean (fresco antes que seco o congelado). No es una preferencia difusa: el objetivo es que al acabar la semana no quede nada de esta lista sin usar. Los huecos que sobren después, elígelos con total libertad del catálogo. Nunca rompas por esto las demás reglas (complementación escolar, variedad, alergias, tipo de plato) ni fuerces combinaciones sin sentido culinario: si un ingrediente no encaja en ningún hueco, déjalo fuera antes que forzarlo.`
         : `\n\nINSTRUCCIÓN ADICIONAL: Cuando haya dos recetas equivalentes para un hueco, prioriza la que use más ingredientes de esta lista. Esta preferencia es SECUNDARIA a todas las demás reglas (complementación escolar, variedad, alergias). No fuerces recetas que no encajen solo por usar ingredientes disponibles.`;
     parts.push(
       `\nINGREDIENTES QUE EL USUARIO YA TIENE EN CASA:\n${pantryNames.map((n) => `- ${n}`).join("\n")}` +
@@ -1076,6 +1083,12 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // Los platos cocinados viven en la misma tabla que los ingredientes, así que
   // hay que separarlos: "Lentejas estofadas" no es un ingrediente que sumar a la
   // lista de la despensa, es un plato entero listo para colocar en un hueco.
+  //
+  // Separados para USARLOS distinto, no para decidir distinto si entran: el
+  // modo de despensa manda sobre los dos por igual (ver `pantryIngredients` en
+  // App.jsx). Quien sube un táper quiere que entre en el menú, igual que quien
+  // sube un bote de garbanzos; lo que se gradúa es cuánto pesa lo de casa, no
+  // qué tipo de cosa cuenta.
   // Solo se ofrecen los que sobrevivieron al filtro del grupo (alergias, tiempo,
   // temporada): sugerir un plato congelado que este grupo no puede comer sería
   // peor que no sugerir nada.

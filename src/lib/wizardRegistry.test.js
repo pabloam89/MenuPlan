@@ -73,6 +73,33 @@ describe("la fila de controles sale del registro, no de un componente", () => {
     expect(ids).not.toContain("tecnica");
   });
 
+  it("lo que escribe cada control cae en un campo que el motor LEE", () => {
+    // El fallo que esto sujeta: Trastos escribía en `data.appliances` y el
+    // motor lee `data.kitchenTools`. El control se pintaba, se marcaba y se
+    // guardaba — y marcar "Airfryer" no metía ni un plato de airfryer. Un mando
+    // que no cambia el menú es peor que no tenerlo, y por fuera no se distingue
+    // de uno que funciona.
+    //
+    // Se comprueba escribiendo de verdad y mirando qué claves de `data` se
+    // mueven, en vez de leer el código: así vale para cualquier `escribe`,
+    // incluido el de Tiempo, que toca cuatro casillas de una.
+    const CONSUMIDOS = new Set([
+      "freqs", "cocinas", "mealStructure", "cookLevel", "kitchenTools",
+      "customKitchenTools", "cookTime", "kidDinner", "notepad",
+    ]);
+    const base = { ...CIMIENTOS };
+    for (const p of controlesVisibles(libretaVacia(), CIMIENTOS)) {
+      if (p.fuente !== "data" || !p.escribe) continue;
+      const valor = p.opciones?.[0]?.valor ?? p.opciones?.[0] ?? "x";
+      const despues = p.escribe(base, Array.isArray(p.opciones) && p.control === "multi" ? [valor] : valor);
+      const tocadas = Object.keys(despues).filter((k) => despues[k] !== base[k]);
+      expect(tocadas.length, `${p.id} no escribe nada`).toBeGreaterThan(0);
+      for (const k of tocadas) {
+        expect(CONSUMIDOS.has(k), `${p.id} escribe en "${k}", que no lo lee el motor`).toBe(true);
+      }
+    }
+  });
+
   it("cada control trae lo que la fila necesita para pintarse", () => {
     for (const p of controlesVisibles(libretaVacia(), CIMIENTOS)) {
       expect(p.corto, `${p.id} sin etiqueta corta`).toBeTruthy();
@@ -385,7 +412,10 @@ describe("el wizard se acorta mientras hablas", () => {
       mealStructure: "primero_segundo",
       cookLevel: "normal",
       cookTime: 30,
-      appliances: ["Horno"],
+      // `kitchenTools`, que es lo que lee el motor. Este fixture decía
+      // `appliances` — el mismo campo huérfano al que apuntaba Trastos, así que
+      // el test daba por contestada una pregunta que en realidad no movía nada.
+      kitchenTools: ["Horno"],
       budget: 100,
       pantryMode: "prefer",
     };

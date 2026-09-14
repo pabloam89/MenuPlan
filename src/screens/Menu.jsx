@@ -5169,9 +5169,17 @@ export function DishDetail({
   onSlotFreezerChange = null,
   // Owner-only: patch classification (tipo / aplica) on a user-created recipe.
   onUpdateUserRecipe = null,
+  // Abrir el perfil de quien subió esta receta. Sin este callback el nombre y
+  // la cara siguen ahí, pero como texto: no se pinta un enlace que no lleva a
+  // ningún sitio.
+  onOpenPerson = null,
   readOnly = false,
 }) {
   const isFavorite = favoriteScope != null;
+  // Solo hay perfil que abrir si la receta es de ALGUIEN. Las del catálogo son
+  // de la casa ("HoMenu"), y ahí no hay perfil detrás.
+  const ownerId = recipe.owner?.id ?? recipe.owner?.userId ?? null;
+  const abrirPerfil = onOpenPerson && ownerId ? () => onOpenPerson(ownerId) : null;
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
   const [rejected, setRejected] = useState(null);
   // Demo only (autoDemo="reject"): visual "press" on "Sustituir plato" right
@@ -5929,6 +5937,7 @@ export function DishDetail({
           </button>
         )}
 
+
         <DishVisual
           recipe={recipe}
           height={220}
@@ -5945,22 +5954,55 @@ export function DishDetail({
                   top-left of the sheet. */}
               {(recipe.owner || recipe.rating || browse) && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {/* La cara abre el perfil igual que el nombre: son el mismo
+                      objetivo, y tocar el avatar de alguien es el gesto que la
+                      gente prueba primero. */}
                   {recipe.owner?.avatar ? (
                     <img
                       src={recipe.owner.avatar}
                       alt={recipe.owner.name ?? ""}
-                      style={{ width: 30, height: 30, borderRadius: 999, objectFit: "cover", flexShrink: 0 }}
+                      onClick={abrirPerfil ?? undefined}
+                      style={{
+                        width: 30, height: 30, borderRadius: 999, objectFit: "cover", flexShrink: 0,
+                        cursor: abrirPerfil ? "pointer" : "default",
+                      }}
                     />
                   ) : (
                     <MenuPlanBadge size={30} />
                   )}
-                  <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 800, color: recipe.owner ? "#2f6fb8" : "#2d5a3d" }}>
-                      {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
-                    </span>
+                  {/* Nombre y fecha en VERDE los dos, con la fecha más suave.
+                      El nombre iba en un azul (#2f6fb8) que no está en la
+                      paleta y que no significaba nada: no era un enlace, no
+                      era una categoría, era un color suelto en una ficha donde
+                      todo lo demás es verde. Y entre ese azul y el gris de la
+                      fecha, dos datos del mismo hecho —quién y cuándo— parecían
+                      de dos sitios distintos.
+
+                      Sin el "·" delante de la fecha: separaba dos cosas que ya
+                      están separadas por un espacio y por el peso del texto, y
+                      en una ficha con cuatro pastillas debajo era un punto más
+                      que leer. */}
+                  <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 7, flexWrap: "wrap" }}>
+                    {abrirPerfil ? (
+                      <button
+                        type="button"
+                        onClick={abrirPerfil}
+                        style={{
+                          border: "none", background: "none", padding: 0, cursor: "pointer",
+                          fontFamily: "inherit", fontSize: 13.5, fontWeight: 800, color: "#2d5a3d",
+                          textAlign: "left",
+                        }}
+                      >
+                        {recipe.owner.name ?? "Tú"}
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: 13.5, fontWeight: 800, color: "#2d5a3d" }}>
+                        {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
+                      </span>
+                    )}
                     {recipe.createdAt && (
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#9ab0a1" }}>
-                        · {formatRecipeDate(recipe.createdAt)}
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#7a9485" }}>
+                        {formatRecipeDate(recipe.createdAt)}
                       </span>
                     )}
                   </div>

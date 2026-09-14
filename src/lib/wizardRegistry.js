@@ -521,11 +521,18 @@ export const PREGUNTAS = [
     },
     control: "multi",
     fuente: "data",
-    lee: (data) => (data?.appliances?.length ? data.appliances : null),
-    escribe: (data, valor) => ({ ...data, appliances: valor }),
-    // El vocabulario de KITCHEN_TOOLS de Menu.jsx, que es lo que filterRecipes
-    // cruza contra `requiredAppliance`. Inventar uno nuevo aquí lo dejaría sin
-    // consumidor.
+    // `kitchenTools` y NO `appliances`, que es donde escribía esto y no lo leía
+    // nadie: el motor cruza `data.kitchenTools` (+ customKitchenTools) contra
+    // `requiredAppliance` en filterRecipes, y `data.appliances` no existe en
+    // ninguna otra parte del proyecto. El control se pintaba, se marcaba y se
+    // guardaba en un campo huérfano — marcar "Airfryer" no metía ni un plato de
+    // airfryer. Es el mismo campo que escribe el asistente clásico
+    // (OnboardingAppliances), así que los dos mandos vuelven a ser uno.
+    lee: (data) => (data?.kitchenTools?.length ? data.kitchenTools : null),
+    escribe: (data, valor) => ({ ...data, kitchenTools: valor }),
+    // El vocabulario de APPLIANCES de Onboarding.jsx, que es lo que
+    // filterRecipes cruza contra `requiredAppliance`. Inventar uno nuevo aquí
+    // lo dejaría sin consumidor.
     opciones: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"],
     requiere: [],
     activa: null,

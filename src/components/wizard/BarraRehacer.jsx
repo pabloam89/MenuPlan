@@ -116,9 +116,25 @@ export function BarraRehacer({ pendientes, onAplicar }) {
           }}
         />
 
+        {/* El brillo que barre de izquierda a derecha: la señal del "desliza
+            para desbloquear", que es la que la gente ya tiene aprendida. Dice
+            la DIRECCIÓN sin que el texto tenga que dar instrucciones. Se corta
+            en cuanto tocas: a partir de ahí manda tu dedo. */}
+        {!arrastrando && !llegado && (
+          <span
+            aria-hidden
+            className="mp-desliz-brillo"
+            style={{
+              position: "absolute", left: 0, top: 0, bottom: 0, width: "28%",
+              background: "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.13), rgba(255,255,255,0))",
+              pointerEvents: "none",
+            }}
+          />
+        )}
+
         <span
           style={{
-            position: "relative", flex: 1,
+            position: "relative", flexShrink: 0,
             fontSize: 14, fontWeight: 800, color: "#fff",
             // Se apaga a medida que avanzas: el texto ha dicho lo que tenía
             // que decir en cuanto empiezas a moverlo.
@@ -137,23 +153,30 @@ export function BarraRehacer({ pendientes, onAplicar }) {
           )}
         </span>
 
-        {/* El destino. Se apagan según te acercas: ya no hacen falta. */}
+        {/* El camino, no el destino. Antes eran tres puntas pegadas al borde
+            derecho y no se entendía que había que deslizar: marcaban dónde
+            acaba el gesto, no que hubiera gesto. Ahora son ocho repartidas por
+            todo el hueco que le queda al dedo por recorrer, encendiéndose en
+            ola hacia la derecha — el mismo recorrido, dibujado.
+
+            Se apagan según avanzas: cuando ya estás deslizando, sobran. */}
         {!llegado && (
           <span
             aria-hidden
             style={{
-              position: "relative", flexShrink: 0, display: "flex",
-              marginRight: -4, opacity: 1 - parte,
+              position: "relative", flex: 1, display: "flex",
+              alignItems: "center", justifyContent: "space-between",
+              marginLeft: 8, marginRight: -4, opacity: 1 - parte,
             }}
           >
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
               <ChevronRight
                 key={i}
-                size={17}
+                size={15}
                 color="#8fd3a8"
                 strokeWidth={2.6}
                 className="mp-desliz-punta"
-                style={{ marginLeft: i === 0 ? 0 : -7, animationDelay: `${i * 0.16}s` }}
+                style={{ "--d": `${i * 0.11}s` }}
               />
             ))}
           </span>
