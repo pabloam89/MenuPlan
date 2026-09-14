@@ -7,7 +7,12 @@ import type { Expense } from '../types'
 // shows a placeholder for those instead of a thumbnail.
 export function buildSampleExpenses(): Expense[] {
   const now = new Date().toISOString()
-  const base: Array<Omit<Expense, 'id' | 'createdAt' | 'fileId' | 'fileName' | 'fileType' | 'status' | 'errorMessage'>> = [
+  const base: Array<
+    Omit<
+      Expense,
+      'id' | 'createdAt' | 'fileId' | 'fileName' | 'fileType' | 'status' | 'errorMessage' | 'memberId' | 'settledBy'
+    >
+  > = [
     {
       date: daysAgoISO(3),
       amount: 20,
@@ -43,5 +48,7 @@ export function buildSampleExpenses(): Expense[] {
     createdAt: now,
     status: 'manual' as const,
     errorMessage: null,
+    memberId: null,
+    settledBy: [],
   }))
 }

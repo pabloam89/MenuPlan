@@ -21,6 +21,17 @@ export function setAccessCode(code: string): void {
 
 export class AccessCodeError extends Error {}
 
+// Carries the HTTP status so callers can tell a transient failure (Anthropic
+// rate-limited/overloaded — worth retrying) from a permanent one (bad file,
+// unparseable response — retrying won't help).
+export class ExtractError extends Error {
+  status: number
+  constructor(message: string, status: number) {
+    super(message)
+    this.status = status
+  }
+}
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -59,7 +70,7 @@ export async function extractInvoiceData(file: File): Promise<ExtractedInvoiceFi
   const data = await response.json().catch(() => ({}))
 
   if (!response.ok) {
-    throw new Error(data?.error || `Error al leer la factura (HTTP ${response.status})`)
+    throw new ExtractError(data?.error || `Error al leer la factura (HTTP ${response.status})`, response.status)
   }
 
   return {

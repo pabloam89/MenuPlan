@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react'
 import { FileText, Image as ImageIcon, Loader2, AlertTriangle, Pencil, Trash2, Eye } from 'lucide-react'
 import { getFile } from '../db'
-import { displayServiceName, type Expense } from '../types'
+import { activeMemberCount, displayServiceName, perHeadAmount, type Expense, type Member } from '../types'
 import { formatDate, formatMoney } from '../utils/format'
 import { ServiceBadge } from './ServiceBadge'
 
 interface InvoiceCardProps {
   expense: Expense
+  members: Member[]
+  memberLabel: string
   onPreview: () => void
   onEdit: () => void
   onDelete: () => void
 }
 
-export function InvoiceCard({ expense, onPreview, onEdit, onDelete }: InvoiceCardProps) {
+export function InvoiceCard({ expense, members, memberLabel, onPreview, onEdit, onDelete }: InvoiceCardProps) {
+  const perHead = perHeadAmount(expense.amount, members)
+  const activeCount = activeMemberCount(members)
   const [thumbUrl, setThumbUrl] = useState<string | null>(null)
   const isPdf = expense.fileType === 'application/pdf'
 
@@ -60,10 +64,18 @@ export function InvoiceCard({ expense, onPreview, onEdit, onDelete }: InvoiceCar
           <ServiceBadge expense={expense} />
           <span className="invoice-card__amount">{formatMoney(expense.amount, expense.currency)}</span>
         </div>
+        {perHead !== null && activeCount > 1 && (
+          <p className="invoice-card__per-head">
+            {formatMoney(perHead, expense.currency)} / persona ({activeCount})
+          </p>
+        )}
         <p className="invoice-card__desc" title={expense.description}>
           {expense.description || displayServiceName(expense)}
         </p>
-        <p className="invoice-card__date">{formatDate(expense.date)}</p>
+        <p className="invoice-card__date">
+          {formatDate(expense.date)}
+          {memberLabel ? ` · ${memberLabel}` : ''}
+        </p>
       </div>
 
       <div className="invoice-card__actions">

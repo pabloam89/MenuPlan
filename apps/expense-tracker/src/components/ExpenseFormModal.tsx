@@ -1,5 +1,8 @@
-import { useState, type FormEvent } from 'react'
-import { SERVICES, type Expense, type ServiceName } from '../types'
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { FileText, Paperclip } from 'lucide-react'
+import { newId, saveFile } from '../db'
+import { SERVICES, type Expense, type Member, type ServiceName } from '../types'
+import { rateFor, toEur, type FxRates } from '../utils/currency'
 
 export interface ExpenseFormValues {
   date: string
@@ -8,15 +11,21 @@ export interface ExpenseFormValues {
   service: ServiceName
   customService: string
   description: string
+  memberId: string | null
+  fileId: string | null
+  fileName: string | null
+  fileType: string | null
 }
 
 interface ExpenseFormModalProps {
   expense: Expense
+  members: Member[]
+  fxRates: FxRates
   onSave: (values: ExpenseFormValues) => void
   onClose: () => void
 }
 
-export function ExpenseFormModal({ expense, onSave, onClose }: ExpenseFormModalProps) {
+export function ExpenseFormModal({ expense, members, fxRates, onSave, onClose }: ExpenseFormModalProps) {
   const [values, setValues] = useState<ExpenseFormValues>({
     date: expense.date,
     amount: expense.amount,
@@ -24,10 +33,32 @@ export function ExpenseFormModal({ expense, onSave, onClose }: ExpenseFormModalP
     service: expense.service,
     customService: expense.customService ?? '',
     description: expense.description,
+    memberId: expense.memberId,
+    fileId: expense.fileId,
+    fileName: expense.fileName,
+    fileType: expense.fileType,
   })
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  function handleSubmit(e: FormEvent) {
+  function convertToEur() {
+    const converted = Math.round(toEur(values.amount, values.currency, fxRates) * 100) / 100
+    setValues((v) => ({ ...v, amount: converted, currency: 'EUR' }))
+  }
+
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setPendingFile(file)
+    setValues((v) => ({ ...v, fileId: v.fileId ?? newId(), fileName: file.name, fileType: file.type || null }))
+  }
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (pendingFile && values.fileId) {
+      await saveFile(values.fileId, pendingFile, values.fileName ?? pendingFile.name)
+    }
     onSave(values)
   }
 
@@ -73,6 +104,13 @@ export function ExpenseFormModal({ expense, onSave, onClose }: ExpenseFormModalP
             </label>
           </div>
 
+          {values.currency !== 'EUR' && (
+            <button type="button" className="btn btn--ghost btn--compact" onClick={convertToEur}>
+              Convertir a EUR (1 {values.currency} = {rateFor(values.currency, fxRates)} EUR) → €
+              {(Math.round(toEur(values.amount, values.currency, fxRates) * 100) / 100).toFixed(2)}
+            </button>
+          )}
+
           <label className="field">
             <span>Servicio</span>
             <select
@@ -100,6 +138,46 @@ export function ExpenseFormModal({ expense, onSave, onClose }: ExpenseFormModalP
               />
             </label>
           )}
+
+          <label className="field">
+            <span>Pagado por</span>
+            <select
+              className="input"
+              value={values.memberId ?? ''}
+              onChange={(e) => setValues((v) => ({ ...v, memberId: e.target.value || null }))}
+            >
+              <option value="">Sin asignar</option>
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name || 'Sin nombre'}
+                  {m.leftAt ? ' (baja)' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Factura</span>
+            <div className="attach-file">
+              {values.fileName ? (
+                <span className="attach-file__current">
+                  <FileText size={14} /> {values.fileName}
+                </span>
+              ) : (
+                <span className="attach-file__current attach-file__current--empty">Sin factura adjunta</span>
+              )}
+              <button type="button" className="btn btn--ghost btn--compact" onClick={() => fileInputRef.current?.click()}>
+                <Paperclip size={13} /> {values.fileName ? 'Reemplazar' : 'Adjuntar'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf,image/png,image/jpeg,image/webp,image/gif"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
+            </div>
+          </label>
 
           <label className="field">
             <span>Descripción</span>

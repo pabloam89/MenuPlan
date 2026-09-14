@@ -1,11 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Download, Plus, Receipt } from 'lucide-react'
-import { deleteExpense, deleteFile, listExpenses, newId, putExpense, saveFile } from './db'
-import { AccessCodeError, extractInvoiceData, setAccessCode } from './api'
-import { displayServiceName, type Expense } from './types'
+import { Download, Plus, Receipt, Trash2, Users } from 'lucide-react'
+import {
+  clearAll,
+  deleteExpense,
+  deleteFile,
+  deleteMember,
+  listExpenses,
+  listMembers,
+  newId,
+  putExpense,
+  putMember,
+  saveFile,
+} from './db'
+import { AccessCodeError, ExtractError, extractInvoiceData, setAccessCode } from './api'
+import { displayServiceName, type Expense, type Member } from './types'
 import { todayISO } from './utils/format'
 import { downloadTextFile, expensesToCsv } from './utils/csv'
 import { buildSampleExpenses } from './utils/sampleData'
+import { loadFxRates, saveFxRates, type FxRates } from './utils/currency'
+import { loadRecurringMap, saveRecurringMap, type RecurringMap } from './utils/serviceSettings'
 import { UploadZone } from './components/UploadZone'
 import { InvoiceGallery } from './components/InvoiceGallery'
 import { InvoicePreviewModal } from './components/InvoicePreviewModal'
@@ -14,8 +27,35 @@ import { ExpenseTable } from './components/ExpenseTable'
 import { Dashboard } from './components/Dashboard'
 import { FilterBar, EMPTY_FILTERS, type Filters } from './components/FilterBar'
 import { AccessCodeModal } from './components/AccessCodeModal'
+import { MembersModal } from './components/MembersModal'
+import { MergeServicesModal, type MergeTarget } from './components/MergeServicesModal'
+import { ServicesTab } from './components/ServicesTab'
+import { BalancesTab } from './components/BalancesTab'
 
-type Tab = 'dashboard' | 'gallery' | 'table'
+type Tab = 'dashboard' | 'gallery' | 'table' | 'services' | 'balances'
+
+// Anthropic rate-limits/overloads a low-tier key well before 50 concurrent
+// requests finish, so subida masiva needs both a concurrency cap and retries
+// on the transient statuses (429 rate limit, 529 overloaded) — see
+// api.ts#ExtractError.
+const MAX_CONCURRENT_EXTRACTIONS = 4
+const MAX_RETRIES = 4
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function extractWithRetry(file: File) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await extractInvoiceData(file)
+    } catch (err) {
+      const retryable = err instanceof ExtractError && (err.status === 429 || err.status === 529)
+      if (!retryable || attempt >= MAX_RETRIES) throw err
+      await sleep(attempt * 1500)
+    }
+  }
+}
 
 interface PendingRetry {
   expense: Expense
@@ -37,12 +77,15 @@ function makeDraft(overrides: Partial<Expense>): Expense {
     createdAt: new Date().toISOString(),
     status: 'manual',
     errorMessage: null,
+    memberId: null,
+    settledBy: [],
     ...overrides,
   }
 }
 
 export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([])
+  const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('gallery')
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
@@ -50,11 +93,16 @@ export default function App() {
   const [editExpense, setEditExpense] = useState<Expense | null>(null)
   const [pendingRetries, setPendingRetries] = useState<PendingRetry[]>([])
   const [showAccessCodeModal, setShowAccessCodeModal] = useState(false)
+  const [showMembersModal, setShowMembersModal] = useState(false)
+  const [showMergeModal, setShowMergeModal] = useState(false)
+  const [fxRates, setFxRates] = useState<FxRates>(() => loadFxRates())
+  const [recurringMap, setRecurringMap] = useState<RecurringMap>(() => loadRecurringMap())
 
   useEffect(() => {
     listExpenses()
       .then(setExpenses)
       .finally(() => setLoading(false))
+    listMembers().then(setMembers)
   }, [])
 
   function upsertLocal(expense: Expense) {
@@ -66,7 +114,7 @@ export default function App() {
 
   async function processExtraction(expense: Expense, file: File) {
     try {
-      const result = await extractInvoiceData(file)
+      const result = await extractWithRetry(file)
       const updated: Expense = {
         ...expense,
         date: result.date ?? expense.date,
@@ -97,6 +145,7 @@ export default function App() {
   }
 
   async function handleFilesAdded(files: File[]) {
+    const queue: { draft: Expense; file: File }[] = []
     for (const file of files) {
       const id = newId()
       const draft = makeDraft({
@@ -109,8 +158,20 @@ export default function App() {
       await saveFile(id, file, file.name)
       await putExpense(draft)
       upsertLocal(draft)
-      void processExtraction(draft, file)
+      queue.push({ draft, file })
     }
+
+    // Fixed-size worker pool instead of firing every extraction at once —
+    // see MAX_CONCURRENT_EXTRACTIONS above for why.
+    let next = 0
+    async function worker() {
+      while (next < queue.length) {
+        const item = queue[next++]
+        await processExtraction(item.draft, item.file)
+      }
+    }
+    const workerCount = Math.min(MAX_CONCURRENT_EXTRACTIONS, queue.length)
+    void Promise.all(Array.from({ length: workerCount }, worker))
   }
 
   function handleAccessCodeSubmit(code: string) {
@@ -132,6 +193,91 @@ export default function App() {
     await deleteExpense(expense.id)
     if (expense.fileId) await deleteFile(expense.fileId)
     setExpenses((prev) => prev.filter((e) => e.id !== expense.id))
+  }
+
+  async function handleChangePayer(expense: Expense, memberId: string | null) {
+    const updated: Expense = { ...expense, memberId }
+    await putExpense(updated)
+    upsertLocal(updated)
+  }
+
+  async function handleBulkAssignPayer(memberId: string) {
+    if (!memberId || filteredExpenses.length === 0) return
+    const member = members.find((m) => m.id === memberId)
+    if (
+      !window.confirm(
+        `¿Asignar los ${filteredExpenses.length} gastos visibles a ${member?.name || 'este miembro'}? Se sobrescribirá quién pagó cada uno.`,
+      )
+    )
+      return
+    await Promise.all(filteredExpenses.map((expense) => handleChangePayer(expense, memberId)))
+  }
+
+  async function handleToggleSettled(expense: Expense, memberId: string) {
+    const current = expense.settledBy ?? []
+    const next = current.includes(memberId) ? current.filter((id) => id !== memberId) : [...current, memberId]
+    const updated: Expense = { ...expense, settledBy: next }
+    await putExpense(updated)
+    upsertLocal(updated)
+  }
+
+  async function handleClearAll() {
+    if (expenses.length === 0) return
+    if (
+      !window.confirm(
+        `¿Vaciar todo? Se eliminarán los ${expenses.length} gastos y sus facturas. Esta acción no se puede deshacer.`,
+      )
+    )
+      return
+    await clearAll()
+    setExpenses([])
+  }
+
+  async function handleSaveMember(member: Member) {
+    await putMember(member)
+    setMembers((prev) => {
+      const exists = prev.some((m) => m.id === member.id)
+      return exists ? prev.map((m) => (m.id === member.id ? member : m)) : [...prev, member]
+    })
+  }
+
+  async function handleDeleteMember(member: Member) {
+    await deleteMember(member.id)
+    setMembers((prev) => prev.filter((m) => m.id !== member.id))
+    // Un-assign this member's expenses instead of leaving a dangling memberId
+    // that would silently resolve to "no name" everywhere it's displayed.
+    const affected = expenses.filter((e) => e.memberId === member.id)
+    for (const expense of affected) {
+      const updated: Expense = { ...expense, memberId: null }
+      await putExpense(updated)
+      upsertLocal(updated)
+    }
+  }
+
+  function handleSaveFxRates(rates: FxRates) {
+    saveFxRates(rates)
+    setFxRates(rates)
+  }
+
+  function handleToggleRecurring(serviceName: string, recurring: boolean) {
+    setRecurringMap((prev) => {
+      const next = { ...prev, [serviceName]: recurring }
+      saveRecurringMap(next)
+      return next
+    })
+  }
+
+  async function handleMergeServices(sourceNames: Set<string>, target: MergeTarget) {
+    const affected = expenses.filter((e) => sourceNames.has(displayServiceName(e)))
+    for (const expense of affected) {
+      const updated: Expense = {
+        ...expense,
+        service: target.service,
+        customService: target.service === 'Otro' ? target.customService : null,
+      }
+      await putExpense(updated)
+      upsertLocal(updated)
+    }
   }
 
   async function handleSaveEdit(values: ExpenseFormValues) {
@@ -166,6 +312,7 @@ export default function App() {
     const max = filters.amountMax === '' ? null : Number(filters.amountMax)
     return expenses.filter((e) => {
       if (filters.service && e.service !== filters.service) return false
+      if (filters.memberId && e.memberId !== filters.memberId) return false
       if (filters.dateFrom && e.date < filters.dateFrom) return false
       if (filters.dateTo && e.date > filters.dateTo) return false
       if (min !== null && e.amount < min) return false
@@ -180,7 +327,11 @@ export default function App() {
 
   function handleExport(format: 'csv' | 'json') {
     if (format === 'csv') {
-      downloadTextFile('gastos-menuplan.csv', expensesToCsv(filteredExpenses), 'text/csv')
+      downloadTextFile(
+        'gastos-menuplan.csv',
+        expensesToCsv(filteredExpenses, members, fxRates, recurringMap),
+        'text/csv',
+      )
     } else {
       downloadTextFile('gastos-menuplan.json', JSON.stringify(filteredExpenses, null, 2), 'application/json')
     }
@@ -197,12 +348,20 @@ export default function App() {
           </div>
         </div>
         <div className="app__header-actions">
+          <button type="button" className="btn btn--ghost btn--compact" onClick={() => setShowMembersModal(true)}>
+            <Users size={14} /> Miembros ({members.filter((m) => !m.leftAt).length})
+          </button>
           <button type="button" className="btn btn--ghost btn--compact" onClick={() => handleExport('csv')}>
             <Download size={14} /> CSV
           </button>
           <button type="button" className="btn btn--ghost btn--compact" onClick={() => handleExport('json')}>
             <Download size={14} /> JSON
           </button>
+          {expenses.length > 0 && (
+            <button type="button" className="btn btn--ghost btn--compact" onClick={handleClearAll}>
+              <Trash2 size={14} /> Vaciar todo
+            </button>
+          )}
         </div>
       </header>
 
@@ -248,21 +407,59 @@ export default function App() {
             >
               Tabla
             </button>
+            <button
+              type="button"
+              className={tab === 'services' ? 'tabs__btn tabs__btn--active' : 'tabs__btn'}
+              onClick={() => setTab('services')}
+            >
+              Servicios
+            </button>
+            <button
+              type="button"
+              className={tab === 'balances' ? 'tabs__btn tabs__btn--active' : 'tabs__btn'}
+              onClick={() => setTab('balances')}
+            >
+              Balances
+            </button>
             <button type="button" className="btn btn--ghost btn--compact tabs__add" onClick={handleAddManual}>
               <Plus size={14} /> Gasto manual
             </button>
           </nav>
 
-          {tab !== 'dashboard' && <FilterBar filters={filters} onChange={setFilters} />}
+          {tab !== 'dashboard' && tab !== 'services' && tab !== 'balances' && (
+            <FilterBar filters={filters} members={members} onChange={setFilters} />
+          )}
 
-          <p className="muted count-line">
-            {filteredExpenses.length} de {expenses.length} gastos
-          </p>
+          {tab !== 'services' && tab !== 'balances' && (
+            <p className="muted count-line">
+              {filteredExpenses.length} de {expenses.length} gastos
+            </p>
+          )}
 
-          {tab === 'dashboard' && <Dashboard expenses={filteredExpenses} />}
+          {tab === 'dashboard' && (
+            <Dashboard
+              expenses={filteredExpenses}
+              members={members}
+              fxRates={fxRates}
+              recurringMap={recurringMap}
+              onSaveFxRates={handleSaveFxRates}
+              onOpenMergeModal={() => setShowMergeModal(true)}
+            />
+          )}
+          {tab === 'services' && (
+            <ServicesTab
+              expenses={expenses}
+              fxRates={fxRates}
+              recurringMap={recurringMap}
+              onToggleRecurring={handleToggleRecurring}
+              onMergeServices={() => setShowMergeModal(true)}
+            />
+          )}
+          {tab === 'balances' && <BalancesTab expenses={expenses} members={members} fxRates={fxRates} />}
           {tab === 'gallery' && (
             <InvoiceGallery
               expenses={filteredExpenses}
+              members={members}
               onPreview={setPreviewExpense}
               onEdit={setEditExpense}
               onDelete={handleDelete}
@@ -271,9 +468,12 @@ export default function App() {
           {tab === 'table' && (
             <ExpenseTable
               expenses={filteredExpenses}
+              members={members}
               onPreview={setPreviewExpense}
-              onEdit={setEditExpense}
               onDelete={handleDelete}
+              onChangePayer={handleChangePayer}
+              onToggleSettled={handleToggleSettled}
+              onBulkAssignPayer={handleBulkAssignPayer}
             />
           )}
         </>
@@ -288,7 +488,13 @@ export default function App() {
       )}
 
       {editExpense && (
-        <ExpenseFormModal expense={editExpense} onSave={handleSaveEdit} onClose={() => setEditExpense(null)} />
+        <ExpenseFormModal
+          expense={editExpense}
+          members={members}
+          fxRates={fxRates}
+          onSave={handleSaveEdit}
+          onClose={() => setEditExpense(null)}
+        />
       )}
 
       {showAccessCodeModal && (
@@ -298,6 +504,24 @@ export default function App() {
             setShowAccessCodeModal(false)
             setPendingRetries([])
           }}
+        />
+      )}
+
+      {showMembersModal && (
+        <MembersModal
+          members={members}
+          onSave={handleSaveMember}
+          onDelete={handleDeleteMember}
+          onClose={() => setShowMembersModal(false)}
+        />
+      )}
+
+      {showMergeModal && (
+        <MergeServicesModal
+          expenses={expenses}
+          fxRates={fxRates}
+          onMerge={handleMergeServices}
+          onClose={() => setShowMergeModal(false)}
         />
       )}
     </div>

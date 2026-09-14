@@ -18,7 +18,12 @@ export default defineConfig({
     // host the handler itself. Run `npm run dev` at the repo root alongside
     // `npm run dev:expenses` for extraction to work locally.
     proxy: {
-      '/api': 'http://localhost:5175',
+      // changeOrigin:false keeps the original Host header (localhost:5176)
+      // instead of rewriting it to the proxy target. api/_guard.js#isCrossOrigin
+      // compares the browser's Origin against Host — with changeOrigin's default
+      // rewrite, Host becomes localhost:5175 while Origin stays localhost:5176,
+      // a mismatch that 403s every request in local dev.
+      '/api': { target: 'http://localhost:5175', changeOrigin: false },
     },
   },
   build: {

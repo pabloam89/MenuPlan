@@ -1,9 +1,10 @@
 import { Search, X } from 'lucide-react'
-import { SERVICES } from '../types'
+import { SERVICES, type Member } from '../types'
 
 export interface Filters {
   search: string
   service: string // '' = all
+  memberId: string // '' = all
   dateFrom: string
   dateTo: string
   amountMin: string
@@ -13,6 +14,7 @@ export interface Filters {
 export const EMPTY_FILTERS: Filters = {
   search: '',
   service: '',
+  memberId: '',
   dateFrom: '',
   dateTo: '',
   amountMin: '',
@@ -21,10 +23,11 @@ export const EMPTY_FILTERS: Filters = {
 
 interface FilterBarProps {
   filters: Filters
+  members: Member[]
   onChange: (filters: Filters) => void
 }
 
-export function FilterBar({ filters, onChange }: FilterBarProps) {
+export function FilterBar({ filters, members, onChange }: FilterBarProps) {
   function set<K extends keyof Filters>(key: K, value: Filters[K]) {
     onChange({ ...filters, [key]: value })
   }
@@ -51,6 +54,21 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
           </option>
         ))}
       </select>
+
+      {members.length > 0 && (
+        <select
+          className="input input--compact"
+          value={filters.memberId}
+          onChange={(e) => set('memberId', e.target.value)}
+        >
+          <option value="">Todos los miembros</option>
+          {members.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name || 'Sin nombre'}
+            </option>
+          ))}
+        </select>
+      )}
 
       <div className="filter-bar__range">
         <input

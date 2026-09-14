@@ -1,9 +1,10 @@
-import type { Expense, StoredFile } from './types'
+import type { Expense, Member, StoredFile } from './types'
 
 const DB_NAME = 'menuplan-expense-tracker'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const FILES_STORE = 'files'
 const EXPENSES_STORE = 'expenses'
+const MEMBERS_STORE = 'members'
 
 let dbPromise: Promise<IDBDatabase> | null = null
 
@@ -20,6 +21,9 @@ function openDb(): Promise<IDBDatabase> {
         const store = db.createObjectStore(EXPENSES_STORE, { keyPath: 'id' })
         store.createIndex('service', 'service', { unique: false })
         store.createIndex('date', 'date', { unique: false })
+      }
+      if (!db.objectStoreNames.contains(MEMBERS_STORE)) {
+        db.createObjectStore(MEMBERS_STORE, { keyPath: 'id' })
       }
     }
     req.onsuccess = () => resolve(req.result)
@@ -82,4 +86,17 @@ export async function deleteExpense(id: string): Promise<void> {
 export async function clearAll(): Promise<void> {
   await tx(EXPENSES_STORE, 'readwrite', (s) => s.clear())
   await tx(FILES_STORE, 'readwrite', (s) => s.clear())
+}
+
+export async function listMembers(): Promise<Member[]> {
+  const all = await tx<Member[]>(MEMBERS_STORE, 'readonly', (s) => s.getAll())
+  return all.sort((a, b) => a.since.localeCompare(b.since))
+}
+
+export async function putMember(member: Member): Promise<void> {
+  await tx(MEMBERS_STORE, 'readwrite', (s) => s.put(member))
+}
+
+export async function deleteMember(id: string): Promise<void> {
+  await tx(MEMBERS_STORE, 'readwrite', (s) => s.delete(id))
 }

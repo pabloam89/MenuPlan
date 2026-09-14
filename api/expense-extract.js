@@ -16,7 +16,7 @@ import { blocked } from "./_guard.js";
 //     as the rest of api/_guard.js.
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 1024;
-const MAX_BASE64_LEN = 15_000_000; // ~10.5MB decoded — comfortably covers a photographed receipt or a multi-page PDF invoice
+const MAX_BASE64_LEN = 27_000_000; // ~20MB decoded — Anthropic's PDF limit is 32MB; this covers large multi-page/high-res scans (e.g. DaVinci Resolve invoices around 11MB) with headroom
 const ALLOWED_MEDIA_TYPES = new Set([
   "application/pdf",
   "image/png",
@@ -47,11 +47,12 @@ Responde EXCLUSIVAMENTE con un objeto JSON válido (sin markdown, sin texto ante
   "currency": "código ISO 4217 de 3 letras (ej. EUR, USD) o null",
   "service": "uno EXACTO de esta lista: ${SERVICES.join(", ")}",
   "customService": "si service es \\"Otro\\", el nombre real del servicio/proveedor tal como aparece en la factura; en cualquier otro caso, null",
-  "description": "descripción breve en español (máx. 100 caracteres) de qué es el gasto (plan, concepto, periodo de facturación, etc.)"
+  "description": "descripción MUY breve en español (máx. 40 caracteres) de solo el plan o concepto (ej. \\"Plan Pro mensual\\", \\"100 créditos\\")"
 }
 
 Reglas:
 - "service" debe coincidir EXACTAMENTE con una de las opciones listadas. Si el proveedor de la factura no es ninguno de ellos, usa "Otro" y pon el nombre real en "customService".
+- "description" va SOLO al grano: el plan/producto y como mucho la periodicidad. NUNCA incluyas número de factura, NIF/CIF, dirección, datos fiscales, nombre de la empresa (ya está en "service") ni ningún otro dato administrativo.
 - Si algún dato no se puede determinar con certeza a partir del documento, usa null en ese campo (excepto "service", que siempre debe tener un valor de la lista).
 - No inventes datos que no aparezcan en el documento.`;
 
@@ -82,7 +83,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Tipo de archivo no soportado" });
     }
     if (fileBase64.length > MAX_BASE64_LEN) {
-      return res.status(400).json({ error: "Archivo demasiado grande (máx. ~10MB)" });
+      return res.status(400).json({ error: "Archivo demasiado grande (máx. ~20MB)" });
     }
 
     const isPdf = mediaType === "application/pdf";
