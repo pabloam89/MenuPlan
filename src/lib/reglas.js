@@ -434,6 +434,44 @@ export function invitadosPorHueco(reglas, { semanaISO, hoy } = {}) {
   return out;
 }
 
+/**
+ * Las mismas reglas SIN las de invitado que apuntan a este hueco.
+ *
+ * Es la mitad que faltaba de `reglaDeInvitado`: el contador de la tarjeta no
+ * añade comensales, EDITA cuántos hay — y bajar a cero tiene que poder deshacer
+ * lo que se puso. Quitar la regla es la única forma honesta de hacerlo: el
+ * invitado no se persiste en ningún sitio, solo existe porque su regla lo
+ * crea en cada generación.
+ *
+ * Solo toca reglas de INVITADO con efecto `presente` que apunten exactamente a
+ * ese día, esa comida y esa semana. Una regla del mismo hueco que diga otra
+ * cosa —"el miércoles sin marisco"— se queda: el contador no es una goma de
+ * borrar de todo lo que se dijo de un plato.
+ *
+ * @param {Array} reglas
+ * @param {{dia: string, comida: string, grupoRef?: string, semanaISO?: string}} hueco
+ * @returns {Array} las reglas que sobreviven, en su orden original
+ */
+export function sinInvitadosDelHueco(reglas, { dia, comida, grupoRef, semanaISO } = {}) {
+  const lunes = semanaISO ? lunesDe(semanaISO) : null;
+  return (Array.isArray(reglas) ? reglas : []).filter((raw) => {
+    const regla = normalizarRegla(raw);
+    if (!regla) return true;
+    if (regla.sujeto.tipo !== "invitado" || regla.efecto.tipo !== "presente") return true;
+    if (grupoRef && (regla.sujeto.grupoRef ?? null) !== grupoRef) return true;
+    const dias = regla.ambito?.dias ?? [];
+    const comidas = regla.ambito?.comidas ?? [];
+    // Una regla más ancha que este hueco ("los viernes", sin comida) NO se
+    // borra desde aquí: el usuario la puso en otro sitio y con otro alcance,
+    // y hacerla desaparecer al tocar un plato sería robarle una decisión.
+    if (dias.length !== 1 || dias[0] !== dia) return true;
+    if (comidas.length !== 1 || comidas[0] !== comida) return true;
+    const semanas = regla.ambito?.semanas ?? [];
+    if (lunes && !semanas.some((w) => lunesDe(w) === lunes)) return true;
+    return false;
+  });
+}
+
 // ── Fechas ─────────────────────────────────────────────────────────────────
 
 /**

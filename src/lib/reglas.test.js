@@ -7,6 +7,7 @@ import {
   nuevaRegla,
   reglaDeInvitado,
   invitadosPorHueco,
+  sinInvitadosDelHueco,
   reglaVigente,
   reglaTocaLaVentana,
   podarReglasVencidas,
@@ -1085,5 +1086,60 @@ describe("invitadosPorHueco: la chapa de la tarjeta", () => {
       hoy: HOY,
     });
     expect(invitadosPorHueco([r], { semanaISO: LUNES })).toEqual({});
+  });
+});
+
+describe("sinInvitadosDelHueco: bajar el contador a cero", () => {
+  const hueco = { dia: "Mié", comida: "Cena", grupoRef: "g_ad", semanaISO: LUNES };
+
+  it("quita las de ESE hueco y deja el resto", () => {
+    const aqui = reglaDeInvitado({ ...hueco, dia: "Mié", comida: "Cena", hoy: HOY });
+    const otroDia = reglaDeInvitado({ dia: "Jue", comida: "Cena", grupoRef: "g_ad", semanaISO: LUNES, hoy: HOY });
+    const otraComida = reglaDeInvitado({ dia: "Mié", comida: "Comida", grupoRef: "g_ad", semanaISO: LUNES, hoy: HOY });
+    const quedan = sinInvitadosDelHueco([aqui, otroDia, otraComida], hueco);
+    expect(quedan.map((r) => r.id)).toEqual([otroDia.id, otraComida.id]);
+  });
+
+  it("no toca la semana de al lado", () => {
+    const otraSemana = reglaDeInvitado({ dia: "Mié", comida: "Cena", grupoRef: "g_ad", semanaISO: "2026-09-14", hoy: HOY });
+    expect(sinInvitadosDelHueco([otraSemana], hueco)).toHaveLength(1);
+  });
+
+  it("no borra una regla del mismo hueco que dice OTRA cosa", () => {
+    // "El miércoles sin marisco" vive en el mismo día y comida, pero el
+    // contador de comensales no es una goma de borrar de todo lo dicho.
+    const sinMarisco = nuevaRegla({
+      sujeto: { tipo: "casa" },
+      ambito: { dias: ["Mié"], comidas: ["Cena"], semanas: [LUNES] },
+      efecto: { tipo: "excluir", valor: "marisco" },
+      hoy: HOY,
+    });
+    expect(sinInvitadosDelHueco([sinMarisco], hueco)).toHaveLength(1);
+  });
+
+  it("no borra una regla MAS ANCHA que este hueco", () => {
+    // "Los viernes viene mi hermano" (sin comida) se puso en otro sitio y con
+    // otro alcance: hacerla desaparecer al tocar un plato seria robarle una
+    // decision al usuario.
+    const ancha = nuevaRegla({
+      sujeto: { tipo: "invitado", n: 1, grupoRef: "g_ad" },
+      ambito: { dias: ["Mié"] },
+      efecto: { tipo: "presente", valor: "casa" },
+      hoy: HOY,
+    });
+    expect(sinInvitadosDelHueco([ancha], hueco)).toHaveLength(1);
+  });
+
+  it("ida y vuelta: poner dos y bajar a cero deja la mesa como estaba", () => {
+    const data = CASA();
+    const dos = reglaDeInvitado({ ...hueco, n: 2, hoy: HOY });
+    const conDos = proyectarReglas([dos], data, ctx());
+    const adultos = (conDos.delta.groups ?? data.groups).find((g) => g.id === "g_ad");
+    expect(eatersForSlot(adultos, conDos.delta.members ?? data.members, conDos.delta.schedule ?? {}, "Mié", "Cena").length).toBe(4);
+
+    const vacias = sinInvitadosDelHueco([dos], hueco);
+    const sinNadie = proyectarReglas(vacias, data, ctx());
+    const ad2 = (sinNadie.delta.groups ?? data.groups).find((g) => g.id === "g_ad");
+    expect(eatersForSlot(ad2, sinNadie.delta.members ?? data.members, sinNadie.delta.schedule ?? data.schedule, "Mié", "Cena").length).toBe(2);
   });
 });
