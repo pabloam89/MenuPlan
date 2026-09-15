@@ -64,11 +64,20 @@ export function sesgoScoreBoost(recipe, sesgos, favoritos = []) {
     if (s && recipe.tecnica === tecnica) boost += s * PESO_SESGO;
   }
 
-  // base: {arroz: 1, patatas: -1}. Casa por `mainBase`, que es lo que el
-  // catálogo declara (y desde D1 manda sobre el regex para el hidrato).
+  // base: {arroz: 1, patatas: -1, sofrito: 1}. Casa por DOS sitios, y hacen
+  // falta los dos:
+  //
+  //   · `mainBase` — la fécula que declara el catálogo (arroz, pasta…).
+  //   · `basesAparte` — lo batcheable que NO es fécula. Hoy solo el sofrito,
+  //     y es el más grande de todos: 178 platos del recetario estrella, más
+  //     que patatas, pasta y arroz juntos. Sin esta segunda línea, marcar
+  //     "sofrito" en el selector de bases no movía ni un plato.
   for (const [base, valor] of Object.entries(sesgos?.base ?? {})) {
     const s = signo(valor);
-    if (s && recipe.mainBase === base) boost += s * PESO_SESGO;
+    if (!s) continue;
+    if (recipe.mainBase === base || (recipe.basesAparte ?? []).includes(base)) {
+      boost += s * PESO_SESGO;
+    }
   }
 
   // salsa: el dominio es {si, no}, así que la polaridad pedida es

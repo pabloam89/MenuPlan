@@ -92,7 +92,13 @@ export const CAMPOS = [
     // libre, así que los 8 platos con `patata` (en vez de `patatas`) caían
     // fuera del sesgo sin que nadie se enterara. Ahora MAIN_BASES es enum y
     // esta es la misma lista, no una copia que se pueda volver a quedar atrás.
-    dominio: MAIN_BASES,
+    // MAIN_BASES son las féculas. `sofrito` se añade aparte porque NO lo es —
+    // meterlo en el enum habría roto carbType y las reglas de variedad, que es
+    // justo lo que ese enum existe para sujetar. Pero sí es una base: 178
+    // platos del recetario estrella lo llevan, más que patatas, pasta y arroz
+    // juntos, y es el único que ahorra TRABAJO de manos (30 minutos de picar y
+    // pochar) en vez de tiempo de olla. `sesgos.js` lo casa por `basesAparte`.
+    dominio: [...MAIN_BASES, "sofrito"],
     proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "echo de menos más pasta",

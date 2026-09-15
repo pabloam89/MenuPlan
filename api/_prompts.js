@@ -204,7 +204,7 @@ Cada ajuste es {campo, valor, op, n?, ambito?, servicio?}.
 
 Campos y sus valores permitidos. No existe ningún otro campo ni ningún otro valor:
 - "freqs": carne, pescado, legumbres, pasta_arroz, huevos, verdura
-- "base": arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus
+- "base": arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito
 - "cocina": italiana, asiatica, mexicana, arabe, francesa, americana, india, peruana
 - "tecnica": horno, plancha, sarten, olla, crudo
 - "salsa": si, no

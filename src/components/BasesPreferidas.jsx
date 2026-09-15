@@ -40,7 +40,23 @@ const GREEN = "#2d5a3d";
  * a este tamaño no se distinguían — "legumbre" era un cuenco beige que podía
  * ser cualquier cosa, y de `boniato` no había ninguna.
  */
+/**
+ * El orden NO es el del enum: manda cuánto cubre cada una. El sofrito va
+ * primero porque lo llevan 178 platos del recetario estrella — más que
+ * patatas, pasta y arroz juntos— y porque es el único que ahorra trabajo de
+ * MANOS: una olla de arroz son 18 minutos de los que 8 son tuyos; un sofrito
+ * son 30 y son los 30.
+ *
+ * Y no es una fécula, así que no está en MAIN_BASES: vive en `basesAparte`, y
+ * `sesgos.js` casa por los dos sitios.
+ */
+const ORDEN = ["sofrito", ...MAIN_BASES];
+
 const BASES_UI = {
+  // Provisional: no hay ilustración de sofrito todavía. La cebolla es lo más
+  // honesto que hay — pochar cebolla ES el trabajo que un sofrito te ahorra—,
+  // y el bote de tomate frito habría dicho justo lo contrario de lo que es.
+  sofrito: { etiqueta: "Sofrito", foto: "cebolla" },
   arroz: { etiqueta: "Arroz", foto: "arroz" },
   pasta: { etiqueta: "Pasta", foto: "pasta corta" },
   patatas: { etiqueta: "Patatas", foto: "patata" },
@@ -141,7 +157,7 @@ export function BasesPreferidas({ data, setData }) {
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 9 }}>
-        {MAIN_BASES.map((id) => (
+        {ORDEN.map((id) => (
           <FichaDeBase key={id} id={id} elegida={elegida(id)} onToggle={alternar} />
         ))}
       </div>
