@@ -289,25 +289,68 @@ export function montajeTrasBases(receta, clavesListas) {
 }
 
 /**
- * El tope de "esto es montaje, no cocinar": minutos TUYOS que pueden quedar un
- * día de diario con las bases hechas.
+ * Los dos topes de un día de diario. Son DOS porque una cena se cae por dos
+ * motivos distintos, y una tanda arregla uno u otro según la base:
  *
- * Quince, y en minutos activos, no de reloj: un plato que solo necesita que se
- * caliente el horno veinte minutos sigue siendo montaje, y uno que te tiene
- * veinte minutos de pie no lo es aunque el reloj diga lo mismo.
+ *   manos → minutos en los que tienes que estar delante. Lo que arregla el
+ *           sofrito: pochar cebolla son 30 minutos y los 30 son tuyos.
+ *   reloj → minutos desde que entras en la cocina hasta que se come. Lo que
+ *           arregla el arroz: los 18 minutos de olla no te cansan, pero a las
+ *           nueve de la noche con hambre son los que deciden si cocinas o
+ *           pides algo.
+ *
+ * Medir solo las manos dejó fuera lo segundo y hacía parecer inútiles las
+ * féculas: por manos, 28 platos dependen de una tanda; contando también el
+ * reloj son 67. Un arroz baja de 50 minutos de reloj a 31, y eso no es una
+ * comodidad, es la diferencia entre cenar eso o no cenar eso.
+ *
+ * 45 y no 30 en el reloj: un plato puede tener el horno encendido media hora
+ * mientras pones la mesa. Lo que no cabe un martes es empezar a las nueve.
  */
 export const MINUTOS_DE_MONTAJE = 15;
+export const MINUTOS_DE_DIARIO = 45;
 
 /**
- * ¿Este plato es de montaje rápido teniendo sus bases hechas?
+ * ¿Este plato cabe un día de diario teniendo sus bases hechas?
+ *
+ * Pide los DOS topes. Un guiso de hora y media sin apenas trabajo no es una
+ * cena de martes por muy poco que te ate, y un salteado de cinco minutos que
+ * te tiene diez de pie picando, tampoco.
  *
  * Devuelve false para lo que nadie ha etiquetado todavía. No es un descuido:
- * es la diferencia entre "sabemos que es rápido" y "no lo sabemos", y la
- * segunda no se puede enseñar como promesa.
+ * es la diferencia entre "sabemos que cabe" y "no lo sabemos", y la segunda no
+ * se puede enseñar como promesa.
  */
 export function esMontajeRapido(receta, clavesListas) {
   const m = montajeTrasBases(receta, clavesListas);
-  return m.etiquetado && m.minutosActivos <= MINUTOS_DE_MONTAJE;
+  return m.etiquetado
+    && m.minutosActivos <= MINUTOS_DE_MONTAJE
+    && m.minutos <= MINUTOS_DE_DIARIO;
+}
+
+/**
+ * Lo que gana un plato por tener sus bases hechas, en los dos ejes, y si eso
+ * le hace pasar de no caber un martes a caber.
+ *
+ * Es lo que hay que enseñar: no "ahorras 19 minutos" a secas, sino "de 50
+ * minutos a 31" — y, cuando cruza, que hoy esto es posible y sin la tanda no
+ * lo era.
+ */
+export function loQueGana(receta, clavesListas) {
+  const sinNada = montajeTrasBases(receta, []);
+  const conTodo = montajeTrasBases(receta, clavesListas);
+  return {
+    relojAntes: sinNada.minutos,
+    relojDespues: conTodo.minutos,
+    manosAntes: sinNada.minutosActivos,
+    manosDespues: conTodo.minutosActivos,
+    // Cruzar es el suceso que de verdad importa: el plato pasa de imposible a
+    // posible. Ahorrar cinco minutos a un plato que ya cabía no cambia nada.
+    cruzaPorReloj: sinNada.minutos > MINUTOS_DE_DIARIO && conTodo.minutos <= MINUTOS_DE_DIARIO,
+    cruzaPorManos: sinNada.minutosActivos > MINUTOS_DE_MONTAJE
+      && conTodo.minutosActivos <= MINUTOS_DE_MONTAJE,
+    etiquetado: conTodo.etiquetado,
+  };
 }
 
 /**

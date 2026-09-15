@@ -5,8 +5,11 @@ import {
   baseDeReceta,
   clavesDeReceta,
   coberturaDeBases,
+  MINUTOS_DE_DIARIO,
+  MINUTOS_DE_MONTAJE,
   costeDeReactivar,
   esMontajeRapido,
+  loQueGana,
   montajeTrasBases,
   fraccionActiva,
   sesionDeBases,
@@ -371,6 +374,41 @@ describe("montajeTrasBases · lo que queda por hacer el martes", () => {
     expect(montajeTrasBases(alHorno).minutos).toBe(25 + r.minutos);
     expect(montajeTrasBases(alHorno).minutosActivos).toBe(5 + r.minutosActivos);
     expect(esMontajeRapido(alHorno)).toBe(true);
+  });
+
+  it("un guiso de hora y media no es cena de martes por poco que te ate", () => {
+    // El tope de MANOS solo no basta: esto son 8 minutos tuyos y 100 de reloj.
+    const guiso = {
+      basesAparte: ["sofrito"],
+      stepsRich: [
+        { text: "Pochar la cebolla.", minutes: 20, kind: "activo", base: "sofrito" },
+        { text: "Sellar la carne.", minutes: 6, kind: "activo" },
+        { text: "Guisar a fuego lento.", minutes: 100, kind: "pasivo" },
+      ],
+    };
+    const m = montajeTrasBases(guiso);
+    expect(m.minutosActivos).toBeLessThanOrEqual(MINUTOS_DE_MONTAJE);
+    expect(m.minutos).toBeGreaterThan(MINUTOS_DE_DIARIO);
+    expect(esMontajeRapido(guiso)).toBe(false);
+  });
+
+  it("loQueGana ve que un plato pasa de no caber a caber por el RELOJ", () => {
+    // El caso del arroz: 8 minutos de manos antes y despues (no gana nada por
+    // ese lado), pero la olla se lleva media hora de reloj.
+    const conArroz = {
+      mainBase: "arroz", baseMode: "aparte",
+      stepsRich: [
+        { text: "Cocer el arroz.", minutes: 30, kind: "pasivo", base: "arroz" },
+        { text: "Saltear el pollo.", minutes: 8, kind: "activo" },
+        { text: "Juntar y servir.", minutes: 20, kind: "pasivo" },
+      ],
+    };
+    const g = loQueGana(conArroz);
+    expect(g.relojAntes).toBe(58);
+    expect(g.relojDespues).toBeLessThanOrEqual(MINUTOS_DE_DIARIO);
+    expect(g.cruzaPorReloj).toBe(true);
+    // Por manos no gana: cocer arroz no te ata. Y aun asi la tanda sirve.
+    expect(g.cruzaPorManos).toBe(false);
   });
 
   it("clavesDeReceta ve la fécula aparte y lo de basesAparte, sin repetir", () => {
