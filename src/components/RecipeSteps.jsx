@@ -100,6 +100,13 @@ export function RecipeStepList({ rich = null, plain = [], ingredients = null, ki
                     {isParallel ? "En paralelo" : meta.label}
                   </Chip>
                   {mins && <Chip color="#5a7066" background="#f4f7f4">{mins}</Chip>}
+                  {/* Un paso que viene de sacar el táper, no de cocinar. Se
+                      marca porque es la diferencia entre "esto lo haces hoy" y
+                      "esto ya lo hiciste el domingo": sin la etiqueta, un
+                      "calienta el sofrito un minuto" parece un paso más. */}
+                  {s.deReactivacion && (
+                    <Chip color="#8a6d3b" background="#f6efe0">De la tanda</Chip>
+                  )}
                 </div>
                 <div style={{ fontSize: 13, lineHeight: 1.55, color: "#48564e" }}>
                   {renderStepText(s.text, ingredients, kitchenTools)}

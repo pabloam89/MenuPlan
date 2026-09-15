@@ -108,6 +108,8 @@ import {
   splitSlotPortions,
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
+import { recetaConBases } from "../lib/recetaConBases.js";
+import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
@@ -5321,6 +5323,13 @@ export function DishDetail({
   // Receta section: segmented control between "Ingredientes" and "Pasos".
   const [recipeTab, setRecipeTab] = useState(initialRecipeTab);
   const [recipeExpanded, setRecipeExpanded] = useState(true);
+  // ¿Se cocina con las bases YA hechas? Empieza en `false` a propósito: marcar
+  // una base en el onboarding es una PREFERENCIA ("me gusta tenerlo hecho"),
+  // no un parte de que el domingo cocinaras. Dar por hecho que hay sofrito en
+  // la nevera y quitar el paso de pocharlo sería mentir sobre la cena de hoy.
+  // Cuando exista la vista de la sesión del domingo, ella sabrá qué se cocinó
+  // de verdad y podrá encenderlo sola.
+  const [conBases, setConBases] = useState(false);
   const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
   // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
@@ -5491,6 +5500,22 @@ export function DishDetail({
     platoUnico,
     baseName,
   ]);
+  // ── La receta vista desde el martes, con las bases ya hechas ────────────
+  // Solo en el plato principal: una guarnición o una salsa de catálogo tienen
+  // su propia pestaña con sus propios pasos, y meter ahí la tanda mezclaría
+  // dos cosas que el usuario está mirando por separado.
+  const vistaBases = useMemo(() => recetaConBases(recipe), [recipe]);
+  const puedeConBases = vistaBases.aplicada && !garnishRecipe && !sauceRecipe;
+  const usandoBases = puedeConBases && conBases;
+  // Los ingredientes de la ficha vienen escalados, así que la marca se cruza
+  // por nombre — que es la misma clave con la que se resolvieron.
+  const deBasePorNombre = useMemo(() => {
+    const m = new Map();
+    if (!puedeConBases) return m;
+    for (const i of vistaBases.ingredientes) if (i.deBase) m.set(i.name, i.deBase);
+    return m;
+  }, [puedeConBases, vistaBases]);
+
   const onGarnishCourse = showGarnishCourse && activeCourse === "guarnicion";
   const onSalsaCourse = showSalsaCourse && activeCourse === "salsa";
   const onCombinedCourse =
@@ -6468,6 +6493,65 @@ export function DishDetail({
 
             {recipeExpanded && (
               <>
+            {/* ── Bases: "ya lo tienes hecho" ───────────────────────────────
+                Solo aparece si el plato de verdad aprovecha alguna tanda. Es
+                un interruptor y no un estado deducido: ver el comentario de
+                `conBases`. Apagado, la receta se pinta entera como siempre. */}
+            {puedeConBases && (
+              <div
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 12px", marginBottom: 12,
+                  borderRadius: 12,
+                  background: usandoBases ? "#e8f5ec" : "#f7f9f7",
+                  outline: usandoBases ? "1.5px solid #2d5a3d" : "1px solid #e3ede6",
+                  outlineOffset: -1,
+                  transition: "background .15s, outline .15s",
+                }}
+              >
+                <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                  {vistaBases.bases.map((b) => {
+                    const img = ingredientThumbSrc(BASES_UI[b.clave]?.foto ?? b.clave);
+                    return img ? (
+                      <img
+                        key={b.clave}
+                        src={img}
+                        alt=""
+                        style={{ width: 34, height: 34, objectFit: "contain", display: "block" }}
+                      />
+                    ) : null;
+                  })}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.3 }}>
+                    {vistaBases.bases.map((b) => b.nombre).join(" · ")}{" "}
+                    <span style={{ color: "#7a9485", fontWeight: 700 }}>(Base)</span>
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "#6b7d70", lineHeight: 1.35, marginTop: 1 }}>
+                    {usandoBases
+                      ? (vistaBases.ahorro > 0
+                        ? `${vistaBases.minutos} min en vez de ${vistaBases.minutosEnteros}`
+                        : "Sin pasos que ahorrar, pero ya está cocinada")
+                      : "Si ya la tienes hecha, la receta se acorta"}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConBases((v) => !v)}
+                  aria-pressed={usandoBases}
+                  style={{
+                    flexShrink: 0, padding: "7px 12px", borderRadius: 999, border: "none",
+                    background: usandoBases ? "#2d5a3d" : "#fff",
+                    color: usandoBases ? "#fff" : "#2d5a3d",
+                    outline: usandoBases ? "none" : "1.5px solid #cfe0d5",
+                    fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  {usandoBases ? "La tengo" : "Ya la tengo"}
+                </button>
+              </div>
+            )}
+
             {/* Segmented control: Ingredientes | Pasos */}
             <div style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }}>
               {[
@@ -6560,6 +6644,7 @@ export function DishDetail({
                     revertible={!readOnly && cookable && cookCourse && Boolean(manuallyOwnedIds[ing.id])}
                     onMarkOwned={() => markIngredientOwned(ing)}
                     onRevertOwned={() => revertIngredientOwned(ing)}
+                    deBase={usandoBases ? deBasePorNombre.get(ing.name) ?? null : null}
                   />
                 ))}
               </div>
@@ -6596,7 +6681,12 @@ export function DishDetail({
                 // (principal+guarnición/salsa+combinado intercalados); RecipeStepList
                 // ya pinta una cabecera de color al cambiar de `part` entre pasos
                 // consecutivos, así que no hace falta reconstruir bloques aquí.
-                <RecipeStepList rich={richSteps} plain={mainPlainSteps} ingredients={ingredients} kitchenTools={kitchenTools} />
+                <RecipeStepList
+                  rich={usandoBases ? vistaBases.pasos : richSteps}
+                  plain={mainPlainSteps}
+                  ingredients={ingredients}
+                  kitchenTools={kitchenTools}
+                />
               ) : (
                 <>
                   {/* Combinado: pasos del plato + guarnición + salsa (los que
@@ -7155,7 +7245,7 @@ function IngredientThumb({ ing, dimmed = false, size = 30 }) {
   );
 }
 
-function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned }) {
+function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned, deBase = null }) {
   const unit = ing.unit ?? "ud";
   const qty = ing.qtyScaled;
   const displayVal = qty == null ? qualitativeUnitLabel(unit) : formatDisplay(qty, unit);
@@ -7168,7 +7258,11 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
     <div
       style={{
         borderBottom: isLast ? "none" : "1px solid #dde8e1",
-        opacity: owned ? 0.45 : 1,
+        // Lo que resuelve una tanda se atenua igual que lo que ya tienes en
+        // casa, porque para esta cena significa lo mismo: no hay que hacerlo.
+        // Pero NO se tacha ni se borra — sigue haciendo falta comprarlo, solo
+        // que para el domingo, y una linea tachada diria lo contrario.
+        opacity: owned || deBase ? 0.45 : 1,
         padding: "10px 4px",
       }}
     >
@@ -7238,6 +7332,19 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
           >
             {ing.name}
           </span>
+          {deBase && (
+            <span
+              title="Lo lleva la base que ya tienes hecha"
+              style={{
+                display: "flex", alignItems: "center", gap: 3,
+                fontSize: 10, fontWeight: 800, color: "#2d5a3d",
+                marginTop: 1,
+              }}
+            >
+              <Check size={11} strokeWidth={3} />
+              Ya en la base
+            </span>
+          )}
           {ing.adapted && (
             <span
               title="Adaptado por una intolerancia"

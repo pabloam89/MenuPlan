@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { Check, UtensilsCrossed } from "./icons.jsx";
 import { MAIN_BASES } from "../data/recipeSchema.js";
+import { BASES_UI } from "../lib/basesUI.js";
 import { ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizar as normalizarLibreta, poner, proyectar, valorDe } from "../lib/notepad.js";
 
@@ -30,17 +31,6 @@ import { normalizar as normalizarLibreta, poner, proyectar, valorDe } from "../l
 const GREEN = "#2d5a3d";
 
 /**
- * Qué se enseña por cada base. El eje se llama `legumbre`, pero lo que se
- * reconoce de un vistazo es un garbanzo: el usuario no elige una palabra del
- * enum, elige una olla que conoce. Por eso el nombre del dibujo y la etiqueta
- * van por separado del id.
- *
- * Las ilustraciones salen de `ingredientThumbSrc`, o sea el MISMO resolvedor
- * que usa Añadir ingredientes. Antes se usaban las de `categories/cut/base/`, y
- * a este tamaño no se distinguían — "legumbre" era un cuenco beige que podía
- * ser cualquier cosa, y de `boniato` no había ninguna.
- */
-/**
  * El orden NO es el del enum: manda cuánto TRABAJO te quita cada una, medido
  * sobre el catálogo (ver `loQueGana` en lib/bases.js).
  *
@@ -64,25 +54,6 @@ const ORDEN = [
   ...MAIN_BASES,
 ];
 
-const BASES_UI = {
-  // Las trece tienen dibujo propio. El del sofrito y el de la verdura asada
-  // son de septiembre de 2026: hasta entonces caían en el genérico de verduras
-  // y no se distinguían entre sí, que es lo peor que podía pasar justo con las
-  // dos que más trabajo ahorran.
-  sofrito: { etiqueta: "Sofrito", foto: "sofrito" },
-  verdura_asada: { etiqueta: "Verdura asada", foto: "verduras asadas" },
-  salsa_tomate: { etiqueta: "Tomate", foto: "tomate frito" },
-  bechamel: { etiqueta: "Bechamel", foto: "bechamel" },
-  pesto: { etiqueta: "Pesto", foto: "pesto" },
-  caldo: { etiqueta: "Caldo", foto: "caldo de pollo" },
-  arroz: { etiqueta: "Arroz", foto: "arroz" },
-  pasta: { etiqueta: "Pasta", foto: "pasta corta" },
-  patatas: { etiqueta: "Patatas", foto: "patata" },
-  boniato: { etiqueta: "Boniato", foto: "boniato" },
-  legumbre: { etiqueta: "Garbanzos", foto: "garbanzos" },
-  quinoa: { etiqueta: "Quinoa", foto: "quinoa" },
-  cuscus: { etiqueta: "Cuscús", foto: "cuscus" },
-};
 
 /**
  * Ficha de base: el dibujo arriba y el nombre DEBAJO, sobre blanco.
