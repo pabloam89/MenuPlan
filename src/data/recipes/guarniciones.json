@@ -3314,12 +3314,14 @@
       {
         "text": "Lavar {{Patata}} bajo el grifo hasta que estén limpias.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Cocer las patatas enteras con piel en una olla con agua y {{Sal|gusto}} hasta que estén tiernas.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Picar {{Cebolleta}} en fino mientras las patatas cuecen.",
@@ -3347,7 +3349,8 @@
       {
         "text": "Escurrir las patatas y dejar templar hasta que se puedan manipular sin quemarse.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "patatas"
       },
       {
         "text": "Pelar las patatas templadas con los dedos retirando la piel.",
@@ -4920,12 +4923,14 @@
       {
         "text": "Pelar {{Patata}} y cortar en trozos de tamaño similar.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Cocer los trozos de patata en agua con {{Sal|gusto}} hasta que estén muy tiernos.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
@@ -5702,7 +5707,8 @@
       {
         "text": "Cocer {{Patata baby}} enteras con piel en agua con {{Sal|gusto}} a fuego fuerte hasta que estén tiernas.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Precalentar el horno a 220 °C con calor arriba y abajo.",
@@ -5731,7 +5737,8 @@
       {
         "text": "Escurrir las patatas baby cocidas y dejarlas reposar 2 min para que suelten el vapor.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "patatas"
       },
       {
         "text": "Disponer las patatas escurridas sobre una bandeja con papel vegetal, bien separadas entre sí.",

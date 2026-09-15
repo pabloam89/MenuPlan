@@ -34,6 +34,8 @@
  *                     (sin ninguna de las cuatro, hace las cuatro)
  *   --parts           MODO APARTE (ver abajo): solo asigna `part` a los pasos
  *                     que YA existen. Ignora --base/--appliances/--nutrients/--thaw.
+ *   --bases           MODO APARTE: marca qué pasos cocinan una base que el
+ *                     plato declara `aparte`. Mismo contrato que --parts.
  *   --category=carnes limita a una categoría (nombre del fichero sin .json)
  *   --ids=a,b,c       limita a ids concretos (repesca tras el lint de estilo)
  *   --ids-file=ruta   lo mismo, pero leyendo un id por línea (una lista de 300
@@ -57,6 +59,20 @@
  *
  * A quién preguntarle sale de scripts/select-recipes-for-parts.mjs (puerta de
  * dos etapas + las ya etiquetadas), no de todo el catálogo.
+ *
+ * ── MODO `--bases` ──────────────────────────────────────────────
+ * Escribe `stepsRich[i].base`: qué pasos del plato desaparecen cuando esa base
+ * ya viene hecha. Es el dato que le falta al batch cooking para poder prometer
+ * algo comprobable — hasta ahora sabíamos que un plato lleva sofrito aparte,
+ * pero no cuánto trabajo te ahorra el martes tenerlo hecho.
+ *
+ * Se intentó primero con reglas (nombre de la base + verbo de cocinar en el
+ * mismo paso) sobre los 449 pares plato×base: 51 % dio un solo paso claro, 43 %
+ * dio varios candidatos y 6 % ninguno. O sea que en la mitad de los casos hay
+ * que leer la receta, y por eso esto lo hace un modelo y no un `grep`.
+ *
+ * Mismo contrato de escritura que --parts, y un poco más estricto: la huella de
+ * seguridad incluye además `part`, que para esta pasada también es intocable.
  */
 
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "fs";
@@ -79,6 +95,11 @@ const BASE_LEDGER_PATH = join(__dirname, ".enrich-base-done.json");
 // propósito las recetas que YA tienen `part` (las 141 salieron del criterio
 // físico viejo), así que "ya tiene part" no puede ser la señal de "hecho".
 const PARTS_LEDGER_PATH = join(__dirname, ".enrich-parts-done.json");
+// Ledger propio de --bases, por la misma razón: "ya tiene algún paso con
+// `base`" no sirve de señal, porque un plato puede haberse revisado y salir
+// legitimamente con CERO pasos marcados (ninguno se va entero), y sin libro
+// aparte se volvería a pagar por él en cada pasada.
+const BASE_STEPS_LEDGER_PATH = join(__dirname, ".enrich-basesteps-done.json");
 
 // Sonnet fuerte: el mismo que usa el planner (lib/aiModels.js PLANNER_MODEL).
 // Es one-off, así que priorizamos calidad sobre coste/latencia.
@@ -116,15 +137,24 @@ const val = (name) => {
 // contrato de escritura. Anula las cuatro para que no se pueda pedir a la vez
 // "solo el part" y "reescribe los pasos".
 const DO_PARTS = has("--parts");
+// Igual que --parts, y por lo mismo: otra llamada, otro prompt, otro contrato.
+// Y excluyente con --parts: los dos escriben en stepsRich y no tiene sentido
+// pedir las dos etiquetas en la misma pasada.
+const DO_BASE_STEPS = has("--bases");
+if (DO_PARTS && DO_BASE_STEPS) {
+  console.error("--parts y --bases son modos distintos: lánzalos por separado.");
+  process.exit(1);
+}
+const SOLO = DO_PARTS || DO_BASE_STEPS;
 const onlyBase = has("--base");
 const onlyAppliances = has("--appliances");
 const onlyNutrients = has("--nutrients");
 const onlyThaw = has("--thaw");
-const doAll = !DO_PARTS && !onlyBase && !onlyAppliances && !onlyNutrients && !onlyThaw;
-const DO_BASE = !DO_PARTS && (doAll || onlyBase);
-const DO_APPLIANCES = !DO_PARTS && (doAll || onlyAppliances);
-const DO_NUTRIENTS = !DO_PARTS && (doAll || onlyNutrients);
-const DO_THAW = !DO_PARTS && (doAll || onlyThaw);
+const doAll = !SOLO && !onlyBase && !onlyAppliances && !onlyNutrients && !onlyThaw;
+const DO_BASE = !SOLO && (doAll || onlyBase);
+const DO_APPLIANCES = !SOLO && (doAll || onlyAppliances);
+const DO_NUTRIENTS = !SOLO && (doAll || onlyNutrients);
+const DO_THAW = !SOLO && (doAll || onlyThaw);
 const CATEGORY = val("category");
 // Lista de ids concretos, para repescar las recetas que falló el lint de estilo
 // sin volver a pagar por las 274. `--ids-file` es la misma lista en un fichero:
@@ -150,7 +180,7 @@ const LIMIT = val("limit") ? Number(val("limit")) : Infinity;
 const FORCE = has("--force");
 const DRY_RUN = has("--dry-run");
 const MODEL = val("model") || process.env.ENRICH_MODEL
-  || (DO_PARTS ? DEFAULT_PARTS_MODEL : DEFAULT_MODEL);
+  || (SOLO ? DEFAULT_PARTS_MODEL : DEFAULT_MODEL);
 const CONCURRENCY = Math.max(1, Number(val("concurrency")) || 4);
 // Reintentos ante sobrecarga (429/529) y respuestas que no parsean.
 const MAX_ATTEMPTS = 4;
@@ -720,6 +750,126 @@ function applyParts(recipe, out) {
   return { parts: [...new Set(after.map((s) => s.part).filter(Boolean))] };
 }
 
+// ── Modo --bases ───────────────────────────────────────────────
+
+const BASES_SYSTEM = [
+  "Eres un chef español leyendo los pasos de una receta YA ESCRITA.",
+  "Devuelves SIEMPRE un único JSON válido, sin markdown ni texto fuera del JSON.",
+  "",
+  "NO REDACTAS NADA. No reescribes, no corriges, no reordenas, no partes ni",
+  "juntas pasos, no tocas los tiempos ni el tipo de paso ni su componente.",
+  "Tu única salida es una etiqueta por paso.",
+  "",
+  "LA PREGUNTA, UNA SOLA:",
+  "El domingo se cocinó una tanda de cada BASE que te doy, y está en la nevera",
+  "lista para usar. Hoy alguien va a hacer esta receta con esa base ya hecha.",
+  "¿Qué pasos NO va a tener que hacer?",
+  "",
+  "CÓMO SE DECIDE, paso a paso:",
+  "· Marca el paso con la clave de la base si TODO lo que hace ese paso ya está",
+  "  hecho en la tanda. Cocer el arroz, escurrirlo, refrescarlo, pochar la",
+  "  cebolla del sofrito, añadirle el tomate y dejarlo reducir: todo eso se va.",
+  "· NO lo marques si el paso hace algo más además de la base. 'Sofríe la cebolla",
+  "  y añade el pollo' NO se va: tener el sofrito hecho lo acorta, no lo elimina,",
+  "  y contar esos minutos como ahorrados sería mentir sobre el ahorro.",
+  "· NO marques el paso que JUNTA la base con el resto. 'Añade el arroz cocido y",
+  "  mezcla' hay que hacerlo igual: la base está hecha, pero el plato no se monta",
+  "  solo.",
+  "· NO marques un paso en el que la base se cocina DENTRO del plato absorbiendo",
+  "  su caldo (un risotto, una paella, una sopa con la pasta dentro). Si eso",
+  "  pasa, esa base no se puede tener hecha y no debe llevarse ningún paso.",
+  "· Un paso pertenece como mucho a UNA base. Si cocina dos a la vez, no es de",
+  "  ninguna: déjalo sin marcar.",
+  "· Ante la duda, NO marques. Prometer de menos deja de ahorrar tiempo;",
+  "  prometer de más manda a alguien a cenar tarde.",
+  "",
+  "SOLO LAS BASES QUE TE DOY. No inventes otras ni marques con una clave que no",
+  "esté en la lista `bases` del mensaje. Si ninguna base de la lista se cocina",
+  "en esta receta, devuelve null en todos los índices: es una respuesta válida y",
+  "frecuente (muchas recetas ya parten de garbanzos de bote o arroz cocido).",
+  "",
+  "FORMATO DE SALIDA:",
+  '· { "bases": { "<índice>": "<clave de base>" | null } } con UNA entrada por',
+  "  cada paso que recibes, usando el índice `i` que viene en cada uno.",
+].join("\n");
+
+/**
+ * Huella de --bases: todo lo que esta pasada NO puede tocar. Incluye `part`,
+ * que en --parts era la salida y aquí es intocable como el resto.
+ */
+function stepFingerprintConPart(stepsRich) {
+  return JSON.stringify(
+    (stepsRich ?? []).map((s) => [s?.text, s?.kind, s?.minutes, s?.during, s?.part]),
+  );
+}
+
+function assertOnlyBaseChanged(before, after, label) {
+  if (stepFingerprintConPart(before) !== stepFingerprintConPart(after)) {
+    throw new Error(`${label}: --bases ha modificado texto/kind/minutes/during/part — abortado`);
+  }
+}
+
+/** Las claves de base que este plato declara suyas. Es el único vocabulario. */
+function clavesDelPlato(recipe) {
+  const out = [];
+  if (recipe?.mainBase && recipe.baseMode === "aparte") out.push(recipe.mainBase);
+  for (const clave of recipe?.basesAparte ?? []) if (!out.includes(clave)) out.push(clave);
+  return out;
+}
+
+function basesPayload(recipe) {
+  const claves = clavesDelPlato(recipe);
+  return {
+    receta: recipe.name,
+    categoria: recipe.category,
+    // Los ingredientes deciden la mitad de los casos: "Garbanzos cocidos" en la
+    // lista significa que el bote ya viene hecho y no hay paso que quitar.
+    ingredientes: (recipe.ingredients ?? []).map((i) => i.name),
+    bases: claves.map((c) => ({ clave: c, nombre: NOMBRE_DE_BASE[c] ?? c })),
+    pasos: (recipe.stepsRich ?? []).map((s, i) => ({
+      i, text: s.text, kind: s.kind ?? null, minutes: s.minutes ?? null,
+    })),
+    devuelve_solo: ["bases"],
+  };
+}
+
+/** Para que el modelo lea "sofrito", no "sofrito" a secas sin contexto. */
+const NOMBRE_DE_BASE = {
+  sofrito: "sofrito de cebolla (y a menudo ajo, pimiento y tomate)",
+  arroz: "arroz cocido",
+  pasta: "pasta cocida",
+  patatas: "patatas cocidas o asadas",
+  boniato: "boniato cocido o asado",
+  legumbre: "legumbre cocida (garbanzos, lentejas, alubias)",
+  quinoa: "quinoa cocida",
+  cuscus: "cuscús hidratado",
+};
+
+/**
+ * Escribe SOLO `stepsRich[i].base`. Cada paso se reconstruye desde el original
+ * — del texto que devuelva el modelo no se copia ni una letra — y solo se le
+ * añade o quita el campo.
+ */
+function applyBaseSteps(recipe, out) {
+  const raw = out?.bases;
+  if (!raw || typeof raw !== "object") return null;
+
+  const before = recipe.stepsRich;
+  const permitidas = new Set(clavesDelPlato(recipe));
+
+  const after = before.map((s, i) => {
+    const { base: _drop, ...rest } = s;
+    const v = raw[String(i)] ?? raw[i];
+    // Una clave que el plato no declara suya se descarta en silencio: el
+    // vocabulario lo fija el catálogo, no la respuesta.
+    return permitidas.has(v) ? { ...rest, base: v } : rest;
+  });
+
+  assertOnlyBaseChanged(before, after, `${recipe.id} — ${recipe.name}`);
+  recipe.stepsRich = after;
+  return { marcados: after.filter((s) => s.base).map((s) => s.base) };
+}
+
 /** Estimación grosera de tokens (≈4 caracteres por token) para el presupuesto. */
 const estimateTokens = (text) => Math.ceil(String(text).length / 4);
 
@@ -727,6 +877,7 @@ const estimateTokens = (text) => Math.ceil(String(text).length / 4);
 const applianceSteps = loadJson(APPLIANCE_STEPS_PATH, {});
 const baseLedger = loadJson(BASE_LEDGER_PATH, {});
 const partsLedger = loadJson(PARTS_LEDGER_PATH, {});
+const baseStepsLedger = loadJson(BASE_STEPS_LEDGER_PATH, {});
 
 const files = readdirSync(RECIPES_DIR).filter((f) => f.endsWith(".json"));
 
@@ -756,6 +907,17 @@ for (const file of files) {
       continue;
     }
 
+    // --bases igual: por su cuenta, y solo a quien tenga algo que ahorrar.
+    if (DO_BASE_STEPS) {
+      if (!Array.isArray(recipe.stepsRich) || recipe.stepsRich.length === 0) continue;
+      // Sin una base declarada `aparte` no hay pregunta que hacer: no hay
+      // ninguna tanda del domingo que pueda llevarse un paso de este plato.
+      if (clavesDelPlato(recipe).length === 0) continue;
+      if (!FORCE && baseStepsLedger[recipe.id]) continue;
+      tasks.push({ path, recipe, baseSteps: true, appliances: [], missingAppliances: [] });
+      continue;
+    }
+
     const appliances = DO_APPLIANCES ? (recipe.methods ?? []).map((m) => m.appliance) : [];
     // Una receta que ya trae stepsRich (escrita a mano o de una pasada previa al
     // ledger) no se regenera sin --force: el ledger solo cubre lo que generó
@@ -776,6 +938,45 @@ for (const file of files) {
     tasks.push({ path, recipe, appliances, needBase, needNutrients, needThaw, missingAppliances });
   }
   if (tasks.length >= LIMIT) break;
+}
+
+if (DRY_RUN && DO_BASE_STEPS) {
+  const systemTokens = estimateTokens(BASES_SYSTEM);
+  let pasos = 0;
+  let inTokens = 0;
+  let outTokens = 0;
+  let yaMarcadas = 0;
+  const porBase = {};
+
+  for (const t of tasks) {
+    const n = t.recipe.stepsRich.length;
+    pasos += n;
+    if (t.recipe.stepsRich.some((s) => s.base)) yaMarcadas += 1;
+    for (const c of clavesDelPlato(t.recipe)) porBase[c] = (porBase[c] ?? 0) + 1;
+    inTokens += systemTokens + estimateTokens(JSON.stringify(basesPayload(t.recipe)));
+    // La salida es un mapa indice -> clave o null: ~10 tokens por paso.
+    outTokens += 10 * n + 20;
+    console.log(`· ${t.recipe.id} — ${t.recipe.name} … ${n} pasos  [${clavesDelPlato(t.recipe).join(", ")}]`);
+  }
+
+  const price = PRICES[MODEL];
+  const cost = price ? (inTokens / 1e6) * price.in + (outTokens / 1e6) * price.out : null;
+  const pares = Object.values(porBase).reduce((a, b) => a + b, 0);
+
+  console.log(`\nDry-run --bases — no se ha llamado a la API.`);
+  console.log(`   recetas ............ ${tasks.length} (${yaMarcadas} ya tienen algun paso marcado)`);
+  console.log(`   pasos .............. ${pasos}`);
+  console.log(`   pares plato x base . ${pares}`);
+  for (const [c, n] of Object.entries(porBase).sort((a, b) => b[1] - a[1])) {
+    console.log(`      ${c.padEnd(10)} ${n}`);
+  }
+  console.log(`   modelo ............. ${MODEL}`);
+  console.log(`   tokens entrada ~ ${inTokens.toLocaleString("es-ES")} (incluye ${systemTokens} de sistema x ${tasks.length} llamadas)`);
+  console.log(`   tokens salida  ~ ${outTokens.toLocaleString("es-ES")}`);
+  console.log(cost == null
+    ? `   coste .............. sin precio conocido para ${MODEL}`
+    : `   coste estimado ~ $${cost.toFixed(2)}`);
+  process.exit(0);
 }
 
 if (DRY_RUN && DO_PARTS) {
@@ -836,6 +1037,7 @@ const dirtyPaths = new Set();
 let touchedApplianceFile = false;
 let touchedLedger = false;
 let touchedPartsLedger = false;
+let touchedBaseStepsLedger = false;
 let ok = 0;
 let failed = 0;
 
@@ -853,6 +1055,10 @@ function flush() {
   if (touchedPartsLedger) {
     saveJson(PARTS_LEDGER_PATH, partsLedger);
     touchedPartsLedger = false;
+  }
+  if (touchedBaseStepsLedger) {
+    saveJson(BASE_STEPS_LEDGER_PATH, baseStepsLedger);
+    touchedBaseStepsLedger = false;
   }
 }
 
@@ -956,6 +1162,26 @@ async function worker() {
         continue;
       }
 
+      if (task.baseSteps) {
+        const out = await callModelWithRetry(
+          basesPayload(task.recipe), label, BASES_SYSTEM, 2000,
+        );
+        const applied = applyBaseSteps(task.recipe, out);
+        if (!applied) throw new Error("respuesta sin `bases`");
+        dirtyPaths.add(task.path);
+        baseStepsLedger[task.recipe.id] = true;
+        touchedBaseStepsLedger = true;
+        ok += 1;
+        // Cero pasos marcados NO es un fallo: muchos platos ya parten de
+        // garbanzos de bote o de arroz cocido, y ahi no hay nada que ahorrar.
+        const marcados = applied.marcados.length
+          ? `${applied.marcados.length} paso(s): ${[...new Set(applied.marcados)].join("+")}`
+          : "ningun paso se va";
+        console.log(`✓ [${ok + failed}/${total}] ${label} → ${marcados}`);
+        if ((ok + failed) % SAVE_EVERY === 0) flush();
+        continue;
+      }
+
       const payload = enrichPayload(task.recipe, task.missingAppliances, {
         wantBase: task.needBase,
         wantNutrients: task.needNutrients,
@@ -973,15 +1199,20 @@ async function worker() {
   }
 }
 
-console.log(DO_PARTS
+console.log(DO_BASE_STEPS
+  ? `Marcando que pasos cocinan una base en ${total} receta(s) con ${MODEL} (concurrencia ${CONCURRENCY})...\n`
+  : DO_PARTS
   ? `Asignando \`part\` a ${total} receta(s) con ${MODEL} (concurrencia ${CONCURRENCY})…\n`
   : `Enriqueciendo ${total} receta(s) con ${MODEL} (concurrencia ${CONCURRENCY})…\n`);
 await Promise.all(Array.from({ length: Math.min(CONCURRENCY, total) }, worker));
 flush();
 
-console.log(`\n✅ ${DO_PARTS ? "Asignación de `part`" : "Enriquecimiento"} completada — ${ok} ok, ${failed} fallidas de ${total}.`);
+const QUE = DO_BASE_STEPS ? "Marcado de bases" : DO_PARTS ? "Asignacion de parts" : "Enriquecimiento";
+console.log(`\n✅ ${QUE} — ${ok} ok, ${failed} fallidas de ${total}.`);
 if (failed > 0) console.log("   Vuelve a lanzar el script: las fallidas se reintentan solas.");
-console.log(DO_PARTS
+console.log(DO_BASE_STEPS
+  ? "   Revisa el diff: solo deben aparecer lineas \"base\". Cualquier otra cosa es un fallo."
+  : DO_PARTS
   // Sin check-step-wording: --parts no toca texto, así que el lint de estilo no
   // tiene nada que mirar. Lo que hay que revisar es el diff, que debe ser solo
   // líneas `"part":` entrando o saliendo.

@@ -709,32 +709,38 @@
       {
         "text": "Picar {{Cebolla}} en daditos finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento rojo}} en tiras pequeñas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el pimiento rojo a fuego medio hasta que estén tiernos.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} al sofrito y remover hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer a fuego medio hasta que el sofrito reduzca y espese.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir {{Atún en conserva}} y desmenuzarlo sobre un plato.",
@@ -970,7 +976,8 @@
       {
         "text": "Pelar {{Cebolla}} y cortar en brunoise fina. Lavar {{Pimiento verde}} y cortar también en brunoise fina.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir {{Atún en conserva}} y desmenuzar con un tenedor. Reservar.",
@@ -985,17 +992,20 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el pimiento verde picados a fuego medio hasta que estén tiernos, unos 6 min.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y remover. Cocer a fuego medio hasta que el líquido reduzca, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el atún desmenuzado y el huevo cocido picado. Mezclar y retirar del fuego.",
@@ -1552,35 +1562,41 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Lavar {{Patata grande}} y pincharlas por varias partes con un tenedor.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Colocar las patatas en la bandeja del horno y hornear hasta que estén tiernas.",
         "minutes": 30,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Pelar y picar {{Cebolla}} en trozos muy finos.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente, unos 5 min a fuego medio.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} a la sartén y saltear hasta que pierda el color rosado.",
@@ -2312,7 +2328,8 @@
       {
         "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte, añadir {{Arroz}} y cocer 12 min hasta que esté tierno. Escurrir y reservar.",
         "minutes": 14,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "arroz"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
@@ -2322,7 +2339,8 @@
       {
         "text": "Sofreír la cebolla picada en la sartén a fuego medio hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y los champiñones laminados a la sartén y saltear a fuego medio hasta que los champiñones suelten su agua y se doren.",

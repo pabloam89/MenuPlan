@@ -431,27 +431,32 @@
       {
         "text": "Pelar {{Cebolla}} y {{Ajo}}, y limpiar {{Pimiento verde}}; cortar la cebolla y el pimiento en trozos pequeños y picar el ajo fino.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento verde en la sartén hasta que estén tiernos y la cebolla esté transparente.",
         "minutes": 7,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} al sofrito y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que reduzca ligeramente y pierda el sabor ácido del tomate.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Colocar {{Bacalao desalado}} sobre la salsa con la piel hacia abajo.",
@@ -2235,7 +2240,8 @@
       {
         "text": "Sofreír la cebolla picada y el ajo picado a fuego medio hasta que estén transparentes, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Harina}} al sofrito y remover sin parar durante 1 min hasta que se integre y pierda el sabor a crudo.",
@@ -2747,7 +2753,8 @@
       {
         "text": "Pelar {{Cebolla}} y laminar en juliana fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Atún fresco}} en 2 filetes o tacos uniformes y reservar.",
@@ -2757,12 +2764,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla laminada a fuego suave hasta que esté tierna y ligeramente dorada.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}}, {{Vino blanco}} y {{Laurel}}; remover para integrar.",
@@ -3702,12 +3711,14 @@
       {
         "text": "Pelar {{Cebolla}} y laminar en juliana fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar {{Ajo}} y picar fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Limpiar {{Calamares}} y cortar en anillas de 1 cm.",
@@ -3722,12 +3733,14 @@
       {
         "text": "Añadir la cebolla laminada y sofreír a fuego suave hasta que esté transparente y blanda.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min hasta que desprenda aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las anillas de calamar y saltear a fuego fuerte hasta que cambien de color.",
@@ -4131,17 +4144,20 @@
       {
         "text": "Lavar {{Arroz sushi}} bajo el grifo hasta que el agua salga clara.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "arroz"
       },
       {
         "text": "Cocer el arroz en un cazo con el doble de agua fría; llevar a ebullición a fuego fuerte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "arroz"
       },
       {
         "text": "Tapar el cazo, bajar a fuego suave y cocer hasta que el arroz absorba toda el agua.",
         "minutes": 12,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "arroz"
       },
       {
         "text": "Laminar {{Aguacate}} en láminas finas.",
@@ -4176,17 +4192,20 @@
       {
         "text": "Retirar el cazo del fuego y dejar reposar el arroz tapado 5 min.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "arroz"
       },
       {
         "text": "Extender el arroz en una fuente y aliñar con {{Vinagre de arroz}}; mezclar con suavidad.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "arroz"
       },
       {
         "text": "Dejar templar el arroz extendido hasta que pierda el exceso de calor.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "arroz"
       },
       {
         "text": "Mezclar {{Salsa de soja}} con {{Aceite de sésamo}} en un cuenco pequeño.",
@@ -4493,7 +4512,8 @@
       {
         "text": "Cocer {{Arroz blanco}} en abundante agua con sal según el paquete.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "arroz"
       },
       {
         "text": "Exprimir {{Lima}} y reservar el zumo.",
@@ -4528,7 +4548,8 @@
       {
         "text": "Escurrir el arroz cocido y dejar templar 3 min fuera del fuego.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "arroz"
       },
       {
         "text": "Mezclar {{Salsa de soja}}, {{Aceite de sésamo}} y el zumo de lima en un bol pequeño.",
@@ -7293,7 +7314,8 @@
       {
         "text": "Sofreír la cebolla picada, el pimiento rojo picado y el ajo picado en el mismo aceite a fuego medio.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Pimentón dulce}}, y remover bien para integrar con el sofrito.",
@@ -7687,42 +7709,50 @@
       {
         "text": "Picar {{Cebolla}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva virgen extra}} en una cazuela a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el pimiento rojo y el pimiento verde hasta que estén blandos.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y {{Guindilla}} y sofreír hasta que el ajo suelte aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer a fuego suave hasta que la salsa reduzca y pierda el exceso de agua.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Bacalao desalado y desmigado}} y remover con cuidado para integrarlo sin deshacerlo.",
@@ -7904,52 +7934,62 @@
       {
         "text": "Sumergir {{Pimientos choriceros}} en agua caliente hasta cubrirlos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Esperar hasta que los pimientos choriceros estén hidratados.",
         "minutes": 30,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Cebolla}} muy fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la pulpa de los pimientos choriceros hidratados raspando con una cuchara y reservar.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva virgen extra}} en una cazuela a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado a fuego suave hasta que estén muy tiernos.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la pulpa de los pimientos choriceros a la cazuela.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocinar la salsa a fuego suave hasta que se concentre.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pan frito}} desmenuzado a la salsa y remover para integrar.",
@@ -8471,7 +8511,8 @@
       {
         "text": "Sofreír la cebolla y el ajo picados a fuego suave hasta que estén tiernos.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Perejil}} fino.",
@@ -8892,17 +8933,20 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela ancha a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento rojo a fuego medio hasta que estén tiernos.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocinar a fuego medio hasta que pierda el agua.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir las patatas y añadirlas a la cazuela. Remover para que se impregnen del sofrito.",
@@ -9160,12 +9204,14 @@
       {
         "text": "Sofreír la cebolla restante y el pimiento verde picados hasta que estén muy pochados.",
         "minutes": 14,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que pierda el agua.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Harina}} y remover sin parar hasta que se integre con el sofrito.",
@@ -11664,12 +11710,14 @@
       {
         "text": "Pelar {{Cebolla}} y cortar en juliana fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en tiras finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Atún fresco}} en 2 tacos o filetes uniformes y reservar.",
@@ -11679,12 +11727,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y los pimientos a fuego suave hasta que estén muy tiernos y ligeramente dorados.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}}, {{Vino blanco}} y {{Laurel}}.",
@@ -12250,12 +12300,14 @@
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Perejil}} fino y reservar.",
@@ -12270,12 +12322,14 @@
       {
         "text": "Añadir la cebolla, el ajo y {{Laurel}} a la sartén.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír a fuego suave hasta que la cebolla esté muy tierna y dulce.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Subir el fuego a fuego fuerte y añadir {{Chipirones limpios}} a la sartén.",
@@ -12618,32 +12672,38 @@
       {
         "text": "Picar {{Cebolla}} muy fina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela amplia a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado a fuego suave hasta que estén tiernos.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce|pizca}} y remover durante unos segundos hasta que se integre.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que la salsa reduzca y espese.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Vino blanco}} y {{Laurel}}; llevar a ebullición.",
@@ -13351,19 +13411,22 @@
         "text": "Picar {{Cebolla}} muy fina.",
         "minutes": 3,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Fundir {{Mantequilla}} en una sartén a fuego suave.",
         "minutes": 2,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada en la mantequilla fundida hasta que esté transparente.",
         "minutes": 8,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Bacalao desalado desmigado}} y sofreír removiendo durante 2 min.",
@@ -13665,12 +13728,14 @@
       {
         "text": "Picar {{Cebolla}} muy fina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar {{Manzana ácida}} y laminar en láminas finas.",
@@ -13690,7 +13755,8 @@
       {
         "text": "Sofreír la cebolla y el ajo picados a fuego suave hasta que estén blandos y transparentes.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Harina de trigo}} y remover sin parar hasta que se integre con el sofrito.",
@@ -13886,19 +13952,22 @@
         "text": "Cortar {{Cebolla}} en dados pequeños.",
         "minutes": 2,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en dados pequeños.",
         "minutes": 2,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Calabacín}} y {{Berenjena}} en dados pequeños.",
@@ -13916,13 +13985,15 @@
         "text": "Sofreír la cebolla y el ajo picado hasta que estén transparentes.",
         "minutes": 5,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento rojo y el pimiento verde y sofreír hasta que se ablanden.",
         "minutes": 5,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el calabacín y la berenjena y sofreír removiendo de vez en cuando.",
@@ -13934,7 +14005,8 @@
         "text": "Añadir {{Tomate triturado}}, remover y tapar la sartén.",
         "minutes": 1,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "sofrito"
       },
       {
         "text": "Cocer a fuego suave hasta que las verduras estén tiernas y el pisto espese.",
@@ -15212,37 +15284,44 @@
       {
         "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en tiras finas.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Cebolla}} en tiras finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y los pimientos a fuego suave hasta que estén tiernos.",
         "minutes": 12,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Azúcar}} y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer la salsa a fuego suave hasta que espese, removiendo de vez en cuando.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Colocar {{Bacalao desalado en lomos}} sobre la salsa con la piel hacia abajo.",
@@ -15642,7 +15721,8 @@
         "text": "Sofreír la cebolla, el pimiento y el ajo a fuego suave hasta que estén tiernos.",
         "minutes": 15,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los calamares y saltear a fuego medio hasta que suelten su agua.",
@@ -15684,19 +15764,22 @@
         "text": "Hervir agua con sal en un cazo a fuego fuerte hasta que rompa a hervir.",
         "minutes": 5,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Añadir {{Arroz blanco}} y cocer a fuego medio hasta que esté en su punto.",
         "minutes": 17,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Escurrir el arroz y reservar caliente.",
         "minutes": 1,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Servir los calamares en su tinta acompañados del arroz blanco.",
@@ -16253,12 +16336,14 @@
       {
         "text": "Sofreír la cebolla, los pimientos y el ajo picados a fuego suave hasta que estén pochados.",
         "minutes": 12,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que pierda el agua.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce|pizca}} y remover sin parar durante 20 segundos para que no se queme.",
@@ -16729,12 +16814,14 @@
       {
         "text": "Sofreír la cebolla picada, el ajo picado y el pimiento rojo picado 10 min hasta que estén tiernos.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír 5 min hasta que espese y pierda el agua.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Fideos gruesos}} y saltear 2 min hasta que se doren ligeramente en el sofrito.",
@@ -17106,7 +17193,8 @@
       {
         "text": "Sofreír la cebolla picada en la mantequilla fundida a fuego suave hasta que esté blanda.",
         "minutes": 6,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Jamón serrano picado}} y sofreír a fuego medio 2 min.",
@@ -17891,7 +17979,8 @@
       {
         "text": "Cocer {{Arroz blanco}} en agua con sal según el tiempo del paquete.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "arroz"
       },
       {
         "text": "Mezclar {{Mayonesa}} con {{Sriracha}} y {{Salsa de soja}} hasta obtener una crema homogénea.",
@@ -17920,7 +18009,8 @@
       {
         "text": "Escurrir el arroz cocido y reservar templado.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "arroz"
       },
       {
         "text": "Salpimentar {{Salmón (lomos)}} por ambas caras.",
@@ -19568,32 +19658,37 @@
         "minutes": 4,
         "kind": "paralelo",
         "during": 0,
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Pelar {{Cebolla}} y cortar en aros finos.",
         "minutes": 2,
         "kind": "paralelo",
         "during": 0,
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Disponer las patatas y la cebolla en una bandeja de horno en capas uniformes.",
         "minutes": 2,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Regar las patatas y la cebolla con {{Aceite de oliva|chorrito}} y salpimentar.",
         "minutes": 1,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Hornear la bandeja a 200 °C durante 20 min, hasta que las patatas empiecen a estar tiernas.",
         "minutes": 20,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Tostar {{Pan}} en {{@Sartén}} sin aceite a fuego medio hasta que esté dorado.",
@@ -20518,39 +20613,46 @@
         "text": "Picar {{Cebolla}} fina.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Pimiento verde}} fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el pimiento verde picados a fuego medio 14 min hasta que estén tiernos.",
         "minutes": 14,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} al sofrito y cocer a fuego medio 9 min hasta que espese.",
         "minutes": 9,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Salpimentar el sofrito y retirar la sartén del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Dejar templar el sofrito 10 min antes de añadir el marisco.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Vieiras (sin concha)}} en trozos de bocado.",
@@ -21164,17 +21266,20 @@
       {
         "text": "Picar {{Cebolla}} muy fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada a fuego suave hasta que esté tierna y transparente.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar piel y espinas del cabracho templado y desmenuzar la carne.",
@@ -21418,45 +21523,53 @@
         "text": "Picar {{Cebolla}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y los pimientos 15 min hasta que estén tiernos.",
         "minutes": 15,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce}} y {{Tomate triturado}} al sofrito.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer el sofrito a fuego medio 10 min hasta que espese.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Salpimentar el sofrito y retirar del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Dejar templar el sofrito 10 min.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir {{Bonito en conserva}} y desmenuzarlo en trozos sobre el sofrito templado.",
@@ -21721,44 +21834,52 @@
         "text": "Cortar {{Pimiento rojo}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento verde}} en dados pequeños.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Cebolla}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír el pimiento rojo, el pimiento verde y la cebolla picados a fuego medio 18 min hasta que estén muy tiernos.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} al sofrito y cocer a fuego medio 10 min hasta que espese.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Salpimentar el sofrito y retirar la sartén del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Dejar templar el sofrito 10 min antes de incorporar el atún.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir {{Atún en conserva}} y desmenuzarlo sobre el sofrito templado.",
@@ -22175,12 +22296,14 @@
       {
         "text": "Pelar {{Patata}} y colocarlas enteras en una olla cubiertas de agua fría con sal.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Llevar a ebullición y cocer a fuego medio hasta que estén tiernas.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Picar {{Cebolla}} en fino.",
@@ -22197,7 +22320,8 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio y sofreír la cebolla picada hasta que esté tierna.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Bacalao desalado (desmigado)}} a la sartén y sofreír hasta que pierda el aspecto crudo.",
@@ -22212,7 +22336,8 @@
       {
         "text": "Escurrir las patatas cocidas y dejar templar.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "patatas"
       },
       {
         "text": "Cortar las patatas templadas en rodajas de grosor uniforme.",
@@ -22611,37 +22736,44 @@
       {
         "text": "Picar {{Cebolla}} en dados pequeños.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Pimiento rojo}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Pimiento verde}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva suave|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada, el pimiento rojo y el pimiento verde hasta que estén tiernos.",
         "minutes": 13,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate frito}} y cocer hasta que el conjunto espese ligeramente.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la sartén del fuego y dejar templar el sofrito.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir {{Bonito en conserva}} y desmenuzarlo sobre el sofrito templado.",
@@ -23301,17 +23433,20 @@
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla a fuego suave hasta que esté tierna y translúcida.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Vino blanco}} a la cebolla pochada.",
@@ -23935,13 +24070,15 @@
         "text": "Pelar {{Patatas}} y {{Cebolla}}.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "base": "patatas"
       },
       {
         "text": "Laminar las patatas y la cebolla en rodajas finas de unos 3 mm.",
         "minutes": 4,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "base": "patatas"
       },
       {
         "text": "Cortar {{Limón}} en rodajas finas.",
@@ -23952,17 +24089,20 @@
       {
         "text": "Extender las patatas y la cebolla laminadas en la base de una bandeja de horno.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Regar las patatas y la cebolla con {{Aceite de oliva|chorrito}} y salpimentar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Hornear la bandeja con las patatas y la cebolla en el horno a 200 °C durante 20 min.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Colocar {{Lubina entera limpia}} encima de las patatas e introducir las rodajas de limón en el interior.",
@@ -24228,37 +24368,44 @@
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Rallar {{Tomate maduro}}.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo picado hasta que estén tiernos y sin que cojan color.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el tomate rallado y {{Laurel}}. Remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que reduzca y pierda el agua del tomate.",
         "minutes": 12,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Aceitunas}} y {{Alcaparras}} a la salsa. Remover y probar antes de añadir {{Sal|gusto}}.",

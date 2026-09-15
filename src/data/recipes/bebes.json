@@ -106,17 +106,20 @@
       {
         "text": "Apartar 60 ml del caldo de cocción caliente y reservar en un bol pequeño.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "cuscus"
       },
       {
         "text": "Añadir {{Cuscús}} al bol con el caldo de cocción reservado y tapar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "cuscus"
       },
       {
         "text": "Esperar hasta que el cuscús absorba todo el caldo y esté hidratado.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "cuscus"
       },
       {
         "text": "Añadir el calabacín cocido, la pechuga de pollo cocida y el cuscús hidratado al vaso de la batidora.",
@@ -1936,12 +1939,14 @@
       {
         "text": "Pelar {{Boniato}} y cortar en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "boniato"
       },
       {
         "text": "Llevar a ebullición agua en un cazo y cocer el boniato durante 10 min, hasta que esté tierno.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "boniato"
       },
       {
         "text": "Rallar {{Tomate natural}} sobre un bol pequeño y reservar.",
@@ -1958,7 +1963,8 @@
       {
         "text": "Escurrir el boniato cocido y chafar con un tenedor hasta obtener un puré liso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "boniato"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -2767,7 +2773,8 @@
       {
         "text": "Pelar {{Boniato}} y cortar en dados de unos 2 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "boniato"
       },
       {
         "text": "Retirar la piel y las espinas de {{Salmón fresco}} y cortar en trozos pequeños.",
@@ -2782,7 +2789,8 @@
       {
         "text": "Añadir los dados de boniato al cazo cuando rompa a hervir y cocer a fuego medio hasta que estén tiernos.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "boniato"
       },
       {
         "text": "Añadir {{Espinacas frescas}} y los trozos de salmón al cazo y cocer a fuego medio hasta que el salmón esté opaco y las espinacas mustias.",
@@ -5015,7 +5023,8 @@
       {
         "text": "Cocer la {{Pasta pequeña}} dos minutos más de lo que diga el paquete: al dente no vale a esta edad.",
         "minutes": 12,
-        "kind": "paralelo"
+        "kind": "paralelo",
+        "base": "pasta"
       },
       {
         "text": "Mezclar y dejar templar antes de servir.",
@@ -6766,7 +6775,8 @@
       {
         "text": "Cocer la {{Quinoa}} hasta que esté muy blanda y escurrirla. Pasada de punto a propósito: al dente no vale aquí.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "quinoa"
       },
       {
         "text": "Cocer las {{Espinacas frescas}}, escurrirlas apretando y picarlas muy fino.",
@@ -7455,7 +7465,8 @@
       {
         "text": "Hidratar el {{Cuscús}} con agua caliente y dejarlo reposar tapado. Un poco más de agua de la que pone el paquete: seco se desmiga y no hay forma de cogerlo.",
         "minutes": 6,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "cuscus"
       },
       {
         "text": "Soltarlo con un tenedor y mezclarlo con la verdura y el {{Aceite de oliva virgen extra}}.",

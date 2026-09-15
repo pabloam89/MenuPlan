@@ -1556,7 +1556,8 @@
       {
         "text": "Cortar {{Cebolla}} en brunoise fina y {{Pimiento rojo}} en tiras de 1 cm.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Chorizo}} en rodajas de 5 mm y {{Jamón serrano}} en taquitos pequeños.",
@@ -1571,7 +1572,8 @@
       {
         "text": "Sofreír la cebolla picada y el pimiento rojo en tiras hasta que estén tiernos, unos 5 min a fuego medio.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el chorizo en rodajas y el jamón en taquitos; sofreír 2 min hasta que suelten su grasa.",
@@ -5673,12 +5675,14 @@
       {
         "text": "Picar {{Cebolla}} y {{Ajo}} fino.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Laminar {{Chorizo}} en rodajas finas.",
@@ -5688,12 +5692,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y los pimientos a fuego medio hasta que estén tiernos.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el chorizo y sofreír hasta que suelte su grasa.",
@@ -5703,12 +5709,14 @@
       {
         "text": "Añadir {{Tomate triturado}} y salpimentar al gusto.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer a fuego medio hasta que la salsa espese ligeramente.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Repartir el sofrito entre 2 cazuelitas de barro.",
@@ -6686,17 +6694,20 @@
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla a fuego medio hasta que esté tierna y transparente.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Batir {{Huevo}} en un bol grande hasta que estén bien integrados.",
@@ -8784,17 +8795,20 @@
       {
         "text": "Picar {{Cebolla}} en trozos finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el calabacín en dados y saltear a fuego medio hasta que esté tierno y algo dorado.",
@@ -8999,7 +9013,8 @@
       {
         "text": "Sofreír la cebolla y el pimiento rojo a fuego medio hasta que estén pochados.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el calabacín y saltear a fuego medio hasta que esté tierno.",
@@ -9295,7 +9310,8 @@
       {
         "text": "Picar {{Cebolla}} y {{Ajo}} finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Lavar {{Espinacas frescas}} bajo el grifo y escurrir.",
@@ -9320,7 +9336,8 @@
       {
         "text": "Sofreír la cebolla y el ajo picados a fuego suave hasta que estén blandos y transparentes.",
         "minutes": 6,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las espinacas escurridas por tandas y saltear hasta que reduzcan y suelten el agua.",
@@ -9668,55 +9685,64 @@
         "text": "Picar {{Cebolla}} en dados pequeños.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento rojo}} en dados pequeños.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} amplia a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el pimiento en la sartén hasta que estén blandos, unos 8 min a fuego medio.",
         "minutes": 8,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado, {{Comino molido|pizca}} y {{Pimentón dulce|pizca}}.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Remover hasta que las especias desprendan aroma, unos 1 min a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Tomate triturado}} y salpimentar al gusto.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que espese, unos 10 min.",
         "minutes": 10,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Hacer 4 huecos en la salsa con una cuchara.",
@@ -9874,32 +9900,38 @@
       {
         "text": "Picar {{Cebolla}} y {{Ajo}} muy finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Chile jalapeño}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el chile jalapeño hasta que la cebolla esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y salpimentar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que espese, removiendo de vez en cuando.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Judías negras cocidas}} en un cazo a fuego suave, aplastando ligeramente con un tenedor.",
@@ -10275,7 +10307,8 @@
       {
         "text": "Sofreír la cebolla y el ajo picados en la misma sartén a fuego medio hasta que estén tiernos.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Arroz arborio}} y remover 1 min hasta que los granos estén nacarados.",
@@ -10667,7 +10700,8 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio y sofreír la cebolla picada hasta que esté tierna.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Carne de txangurro}} y {{Tomate frito}}. Saltear 3 min removiendo.",
@@ -12156,27 +12190,32 @@
       {
         "text": "Picar {{Cebolla}} en dados finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento verde}} en dados finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} amplia a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el pimiento verde en la sartén hasta que estén blandos.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y {{Comino molido|pizca}} y remover sin parar hasta que el ajo suelte aroma.",
@@ -12932,7 +12971,8 @@
         "text": "Picar {{Cebolla}} en trozos finos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "base": "sofrito"
       },
       {
         "text": "Laminar {{Setas variadas}}.",
@@ -12958,7 +12998,8 @@
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté translúcida, unos 6 min.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las setas laminadas y saltear a fuego fuerte hasta que se doren y suelten el agua, unos 5 min.",
@@ -13458,7 +13499,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los espárragos y saltear hasta que estén tiernos.",
@@ -13943,27 +13985,32 @@
       {
         "text": "Picar {{Cebolla}} en dados muy finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Tomate}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el tomate en dados y sofreír hasta que pierda el agua.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir {{Atún en lata}} y reservar.",

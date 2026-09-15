@@ -359,12 +359,14 @@
       {
         "text": "Llevar a ebullición 280 ml de agua en un cazo a fuego fuerte y añadir {{Quinoa}}.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "quinoa"
       },
       {
         "text": "Cocer la quinoa a fuego suave, tapada, hasta que absorba toda el agua y esté tierna.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "quinoa"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
@@ -399,7 +401,8 @@
       {
         "text": "Escurrir la quinoa cocida y extenderla en un bol amplio para que se enfríe.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "quinoa"
       },
       {
         "text": "Exprimir {{Limón}} y mezclar el zumo con {{Aceite de oliva|chorrito}} en un bol pequeño hasta integrar.",

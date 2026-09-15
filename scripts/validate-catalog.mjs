@@ -158,6 +158,30 @@ if (existsSync(IMAGES_PATH)) {
   }
 }
 
+// ── `stepsRich[i].base` solo puede nombrar una base del propio plato ────────
+// El campo dice "este paso desaparece si esa base viene hecha del domingo", y
+// de él salen los minutos que se le prometen al usuario un martes. Una clave
+// que el plato no declara suya (`basesAparte`, o su `mainBase` con
+// `baseMode: "aparte"`) es una promesa que la sesión de batch cooking nunca va
+// a cumplir: nadie va a cocinar esa tanda, porque nada la pide.
+//
+// Se vigila aquí y no en el schema porque es una regla entre DOS campos de la
+// receta, y zod valida cada uno por su cuenta.
+for (const r of recipes) {
+  const propias = new Set([
+    ...(r.mainBase && r.baseMode === "aparte" ? [r.mainBase] : []),
+    ...(r.basesAparte ?? []),
+  ]);
+  (r.stepsRich ?? []).forEach((paso, i) => {
+    if (paso?.base && !propias.has(paso.base)) {
+      errors.push(
+        `[${r.id}] "${r.name}": el paso ${i} dice base "${paso.base}", que el plato no declara `
+        + `suya (tiene: ${[...propias].join(", ") || "ninguna"})`,
+      );
+    }
+  });
+}
+
 if (errors.length > 0) {
   console.error(`❌ Catálogo inválido (${errors.length} error/es):`);
   for (const e of errors) console.error(`  - ${e}`);

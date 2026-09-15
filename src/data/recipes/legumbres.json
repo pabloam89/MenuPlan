@@ -134,7 +134,8 @@
       {
         "text": "Sofreír la cebolla picada en el aceite caliente a fuego medio hasta que esté transparente, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento rojo y la zanahoria a la olla y sofreír a fuego medio hasta que empiecen a ablandarse, unos 3 min.",
@@ -980,7 +981,8 @@
       {
         "text": "Picar {{Cebolla}} en trozos pequeños y laminar {{Ajo}}.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Desmigar {{Bacalao desalado}} con los dedos en lascas medianas y reservar.",
@@ -990,27 +992,32 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente, unos 5 min a fuego medio.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo laminado y sofreír hasta que empiece a dorarse, unos 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Pimentón|pizca}} y remover durante 30 segundos para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca y pierda el agua, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Espinacas}} y remover hasta que se ablanden y reduzcan su volumen, unos 2 min.",
@@ -1675,7 +1682,8 @@
       {
         "text": "Sofreír la cebolla picada, el ajo picado y el pimiento rojo en dados en la olla hasta que estén tiernos, unos 5 min a fuego medio.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las rodajas de chorizo y dorar a fuego medio hasta que suelten la grasa y cojan color, unos 3 min.",
@@ -1869,7 +1877,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír 3 min hasta que empiece a ablandarse.",
@@ -2260,17 +2269,20 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo hasta que estén blandos, unos 5 min.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón|pizca}} y remover 30 segundos hasta que se integre.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar los judiones escurridos y la oreja de cerdo; cubrir con agua fría (unos 2 cm por encima).",
@@ -2425,7 +2437,8 @@
       {
         "text": "Escurrir {{Lentejas cocidas}} con un colador y aclarar bajo agua fría hasta que estén a temperatura ambiente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Tomate}} en dados pequeños de aproximadamente 1 cm.",
@@ -2605,12 +2618,14 @@
       {
         "text": "Sofreír la cebolla picada en el aceite caliente a fuego medio hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min hasta que empiece a dorarse.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar los dados de calabaza y saltear a fuego medio durante 5 min hasta que empiecen a ablandarse.",
@@ -2820,12 +2835,14 @@
       {
         "text": "Sofreír la cebolla picada en el aceite caliente hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento verde y la zanahoria a la olla y sofreír 3 min hasta que empiecen a ablandarse.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón}} y remover 30 segundos a fuego suave para que no se queme.",
@@ -3185,22 +3202,26 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada en la sartén a fuego suave hasta que esté transparente, unos 5 min.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min a fuego suave hasta que desprenda aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Tomate triturado}} al sofrito y cocer a fuego medio durante 5 min hasta que reduzca y se concentre.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la patata en trozos a la olla con las alubias y cocer a fuego medio 15 min hasta que esté tierna.",
@@ -3403,7 +3424,8 @@
       {
         "text": "Sofreír la cebolla picada en la misma olla a fuego medio hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír junto a la cebolla durante 2 min, removiendo.",
@@ -3579,32 +3601,38 @@
       {
         "text": "Pelar y picar {{Cebolla}} y {{Ajo}} en trozos finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento verde}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén grande a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento verde en {{@Sartén}} hasta que estén tiernos y la cebolla esté transparente.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Comino|pizca}} al sofrito y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que reduzca y se concentre el sabor.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Garbanzos cocidos}} a la salsa y remover para que se impregnen bien.",
@@ -3807,7 +3835,8 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio; sofreír la cebolla picada hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min más hasta que empiece a dorarse.",
@@ -5183,7 +5212,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} y enjuagarlos bajo el grifo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Remolacha cocida}} en dados.",
@@ -5349,7 +5379,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} bajo el grifo y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Aguacate}} por la mitad y retirar el hueso.",
@@ -6037,19 +6068,22 @@
         "text": "Lavar {{Lentejas pardinas}} bajo el grifo con agua fría hasta que salga clara.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "legumbre"
       },
       {
         "text": "Cocer las lentejas pardinas en una olla con agua fría y {{Laurel}} a fuego fuerte hasta que rompa a hervir.",
         "minutes": 5,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "legumbre"
       },
       {
         "text": "Bajar el fuego y cocer las lentejas pardinas a fuego suave hasta que estén tiernas pero enteras.",
         "minutes": 22,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Chorizo}} en dados pequeños.",
@@ -6083,7 +6117,8 @@
         "text": "Escurrir las lentejas pardinas y dejarlas templar en un bol amplio.",
         "minutes": 3,
         "kind": "espera",
-        "part": "principal"
+        "part": "principal",
+        "base": "legumbre"
       },
       {
         "text": "Dorar el chorizo en {{@Sartén}} sin aceite a fuego medio hasta que quede crujiente y suelte su grasa.",
@@ -6263,7 +6298,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} bajo el grifo y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Lavar {{Espinacas frescas}} con abundante agua fría y escurrir bien.",
@@ -6507,7 +6543,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y el jengibre picado y sofreír hasta que suelten el aroma.",
@@ -6718,7 +6755,8 @@
       {
         "text": "Escurrir y enjuagar {{Garbanzos cocidos}} bajo agua fría.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Pelar {{Ajo}} y reservar.",
@@ -7137,7 +7175,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} y enjuagarlos bajo el grifo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Chorizo}} en dados pequeños.",
@@ -7839,7 +7878,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} bajo agua fría y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Lavar {{Espinacas frescas}} con abundante agua fría y escurrir bien.",
@@ -8144,17 +8184,20 @@
       {
         "text": "Sofreír la cebolla picada, el ajo picado y el pimiento rojo a fuego medio hasta que ablanden.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce}} y remover para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocinar hasta que pierda el agua y la mezcla espese.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar los garbanzos escurridos, {{Azafrán en hebras}} y {{Caldo de pescado}}.",
@@ -8669,17 +8712,20 @@
       {
         "text": "Bajar el fuego a medio y sofreír la cebolla, el ajo, la zanahoria y el pimiento verde en la misma olla.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce}} y remover hasta que el sofrito huela a especias tostadas.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocinar hasta que pierda el exceso de agua y se integre con el sofrito.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las alubias escurridas, la costilla de cerdo dorada y {{Laurel}}.",
@@ -9304,37 +9350,44 @@
       {
         "text": "Picar {{Cebolla}} y {{Pimiento verde}} en trozos pequeños.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento verde hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce|pizca}} y remover 30 segundos para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que pierda el agua, removiendo.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Vino blanco}} y dejar reducir hasta que se evapore el alcohol.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las anillas de calamar y saltear a fuego fuerte hasta que estén opacas.",
@@ -9484,7 +9537,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Remolacha cocida}} en dados.",
@@ -9687,42 +9741,50 @@
       {
         "text": "Picar {{Cebolla}} en dados finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Laminar {{Ajo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo laminado y sofreír hasta que empiece a dorarse, sin que se queme.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego e incorporar {{Pimentón dulce|pizca}}; remover rápidamente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y volver a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír el tomate hasta que reduzca y espese.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Alubias blancas cocidas}} y cubrir con agua hasta superarlas ligeramente.",
@@ -9928,22 +9990,26 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo a fuego medio hasta que estén transparentes.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír a fuego medio hasta que empiece a ablandarse.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Comino molido|pizca}} y sofreír hasta que el tomate pierda el agua.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las lentejas escurridas y los dados de calabaza y remover para que se impregnen del sofrito.",
@@ -10172,17 +10238,20 @@
       {
         "text": "Sofreír la cebolla picada, el pimiento verde picado y el ajo picado en el mismo aceite a fuego medio hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego y añadir {{Pimentón dulce|pizca}}; remover para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Volver la olla al fuego y añadir {{Tomate triturado}}; sofreír a fuego medio hasta que reduzca ligeramente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las alubias pintas escurridas, las costillas reservadas y {{Hoja de laurel}}; remover para integrar.",
@@ -10651,7 +10720,8 @@
       {
         "text": "Picar {{Cebolla}} y {{Ajo}} finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Jamón serrano}} en taquitos pequeños.",
@@ -10676,7 +10746,8 @@
       {
         "text": "Sofreír la cebolla y el ajo picados a fuego medio hasta que estén blandos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el jamón serrano en taquitos y saltear hasta que suelte su aroma.",
@@ -10686,7 +10757,8 @@
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las judías verdes escurridas y {{Garbanzos cocidos}} y saltear todo junto a fuego medio-fuerte.",
@@ -10902,17 +10974,20 @@
       {
         "text": "Sofreír la cebolla picada, la zanahoria picada y el ajo picado en el mismo aceite a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Continuar sofriendo hasta que la verdura esté blanda, unos 6 min.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que se evapore el líquido, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las alubias escurridas, la costilla reservada y {{Hoja de laurel}} a la olla.",
@@ -11104,7 +11179,8 @@
       {
         "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pulpo cocido}} en rodajas de un dedo de grosor.",
@@ -11114,12 +11190,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo picados a fuego medio hasta que estén transparentes.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la cazuela del fuego y añadir {{Pimentón dulce|pizca}}.",
@@ -11339,12 +11417,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y la zanahoria a fuego medio hasta que estén blandas.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego y añadir {{Pimentón dulce|pizca}}.",
@@ -11599,17 +11679,20 @@
       {
         "text": "Sofreír la cebolla picada, el pimiento picado y el ajo picado en el mismo aceite a fuego medio hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego, añadir {{Pimentón dulce|pizca}} y remover para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Volver la olla al fuego medio, añadir {{Tomate triturado}} y sofreír hasta que el tomate pierda el agua y se integre.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las judías escurridas, el conejo reservado y {{Hoja de laurel}} a la olla.",
@@ -11998,13 +12081,15 @@
         "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
         "minutes": 3,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Añadir {{Arroz blanco}} y cocer a fuego medio hasta que esté tierno.",
         "minutes": 18,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Picar {{Cebolla}} en dados pequeños.",
@@ -12031,7 +12116,8 @@
         "text": "Escurrir el arroz cocido y reservar.",
         "minutes": 1,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -12043,13 +12129,15 @@
         "text": "Sofreír la cebolla picada y el pimiento picado a fuego medio hasta que estén blandos.",
         "minutes": 6,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y {{Comino molido|pizca}} y sofreír hasta que suelten aroma.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Alubias negras cocidas}} y {{Hoja de laurel}} a la sartén.",
@@ -12243,7 +12331,8 @@
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y el jengibre rallado y sofreír hasta que suelten aroma.",
@@ -12258,7 +12347,8 @@
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que reduzca ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Garbanzos cocidos}} y {{Leche de coco}} y remover hasta mezclar bien.",
@@ -12475,17 +12565,20 @@
       {
         "text": "Sofreír la cebolla, la zanahoria y el ajo en el mismo aceite a fuego medio hasta que estén blandos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego y añadir {{Pimentón dulce|pizca}} removiendo rápido para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca y se integre.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las lentejas escurridas y cubrir con agua hasta superarlas unos 3 cm.",
@@ -12871,7 +12964,8 @@
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y las setas troceadas y saltear a fuego fuerte hasta que las setas se doren.",
@@ -13035,7 +13129,8 @@
         "text": "Picar {{Cebolla}} y {{Ajo}} en dados finos.",
         "minutes": 3,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Chorizo}} en rodajas de unos 5 mm.",
@@ -13053,7 +13148,8 @@
         "text": "Sofreír la cebolla y el ajo picados hasta que estén blandos.",
         "minutes": 5,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el chorizo en rodajas y saltear hasta que suelte su grasa y aroma.",
@@ -13657,37 +13753,44 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén amplia a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el pimiento verde hasta que estén blandos.",
         "minutes": 6,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo y sofreír hasta que desprenda aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la sartén del fuego y añadir {{Pimentón dulce|pizca}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Remover el pimentón con la verdura hasta que se integre.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Volver la sartén al fuego y añadir {{Tomate triturado}}.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír el tomate a fuego medio hasta que pierda el agua y se oscurezca.",
         "minutes": 2,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la carne desmenuzada y saltear a fuego fuerte hasta que se dore por los bordes.",
@@ -14133,13 +14236,15 @@
         "text": "Llevar a ebullición agua con sal en un cazo y cocer {{Quinoa}} según el tiempo del envase.",
         "minutes": 15,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "base": "quinoa"
       },
       {
         "text": "Escurrir la quinoa y dejar templar.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "base": "quinoa"
       },
       {
         "text": "Mezclar {{Tahini}}, {{Zumo de limón}} y el resto del aceite de oliva con 2 cucharadas de agua hasta que el aliño esté fluido.",
@@ -14432,7 +14537,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y la patata cortadas y sofreír removiendo a fuego medio.",
@@ -14558,7 +14664,8 @@
       {
         "text": "Cortar {{Cebolla}} en dados finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Chorizo}} en rodajas de medio centímetro.",
@@ -14573,7 +14680,8 @@
       {
         "text": "Sofreír la cebolla en la cazuela hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el chorizo y sofreír hasta que suelte la grasa.",
@@ -14712,32 +14820,38 @@
       {
         "text": "Pelar y picar {{Cebolla}} en trozos finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar y picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce|pizca}} y remover 30 segundos hasta que aromatice.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que reduzca y pierda el agua, unos 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las patatas troceadas y remover para que se impregnen del sofrito.",
@@ -15012,13 +15126,15 @@
         "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
         "minutes": 3,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Añadir {{Arroz}} cuando rompa a hervir y cocer a fuego medio.",
         "minutes": 16,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Picar {{Cebolla}} en dados finos.",
@@ -15051,7 +15167,8 @@
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 3,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento rojo y el calabacín y saltear hasta que estén tiernos.",
@@ -15069,7 +15186,8 @@
         "text": "Escurrir el arroz cocido y reservar.",
         "minutes": 1,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Mezclar el arroz escurrido con los garbanzos y las verduras y remover.",
@@ -15225,12 +15343,14 @@
       {
         "text": "Añadir la cebolla y el ajo picados y sofreír hasta que estén tiernos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el tomate y sofreír hasta que pierda el agua y la salsa espese.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Frijoles negros cocidos}} y {{Caldo de carne}}. Remover para integrar.",
@@ -15570,42 +15690,50 @@
       {
         "text": "Pelar {{Cebolla}} y {{Zanahoria}}, picar ambas en dados pequeños.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Limpiar {{Puerro}} y cortar en medias lunas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento verde}} en dados del mismo tamaño que la zanahoria.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el puerro hasta que estén transparentes.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y el pimiento verde y sofreír hasta que estén ligeramente tiernos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego, añadir {{Pimentón}} y remover deprisa para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que pierda el agua.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Alubias blancas cocidas}}, {{Laurel}} y {{Sal|gusto}}.",
@@ -15804,7 +15932,8 @@
       {
         "text": "Sofreír la cebolla y el ajo en esa misma grasa a fuego medio hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento rojo y la zanahoria y sofreír hasta que estén ligeramente tiernos.",
@@ -16002,12 +16131,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír 4 min a fuego medio.",
@@ -16201,12 +16332,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla ancha a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo hasta que estén transparentes.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y el pimiento rojo y sofreír hasta que estén tiernos.",
@@ -16221,7 +16354,8 @@
       {
         "text": "Incorporar {{Tomate triturado}} y cocer a fuego medio hasta que se concentre.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los garbanzos escurridos y {{Laurel}} con un vaso de agua.",
@@ -16432,7 +16566,8 @@
       {
         "text": "Añadir la cebolla y el ajo y sofreír a fuego medio hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír hasta que empiece a estar tierna.",
@@ -16442,12 +16577,14 @@
       {
         "text": "Retirar la olla del fuego y añadir {{Pimentón|pizca}}; remover deprisa para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que se concentre y oscurezca.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar la ternera reservada y {{Laurel}} a la olla.",
@@ -16768,12 +16905,14 @@
       {
         "text": "Escurrir {{Alubias blancas cocidas}} en un colador y enjuagarlas bajo el grifo para eliminar el almidón.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Dejar escurrir las alubias blancas cocidas en el colador hasta que no goteen.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Tomate}} en dados pequeños, retirando la parte más acuosa de las semillas.",

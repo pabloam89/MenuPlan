@@ -3,7 +3,10 @@ import {
   BASES,
   MIN_PLATOS_POR_BASE,
   baseDeReceta,
+  clavesDeReceta,
   coberturaDeBases,
+  esMontajeRapido,
+  montajeTrasBases,
   fraccionActiva,
   sesionDeBases,
   tiempoDeBase,
@@ -275,5 +278,82 @@ describe("tiempo activo: el numero que de verdad importa", () => {
     const legumbre = BASES.find((b) => b.mainBase === "legumbre");
     expect(fraccionActiva(pasta)).toBeLessThan(0.3);
     expect(fraccionActiva(legumbre)).toBeLessThan(0.1);
+  });
+});
+
+describe("montajeTrasBases · lo que queda por hacer el martes", () => {
+  // Un plato de libro: tres pasos de sofrito, uno que lo junta, uno de cocinar.
+  const plato = {
+    name: "Plato con sofrito",
+    basesAparte: ["sofrito"],
+    stepsRich: [
+      { text: "Picar la cebolla.", minutes: 5, kind: "prep", base: "sofrito" },
+      { text: "Pocharla a fuego suave.", minutes: 15, kind: "activo", base: "sofrito" },
+      { text: "Añadir el tomate y reducir.", minutes: 10, kind: "pasivo", base: "sofrito" },
+      { text: "Añadir el sofrito a la sartén con el pollo.", minutes: 2, kind: "activo" },
+      { text: "Saltear el pollo.", minutes: 6, kind: "activo" },
+      { text: "Servir.", minutes: 1, kind: "emplatado" },
+    ],
+  };
+
+  it("quita los pasos de la base y deja el que la junta con el resto", () => {
+    const m = montajeTrasBases(plato);
+    expect(m.pasosQuitados).toBe(3);
+    expect(m.minutosQuitados).toBe(30);
+    // 2 + 6 + 1: el paso que añade el sofrito SIGUE ahí, y tiene que estarlo.
+    expect(m.minutos).toBe(9);
+    expect(m.minutosActivos).toBe(8);
+    expect(m.etiquetado).toBe(true);
+  });
+
+  it("una base que NO se ha cocinado el domingo no se lleva nada", () => {
+    const m = montajeTrasBases(plato, []);
+    expect(m.pasosQuitados).toBe(0);
+    expect(m.minutos).toBe(39);
+  });
+
+  it("un plato sin etiquetar no es un plato que no ahorre: se sabe distinguir", () => {
+    const sinEtiquetar = { ...plato, stepsRich: plato.stepsRich.map(({ base: _b, ...s }) => s) };
+    const m = montajeTrasBases(sinEtiquetar);
+    expect(m.etiquetado).toBe(false);
+    expect(m.minutos).toBe(39);
+    // Y por eso no se puede prometer que sea rápido, aunque lo fuera.
+    expect(esMontajeRapido(sinEtiquetar)).toBe(false);
+  });
+
+  it("es de montaje rápido por los minutos TUYOS, no por los del reloj", () => {
+    const alHorno = {
+      basesAparte: ["patatas"],
+      stepsRich: [
+        { text: "Cocer las patatas.", minutes: 25, kind: "pasivo", base: "patatas" },
+        { text: "Montar la fuente.", minutes: 5, kind: "activo" },
+        { text: "Gratinar.", minutes: 20, kind: "pasivo" },
+      ],
+    };
+    // 25 min de reloj, 5 tuyos: es montaje.
+    expect(montajeTrasBases(alHorno).minutos).toBe(25);
+    expect(montajeTrasBases(alHorno).minutosActivos).toBe(5);
+    expect(esMontajeRapido(alHorno)).toBe(true);
+  });
+
+  it("clavesDeReceta ve la fécula aparte y lo de basesAparte, sin repetir", () => {
+    expect(clavesDeReceta({ mainBase: "arroz", baseMode: "aparte", basesAparte: ["sofrito"] }))
+      .toEqual(["arroz", "sofrito"]);
+    // "dentro" no es una base aprovechable: un risotto no se precocina.
+    expect(clavesDeReceta({ mainBase: "arroz", baseMode: "dentro" })).toEqual([]);
+  });
+
+  it("el catálogo real: ningun paso marca una base que su plato no declare", () => {
+    // El mismo invariante que vigila validate-catalog, aquí como fusible del
+    // test suite: un campo que nombra una base fantasma promete una tanda que
+    // nadie va a cocinar.
+    const huerfanos = [];
+    for (const r of recipeCatalog) {
+      const propias = new Set(clavesDeReceta(r));
+      for (const paso of r.stepsRich ?? []) {
+        if (paso.base && !propias.has(paso.base)) huerfanos.push(`${r.id}: ${paso.base}`);
+      }
+    }
+    expect(huerfanos).toEqual([]);
   });
 });

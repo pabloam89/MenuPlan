@@ -262,6 +262,26 @@ export const StepRichSchema = z.object({
   // una sola receta ya incluye varias (p. ej. arroz + su salsa). Opcional:
   // la mayoría de recetas de una sola técnica no lo llevan.
   part: z.enum(STEP_PARTS).optional(),
+  // Qué base cocina este paso, si es que cocina alguna. Tercer eje, y otra
+  // pregunta distinta de las dos anteriores: `kind` dice cuánto te ata el paso,
+  // `part` dice a qué componente del plato pertenece, y esto dice si el paso
+  // DESAPARECE cuando esa base ya viene hecha del domingo.
+  //
+  // Es lo único que convierte el batch cooking en una promesa comprobable. Sin
+  // esto sabíamos que un plato "lleva sofrito aparte", pero no cuánto trabajo
+  // te quitas un martes por tenerlo hecho: el ahorro se medía sobre la receta
+  // de la BASE (lo que cuesta la olla), nunca sobre el plato que la usa. Con
+  // esto se suman los minutos de los pasos marcados y sale el número que de
+  // verdad importa — "con el sofrito hecho, esto son 8 minutos".
+  //
+  // El valor es la clave de la base (`baseKey`, o el `mainBase` de las de
+  // fécula), y solo vale si el plato la declara suya: en `basesAparte` o como
+  // su `mainBase` con `baseMode: "aparte"`. Lo comprueba validate-catalog.
+  //
+  // Se marca un paso SOLO si se va entero. Un paso que sofríe la cebolla y
+  // además dora el pollo no se marca: tener el sofrito hecho no te lo ahorra,
+  // te lo acorta, y contar esos minutos como ahorrados sería inflar la promesa.
+  base: z.string().min(1).optional(),
 });
 
 export const RecipeSchema = z

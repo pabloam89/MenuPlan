@@ -189,6 +189,88 @@ export function tiempoDeBase(base, raciones) {
 }
 
 /**
+ * La clave con la que se busca una base: `baseKey` si lo trae (el sofrito), y
+ * si no su `mainBase` (las siete de fécula). Es la misma que escriben los
+ * pasos en `stepsRich[i].base` y la que lleva `basesAparte`.
+ */
+export const claveDeBase = (base) => base?.baseKey ?? base?.mainBase ?? null;
+
+/** Las claves de todas las bases que este plato puede aprovechar ya hechas. */
+export const clavesDeReceta = (receta) => basesDeReceta(receta).map(claveDeBase).filter(Boolean);
+
+/**
+ * Qué queda por hacer de un plato cuando sus bases ya están cocinadas.
+ *
+ * Es la otra mitad del batch cooking, y la que faltaba. `tiempoDeBase` mide lo
+ * que cuesta la OLLA del domingo; esto mide lo que cuesta la CENA del martes,
+ * que es el número por el que alguien decide si esto le sirve: "con el sofrito
+ * hecho, son ocho minutos".
+ *
+ * Se apoya en `stepsRich[i].base`, que marca los pasos que desaparecen porque
+ * su trabajo ya está hecho. Un paso sin marcar se queda, siempre: la duda cae
+ * del lado de prometer menos, igual que en `baseMode`.
+ *
+ * @param {object} receta
+ * @param {Iterable<string>} [clavesListas] qué bases se dan por hechas. Por
+ *   defecto, TODAS las que el plato declara suyas.
+ * @returns {{minutos, minutosActivos, minutosQuitados, pasos, pasosQuitados, etiquetado}}
+ *   `etiquetado` distingue "no ahorra nada" de "nadie lo ha mirado todavía":
+ *   sin él, un plato sin repasar parecía un plato que no ahorra.
+ */
+export function montajeTrasBases(receta, clavesListas) {
+  const pasos = receta?.stepsRich ?? [];
+  const listas = new Set(clavesListas ?? clavesDeReceta(receta));
+
+  let minutos = 0;
+  let minutosActivos = 0;
+  let minutosQuitados = 0;
+  let pasosQuitados = 0;
+
+  for (const paso of pasos) {
+    const min = Number(paso?.minutes) || 0;
+    if (paso?.base && listas.has(paso.base)) {
+      pasosQuitados += 1;
+      minutosQuitados += min;
+      continue;
+    }
+    minutos += min;
+    // Mismo criterio que fraccionActiva: `prep` es tuyo, picar también cansa.
+    if (paso?.kind === "activo" || paso?.kind === "prep") minutosActivos += min;
+  }
+
+  return {
+    minutos,
+    minutosActivos,
+    minutosQuitados,
+    pasos: pasos.length - pasosQuitados,
+    pasosQuitados,
+    etiquetado: pasos.some((p) => Boolean(p?.base)),
+  };
+}
+
+/**
+ * El tope de "esto es montaje, no cocinar": minutos TUYOS que pueden quedar un
+ * día de diario con las bases hechas.
+ *
+ * Quince, y en minutos activos, no de reloj: un plato que solo necesita que se
+ * caliente el horno veinte minutos sigue siendo montaje, y uno que te tiene
+ * veinte minutos de pie no lo es aunque el reloj diga lo mismo.
+ */
+export const MINUTOS_DE_MONTAJE = 15;
+
+/**
+ * ¿Este plato es de montaje rápido teniendo sus bases hechas?
+ *
+ * Devuelve false para lo que nadie ha etiquetado todavía. No es un descuido:
+ * es la diferencia entre "sabemos que es rápido" y "no lo sabemos", y la
+ * segunda no se puede enseñar como promesa.
+ */
+export function esMontajeRapido(receta, clavesListas) {
+  const m = montajeTrasBases(receta, clavesListas);
+  return m.etiquetado && m.minutosActivos <= MINUTOS_DE_MONTAJE;
+}
+
+/**
  * Cuántos platos tienen que compartir una base para que valga la pena sacarla
  * como tanda aparte.
  *

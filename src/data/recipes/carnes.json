@@ -442,7 +442,8 @@
       {
         "text": "Picar {{Cebolla}} en trozos pequeños y reservar.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Mezclar en un bol {{Carne picada de cerdo}}, {{Pan rallado}}, {{Huevo}} y la mitad del ajo picado hasta obtener una masa homogénea.",
@@ -472,17 +473,20 @@
       {
         "text": "Sofreír la cebolla picada en la misma {{@Sartén}} a fuego medio hasta que esté tierna y transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el resto del ajo picado y sofreír 1 min más hasta que desprenda aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}}, remover y llevar a ebullición a fuego medio.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las albóndigas reservadas a la salsa, tapar y cocer a fuego suave hasta que estén bien cocidas y la salsa espese.",
@@ -807,7 +811,8 @@
       {
         "text": "Bajar a fuego medio y sofreír la cebolla picada en la misma olla hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír 2 min hasta que empiece a ablandarse.",
@@ -817,7 +822,8 @@
       {
         "text": "Añadir {{Tomate triturado}} y remover hasta que se integre con el sofrito, unos 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar la carne reservada, {{Vino tinto}} y {{Laurel}}; cubrir con agua hasta sobrepasar los ingredientes.",
@@ -1722,17 +1728,20 @@
       {
         "text": "Reducir el fuego a medio y sofreír la cebolla y el ajo en la misma sartén hasta que estén blandos, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las tiras de pimiento rojo y pimiento verde y saltear hasta que estén ligeramente tiernos, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y remover para integrar con las verduras. Cocer 2 min a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar el pollo reservado a la sartén, remover y tapar.",
@@ -2722,17 +2731,20 @@
       {
         "text": "Bajar a fuego medio y sofreír la cebolla picada en la misma olla hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír hasta que desprenda aroma, sin que se dore.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y remover; cocer hasta que el tomate pierda el exceso de agua.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Vino tinto}} y llevar a ebullición hasta que el alcohol se evapore.",
@@ -2939,12 +2951,14 @@
       {
         "text": "Bajar a fuego medio y sofreír la cebolla picada en el mismo aceite hasta que esté transparente y blanda.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min más hasta que empiece a dorarse.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Tostar {{Almendras}} en la sartén a fuego suave, removiendo, hasta que estén doradas; retirar.",
@@ -3854,12 +3868,14 @@
       {
         "text": "Bajar el fuego a medio y sofreír la cebolla picada en la misma olla hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que reduzca y oscurezca ligeramente, removiendo con frecuencia.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Vino blanco}} y remover hasta que evapore el alcohol, unos 2 min.",
@@ -4068,22 +4084,26 @@
       {
         "text": "Bajar el fuego a medio. Sofreír la cebolla en la misma sartén hasta que esté blanda y transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír hasta que desprenda aroma sin llegar a dorarse.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y remover para integrar con la cebolla y el ajo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer a fuego medio hasta que el tomate pierda el exceso de líquido.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Vino blanco}} y añadir {{Laurel}}. Remover y llevar a ebullición a fuego fuerte.",
@@ -4546,7 +4566,8 @@
       {
         "text": "Sofreír la cebolla picada y el ajo picado en la misma {{@Sartén}} a fuego medio hasta que estén tiernos.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Curry en polvo|pizca}} sobre la cebolla y el ajo y remover durante 1 min hasta que el curry libere su aroma.",
@@ -4556,7 +4577,8 @@
       {
         "text": "Incorporar {{Tomate triturado}} y remover para integrar; cocer a fuego medio hasta que la salsa espese.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Nata}} y los dados de pollo reservados; remover para integrar bien.",
@@ -5108,7 +5130,8 @@
       {
         "text": "Bajar el fuego a medio y sofreír la cebolla picada y el ajo picado en la misma sartén hasta que estén transparentes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Subir el fuego a fuerte, añadir los champiñones laminados y saltear, removiendo, hasta que suelten el agua y se doren.",
@@ -5697,12 +5720,14 @@
       {
         "text": "Bajar a fuego medio y sofreír la cebolla en la misma sartén, removiendo, hasta que esté transparente.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír, removiendo, hasta que reduzca y pierda el agua, unos 5 min.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las setas laminadas y saltear a fuego medio hasta que suelten el agua y empiecen a dorarse.",
@@ -6234,12 +6259,14 @@
       {
         "text": "Bajar a fuego medio y sofreír la cebolla en juliana en la misma cazuela hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min más hasta que desprenda aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar el pollo reservado a la cazuela y verter {{Cerveza}} removiendo para integrar los jugos del fondo.",
@@ -6705,7 +6732,8 @@
         "text": "Sofreír la cebolla, la zanahoria, el puerro y el ajo picados en el mismo aceite a fuego medio hasta que ablanden.",
         "minutes": 10,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Laurel}} y {{Tomillo|pizca}} al sofrito y remover para integrar.",
@@ -8058,13 +8086,15 @@
         "minutes": 4,
         "kind": "paralelo",
         "during": 13,
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Cocer la patata en agua con {{Sal|gusto}} hasta que esté tierna.",
         "minutes": 20,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Retirar el rabo de toro de la cazuela y reservar.",
@@ -8538,7 +8568,8 @@
         "text": "Pelar {{Patata}} y cortar en rodajas finas de unos 3 mm.",
         "minutes": 5,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
@@ -9488,13 +9519,15 @@
         "minutes": 5,
         "kind": "paralelo",
         "during": 8,
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Cocer la patata en una olla con agua y sal al gusto. Hervir hasta que esté tierna.",
         "minutes": 20,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Calentar {{Leche}} en un cazo a fuego suave hasta que esté caliente. Reservar.",
@@ -10501,7 +10534,8 @@
       {
         "text": "Sofreír la cebolla picada en la misma cazuela a fuego medio hasta que esté blanda y transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los boletus troceados y saltear a fuego medio hasta que suelten el agua y se doren.",
@@ -12857,7 +12891,8 @@
       {
         "text": "Sofreír la cebolla en aros a fuego medio hasta que esté dorada y caramelizada.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la cebolla caramelizada y reservar. Subir el fuego a fuerte.",
@@ -14375,7 +14410,8 @@
       {
         "text": "Sofreír la cebolla picada y la mitad restante del ajo en el mismo aceite a fuego medio.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Vino blanco}} y remover hasta que se evapore el alcohol.",
@@ -15990,17 +16026,20 @@
       {
         "text": "Pelar y picar {{Cebolla}} en brunoise fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar y picar {{Zanahoria}} en brunoise fina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar {{Boniato}} y cortarlo en dados grandes.",
@@ -16030,12 +16069,14 @@
       {
         "text": "Bajar el fuego a medio y sofreír la cebolla picada, la zanahoria picada y el ajo picado en la misma cazuela hasta que estén tiernos.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que pierda el agua y se concentre.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Vino tinto}} y subir el fuego hasta que se evapore el alcohol y el líquido reduzca a la mitad.",
@@ -16722,12 +16763,14 @@
       {
         "text": "Bajar el fuego a medio y sofreír la cebolla y el ajo picados en la misma cazuela hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que pierda el agua y se concentre.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Vino blanco}} y remover hasta que se evapore el alcohol.",
@@ -18262,7 +18305,8 @@
       {
         "text": "Sofreír la cebolla picada y el ajo picado en la misma cazuela a fuego medio hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los champiñones laminados y saltear a fuego medio hasta que suelten su agua y se doren.",
@@ -20028,12 +20072,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, la zanahoria y el ajo hasta que estén blandos.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y dorar a fuego fuerte, deshaciendo los grumos.",
@@ -21196,7 +21242,8 @@
         "text": "Pelar {{Patata}} y laminar en rodajas finas de unos 3 mm.",
         "minutes": 5,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
@@ -24775,27 +24822,32 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio. Sofreír la cebolla picada restante hasta que esté blanda.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír junto a la cebolla hasta que esté dorado, sin que se queme.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la cazuela del fuego. Añadir {{Pimentón dulce}} y {{Pimentón picante}} y remover rápido para que no se quemen.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Volver la cazuela al fuego suave. Añadir {{Tomate triturado}} y remover para integrar con el sofrito.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer el sofrito a fuego suave hasta que el tomate pierda el agua y quede concentrado.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar el chorizo, la morcilla y el jamón troceados al sofrito. Remover para integrar.",
@@ -24980,17 +25032,20 @@
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla a fuego suave hasta que esté muy blanda y dorada.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Hígado de ternera}} en filetes finos.",
@@ -25895,25 +25950,29 @@
         "text": "Enjuagar {{Quinoa}} bajo agua fría hasta que el agua salga clara.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "quinoa"
       },
       {
         "text": "Llevar a ebullición una olla con agua y {{Sal|gusto}}, añadir la quinoa y cocer a fuego medio.",
         "minutes": 2,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "quinoa"
       },
       {
         "text": "Cocer la quinoa tapada a fuego suave hasta que esté tierna y haya absorbido el agua.",
         "minutes": 13,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "quinoa"
       },
       {
         "text": "Escurrir la quinoa si ha quedado agua y extenderla en un bol para que temple.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "quinoa"
       },
       {
         "text": "Pelar {{Zanahoria}} y cortarla en bastones finos.",
@@ -28369,7 +28428,8 @@
         "text": "Llevar a ebullición agua con sal en un cazo y cocer {{Arroz blanco}} según el tiempo del envase.",
         "minutes": 12,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Cortar {{Pechuga de pollo}} en dados de tamaño uniforme.",
@@ -28393,7 +28453,8 @@
         "text": "Escurrir el arroz blanco cocido y reservar caliente.",
         "minutes": 1,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte.",
@@ -28585,7 +28646,8 @@
       {
         "text": "Picar {{Cebolla}} fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Limpiar {{Setas variadas}} y cortar en trozos medianos.",
@@ -28595,12 +28657,14 @@
       {
         "text": "Fundir {{Mantequilla}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada a fuego suave hasta que esté transparente.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las setas troceadas y saltear a fuego medio hasta que suelten el agua y se doren ligeramente.",
@@ -29280,17 +29344,20 @@
       {
         "text": "Picar {{Cebolla}} en brunoise fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la piel de {{Morcilla}} y desmenuzar la carne directamente en la sartén.",
@@ -29791,13 +29858,15 @@
         "text": "Picar {{Cebolla}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Zanahoria}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "base": "sofrito"
       },
       {
         "text": "Precalentar el horno a 200 °C.",
@@ -29833,7 +29902,8 @@
       {
         "text": "Sofreír la cebolla y la zanahoria picadas hasta que estén blandas.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y deshacer los grumos con una cuchara.",
@@ -32119,7 +32189,8 @@
       {
         "text": "Sofreír la cebolla picada en la misma sartén a fuego medio hasta que esté tierna.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los pimientos del piquillo a la sartén y remover para integrar.",

@@ -92,12 +92,14 @@
       {
         "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar y picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal.",
@@ -107,37 +109,44 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada en la sartén hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min hasta que se dore ligeramente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Orégano|pizca}} a la sartén y remover.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer la salsa a fuego suave, sin tapar, hasta que espese ligeramente.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer {{Macarrones}} en el agua hirviendo con sal según el tiempo indicado en el envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Escurrir los macarrones cuando estén al dente y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Añadir los macarrones escurridos a la sartén con la salsa y mezclar a fuego suave 1 min.",
@@ -292,7 +301,8 @@
       {
         "text": "Pelar {{Cebolla}} y picarla en dados finos. Pelar {{Ajo}} y picarlo muy fino.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar {{Zanahoria}} y rallarla con un rallador fino.",
@@ -302,12 +312,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} grande a fuego medio hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado en la sartén a fuego medio hasta que estén transparentes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria rallada y sofreír junto con la cebolla hasta que esté tierna.",
@@ -338,12 +350,14 @@
         "text": "Llevar a ebullición una olla con abundante agua y {{Sal|gusto}}.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 8
+        "during": 8,
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente, según el tiempo indicado en el paquete.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Escurrir los espaguetis y volcarlos en la sartén con la boloñesa.",
@@ -807,12 +821,14 @@
       {
         "text": "Llevar a ebullición una olla con agua abundante y sal al gusto.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente, siguiendo el tiempo del paquete.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -827,7 +843,8 @@
       {
         "text": "Escurrir los espaguetis reservando un vaso del agua de cocción.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Retirar la sartén del fuego e incorporar los espaguetis escurridos a la panceta.",
@@ -965,37 +982,44 @@
       {
         "text": "Picar {{Cebolla}} en trozos finos y picar {{Ajo}}.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Llevar a ebullición una olla con agua abundante y sal.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada en la sartén hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min hasta que se dore ligeramente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Tomate triturado}} a la sartén y remover. Cocer a fuego medio hasta que reduzca.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer {{Macarrones}} en el agua hirviendo según el tiempo indicado en el paquete, hasta que estén al dente.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Escurrir {{Atún en conserva}} y desmenuzarlo con un tenedor.",
@@ -1206,17 +1230,20 @@
       {
         "text": "Sofreír la cebolla picada y el pimiento rojo en la misma cazuela a fuego medio hasta que estén tiernos.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Pimentón}} al sofrito; remover hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocinar el sofrito a fuego medio hasta que el tomate pierda el agua.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Arroz}} y remover hasta que los granos queden bien impregnados del sofrito.",
@@ -1383,17 +1410,20 @@
       {
         "text": "Bajar a fuego medio. Sofreír la cebolla y el pimiento verde picados en la misma sartén hasta que estén tiernos.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y {{Pimentón|pizca}} y sofreír hasta que el ajo esté dorado, sin que se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca y la salsa esté concentrada.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Fideos gruesos}} y tostar en la salsa a fuego medio, removiendo, hasta que se doren ligeramente.",
@@ -1556,7 +1586,8 @@
       {
         "text": "Añadir {{Arroz}} al agua hirviendo y cocer a fuego medio durante 18 min hasta que esté tierno.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "arroz"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio y sofreír el ajo picado 1 min hasta que empiece a dorarse.",
@@ -1591,7 +1622,8 @@
       {
         "text": "Escurrir el arroz cocido.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "arroz"
       },
       {
         "text": "Servir el arroz en plato junto a la salsa de tomate, el huevo frito y las rodajas de plátano macho.",
@@ -1705,12 +1737,14 @@
       {
         "text": "Llevar una olla con agua abundante y {{Sal|gusto}} a ebullición a fuego fuerte.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo siguiendo el tiempo indicado en el envase, hasta que estén al dente.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Poner {{Albahaca fresca}}, {{Piñones}}, {{Ajo}}, el queso parmesano rallado y {{Aceite de oliva}} en el vaso de la batidora.",
@@ -2029,7 +2063,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Laminar {{Ajo}} finamente y reservar.",
@@ -2044,7 +2079,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente, unos 8 min.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}}.",
@@ -2209,12 +2245,14 @@
       {
         "text": "Pelar y picar {{Cebolla}} en trozos finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar y picar {{Ajo}} en trozos finos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Sepia}} en trozos de bocado de unos 2 cm.",
@@ -2234,7 +2272,8 @@
       {
         "text": "Sofreír la cebolla picada y el ajo picado a fuego medio, removiendo, hasta que estén blandos y translúcidos.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la sepia troceada y saltear a fuego fuerte hasta que se dore ligeramente por fuera.",
@@ -2244,7 +2283,8 @@
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que pierda el agua y el conjunto se concentre.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Arroz}} y remover durante 1 min hasta que los granos queden impregnados del sofrito.",
@@ -2407,12 +2447,14 @@
       {
         "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Macarrones}} en el agua hirviendo hasta que estén al dente, según el tiempo del paquete.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -2422,7 +2464,8 @@
       {
         "text": "Sofreír la cebolla picada y el ajo picado en la sartén hasta que estén tiernos y ligeramente dorados.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los champiñones laminados y saltear a fuego fuerte hasta que pierdan el agua y se doren.",
@@ -2560,12 +2603,14 @@
       {
         "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "arroz"
       },
       {
         "text": "Añadir {{Arroz}} y cocer según el paquete hasta que esté tierno.",
         "minutes": 12,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "arroz"
       },
       {
         "text": "Pelar {{Zanahoria}} y cortar en dados de 5 mm.",
@@ -2587,7 +2632,8 @@
       {
         "text": "Escurrir el arroz cocido y extender en una bandeja para que enfríe.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "arroz"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
@@ -2766,12 +2812,14 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Salsa de soja|gusto}}.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Añadir {{Tallarines}} cuando el agua rompa a hervir y cocer hasta que estén al dente, según el tiempo del paquete.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
@@ -2796,7 +2844,8 @@
       {
         "text": "Escurrir los tallarines al dente y reservar un poco del agua de cocción.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "pasta"
       },
       {
         "text": "Incorporar los tallarines escurridos a {{@Sartén}} y añadir {{Salsa de soja}}.",
@@ -2935,17 +2984,20 @@
       {
         "text": "Cortar {{Cebolla}} en dados finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén grande a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada en {{@Sartén}} hasta que esté transparente, unos 5 min a fuego medio.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y saltear a fuego fuerte hasta que pierda el color rosado por completo.",
@@ -3185,17 +3237,20 @@
       {
         "text": "Pelar y picar {{Cebolla}} muy fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente, a fuego suave.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y sofreír a fuego medio hasta que pierda el color rosado, removiendo con frecuencia.",
@@ -3599,12 +3654,14 @@
       {
         "text": "Llevar a ebullición una olla con abundante agua salada a fuego fuerte.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Penne}} en el agua hirviendo hasta que estén al dente, según el tiempo del paquete.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
@@ -4305,12 +4362,14 @@
       {
         "text": "Llevar a ebullición una olla con agua abundante y sal.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Fusilli}} en el agua hirviendo hasta que estén al dente, siguiendo el tiempo del paquete.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
@@ -4325,7 +4384,8 @@
       {
         "text": "Escurrir los fusilli y enfriar bajo agua fría hasta que estén a temperatura ambiente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Añadir los tomates cherry, la mozzarella, {{Rúcula}}, {{Aceitunas negras}} y {{Pesto}} a la pasta escurrida.",
@@ -4485,7 +4545,8 @@
       {
         "text": "Sofreír la cebolla en la mantequilla fundida hasta que esté transparente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los champiñones laminados y saltear a fuego fuerte hasta que pierdan el agua y se doren.",
@@ -4658,7 +4719,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente, según el tiempo del envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -4805,7 +4867,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Rallar {{Queso parmesano}} finamente.",
@@ -4828,7 +4891,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo el tiempo indicado en el envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Dorar {{Bacon en taquitos}} en {{@Sartén}} a fuego medio sin aceite hasta que quede crujiente.",
@@ -4961,7 +5025,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Lavar {{Tomates cherry}} y cortar cada uno por la mitad.",
@@ -4977,17 +5042,20 @@
       {
         "text": "Cocer {{Fusilli}} en el agua hirviendo el tiempo indicado en el envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Reservar un cucharón del agua de cocción antes de escurrir la pasta.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Escurrir los fusilli y volcarlos de nuevo en la olla fuera del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Añadir {{Pesto de albahaca}} y un poco del agua de cocción reservada, removiendo hasta cubrir uniformemente la pasta.",
@@ -5108,7 +5176,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Pelar y picar {{Ajo}} fino.",
@@ -5118,7 +5187,8 @@
       {
         "text": "Añadir {{Macarrones}} al agua hirviendo y cocer según el tiempo del envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -5531,7 +5601,8 @@
       {
         "text": "Sofreír la cebolla, el pimiento rojo y el ajo a fuego medio hasta que estén blandos.",
         "minutes": 7,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el calamar y saltear a fuego medio hasta que empiece a dorarse.",
@@ -5541,7 +5612,8 @@
       {
         "text": "Incorporar {{Tomate triturado}} y sofreír a fuego medio hasta que pierda el agua.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Arroz bomba}} y remover a fuego medio hasta que se impregne del sofrito.",
@@ -5766,7 +5838,8 @@
       {
         "text": "Sofreír la cebolla, el pimiento rojo y el ajo picados a fuego medio hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los aros de calamar y saltear a fuego medio hasta que estén ligeramente dorados.",
@@ -6186,12 +6259,14 @@
       {
         "text": "Sofreír la cebolla picada, la zanahoria, el puerro y el ajo en la misma olla a fuego medio hasta que estén blandos.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que pierda el agua y se oscurezca.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Devolver el rabo de toro a la olla y verter {{Vino tinto}}. Subir el fuego a fuerte.",
@@ -6765,13 +6840,15 @@
         "text": "Cocer {{Tagliatelle}} en el agua hirviendo según el tiempo del envase hasta que estén al dente.",
         "minutes": 8,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Escurrir la pasta reservando un vaso del agua de cocción.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Mezclar los tagliatelle escurridos con el ragú, añadiendo agua de cocción si hace falta para ligar la salsa.",
@@ -6934,7 +7011,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los dados de calabaza y saltear removiendo hasta que empiecen a ablandarse.",
@@ -7120,7 +7198,8 @@
       {
         "text": "Cocer {{Orecchiette}} en la misma agua según el tiempo indicado en el envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
@@ -7145,7 +7224,8 @@
       {
         "text": "Escurrir la pasta reservando un vaso del agua de cocción.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Añadir la pasta escurrida a la sartén y saltear 2 min a fuego medio.",
@@ -7303,7 +7383,8 @@
       {
         "text": "Sofreír la cebolla picada, el pimiento rojo picado y el ajo picado en la misma cazuela a fuego medio.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Pimentón dulce}}; remover sin parar hasta que el pimentón no se queme.",
@@ -7570,7 +7651,8 @@
         "text": "Sofreír la cebolla picada, la zanahoria picada, el puerro picado y el ajo picado en la misma olla a fuego medio.",
         "minutes": 10,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Devolver el rabo de toro a la olla y añadir {{Vino tinto}}.",
@@ -7832,7 +7914,8 @@
       {
         "text": "Cocer {{Linguine}} en el agua hirviendo hasta que estén al dente, siguiendo el tiempo del envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Escurrir las almejas bajo el grifo y reservar.",
@@ -8053,12 +8136,14 @@
       {
         "text": "Bajar a fuego suave y sofreír la cebolla picada en la misma cazuela hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min más sin que llegue a dorarse.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la otra mitad de los aros de calamar y saltear a fuego medio hasta que estén opacos.",
@@ -8564,12 +8649,14 @@
       {
         "text": "Cocer {{Pappardelle}} en el agua hirviendo según el tiempo indicado en el envase.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Escurrir la pasta reservando un vaso del agua de cocción.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Añadir la pasta escurrida al ragú y mezclar a fuego suave hasta integrar. Añadir agua de cocción si la salsa ha espesado.",
@@ -8679,7 +8766,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Rallar {{Queso parmesano}} finamente y reservar.",
@@ -8690,7 +8778,8 @@
       {
         "text": "Cocer {{Macarrones}} en el agua hirviendo según el tiempo indicado en el envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Mantequilla}} en una sartén amplia a fuego medio hasta que tome un tono avellana.",
@@ -8995,7 +9084,8 @@
       {
         "text": "Llevar a ebullición una olla con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Batir {{Yema de huevo}} y {{Huevo}} en un bol hasta integrar.",
@@ -9018,7 +9108,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo según el tiempo indicado en el envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Dorar el guanciale en {{@Sartén}} amplia sin aceite a fuego medio hasta que suelte la grasa y quede crujiente.",
@@ -9166,7 +9257,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Rallar la piel de {{Limón}} y reservar la ralladura.",
@@ -9189,7 +9281,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo según el tiempo indicado en el envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Fundir {{Mantequilla}} en una sartén amplia a fuego suave hasta que esté líquida.",
@@ -9402,12 +9495,14 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Rigatoni}} en el agua hirviendo hasta que estén al dente, siguiendo el tiempo del envase.",
         "minutes": 11,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Bajar el fuego a suave en la misma sartén y añadir el resto del aceite de oliva.",
@@ -9427,7 +9522,8 @@
       {
         "text": "Escurrir los rigatoni reservando un vaso del agua de cocción.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Incorporar la berenjena reservada a la salsa de tomate y mezclar con cuidado.",
@@ -9544,7 +9640,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Laminar {{Ajo}} fino.",
@@ -9561,7 +9658,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente, según el tiempo del envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego suave.",
@@ -9583,7 +9681,8 @@
       {
         "text": "Escurrir los espaguetis reservando un vaso del agua de cocción.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Añadir los espaguetis escurridos a la sartén con el aceite aromatizado.",
@@ -9740,12 +9839,14 @@
       {
         "text": "Cocer {{Patata}} con piel en agua con {{Sal|gusto}} hasta que estén tiernas.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Escurrir las patatas y pelarlas en caliente con cuidado.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Pasar las patatas por un pasapurés sobre una superficie de trabajo enharinada con {{Harina de trigo}}.",
@@ -10134,7 +10235,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Picar {{Ajo}} fino.",
@@ -10149,7 +10251,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo según el tiempo del envase, hasta que estén al dente.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego suave.",
@@ -10747,7 +10850,8 @@
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el calabacín, la berenjena y el pimiento en dados y sofreír a fuego medio hasta que estén tiernos.",
@@ -11029,17 +11133,20 @@
       {
         "text": "Picar {{Cebolla}} fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Espinacas frescas}} por tandas hasta que reduzcan y suelten el agua.",
@@ -11352,7 +11459,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la pechuga de pollo asada picada y el jamón cocido picado.",
@@ -11837,12 +11945,14 @@
       {
         "text": "Llevar a ebullición una olla grande con agua y {{Sal|gusto}}.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Fusilli}} hasta que estén al dente, siguiendo el tiempo indicado en el envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
@@ -11859,7 +11969,8 @@
       {
         "text": "Escurrir los fusilli y enfriarlos bajo el grifo con agua fría hasta que estén completamente fríos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Mezclar en un bol los fusilli fríos, los tomates cherry y la mozzarella.",
@@ -11999,12 +12110,14 @@
       {
         "text": "Llevar a ebullición una olla grande con agua y {{Sal|gusto}}.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Fusilli}} en el agua hirviendo hasta que estén al dente, según el tiempo del envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
@@ -12033,7 +12146,8 @@
       {
         "text": "Escurrir los fusilli y enfriar bajo el grifo con agua fría hasta que estén completamente fríos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Mezclar en un bol los fusilli fríos, el atún, {{Aceitunas negras}}, el tomate cherry, el pimiento rojo y la cebolla morada.",
@@ -12402,7 +12516,8 @@
       {
         "text": "Cocer {{Rigatoni}} en el agua hirviendo según el tiempo indicado en el envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Escurrir los rigatoni y añadirlos a la sartén con la salsa.",
@@ -12519,7 +12634,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua y {{Sal|gusto}}.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Picar {{Ajo}} fino.",
@@ -12555,7 +12671,8 @@
         "text": "Cocer {{Penne}} en el agua hirviendo según el tiempo indicado en el envase.",
         "minutes": 11,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "base": "pasta"
       },
       {
         "text": "Picar {{Perejil fresco}} fino.",
@@ -12722,12 +12839,14 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Tagliatelle}} en el agua hirviendo según el tiempo indicado en el envase.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Fundir {{Mantequilla}} en {{@Sartén}} a fuego medio.",
@@ -12737,7 +12856,8 @@
       {
         "text": "Sofreír la cebolla picada y el ajo picado en la sartén hasta que estén tiernos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los boletus laminados y saltear a fuego fuerte hasta que suelten el agua y se doren.",
@@ -12884,7 +13004,8 @@
       {
         "text": "Picar {{Cebolla}} en trozos finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Salmón fresco}} en dados de 2 cm, retirando piel y espinas.",
@@ -12899,12 +13020,14 @@
       {
         "text": "Llevar a ebullición una olla grande con agua y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Farfalle}} en el agua hirviendo según el tiempo del envase, hasta que estén al dente.",
         "minutes": 11,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -12914,7 +13037,8 @@
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los dados de salmón y saltear a fuego medio-alto durante 2 min, sin remover en exceso para no deshacerlos.",
@@ -13047,12 +13171,14 @@
       {
         "text": "Llevar a ebullición una olla grande con agua y {{Sal|gusto}}.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo según el tiempo del envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Laminar {{Ajo}} en rodajas finas.",
@@ -13085,7 +13211,8 @@
       {
         "text": "Escurrir los espaguetis reservando un vaso del agua de cocción.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "pasta"
       },
       {
         "text": "Añadir los espaguetis escurridos a la sartén y saltear a fuego medio.",
@@ -13221,7 +13348,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Picar {{Ajo}} fino.",
@@ -13238,7 +13366,8 @@
       {
         "text": "Cocer {{Espaguetis}} en la olla con agua hirviendo hasta que estén al dente, siguiendo el tiempo del envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -13952,12 +14081,14 @@
       {
         "text": "Llevar a ebullición una olla grande con agua y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cocer {{Fettuccine}} en el agua hirviendo según el tiempo del envase, hasta que estén al dente.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Fundir {{Mantequilla}} en {{@Sartén}} amplia a fuego suave, sin que se dore.",
@@ -14132,7 +14263,8 @@
       {
         "text": "Cocer {{Espaguetis}} en la misma agua según el tiempo indicado en el envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
@@ -14534,12 +14666,14 @@
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y remover 1 min hasta que desprenda aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las setas laminadas y saltear a fuego fuerte hasta que suelten el agua y se doren.",
@@ -15707,7 +15841,8 @@
       {
         "text": "Picar {{Cebolla}} en trozos muy finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Rallar la piel de {{Limón}} y exprimir su zumo; reservar por separado.",
@@ -15727,7 +15862,8 @@
       {
         "text": "Sofreír la cebolla picada en la olla hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Arroz arborio}} y remover hasta que los granos estén nacarados.",
@@ -15885,12 +16021,14 @@
       {
         "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "arroz"
       },
       {
         "text": "Cocer {{Arroz}} en el agua hirviendo según el tiempo del paquete.",
         "minutes": 12,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "arroz"
       },
       {
         "text": "Pelar {{Zanahoria}} y cortarla en dados pequeños.",
@@ -15910,7 +16048,8 @@
       {
         "text": "Escurrir el arroz cocido y extenderlo en una bandeja hasta que enfríe y quede suelto.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "arroz"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -16486,7 +16625,8 @@
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Tostar {{Piñones}} en {{@Sartén}} sin aceite a fuego suave hasta que estén ligeramente dorados.",
@@ -16522,7 +16662,8 @@
         "text": "Cocer {{Fusilli}} en el agua hirviendo según el tiempo indicado en el paquete.",
         "minutes": 9,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Reservar un cazo del agua de cocción antes de escurrir la pasta.",
@@ -16534,7 +16675,8 @@
         "text": "Escurrir la pasta.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Mezclar la pasta caliente con el pesto rojo, añadiendo agua de cocción si la salsa ha quedado demasiado espesa.",
@@ -16677,23 +16819,27 @@
         "text": "Picar {{Cebolla}} y {{Zanahoria}} en trozos muy finos.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, la zanahoria y el ajo hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Subir el fuego a fuerte y añadir {{Carne picada de ternera}}.",
@@ -16928,7 +17074,8 @@
       {
         "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}} y sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Atún en aceite}} escurrido y {{Tomate frito}}, remover y cocer 3 min a fuego medio.",
@@ -17158,7 +17305,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo según el tiempo indicado en el envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Reservar un cazo del agua de cocción antes de escurrir la pasta.",
@@ -17309,7 +17457,8 @@
       {
         "text": "Sofreír la cebolla y el ajo a fuego medio hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la sepia y saltear a fuego fuerte hasta que se dore ligeramente.",
@@ -17319,7 +17468,8 @@
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que pierda el agua y oscurezca.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Arroz}} y remover hasta que se impregne del sofrito.",
@@ -17451,7 +17601,8 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Cortar {{Calabacín}} en medias lunas finas.",
@@ -17471,7 +17622,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente, según el tiempo del envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
@@ -17496,7 +17648,8 @@
       {
         "text": "Escurrir los espaguetis reservando un cazo del agua de cocción.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Añadir los espaguetis escurridos a la sartén y saltear todo junto a fuego medio.",
@@ -17849,7 +18002,8 @@
       {
         "text": "Cocer {{Penne}} en el agua hirviendo según el tiempo del envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Sofreír la cebolla picada en la grasa de la panceta a fuego medio hasta que esté transparente.",
@@ -18174,22 +18328,26 @@
       {
         "text": "Picar {{Cebolla}} fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela ancha a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado hasta que estén transparentes, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Caldo de verduras}} a la cazuela.",
@@ -18343,49 +18501,57 @@
         "text": "Picar {{Cebolla}} y {{Ajo}} muy finos.",
         "minutes": 3,
         "kind": "prep",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "sofrito"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado a fuego medio hasta que la cebolla esté transparente.",
         "minutes": 5,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "sofrito"
       },
       {
         "text": "Cocer {{Macarrones}} en el agua hirviendo el tiempo indicado en el envase hasta que estén al dente.",
         "minutes": 9,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Orégano|pizca}} a la sartén y remover para integrar.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "sofrito"
       },
       {
         "text": "Cocer la salsa a fuego suave, removiendo de vez en cuando, hasta que espese y pierda acidez.",
         "minutes": 8,
         "kind": "pasivo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir los macarrones cuando estén al dente y reservar.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Añadir los macarrones escurridos a la sartén con la salsa y mezclar bien a fuego suave.",
@@ -18499,7 +18665,8 @@
       {
         "text": "Llevar a ebullición una olla con agua abundante y sal a fuego fuerte.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "pasta"
       },
       {
         "text": "Laminar {{Champiñones}} y reservar.",
@@ -18514,7 +18681,8 @@
       {
         "text": "Cocer {{Pasta corta}} en el agua hirviendo hasta que esté al dente según el envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -18644,19 +18812,22 @@
         "text": "Llevar a ebullición una olla con agua abundante y sal.",
         "minutes": 3,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "arroz"
       },
       {
         "text": "Añadir {{Arroz}} cuando el agua hierva y cocer a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "arroz"
       },
       {
         "text": "Cocer el arroz hasta que esté tierno, sin tapar.",
         "minutes": 16,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "arroz"
       },
       {
         "text": "Cortar {{Plátano}} en rodajas de 1 cm mientras el arroz cuece.",
@@ -18688,7 +18859,8 @@
         "text": "Escurrir el arroz cocido y reservar en la olla tapada.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "arroz"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en la misma sartén a fuego fuerte.",
@@ -18851,7 +19023,8 @@
       {
         "text": "Sofreír la cebolla picada en la sartén hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el chorizo en rodajas y sofreír hasta que suelte la grasa.",
@@ -19041,7 +19214,8 @@
         "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente.",
         "minutes": 9,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Escurrir los espaguetis y añadir a la sartén con la salsa.",
@@ -19330,27 +19504,31 @@
         "minutes": 3,
         "kind": "paralelo",
         "during": 1,
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Cocer {{Arroz}} en el agua hirviendo a fuego medio hasta que esté en su punto.",
         "minutes": 16,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Pelar y cortar {{Cebolla}} en juliana fina.",
         "minutes": 3,
         "kind": "paralelo",
         "during": 1,
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Pelar y picar {{Ajo}}.",
         "minutes": 1,
         "kind": "paralelo",
         "during": 1,
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Tomate maduro}} en trozos y triturar junto con {{Chile fresco}} hasta obtener una salsa homogénea.",
@@ -19375,7 +19553,8 @@
         "text": "Sofreír la cebolla en juliana y el ajo picado hasta que empiecen a dorarse.",
         "minutes": 6,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la salsa de tomate y chile a la sartén y remover para integrar.",
@@ -19394,7 +19573,8 @@
         "minutes": 1,
         "kind": "paralelo",
         "during": 11,
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Pelar y laminar {{Aguacate}}.",
@@ -19539,19 +19719,22 @@
         "text": "Hervir agua con sal en un cazo a fuego fuerte.",
         "minutes": 3,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Añadir {{Arroz}} cuando rompa a hervir, bajar a fuego medio y cocer hasta que esté tierno.",
         "minutes": 12,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Escurrir el arroz, tapar y reservar.",
         "minutes": 1,
         "kind": "prep",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Cortar {{Pechuga de pollo}} en dados de unos 3 cm.",
@@ -19727,12 +19910,14 @@
       {
         "text": "Llevar a ebullición agua con sal en un cazo. Añadir {{Arroz}} y cocer hasta que esté en su punto.",
         "minutes": 14,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "arroz"
       },
       {
         "text": "Escurrir el arroz cocido y extenderlo en una bandeja. Reservar hasta que esté frío y suelto.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "arroz"
       },
       {
         "text": "Pelar {{Zanahoria}} y cortar en dados pequeños.",

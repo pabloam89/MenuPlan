@@ -81,4 +81,19 @@
 // devolvería `mainBase` sucio a un campo que ya es enum, y el catálogo remoto
 // fallaría la validación entera al cargar (recipeCatalog.js cae al bundle,
 // así que es seguro, pero el hot-swap dejaría de servir para nada).
-export const BUNDLED_CATALOG_VERSION = 28;
+// v29 (15 sep 2026): `stepsRich[i].base` en 747 pasos de 266 platos — qué paso
+// desaparece cuando esa base ya viene hecha del domingo.
+//
+// v28 trajo la mitad de la pregunta ("este plato lleva sofrito aparte"); esta
+// trae la otra, que es la única que el usuario nota: cuánto trabajo te quitas
+// el martes por haberlo cocinado. Hasta ahora el ahorro se medía sobre la
+// receta de la BASE (lo que cuesta la olla) y nunca sobre el plato que la usa,
+// así que no se podía decir "con el sofrito hecho, esto son ocho minutos".
+//
+// Lo lee lib/bases.js (montajeTrasBases, esMontajeRapido). Con el dato medido,
+// 103 platos estrella se quedan en 15 minutos de manos o menos.
+//
+// Supabase sigue en 27, así que el bundle ya ganaba con 28. Se sube igual para
+// que el margen no se cierre: si alguien sincroniza la nube a 28, el empate se
+// lo llevaría ella — y su espejo no tiene estos pasos marcados.
+export const BUNDLED_CATALOG_VERSION = 29;

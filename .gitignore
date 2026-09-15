@@ -41,6 +41,7 @@ approvals-live.json
 # Ledgers locales de las pasadas de enriquecimiento (scripts/enrich-recipe-steps.mjs)
 scripts/.enrich-base-done.json
 scripts/.enrich-parts-done.json
+scripts/.enrich-basesteps-done.json
 
 # Salidas de las pruebas de generación de fotos: son cientos de MB de imágenes
 # descartables que se regeneran con scripts/gen-test-photos.mjs.

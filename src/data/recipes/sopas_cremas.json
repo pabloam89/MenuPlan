@@ -107,7 +107,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente, unos 4 min a fuego medio.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el calabacín y la patata a la olla y remover para mezclar con el sofrito.",
@@ -410,7 +411,8 @@
       {
         "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar {{Calabaza}} y cortar en trozos de unos 3 cm.",
@@ -430,12 +432,14 @@
       {
         "text": "Calentar {{Aceite de oliva}} en una olla a fuego medio hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la calabaza, la patata y la zanahoria a la olla y remover para mezclar con el sofrito.",
@@ -935,7 +939,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria, la patata y el jengibre picado; remover 1 min para integrar.",
@@ -1638,17 +1643,20 @@
       {
         "text": "Laminar {{Cebolla}} en juliana fina.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Mantequilla}} en una olla a fuego medio hasta que se funda.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la cebolla laminada a la olla y sofreír a fuego suave, removiendo con frecuencia, hasta que esté dorada y muy tierna.",
         "minutes": 20,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Vino blanco}} y remover hasta que se evapore el alcohol.",
@@ -2415,7 +2423,8 @@
       {
         "text": "Sofreír la cebolla y el ajo en el aceite caliente hasta que estén translúcidos, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los espárragos y la patata a la olla y remover para integrar con el sofrito.",
@@ -2750,12 +2759,14 @@
       {
         "text": "Sofreír la cebolla picada en el aceite caliente a fuego medio hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min más hasta que desprenda aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el tomate troceado y {{Orégano|pizca}} y remover para mezclar todo.",
@@ -2919,12 +2930,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado hasta que estén blandos y translúcidos, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los ramilletes de brócoli y la patata cortada. Remover para mezclar con el sofrito.",
@@ -4882,7 +4895,8 @@
       {
         "text": "Picar {{Cebolla}} fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar {{Patata}} y cortar en dados pequeños.",
@@ -4892,12 +4906,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la patata en dados y {{Caldo de verduras}}.",
@@ -5060,7 +5076,8 @@
       {
         "text": "Picar {{Cebolla}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Fundir {{Mantequilla}} en una olla a fuego medio hasta que esté derretida.",
@@ -5070,7 +5087,8 @@
       {
         "text": "Sofreír la cebolla picada en la olla hasta que esté blanda y transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los champiñones laminados y {{Zumo de limón}} a la olla.",
@@ -5261,22 +5279,26 @@
       {
         "text": "Pelar {{Cebolla}} y laminar en juliana fina.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Mantequilla}} y {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que la mantequilla se funda.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la cebolla y {{Azúcar}} a la olla. Remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla a fuego suave, removiendo de vez en cuando, hasta que esté muy dorada y caramelizada.",
         "minutes": 30,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Vino blanco}} y remover hasta que se evapore el alcohol.",
@@ -6099,17 +6121,20 @@
       {
         "text": "Picar {{Puerro}} y {{Cebolla}} fino.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Mantequilla}} y {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que la mantequilla se funda.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír el puerro picado y la cebolla picada en la olla a fuego medio hasta que estén blandos y transparentes.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Castañas cocidas y peladas}} y {{Caldo de pollo}} a la olla.",
@@ -6583,12 +6608,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté blanda y transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la patata troceada y {{Caldo de verduras}} y llevar a ebullición.",
@@ -6983,7 +7010,8 @@
       {
         "text": "Sofreír la cebolla a fuego medio hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el calabacín y la patata y remover para integrar.",
@@ -7210,17 +7238,20 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento verde picados hasta que estén blandos, unos 8 min.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Pimentón dulce|pizca}} y sofreír 2 min removiendo sin parar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Vino blanco}} y cocer a fuego fuerte hasta que el alcohol se evapore, unos 2 min.",
@@ -7880,12 +7911,14 @@
       {
         "text": "Sofreír la cebolla picada, el ajo picado y el pimiento verde picado en el mismo aceite a fuego medio.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocinar a fuego medio hasta que pierda el agua, unos 5 min.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Vino blanco}} y remover hasta que se evapore el alcohol, unos 2 min.",
@@ -9180,12 +9213,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los dados de patata y sofreír 2 min removiendo para que no se peguen.",
@@ -9403,12 +9438,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado hasta que estén blandos, sin que se doren.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los dados de tomate y remover a fuego medio durante 5 min.",
@@ -9627,7 +9664,8 @@
       {
         "text": "Sofreír la cebolla y el ajo picados hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las setas laminadas y saltear a fuego fuerte hasta que suelten su agua y se doren ligeramente.",
@@ -10038,7 +10076,8 @@
       {
         "text": "Sofreír la cebolla y el puerro a fuego suave hasta que estén blandos.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los dados de calabaza y saltear a fuego medio removiendo.",
@@ -11198,37 +11237,43 @@
         "text": "Picar {{Cebolla}} fino.",
         "minutes": 2,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en una olla a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado hasta que estén transparentes.",
         "minutes": 5,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Azúcar}}.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Cocer a fuego medio durante 10 min, removiendo de vez en cuando.",
         "minutes": 10,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Untar una cara de cada rebanada de {{Pan de molde}} con {{Mantequilla}}.",
@@ -11466,7 +11511,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la patata y el calabacín y saltear 3 min a fuego medio.",
@@ -12187,7 +12233,8 @@
         "text": "Sofreír la cebolla y el puerro picados hasta que estén transparentes.",
         "minutes": 4,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la patata en dados y {{Caldo de pollo}}, y llevar a ebullición.",
@@ -12744,12 +12791,14 @@
       {
         "text": "Sofreír la cebolla picada, el puerro picado y la zanahoria picada a fuego medio hasta que estén blandos.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate concentrado}} y remover a fuego medio durante 1 min.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Brandy}} y llevar a ebullición hasta que se evapore el alcohol.",
@@ -13116,7 +13165,8 @@
       {
         "text": "Añadir la cebolla y sofreír a fuego suave, removiendo de vez en cuando, hasta que esté dorada y caramelizada.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Vino blanco}} y subir a fuego fuerte hasta que evapore el alcohol.",
@@ -13675,7 +13725,8 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio y sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el apionabo y la patata en dados a la olla.",
@@ -15020,7 +15071,8 @@
       {
         "text": "Sofreír la cebolla, el puerro, el hinojo y el ajo hasta que estén blandos.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Azafrán en hebras}} y sofreír.",
@@ -15586,17 +15638,20 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Caldo de pescado}} y llevar a ebullición a fuego fuerte.",
@@ -15900,26 +15955,30 @@
         "text": "Picar {{Cebolla}} y {{Ajo}} finamente.",
         "minutes": 3,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado en la misma cazuela a fuego medio hasta que estén transparentes.",
         "minutes": 5,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Tomate maduro}} en trozos irregulares.",
         "minutes": 2,
         "kind": "paralelo",
         "during": 5,
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el tomate troceado al sofrito y cocer a fuego medio, aplastando con una cuchara de vez en cuando.",
         "minutes": 10,
         "kind": "pasivo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Aguacate}} en dados pequeños.",
@@ -15932,7 +15991,8 @@
         "text": "Triturar el sofrito de tomate con un túrmix hasta obtener una crema lisa.",
         "minutes": 2,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Devolver el sofrito triturado a la cazuela y añadir {{Caldo de pollo}}.",
@@ -16101,7 +16161,8 @@
       {
         "text": "Sofreír la cebolla y el ajo picados hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la calabaza en dados y el chile picado a la olla.",
