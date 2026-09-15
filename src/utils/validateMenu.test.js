@@ -219,6 +219,48 @@ describe("validateMenu", () => {
     expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("merluza");
   });
 
+  it("reparar OTRA regla no puede pasarse del tope semanal", () => {
+    // El fallo, tal cual se vio: la semana ya tenia su unico pescado permitido,
+    // se reparaba un rol incompatible en la cena, y la busqueda cogia el primer
+    // candidato valido — que eran unas gambas. El tope solo se miraba cuando la
+    // violacion que se estaba arreglando ERA el tope, asi que la reparacion
+    // dejaba la semana rota por una regla que ya habia pasado.
+    const pool = [
+      recipe({ id: "atun", name: "Atún a la plancha", mainProtein: "pescado_azul", mealRole: ["segundo"] }),
+      recipe({ id: "lasana", name: "Lasaña", category: "pasta_arroces", mealRole: ["plato_unico"] }),
+      recipe({ id: "gambas", name: "Gambas al ajillo", mainProtein: "marisco", mealRole: ["cena"] }),
+      recipe({ id: "tortilla", name: "Tortilla francesa", mainProtein: "huevo", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_comida_2"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_2", recipeId: "atun" },
+      { slotId: "lun_cena", recipeId: "lasana" },
+    ];
+    // La violacion NO es del tope: es un rol que no encaja en el hueco.
+    const violations = [{ rule: "rol_incompatible_con_hueco", slotId: "lun_cena", message: "" }];
+
+    // Sin topes, las gambas son el primer candidato valido y entran.
+    expect(
+      applyFallback(assignments, violations, pool, slots).find((s) => s.slotId === "lun_cena")?.recipeId,
+    ).toBe("gambas");
+
+    // Con el tope de pescado en 1 y uno ya puesto, tiene que irse a la tortilla.
+    const conTope = applyFallback(assignments, violations, pool, slots, [], { pescado: 1 });
+    expect(conTope.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("tortilla");
+  });
+
+  it("el tope no estorba cuando todavia queda sitio", () => {
+    const pool = [
+      recipe({ id: "lasana", name: "Lasaña", category: "pasta_arroces", mealRole: ["plato_unico"] }),
+      recipe({ id: "gambas", name: "Gambas al ajillo", mainProtein: "marisco", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena")];
+    const assignments = [{ slotId: "lun_cena", recipeId: "lasana" }];
+    const violations = [{ rule: "rol_incompatible_con_hueco", slotId: "lun_cena", message: "" }];
+    const r = applyFallback(assignments, violations, pool, slots, [], { pescado: 2 });
+    expect(r.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("gambas");
+  });
+
   it("passes a menu with no violations", () => {
     const pool = [recipe({ id: "a", mealRole: ["primero", "plato_unico"] })];
     const slots = [slot("lun_comida_1")];

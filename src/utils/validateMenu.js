@@ -1016,7 +1016,7 @@ export const GUARD_FOR_RULE = {
  * with the first valid alternative from the filtered pool.
  * Also fills missing slots that the LLM omitted.
  */
-export function applyFallback(slotAssignments, violations, filteredPool, slotsContext, activeHealthProfiles = []) {
+export function applyFallback(slotAssignments, violations, filteredPool, slotsContext, activeHealthProfiles = [], freqs = null) {
   const result = slotAssignments.map((s) => ({ ...s }));
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
   const contextBySlot = Object.fromEntries(
@@ -1175,6 +1175,25 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // pass, every candidate search has to independently respect every
     // context-derived constraint, regardless of which rule triggered it.
     const dayCarbsUsed = new Set();
+    // Regla 11 cross-safety, por el MISMO motivo que el parrafo de arriba:
+    // cuantos platos de cada clave con tope lleva ya la semana sin contar este
+    // hueco. Hasta ahora el tope solo se miraba cuando la violacion que se
+    // estaba arreglando ERA el tope, asi que reparar otra cosa (un choque con
+    // el menu del cole, por ejemplo) podia meter un pescado con el cupo de
+    // pescado ya lleno y dejar la semana rota. Se vio con "Gambas al ajillo"
+    // entrando en una cena al arreglar un conflicto distinto.
+    const usosPorClave = {};
+    for (const [clave, tope] of Object.entries(freqs ?? {})) {
+      const matcher = FREQ_KEY_MATCHERS[clave];
+      if (!matcher || !(Number(tope) >= 0)) continue;
+      let n = 0;
+      for (const s2 of result) {
+        if (s2.slotId === slot.slotId) continue;
+        const r = poolById[s2.recipeId];
+        if (r && matcher(r)) n += 1;
+      }
+      usosPorClave[clave] = { usados: n, tope: Number(tope) };
+    }
     // Rule 13 cross-safety: does another dish this day already read as a plato
     // de cuchara? If so, the replacement must not be one too.
     let dayHasCuchara = false;
@@ -1393,6 +1412,13 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         // from when this was a minimum-deficit fix).
         const matcher = FREQ_KEY_MATCHERS[v.targetKey];
         if (matcher && matcher(r)) return false;
+      }
+
+      // Y el tope, SIEMPRE, se arregle lo que se arregle: meter el candidato no
+      // puede pasar de lo que la casa ha pedido como maximo.
+      for (const [clave, { usados, tope }] of Object.entries(usosPorClave)) {
+        const matcher = FREQ_KEY_MATCHERS[clave];
+        if (matcher?.(r) && usados + 1 > tope) return false;
       }
 
       // Prefer a profile-compliant replacement, but only for the violation

@@ -872,14 +872,22 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
       usedIds.add(r.id);
       return r;
     };
+    // El primero tiene que ser SIN pescado, y decirlo aquí no es un detalle:
+    // el escenario que este test quiere montar es "DOS segundos de pescado con
+    // un tope de uno". Sin excluirlo, el primero puede caer en unos mejillones
+    // y entonces la semana lleva TRES, que es otro caso distinto — y uno que
+    // la maquinaria no arregla, así que el test fallaba por un escenario que
+    // nadie había escrito. Pasó al cerrar la puerta de cocinas: los hummus que
+    // salían antes son `cocina: arabe`, dejaron de estar en el pool por defecto
+    // y el predicado cayó en el siguiente candidato, que era de marisco.
     const primero = () =>
-      pick((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico") && getCarbType(r) !== "arroz");
+      pick((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico")
+        && getCarbType(r) !== "arroz" && !esPescado(r));
+    const esPescado = (r) =>
+      r.category === "pescados"
+      || ["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein);
     const segundoPescado = () =>
-      pick(
-        (r) =>
-          r.mealRole.includes("segundo") &&
-          (r.category === "pescados" || ["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein)),
-      );
+      pick((r) => r.mealRole.includes("segundo") && esPescado(r));
     const cenaArrozNoPescado = () =>
       pick(
         (r) =>
