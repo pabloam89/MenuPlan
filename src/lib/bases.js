@@ -217,6 +217,26 @@ export const clavesDeReceta = (receta) => basesDeReceta(receta).map(claveDeBase)
  *   `etiquetado` distingue "no ahorra nada" de "nadie lo ha mirado todavía":
  *   sin él, un plato sin repasar parecía un plato que no ahorra.
  */
+/**
+ * Lo que cuesta volver a poner en marcha un táper de la nevera.
+ *
+ * Un táper no se usa tal cual: el arroz se seca y pide un chorrito de agua, el
+ * sofrito quiere un minuto de sartén, y el boniato pierde el tostado si lo
+ * pasas por el microondas. Sale de los pasos `reactivacion` de la propia base.
+ *
+ * @returns {{minutos: number, minutosActivos: number}}
+ */
+export function costeDeReactivar(base) {
+  let minutos = 0;
+  let minutosActivos = 0;
+  for (const paso of base?.reactivacion ?? []) {
+    const min = Number(paso?.minutes) || 0;
+    minutos += min;
+    if (paso?.kind === "activo" || paso?.kind === "prep") minutosActivos += min;
+  }
+  return { minutos, minutosActivos };
+}
+
 export function montajeTrasBases(receta, clavesListas) {
   const pasos = receta?.stepsRich ?? [];
   const listas = new Set(clavesListas ?? clavesDeReceta(receta));
@@ -225,12 +245,15 @@ export function montajeTrasBases(receta, clavesListas) {
   let minutosActivos = 0;
   let minutosQuitados = 0;
   let pasosQuitados = 0;
+  /** Solo se reactiva la base que de verdad se ha llevado algún paso. */
+  const reactivadas = new Set();
 
   for (const paso of pasos) {
     const min = Number(paso?.minutes) || 0;
     if (paso?.base && listas.has(paso.base)) {
       pasosQuitados += 1;
       minutosQuitados += min;
+      reactivadas.add(paso.base);
       continue;
     }
     minutos += min;
@@ -238,12 +261,29 @@ export function montajeTrasBases(receta, clavesListas) {
     if (paso?.kind === "activo" || paso?.kind === "prep") minutosActivos += min;
   }
 
+  // Cada táper se reactiva por separado, aunque acaben en la misma sartén.
+  // Cobrar de más aquí es el lado seguro: la promesa del martes se queda corta
+  // en lugar de pasarse, que es la misma dirección que toma `baseMode` con la
+  // duda. Antes esto valía CERO y el plato se daba por empezado.
+  let minutosReactivar = 0;
+  let minutosActivosReactivar = 0;
+  for (const clave of reactivadas) {
+    const c = costeDeReactivar(BASE_POR_CLAVE.get(clave));
+    minutosReactivar += c.minutos;
+    minutosActivosReactivar += c.minutosActivos;
+  }
+
   return {
-    minutos,
-    minutosActivos,
+    minutos: minutos + minutosReactivar,
+    minutosActivos: minutosActivos + minutosActivosReactivar,
     minutosQuitados,
+    // Lo que de verdad te quitas: los minutos de la olla MENOS lo que cuesta
+    // volver a ponerla en marcha. Es el número honesto de los dos.
+    minutosNetos: Math.max(0, minutosQuitados - minutosReactivar),
+    minutosReactivar,
     pasos: pasos.length - pasosQuitados,
     pasosQuitados,
+    reactivadas: [...reactivadas],
     etiquetado: pasos.some((p) => Boolean(p?.base)),
   };
 }

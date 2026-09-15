@@ -182,6 +182,17 @@ for (const r of recipes) {
   });
 }
 
+// ── Toda base tiene que decir cómo se reactiva ─────────────────────────
+// Sin `reactivacion`, `montajeTrasBases` cobra CERO por sacar el táper de la
+// nevera y el martes sale más barato de lo que va a ser. Una base nueva sin
+// estos pasos no rompe nada: solo infla el ahorro en silencio, que es
+// exactamente el fallo que este campo vino a corregir.
+for (const r of recipes.filter((x) => x.type === "base")) {
+  if (!r.reactivacion?.length) {
+    errors.push(`[${r.id}] "${r.name}": es una base y no dice cómo se reactiva (campo \`reactivacion\`)`);
+  }
+}
+
 if (errors.length > 0) {
   console.error(`❌ Catálogo inválido (${errors.length} error/es):`);
   for (const e of errors) console.error(`  - ${e}`);

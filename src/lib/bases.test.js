@@ -5,6 +5,7 @@ import {
   baseDeReceta,
   clavesDeReceta,
   coberturaDeBases,
+  costeDeReactivar,
   esMontajeRapido,
   montajeTrasBases,
   fraccionActiva,
@@ -296,20 +297,55 @@ describe("montajeTrasBases · lo que queda por hacer el martes", () => {
     ],
   };
 
+  // El sofrito de verdad cuesta 2 minutos de manos volver a ponerlo en marcha
+  // (sacar el bote y darle un minuto de sarten), y esos 2 se cobran.
+  const REACTIVAR_SOFRITO = costeDeReactivar(BASES.find((b) => b.baseKey === "sofrito"));
+
   it("quita los pasos de la base y deja el que la junta con el resto", () => {
     const m = montajeTrasBases(plato);
     expect(m.pasosQuitados).toBe(3);
     expect(m.minutosQuitados).toBe(30);
-    // 2 + 6 + 1: el paso que añade el sofrito SIGUE ahí, y tiene que estarlo.
-    expect(m.minutos).toBe(9);
-    expect(m.minutosActivos).toBe(8);
+    // 2 + 6 + 1 de lo que queda, MAS lo que cuesta sacar el tupper y calentarlo.
+    expect(m.minutos).toBe(9 + REACTIVAR_SOFRITO.minutos);
+    expect(m.minutosActivos).toBe(8 + REACTIVAR_SOFRITO.minutosActivos);
     expect(m.etiquetado).toBe(true);
   });
 
-  it("una base que NO se ha cocinado el domingo no se lleva nada", () => {
+  it("el ahorro neto descuenta lo que cuesta reactivar, que antes valia cero", () => {
+    const m = montajeTrasBases(plato);
+    expect(m.minutosQuitados).toBe(30);
+    expect(m.minutosReactivar).toBe(REACTIVAR_SOFRITO.minutos);
+    expect(m.minutosNetos).toBe(30 - REACTIVAR_SOFRITO.minutos);
+  });
+
+  it("solo se reactiva la base que de verdad se ha llevado algun paso", () => {
+    // Declara arroz aparte, pero ningun paso es de arroz: no hay tupper de
+    // arroz que sacar, y cobrarlo seria inventarse un coste.
+    const m = montajeTrasBases({ ...plato, mainBase: "arroz", baseMode: "aparte" });
+    expect(m.reactivadas).toEqual(["sofrito"]);
+    expect(m.minutosReactivar).toBe(REACTIVAR_SOFRITO.minutos);
+  });
+
+  it("todas las bases del catalogo dicen como se reactivan", () => {
+    // Sin esto el coste sale cero y la promesa del martes se queda corta. Lo
+    // vigila tambien validate-catalog; aqui es el fusible del suite.
+    const mudas = BASES.filter((b) => !b.reactivacion?.length);
+    expect(mudas.map((b) => b.name)).toEqual([]);
+  });
+
+  it("reactivar el arroz es sobre todo esperar, no estar delante", () => {
+    // El microondas trabaja solo: si alguien vuelve a marcar ese paso como
+    // activo, el arroz pasa a "ahorrar" menos de lo que ahorra.
+    const arroz = BASES.find((b) => b.mainBase === "arroz");
+    const c = costeDeReactivar(arroz);
+    expect(c.minutos).toBeGreaterThan(c.minutosActivos);
+  });
+
+  it("una base que NO se ha cocinado el domingo no se lleva nada (ni cuesta nada)", () => {
     const m = montajeTrasBases(plato, []);
     expect(m.pasosQuitados).toBe(0);
     expect(m.minutos).toBe(39);
+    expect(m.minutosReactivar).toBe(0);
   });
 
   it("un plato sin etiquetar no es un plato que no ahorre: se sabe distinguir", () => {
@@ -330,9 +366,10 @@ describe("montajeTrasBases · lo que queda por hacer el martes", () => {
         { text: "Gratinar.", minutes: 20, kind: "pasivo" },
       ],
     };
-    // 25 min de reloj, 5 tuyos: es montaje.
-    expect(montajeTrasBases(alHorno).minutos).toBe(25);
-    expect(montajeTrasBases(alHorno).minutosActivos).toBe(5);
+    // 25 de reloj y 5 tuyos, mas lo que cueste sacar las patatas de la nevera.
+    const r = costeDeReactivar(BASES.find((b) => b.mainBase === "patatas"));
+    expect(montajeTrasBases(alHorno).minutos).toBe(25 + r.minutos);
+    expect(montajeTrasBases(alHorno).minutosActivos).toBe(5 + r.minutosActivos);
     expect(esMontajeRapido(alHorno)).toBe(true);
   });
 

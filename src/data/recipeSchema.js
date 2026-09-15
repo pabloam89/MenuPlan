@@ -566,6 +566,23 @@ export const RecipeSchema = z
     // a los pasos de cocinado cuando el slot viene marcado fromFreezer; si además
     // hay raciones frescas que cocinar, se muestran los dos bloques.
     thawSteps: z.array(StepRichSchema).min(1).optional(),
+    // ── Solo en recetas `type: "base"`: cómo se vuelve a poner en marcha ────
+    // Un táper de la nevera no se usa tal cual: el arroz se seca y pide un
+    // chorrito de agua, el sofrito quiere un minuto de sartén, y lo rebozado
+    // pierde la textura si lo pasas por el microondas en vez de por el horno.
+    //
+    // Es el mismo patrón que `thawSteps`, y de hecho la hermana pequeña: si
+    // aquello es "sacarlo del congelador", esto es "sacarlo de la nevera".
+    //
+    // Nace porque el modelo estaba cobrando CERO por esto. `montajeTrasBases`
+    // quitaba los pasos de la base y daba el plato por empezado, así que la
+    // promesa del martes salía más corta de lo que iba a ser. Y además los
+    // pasos del plato están escritos suponiendo que la base acaba de salir del
+    // fuego: sin esto, un martes faltaba una instrucción.
+    //
+    // Va sin marcadores, igual que thawSteps: aquí no hay cantidades que
+    // escalar porque lo que se reactiva ya está cocinado.
+    reactivacion: z.array(StepRichSchema).min(1).optional(),
     description: z.string().min(1),
     methods: z.array(MethodSchema).optional(),
     // Names this dish is commonly sold as a ready-made product under (e.g.
@@ -674,6 +691,16 @@ export const RecipeSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `"${id}": sauceCompat solo es válido en type "salsa"`,
+      });
+    }
+
+    // Unos pasos de reactivación en algo que no es una base no los pintaría
+    // nadie, y peor: `montajeTrasBases` los cobraría como coste de una tanda
+    // que no existe.
+    if (recipe.reactivacion && type !== "base") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": reactivacion solo es válido en type "base"`,
       });
     }
 

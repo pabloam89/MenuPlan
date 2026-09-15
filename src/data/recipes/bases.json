@@ -111,6 +111,18 @@
         "kind": "emplatado"
       }
     ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera, pasarla a un bol y regarla con una cucharada de agua o de caldo: en frío el grano se seca y sin eso queda duro.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar tapado, removiendo a mitad, hasta que vuelva a estar suelto.",
+        "minutes": 3,
+        "kind": "pasivo"
+      }
+    ],
     "thawSteps": [
       {
         "text": "Sacar la ración del congelador y pasarla a un bol.",
@@ -230,6 +242,18 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera y soltarla con un tenedor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Treinta segundos en agua hirviendo, o directa a la sartén con la salsa ya caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      }
     ]
   },
   {
@@ -324,6 +348,18 @@
         "text": "Repartir en táperes y guardar en la nevera.",
         "minutes": 2,
         "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar las patatas de la nevera y cortarlas al tamaño que pida el plato. En ensalada o en tortilla se usan frías tal cual.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Si el plato las quiere calientes, dorarlas en la sartén con un poco de aceite: en el microondas quedan harinosas.",
+        "minutes": 2,
+        "kind": "activo"
       }
     ]
   },
@@ -439,6 +475,18 @@
         "kind": "emplatado"
       }
     ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera y escurrir el caldo de conservación.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Para ensalada se usa fría tal cual; para un guiso, directa a la cazuela con el sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      }
+    ],
     "thawSteps": [
       {
         "text": "Sacar la ración del congelador a la nevera la noche anterior.",
@@ -543,6 +591,18 @@
         "text": "Soltar el grano con un tenedor y repartir en táperes.",
         "minutes": 3,
         "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera y soltar el grano con un tenedor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "En bowl o en ensalada va fría; si se quiere caliente, un minuto de sartén con unas gotas de agua.",
+        "minutes": 1,
+        "kind": "activo"
       }
     ],
     "thawSteps": [
@@ -653,6 +713,18 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera y desgranarlo con un tenedor, que en frío se apelmaza.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Se usa a temperatura ambiente; si se quiere caliente, un golpe corto de microondas tapado.",
+        "minutes": 1,
+        "kind": "activo"
+      }
     ]
   },
   {
@@ -747,6 +819,18 @@
         "text": "Pelar, trocear y repartir en táperes.",
         "minutes": 5,
         "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el boniato de la nevera y trocearlo o chafarlo según lo pida el plato.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar en la sartén o en el horno, nunca en el microondas: así no pierde el tostado de fuera.",
+        "minutes": 2,
+        "kind": "activo"
       }
     ],
     "thawSteps": [
@@ -883,6 +967,18 @@
         "text": "Dejar templar y repartir en botes o en bolsas planas de congelación.",
         "minutes": 5,
         "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentarlo un minuto en la sartén antes de seguir: en frío no suelta el aroma y el plato sale plano.",
+        "minutes": 1,
+        "kind": "activo"
       }
     ],
     "thawSteps": [
