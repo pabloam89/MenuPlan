@@ -65,9 +65,10 @@ const ORDEN = [
 ];
 
 const BASES_UI = {
-  // Provisional: no hay ilustración propia de sofrito ni de verdura asada
-  // todavía, y las dos caen en el dibujo genérico de verduras. Son justo las
-  // dos que más ahorran, así que son las primeras que merecen una de verdad.
+  // Las trece tienen dibujo propio. El del sofrito y el de la verdura asada
+  // son de septiembre de 2026: hasta entonces caían en el genérico de verduras
+  // y no se distinguían entre sí, que es lo peor que podía pasar justo con las
+  // dos que más trabajo ahorran.
   sofrito: { etiqueta: "Sofrito", foto: "sofrito" },
   verdura_asada: { etiqueta: "Verdura asada", foto: "verduras asadas" },
   salsa_tomate: { etiqueta: "Tomate", foto: "tomate frito" },
