@@ -20095,6 +20095,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 30,
     "difficulty": "facil",
     "season": "all",
@@ -20184,8 +20185,7 @@
       "Saltear los tallarines en la crema, aflojando con agua de cocción hasta que napen.",
       "Servir los tallarines con el filete cortado en tiras por encima."
     ],
-    "description": "La versión peruana del pesto: albahaca y espinaca trituradas con queso y leche, muy cremosa, sobre tallarines y con un filete a la plancha encima.",
-    "estrella": false
+    "description": "La versión peruana del pesto: albahaca y espinaca trituradas con queso y leche, muy cremosa, sobre tallarines y con un filete a la plancha encima."
   },
   {
     "id": "pasta_arroces_104",
@@ -20199,6 +20199,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 25,
     "difficulty": "facil",
     "season": "all",
@@ -20289,8 +20290,7 @@
       "Devolver el pollo y las tiras de tortilla, y regar con la salsa de soja y el aceite de sésamo.",
       "Añadir la cebolleta picada, saltear 1 min más y servir enseguida."
     ],
-    "description": "El arroz frito peruano-chino: arroz salteado a fuego vivo con pollo, tortilla en tiras, cebolleta y soja. Resuelve una cena en 25 minutos.",
-    "estrella": false
+    "description": "El arroz frito peruano-chino: arroz salteado a fuego vivo con pollo, tortilla en tiras, cebolleta y soja. Resuelve una cena en 25 minutos."
   },
   {
     "id": "pasta_arroces_105",
@@ -20304,6 +20304,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 60,
     "difficulty": "elaborada",
     "season": "all",
@@ -20410,8 +20411,7 @@
       "Tapar herméticamente y cocer a fuego muy suave 20 min sin destapar.",
       "Dejar reposar 5 min, remover desde el fondo y servir con almendras y cilantro fresco."
     ],
-    "description": "Arroz basmati y pollo especiado cocinados en capas y tapados, para que el arroz se perfume con el vapor del guiso. Plato de fiesta.",
-    "estrella": false
+    "description": "Arroz basmati y pollo especiado cocinados en capas y tapados, para que el arroz se perfume con el vapor del guiso. Plato de fiesta."
   },
   {
     "id": "pasta_arroces_106",
@@ -20427,6 +20427,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 50,
     "difficulty": "facil",
     "kcal": 470,
@@ -20578,6 +20579,7 @@
       "primero"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 35,
     "difficulty": "facil",
     "kcal": 480,
@@ -20722,6 +20724,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 40,
     "difficulty": "facil",
     "kcal": 560,

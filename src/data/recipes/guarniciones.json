@@ -5803,6 +5803,7 @@
       "guarnicion"
     ],
     "type": "guarnicion",
+    "estrella": true,
     "time": 10,
     "difficulty": "facil",
     "season": "verano",
@@ -5864,8 +5865,7 @@
       "Salar y añadir unas gotas de limón.",
       "Enfriar en la nevera al menos 20 min antes de servir."
     ],
-    "description": "Yogur batido con pepino rallado, comino y menta. Es el apagafuegos de la mesa india: refresca cualquier plato especiado.",
-    "estrella": false
+    "description": "Yogur batido con pepino rallado, comino y menta. Es el apagafuegos de la mesa india: refresca cualquier plato especiado."
   },
   {
     "id": "guarniciones_065",
@@ -5877,6 +5877,7 @@
       "guarnicion"
     ],
     "type": "guarnicion",
+    "estrella": true,
     "time": 90,
     "difficulty": "normal",
     "season": "all",
@@ -5953,8 +5954,7 @@
       "Derretir la mantequilla con el ajo picado.",
       "Pintar los panes recién hechos con la mantequilla de ajo y espolvorear cilantro fresco."
     ],
-    "description": "Pan plano de sartén, tierno y con burbujas tostadas, para mojar en cualquier curry. Sin horno: se hace en una sartén bien caliente.",
-    "estrella": false
+    "description": "Pan plano de sartén, tierno y con burbujas tostadas, para mojar en cualquier curry. Sin horno: se hace en una sartén bien caliente."
   },
   {
     "id": "guarniciones_066",
@@ -5969,6 +5969,7 @@
       "guarnicion"
     ],
     "type": "guarnicion",
+    "estrella": true,
     "time": 45,
     "difficulty": "facil",
     "kcal": 320,

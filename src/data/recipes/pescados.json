@@ -24487,6 +24487,7 @@
       "segundo"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 30,
     "difficulty": "facil",
     "kcal": 480,

@@ -4223,6 +4223,7 @@
       "postre"
     ],
     "type": "principal",
+    "estrella": true,
     "time": 40,
     "difficulty": "normal",
     "season": "all",
@@ -4292,7 +4293,6 @@
       "Verter el almíbar caliente en hilo sobre las claras sin dejar de batir hasta obtener un merengue brillante.",
       "Cubrir las copas con el merengue y espolvorear canela por encima."
     ],
-    "description": "Manjar blanco denso coronado con un merengue al oporto y canela. Dulce, muy dulce, y el postre peruano por excelencia.",
-    "estrella": false
+    "description": "Manjar blanco denso coronado con un merengue al oporto y canela. Dulce, muy dulce, y el postre peruano por excelencia."
   }
 ]

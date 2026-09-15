@@ -16985,6 +16985,7 @@
       "plato_unico"
     ],
     "type": "principal",
+    "estrella": true,
     "time": 60,
     "difficulty": "facil",
     "season": "invierno",
@@ -17079,7 +17080,6 @@
       "Rectificar de sal y servir con cilantro fresco picado."
     ],
     "description": "Lentejas negras guisadas muy lentamente con tomate, mantequilla y nata hasta quedar sedosas. El guiso vegetariano más goloso de la India.",
-    "estrella": false,
     "basesAparte": [
       "sofrito"
     ]
@@ -17094,6 +17094,7 @@
       "plato_unico"
     ],
     "type": "principal",
+    "estrella": true,
     "time": 35,
     "difficulty": "facil",
     "season": "all",
@@ -17185,7 +17186,6 @@
       "Servir con abundante cilantro fresco picado."
     ],
     "description": "Garbanzos guisados en salsa de tomate y cebolla con especias tostadas y un golpe de limón al final. Vegano, de bote y listo en media hora.",
-    "estrella": false,
     "basesAparte": [
       "sofrito"
     ]

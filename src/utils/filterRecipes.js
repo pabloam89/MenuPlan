@@ -303,12 +303,20 @@ export function filterRecipes({
   //   · a 0           → fuera
   //
   // No puede vaciar el pool: apagarlo todo quita 157 de 711.
-  if (cocinas && Object.keys(cocinas).length > 0) {
-    pool = pool.filter((r) => {
-      if (!r.cocina || !esAnadido(r.cocina)) return true;
-      return (cocinas[r.cocina] ?? 0) > 0;
-    });
-  }
+  //
+  // Y se aplica SIEMPRE, también cuando la casa no ha guardado nada. Antes la
+  // puerta se saltaba entera si `cocinas` venía vacío, o sea que una casa
+  // recién creada —la que nunca ha tocado el mando— era justo la que veía
+  // platos de todas las cocinas. No se notaba porque las 27 recetas peruanas e
+  // indias estaban en `estrella: false` y no llegaban al pool de todos modos;
+  // en cuanto se encienden, ese hueco las mete en la semana de cualquiera.
+  //
+  // "No me has pedido ninguna" y "me has pedido cero" tienen que significar lo
+  // mismo: fondo de armario español más lo que esté siempre encendido.
+  pool = pool.filter((r) => {
+    if (!r.cocina || !esAnadido(r.cocina)) return true;
+    return (cocinas?.[r.cocina] ?? 0) > 0;
+  });
 
   // 1. Allergens — exclude any recipe containing a blocked allergen. Declared
   // `allergens` cover 8 of the 14 UE allergens; the ingredient-name safety net

@@ -15,23 +15,42 @@ const conCocina = (rs, c) => rs.filter((r) => r.cocina === c);
 const TODAS_APAGADAS = pool({
   peruana: 0, india: 0, mexicana: 0, arabe: 0, francesa: 0, asiatica: 0, americana: 0,
 });
+/**
+ * El baseline ya NO puede ser `pool(undefined)`: sin pedir nada tampoco entran.
+ * Para saber cuántos platos tiene una cocina hay que pedirla.
+ */
+const TODAS_PEDIDAS = pool({
+  peruana: 1, india: 1, mexicana: 1, arabe: 1, francesa: 1, asiatica: 1, americana: 1,
+});
 
 describe("puerta de cocinas en filterRecipes", () => {
-  it("sin pedir nada, no filtra: es el comportamiento de siempre", () => {
-    const base = pool(undefined);
-    expect(pool(null)).toHaveLength(base.length);
-    expect(pool({})).toHaveLength(base.length);
+  /**
+   * Esto ANTES decía lo contrario ("sin pedir nada, no filtra"), y era un
+   * agujero: la casa recién creada, la que nunca ha tocado el mando de Cocina,
+   * era justo la única que recibía platos de todas las cocinas del mundo. No se
+   * notaba porque las 27 recetas peruanas e indias estaban en `estrella: false`
+   * y no llegaban al pool de todas formas; al encenderlas, ese hueco las metía
+   * en la semana de cualquiera sin haberlas pedido.
+   */
+  it("sin pedir nada no entra ninguna: es lo mismo que pedir cero", () => {
+    const sinNada = pool(undefined);
+    expect(pool(null)).toHaveLength(sinNada.length);
+    expect(pool({})).toHaveLength(sinNada.length);
+    expect(sinNada).toHaveLength(TODAS_APAGADAS.length);
+    for (const c of ["peruana", "india", "mexicana", "asiatica", "arabe", "francesa", "americana"]) {
+      expect(conCocina(sinNada, c), `${c} entra sin pedirla`).toHaveLength(0);
+    }
   });
 
   it("una cocina a cero desaparece del pool", () => {
-    const base = pool(undefined);
-    expect(conCocina(base, "peruana").length).toBeGreaterThan(0);
+    expect(conCocina(TODAS_PEDIDAS, "peruana").length).toBeGreaterThan(0);
     expect(conCocina(pool({ peruana: 0 }), "peruana")).toHaveLength(0);
   });
 
   it("pedirla la deja entrar", () => {
-    const antes = conCocina(pool(undefined), "mexicana").length;
-    expect(conCocina(pool({ mexicana: 2 }), "mexicana")).toHaveLength(antes);
+    const todas = conCocina(TODAS_PEDIDAS, "mexicana").length;
+    expect(todas).toBeGreaterThan(0);
+    expect(conCocina(pool({ mexicana: 2 }), "mexicana")).toHaveLength(todas);
   });
 
   it("apagar una no apaga las demás que no se han nombrado", () => {

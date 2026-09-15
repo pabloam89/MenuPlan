@@ -16424,6 +16424,7 @@
       "primero"
     ],
     "type": "principal",
+    "estrella": true,
     "time": 45,
     "difficulty": "normal",
     "season": "invierno",
@@ -16527,7 +16528,6 @@
       "Servir con el queso fresco en dados por encima."
     ],
     "description": "Sopa espesa y potente de gambas con patata, arroz, leche y huevo escalfado. El plato más reconocible de Arequipa.",
-    "estrella": false,
     "basesAparte": [
       "sofrito"
     ]

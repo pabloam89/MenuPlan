@@ -33366,6 +33366,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 30,
     "difficulty": "normal",
     "season": "all",
@@ -33461,8 +33462,7 @@
       "Devolver la ternera a la sartén, añadir las patatas fritas y saltear todo junto 30 segundos.",
       "Espolvorear cilantro fresco picado y servir con el arroz al lado."
     ],
-    "description": "El plato bandera del Perú: tiras de ternera salteadas a fuego vivo con cebolla y tomate, salsa de soja y vinagre, servidas con patatas fritas y arroz blanco.",
-    "estrella": false
+    "description": "El plato bandera del Perú: tiras de ternera salteadas a fuego vivo con cebolla y tomate, salsa de soja y vinagre, servidas con patatas fritas y arroz blanco."
   },
   {
     "id": "carnes_162",
@@ -33479,6 +33479,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 45,
     "difficulty": "normal",
     "season": "all",
@@ -33582,8 +33583,7 @@
       "Incorporar el pollo deshilachado y el queso parmesano rallado, y calentar 3 min.",
       "Servir sobre las rodajas de patata, con el arroz al lado y el huevo duro por encima."
     ],
-    "description": "Pollo deshilachado en una crema suave y amarilla de ají, pan y leche, con nueces molidas. Se sirve con arroz blanco, patata cocida y huevo duro.",
-    "estrella": false
+    "description": "Pollo deshilachado en una crema suave y amarilla de ají, pan y leche, con nueces molidas. Se sirve con arroz blanco, patata cocida y huevo duro."
   },
   {
     "id": "carnes_163",
@@ -33595,6 +33595,7 @@
       "segundo"
     ],
     "type": "principal",
+    "estrella": true,
     "time": 35,
     "difficulty": "facil",
     "season": "verano",
@@ -33669,8 +33670,7 @@
       "Dorar también las rodajas de patata en la misma parrilla.",
       "Servir las brochetas sobre las patatas, muy calientes."
     ],
-    "description": "Brochetas de ternera maceradas en ají panca, vinagre y comino, asadas a la parrilla. El clásico de la calle limeña.",
-    "estrella": false
+    "description": "Brochetas de ternera maceradas en ají panca, vinagre y comino, asadas a la parrilla. El clásico de la calle limeña."
   },
   {
     "id": "carnes_164",
@@ -33687,6 +33687,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 90,
     "difficulty": "normal",
     "season": "invierno",
@@ -33772,8 +33773,7 @@
       "Cocer el arroz en agua con sal.",
       "Servir el guiso con las alubias y el arroz al lado."
     ],
-    "description": "Guiso lento de ternera en una base verde de cilantro y ají, servido con frijoles canarios y arroz. Plato de domingo del norte del Perú.",
-    "estrella": false
+    "description": "Guiso lento de ternera en una base verde de cilantro y ají, servido con frijoles canarios y arroz. Plato de domingo del norte del Perú."
   },
   {
     "id": "carnes_165",
@@ -33787,6 +33787,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 75,
     "difficulty": "facil",
     "season": "all",
@@ -33882,8 +33883,7 @@
       "Sacar el pollo y dejarlo reposar 10 min antes de trincharlo.",
       "Servir con las patatas y la salsa de ají aparte."
     ],
-    "description": "Pollo entero macerado en soja, comino y ají panca, asado al horno hasta que la piel queda lacada. Con patatas y salsa de ají verde.",
-    "estrella": false
+    "description": "Pollo entero macerado en soja, comino y ají panca, asado al horno hasta que la piel queda lacada. Con patatas y salsa de ají verde."
   },
   {
     "id": "carnes_166",
@@ -33900,6 +33900,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 50,
     "difficulty": "normal",
     "season": "all",
@@ -34006,8 +34007,7 @@
       "Incorporar el pollo asado con sus jugos y dar un hervor de 5 min.",
       "Cocer el arroz basmati y servirlo al lado, con cilantro fresco por encima."
     ],
-    "description": "Tacos de pollo macerados en yogur y especias, asados y terminados en una salsa cremosa de tomate. El curry más pedido del mundo.",
-    "estrella": false
+    "description": "Tacos de pollo macerados en yogur y especias, asados y terminados en una salsa cremosa de tomate. El curry más pedido del mundo."
   },
   {
     "id": "carnes_167",
@@ -34019,6 +34019,7 @@
       "segundo"
     ],
     "type": "principal",
+    "estrella": true,
     "time": 45,
     "difficulty": "facil",
     "season": "all",
@@ -34111,8 +34112,7 @@
       "Cortar la cebolla roja en aros finos y aliñarla con el resto del limón.",
       "Servir el pollo con los aros de cebolla encurtida por encima."
     ],
-    "description": "Pollo macerado en yogur especiado y asado a horno fuerte, con la superficie tostada y el interior jugoso. Sin freír y con muy poca grasa.",
-    "estrella": false
+    "description": "Pollo macerado en yogur especiado y asado a horno fuerte, con la superficie tostada y el interior jugoso. Sin freír y con muy poca grasa."
   },
   {
     "id": "carnes_168",
@@ -34129,6 +34129,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 40,
     "difficulty": "facil",
     "season": "all",
@@ -34229,8 +34230,7 @@
       "Retirar del fuego, añadir el yogur natural y la nata líquida y remover fuera del calor para que no se corte.",
       "Cocer el arroz basmati y servirlo al lado."
     ],
-    "description": "Curry cremoso de almendra y yogur, sin nada de picante. Es la puerta de entrada a la cocina india para los niños de la casa.",
-    "estrella": false
+    "description": "Curry cremoso de almendra y yogur, sin nada de picante. Es la puerta de entrada a la cocina india para los niños de la casa."
   },
   {
     "id": "carnes_169",
@@ -34242,6 +34242,7 @@
       "plato_unico"
     ],
     "type": "principal",
+    "estrella": true,
     "time": 180,
     "difficulty": "elaborada",
     "season": "invierno",
@@ -34345,7 +34346,6 @@
       "Rectificar de sal y dejar reposar antes de servir: al día siguiente está mejor."
     ],
     "description": "Ternera guisada durante horas en vino tinto de Borgoña con bacon, cebollitas y champiñones. El guiso francés por antonomasia.",
-    "estrella": false,
     "basesAparte": [
       "sofrito"
     ]
@@ -34362,6 +34362,7 @@
       "plato_unico"
     ],
     "type": "completo",
+    "estrella": true,
     "time": 40,
     "difficulty": "facil",
     "kcal": 450,
