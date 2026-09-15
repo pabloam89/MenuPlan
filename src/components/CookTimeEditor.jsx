@@ -305,7 +305,7 @@ function CookLevelChips({ selected, onSelect }) {
 function ModoDeCocinar({ valor, onChange }) {
   const OPCIONES = [
     { id: "clasico", label: "Clásico", sub: "Cocino cada día", img: "/avatares/cards/wizard_timing/clasico.jpg" },
-    { id: "tanda", label: "Batch cooking", sub: "Cocino una vez y tiro toda la semana", img: "/avatares/cards/wizard_timing/batch.jpg" },
+    { id: "tanda", label: "Batch cooking", sub: "Dejo hecho para la semana", img: "/avatares/cards/wizard_timing/batch.jpg" },
   ];
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 16 }}>
@@ -339,22 +339,27 @@ function ModoDeCocinar({ valor, onChange }) {
                 <Check size={10} color="#fff" strokeWidth={3} />
               </span>
             )}
-            {/* 2:3, que es el formato en el que estan hechas. `cover` y no
-                `contain` porque llenan la caja de lado a lado y el personaje
-                vive en el centro: no hay nada que recortar que importe. */}
-            <span style={{ width: "100%", aspectRatio: "2 / 3", background: "#f2f6f3" }}>
+            {/* Más bajas que el 2:3 en que están hechas: dos cards de 2:3 una al
+                lado de la otra empujaban el resto de la pantalla fuera del
+                móvil. Se recorta por ABAJO (`center 22%`), que es donde están
+                los pies: la cara y lo que sostiene —la sartén, los túpers— son
+                lo único que distingue una card de la otra. */}
+            <span style={{ width: "100%", aspectRatio: "4 / 5", background: "#f2f6f3" }}>
               <img
                 src={o.img}
                 alt=""
                 loading="lazy"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                style={{
+                  width: "100%", height: "100%", display: "block",
+                  objectFit: "cover", objectPosition: "center 22%",
+                }}
               />
             </span>
             <span style={{ padding: "9px 10px 10px" }}>
               <span style={{ display: "block", fontSize: 13.5, fontWeight: 800, color: sel ? SELECTED_TEAL : "#1f3326" }}>
                 {o.label}
               </span>
-              <span style={{ display: "block", fontSize: 11, color: "#6b7d70", marginTop: 2, lineHeight: 1.3 }}>
+              <span style={{ display: "block", fontSize: 10.5, color: "#6b7d70", marginTop: 2, lineHeight: 1.25, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {o.sub}
               </span>
             </span>

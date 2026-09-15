@@ -24,17 +24,21 @@ import { normalizar as normalizarLibreta, poner, proyectar, valorDe } from "../l
  * de mandos. La libreta sigue siendo la única fuente.
  */
 
-// Ilustraciones del juego de bases (public/categories/cut/base/), que ya
-// existían sin que las usara nadie. Faltan `legumbre` y `boniato`: esas salen
-// sin dibujo hasta que haya arte, que es mejor que meterles uno de otra familia
-// — la olla de barro de `categories/cut/legumbres.png` es de otro estilo y
-// cantaría al lado de los cuencos con carita.
+// Las ilustraciones de INGREDIENTE, no las del juego de bases.
+//
+// Las de `categories/cut/base/` son cuencos genéricos y a ese tamaño no se
+// distinguen: "legumbre" salía como un cuenco beige que podía ser cualquier
+// cosa, y de `boniato` no había. Un garbanzo concreto se reconoce al instante
+// aunque el eje se llame `legumbre` — el usuario no elige una palabra del
+// enum, elige una olla que conoce.
 const ARTE = {
-  arroz: "/categories/cut/base/arroz.png",
-  pasta: "/categories/cut/base/pasta.png",
-  patatas: "/categories/cut/base/patatas.png",
-  quinoa: "/categories/cut/base/quinoa.png",
-  cuscus: "/categories/cut/base/cuscus.png",
+  arroz: "/ingredients/arroz.png",
+  pasta: "/ingredients/pasta-corta.png",
+  patatas: "/ingredients/patata.png",
+  boniato: "/ingredients/boniato.png",
+  legumbre: "/ingredients/garbanzos.png",
+  quinoa: "/ingredients/quinoa.png",
+  cuscus: "/ingredients/cuscus.png",
 };
 
 const ETIQUETA = {
@@ -42,11 +46,12 @@ const ETIQUETA = {
   pasta: "Pasta",
   patatas: "Patatas",
   boniato: "Boniato",
+  // El eje se llama `legumbre`, pero lo que se ve y se entiende es el
+  // garbanzo. La etiqueta acompaña al dibujo, no al nombre interno.
   legumbre: "Legumbre",
   quinoa: "Quinoa",
   cuscus: "Cuscús",
 };
-
 const SELECTED_TEAL = "#0f766e";
 
 export function BasesPreferidas({ data, setData }) {
@@ -69,7 +74,10 @@ export function BasesPreferidas({ data, setData }) {
         para que una olla te sirva para varios días.
       </p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 9 }}>
+      {/* Cuatro columnas y fichas pequeñas, como las de Añadir ingredientes:
+          son siete opciones de una lista cerrada, no siete decisiones. A
+          tamaño de card ocupaban media pantalla y pesaban más que la pregunta. */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
         {MAIN_BASES.map((id) => {
           const sel = elegida(id);
           const img = ARTE[id];
@@ -84,9 +92,9 @@ export function BasesPreferidas({ data, setData }) {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 6,
-                padding: "10px 6px 9px",
-                borderRadius: 15,
+                gap: 4,
+                padding: "8px 4px 7px",
+                borderRadius: 12,
                 border: sel ? `2px solid ${SELECTED_TEAL}` : "1.5px solid #e2eae5",
                 background: "#fff",
                 boxShadow: sel ? "0 6px 18px rgba(15,118,110,.22)" : "0 1px 3px rgba(20,47,29,.05)",
@@ -98,13 +106,13 @@ export function BasesPreferidas({ data, setData }) {
               {sel && (
                 <span
                   style={{
-                    position: "absolute", top: 6, right: 6,
-                    width: 18, height: 18, borderRadius: 999,
+                    position: "absolute", top: 3, right: 3,
+                    width: 15, height: 15, borderRadius: 999,
                     background: SELECTED_TEAL, border: "1.5px solid #fff",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
-                  <Check size={10} color="#fff" strokeWidth={3} />
+                  <Check size={9} color="#fff" strokeWidth={3} />
                 </span>
               )}
               <span
@@ -126,12 +134,12 @@ export function BasesPreferidas({ data, setData }) {
                 ) : (
                   // Sin arte todavía. Una inicial grande es honesta y no finge
                   // ser una ilustración: se ve que falta y se puede pulsar igual.
-                  <span style={{ fontSize: 26, fontWeight: 900, color: "#cfe0d5" }}>
+                  <span style={{ fontSize: 20, fontWeight: 900, color: "#cfe0d5" }}>
                     {ETIQUETA[id]?.[0] ?? "?"}
                   </span>
                 )}
               </span>
-              <span style={{ fontSize: 11.5, fontWeight: 800, color: sel ? SELECTED_TEAL : "#2f4a3a" }}>
+              <span style={{ fontSize: 10, fontWeight: 800, color: sel ? SELECTED_TEAL : "#2f4a3a" }}>
                 {ETIQUETA[id] ?? id}
               </span>
             </button>
