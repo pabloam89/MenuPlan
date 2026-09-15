@@ -14416,5 +14416,152 @@
         "part": "combinado"
       }
     ]
+  },
+  {
+    "id": "huevos_091",
+    "name": "Huevos al horno sobre verduras asadas",
+    "mainProtein": "huevo",
+    "basesAparte": [
+      "verdura_asada"
+    ],
+    "mealRole": [
+      "plato_unico",
+      "segundo"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "facil",
+    "kcal": 380,
+    "protein_g": 18,
+    "carbs_g": 18,
+    "fat_g": 26,
+    "fiber_g": 6,
+    "sugar_g": 9,
+    "saturated_fat_g": 6,
+    "sodium_mg": 520,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "freezable": false,
+    "allergens": [
+      "huevo"
+    ],
+    "season": "all",
+    "description": "Huevos cuajados en el horno sobre una cama de verduras asadas, con pimentón y pan para mojar.",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "ingredientId": "calabacin",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "ingredientId": "berenjena",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "ingredientId": "huevos",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "ingredientId": "perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Asar hasta que los bordes empiecen a tostarse.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+        "minutes": 5,
+        "kind": "espera",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Repartir la verdura asada en una fuente de horno y hacer cuatro huecos con el dorso de una cuchara.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cascar {{Huevo}} uno en cada hueco, sin romper la yema, y salar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 190 grados hasta que la clara cuaje y la yema siga blanda.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Espolvorear {{Pimentón dulce}} y {{Perejil}} picado y servir en la misma fuente.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "huevos",
+    "steps": [
+      "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+      "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+      "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+      "Asar hasta que los bordes empiecen a tostarse.",
+      "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+      "Repartir la verdura asada en una fuente de horno y hacer cuatro huecos con el dorso de una cuchara.",
+      "Cascar {{Huevo}} uno en cada hueco, sin romper la yema, y salar.",
+      "Hornear a 190 grados hasta que la clara cuaje y la yema siga blanda.",
+      "Espolvorear {{Pimentón dulce}} y {{Perejil}} picado y servir en la misma fuente."
+    ],
+    "methods": []
   }
 ]

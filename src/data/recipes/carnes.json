@@ -34349,5 +34349,150 @@
     "basesAparte": [
       "sofrito"
     ]
+  },
+  {
+    "id": "carnes_170",
+    "name": "Pollo al horno con pesto y tomates cherry",
+    "mainProtein": "pollo",
+    "basesAparte": [
+      "pesto"
+    ],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "kcal": 450,
+    "protein_g": 40,
+    "carbs_g": 6,
+    "fat_g": 29,
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 6,
+    "sodium_mg": 460,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "frutos_secos",
+      "lactosa"
+    ],
+    "season": "all",
+    "description": "Contramuslos de pollo untados de pesto y asados con tomate cherry hasta que la piel cruje.",
+    "ingredients": [
+      {
+        "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "ingredientId": "pinones",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "ingredientId": "parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Contramuslo de pollo",
+        "ingredientId": "contramuslos-de-pollo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, sin perderlos de vista.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "pesto"
+      },
+      {
+        "text": "Triturar {{Albahaca fresca}} con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Aceite de oliva virgen extra}} hasta que ligue.",
+        "minutes": 5,
+        "kind": "activo",
+        "base": "pesto"
+      },
+      {
+        "text": "Encender el {{@Horno}} a 200 grados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Salar {{Contramuslo de pollo}} y untarlo con el pesto por los dos lados, dejando la piel hacia arriba.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir {{Tomate cherry}} alrededor con un hilo de aceite.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Asar hasta que el pollo esté hecho por dentro y la piel dorada.",
+        "minutes": 30,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar reposar 2 min y servir con el jugo de la bandeja.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Pasar el táper del congelador a la nevera la noche antes.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar en el horno a 180 grados hasta que vuelva a estar caliente por dentro.",
+        "minutes": 15,
+        "kind": "pasivo"
+      }
+    ],
+    "category": "carnes",
+    "steps": [
+      "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, sin perderlos de vista.",
+      "Triturar {{Albahaca fresca}} con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Aceite de oliva virgen extra}} hasta que ligue.",
+      "Encender el {{@Horno}} a 200 grados.",
+      "Salar {{Contramuslo de pollo}} y untarlo con el pesto por los dos lados, dejando la piel hacia arriba.",
+      "Repartir {{Tomate cherry}} alrededor con un hilo de aceite.",
+      "Asar hasta que el pollo esté hecho por dentro y la piel dorada.",
+      "Dejar reposar 2 min y servir con el jugo de la bandeja."
+    ],
+    "methods": []
   }
 ]

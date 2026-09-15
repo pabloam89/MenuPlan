@@ -22021,5 +22021,468 @@
     "basesAparte": [
       "sofrito"
     ]
+  },
+  {
+    "id": "ensaladas_verduras_132",
+    "name": "Bowl de verduras asadas con quinoa y feta",
+    "mainProtein": "none",
+    "mainBase": "quinoa",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "verdura_asada"
+    ],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "facil",
+    "kcal": 430,
+    "protein_g": 14,
+    "carbs_g": 38,
+    "fat_g": 24,
+    "fiber_g": 8,
+    "sugar_g": 9,
+    "saturated_fat_g": 7,
+    "sodium_mg": 520,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "description": "Quinoa con una bandeja de verduras asadas, queso feta desmenuzado y menta fresca.",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "ingredientId": "calabacin",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "ingredientId": "berenjena",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Quinoa",
+        "ingredientId": "quinoa",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Queso feta",
+        "ingredientId": "queso-feta",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Menta fresca",
+        "ingredientId": "menta",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "ingredientId": "limon",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Asar hasta que los bordes empiecen a tostarse.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+        "minutes": 5,
+        "kind": "espera",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Enjuagar {{Quinoa}} bajo el grifo y cocerla en agua con sal hasta que el grano suelte su hilo blanco.",
+        "minutes": 15,
+        "kind": "pasivo",
+        "base": "quinoa"
+      },
+      {
+        "text": "Escurrir la quinoa y soltar el grano con un tenedor.",
+        "minutes": 2,
+        "kind": "activo",
+        "base": "quinoa"
+      },
+      {
+        "text": "Mezclar la quinoa con la verdura asada templada en un bol amplio.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Desmenuzar {{Queso feta}} por encima y picar {{Menta fresca}} en juliana fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Aliñar con el zumo de {{Limón}} y un hilo de aceite, y servir templado.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "ensaladas_verduras",
+    "steps": [
+      "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+      "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+      "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+      "Asar hasta que los bordes empiecen a tostarse.",
+      "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+      "Enjuagar {{Quinoa}} bajo el grifo y cocerla en agua con sal hasta que el grano suelte su hilo blanco.",
+      "Escurrir la quinoa y soltar el grano con un tenedor.",
+      "Mezclar la quinoa con la verdura asada templada en un bol amplio.",
+      "Desmenuzar {{Queso feta}} por encima y picar {{Menta fresca}} en juliana fina.",
+      "Aliñar con el zumo de {{Limón}} y un hilo de aceite, y servir templado."
+    ],
+    "methods": []
+  },
+  {
+    "id": "ensaladas_verduras_133",
+    "name": "Ensalada templada de verduras asadas y garbanzos",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "verdura_asada"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "facil",
+    "kcal": 410,
+    "protein_g": 15,
+    "carbs_g": 40,
+    "fat_g": 20,
+    "fiber_g": 11,
+    "sugar_g": 8,
+    "saturated_fat_g": 3,
+    "sodium_mg": 480,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "description": "Garbanzos salteados con comino sobre verduras asadas, con rúcula y un chorro de limón.",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "ingredientId": "calabacin",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "ingredientId": "berenjena",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Garbanzos",
+        "ingredientId": "garbanzos",
+        "amount": 240,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "ingredientId": "comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Rúcula",
+        "ingredientId": "rucula",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "ingredientId": "limon",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Asar hasta que los bordes empiecen a tostarse.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+        "minutes": 5,
+        "kind": "espera",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Escurrir {{Garbanzos}} y secarlos bien con un paño: mojados no se doran.",
+        "minutes": 3,
+        "kind": "prep",
+        "base": "legumbre"
+      },
+      {
+        "text": "Saltear los garbanzos con un hilo de aceite y {{Comino molido}} hasta que se tuesten por fuera.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar los garbanzos con la verdura asada templada.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Rúcula}}, aliñar con {{Limón}} y {{Sal|gusto}} y servir enseguida, antes de que la rúcula se apague.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "ensaladas_verduras",
+    "steps": [
+      "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+      "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+      "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+      "Asar hasta que los bordes empiecen a tostarse.",
+      "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+      "Escurrir {{Garbanzos}} y secarlos bien con un paño: mojados no se doran.",
+      "Saltear los garbanzos con un hilo de aceite y {{Comino molido}} hasta que se tuesten por fuera.",
+      "Mezclar los garbanzos con la verdura asada templada.",
+      "Añadir {{Rúcula}}, aliñar con {{Limón}} y {{Sal|gusto}} y servir enseguida, antes de que la rúcula se apague."
+    ],
+    "methods": []
+  },
+  {
+    "id": "ensaladas_verduras_134",
+    "name": "Tosta de verduras asadas con queso de cabra y miel",
+    "mainProtein": "none",
+    "basesAparte": [
+      "verdura_asada"
+    ],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "facil",
+    "kcal": 390,
+    "protein_g": 13,
+    "carbs_g": 34,
+    "fat_g": 22,
+    "fiber_g": 6,
+    "sugar_g": 12,
+    "saturated_fat_g": 9,
+    "sodium_mg": 610,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "freezable": false,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "season": "all",
+    "description": "Pan de payés tostado con verduras asadas, queso de cabra gratinado y un hilo de miel.",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "ingredientId": "calabacin",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "ingredientId": "berenjena",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pan de payés",
+        "ingredientId": "pan-de-payes",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Queso de cabra",
+        "ingredientId": "queso-cabra",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "ingredientId": "miel",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Asar hasta que los bordes empiecen a tostarse.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+        "minutes": 5,
+        "kind": "espera",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Tostar las rebanadas de {{Pan de payés}} hasta que crujan por fuera.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la verdura asada sobre el pan sin apretarla.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar {{Queso de cabra}} en rodajas, ponerlas encima y gratinar hasta que se doren.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Terminar con un hilo de {{Miel}} y servir caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "ensaladas_verduras",
+    "steps": [
+      "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+      "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+      "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+      "Asar hasta que los bordes empiecen a tostarse.",
+      "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+      "Tostar las rebanadas de {{Pan de payés}} hasta que crujan por fuera.",
+      "Repartir la verdura asada sobre el pan sin apretarla.",
+      "Cortar {{Queso de cabra}} en rodajas, ponerlas encima y gratinar hasta que se doren.",
+      "Terminar con un hilo de {{Miel}} y servir caliente."
+    ],
+    "methods": []
   }
 ]

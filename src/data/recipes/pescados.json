@@ -24475,5 +24475,138 @@
     "basesAparte": [
       "sofrito"
     ]
+  },
+  {
+    "id": "pescados_130",
+    "name": "Salmón al horno con costra de pesto",
+    "mainProtein": "pescado_azul",
+    "basesAparte": [
+      "pesto"
+    ],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 480,
+    "protein_g": 36,
+    "carbs_g": 4,
+    "fat_g": 35,
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 7,
+    "sodium_mg": 420,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "pescado",
+      "frutos_secos",
+      "lactosa"
+    ],
+    "season": "all",
+    "description": "Lomos de salmón con una capa de pesto que se tuesta en el horno, con tomates cherry al lado.",
+    "ingredients": [
+      {
+        "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "ingredientId": "pinones",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "ingredientId": "parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Lomos de salmón",
+        "ingredientId": "salmon",
+        "amount": 320,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, sin perderlos de vista.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "pesto"
+      },
+      {
+        "text": "Triturar {{Albahaca fresca}} con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Aceite de oliva virgen extra}} hasta que ligue.",
+        "minutes": 5,
+        "kind": "activo",
+        "base": "pesto"
+      },
+      {
+        "text": "Encender el {{@Horno}} a 200 grados y secar {{Lomos de salmón}} con papel de cocina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar los lomos en una bandeja con {{Tomate cherry}} alrededor, con un hilo de aceite y {{Sal|gusto}}.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender el pesto sobre el salmón en capa gruesa, que forme costra.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear hasta que el salmón se abra en lascas y el pesto esté tostado por arriba.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir con los tomates y el jugo de la bandeja por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "pescados",
+    "steps": [
+      "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, sin perderlos de vista.",
+      "Triturar {{Albahaca fresca}} con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Aceite de oliva virgen extra}} hasta que ligue.",
+      "Encender el {{@Horno}} a 200 grados y secar {{Lomos de salmón}} con papel de cocina.",
+      "Colocar los lomos en una bandeja con {{Tomate cherry}} alrededor, con un hilo de aceite y {{Sal|gusto}}.",
+      "Extender el pesto sobre el salmón en capa gruesa, que forme costra.",
+      "Hornear hasta que el salmón se abra en lascas y el pesto esté tostado por arriba.",
+      "Servir con los tomates y el jugo de la bandeja por encima."
+    ],
+    "methods": []
   }
 ]

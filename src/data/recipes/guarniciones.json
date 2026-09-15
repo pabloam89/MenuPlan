@@ -5955,5 +5955,155 @@
     ],
     "description": "Pan plano de sartén, tierno y con burbujas tostadas, para mojar en cualquier curry. Sin horno: se hace en una sartén bien caliente.",
     "estrella": false
+  },
+  {
+    "id": "guarniciones_066",
+    "name": "Cuscús con verduras asadas y pasas",
+    "mainProtein": "none",
+    "mainBase": "cuscus",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "verdura_asada"
+    ],
+    "mealRole": [
+      "guarnicion"
+    ],
+    "type": "guarnicion",
+    "time": 45,
+    "difficulty": "facil",
+    "kcal": 320,
+    "protein_g": 8,
+    "carbs_g": 52,
+    "fat_g": 10,
+    "fiber_g": 6,
+    "sugar_g": 14,
+    "saturated_fat_g": 2,
+    "sodium_mg": 330,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "gluten"
+    ],
+    "season": "all",
+    "description": "Cuscús hidratado con verduras asadas, pasas y almendra tostada, templado o frío.",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "ingredientId": "calabacin",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "ingredientId": "berenjena",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Cuscús",
+        "ingredientId": "cuscus",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Pasas",
+        "ingredientId": "pasas",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Almendras",
+        "ingredientId": "almendras",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Asar hasta que los bordes empiecen a tostarse.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+        "minutes": 5,
+        "kind": "espera",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Cubrir {{Cuscús}} con el mismo volumen de agua hirviendo con sal y tapar.",
+        "minutes": 3,
+        "kind": "activo",
+        "base": "cuscus"
+      },
+      {
+        "text": "Dejar que absorba el agua y soltarlo con un tenedor.",
+        "minutes": 5,
+        "kind": "espera",
+        "base": "cuscus"
+      },
+      {
+        "text": "Mezclar el cuscús con la verdura asada, {{Pasas}} y {{Almendras}} picadas.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con un hilo de aceite y servir templado o frío.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "guarniciones",
+    "steps": [
+      "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+      "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+      "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+      "Asar hasta que los bordes empiecen a tostarse.",
+      "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+      "Cubrir {{Cuscús}} con el mismo volumen de agua hirviendo con sal y tapar.",
+      "Dejar que absorba el agua y soltarlo con un tenedor.",
+      "Mezclar el cuscús con la verdura asada, {{Pasas}} y {{Almendras}} picadas.",
+      "Aliñar con un hilo de aceite y servir templado o frío."
+    ],
+    "methods": []
   }
 ]

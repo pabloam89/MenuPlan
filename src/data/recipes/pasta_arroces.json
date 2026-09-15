@@ -20412,5 +20412,452 @@
     ],
     "description": "Arroz basmati y pollo especiado cocinados en capas y tapados, para que el arroz se perfume con el vapor del guiso. Plato de fiesta.",
     "estrella": false
+  },
+  {
+    "id": "pasta_arroces_106",
+    "name": "Pasta con verduras asadas y albahaca",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "verdura_asada"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "facil",
+    "kcal": 470,
+    "protein_g": 15,
+    "carbs_g": 62,
+    "fat_g": 17,
+    "fiber_g": 7,
+    "sugar_g": 9,
+    "saturated_fat_g": 4,
+    "sodium_mg": 430,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "season": "all",
+    "description": "Pasta corta con una bandeja de verduras asadas, albahaca fresca y parmesano rallado.",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "ingredientId": "calabacin",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "ingredientId": "berenjena",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pasta corta",
+        "ingredientId": "pasta-corta",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "ingredientId": "parmesano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Asar hasta que los bordes empiecen a tostarse.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+        "minutes": 5,
+        "kind": "espera",
+        "base": "verdura_asada"
+      },
+      {
+        "text": "Cocer {{Pasta corta}} en abundante agua con sal el tiempo que diga el paquete.",
+        "minutes": 10,
+        "kind": "pasivo",
+        "base": "pasta"
+      },
+      {
+        "text": "Reservar un cazo del agua de cocción y escurrir la pasta.",
+        "minutes": 2,
+        "kind": "activo",
+        "base": "pasta"
+      },
+      {
+        "text": "Saltear la pasta con la verdura asada y un par de cucharadas del agua reservada, para que ligue.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Rallar {{Queso parmesano}} por encima y repartir {{Albahaca fresca}} en hojas enteras.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "pasta_arroces",
+    "steps": [
+      "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+      "Cortar {{Calabacín}}, {{Berenjena}} y {{Pimiento rojo}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+      "Extender la verdura en la bandeja sin amontonar y aliñar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}}.",
+      "Asar hasta que los bordes empiecen a tostarse.",
+      "Sacar la bandeja y dejar templar mientras se prepara el resto.",
+      "Cocer {{Pasta corta}} en abundante agua con sal el tiempo que diga el paquete.",
+      "Reservar un cazo del agua de cocción y escurrir la pasta.",
+      "Saltear la pasta con la verdura asada y un par de cucharadas del agua reservada, para que ligue.",
+      "Rallar {{Queso parmesano}} por encima y repartir {{Albahaca fresca}} en hojas enteras."
+    ],
+    "methods": []
+  },
+  {
+    "id": "pasta_arroces_107",
+    "name": "Ensalada de arroz con pesto y guisantes",
+    "mainProtein": "none",
+    "mainBase": "arroz",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "pesto"
+    ],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "facil",
+    "kcal": 480,
+    "protein_g": 13,
+    "carbs_g": 58,
+    "fat_g": 21,
+    "fiber_g": 6,
+    "sugar_g": 5,
+    "saturated_fat_g": 4,
+    "sodium_mg": 390,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "frutos_secos",
+      "lactosa"
+    ],
+    "season": "all",
+    "description": "Arroz frío mezclado con pesto casero, guisantes y tomate cherry, para táper o cena rápida.",
+    "ingredients": [
+      {
+        "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "ingredientId": "pinones",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "ingredientId": "parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "ingredientId": "arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "ingredientId": "guisantes",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Cocer {{Arroz}} en agua con sal hasta que esté suelto y escurrirlo.",
+        "minutes": 18,
+        "kind": "pasivo",
+        "base": "arroz"
+      },
+      {
+        "text": "Extender el arroz en una bandeja para que enfríe rápido.",
+        "minutes": 3,
+        "kind": "activo",
+        "base": "arroz"
+      },
+      {
+        "text": "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, sin perderlos de vista.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "pesto"
+      },
+      {
+        "text": "Triturar {{Albahaca fresca}} con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Aceite de oliva virgen extra}} hasta que ligue.",
+        "minutes": 5,
+        "kind": "activo",
+        "base": "pesto"
+      },
+      {
+        "text": "Escaldar {{Guisantes}} 2 min y pasar por agua fría para que queden verdes.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar el arroz frío con el pesto hasta que quede todo el grano cubierto.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los guisantes y {{Tomate cherry}} partido por la mitad, y servir frío.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "pasta_arroces",
+    "steps": [
+      "Cocer {{Arroz}} en agua con sal hasta que esté suelto y escurrirlo.",
+      "Extender el arroz en una bandeja para que enfríe rápido.",
+      "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, sin perderlos de vista.",
+      "Triturar {{Albahaca fresca}} con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Aceite de oliva virgen extra}} hasta que ligue.",
+      "Escaldar {{Guisantes}} 2 min y pasar por agua fría para que queden verdes.",
+      "Mezclar el arroz frío con el pesto hasta que quede todo el grano cubierto.",
+      "Añadir los guisantes y {{Tomate cherry}} partido por la mitad, y servir frío."
+    ],
+    "methods": []
+  },
+  {
+    "id": "pasta_arroces_108",
+    "name": "Pasta al pesto con judías verdes y patata",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "pesto",
+      "patatas"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "kcal": 560,
+    "protein_g": 16,
+    "carbs_g": 68,
+    "fat_g": 25,
+    "fiber_g": 8,
+    "sugar_g": 5,
+    "saturated_fat_g": 5,
+    "sodium_mg": 450,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "gluten",
+      "frutos_secos",
+      "lactosa"
+    ],
+    "season": "all",
+    "description": "El plato genovés de siempre: pasta, patata y judía verde en la misma olla, con pesto de albahaca.",
+    "ingredients": [
+      {
+        "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "ingredientId": "pinones",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "ingredientId": "parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Pasta corta",
+        "ingredientId": "pasta-corta",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "ingredientId": "judia-verde",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, sin perderlos de vista.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "pesto"
+      },
+      {
+        "text": "Triturar {{Albahaca fresca}} con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Aceite de oliva virgen extra}} hasta que ligue.",
+        "minutes": 5,
+        "kind": "activo",
+        "base": "pesto"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortarla en dados pequeños; limpiar {{Judías verdes}} y trocearla.",
+        "minutes": 5,
+        "kind": "prep",
+        "base": "patatas"
+      },
+      {
+        "text": "Cocer la patata y la judía juntas en agua con sal hasta que la patata ceda al tenedor.",
+        "minutes": 10,
+        "kind": "pasivo",
+        "base": "patatas"
+      },
+      {
+        "text": "Añadir {{Pasta corta}} a la misma olla y cocerla el tiempo del paquete.",
+        "minutes": 10,
+        "kind": "pasivo",
+        "base": "pasta"
+      },
+      {
+        "text": "Reservar un cazo del agua de cocción y escurrir todo junto.",
+        "minutes": 2,
+        "kind": "activo",
+        "base": "pasta"
+      },
+      {
+        "text": "Mezclar en un bol amplio con el pesto y aflojar con el agua reservada hasta que la salsa envuelva.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir templado con un poco más de parmesano por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "pasta_arroces",
+    "steps": [
+      "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, sin perderlos de vista.",
+      "Triturar {{Albahaca fresca}} con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Aceite de oliva virgen extra}} hasta que ligue.",
+      "Pelar {{Patata}} y cortarla en dados pequeños; limpiar {{Judías verdes}} y trocearla.",
+      "Cocer la patata y la judía juntas en agua con sal hasta que la patata ceda al tenedor.",
+      "Añadir {{Pasta corta}} a la misma olla y cocerla el tiempo del paquete.",
+      "Reservar un cazo del agua de cocción y escurrir todo junto.",
+      "Mezclar en un bol amplio con el pesto y aflojar con el agua reservada hasta que la salsa envuelva.",
+      "Servir templado con un poco más de parmesano por encima."
+    ],
+    "methods": []
   }
 ]
