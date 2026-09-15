@@ -205,11 +205,17 @@ describe("la fila de controles sale del registro, no de un componente", () => {
     for (const p of controlesVisibles(libretaVacia(), CIMIENTOS).filter((x) => x.fuente === "data")) {
       expect(typeof p.lee, `${p.id}`).toBe("function");
       expect(typeof p.escribe, `${p.id}`).toBe("function");
-      expect(p.opciones, `${p.id} sin dominio que ofrecer`).toBeTruthy();
+      // Una fila de dos bloques (`grupo`) ofrece su dominio por `subejes`, no
+      // por `opciones`: su valor es un objeto con una eleccion por bloque. Es
+      // lo que hace la pregunta del tiempo desde que el ritmo y el reparto
+      // (cada dia / en tanda) viven juntos.
+      const dominio = p.control === "grupo" ? p.subejes : p.opciones;
+      expect(dominio, `${p.id} sin dominio que ofrecer`).toBeTruthy();
 
-      const primera = p.opciones[0];
-      // "multi" lleva un dominio de strings; el resto, de {valor, etiqueta}.
-      const valor = p.control === "multi" ? [primera] : primera.valor ?? primera;
+      const valor = p.control === "grupo"
+        ? Object.fromEntries(p.subejes.map((e) => [e.campo, e.opciones[0].valor]))
+        // "multi" lleva un dominio de strings; el resto, de {valor, etiqueta}.
+        : p.control === "multi" ? [p.opciones[0]] : p.opciones[0].valor ?? p.opciones[0];
 
       const nuevo = p.escribe({ hola: 1 }, valor);
       expect(nuevo.hola, `${p.id} no debe pisar el resto de data`).toBe(1);
@@ -243,9 +249,36 @@ describe("la fila de controles sale del registro, no de un componente", () => {
     expect(valores).not.toContain("unico");
   });
 
-  it("el tiempo ofrece los cuatro niveles que ya usa la app", () => {
-    expect(PREGUNTAS_POR_ID.tiempo.opciones.map((o) => o.valor))
+  it("el tiempo ofrece los cuatro niveles que ya usa la app, y el reparto", () => {
+    const [ritmo, reparto] = PREGUNTAS_POR_ID.tiempo.subejes;
+    expect(ritmo.opciones.map((o) => o.valor))
       .toEqual(["con_prisa", "normal", "con_tiempo", "depende"]);
+    // El segundo bloque es OTRO eje, no un quinto nivel: cuanto rato tienes
+    // por comida y como lo repartes en la semana son dos respuestas, y hacen
+    // falta las dos para decir "voy con prisa entre semana y cocino el
+    // domingo".
+    expect(reparto.opciones.map((o) => o.valor)).toEqual(["cada_dia", "tanda"]);
+  });
+
+  it("elegir la tanda no pisa el ritmo, y al reves tampoco", () => {
+    const p = PREGUNTAS_POR_ID.tiempo;
+    const conPrisa = p.escribe({}, { nivel: "con_prisa" });
+    expect(conPrisa.cookTime.weekday.Comida).toBe(20);
+
+    const enTanda = p.escribe(conPrisa, { ...p.lee(conPrisa), tanda: "tanda" });
+    // El diario sigue siendo el que eligio; solo se abre el fin de semana.
+    expect(enTanda.cookTime.weekday.Comida).toBe(20);
+    expect(enTanda.cookTime.weekend.Comida).toBeGreaterThanOrEqual(90);
+
+    // Y cambiar de ritmo despues no borra la tanda.
+    const otroRitmo = p.escribe(enTanda, { ...p.lee(enTanda), nivel: "normal" });
+    expect(p.lee(otroRitmo)).toEqual({ nivel: "normal", tanda: "tanda" });
+  });
+
+  it("sin contestar, la pregunta del tiempo esta PENDIENTE", () => {
+    // La trampa en la que cai: si `lee` devuelve algo cuando nadie ha
+    // contestado, el wizard la da por hecha y no la ensena nunca.
+    expect(PREGUNTAS_POR_ID.tiempo.lee({})).toBe(null);
   });
 });
 

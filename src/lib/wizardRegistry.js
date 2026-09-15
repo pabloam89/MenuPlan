@@ -402,39 +402,77 @@ export const PREGUNTAS = [
     corto: "Tiempo",
     arte: "/categories/cut/controles/tiempo.png",
     color: "#5a5fc8",
-    // No es un slider de minutos: `data.cookTime` no es un número sino
-    // `{ mode, weekday: {Comida, Cena}, weekend: {Comida, Cena} }`. Y aunque
-    // lo fuera, la app ya decidió que la gente no marca un número exacto —el
-    // tiempo es variable— y ofrece cuatro ritmos (lib/cookTime.js), que es el
-    // lenguaje que el usuario ya conoce de la pantalla de siempre.
-    control: "cards-ab",
+    // DOS bloques en una sola pregunta, no dos preguntas seguidas.
+    //
+    // Hubo una versión con la tanda como pregunta aparte, y era peor por lo
+    // de siempre: la conversación se parte. "¿Cuánto tiempo tienes?" y "¿y
+    // cómo lo repartes?" son la misma charla, y separarlas obligaba a pasar de
+    // pantalla para decir algo que se piensa junto.
+    //
+    // Siguen siendo DOS ejes, y por eso son dos bloques y no seis cards en una
+    // rejilla: el primero dice cuánto rato tienes por comida, el segundo cómo
+    // lo repartes en la semana. Mezclados, elegir "en tanda" no habría dicho
+    // nada sobre el martes — y "voy con prisa entre semana Y cocino el
+    // domingo" es justo el caso más común.
+    control: "grupo",
     fuente: "data",
-    lee: (data) =>
-      data?.cookTime ? cookLevelForMinutes(data.cookTime?.weekday?.Comida) : null,
-    escribe: (data, id) => {
-      const minutos = cookLevelMinutes(id);
+    // `data.cookTime` no es un número sino
+    // `{ mode, tanda, weekday: {Comida, Cena}, weekend: {Comida, Cena} }`. Y
+    // aunque lo fuera, la app ya decidió que la gente no marca un número
+    // exacto —el tiempo es variable— y ofrece cuatro ritmos (lib/cookTime.js).
+    lee: (data) => {
+      const ct = data?.cookTime;
+      if (!ct) return null;
+      return {
+        nivel: cookLevelForMinutes(ct.weekday?.Comida),
+        // La tanda se guarda EXPLÍCITA y no se deduce de los minutos: el valor
+        // por defecto de la app ya es 30 entre semana y 60 el finde —justo el
+        // doble—, así que cualquier heurística de asimetría marcaba "en tanda"
+        // a quien no había pedido nada.
+        tanda: ct.tanda === true ? "tanda" : ct.tanda === false ? "cada_dia" : null,
+      };
+    },
+    escribe: (data, valor) => {
       const base = data?.cookTime ?? COOK_TIME_DEFAULTS;
-      // Se escriben las cuatro casillas: este control es el mando grueso. El
-      // editor fino de entre semana / finde sigue en su pantalla y no se pisa
-      // más de lo que el usuario acaba de pedir aquí.
+      const actual = base.tanda === true ? "tanda" : base.tanda === false ? "cada_dia" : null;
+      const nivel = valor?.nivel ?? cookLevelForMinutes(base.weekday?.Comida);
+      const tanda = valor?.tanda ?? actual;
+      const diario = cookLevelMinutes(nivel);
+      // "En tanda" NO pisa el ritmo que acabas de elegir: deja el diario como
+      // esté y solo abre el fin de semana, que es lo único que añade. Y el
+      // planner lo nota de verdad — un domingo de 90 minutos admite un guiso
+      // que un martes de 20 no (maxCookTime).
+      const finde = tanda === "tanda" ? Math.max(90, diario * 3) : diario;
+      const mismo = (obj, min) => Object.fromEntries(Object.keys(obj ?? {}).map((m) => [m, min]));
       return {
         ...data,
         cookTime: {
           ...base,
-          weekday: Object.fromEntries(Object.keys(base.weekday ?? {}).map((m) => [m, minutos])),
-          weekend: Object.fromEntries(Object.keys(base.weekend ?? {}).map((m) => [m, minutos])),
+          ...(tanda === null ? {} : { tanda: tanda === "tanda" }),
+          weekday: mismo(base.weekday, diario),
+          weekend: mismo(base.weekend, finde),
         },
       };
     },
-    opciones: COOK_LEVELS.map((l) => ({ valor: l.id, etiqueta: l.label, detalle: l.sub })),
-    arteOpcionesLlenas: true,
-    // Una por nivel, las cuatro que ya existen para esta misma pregunta.
-    arteOpciones: {
-      con_prisa: "/avatares/cards/cook_con_prisa.png",
-      normal: "/avatares/cards/cook_normal.png",
-      con_tiempo: "/avatares/cards/cook_con_tiempo.png",
-      depende: "/avatares/cards/cook_depende.png",
-    },
+    subejes: [
+      {
+        campo: "nivel",
+        label: "Un día entre semana",
+        opciones: COOK_LEVELS.map((l) => ({
+          valor: l.id,
+          etiqueta: l.label,
+          arte: `/avatares/cards/cook_${l.id}.png`,
+        })),
+      },
+      {
+        campo: "tanda",
+        label: "¿Y cómo lo repartes?",
+        opciones: [
+          { valor: "cada_dia", etiqueta: "Cocino cada día", arte: "/avatares/cards/wizard_timing/clasico.jpg" },
+          { valor: "tanda", etiqueta: "Cocino en tanda", arte: "/avatares/cards/wizard_timing/batch.jpg" },
+        ],
+      },
+    ],
     requiere: ["comidas"],
     activa: null,
     refina: null,
@@ -443,75 +481,6 @@ export const PREGUNTAS = [
     parser: false,
     enControles: true,
     orden: 80,
-  },
-  {
-    id: "tanda",
-    tema: "tiempo",
-    label: "¿Cómo prefieres cocinar?",
-    corto: "Tandas",
-    color: "#5a5fc8",
-    control: "cards-ab",
-    fuente: "data",
-    // La respuesta se guarda EXPLÍCITA en `cookTime.tanda`, no se deduce.
-    //
-    // El primer intento la dedujo de la asimetría —"si el finde tiene el doble
-    // que el diario, es que cocinas en tanda"— y estaba mal por dos sitios: el
-    // valor POR DEFECTO de la app ya es 30 entre semana y 60 el finde, o sea
-    // exactamente el doble, así que quien no hubiera tocado nada salía marcado
-    // "en tanda" sin pedirlo; y como siempre devolvía algo, la pregunta nacía
-    // contestada y el wizard no la enseñaba nunca.
-    //
-    // Con la bandera hay dos lectores de verdad y ninguno inventado: esta fila
-    // la lee para marcar la card, y el planner lee los MINUTOS que escribe al
-    // lado (maxCookTime), que es donde está el efecto real — un domingo con 90
-    // minutos admite un guiso que un martes de 20 no.
-    lee: (data) => {
-      const t = data?.cookTime?.tanda;
-      return t === true ? "tanda" : t === false ? "cada_dia" : null;
-    },
-    escribe: (data, id) => {
-      const base = data?.cookTime ?? COOK_TIME_DEFAULTS;
-      // "Cada día" NO pisa lo que acabas de contestar en la pregunta del
-      // tiempo: iguala el finde al diario y se acabó. "En tanda" deja el
-      // diario como esté —esa respuesta sigue siendo tuya— y abre el finde,
-      // que es lo único que esta pregunta añade.
-      const diario = base.weekday?.Comida ?? COOK_TIME_DEFAULTS.weekday.Comida;
-      const finde = id === "tanda" ? Math.max(90, diario * 3) : diario;
-      const mismo = (obj, min) => Object.fromEntries(Object.keys(obj ?? {}).map((m) => [m, min]));
-      return {
-        ...data,
-        cookTime: {
-          ...base,
-          tanda: id === "tanda",
-          weekday: mismo(base.weekday, diario),
-          weekend: mismo(base.weekend, finde),
-        },
-      };
-    },
-    opciones: [
-      { valor: "cada_dia", etiqueta: "Cada día", detalle: "Cocino lo del día, cada día" },
-      { valor: "tanda", etiqueta: "En tanda", detalle: "Dejo cosas hechas y entre semana monto" },
-    ],
-    arteOpcionesLlenas: true,
-    arteOpciones: {
-      cada_dia: "/avatares/cards/wizard_timing/clasico.jpg",
-      tanda: "/avatares/cards/wizard_timing/batch.jpg",
-    },
-    // Detrás del tiempo, porque la respuesta se apoya en ella: "voy con el
-    // tiempo justo... y por eso cocino el domingo" solo se puede decir en ese
-    // orden.
-    requiere: ["tiempo"],
-    // Se pregunta a todo el mundo. Hubo un `activa` que se la escondía a quien
-    // contestaba "tengo un rato para cocinar" — sonaba fino y era falso:
-    // tener tiempo un domingo es justo lo que hace falta para cocinar en
-    // tanda, y además dejaba la pregunta invisible para media casa.
-    activa: null,
-    refina: null,
-    anula: [],
-    delegable: true,
-    parser: false,
-    enControles: true,
-    orden: 82,
   },
   {
     id: "esfuerzo",
