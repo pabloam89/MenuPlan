@@ -1669,37 +1669,44 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Lavar {{Berenjena}}, {{Pimiento rojo}}, {{Cebolla}} y {{Tomate}} bajo el grifo y secar con papel de cocina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Disponer la berenjena, el pimiento rojo, la cebolla y el tomate enteros en una bandeja de horno.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Hornear las verduras a 200 °C hasta que la piel esté completamente chamuscada y la pulpa tierna, unos 40 min.",
         "minutes": 40,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Retirar la bandeja del horno y tapar con papel de aluminio hasta que las verduras templen, unos 15 min.",
         "minutes": 15,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "verdura_asada"
       },
       {
         "text": "Pelar la piel de la berenjena, el pimiento rojo, la cebolla y el tomate templados, retirando también las semillas del pimiento.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Cortar la pulpa de todas las verduras en tiras de 1 cm de ancho.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Disponer las tiras de verdura en una fuente, alternando los colores.",
@@ -1725,7 +1732,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "verdura_asada"
+    ]
   },
   {
     "id": "ensaladas_verduras_010",
@@ -4256,7 +4266,10 @@
     ],
     "tecnica": "crudo",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "pesto"
+    ]
   },
   {
     "id": "ensaladas_verduras_032",
@@ -8834,6 +8847,9 @@
     "mainProtein": "none",
     "mainBase": "cuscus",
     "baseMode": "aparte",
+    "basesAparte": [
+      "verdura_asada"
+    ],
     "requiredAppliance": "horno",
     "mealRole": [
       "primero",
@@ -8922,27 +8938,32 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Cortar {{Calabacín}}, {{Pimiento rojo}}, {{Berenjena}} y {{Cebolla roja}} en trozos regulares de unos 2 cm.",
         "minutes": 8,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Disponer las verduras cortadas en una bandeja de horno en una sola capa.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Rociar las verduras con {{Aceite de oliva|chorrito}} y salpimentar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Hornear las verduras a 200 °C durante 25 min, hasta que estén tiernas y doradas.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Llevar agua con sal a ebullición y verterla sobre {{Cuscús}} en un bol hasta cubrirlo justo.",
@@ -9794,7 +9815,10 @@
     "montaje": true,
     "tecnica": "crudo",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "pesto"
+    ]
   },
   {
     "id": "ensaladas_verduras_064",
@@ -14509,7 +14533,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "salsa_tomate"
+    ]
   },
   {
     "id": "ensaladas_verduras_091",
@@ -14946,7 +14973,8 @@
     "mainBase": "quinoa",
     "baseMode": "aparte",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "verdura_asada"
     ],
     "mealRole": [
       "primero",
@@ -15115,7 +15143,8 @@
       {
         "text": "Sofreír la cebolla y el ajo hasta que estén translúcidos.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento rojo y la pulpa de calabacín picada y sofreír a fuego medio.",
@@ -16851,7 +16880,8 @@
     "mainBase": "arroz",
     "baseMode": "aparte",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "primero",
@@ -17006,7 +17036,8 @@
       {
         "text": "Verter {{Caldo de verduras}} en el fondo de la fuente.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "caldo"
       },
       {
         "text": "Cubrir cada tomate con {{Queso rallado}}.",
@@ -17546,22 +17577,26 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Lavar {{Berenjena}}, {{Pimiento rojo}} y {{Cebolla}} bajo el grifo y secar bien.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Disponer las verduras enteras y con piel sobre la bandeja del horno.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Hornear las verduras a 200 °C hasta que la piel esté ennegrecida y la carne muy tierna.",
         "minutes": 50,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Picar {{Ajo}} muy fino y reservar.",
@@ -17572,27 +17607,32 @@
       {
         "text": "Retirar la bandeja del horno y tapar las verduras con un paño limpio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "verdura_asada"
       },
       {
         "text": "Esperar tapadas hasta que suden y se pelen con facilidad.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "verdura_asada"
       },
       {
         "text": "Pelar las verduras retirando la piel ennegrecida.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Retirar las semillas y los tallos de la berenjena, el pimiento rojo y la cebolla.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Cortar la carne de las verduras en tiras longitudinales.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Disponer las tiras de verdura en una fuente alargada alternando colores.",
@@ -17643,7 +17683,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "verdura_asada"
+    ]
   },
   {
     "id": "ensaladas_verduras_107",
@@ -18834,7 +18877,9 @@
     "mainBase": "arroz",
     "baseMode": "aparte",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo",
+      "verdura_asada"
     ],
     "mealRole": [
       "primero",

@@ -2991,6 +2991,10 @@
     "mainProtein": "marisco",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "caldo",
+      "salsa_tomate"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -6651,7 +6655,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "pescados_041",
@@ -6846,7 +6853,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "pescados_042",
@@ -7176,7 +7186,8 @@
     "mainBase": "arroz",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "plato_unico",
@@ -8788,7 +8799,8 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "time": 50,
     "difficulty": "normal",
@@ -8933,8 +8945,7 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela ancha a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento rojo a fuego medio hasta que estén tiernos.",
@@ -9913,7 +9924,8 @@
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 2,
         "kind": "prep",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "salsa_tomate"
       },
       {
         "text": "Cortar {{Albahaca fresca}} en trozos pequeños con los dedos o con cuchillo.",
@@ -9925,25 +9937,29 @@
         "text": "Calentar {{Aceite de oliva|chorrito}} en un cazo a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "salsa_tomate"
       },
       {
         "text": "Sofreír el ajo picado hasta que empiece a desprender aroma, sin que se dore.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "salsa_tomate"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que reduzca y espese ligeramente.",
         "minutes": 9,
         "kind": "pasivo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "salsa_tomate"
       },
       {
         "text": "Salpimentar la salsa y retirar del fuego.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "salsa_tomate"
       },
       {
         "text": "Añadir la mitad de la albahaca troceada a la salsa y reservar.",
@@ -10009,7 +10025,10 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "salsa_tomate"
+    ]
   },
   {
     "id": "pescados_058",
@@ -11445,7 +11464,10 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "pescados_066",
@@ -12932,7 +12954,10 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "pescados_074",
@@ -15597,7 +15622,8 @@
     "mainBase": "arroz",
     "baseMode": "aparte",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "segundo",
@@ -16219,7 +16245,8 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "segundo",
@@ -16321,7 +16348,8 @@
       {
         "text": "Picar {{Cebolla}}, {{Pimiento verde}}, {{Pimiento rojo}} y {{Ajo}} muy fino.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar {{Patata}} y cascarlas: cortar un poco y romper con la punta del cuchillo para que suelten almidón.",
@@ -16331,7 +16359,8 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, los pimientos y el ajo picados a fuego suave hasta que estén pochados.",
@@ -16348,7 +16377,8 @@
       {
         "text": "Añadir {{Pimentón dulce|pizca}} y remover sin parar durante 20 segundos para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las patatas cascadas y mezclar con el sofrito para que se impregnen.",
@@ -16663,7 +16693,8 @@
     "mainBase": "pasta",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "segundo",
@@ -16809,7 +16840,8 @@
       {
         "text": "Calentar el resto del aceite de oliva en la cazuela limpia a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada, el ajo picado y el pimiento rojo picado 10 min hasta que estén tiernos.",
@@ -17450,7 +17482,10 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "pescados_096",
@@ -20152,23 +20187,27 @@
         "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}}, {{Berenjena}} y {{Cebolla}} en tiras.",
         "minutes": 8,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "verdura_asada"
       },
       {
         "text": "Cortar {{Tomate}} en tiras.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "base": "verdura_asada"
       },
       {
         "text": "Repartir las verduras cortadas en una bandeja y regar con {{Aceite de oliva|chorrito}}.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Salpimentar las verduras y asar a 200 °C durante 35 min, removiendo a media cocción, hasta que estén tiernas y doradas.",
         "minutes": 35,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Estirar la masa fermentada con un rodillo hasta formar un rectángulo fino sobre una bandeja forrada con papel vegetal.",
@@ -20237,7 +20276,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "verdura_asada"
+    ]
   },
   {
     "id": "pescados_108",
@@ -23823,22 +23865,26 @@
         "text": "Cortar {{Calabacín}}, {{Pimiento rojo}}, {{Berenjena}} y {{Cebolla}} en tiras de grosor similar.",
         "minutes": 8,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "base": "verdura_asada"
       },
       {
         "text": "Disponer las verduras cortadas en una bandeja de horno en una sola capa.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Regar las verduras con {{Aceite de oliva|chorrito}} y salpimentar al gusto.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Hornear las verduras en el horno a 200 °C durante 15 min hasta que estén tiernas y ligeramente doradas.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Salpimentar {{Lomos de salmón}} por ambos lados.",
@@ -23861,6 +23907,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "verdura_asada"
     ]
   },
   {

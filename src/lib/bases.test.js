@@ -3,6 +3,7 @@ import {
   BASES,
   MIN_PLATOS_POR_BASE,
   baseDeReceta,
+  claveDeBase,
   clavesDeReceta,
   coberturaDeBases,
   MINUTOS_DE_DIARIO,
@@ -29,8 +30,14 @@ describe("el catálogo de bases", () => {
     }
   });
 
-  it("no repite mainBase — es la clave del emparejamiento", () => {
-    const vistos = BASES.map((b) => b.mainBase);
+  it("no repite CLAVE — es por donde la encuentra el plato", () => {
+    // Por `claveDeBase`, no por `mainBase` a secas: las bases que no son
+    // fécula (sofrito, caldo, salsa de tomate…) no tienen mainBase, y
+    // compararlas por ese campo hacía chocar a todas entre sí contra
+    // `undefined`. Lo que no puede repetirse es la clave con la que un plato
+    // las pide: dos bases con la misma clave y una de las dos es inalcanzable.
+    const vistos = BASES.map(claveDeBase);
+    expect(vistos.filter(Boolean)).toHaveLength(BASES.length);
     expect(new Set(vistos).size).toBe(vistos.length);
   });
 
@@ -409,6 +416,13 @@ describe("montajeTrasBases · lo que queda por hacer el martes", () => {
     expect(g.cruzaPorReloj).toBe(true);
     // Por manos no gana: cocer arroz no te ata. Y aun asi la tanda sirve.
     expect(g.cruzaPorManos).toBe(false);
+  });
+
+  it("pasarlo a .filter() no lo rompe: el indice no es una lista de bases", () => {
+    // `[plato].filter(esMontajeRapido)` pasa (item, 0, array). Ese 0 reventaba
+    // el Set, y un 1 habria pasado por "ninguna base lista" en silencio.
+    expect(() => [plato].filter(esMontajeRapido)).not.toThrow();
+    expect([plato].filter(esMontajeRapido)).toHaveLength(1);
   });
 
   it("clavesDeReceta ve la fécula aparte y lo de basesAparte, sin repetir", () => {

@@ -6,6 +6,9 @@
     "mainProtein": "pollo",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "salsa_tomate"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -2775,6 +2778,9 @@
     "mainProtein": "huevo",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "salsa_tomate"
+    ],
     "mealRole": [
       "cena",
       "plato_unico"
@@ -3290,6 +3296,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "salsa_tomate"
+    ],
     "mealRole": [
       "plato_unico"
     ],

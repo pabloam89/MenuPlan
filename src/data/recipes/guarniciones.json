@@ -658,7 +658,10 @@
     "saturated_fat_g": 1,
     "sodium_mg": 380,
     "freezable": false,
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "guarniciones_029",
@@ -3477,45 +3480,53 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Pelar {{Zanahoria}} y cortar en bastones de unos 5 cm.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "base": "verdura_asada"
       },
       {
         "text": "Cortar {{Calabacín}}, {{Pimiento rojo}} y {{Cebolla}} en trozos del mismo tamaño que la zanahoria.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "base": "verdura_asada"
       },
       {
         "text": "Mezclar {{Aceite de oliva}} con {{Miel}} y {{Tomillo fresco}} en un bol hasta integrar.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "base": "verdura_asada"
       },
       {
         "text": "Disponer todas las verduras en una bandeja de horno forrada con papel vegetal en una sola capa.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "verdura_asada"
       },
       {
         "text": "Rociar las verduras con la mezcla de aceite y miel y añadir {{Sal|gusto}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "verdura_asada"
       },
       {
         "text": "Hornear a 200 °C durante 15 min.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Remover las verduras con una espátula y hornear 10 min más, hasta que estén tiernas y con los bordes caramelizados.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "verdura_asada"
       },
       {
         "text": "Servir las verduras calientes directamente de la bandeja.",
@@ -3527,7 +3538,10 @@
     "sugar_g": 14,
     "saturated_fat_g": 1,
     "sodium_mg": 360,
-    "freezable": false
+    "freezable": false,
+    "basesAparte": [
+      "verdura_asada"
+    ]
   },
   {
     "id": "guarniciones_048",
@@ -4705,7 +4719,8 @@
       }
     ],
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "verdura_asada"
     ]
   },
   {

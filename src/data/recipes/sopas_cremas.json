@@ -183,6 +183,9 @@
     "mainProtein": "none",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "caldo"
+    ],
     "mealRole": [
       "primero"
     ],
@@ -1220,7 +1223,10 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_008",
@@ -1643,14 +1649,12 @@
       {
         "text": "Laminar {{Cebolla}} en juliana fina.",
         "minutes": 5,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{Mantequilla}} en una olla a fuego medio hasta que se funda.",
         "minutes": 2,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir la cebolla laminada a la olla y sofreír a fuego suave, removiendo con frecuencia, hasta que esté dorada y muy tierna.",
@@ -1739,7 +1743,8 @@
     "tecnica": "horno",
     "cocina": "francesa",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -3137,7 +3142,10 @@
     "saturated_fat_g": 2,
     "sodium_mg": 620,
     "freezable": false,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_019",
@@ -3317,7 +3325,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_020",
@@ -3876,7 +3887,8 @@
     ],
     "tecnica": "sarten",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -4295,7 +4307,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -4804,7 +4817,8 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -4895,8 +4909,7 @@
       {
         "text": "Picar {{Cebolla}} fino.",
         "minutes": 2,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Pelar {{Patata}} y cortar en dados pequeños.",
@@ -4906,8 +4919,7 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
@@ -4974,7 +4986,8 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -5076,8 +5089,7 @@
       {
         "text": "Picar {{Cebolla}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Fundir {{Mantequilla}} en una olla a fuego medio hasta que esté derretida.",
@@ -5174,7 +5186,8 @@
     ],
     "llevaSalsa": true,
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -5279,26 +5292,22 @@
       {
         "text": "Pelar {{Cebolla}} y laminar en juliana fina.",
         "minutes": 5,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{Mantequilla}} y {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que la mantequilla se funda.",
         "minutes": 2,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir la cebolla y {{Azúcar}} a la olla. Remover para integrar.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla a fuego suave, removiendo de vez en cuando, hasta que esté muy dorada y caramelizada.",
         "minutes": 30,
-        "kind": "pasivo",
-        "base": "sofrito"
+        "kind": "pasivo"
       },
       {
         "text": "Añadir {{Vino blanco}} y remover hasta que se evapore el alcohol.",
@@ -5359,7 +5368,8 @@
     "tecnica": "horno",
     "cocina": "francesa",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -5540,7 +5550,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_032",
@@ -5712,7 +5725,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_033",
@@ -6121,20 +6137,17 @@
       {
         "text": "Picar {{Puerro}} y {{Cebolla}} fino.",
         "minutes": 4,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{Mantequilla}} y {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que la mantequilla se funda.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír el puerro picado y la cebolla picada en la olla a fuego medio hasta que estén blandos y transparentes.",
         "minutes": 6,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Castañas cocidas y peladas}} y {{Caldo de pollo}} a la olla.",
@@ -6204,7 +6217,8 @@
       "pollo"
     ],
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -6336,7 +6350,10 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_037",
@@ -6502,7 +6519,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -6608,8 +6626,7 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté blanda y transparente.",
@@ -6692,7 +6709,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -7088,7 +7106,8 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -7506,7 +7525,10 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_043",
@@ -7521,6 +7543,9 @@
     "requiredAppliance": "batidora",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "caldo"
+    ],
     "time": 30,
     "difficulty": "facil",
     "season": "all",
@@ -8169,7 +8194,8 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -8481,7 +8507,8 @@
       {
         "text": "Sofreír el puerro y la cebolla a fuego suave hasta que estén tiernos y transparentes.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los corazones de alcachofa troceados y la patata en dados y saltear 3 min a fuego medio.",
@@ -8553,7 +8580,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -8916,7 +8944,8 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -9101,7 +9130,10 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_051",
@@ -9213,8 +9245,7 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
@@ -9303,7 +9334,8 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -9428,12 +9460,14 @@
       {
         "text": "Picar {{Cebolla}} finamente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} finamente.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
@@ -9522,7 +9556,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -9659,7 +9694,8 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo picados hasta que estén transparentes.",
@@ -9753,7 +9789,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -9769,6 +9806,9 @@
     "requiredAppliance": "batidora",
     "mainBase": "patatas",
     "baseMode": "dentro",
+    "basesAparte": [
+      "caldo"
+    ],
     "time": 45,
     "difficulty": "normal",
     "season": "verano",
@@ -10076,8 +10116,7 @@
       {
         "text": "Sofreír la cebolla y el puerro a fuego suave hasta que estén blandos.",
         "minutes": 8,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir los dados de calabaza y saltear a fuego medio removiendo.",
@@ -10170,7 +10209,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -10506,7 +10546,11 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "caldo",
+      "verdura_asada"
+    ]
   },
   {
     "id": "sopas_cremas_058",
@@ -10965,7 +11009,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "salsa_tomate"
+    ]
   },
   {
     "id": "sopas_cremas_060",
@@ -11115,6 +11162,9 @@
     "tecnica": "olla",
     "extraProteins": [
       "pollo"
+    ],
+    "basesAparte": [
+      "caldo"
     ]
   },
   {
@@ -11387,7 +11437,8 @@
     ],
     "tecnica": "plancha",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -11572,7 +11623,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -11884,7 +11936,8 @@
       {
         "text": "Verter {{Caldo de verduras}} y llevar a ebullición.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "caldo"
       },
       {
         "text": "Cocer a fuego medio hasta que el boniato esté muy tierno.",
@@ -11943,7 +11996,8 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -12233,8 +12287,7 @@
         "text": "Sofreír la cebolla y el puerro picados hasta que estén transparentes.",
         "minutes": 4,
         "kind": "activo",
-        "part": "principal",
-        "base": "sofrito"
+        "part": "principal"
       },
       {
         "text": "Añadir la patata en dados y {{Caldo de pollo}}, y llevar a ebullición.",
@@ -12322,7 +12375,8 @@
       "pollo"
     ],
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -12415,17 +12469,20 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "salsa_tomate"
       },
       {
         "text": "Sofreír el ajo laminado hasta que esté fragante, sin que tome color.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "salsa_tomate"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego medio, removiendo de vez en cuando.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "salsa_tomate"
       },
       {
         "text": "Verter {{Caldo de verduras}} y llevar a ebullición a fuego fuerte.",
@@ -12472,7 +12529,11 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "caldo",
+      "salsa_tomate"
+    ]
   },
   {
     "id": "sopas_cremas_068",
@@ -12791,14 +12852,12 @@
       {
         "text": "Sofreír la cebolla picada, el puerro picado y la zanahoria picada a fuego medio hasta que estén blandos.",
         "minutes": 8,
-        "kind": "pasivo",
-        "base": "sofrito"
+        "kind": "pasivo"
       },
       {
         "text": "Añadir {{Tomate concentrado}} y remover a fuego medio durante 1 min.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Verter {{Brandy}} y llevar a ebullición hasta que se evapore el alcohol.",
@@ -12891,7 +12950,8 @@
     "llevaSalsa": true,
     "occasion": "especial",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -12988,7 +13048,8 @@
       {
         "text": "Llevar a ebullición {{Caldo de verduras}} en un cazo a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "caldo"
       },
       {
         "text": "Añadir {{Guisantes congelados}} y el ajo pelado al caldo cuando rompa a hervir.",
@@ -13057,7 +13118,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_071",
@@ -13264,7 +13328,8 @@
     "tecnica": "horno",
     "cocina": "francesa",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -13474,7 +13539,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "sopas_cremas_073",
@@ -14188,7 +14256,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -14566,7 +14635,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -14904,7 +14974,8 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -15398,6 +15469,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "caldo"
     ]
   },
   {
@@ -15638,8 +15712,7 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
@@ -15690,7 +15763,8 @@
       }
     ],
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -15809,6 +15883,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "caldo"
     ]
   },
   {
@@ -15991,8 +16068,7 @@
         "text": "Triturar el sofrito de tomate con un túrmix hasta obtener una crema lisa.",
         "minutes": 2,
         "kind": "activo",
-        "part": "principal",
-        "base": "sofrito"
+        "part": "principal"
       },
       {
         "text": "Devolver el sofrito triturado a la cazuela y añadir {{Caldo de pollo}}.",
@@ -16039,7 +16115,8 @@
       }
     ],
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -16207,7 +16284,8 @@
       }
     ],
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -16331,6 +16409,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "caldo"
     ]
   },
   {

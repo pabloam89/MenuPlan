@@ -485,7 +485,8 @@
     "saturated_fat_g": 4,
     "sodium_mg": 320,
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -2746,7 +2747,10 @@
     "fiber_g": 1,
     "sugar_g": 3,
     "saturated_fat_g": 0,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "basesAparte": [
+      "salsa_tomate"
+    ]
   },
   {
     "id": "salsas_027",

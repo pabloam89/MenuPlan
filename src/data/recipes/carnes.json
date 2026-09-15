@@ -6732,8 +6732,7 @@
         "text": "Sofreír la cebolla, la zanahoria, el puerro y el ajo picados en el mismo aceite a fuego medio hasta que ablanden.",
         "minutes": 10,
         "kind": "activo",
-        "part": "principal",
-        "base": "sofrito"
+        "part": "principal"
       },
       {
         "text": "Añadir {{Laurel}} y {{Tomillo|pizca}} al sofrito y remover para integrar.",
@@ -6849,7 +6848,8 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -7619,7 +7619,10 @@
     ],
     "occasion": "especial",
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "carnes_041",
@@ -7848,7 +7851,8 @@
     "mainBase": "patatas",
     "baseMode": "aparte",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "segundo",
@@ -9308,7 +9312,8 @@
     "mainBase": "patatas",
     "baseMode": "aparte",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "segundo",
@@ -9519,8 +9524,7 @@
         "minutes": 5,
         "kind": "paralelo",
         "during": 8,
-        "part": "guarnicion",
-        "base": "patatas"
+        "part": "guarnicion"
       },
       {
         "text": "Cocer la patata en una olla con agua y sal al gusto. Hervir hasta que esté tierna.",
@@ -9853,7 +9857,10 @@
       "fruta"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "carnes_050",
@@ -10622,7 +10629,8 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -11140,7 +11148,8 @@
       {
         "text": "Sofreír la cebolla, la zanahoria y el ajo picados en la misma cazuela a fuego medio hasta que estén tiernos.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Devolver la carrillada ibérica a la cazuela junto con {{Laurel}}.",
@@ -11248,7 +11257,8 @@
     "estrella": true,
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -13458,7 +13468,10 @@
     "estrella": true,
     "tecnica": "horno",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "basesAparte": [
+      "salsa_tomate"
+    ]
   },
   {
     "id": "carnes_067",
@@ -13894,7 +13907,10 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "carnes_069",
@@ -14503,7 +14519,8 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -15152,6 +15169,9 @@
     "mainProtein": "ternera",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "caldo"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -15590,7 +15610,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -15601,7 +15622,8 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "segundo",
@@ -16026,20 +16048,17 @@
       {
         "text": "Pelar y picar {{Cebolla}} en brunoise fina.",
         "minutes": 3,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Pelar y picar {{Zanahoria}} en brunoise fina.",
         "minutes": 2,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Pelar {{Boniato}} y cortarlo en dados grandes.",
@@ -16069,14 +16088,12 @@
       {
         "text": "Bajar el fuego a medio y sofreír la cebolla picada, la zanahoria picada y el ajo picado en la misma cazuela hasta que estén tiernos.",
         "minutes": 8,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que pierda el agua y se concentre.",
         "minutes": 3,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Verter {{Vino tinto}} y subir el fuego hasta que se evapore el alcohol y el líquido reduzca a la mitad.",
@@ -16184,7 +16201,8 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "extraProteins": [
       "ternera"
@@ -16395,7 +16413,10 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "carnes_080",
@@ -16861,7 +16882,8 @@
     ],
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -17713,7 +17735,10 @@
     "mainIngredients": [
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "carnes_086",
@@ -18399,7 +18424,8 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -19517,7 +19543,8 @@
       {
         "text": "Añadir {{Mantequilla}} a la misma sartén y sofreír la cebolla a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar los champiñones laminados y saltear a fuego fuerte hasta que suelten el agua y se doren.",
@@ -19604,7 +19631,8 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -19615,7 +19643,8 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "segundo",
@@ -19930,7 +19959,8 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "requiredAppliance": "horno",
     "mealRole": [
@@ -20072,14 +20102,12 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla, la zanahoria y el ajo hasta que estén blandos.",
         "minutes": 8,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y dorar a fuego fuerte, deshaciendo los grumos.",
@@ -20640,7 +20668,8 @@
     "mainBase": "patatas",
     "baseMode": "aparte",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -21133,6 +21162,9 @@
     "mainProtein": "ternera",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "caldo"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -21242,8 +21274,7 @@
         "text": "Pelar {{Patata}} y laminar en rodajas finas de unos 3 mm.",
         "minutes": 5,
         "kind": "prep",
-        "part": "guarnicion",
-        "base": "patatas"
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Cebolla}} en juliana fina.",
@@ -22836,6 +22867,9 @@
     "mainProtein": "pollo",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "caldo"
+    ],
     "requiredAppliance": "horno",
     "mealRole": [
       "segundo",
@@ -23100,6 +23134,9 @@
     "mainProtein": "cerdo",
     "mainBase": "patatas",
     "baseMode": "aparte",
+    "basesAparte": [
+      "caldo"
+    ],
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -24003,7 +24040,10 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "carnes_113",
@@ -25399,7 +25439,8 @@
     "estrella": true,
     "tecnica": "olla",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ]
   },
   {
@@ -29264,7 +29305,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "carnes_139",
@@ -29725,7 +29769,8 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "mealRole": [
       "segundo",
@@ -29858,15 +29903,13 @@
         "text": "Picar {{Cebolla}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 1,
-        "base": "sofrito"
+        "during": 1
       },
       {
         "text": "Cortar {{Zanahoria}} en dados pequeños.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 1,
-        "base": "sofrito"
+        "during": 1
       },
       {
         "text": "Precalentar el horno a 200 °C.",

@@ -239,7 +239,12 @@ export function costeDeReactivar(base) {
 
 export function montajeTrasBases(receta, clavesListas) {
   const pasos = receta?.stepsRich ?? [];
-  const listas = new Set(clavesListas ?? clavesDeReceta(receta));
+  // Solo se acepta una LISTA. Un `esMontajeRapido` pasado a `.filter()` recibe
+  // el índice como segundo argumento, y un 0 ahí reventaba el Set; peor aún, un
+  // 1 habría pasado como "ninguna base lista" sin decir nada. Lo que no sea
+  // lista se trata como "no me has dicho nada", que es el valor por defecto.
+  const dadas = Array.isArray(clavesListas) ? clavesListas : null;
+  const listas = new Set(dadas ?? clavesDeReceta(receta));
 
   let minutos = 0;
   let minutosActivos = 0;
@@ -338,7 +343,7 @@ export function esMontajeRapido(receta, clavesListas) {
  */
 export function loQueGana(receta, clavesListas) {
   const sinNada = montajeTrasBases(receta, []);
-  const conTodo = montajeTrasBases(receta, clavesListas);
+  const conTodo = montajeTrasBases(receta, Array.isArray(clavesListas) ? clavesListas : undefined);
   return {
     relojAntes: sinNada.minutos,
     relojDespues: conTodo.minutos,

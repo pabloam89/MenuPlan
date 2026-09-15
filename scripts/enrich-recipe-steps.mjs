@@ -843,6 +843,10 @@ const NOMBRE_DE_BASE = {
   legumbre: "legumbre cocida (garbanzos, lentejas, alubias)",
   quinoa: "quinoa cocida",
   cuscus: "cuscús hidratado",
+  caldo: "caldo casero ya colado y guardado en botes",
+  salsa_tomate: "salsa de tomate casera ya hecha y reducida",
+  verdura_asada: "bandeja de verduras ya asadas al horno",
+  pesto: "pesto ya triturado y guardado en un bote",
 };
 
 /**

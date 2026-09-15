@@ -994,5 +994,552 @@
       }
     ],
     "description": "La base de medio recetario español: cebolla, ajo y pimiento pochados despacio con tomate. Es lo que más manos pide de un guiso y lo que mejor se guarda — en la nevera aguanta cuatro días y en el congelador, meses."
+  },
+  {
+    "id": "bases_009",
+    "name": "Caldo casero de pollo y verduras",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "caldo",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 2000,
+      "unit": "ml"
+    },
+    "time": 100,
+    "minutosFijos": 95,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 20,
+    "protein_g": 2,
+    "carbs_g": 1,
+    "fat_g": 1,
+    "fiber_g": 0,
+    "sugar_g": 1,
+    "saturated_fat_g": 0,
+    "sodium_mg": 210,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "apio"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Pollo troceado",
+        "ingredientId": "pollo",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "ingredientId": "puerro",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "ingredientId": "zanahoria",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "ingredientId": "apio",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "ingredientId": "laurel",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Lavar y trocear en grande {{Puerro}}, {{Zanahoria}}, {{Apio}} y {{Cebolla}}: para el caldo no hace falta picar fino.",
+        "minutes": 8,
+        "kind": "prep"
+      },
+      {
+        "text": "Poner {{Pollo troceado}} y la verdura en una olla grande, cubrir con agua fría y añadir {{Laurel}}.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar a ebullición a fuego fuerte y retirar la espuma que suba a la superficie.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego al mínimo y dejar que cueza destapado, sin hervir a borbotones.",
+        "minutes": 75,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colar el caldo, salar al gusto y retirar el pollo y la verdura.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar enfriar y repartir en botes o bolsas, dejando un dedo libre si van al congelador.",
+        "minutes": 4,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera y verter en un cazo la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar a fuego medio hasta que rompa a hervir.",
+        "minutes": 4,
+        "kind": "pasivo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Pasar la bolsa del congelador a la nevera la noche antes, o al cazo directamente a fuego suave.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar removiendo hasta que se deshaga del todo.",
+        "minutes": 6,
+        "kind": "pasivo"
+      }
+    ],
+    "steps": [
+      "Lavar y trocear en grande {{Puerro}}, {{Zanahoria}}, {{Apio}} y {{Cebolla}}: para el caldo no hace falta picar fino.",
+      "Poner {{Pollo troceado}} y la verdura en una olla grande, cubrir con agua fría y añadir {{Laurel}}.",
+      "Llevar a ebullición a fuego fuerte y retirar la espuma que suba a la superficie.",
+      "Bajar el fuego al mínimo y dejar que cueza destapado, sin hervir a borbotones.",
+      "Colar el caldo, salar al gusto y retirar el pollo y la verdura.",
+      "Dejar enfriar y repartir en botes o bolsas, dejando un dedo libre si van al congelador."
+    ],
+    "description": "Caldo de pollo y verduras colado, la base de arroces, cremas, guisos y sopas de toda la semana."
+  },
+  {
+    "id": "bases_010",
+    "name": "Salsa de tomate casera",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "salsa_tomate",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 800,
+      "unit": "g"
+    },
+    "time": 45,
+    "minutosFijos": 40,
+    "minutosPorRacion": 1,
+    "capacidadMax": 14,
+    "difficulty": "facil",
+    "kcal": 80,
+    "protein_g": 2,
+    "carbs_g": 8,
+    "fat_g": 5,
+    "fiber_g": 2,
+    "sugar_g": 6,
+    "saturated_fat_g": 1,
+    "sodium_mg": 290,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
+        "amount": 800,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "ingredientId": "azucar",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar muy fino {{Cebolla}} y {{Ajo}}.",
+        "minutes": 6,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva virgen extra}} en una cazuela y pochar la cebolla a fuego suave hasta que esté transparente.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo y darle un minuto, sin que llegue a dorarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}}, {{Sal}} y {{Azúcar}}, que es lo que le quita la acidez.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego lento, removiendo de vez en cuando, hasta que espese y el aceite suba a la superficie.",
+        "minutes": 22,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar y repartir en botes; se puede triturar si se quiere fina.",
+        "minutes": 4,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentarla un par de minutos en la sartén o en el cazo: gana con el reposo y reactiva perfecta.",
+        "minutes": 2,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Pasar el bote del congelador a la nevera la noche antes.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar en el cazo removiendo hasta que vuelva a ligar.",
+        "minutes": 5,
+        "kind": "pasivo"
+      }
+    ],
+    "steps": [
+      "Pelar y picar muy fino {{Cebolla}} y {{Ajo}}.",
+      "Calentar {{Aceite de oliva virgen extra}} en una cazuela y pochar la cebolla a fuego suave hasta que esté transparente.",
+      "Añadir el ajo y darle un minuto, sin que llegue a dorarse.",
+      "Incorporar {{Tomate triturado}}, {{Sal}} y {{Azúcar}}, que es lo que le quita la acidez.",
+      "Cocer a fuego lento, removiendo de vez en cuando, hasta que espese y el aceite suba a la superficie.",
+      "Dejar templar y repartir en botes; se puede triturar si se quiere fina."
+    ],
+    "description": "Salsa de tomate pochada despacio, lista para pasta, huevos, carnes en salsa y gratinados."
+  },
+  {
+    "id": "bases_011",
+    "name": "Verduras asadas al horno",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "verdura_asada",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 900,
+      "unit": "g"
+    },
+    "time": 50,
+    "minutosFijos": 45,
+    "minutosPorRacion": 2,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 110,
+    "protein_g": 3,
+    "carbs_g": 10,
+    "fat_g": 6,
+    "fiber_g": 4,
+    "sugar_g": 7,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "ingredientId": "calabacin",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "ingredientId": "berenjena",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "ingredientId": "oregano",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}}, {{Berenjena}}, {{Pimiento rojo}} y {{Cebolla morada}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+        "minutes": 10,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender la verdura en una bandeja sin amontonarla y aliñar con {{Aceite de oliva virgen extra}}, {{Sal}} y {{Orégano}}.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Asar hasta que los bordes empiecen a tostarse.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Remover y devolver al horno otros diez minutos, hasta que estén tiernas y doradas.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar destapadas para que no suden y repartir en tápers.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la verdura de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "En ensalada o en tosta va a temperatura ambiente; si se quiere caliente, un golpe de horno o de sartén, nunca de microondas, que las deja blandas.",
+        "minutes": 3,
+        "kind": "activo"
+      }
+    ],
+    "steps": [
+      "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+      "Cortar {{Calabacín}}, {{Berenjena}}, {{Pimiento rojo}} y {{Cebolla morada}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+      "Extender la verdura en una bandeja sin amontonarla y aliñar con {{Aceite de oliva virgen extra}}, {{Sal}} y {{Orégano}}.",
+      "Asar hasta que los bordes empiecen a tostarse.",
+      "Remover y devolver al horno otros diez minutos, hasta que estén tiernas y doradas.",
+      "Dejar templar destapadas para que no suden y repartir en tápers."
+    ],
+    "description": "Bandeja de calabacín, berenjena, pimiento y cebolla asados, para ensaladas, tostas, bowls y guarniciones."
+  },
+  {
+    "id": "bases_012",
+    "name": "Pesto casero de albahaca",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "pesto",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 300,
+      "unit": "g"
+    },
+    "time": 15,
+    "minutosFijos": 12,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 180,
+    "protein_g": 4,
+    "carbs_g": 2,
+    "fat_g": 18,
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 220,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "frutos_secos",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "ingredientId": "pinones",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "ingredientId": "parmesano",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 140,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, vigilando que no se quemen.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Lavar y secar bien {{Albahaca fresca}}: el agua es lo que hace que el pesto se oxide y se ponga oscuro.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar la albahaca con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Sal}}, a golpes cortos para que no se caliente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva virgen extra}} en hilo y seguir triturando hasta que ligue.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Pasar a un bote y cubrir con un dedo de aceite por encima: así aguanta una semana en la nevera sin perder el color.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera un rato antes: en frío el aceite está cuajado y no liga.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Remover para reintegrar la capa de aceite. No se calienta: al fuego se vuelve amargo y pierde el verde.",
+        "minutes": 1,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar los cubitos del congelador y dejarlos unas horas en la nevera.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Remover con una cucharada de agua de cocer la pasta para que vuelva a ligar.",
+        "minutes": 2,
+        "kind": "activo"
+      }
+    ],
+    "steps": [
+      "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, vigilando que no se quemen.",
+      "Lavar y secar bien {{Albahaca fresca}}: el agua es lo que hace que el pesto se oxide y se ponga oscuro.",
+      "Triturar la albahaca con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Sal}}, a golpes cortos para que no se caliente.",
+      "Añadir {{Aceite de oliva virgen extra}} en hilo y seguir triturando hasta que ligue.",
+      "Pasar a un bote y cubrir con un dedo de aceite por encima: así aguanta una semana en la nevera sin perder el color."
+    ],
+    "description": "Pesto de albahaca, piñones y parmesano, cubierto de aceite para que aguante la semana en la nevera."
   }
 ]

@@ -63,16 +63,22 @@ for (const file of readdirSync(RECIPES_DIR)) {
     const pasos = norm([...(r.steps ?? []), ...(r.stepsRich ?? []).map((s) => s.text)].join(" · "));
     if (!PASO_SOFRITO.test(pasos)) continue;
 
+    // El `continue` de basesAparte no es cosmetico: sin el, una receta que ya
+    // trajera basesAparte DESPUES de baseMode se escribia bien al llegar a
+    // baseMode y el propio bucle la pisaba con la lista vieja al llegar a
+    // basesAparte, perdiendo la marca en silencio. Paso en mark-bases-aparte.
+    const finales = [...(r.basesAparte ?? []), "sofrito"];
     const out = {};
     for (const [k, v] of Object.entries(r)) {
+      if (k === "basesAparte") continue;
       out[k] = v;
       // Justo detrás de baseMode si lo hay, o de mainBase: los tres ejes de
       // base se leen juntos.
       if (k === "baseMode" || (k === "mainBase" && !("baseMode" in r))) {
-        out.basesAparte = [...(r.basesAparte ?? []), "sofrito"];
+        out.basesAparte = finales;
       }
     }
-    if (!out.basesAparte) out.basesAparte = [...(r.basesAparte ?? []), "sofrito"];
+    if (!out.basesAparte) out.basesAparte = finales;
     recipes[i] = out;
     marcadas++;
     tocado = true;

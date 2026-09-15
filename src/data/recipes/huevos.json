@@ -9159,27 +9159,32 @@
         "text": "Picar {{Ajo}} fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "base": "salsa_tomate"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "salsa_tomate"
       },
       {
         "text": "Sofreír el ajo picado hasta que empiece a dorarse.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "salsa_tomate"
       },
       {
         "text": "Añadir {{Tomate triturado}} y salpimentar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "salsa_tomate"
       },
       {
         "text": "Cocer a fuego medio hasta que la salsa espese.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "salsa_tomate"
       },
       {
         "text": "Repartir la salsa de tomate entre 2 cazuelitas aptas para horno.",
@@ -9216,7 +9221,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "salsa_tomate"
+    ]
   },
   {
     "id": "huevos_062",
@@ -10168,7 +10176,8 @@
     "mainBase": "arroz",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "caldo"
     ],
     "time": 35,
     "difficulty": "normal",
@@ -10307,8 +10316,7 @@
       {
         "text": "Sofreír la cebolla y el ajo picados en la misma sartén a fuego medio hasta que estén tiernos.",
         "minutes": 4,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Arroz arborio}} y remover 1 min hasta que los granos estén nacarados.",
@@ -11344,7 +11352,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "huevos_073",
