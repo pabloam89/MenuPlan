@@ -9650,9 +9650,12 @@ export function OnboardingPantryMode({ data, setData, onNext, onBack, onFinish, 
 // Paso propio para el tiempo de cocina, separado de "¿Quién cocina y cómo?"
 // (nivel + herramientas). Aquí viven las 4 cards ilustradas de ritmo de cocina.
 export function OnboardingCookTime({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+  // Una línea. "¿Cuánto tiempo tienes para cocinar?" ocupaba dos en un móvil y
+  // empujaba las cards fuera de pantalla — y además ya no es lo que se pregunta
+  // primero: lo primero es CÓMO cocinas, y el ritmo viene detrás.
   return (
     <OnboardingShell
-      title="¿Cuánto tiempo tienes para cocinar?"
+      title="¿Cómo sueles cocinar?"
       subtitle="Ajustamos las recetas a tu ritmo"
       onBack={onBack}
       onReset={onReset}

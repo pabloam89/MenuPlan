@@ -10,6 +10,8 @@ import {
   cookLevelForMinutes,
 } from "../lib/cookTime.js";
 import { cookDayCounts, getMeals } from "../lib/planner.js";
+import { writeCookTimeTanda, cocinaEnTanda } from "../lib/cookTime.js";
+import { BasesPreferidas } from "./BasesPreferidas.jsx";
 
 const PERIODS = [
   { key: "weekday", label: "Entre semana", icon: BriefcaseBusiness },
@@ -293,6 +295,76 @@ function CookLevelChips({ selected, onSelect }) {
   );
 }
 
+/**
+ * Cómo sueles cocinar: cada día o en tanda. Es lo PRIMERO de la pantalla
+ * porque cambia lo que hay debajo — elegir "cada día" pide un ritmo por comida,
+ * y elegir "en tanda" pide qué bases te gusta tener hechas. Enseñar las dos
+ * cosas a la vez era pedirle al usuario que contestara una pregunta que aún no
+ * se le ha hecho.
+ */
+function ModoDeCocinar({ valor, onChange }) {
+  const OPCIONES = [
+    { id: "clasico", label: "Clásico", sub: "Cocino cada día", img: "/avatares/cards/wizard_timing/clasico.jpg" },
+    { id: "tanda", label: "Batch cooking", sub: "Cocino una vez y tiro toda la semana", img: "/avatares/cards/wizard_timing/batch.jpg" },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 16 }}>
+      {OPCIONES.map((o) => {
+        const sel = valor === o.id;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onChange(o.id)}
+            aria-pressed={sel}
+            style={{
+              position: "relative", display: "flex", flexDirection: "column",
+              alignItems: "stretch", padding: 0, overflow: "hidden", borderRadius: 15,
+              border: sel ? `2px solid ${SELECTED_TEAL}` : "1.5px solid #e2eae5",
+              background: "#fff",
+              boxShadow: sel ? "0 6px 18px rgba(15,118,110,.22)" : "0 1px 3px rgba(20,47,29,.05)",
+              cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+              transition: "all .16s cubic-bezier(.4,0,.2,1)",
+            }}
+          >
+            {sel && (
+              <span
+                style={{
+                  position: "absolute", top: 6, right: 6, zIndex: 2,
+                  width: 18, height: 18, borderRadius: 999,
+                  background: SELECTED_TEAL, border: "1.5px solid #fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <Check size={10} color="#fff" strokeWidth={3} />
+              </span>
+            )}
+            {/* 2:3, que es el formato en el que estan hechas. `cover` y no
+                `contain` porque llenan la caja de lado a lado y el personaje
+                vive en el centro: no hay nada que recortar que importe. */}
+            <span style={{ width: "100%", aspectRatio: "2 / 3", background: "#f2f6f3" }}>
+              <img
+                src={o.img}
+                alt=""
+                loading="lazy"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            </span>
+            <span style={{ padding: "9px 10px 10px" }}>
+              <span style={{ display: "block", fontSize: 13.5, fontWeight: 800, color: sel ? SELECTED_TEAL : "#1f3326" }}>
+                {o.label}
+              </span>
+              <span style={{ display: "block", fontSize: 11, color: "#6b7d70", marginTop: 2, lineHeight: 1.3 }}>
+                {o.sub}
+              </span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function CookTimeEditor({ data, setData, simple = false, showIntro = true }) {
   const cookTime = migrateCookTime(data);
   const targets = plannedMealTargets(getMeals(data));
@@ -316,6 +388,12 @@ export function CookTimeEditor({ data, setData, simple = false, showIntro = true
     ? periodTab
     : activePeriods[0]?.key ?? "weekday";
   const mealKey = targets.includes(mealTab) ? mealTab : targets[0];
+
+  // Cocinar en tanda o cada dia. `undefined` = todavia no lo ha dicho, y
+  // entonces se asume "clasico" para pintar algo — pero NO se escribe: una
+  // suposicion que se guarda sola deja de ser una suposicion.
+  const enTanda = cocinaEnTanda(data) === true;
+  const setTanda = (modo) => setData((d) => writeCookTimeTanda(d, modo === "tanda"));
 
   const setMode = (mode) => setData((d) => writeCookTimeMode(d, mode));
   const patchPeriod = (period, patch) => setData((d) => writeCookTimePeriod(d, period, patch));
@@ -343,6 +421,12 @@ export function CookTimeEditor({ data, setData, simple = false, showIntro = true
         </p>
       )}
 
+      <ModoDeCocinar valor={enTanda ? "tanda" : "clasico"} onChange={setTanda} />
+
+      {enTanda ? (
+        <BasesPreferidas data={data} setData={setData} />
+      ) : (
+        <>
       {dual && <CookTimeModeToggle mode={cookTime.mode} onChange={setMode} />}
 
       {activePeriods.length > 1 && (
@@ -361,7 +445,9 @@ export function CookTimeEditor({ data, setData, simple = false, showIntro = true
         />
       )}
 
-      <CookLevelChips selected={cookLevelForMinutes(currentMinutes)} onSelect={handleSelect} />
+          <CookLevelChips selected={cookLevelForMinutes(currentMinutes)} onSelect={handleSelect} />
+        </>
+      )}
     </>
   );
 }
