@@ -2054,7 +2054,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "ensaladas_verduras_012",
@@ -19985,7 +19988,8 @@
       "huevo"
     ],
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ]
   },
   {
@@ -20181,8 +20185,7 @@
       {
         "text": "Sofreír la cebolla picada y el ajo picado hasta que estén transparentes.",
         "minutes": 6,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y dorar deshaciendo los grumos hasta que esté bien cocinada.",
@@ -20208,22 +20211,26 @@
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 12
+        "during": 12,
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} a la mantequilla fundida y remover sin parar hasta obtener un roux dorado.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover hasta que la bechamel espese y esté lisa.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} a la bechamel y salpimentar; retirar del fuego y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Precalentar el horno a 190 °C.",
@@ -20321,7 +20328,8 @@
     "tecnica": "horno",
     "cocina": "arabe",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ]
   },
   {
@@ -21007,27 +21015,32 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar durante 1 min hasta obtener un roux homogéneo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Leche}} poco a poco sin dejar de remover hasta integrarla por completo.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Salpimentar con {{Sal|gusto}} y {{Pimienta negra|pizca}} y añadir {{Nuez moscada|pizca}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cocer la bechamel a fuego suave, removiendo, hasta que esté espesa y sin grumos, unos 5 min.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar las espinacas picadas a la bechamel y mezclar hasta integrarlas por completo.",
@@ -21102,7 +21115,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "type": "completo",

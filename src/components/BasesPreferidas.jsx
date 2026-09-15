@@ -41,22 +41,39 @@ const GREEN = "#2d5a3d";
  * ser cualquier cosa, y de `boniato` no había ninguna.
  */
 /**
- * El orden NO es el del enum: manda cuánto cubre cada una. El sofrito va
- * primero porque lo llevan 178 platos del recetario estrella — más que
- * patatas, pasta y arroz juntos— y porque es el único que ahorra trabajo de
- * MANOS: una olla de arroz son 18 minutos de los que 8 son tuyos; un sofrito
- * son 30 y son los 30.
+ * El orden NO es el del enum: manda cuánto TRABAJO te quita cada una, medido
+ * sobre el catálogo (ver `loQueGana` en lib/bases.js).
  *
- * Y no es una fécula, así que no está en MAIN_BASES: vive en `basesAparte`, y
+ * Delante van las cinco que ahorran MANOS, que es lo único que de verdad se
+ * ahorra: un sofrito son 30 minutos y son los 30 tuyos, y una bandeja de
+ * verdura asada quita 51 minutos de reloj y 7 de manos por plato, más que
+ * ninguna fécula. Detrás van las siete féculas, que ahorran ESPERA: hervir es
+ * pasivo, así que tener el arroz hecho no te quita cansancio, te quita los 18
+ * minutos que a las nueve de la noche deciden si cocinas eso o pides algo.
+ *
+ * Boniato, cuscús y quinoa se quedan aunque el catálogo solo tenga cinco, seis
+ * y siete platos de cada una —o sea que casi nunca juntarán dos en la misma
+ * semana— porque la decisión es de quien cocina, no nuestra: que cada uno
+ * marque lo que quiera.
+ *
+ * Las que no son fécula no están en MAIN_BASES: viven en `basesAparte`, y
  * `sesgos.js` casa por los dos sitios.
  */
-const ORDEN = ["sofrito", ...MAIN_BASES];
+const ORDEN = [
+  "sofrito", "verdura_asada", "salsa_tomate", "bechamel", "pesto", "caldo",
+  ...MAIN_BASES,
+];
 
 const BASES_UI = {
-  // Provisional: no hay ilustración de sofrito todavía. La cebolla es lo más
-  // honesto que hay — pochar cebolla ES el trabajo que un sofrito te ahorra—,
-  // y el bote de tomate frito habría dicho justo lo contrario de lo que es.
-  sofrito: { etiqueta: "Sofrito", foto: "cebolla" },
+  // Provisional: no hay ilustración propia de sofrito ni de verdura asada
+  // todavía, y las dos caen en el dibujo genérico de verduras. Son justo las
+  // dos que más ahorran, así que son las primeras que merecen una de verdad.
+  sofrito: { etiqueta: "Sofrito", foto: "sofrito" },
+  verdura_asada: { etiqueta: "Verdura asada", foto: "verduras asadas" },
+  salsa_tomate: { etiqueta: "Tomate", foto: "tomate frito" },
+  bechamel: { etiqueta: "Bechamel", foto: "bechamel" },
+  pesto: { etiqueta: "Pesto", foto: "pesto" },
+  caldo: { etiqueta: "Caldo", foto: "caldo de pollo" },
   arroz: { etiqueta: "Arroz", foto: "arroz" },
   pasta: { etiqueta: "Pasta", foto: "pasta corta" },
   patatas: { etiqueta: "Patatas", foto: "patata" },

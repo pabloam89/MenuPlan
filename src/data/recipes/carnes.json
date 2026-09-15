@@ -27382,27 +27382,32 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio hasta que esté líquida.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar durante 1 min hasta que la mezcla forme una pasta homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Verter {{Leche}} poco a poco sin dejar de remover hasta que no queden grumos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cocer a fuego medio sin dejar de remover hasta que la bechamel espese, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} y remover para integrar. Retirar el cazo del fuego y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Precalentar el horno con grill a 220 °C.",
@@ -27483,7 +27488,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "carnes_130",
@@ -30555,17 +30563,20 @@
       {
         "text": "Fundir {{Mantequilla}} en una cazuela a fuego medio hasta que esté completamente derretida.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar con una varilla hasta obtener una pasta homogénea.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Verter {{Leche}} poco a poco, sin dejar de remover, hasta integrar todo el líquido sin grumos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Jamón cocido en dados}} y {{Queso rallado}}; remover para integrarlos en la bechamel.",
@@ -30689,7 +30700,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "carnes_145",

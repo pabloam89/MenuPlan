@@ -280,32 +280,27 @@
       {
         "text": "Pelar y picar {{Cebolla}} en trozos muy finos.",
         "minutes": 3,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Pelar y picar {{Ajo}} en trozos muy finos.",
         "minutes": 1,
-        "kind": "prep",
-        "base": "sofrito"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en un cazo a fuego suave.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla picada en el cazo hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir el ajo picado y sofreír hasta que se dore ligeramente.",
         "minutes": 2,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Azúcar}}. Remover para mezclar bien.",
@@ -315,8 +310,7 @@
       {
         "text": "Cocer a fuego suave durante 20 min, removiendo de vez en cuando.",
         "minutes": 20,
-        "kind": "pasivo",
-        "base": "sofrito"
+        "kind": "pasivo"
       },
       {
         "text": "Añadir {{Sal|gusto}} y remover para integrar.",
@@ -337,10 +331,7 @@
     "fiber_g": 2,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 290,
-    "basesAparte": [
-      "sofrito"
-    ]
+    "sodium_mg": 290
   },
   {
     "id": "salsas_004",
@@ -483,11 +474,7 @@
     "fiber_g": 1,
     "sugar_g": 2,
     "saturated_fat_g": 4,
-    "sodium_mg": 320,
-    "basesAparte": [
-      "sofrito",
-      "caldo"
-    ]
+    "sodium_mg": 320
   },
   {
     "id": "salsas_005",
@@ -2747,10 +2734,7 @@
     "fiber_g": 1,
     "sugar_g": 3,
     "saturated_fat_g": 0,
-    "sodium_mg": 180,
-    "basesAparte": [
-      "salsa_tomate"
-    ]
+    "sodium_mg": 180
   },
   {
     "id": "salsas_027",

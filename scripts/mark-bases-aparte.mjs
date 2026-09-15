@@ -2,9 +2,9 @@
  * mark-bases-aparte.mjs
  *
  * Declara en `basesAparte` las preparaciones NO feculentas que un plato puede
- * aprovechar ya hechas: caldo, salsa de tomate, verdura asada y pesto.
+ * aprovechar ya hechas: caldo, salsa de tomate, verdura asada, pesto y bechamel.
  *
- * ── Por qué estas cuatro ───────────────────────────────────────────────────
+ * ── Por qué estas cinco ───────────────────────────────────────────────────
  * Salieron de medir el catálogo estrella: caldo lo llevan 142 platos y salsa
  * de tomate 103, más que ninguna base de fécula. Y son del tipo que de verdad
  * ahorra trabajo de MANOS, como el sofrito, no del que solo ahorra reloj: una
@@ -84,6 +84,18 @@ const CRITERIOS = {
     minIngredientes: 2,
     paso: /(asar|asad|hornea|al horno)[^.]{0,80}(verdura|calabaci|berenjena|pimiento|cebolla|calabaza|zanahoria|brocoli|coliflor)|(verdura|calabaci|berenjena|pimiento|calabaza)[^.]{0,80}(asar|asad|hornea|al horno)/,
   },
+  // La bechamel, igual que el pesto: o la compras (ingrediente "Bechamel") o la
+  // haces, y hacerla es siempre el mismo trio — mantequilla, harina y leche. La
+  // segunda señal es la que importa, porque esos platos sí tienen pasos que
+  // llevarse: fundir, tostar la harina y ligar son seis o siete minutos de
+  // varilla en los que no puedes hacer otra cosa.
+  bechamel: {
+    senales: [
+      { ids: /^bechamel$/ },
+      { ids: /^(mantequilla|harina|leche)$/, minIngredientes: 3 },
+    ],
+    paso: /bechamel|roux/,
+  },
   // El pesto o lo compras o lo haces, y las dos formas valen: si lo compras,
   // el ingrediente es "Pesto"; si lo haces, son albahaca y piñones juntos y en
   // la batidora. La segunda señal es la que importa, porque esos platos SÍ
@@ -115,7 +127,12 @@ for (const file of readdirSync(RECIPES_DIR)) {
 
   for (let i = 0; i < recipes.length; i++) {
     const r = recipes[i];
-    if (r.type === "base" || r.category === "bebes") continue;
+    // Ni las bases ni las SALSAS. Una salsa ya es, por definición, algo que se
+    // hace aparte: nunca ocupa un hueco del menú, así que contarla como
+    // consumidora de una tanda infla las raciones de una olla que nadie va a
+    // comerse. Y el caso que lo dejó claro fue circular: la receta "Bechamel"
+    // acabó declarando que aprovecha... bechamel ya hecha.
+    if (r.type === "base" || r.type === "salsa" || r.category === "bebes") continue;
 
     const pasos = norm([...(r.steps ?? []), ...(r.stepsRich ?? []).map((s) => s.text)].join(" · "));
     const nuevas = [];

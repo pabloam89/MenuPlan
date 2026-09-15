@@ -1142,7 +1142,7 @@
   },
   {
     "id": "bases_010",
-    "name": "Salsa de tomate casera",
+    "name": "Salsa de tomate base",
     "category": "bases",
     "mainProtein": "none",
     "baseKey": "salsa_tomate",
@@ -1275,7 +1275,7 @@
       "Cocer a fuego lento, removiendo de vez en cuando, hasta que espese y el aceite suba a la superficie.",
       "Dejar templar y repartir en botes; se puede triturar si se quiere fina."
     ],
-    "description": "Salsa de tomate pochada despacio, lista para pasta, huevos, carnes en salsa y gratinados."
+    "description": "Salsa de tomate pochada despacio y en cantidad, lista para pasta, huevos, carnes en salsa y gratinados."
   },
   {
     "id": "bases_011",
@@ -1541,5 +1541,145 @@
       "Pasar a un bote y cubrir con un dedo de aceite por encima: así aguanta una semana en la nevera sin perder el color."
     ],
     "description": "Pesto de albahaca, piñones y parmesano, cubierto de aceite para que aguante la semana en la nevera."
+  },
+  {
+    "id": "bases_013",
+    "name": "Bechamel base",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "bechamel",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "description": "Bechamel de textura media hecha en cantidad, para gratinados, croquetas, lasañas y verduras al horno.",
+    "rinde": {
+      "amount": 1200,
+      "unit": "ml"
+    },
+    "time": 25,
+    "minutosFijos": 18,
+    "minutosPorRacion": 1,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 90,
+    "protein_g": 3,
+    "carbs_g": 7,
+    "fat_g": 6,
+    "fiber_g": 0,
+    "sugar_g": 4,
+    "saturated_fat_g": 4,
+    "sodium_mg": 180,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Mantequilla",
+        "ingredientId": "mantequilla",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "ingredientId": "harina",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "ingredientId": "leche",
+        "amount": 1200,
+        "unit": "ml"
+      },
+      {
+        "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 6,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Medir {{Harina}} y reservar en un cuenco: con el fuego encendido no da tiempo a pesar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo amplio a fuego medio, sin que llegue a dorarse.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la harina de golpe y remover con varilla 2 min, hasta que la mezcla esté seca y sin color.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Leche}} poco a poco, en cuatro o cinco tandas, removiendo bien después de cada una.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave removiendo, hasta que espese y cubra el dorso de una cuchara.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal}} y {{Nuez moscada}}, remover y retirar del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en botes y cubrir con film a piel, pegado a la salsa, para que no haga costra.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera: en frío la bechamel está cuajada y se corta en tacos, es normal.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar a fuego suave con un chorro de leche y varilla hasta que vuelva a quedar lisa.",
+        "minutes": 4,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Pasar el bote del congelador a la nevera la noche antes.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar a fuego suave batiendo con varilla: al descongelar se corta y hay que volver a ligarla.",
+        "minutes": 6,
+        "kind": "activo"
+      }
+    ],
+    "steps": [
+      "Medir {{Harina}} y reservar en un cuenco: con el fuego encendido no da tiempo a pesar.",
+      "Fundir {{Mantequilla}} en un cazo amplio a fuego medio, sin que llegue a dorarse.",
+      "Añadir la harina de golpe y remover con varilla 2 min, hasta que la mezcla esté seca y sin color.",
+      "Verter {{Leche}} poco a poco, en cuatro o cinco tandas, removiendo bien después de cada una.",
+      "Cocer a fuego suave removiendo, hasta que espese y cubra el dorso de una cuchara.",
+      "Añadir {{Sal}} y {{Nuez moscada}}, remover y retirar del fuego.",
+      "Repartir en botes y cubrir con film a piel, pegado a la salsa, para que no haga costra."
+    ]
   }
 ]

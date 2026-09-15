@@ -847,6 +847,7 @@ const NOMBRE_DE_BASE = {
   salsa_tomate: "salsa de tomate casera ya hecha y reducida",
   verdura_asada: "bandeja de verduras ya asadas al horno",
   pesto: "pesto ya triturado y guardado en un bote",
+  bechamel: "bechamel ya hecha y guardada en un bote",
 };
 
 /**

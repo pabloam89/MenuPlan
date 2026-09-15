@@ -2897,7 +2897,8 @@
     "mainBase": "pasta",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ],
     "mealRole": [
       "plato_unico"
@@ -3006,8 +3007,7 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén grande a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "base": "sofrito"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla picada en {{@Sartén}} hasta que esté transparente, unos 5 min a fuego medio.",
@@ -3134,7 +3134,8 @@
     "mainBase": "pasta",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ],
     "mealRole": [
       "plato_unico"
@@ -7486,7 +7487,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito",
-      "caldo"
+      "caldo",
+      "bechamel"
     ],
     "mealRole": [
       "plato_unico",
@@ -7776,25 +7778,29 @@
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 2,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina de trigo}} a la mantequilla fundida y remover sin parar hasta obtener un roux dorado.",
         "minutes": 2,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover hasta que la bechamel espese y esté lisa.",
         "minutes": 8,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "bechamel"
       },
       {
         "text": "Salpimentar la bechamel al gusto y retirar del fuego.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "bechamel"
       },
       {
         "text": "Rallar {{Queso parmesano}}.",
@@ -10505,6 +10511,9 @@
     "mainProtein": "none",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "bechamel"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -10647,27 +10656,32 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina de trigo}} y remover sin parar 1 min hasta que la mezcla burbujee pero no coja color.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover con varillas a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Seguir removiendo hasta que la bechamel espese y quede sin grumos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} y sal al gusto; remover y retirar del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Mezclar los macarrones escurridos con la bechamel y la mitad del {{Queso rallado}}.",
@@ -10712,7 +10726,8 @@
     "mainBase": "pasta",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ],
     "mealRole": [
       "plato_unico",
@@ -10932,22 +10947,26 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego suave hasta que esté líquida.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina de trigo}} de golpe y remover sin parar hasta que forme una pasta dorada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover a fuego suave.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cocer la bechamel a fuego suave, removiendo sin parar, hasta que espese y no haya grumos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Hidratar {{Láminas de lasaña}} en agua caliente según las instrucciones del envase, si no son precocidas.",
@@ -11017,7 +11036,8 @@
     "mainBase": "pasta",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ],
     "mealRole": [
       "plato_unico",
@@ -11237,27 +11257,32 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina de trigo}} de golpe y remover sin parar hasta que se forme una pasta dorada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover hasta que no haya grumos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cocer la bechamel a fuego suave, removiendo, hasta que espese y tenga cuerpo.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} y {{Sal|gusto}}; remover y retirar del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Mezclar las espinacas picadas y los piñones tostados con un tercio de la bechamel en un bol.",
@@ -11328,7 +11353,8 @@
     "mainBase": "pasta",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ],
     "mealRole": [
       "plato_unico",
@@ -11515,7 +11541,8 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
@@ -11541,27 +11568,32 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego suave.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina de trigo}} de golpe y remover sin parar hasta que se forme una pasta dorada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover hasta que no queden grumos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cocer la bechamel a fuego suave, removiendo sin parar, hasta que espese y se despegue del cazo.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Salpimentar la bechamel con sal al gusto y retirar del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Mezclar el relleno reservado con un tercio de la bechamel hasta que esté bien ligado.",
@@ -11624,7 +11656,8 @@
     "mainBase": "pasta",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ],
     "mealRole": [
       "plato_unico",
@@ -11842,22 +11875,26 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina de trigo}} y remover sin parar hasta que la mezcla esté tostada y homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover, a fuego medio, hasta que la bechamel espese.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Salpimentar la bechamel y reservar fuera del fuego.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "bechamel"
       },
       {
         "text": "Hidratar {{Láminas de lasaña}} según las instrucciones del envase si no son precocidas.",
@@ -17006,7 +17043,8 @@
     "mainBase": "pasta",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ],
     "requiredAppliance": "horno",
     "mealRole": [
@@ -17187,22 +17225,26 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar 1 min hasta obtener una pasta homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Verter {{Leche entera}} poco a poco sin dejar de remover hasta que la bechamel espese a fuego suave.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} a la bechamel y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Mezclar los macarrones escurridos con el sofrito de atún y la mitad de la bechamel en un bol grande.",

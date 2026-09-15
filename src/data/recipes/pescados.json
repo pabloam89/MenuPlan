@@ -13639,7 +13639,8 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ]
   },
   {
@@ -22175,27 +22176,32 @@
       {
         "text": "Fundir el resto de la mantequilla en un cazo a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} al cazo y remover sin parar durante 1 min hasta formar un roux homogéneo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Verter {{Leche}} poco a poco sin dejar de remover para evitar grumos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cocer a fuego medio removiendo hasta obtener una bechamel espesa y lisa.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar las gambas, los mejillones y los champiñones reservados a la bechamel y remover.",
@@ -22229,7 +22235,10 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "pescados_116",

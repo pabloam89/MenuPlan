@@ -193,6 +193,23 @@ for (const r of recipes.filter((x) => x.type === "base")) {
   }
 }
 
+// ── Dos recetas no pueden llamarse igual ──────────────────────────────
+// El id lo vigila el bucle de arriba; el NOMBRE no lo vigilaba nadie, y es el
+// que ve el usuario. Pasó al crear la base de tomate: quedó una "Salsa de
+// tomate casera" en bases.json y otra en salsas.json, y en la lista de la
+// compra o en un menú no habría forma de saber cuál es cuál.
+const porNombre = new Map();
+for (const r of recipes) {
+  const clave = String(r.name ?? "").trim().toLowerCase();
+  if (!clave) continue;
+  (porNombre.get(clave) ?? porNombre.set(clave, []).get(clave)).push(`${r.id} (${r.type ?? "?"})`);
+}
+for (const [clave, ids] of porNombre) {
+  if (ids.length > 1) {
+    errors.push(`Dos recetas se llaman "${clave}": ${ids.join(", ")}. Un nombre es lo que ve el usuario.`);
+  }
+}
+
 if (errors.length > 0) {
   console.error(`❌ Catálogo inválido (${errors.length} error/es):`);
   for (const e of errors) console.error(`  - ${e}`);

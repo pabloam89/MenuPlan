@@ -29,7 +29,23 @@
  * y además es como habla la gente — nadie dice "para Lucía", dice "los niños".
  */
 
+import basesCatalog from "../data/recipes/bases.json";
 import { COCINAS, MAIN_BASES, TECNICAS } from "../data/recipeSchema.js";
+
+/**
+ * El dominio del eje `base`: las féculas más TODA base del catálogo que no lo
+ * sea. Derivado, no escrito a mano, por la misma razón que MAIN_BASES dejó de
+ * ser una lista suelta: una copia se queda atrás y nadie se entera.
+ *
+ * Y se quedó atrás. Decía `[...MAIN_BASES, "sofrito"]` cuando el catálogo ya
+ * tenía trece bases: verdura asada, salsa de tomate, bechamel, pesto y caldo
+ * estaban fuera del dominio, así que el panel no podía pedirlas ni aunque el
+ * usuario las escribiera con todas las letras.
+ */
+const DOMINIO_BASES = [
+  ...MAIN_BASES,
+  ...basesCatalog.map((b) => b.baseKey).filter((k) => k && !MAIN_BASES.includes(k)),
+];
 
 /** Los tres verbos. No hay más: el pool cerrado es lo que hace fiable el panel. */
 export const VERBOS = ["mas", "menos", "nunca"];
@@ -98,7 +114,7 @@ export const CAMPOS = [
     // platos del recetario estrella lo llevan, más que patatas, pasta y arroz
     // juntos, y es el único que ahorra TRABAJO de manos (30 minutos de picar y
     // pochar) en vez de tiempo de olla. `sesgos.js` lo casa por `basesAparte`.
-    dominio: [...MAIN_BASES, "sofrito"],
+    dominio: DOMINIO_BASES,
     proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "echo de menos más pasta",

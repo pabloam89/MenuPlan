@@ -2662,27 +2662,32 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio hasta que esté completamente derretida.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina de trigo}} de golpe y remover sin parar con unas varillas durante 2 min, hasta que la mezcla burbujee sin dorarse.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Verter {{Leche entera}} poco a poco sin dejar de remover con las varillas para evitar grumos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cocer la bechamel a fuego suave, removiendo constantemente, durante 5 min hasta que espese.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Nuez moscada molida|pizca}} y {{Sal|gusto}}, remover y retirar del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cubrir la coliflor reservada en la fuente con la bechamel, extendiéndola de forma uniforme.",
@@ -2742,7 +2747,10 @@
         "kind": "emplatado"
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "guarniciones_043",
@@ -2858,27 +2866,32 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina de trigo}} de golpe y remover sin parar hasta obtener una pasta homogénea.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche entera}} poco a poco, removiendo sin parar para evitar grumos.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cocer la bechamel a fuego suave, removiendo, hasta que espese y sea fina.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Nuez moscada molida|pizca}} y {{Sal|gusto}}; remover y retirar del fuego.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Precalentar el horno a 200 °C con función gratinar.",
@@ -2953,6 +2966,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "basesAparte": [
+      "bechamel"
     ]
   },
   {

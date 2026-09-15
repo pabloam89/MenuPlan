@@ -481,23 +481,27 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio-suave sin que se dore.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Calentar {{Leche}} en otro cazo a fuego suave hasta que esté caliente, sin que llegue a hervir.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} al roux de golpe y remover con varillas 2 min hasta obtener una pasta lisa y sin grumos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar la leche caliente poco a poco sin dejar de remover, esperando a que cada adición se integre antes de añadir la siguiente.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir el jamón picado y {{Nuez moscada|pizca}}; remover 1 min a fuego suave para integrar.",
@@ -596,7 +600,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "platos_unicos_004",
@@ -1941,17 +1948,20 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio hasta que esté completamente líquida.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar con unas varillas a fuego medio hasta que la mezcla se despegue de las paredes.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco, sin dejar de remover con las varillas a fuego medio, hasta que la bechamel esté espesa y sin grumos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir el bacalao desmigado y el perejil picado a la bechamel. Remover a fuego suave durante 2 min hasta que estén integrados.",
@@ -2039,7 +2049,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "platos_unicos_011",

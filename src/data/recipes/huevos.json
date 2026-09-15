@@ -6582,17 +6582,20 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar durante 1 min hasta que se forme una pasta dorada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Leche}} poco a poco sin dejar de remover hasta obtener una bechamel fina y sin grumos.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cubrir los huevos rellenos con la bechamel y espolvorear {{Queso rallado}} por encima.",
@@ -6614,7 +6617,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "huevos_046",
@@ -7177,22 +7183,26 @@
       {
         "text": "Fundir la mantequilla restante en un cazo a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar durante 1 min hasta que la mezcla se despegue del cazo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Cocer hasta que la bechamel espese y se despegue de las paredes; retirar del fuego.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir las yemas una a una a la bechamel templada, batiendo bien tras cada adición.",
@@ -7239,7 +7249,10 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "huevos_050",
@@ -7373,25 +7386,29 @@
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar durante 1 min hasta obtener una pasta homogénea.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Leche}} poco a poco sin dejar de remover a fuego medio hasta que la bechamel esté fina.",
         "minutes": 5,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "bechamel"
       },
       {
         "text": "Salpimentar la bechamel y retirar el cazo del fuego.",
         "minutes": 1,
         "kind": "activo",
-        "part": "salsa"
+        "part": "salsa",
+        "base": "bechamel"
       },
       {
         "text": "Colocar los huevos con el corte hacia arriba en una fuente de horno y distribuir el jamón cocido entre ellos.",
@@ -7429,7 +7446,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "huevos_051",
@@ -10729,22 +10749,26 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar 1 min hasta obtener una pasta homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover hasta que la bechamel espese y esté lisa.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Retirar el cazo del fuego y reservar la bechamel.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "bechamel"
       },
       {
         "text": "Desmenuzar las yemas reservadas sobre el relleno de txangurro.",
@@ -10789,7 +10813,8 @@
     "tecnica": "plancha",
     "occasion": "especial",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bechamel"
     ]
   },
   {
@@ -11872,27 +11897,32 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar 1 min hasta obtener una pasta homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Verter {{Leche}} poco a poco sin dejar de remover a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Remover sin parar hasta que la bechamel espese y se despegue de las paredes del cazo.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Sazonar la bechamel con {{Nuez moscada|pizca}} y sal al gusto.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Repartir las espinacas escurridas en 2 cazuelitas individuales aptas para horno.",
@@ -11931,7 +11961,10 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "huevos_076",
@@ -13237,22 +13270,26 @@
       {
         "text": "Fundir el resto de la mantequilla en un cazo a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar 1 min hasta obtener una pasta homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco, removiendo sin parar a fuego medio hasta que la bechamel espese.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Retirar el cazo del fuego y añadir {{Nuez moscada|pizca}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Queso parmesano rallado}} y las espinacas picadas; mezclar bien.",
@@ -13310,7 +13347,10 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "huevos_083",
