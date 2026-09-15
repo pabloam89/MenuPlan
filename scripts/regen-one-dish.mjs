@@ -32,7 +32,14 @@ if (!BLOB_TOKEN) { console.error("❌  BLOB_READ_WRITE_TOKEN no encontrado"); pr
 
 // A dish+garnish combo id ("carnes_002+guarniciones_001") splits into its two
 // display names so the shared prompt reads "<dish> con <garnish>".
-const [dishPart, garnishPart] = dishName.split(" con ");
+//
+// SOLO si el id es un combo. Partir por " con " a ciegas rompe cualquier plato
+// que lleve "con" en su nombre, que son cientos: "Bowl de verduras asadas con
+// quinoa y feta" se partia en plato "Bowl de verduras asadas" y guarnicion
+// "quinoa y feta", y el prompt acababa exigiendo que la quinoa se viera "como
+// acompanamiento separado" fuera del bol. Justo lo contrario del plato.
+const esCombo = comboId.includes("+");
+const [dishPart, garnishPart] = esCombo ? dishName.split(" con ") : [dishName, ""];
 const row = { combo_id: comboId, dish_name: dishPart ?? dishName, garnish_name: garnishPart ?? "" };
 
 const prompt = buildPrompt(row);

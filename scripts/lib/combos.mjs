@@ -38,7 +38,9 @@ export function buildPrompt(row) {
     `perfectamente centrado sobre un fondo de pizarra negra texturizada que llena todo el encuadre. ` +
     `Iluminación natural difusa y suave, texturas hiperrealistas, estética minimalista y rústica, ` +
     `calidad de libro de cocina. ` +
-    disambiguationClause(dish) +
+    // La verdad sobre si hay guarnición aparte está en la columna del CSV, no
+    // en si el nombre lleva " con ": ver disambiguationClause.
+    disambiguationClause(dish, { esCombo: Boolean((row.garnish_name || "").trim()) }) +
     `SOLO el bol con la comida en el encuadre: sin cubiertos, sin servilletas, sin manteles, ` +
     `sin cuencos adicionales, sin ingredientes sueltos alrededor, sin ningún objeto fuera del bol.`
   );
