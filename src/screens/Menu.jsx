@@ -109,6 +109,7 @@ import {
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
 import { recetaConBases } from "../lib/recetaConBases.js";
+import { claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
@@ -1568,6 +1569,20 @@ function useLongPress(onLongPress, onClick, { ms = 420, moveTol = 12 } = {}) {
 // MenuScreen and consumed by the deck tiles/cards without prop drilling.
 const ArmedContext = createContext(null);
 
+/**
+ * Las bases que ESTA semana merecen una tanda, por el mismo criterio que la
+ * vista Tanda: dos platos o más compartiendo olla.
+ *
+ * Va por contexto y no por props por la misma razón que `ArmedContext`: la
+ * usan las fichas del fondo del árbol y encadenarla a mano por Día, Semana y
+ * Mes sería tres sitios donde olvidarse de pasarla.
+ *
+ * Que un plato lleve sofrito no basta para marcarlo: si es el único de la
+ * semana que lo lleva, nadie va a hacer una tanda de sofrito y el icono estaría
+ * prometiendo algo que no va a pasar.
+ */
+const TandaContext = createContext(null);
+
 // Overlay that draws the traveling green "about to move" ring. Absolutely
 // positioned, so its host must be `position: relative`. `radius` matches the
 // host's border-radius so the ring hugs the corners exactly.
@@ -1973,6 +1988,11 @@ const DECK_VIEW_OPTIONS = [
   { id: "dia", label: "Día" },
   { id: "semana", label: "Semana" },
   { id: "mes", label: "Mes" },
+  // La cuarta NO es otro tramo de tiempo: es el mismo menú visto por lo que hay
+  // que cocinar ANTES. Va aquí y no en un sitio propio porque se mira en el
+  // mismo gesto que la semana — "¿qué comemos?" y "¿qué dejo hecho?" son la
+  // misma pregunta hecha desde dos lados.
+  { id: "tanda", label: "Tanda" },
 ];
 
 // Tres formas distintas para tres tramos distintos, y ahí está el cambio: antes
@@ -1984,8 +2004,8 @@ const DECK_VIEW_OPTIONS = [
 //
 // Ahora: un calendario (una fecha), una pila de hojas (varios días seguidos) y
 // una rejilla (que es literalmente lo que dibuja la vista de mes).
-const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers, mes: LayoutGrid };
-const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", mes: "#8a5cc4" };
+const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers, mes: LayoutGrid, tanda: CookingPot };
+const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", mes: "#8a5cc4", tanda: "#b2622f" };
 
 /** Flatten a day into photo tiles (one per dish/course, across visible groups).
  *  When the same dish (recipe + course) is planned for several groups in the
@@ -2034,6 +2054,7 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
 function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, showGroup = false, members = null, invitados = 0 }) {
   const { meal, group, slot, dish } = tile;
   const armed = useContext(ArmedContext);
+  const clavesTanda = useContext(TandaContext);
   const isEmpty = Boolean(tile.empty);
   const badgeGroups = tile.groups ?? (group ? [group] : []);
   const [failed, setFailed] = useState(false);
@@ -2060,6 +2081,13 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     press.onPointerDown?.(e);
     if (srcUrl) prefetchDeckHero(srcUrl, 720);
   };
+  // ¿Este plato tira de alguna tanda de esta semana? Se mira contra las bases
+  // que la sesión del domingo justifica, no contra las que el plato declara:
+  // un sofrito que nadie más comparte no se va a cocinar aparte.
+  const deTanda = Boolean(
+    recipe && clavesTanda?.size
+    && clavesDeReceta(recipe).some((c) => clavesTanda.has(c)),
+  );
   const emptyMealLabel = MEAL_META[meal]?.label ?? meal;
   if (isEmpty) {
     // Use the meal's own MenuPlan icon (Comida = Sol, Cena = Luna…) inside a soft
@@ -2227,7 +2255,26 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           ))}
         </div>
       )}
-      <div style={{ position: "absolute", left: compact ? 10 : 14, right: compact ? 10 : 14, bottom: compact ? 10 : 13 }}>
+      {deTanda && (
+        <div
+          title="Lleva algo que dejas hecho el domingo"
+          style={{
+            position: "absolute", right: compact ? 8 : 12, bottom: compact ? 8 : 12,
+            width: compact ? 22 : 28, height: compact ? 22 : 28, borderRadius: 999,
+            background: "rgba(255,255,255,.92)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+          }}
+        >
+          <CookingPot size={compact ? 12 : 15} color="#b2622f" strokeWidth={2.4} />
+        </div>
+      )}
+      <div style={{
+        position: "absolute", left: compact ? 10 : 14,
+        // Se aparta de la chapa de la tanda para que el título no pase por debajo.
+        right: (compact ? 10 : 14) + (deTanda ? (compact ? 26 : 34) : 0),
+        bottom: compact ? 10 : 13,
+      }}>
         <div
           style={{
             display: "flex",
@@ -3147,6 +3194,165 @@ function monthCellsFromWeeks(menuWeeks, data, visibleGroups) {
  * el detalle se toca el día: lleva a su semana y a su vista de día, que es
  * donde el plato ya se ve entero.
  */
+/**
+ * Vista "Tanda" — lo que hay que dejar hecho antes de que empiece la semana.
+ *
+ * No es otro tramo de tiempo como Día, Semana o Mes: es el MISMO menú visto por
+ * el otro lado. `sesionDeBases` mira los platos de la semana, agrupa los que
+ * comparten olla y saca qué bases merecen una tanda, cuántas raciones y a qué
+ * días alimenta cada una. Esa función existía desde hacía días sin que la
+ * llamara ninguna pantalla: todo el trabajo de etiquetar el catálogo terminaba
+ * en un número que nadie veía.
+ *
+ * Una base solo sale si la comparten DOS platos o más (MIN_PLATOS_POR_BASE):
+ * cocinar el arroz de un único plato no es una tanda, es cocinar.
+ *
+ * Las tarjetas son las del menú —foto real, dificultad y tiempo— porque una
+ * base es una receta como las demás y se abre igual. La ilustración de dibujo
+ * se queda en el selector del wizard, que es donde se ELIGE; aquí se cocina.
+ */
+function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
+  const comidas = getDayMeals(data);
+  const sesion = useMemo(() => {
+    const plan = {};
+    for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
+    return sesionDeBases(plan, RECIPES_BY_ID, { dias: days, comidas });
+  }, [days, comidas, menuPlan, visibleGroups]);
+
+  if (sesion.bases.length === 0) {
+    return (
+      <div style={{ padding: "28px 18px", textAlign: "center" }}>
+        <div style={{
+          width: 54, height: 54, borderRadius: 999, margin: "0 auto 12px",
+          background: "#f2f0e9", display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <CookingPot size={26} color="#b2622f" strokeWidth={2} />
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "#142f1d", marginBottom: 4 }}>
+          Esta semana no hay tanda
+        </div>
+        <div style={{ fontSize: 12.5, color: "#6b7d70", lineHeight: 1.45, maxWidth: 260, margin: "0 auto" }}>
+          Ninguna base la comparten dos platos o más, así que cocinarla el domingo
+          no te ahorraría nada.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "4px 14px 18px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "2px 2px 12px" }}>
+        <span style={{ fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.3px" }}>
+          Deja esto hecho
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#7a9485" }}>
+          {sesion.minutosTotales} min · {sesion.minutosActivosTotales} tuyos
+        </span>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {sesion.bases.map((b) => (
+          <BatchBaseCard key={b.base.id} entrada={b} onDishTap={onDishTap} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Una base de la sesión: la foto arriba como en el menú, y debajo a qué días
+ * alimenta. Los días son la mitad que importa — sin ellos esto es una lista de
+ * la compra, y con ellos es un plan.
+ */
+function BatchBaseCard({ entrada, onDishTap }) {
+  const { base, raciones, huecos, minutos, ahorroActivo } = entrada;
+  const [failed, setFailed] = useState(false);
+  const srcUrl = dishImageForRecipe(base);
+  const optimized = deckImg(srcUrl, 760);
+  const visual = visualForRecipe(base);
+  const showPhoto = optimized && !failed;
+
+  return (
+    <div style={{ borderRadius: 18, overflow: "hidden", background: "#fff", boxShadow: "0 6px 20px rgba(20,47,29,.12)" }}>
+      <button
+        type="button"
+        onClick={() => onDishTap?.({ recipe: base, browse: true })}
+        style={{
+          position: "relative", display: "block", width: "100%", height: 168,
+          border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit",
+          background: visual.surface, textAlign: "left",
+        }}
+      >
+        {showPhoto ? (
+          <img
+            src={optimized}
+            srcSet={deckSrcSet(srcUrl, 760)}
+            sizes="760px"
+            alt={base.name}
+            loading="lazy"
+            decoding="async"
+            onError={() => setFailed(true)}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          <div style={{ position: "absolute", inset: 0, background: visual.surface }} />
+        )}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(to top, rgba(0,0,0,.74) 0%, rgba(0,0,0,.25) 42%, rgba(0,0,0,0) 66%)",
+        }} />
+        <div style={{ position: "absolute", top: 12, right: 12 }}>
+          <DishSpecPills difficulty={base.difficulty} time={minutos} align="flex-end" />
+        </div>
+        <div style={{ position: "absolute", left: 14, right: 14, bottom: 12 }}>
+          <div style={{
+            color: "rgba(255,255,255,.95)", fontSize: 10.5, fontWeight: 800,
+            letterSpacing: ".7px", textTransform: "uppercase",
+            textShadow: "0 1px 6px rgba(0,0,0,.5)", marginBottom: 5,
+          }}>
+            Base · {raciones} raciones
+          </div>
+          <div style={{
+            color: "#fff", fontSize: 19, fontWeight: 900, lineHeight: 1.15,
+            letterSpacing: "-.3px", textShadow: "0 2px 12px rgba(0,0,0,.45)",
+          }}>
+            {base.name}
+          </div>
+        </div>
+      </button>
+
+      <div style={{ padding: "10px 14px 12px" }}>
+        {/* El ahorro en minutos TUYOS, y solo si lo hay. Ver `ahorroActivo` en
+            lib/bases.js: el de reloj se queda fuera porque prometía horas que
+            en realidad eran la olla hirviendo sola. */}
+        {ahorroActivo > 0 && (
+          <div style={{ fontSize: 11.5, fontWeight: 800, color: "#2d5a3d", marginBottom: 7 }}>
+            Te quita {ahorroActivo} min de estar delante entre semana
+          </div>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          {huecos.map((h) => (
+            <div key={`${h.groupId}-${h.clave}`} style={{ display: "flex", alignItems: "baseline", gap: 7, minWidth: 0 }}>
+              <span style={{
+                fontSize: 10.5, fontWeight: 900, color: "#b2622f", textTransform: "uppercase",
+                letterSpacing: ".5px", flexShrink: 0, minWidth: 30,
+              }}>
+                {dayLabel(String(h.clave).split("-")[0])?.slice(0, 3) ?? ""}
+              </span>
+              <span style={{
+                fontSize: 12.5, fontWeight: 700, color: "#3c5346", lineHeight: 1.3,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {h.nombre}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DeckMonth({ menuWeeks, data, visibleGroups, onPickDay }) {
   const cells = useMemo(
     () => monthCellsFromWeeks(menuWeeks, data, visibleGroups),
@@ -3330,7 +3536,15 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
+  const comidasDeLaSemana = getDayMeals(data);
+  const clavesTanda = useMemo(() => {
+    const plan = {};
+    for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
+    const s = sesionDeBases(plan, RECIPES_BY_ID, { dias: days, comidas: comidasDeLaSemana });
+    return new Set(s.bases.map((b) => claveDeBase(b.base)).filter(Boolean));
+  }, [days, comidasDeLaSemana, menuPlan, visibleGroups]);
   return (
+    <TandaContext.Provider value={clavesTanda}>
     <div key={deckView} className="deck-view-swap">
       {deckView === "dia" && (
         <DeckDayPager
@@ -3360,6 +3574,15 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           onPickDay={onPickMonthDay}
         />
       )}
+      {deckView === "tanda" && (
+        <DeckBatch
+          days={days}
+          data={data}
+          menuPlan={menuPlan}
+          visibleGroups={visibleGroups}
+          onDishTap={onDishTap}
+        />
+      )}
       {deckView === "lista" && (
         <DeckCalendar
           days={days}
@@ -3371,6 +3594,7 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
         />
       )}
     </div>
+    </TandaContext.Provider>
   );
 }
 

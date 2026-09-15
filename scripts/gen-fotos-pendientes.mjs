@@ -32,14 +32,30 @@ const RECIPES_DIR = join(ROOT, "src", "data", "recipes");
 const MANIFEST = join(ROOT, "src", "assets", "dishes", "dishImages.json");
 const CONFIRMA = process.argv.includes("--si");
 
+/**
+ * Lo que sale del HORNO y no de una olla, y por tanto se fotografía en bandeja.
+ *
+ * Solo dos. `patatas` NO está, aunque a primera vista lo parezca: nuestra base
+ * son "Patatas cocidas", enteras con piel en agua, y una bandeja de patatas
+ * doradas contaría otra receta — el mismo tipo de mentira que la foto que
+ * enseña una guarnición que el plato no lleva.
+ */
+const DE_BANDEJA = new Set(["bases_007", "bases_011"]);
+
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 const conFoto = new Set(Object.keys(manifest).filter((k) => !k.includes("+")));
 
 const pendientes = [];
 for (const file of readdirSync(RECIPES_DIR).filter((f) => f.endsWith(".json"))) {
   for (const r of JSON.parse(readFileSync(join(RECIPES_DIR, file), "utf8"))) {
-    // Las bases y las salsas no se enseñan como plato: no llevan foto propia.
-    if (r.type === "base" || r.type === "salsa") continue;
+    // Las BASES sí llevan foto desde que se enseñan en el menú: son recetas
+    // como las demás, con su dificultad, su tiempo y su ficha, y la pestaña de
+    // batch cooking las pinta con las mismas tarjetas que los platos. La
+    // ilustración de dibujo se queda donde estaba, en el selector del wizard.
+    //
+    // Las salsas siguen fuera porque no se enseñan en ninguna parte: nada
+    // apunta a ellas (`sauceId` está a cero en todo el catálogo).
+    if (r.type === "salsa") continue;
     if (conFoto.has(r.id)) continue;
     pendientes.push(r);
   }
@@ -65,7 +81,10 @@ for (const r of pendientes) {
   try {
     execFileSync(
       process.execPath,
-      ["--env-file=.env.local", join(__dirname, "regen-one-dish.mjs"), r.id, r.name],
+      [
+        "--env-file=.env.local", join(__dirname, "regen-one-dish.mjs"), r.id, r.name,
+        ...(DE_BANDEJA.has(r.id) ? ["--bandeja"] : []),
+      ],
       { cwd: ROOT, stdio: "inherit" },
     );
     ok += 1;

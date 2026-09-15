@@ -19,7 +19,8 @@ import { buildPrompt } from "./lib/combos.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 
-const [comboId, dishName] = process.argv.slice(2);
+const BANDEJA = process.argv.includes("--bandeja");
+const [comboId, dishName] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 if (!comboId || !dishName) {
   console.error('Uso: node --env-file=.env.local scripts/regen-one-dish.mjs <combo_id> "<Nombre>"');
   process.exit(1);
@@ -42,7 +43,7 @@ const esCombo = comboId.includes("+");
 const [dishPart, garnishPart] = esCombo ? dishName.split(" con ") : [dishName, ""];
 const row = { combo_id: comboId, dish_name: dishPart ?? dishName, garnish_name: garnishPart ?? "" };
 
-const prompt = buildPrompt(row);
+const prompt = buildPrompt(row, { bandeja: BANDEJA });
 console.log(`🎨  Prompt:\n${prompt}\n`);
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_KEY });

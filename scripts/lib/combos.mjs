@@ -30,11 +30,17 @@ export function displayName(row) {
 
 // The fixed style formula — identical wording for every image so the whole
 // catalogue stays visually consistent (overhead, speckled ceramic bowl, slate).
-export function buildPrompt(row) {
+export function buildPrompt(row, opts = {}) {
   const dish = displayName(row);
+  // El recipiente es SIEMPRE el mismo bol, salvo lo que sale del horno: una
+  // bandeja de verduras asadas metida en un cuenco pierde justo lo que la hace
+  // reconocible, que es la bandeja con los bordes tostados.
+  const recipiente = opts.bandeja
+    ? "Servido en una bandeja de horno rectangular de cerámica rústica, con los jugos tostados del asado en el fondo, "
+    : "Servido en un bol de cerámica rústica moteada de color crema con borde marrón oscuro, ";
   return (
     `Fotografía gastronómica cenital a exactamente 90 grados (vista de pájaro perfecta) de ${dish}. ` +
-    `Servido en un bol de cerámica rústica moteada de color crema con borde marrón oscuro, ` +
+    recipiente +
     `perfectamente centrado sobre un fondo de pizarra negra texturizada que llena todo el encuadre. ` +
     `Iluminación natural difusa y suave, texturas hiperrealistas, estética minimalista y rústica, ` +
     `calidad de libro de cocina. ` +
