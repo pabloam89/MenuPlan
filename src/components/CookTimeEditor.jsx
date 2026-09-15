@@ -339,19 +339,24 @@ function ModoDeCocinar({ valor, onChange }) {
                 <Check size={10} color="#fff" strokeWidth={3} />
               </span>
             )}
-            {/* Más bajas que el 2:3 en que están hechas: dos cards de 2:3 una al
-                lado de la otra empujaban el resto de la pantalla fuera del
-                móvil. Se recorta por ABAJO (`center 22%`), que es donde están
-                los pies: la cara y lo que sostiene —la sartén, los túpers— son
-                lo único que distingue una card de la otra. */}
-            <span style={{ width: "100%", aspectRatio: "4 / 5", background: "#f2f6f3" }}>
+            {/* Mucho más bajas que el 2:3 en que están hechas: dos cards
+                verticales una al lado de la otra empujaban el resto de la
+                pantalla fuera del móvil, y el paso entero pedía scroll para
+                ver las cuatro opciones de ritmo.
+
+                5:4 es el límite: se recorta por ABAJO con `center 12%`, que
+                deja la cabeza entera y la banda donde viven las manos — la
+                sartén de uno y los túpers de la otra son lo único que
+                distingue una card de la otra, así que perderlas sería perder
+                la card. Por debajo de esta altura ya se corta la cara. */}
+            <span style={{ width: "100%", aspectRatio: "5 / 4", background: "#f2f6f3" }}>
               <img
                 src={o.img}
                 alt=""
                 loading="lazy"
                 style={{
                   width: "100%", height: "100%", display: "block",
-                  objectFit: "cover", objectPosition: "center 22%",
+                  objectFit: "cover", objectPosition: "center 12%",
                 }}
               />
             </span>

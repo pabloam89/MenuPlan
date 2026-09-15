@@ -1,5 +1,8 @@
-import { Check } from "./icons.jsx";
+import { useState } from "react";
+
+import { Check, UtensilsCrossed } from "./icons.jsx";
 import { MAIN_BASES } from "../data/recipeSchema.js";
+import { ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizar as normalizarLibreta, poner, proyectar, valorDe } from "../lib/notepad.js";
 
 /**
@@ -24,36 +27,100 @@ import { normalizar as normalizarLibreta, poner, proyectar, valorDe } from "../l
  * de mandos. La libreta sigue siendo la única fuente.
  */
 
-// Las ilustraciones de INGREDIENTE, no las del juego de bases.
-//
-// Las de `categories/cut/base/` son cuencos genéricos y a ese tamaño no se
-// distinguen: "legumbre" salía como un cuenco beige que podía ser cualquier
-// cosa, y de `boniato` no había. Un garbanzo concreto se reconoce al instante
-// aunque el eje se llame `legumbre` — el usuario no elige una palabra del
-// enum, elige una olla que conoce.
-const ARTE = {
-  arroz: "/ingredients/arroz.png",
-  pasta: "/ingredients/pasta-corta.png",
-  patatas: "/ingredients/patata.png",
-  boniato: "/ingredients/boniato.png",
-  legumbre: "/ingredients/garbanzos.png",
-  quinoa: "/ingredients/quinoa.png",
-  cuscus: "/ingredients/cuscus.png",
+const GREEN = "#2d5a3d";
+
+/**
+ * Qué se enseña por cada base. El eje se llama `legumbre`, pero lo que se
+ * reconoce de un vistazo es un garbanzo: el usuario no elige una palabra del
+ * enum, elige una olla que conoce. Por eso el nombre del dibujo y la etiqueta
+ * van por separado del id.
+ *
+ * Las ilustraciones salen de `ingredientThumbSrc`, o sea el MISMO resolvedor
+ * que usa Añadir ingredientes. Antes se usaban las de `categories/cut/base/`, y
+ * a este tamaño no se distinguían — "legumbre" era un cuenco beige que podía
+ * ser cualquier cosa, y de `boniato` no había ninguna.
+ */
+const BASES_UI = {
+  arroz: { etiqueta: "Arroz", foto: "arroz" },
+  pasta: { etiqueta: "Pasta", foto: "pasta corta" },
+  patatas: { etiqueta: "Patatas", foto: "patata" },
+  boniato: { etiqueta: "Boniato", foto: "boniato" },
+  legumbre: { etiqueta: "Garbanzos", foto: "garbanzos" },
+  quinoa: { etiqueta: "Quinoa", foto: "quinoa" },
+  cuscus: { etiqueta: "Cuscús", foto: "cuscus" },
 };
 
-const ETIQUETA = {
-  arroz: "Arroz",
-  pasta: "Pasta",
-  patatas: "Patatas",
-  boniato: "Boniato",
-  // El eje se llama `legumbre`, pero lo que se ve y se entiende es el
-  // garbanzo. La etiqueta acompaña al dibujo, no al nombre interno.
-  legumbre: "Legumbre",
-  quinoa: "Quinoa",
-  cuscus: "Cuscús",
-};
-const SELECTED_TEAL = "#0f766e";
+/**
+ * Ficha de base: el dibujo arriba y el nombre DEBAJO, sobre blanco.
+ *
+ * Nació copiando tal cual la de Añadir ingredientes, que lleva el nombre
+ * encima de la foto sobre un degradado oscuro. Allí funciona porque hay
+ * decenas de ingredientes y la foto manda; aquí son siete y el degradado
+ * ensuciaba unas ilustraciones que ya vienen sobre blanco — ponía una sombra
+ * grisácea sobre el cuenco. Con el nombre fuera, el dibujo se ve limpio y la
+ * etiqueta se lee sin pelearse con él.
+ */
+function FichaDeBase({ id, elegida, onToggle }) {
+  const ui = BASES_UI[id] ?? { etiqueta: id, foto: id };
+  const img = ingredientThumbSrc(ui.foto);
+  const [failed, setFailed] = useState(false);
+  const showImg = Boolean(img) && !failed;
 
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(id)}
+      aria-pressed={elegida}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "stretch",
+        gap: 0, padding: 0, border: "none", borderRadius: 10, cursor: "pointer",
+        fontFamily: "inherit", overflow: "hidden",
+        background: elegida ? "#e8f5ec" : "#fff",
+        outline: elegida ? `2px solid ${GREEN}` : "1.5px solid #e8efe9",
+        outlineOffset: -1.5,
+        transition: "background .14s ease, outline .14s ease",
+        position: "relative",
+      }}
+    >
+      <span style={{ width: "100%", aspectRatio: "1 / 1", display: "block" }}>
+        {showImg ? (
+          <img
+            src={img}
+            alt=""
+            onError={() => setFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+          />
+        ) : (
+          <span style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <UtensilsCrossed size={14} color="#bcc9c4" strokeWidth={1.5} />
+          </span>
+        )}
+      </span>
+      <span
+        style={{
+          display: "block", padding: "3px 4px 6px",
+          fontSize: 9.5, fontWeight: 800, textAlign: "center",
+          lineHeight: 1.15, letterSpacing: "-.1px",
+          color: elegida ? GREEN : "#2f4a3a",
+        }}
+      >
+        {ui.etiqueta}
+      </span>
+      {elegida && (
+        <span
+          style={{
+            position: "absolute", top: 3, right: 3,
+            width: 13, height: 13, borderRadius: 999,
+            background: GREEN, display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 1px 3px rgba(0,0,0,.2)",
+          }}
+        >
+          <Check size={8} strokeWidth={3.5} color="#fff" />
+        </span>
+      )}
+    </button>
+  );
+}
 export function BasesPreferidas({ data, setData }) {
   const libreta = normalizarLibreta(data?.notepad);
   const elegida = (id) => (valorDe(libreta, `base.${id}`) ?? 0) > 0;
@@ -69,82 +136,14 @@ export function BasesPreferidas({ data, setData }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 12px", lineHeight: 1.45 }}>
-        Marca las que te gusta tener hechas. Buscaremos platos que las compartan,
-        para que una olla te sirva para varios días.
+      <p style={{ fontSize: 12, color: "#6b7d70", margin: "0 0 10px", lineHeight: 1.4 }}>
+        Marca las que te gusta tener hechas: buscaremos platos que compartan olla.
       </p>
 
-      {/* Cuatro columnas y fichas pequeñas, como las de Añadir ingredientes:
-          son siete opciones de una lista cerrada, no siete decisiones. A
-          tamaño de card ocupaban media pantalla y pesaban más que la pregunta. */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-        {MAIN_BASES.map((id) => {
-          const sel = elegida(id);
-          const img = ARTE[id];
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => alternar(id)}
-              aria-pressed={sel}
-              style={{
-                position: "relative",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 4,
-                padding: "8px 4px 7px",
-                borderRadius: 12,
-                border: sel ? `2px solid ${SELECTED_TEAL}` : "1.5px solid #e2eae5",
-                background: "#fff",
-                boxShadow: sel ? "0 6px 18px rgba(15,118,110,.22)" : "0 1px 3px rgba(20,47,29,.05)",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                transition: "all .16s cubic-bezier(.4,0,.2,1)",
-              }}
-            >
-              {sel && (
-                <span
-                  style={{
-                    position: "absolute", top: 3, right: 3,
-                    width: 15, height: 15, borderRadius: 999,
-                    background: SELECTED_TEAL, border: "1.5px solid #fff",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <Check size={9} color="#fff" strokeWidth={3} />
-                </span>
-              )}
-              <span
-                style={{
-                  width: "100%",
-                  aspectRatio: "1 / 1",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {img ? (
-                  <img
-                    src={img}
-                    alt=""
-                    loading="lazy"
-                    style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                  />
-                ) : (
-                  // Sin arte todavía. Una inicial grande es honesta y no finge
-                  // ser una ilustración: se ve que falta y se puede pulsar igual.
-                  <span style={{ fontSize: 20, fontWeight: 900, color: "#cfe0d5" }}>
-                    {ETIQUETA[id]?.[0] ?? "?"}
-                  </span>
-                )}
-              </span>
-              <span style={{ fontSize: 10, fontWeight: 800, color: sel ? SELECTED_TEAL : "#2f4a3a" }}>
-                {ETIQUETA[id] ?? id}
-              </span>
-            </button>
-          );
-        })}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 9 }}>
+        {MAIN_BASES.map((id) => (
+          <FichaDeBase key={id} id={id} elegida={elegida(id)} onToggle={alternar} />
+        ))}
       </div>
     </div>
   );
