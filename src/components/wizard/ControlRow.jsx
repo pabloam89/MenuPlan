@@ -117,13 +117,15 @@ function Baldosa({ pregunta, tocado, onClick }) {
 export function ControlRow({
   data, notepad, reparto, sesgos, movidas, porQue,
   onReparto, onSesgos, onData, onAplicar, tocados = new Set(),
+  acciones = null, accionesAbiertas = false, onAccionesAbiertas,
 }) {
   const [abierta, setAbierta] = useState(null);
   const controles = controlesVisibles(notepad, data);
-  if (controles.length === 0) return null;
+  if (controles.length === 0 && !acciones) return null;
 
   const pregunta = controles.find((p) => p.id === abierta) ?? null;
   const hayQueRehacer = tocados.size > 0 && Boolean(onAplicar);
+  const conAcordeon = Boolean(acciones);
 
   return (
     <>
@@ -131,32 +133,87 @@ export function ControlRow({
           la cabecera: sin él, las baldosas flotaban sobre el mismo blanco que
           el resto y no se leían como una barra de mandos. */}
       <div
-        data-coach="wizard-controles"
         style={{
-          display: "flex", gap: 4, overflowX: "auto",
+          display: "flex", alignItems: "center",
           // Sangra hasta el borde: el contenedor de la cabecera ya mete 16px
           // de lado, y una franja de fondo cortada a 16px del borde parece un
           // recuadro suelto en vez de una barra.
-          margin: "0 -16px", padding: "12px 16px",
+          margin: "0 -16px",
           background: "#f4f8f5",
           borderTop: "1px solid #eef3f0",
           // Cuando la barra sale, la línea de abajo es la SUYA: si la llevaran
           // las dos, quedaba un filete gris cruzando el medio de la franja.
           borderBottom: hayQueRehacer ? "none" : "1px solid #eef3f0",
-          paddingBottom: hayQueRehacer ? 10 : 12,
-          scrollbarWidth: "none", msOverflowStyle: "none",
         }}
       >
-        <style>{`[data-coach="wizard-controles"]::-webkit-scrollbar { display: none; }`}</style>
+        {/* ── El acordeón horizontal, como el de Gente ─────────────────
+            Las otras acciones del menú —activar, favorito, el resto— viven
+            plegadas asomando por el borde izquierdo, y comparten fila con las
+            baldosas. Al desplegarse, las baldosas se pliegan en el mismo
+            gesto y se cierra con la X del final.
 
-        {controles.map((p) => (
-          <Baldosa
-            key={p.id}
-            pregunta={p}
-            tocado={tocados.has(p.id)}
-            onClick={() => setAbierta(p.id)}
-          />
-        ))}
+            Son dos cosas que nunca se necesitan a la vez: o estás ajustando
+            el menú o estás haciendo algo CON el menú. Así la cabecera no
+            tiene que crecer para tener las dos, que es lo que pasaba en
+            cuanto la semana traía su propio paso de semanas.
+
+            Los dos paneles están siempre montados y lo que se anima es su
+            reparto (`flex-grow`): desmontar uno daría el salto a mitad de
+            animación. Y por defecto se ven las BALDOSAS — lo otro asoma. */}
+        {conAcordeon && (
+          <div
+            className="mp-hpanel"
+            style={{
+              // La base se queda fija y lo que se anima es cuánto crece:
+              // interpolar de px a % no lo sabe hacer el navegador.
+              flexBasis: 46, flexGrow: accionesAbiertas ? 1 : 0, flexShrink: 0,
+              paddingTop: 12, paddingBottom: hayQueRehacer ? 10 : 12,
+            }}
+            {...(accionesAbiertas ? {} : {
+              role: "button",
+              tabIndex: 0,
+              "aria-label": "Otras acciones del menú",
+              onClick: () => onAccionesAbiertas?.(true),
+              onKeyDown: (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onAccionesAbiertas?.(true);
+                }
+              },
+            })}
+          >
+            {acciones}
+          </div>
+        )}
+
+        <div
+          className="mp-hpanel"
+          data-coach="wizard-controles"
+          style={{
+            display: "flex", gap: 4, overflowX: "auto",
+            // Base 0 y todo el reparto por flex-grow, para que el gesto sea el
+            // mismo número animándose en los dos paneles a la vez.
+            flexBasis: 0,
+            flexGrow: conAcordeon && accionesAbiertas ? 0 : 1,
+            opacity: conAcordeon && accionesAbiertas ? 0 : 1,
+            padding: "12px 16px",
+            paddingLeft: conAcordeon ? 8 : 16,
+            paddingBottom: hayQueRehacer ? 10 : 12,
+            scrollbarWidth: "none", msOverflowStyle: "none",
+          }}
+          aria-hidden={conAcordeon && accionesAbiertas}
+        >
+          <style>{`[data-coach="wizard-controles"]::-webkit-scrollbar { display: none; }`}</style>
+
+          {controles.map((p) => (
+            <Baldosa
+              key={p.id}
+              pregunta={p}
+              tocado={tocados.has(p.id)}
+              onClick={() => setAbierta(p.id)}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Una sola barra para toda la fila, y solo cuando hay algo que rehacer.

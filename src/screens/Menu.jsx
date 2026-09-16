@@ -1,4 +1,4 @@
-import { createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { cloneElement, createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -4869,6 +4869,9 @@ export const MenuScreen = memo(function MenuScreen({
   }, [deckView, autoDemo]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(true);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  // Las otras acciones del menú, plegadas en la fila de mandos. Ver
+  // `accionesDelMenu` más abajo.
+  const [accionesAbiertas, setAccionesAbiertas] = useState(false);
   const [confirmDeleteActive, setConfirmDeleteActive] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => {
     const jsDay = new Date().getDay();
@@ -4902,6 +4905,130 @@ export const MenuScreen = memo(function MenuScreen({
     user && activeMenu && activeMenu.activatedAt === null && onActivateMenu,
   );
   const hasMenu = !isGenerating && !error && hasVisibleMenu;
+
+  /**
+   * Las otras acciones del menú —activar, favorito, y la puerta al resto—
+   * plegadas a la izquierda de la fila de mandos, como Publicar en Gente.
+   *
+   * Vivían sueltas arriba a la derecha, y esa esquina ya estaba llena: en
+   * cuanto la semana trae su propio paso de semanas no queda sitio para nada
+   * más, y cualquier mando nuevo —las bases, sin ir más lejos— no tenía
+   * dónde entrar. Aquí comparten fila con las baldosas y se turnan: o ajustas
+   * el menú o haces algo CON el menú, nunca las dos a la vez.
+   *
+   * Por defecto se ven las BALDOSAS. Lo otro asoma por el borde, y lo que
+   * asoma es el rayo cuando el menú está sin activar — ese aviso no puede
+   * quedarse detrás de un pliegue, que es justo para lo que está.
+   */
+  const accionesEnLaFila = hasMenu && Boolean(wizardControls);
+  const abrirAcciones = useCallback((v) => setAccionesAbiertas(v), []);
+  const accionesDelMenu = useMemo(() => {
+    const puedeActivar = Boolean(onActivateMenu && menuNeedsActivation);
+    const puedeFavorito = Boolean(onToggleFavorite && user);
+    const pastilla = (extra) => ({
+      display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0,
+      height: 30, padding: "0 11px", borderRadius: 999,
+      border: "1.5px solid #dbe7df", background: "#fff", color: "#2d5a3d",
+      fontSize: 11.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+      whiteSpace: "nowrap", ...extra,
+    });
+    return (
+      <div
+        style={{
+          // Nace pegada al borde izquierdo —la franja ya sangra hasta el
+          // borde— y solo se redondea por la derecha, que es el lado que se ve
+          // cuando está plegada.
+          display: "flex", alignItems: "center", gap: 6, minWidth: "100%",
+          padding: "5px 8px 5px 10px",
+          borderRadius: "0 14px 14px 0", background: "#fff",
+          boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
+          boxSizing: "border-box",
+          cursor: accionesAbiertas ? "default" : "pointer",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: 30, height: 30, borderRadius: 999, flexShrink: 0,
+            background: puedeActivar ? "#fff6e0" : "#eef4ef",
+            color: puedeActivar ? "#c9922a" : "#2d5a3d",
+          }}
+        >
+          {puedeActivar
+            ? <Zap size={16} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
+            : <MenuIcon size={16} strokeWidth={2.4} />}
+        </span>
+
+        {/* El contenido no se desmonta al plegar: se queda detrás del recorte y
+            reaparece deslizándose. Montarlo y desmontarlo lo haría aparecer de
+            golpe a mitad de la animación. */}
+        <span
+          style={{
+            display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0,
+            opacity: accionesAbiertas ? 1 : 0,
+            pointerEvents: accionesAbiertas ? "auto" : "none",
+            transition: "opacity .2s ease",
+          }}
+        >
+          {puedeActivar && (
+            <button
+              type="button"
+              onClick={onActivateMenu}
+              title="Activar menú — En casa se moverá según tus preferencias"
+              style={pastilla({ background: "#fff6e0", borderColor: "#f0d48a", color: "#8a6415" })}
+            >
+              <Zap size={14} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
+              Activar
+            </button>
+          )}
+          {puedeFavorito && (
+            <button
+              type="button"
+              onClick={onToggleFavorite}
+              aria-pressed={activeFavorite}
+              style={pastilla(activeFavorite
+                ? { background: "#fff0f3", borderColor: "#f6bcc9", color: "#a32740" }
+                : {})}
+            >
+              <Heart
+                size={14}
+                strokeWidth={2.4}
+                color={activeFavorite ? "#e0405a" : "#2d5a3d"}
+                fill={activeFavorite ? "#e0405a" : "none"}
+              />
+              {activeFavorite ? "Guardado" : "Favorito"}
+            </button>
+          )}
+          <button
+            type="button"
+            data-coach="menu-options"
+            onClick={() => setHeaderMenuOpen(true)}
+            aria-haspopup="menu"
+            aria-expanded={headerMenuOpen}
+            style={pastilla({ background: headerMenuOpen ? "#e8f0ea" : "#fff" })}
+          >
+            <MenuIcon size={14} strokeWidth={2.4} />
+            Más
+          </button>
+        </span>
+
+        {accionesAbiertas && (
+          <button
+            type="button"
+            onClick={() => setAccionesAbiertas(false)}
+            aria-label="Cerrar"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              width: 24, height: 24, borderRadius: 999, border: "none",
+              background: "rgba(20,47,29,.07)", color: "#7a8a7f", cursor: "pointer",
+            }}
+          >
+            <X size={13} strokeWidth={2.8} />
+          </button>
+        )}
+      </div>
+    );
+  }, [accionesAbiertas, activeFavorite, headerMenuOpen, menuNeedsActivation, onActivateMenu, onToggleFavorite, user]);
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
@@ -5184,6 +5311,9 @@ export const MenuScreen = memo(function MenuScreen({
             </h2>
             <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
+          {/* Cuando caben en la fila de mandos, estas tres se van allí plegadas
+              y la cabecera se queda solo con el título. Ver `accionesDelMenu`. */}
+          {!accionesEnLaFila && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {/* Guardar como favorito solo tiene sentido con cuenta: sin ella no
                 hay histórico/favoritos persistentes donde recuperarlo, así que
@@ -5237,6 +5367,7 @@ export const MenuScreen = memo(function MenuScreen({
               <MenuIcon size={18} strokeWidth={2.4} />
             </button>
           </div>
+          )}
           {headerMenuOpen && (
             <div
               onClick={() => setHeaderMenuOpen(false)}
@@ -5398,7 +5529,17 @@ export const MenuScreen = memo(function MenuScreen({
         {/* La fila de mandos del wizard, justo bajo el selector de vistas: se
             lee como "esto de aquí arriba controla lo de abajo". Solo con menú
             delante — sin platos que ajustar, un mando no significa nada. */}
-        {hasMenu && wizardControls}
+        {/* Las acciones se le inyectan a la fila ya montada en vez de subirlas
+            a App: los manejadores —activar, favorito, el panel de opciones—
+            viven aquí, y hacerlos viajar por dos componentes para volver al
+            mismo sitio no le añade nada a nadie. */}
+        {accionesEnLaFila
+          ? cloneElement(wizardControls, {
+              acciones: accionesDelMenu,
+              accionesAbiertas,
+              onAccionesAbiertas: abrirAcciones,
+            })
+          : hasMenu && wizardControls}
       </div>
 
       {/* ── Second divider: end of nav zone (solo clásico; en deck sobra) ── */}
