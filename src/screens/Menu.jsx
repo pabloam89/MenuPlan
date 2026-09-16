@@ -3381,9 +3381,18 @@ function BatchBaseCard({ entrada, onDishTap }) {
   const showPhoto = optimized && !failed;
 
   return (
+    <div>
     <button
       type="button"
-      onClick={() => onDishTap?.({ recipe: receta, browse: true })}
+      onClick={() => onDishTap?.({
+        recipe: receta,
+        // `slot` NO es opcional aunque se abra en modo catálogo: la ficha lee
+        // `slot.eaters` sin protección en varios sitios, así que abrirla sin él
+        // revienta. El catálogo pasa uno fabricado por el mismo motivo, y aquí
+        // los comensales son las raciones de la TANDA, que es lo que se cocina.
+        slot: { eaters: raciones },
+        browse: true,
+      })}
       style={{
         position: "relative", display: "block", width: "100%", height: 186,
         // El mismo radio que las fichas de Día y Semana: son la misma tarjeta
@@ -3443,20 +3452,6 @@ function BatchBaseCard({ entrada, onDishTap }) {
           textShadow: "0 1px 6px rgba(0,0,0,.5)", marginBottom: 5,
         }}>
           Base · {raciones} raciones
-          {/* Cuánto aguanta y qué hay que congelar. No es un detalle de cocina:
-              el arroz cocido son dos días por seguridad, no por textura, y una
-              tarjeta que dice "6 raciones" sin decir eso invita a dejarlas en
-              la nevera hasta el viernes. */}
-          {diasEnNevera != null && (
-            <span style={{ fontWeight: 700, opacity: .85 }}>
-              {" · "}{diasEnNevera} días en nevera
-            </span>
-          )}
-          {racionesCongelador > 0 && (
-            <span style={{ fontWeight: 700, opacity: .85 }}>
-              {" · "}{racionesCongelador} al congelador
-            </span>
-          )}
         </div>
         <div style={{
           color: "#fff", fontSize: 20, fontWeight: 900, lineHeight: 1.15,
@@ -3466,6 +3461,30 @@ function BatchBaseCard({ entrada, onDishTap }) {
         </div>
       </div>
     </button>
+
+    {/* Dónde se guarda, DEBAJO y con sus iconos.
+        Dentro de la foto y separado por puntos —"6 raciones · 4 días en nevera
+        · 2 al congelador"— no se sabía si el 2 eran días o raciones, y la foto
+        acababa con cuatro datos encima. Los iconos son los mismos que ya usa
+        el menú para la nevera y el congelador. */}
+    <div style={{
+      display: "flex", alignItems: "center", gap: 14,
+      padding: "8px 4px 0", fontSize: 11.5, fontWeight: 700, color: "#6b7d70",
+    }}>
+      {diasEnNevera != null && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+          <Refrigerator size={14} color="#2f6d8a" strokeWidth={2.4} />
+          {diasEnNevera === 1 ? "1 día" : `${diasEnNevera} días`}
+        </span>
+      )}
+      {racionesCongelador > 0 && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+          <Snowflake size={14} color="#3d6b93" strokeWidth={2.4} />
+          {racionesCongelador === 1 ? "1 ración" : `${racionesCongelador} raciones`}
+        </span>
+      )}
+    </div>
+    </div>
   );
 }
 
