@@ -97,6 +97,7 @@ import {
   cookedEatersFor,
   fridgePortionsFor,
   frozenPortionsFor,
+  catalogIdOfPlanRecipe,
   itemPortions,
   pickFridgeItem,
   pickFrozenItem,
@@ -3265,10 +3266,36 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
   // fallo, porque no hay forma de saber que hay que regenerar.
   const sinCubrir = useMemo(() => {
     const puestas = new Set(sesion.bases.map((b) => claveDeBase(b.base)));
-    return Object.keys(basesPedidas(data?.sesgos))
-      .filter((c) => !puestas.has(c))
-      .map((c) => BASES_UI[c]?.etiqueta ?? c);
-  }, [sesion, data?.sesgos]);
+    const pedidas = Object.keys(basesPedidas(data?.sesgos)).filter((c) => !puestas.has(c));
+    if (pedidas.length === 0) return [];
+
+    // Cuántos platos de la semana llevan cada una. El número es la explicación:
+    // cero y uno son situaciones distintas y la frase tiene que decir cuál es.
+    const recetas = lookupDeTanda();
+    const cuenta = Object.fromEntries(pedidas.map((c) => [c, 0]));
+    for (const g of visibleGroups) {
+      const slots = menuPlan?.[g.id];
+      if (!slots) continue;
+      for (const dia of days) {
+        for (const comida of comidas) {
+          const slot = slots[`${dia}-${comida}`];
+          if (!slot) continue;
+          for (const rid of [slot.firstRecipeId, slot.recipeId]) {
+            if (!rid) continue;
+            const receta = recetas.get(catalogIdOfPlanRecipe(rid));
+            if (!receta) continue;
+            for (const c of clavesDeReceta(receta)) {
+              if (c in cuenta) cuenta[c] += 1;
+            }
+          }
+        }
+      }
+    }
+    return pedidas.map((c) => ({
+      etiqueta: BASES_UI[c]?.etiqueta ?? c,
+      platos: cuenta[c],
+    }));
+  }, [sesion, data?.sesgos, visibleGroups, menuPlan, days, comidas]);
 
   if (sesion.bases.length === 0) {
     return (
@@ -3307,15 +3334,28 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
         ))}
       </div>
 
+      {/* Lo pedido que esta semana no da para una tanda, con el motivo delante.
+          Cero platos y un plato son cosas distintas: la primera es que el menú
+          se generó antes de pedirlo, la segunda es que una tanda necesita DOS
+          que compartan olla. Decir "no lo comparten dos platos" sin el número
+          no explicaba ninguna de las dos. */}
       {sinCubrir.length > 0 && (
-        <p style={{
-          margin: "14px 2px 0", fontSize: 12, color: "#6b7d70", lineHeight: 1.45,
-        }}>
-          {sinCubrir.length === 1
-            ? `Pediste ${sinCubrir[0]} y esta semana no lo comparten dos platos, así que no hay tanda que hacer.`
-            : `Pediste ${sinCubrir.join(", ")} y esta semana no los comparten dos platos, así que no hay tanda que hacer.`}
-          {" "}Regenera la semana para que entren.
-        </p>
+        <div style={{ margin: "16px 2px 0" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: "#142f1d", marginBottom: 6 }}>
+            Lo que pediste y no cabe
+          </div>
+          {sinCubrir.map((b) => (
+            <div key={b.etiqueta} style={{ fontSize: 12, color: "#6b7d70", lineHeight: 1.5 }}>
+              <strong style={{ color: "#3c5346" }}>{b.etiqueta}:</strong>{" "}
+              {b.platos === 0
+                ? "ningún plato del menú la lleva."
+                : "solo la lleva un plato, y una tanda necesita dos que compartan olla."}
+            </div>
+          ))}
+          <div style={{ fontSize: 12, color: "#6b7d70", lineHeight: 1.5, marginTop: 6 }}>
+            El menú se generó antes de que lo pidieras. Regéneralo y entrarán.
+          </div>
+        </div>
       )}
     </div>
   );
