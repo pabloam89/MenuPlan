@@ -74,6 +74,57 @@ describe("regla 11b · las bases pedidas salen o no salen", () => {
     expect(new Set(v.map((x) => x.slotId)).size).toBe(2);
   });
 
+  it("no ofrece un hueco donde esa base no cabe", () => {
+    // El caso que dejaba la regla en nada: se ofrecía un primero corto para la
+    // bechamel cuando todos los platos con bechamel son segundos largos. La
+    // violación salía, la reparación no encontraba nada, y el hueco se quedaba
+    // igual. Con 21 huecos y dos bases pedidas colocaba CERO.
+    const pool = [
+      receta("solo-segundo", { basesAparte: ["bechamel"], mealRole: ["segundo"], time: 70 }),
+      receta("primero-1", { mealRole: ["primero"], time: 20 }),
+      receta("primero-2", { mealRole: ["primero"], time: 20 }),
+    ];
+    const slots = [
+      { slotId: "lun_comida_1", mode: "normal", maxTime: 30 },
+      { slotId: "mar_comida_1", mode: "normal", maxTime: 30 },
+    ];
+    const v = validateMenu(
+      [{ slotId: "lun_comida_1", recipeId: "primero-1" }, { slotId: "mar_comida_1", recipeId: "primero-2" }],
+      pool, slots, [], {}, { bechamel: 1 },
+    ).violations.filter((x) => x.rule === "base_pedida_insuficiente");
+    // Ni un hueco: los dos son primeros de 30 min y el único plato con bechamel
+    // es un segundo de 70.
+    expect(v).toEqual([]);
+  });
+
+  it("arreglar OTRA regla no puede llevarse por delante una base ya colocada", () => {
+    // Nadie revalida el menú entre arreglo y arreglo, así que sin esto la
+    // reparación de bases colocaba los platos y las veintitantas siguientes los
+    // sacaban otra vez: el menú acababa con cero habiendo pasado por dos.
+    const pool = [
+      receta("con-sofrito", { basesAparte: ["sofrito"] }),
+      receta("sin-1"),
+      receta("sin-2"),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena")];
+    const antes = [
+      { slotId: "lun_cena", recipeId: "con-sofrito" },
+      { slotId: "mar_cena", recipeId: "sin-1" },
+    ];
+    // Una violación de OTRA regla sobre el hueco que lleva el sofrito.
+    const otra = [{ rule: "rol_incompatible_con_hueco", slotId: "lun_cena", message: "" }];
+
+    // Sin decirle qué bases se han pedido, se lo lleva.
+    expect(
+      applyFallback(antes, otra, pool, slots).find((s) => s.slotId === "lun_cena")?.recipeId,
+    ).not.toBe("con-sofrito");
+
+    // Diciéndoselo, busca un sustituto que TAMBIÉN lleve sofrito; como no hay,
+    // deja el hueco como estaba en vez de deshacer la tanda.
+    const protegido = applyFallback(antes, otra, pool, slots, [], null, { sofrito: 1 });
+    expect(protegido.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("con-sofrito");
+  });
+
   it("el arreglo mete un plato que SÍ lleva esa base", () => {
     const antes = [
       { slotId: "lun_cena", recipeId: "con-sofrito" },

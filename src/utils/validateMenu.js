@@ -947,7 +947,29 @@ export function validateMenu(
       // Se ceden los ÚLTIMOS huecos sin base, por el mismo motivo que la 11
       // se lleva los últimos excesos: los primeros días de la semana son los
       // que el usuario ya ha visto y moverá menos.
-      const candidatos = sinBasePedida.filter((m) => !ofrecidos.has(m.slotId)).slice(-faltan);
+      //
+      // Pero solo huecos donde esa base PUEDA entrar. Sin esto se ofrecía un
+      // primero de 36 minutos para la bechamel, cuando todos los platos con
+      // bechamel son segundos de 35 a 70: la violación salía, la reparación no
+      // encontraba nada y el hueco se quedaba igual. Con 21 huecos y dos bases
+      // pedidas, colocaba CERO.
+      const cabeAqui = (m) => {
+        const ctxSlot = contextBySlot[m.slotId];
+        const partes = m.slotId.split("_");
+        return filteredPool.some((r) => {
+          if (!clavesDeReceta(r).includes(clave)) return false;
+          if (ctxSlot?.maxTime && r.time > ctxSlot.maxTime) return false;
+          if (ctxSlot?.mode === "tupper" && !r.tupperFriendly) return false;
+          return slotAcceptsRole(r, {
+            mealType: ctxSlot?.mealType ?? partes[1],
+            position: ctxSlot?.position ?? partes[2],
+            preferType: ctxSlot?.preferType,
+          });
+        });
+      };
+      const candidatos = sinBasePedida
+        .filter((m) => !ofrecidos.has(m.slotId) && cabeAqui(m))
+        .slice(-faltan);
       for (const c of candidatos) {
         ofrecidos.add(c.slotId);
         violations.push({
@@ -1104,7 +1126,7 @@ export const GUARD_FOR_RULE = {
  * with the first valid alternative from the filtered pool.
  * Also fills missing slots that the LLM omitted.
  */
-export function applyFallback(slotAssignments, violations, filteredPool, slotsContext, activeHealthProfiles = [], freqs = null) {
+export function applyFallback(slotAssignments, violations, filteredPool, slotsContext, activeHealthProfiles = [], freqs = null, basesPedidas = null) {
   const result = slotAssignments.map((s) => ({ ...s }));
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
   const contextBySlot = Object.fromEntries(
@@ -1148,6 +1170,18 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (usedIds.has(r.id)) return false;
       if (ctx.maxTime && r.time > ctx.maxTime) return false;
       if (ctx.mode === "tupper" && !r.tupperFriendly) return false;
+      // Llevar la base pedida es una restricción DURA, no una preferencia.
+      //
+      // Estaba solo en el filtro de `findReplacement`, y el último recurso —el
+      // que repite un plato antes que dejar el hueco vacío— no pasa por ahí:
+      // usa esta función. Así que metía cualquier plato, daba la violación por
+      // arreglada, y la base seguía sin aparecer. En una semana de 21 huecos
+      // pedir dos de bechamel y dos de tomate colocaba CERO de cada.
+      //
+      // Cambiar un hueco por otro plato que tampoco lleva la base no arregla
+      // nada: solo mueve la cena de sitio.
+      if (v.rule === "base_pedida_insuficiente" && v.targetKey
+        && !clavesDeReceta(r).includes(v.targetKey)) return false;
       // Shared with the validation rule (see slotAcceptsRole) so repair can
       // never accept something detection would reject, or vice versa.
       return slotAcceptsRole(r, {
@@ -1233,7 +1267,18 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
   }
 
   // Fix other violations by replacing offending recipes
-  const otherViolations = violations.filter((v) => v.rule !== "slot_faltante");
+  // Las de BASE primero. Es la única regla que exige una propiedad concreta del
+  // plato —que lleve esa base— y por tanto la que menos candidatos tiene: dos
+  // o tres en todo el pool. Las demás (proteína seguida, plato repetido, cena
+  // desproporcionada) tienen cientos, así que saben apañárselas alrededor.
+  //
+  // Al revés no funcionaba: las otras veintitantas reparaciones se comían los
+  // huecos y los platos antes de llegar aquí, y una semana que pide dos de
+  // bechamel y dos de tomate acababa con cero de cada aunque hubiera candidatos.
+  const otherViolations = violations
+    .filter((v) => v.rule !== "slot_faltante")
+    .sort((a, b) => (b.rule === "base_pedida_insuficiente" ? 1 : 0)
+      - (a.rule === "base_pedida_insuficiente" ? 1 : 0));
   for (const v of otherViolations) {
     const idx = result.findIndex((s) => s.slotId === v.slotId);
     if (idx === -1) continue;
@@ -1461,6 +1506,32 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       guardTiers.push(dropped);
     }
 
+    // Qué bases pedidas lleva el plato que se va a QUITAR y quedarían por debajo
+    // de lo pedido si se va. El sustituto tiene que traerlas.
+    //
+    // Es el mismo principio que ya sujeta los hidratos del día: nadie
+    // revalida el menú entre arreglo y arreglo, así que un arreglo no puede
+    // deshacer lo que otro acaba de conseguir. Sin esto, la reparación de
+    // bases colocaba los dos platos de bechamel y las veintitantas siguientes
+    // —proteína seguida, plato repetido, cena desproporcionada— los sacaban
+    // otra vez: el menú acababa con cero, habiendo pasado por dos.
+    const basesQueNoPuedenIrse = (() => {
+      const fuera = new Set();
+      const actual = poolById[slot.recipeId];
+      if (!actual || !basesPedidas) return fuera;
+      for (const clave of clavesDeReceta(actual)) {
+        const pedidas = basesPedidas[clave];
+        if (!(pedidas > 0)) continue;
+        let n = 0;
+        for (const s2 of result) {
+          const r2 = poolById[s2.recipeId];
+          if (r2 && clavesDeReceta(r2).includes(clave)) n += 1;
+        }
+        if (n <= pedidas) fuera.add(clave);
+      }
+      return fuera;
+    })();
+
     const findReplacement = (droppedGuards, { relaxMaxTime = false } = {}) => filteredPool.find((r) => {
       if (usedIds.has(r.id) && r.id !== slot.recipeId) return false;
       if (r.id === slot.recipeId) return false;
@@ -1506,6 +1577,11 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       // base que falta, que es justo el motivo de cambiar este hueco.
       if (v.rule === "base_pedida_insuficiente" && v.targetKey) {
         if (!clavesDeReceta(r).includes(v.targetKey)) return false;
+      }
+
+      // Y no se puede DESHACER una base ya colocada para arreglar otra cosa.
+      for (const clave of basesQueNoPuedenIrse) {
+        if (!clavesDeReceta(r).includes(clave)) return false;
       }
 
       // Y el tope, SIEMPRE, se arregle lo que se arregle: meter el candidato no

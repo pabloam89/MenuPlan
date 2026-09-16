@@ -1321,6 +1321,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       ctx.slots,
       ctx.config.healthProfiles,
       achievableFreqs,
+      basesDeLaSemana,
     );
     // A violation the fallback could not repair leaves the offending dish in
     // the menu (dropping it would open a hole). It used to do so with no trace
@@ -1513,6 +1514,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
           ctx.slots,
           ctx.config.healthProfiles,
           achievableFreqs,
+          basesDeLaSemana,
         );
       }
 
