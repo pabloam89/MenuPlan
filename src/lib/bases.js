@@ -359,6 +359,36 @@ export function loQueGana(receta, clavesListas) {
 }
 
 /**
+ * Hasta cuántos platos de cada base puede dar la semana. El tope del deslizador.
+ *
+ * Son DOS límites distintos y el que manda es el menor:
+ *
+ *   absoluto   — cuántos platos con esa base hay en el recetario, repartidos
+ *                entre las semanas que se generan de una vez. En un menú de
+ *                cuatro semanas cada una recibe su propio cuarto del catálogo
+ *                (ver `poolForWeek`), así que el cuscús, con seis platos en
+ *                todo el catálogo, da para uno por semana y no para cinco.
+ *   compartido — los huecos que quedan libres después de lo que ya se ha
+ *                pedido de las demás. Si llenas la semana de quinoa, deja de
+ *                caber tanto arroz; en la semana siguiente vuelve a caber,
+ *                porque el presupuesto es de CADA semana, no del menú entero.
+ *
+ * Lo compartido es conservador a propósito: un mismo plato puede servir a dos
+ * bases a la vez —una pasta con verduras asadas cuenta para las dos— así que
+ * sumar lo pedido sobrestima los huecos necesarios. Preferimos quedarnos cortos:
+ * pasarse significa prometer una tanda que luego se cae con un aviso.
+ *
+ * @param {number} disponibles platos del pool con esa base
+ * @param {{semanas?: number, huecosLibres?: number}} opts
+ */
+export function topeDeBase(disponibles, { semanas = 1, huecosLibres = null } = {}) {
+  const porSemana = Math.floor((Number(disponibles) || 0) / Math.max(1, semanas));
+  const topes = [porSemana, MAX_POR_SEMANA];
+  if (huecosLibres != null) topes.push(huecosLibres);
+  return Math.max(0, Math.min(...topes));
+}
+
+/**
  * Cuántos platos con cada base pide la casa esta semana.
  *
  * Sale del mismo sitio donde el selector del wizard escribe: el eje `base` de

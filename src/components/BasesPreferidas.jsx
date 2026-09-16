@@ -1,4 +1,6 @@
-import { MAX_POR_SEMANA, MIN_POR_SEMANA } from "../lib/bases.js";
+import { MAX_POR_SEMANA, MIN_POR_SEMANA, clavesDeReceta, topeDeBase } from "../lib/bases.js";
+import { DAYS, getDayMeals } from "../lib/planner.js";
+import { recipeCatalog } from "../data/recipeCatalog.js";
 import { MAIN_BASES } from "../data/recipeSchema.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { ingredientThumbSrc } from "../lib/ingredientImages.js";
@@ -64,8 +66,30 @@ const GRUPOS = [
   { titulo: "Ollas y cazuelas", color: "#2e7d75", claves: ["caldo", ...MAIN_BASES] },
 ];
 
+/**
+ * Cuántos platos del recetario lleva cada base. Se calcula una vez: el
+ * catálogo no cambia mientras la app está abierta.
+ *
+ * Solo el pool que el generador puede usar de verdad —estrella, sin bases ni
+ * salsas— porque prometer sobre platos que nunca se van a proponer es prometer
+ * sobre nada.
+ */
+const PLATOS_POR_BASE = (() => {
+  const n = {};
+  for (const r of recipeCatalog) {
+    if (!r.estrella || r.type === "base" || r.type === "salsa") continue;
+    for (const c of clavesDeReceta(r)) n[c] = (n[c] ?? 0) + 1;
+  }
+  return n;
+})();
+
 export function BasesPreferidas({ data, setData }) {
   const libreta = normalizarLibreta(data?.notepad);
+
+  // El presupuesto es de CADA semana, no del menú entero: si se generan cuatro
+  // semanas, cada una tiene sus huecos y su propio cuarto del recetario.
+  const semanas = Math.max(1, data?.menuWeekOffsets?.length ?? 1);
+  const huecosSemana = DAYS.length * Math.max(1, getDayMeals(data).length);
 
   const vecesDe = (id) => {
     const n = Math.round(valorDe(libreta, `base.${id}`) ?? 0);
@@ -82,6 +106,16 @@ export function BasesPreferidas({ data, setData }) {
    * un plato suelto lo cocinas ese día y no hay nada que partir, así que quien
    * arrastra hasta el 1 está pidiendo la base, no está pidiendo uno.
    */
+  // Lo pedido entre todas. Es el límite COMPARTIDO: los huecos de la semana son
+  // los que son, y lo que ocupa una base deja de estar libre para las demás.
+  //
+  // Sumar sobrestima, porque un mismo plato puede servir a dos bases a la vez
+  // (una pasta con verduras asadas cuenta para las dos). Se acepta quedarse
+  // corto: pasarse significa prometer una tanda que luego se cae con un aviso.
+  const pedidoTotal = GRUPOS
+    .flatMap((g) => g.claves)
+    .reduce((suma, id) => suma + vecesDe(id), 0);
+
   const cambiar = (id, v) => {
     const n = v <= 0 ? 0 : Math.min(Math.max(v, MIN_POR_SEMANA), MAX_POR_SEMANA);
     setData((d) => {
@@ -96,6 +130,12 @@ export function BasesPreferidas({ data, setData }) {
       <p style={{ fontSize: 12, color: "#6b7d70", margin: "0 0 10px", lineHeight: 1.4 }}>
         Cuántos platos quieres de cada base a la semana. Desde {MIN_POR_SEMANA},
         que es lo mínimo para que merezca la pena cocinarla aparte.
+        {pedidoTotal > 0 && (
+          <>
+            {" "}Llevas <strong style={{ color: "#2d5a3d" }}>{pedidoTotal} de {huecosSemana}</strong>{" "}
+            huecos de la semana.
+          </>
+        )}
       </p>
 
       {GRUPOS.map((grupo) => (
@@ -116,14 +156,23 @@ export function BasesPreferidas({ data, setData }) {
             ejes={grupo.claves.map((id) => {
               const ui = BASES_UI[id] ?? { etiqueta: id, foto: id };
               const n = vecesDe(id);
+              // El tope es de esta fila y cambia con lo que pidan las demás.
+              // Lo ya pedido AQUÍ no cuenta como ocupado, o el pulgar no podría
+              // volver a subir una vez colocado.
+              const tope = topeDeBase(PLATOS_POR_BASE[id] ?? 0, {
+                semanas,
+                huecosLibres: huecosSemana - (pedidoTotal - n),
+              });
+              const sinSitio = tope < MIN_POR_SEMANA;
               return {
                 id,
                 arte: ingredientThumbSrc(ui.foto),
                 etiqueta: ui.etiqueta,
                 aria: `${ui.etiqueta}: platos por semana`,
                 color: grupo.color,
+                max: Math.max(tope, n),
                 valor: n,
-                resumen: n > 0 ? `${n}/sem` : "No",
+                resumen: n > 0 ? `${n}/sem` : (sinSitio ? "—" : "No"),
                 // Lo que está a cero se apaga: es el estado de casi todas las
                 // filas, y en color serían catorce etiquetas gritando que no.
                 apagado: n === 0,
