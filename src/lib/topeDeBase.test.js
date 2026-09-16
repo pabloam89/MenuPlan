@@ -47,6 +47,38 @@ describe("topeDeBase", () => {
     expect(topeDeBase(2, { semanas: 1, huecosLibres: 12 })).toBe(2);
   });
 
+  it("un objetivo semanal tapa la base que lo consume", () => {
+    // Legumbre: 31 platos, de los que solo 2 NO cuentan para "legumbres". Con
+    // ese objetivo en 2, el límite real son 4 — no cinco, aunque haya platos.
+    expect(topeDeBase(31, {
+      semanas: 1,
+      objetivos: [{ tope: 2, sinContar: 2 }],
+    })).toBe(4);
+  });
+
+  it("un objetivo a cero deja solo los platos que no cuentan para él", () => {
+    expect(topeDeBase(31, {
+      semanas: 1,
+      objetivos: [{ tope: 0, sinContar: 2 }],
+    })).toBe(2);
+  });
+
+  it("el objetivo no toca a la base que no lo consume", () => {
+    // Sofrito: sus 190 platos no cuentan para "legumbres", así que el tope de
+    // legumbres le da igual.
+    expect(topeDeBase(190, {
+      semanas: 1,
+      objetivos: [{ tope: 2, sinContar: 190 }],
+    })).toBe(MAX_POR_SEMANA);
+  });
+
+  it("con varios objetivos manda el más estrecho", () => {
+    expect(topeDeBase(40, {
+      semanas: 1,
+      objetivos: [{ tope: 3, sinContar: 10 }, { tope: 1, sinContar: 1 }],
+    })).toBe(2);
+  });
+
   it("sin platos no se puede pedir nada", () => {
     expect(topeDeBase(0, { semanas: 1 })).toBe(0);
     expect(topeDeBase(undefined, { semanas: 1 })).toBe(0);

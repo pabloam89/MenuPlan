@@ -1,6 +1,7 @@
 import { MAX_POR_SEMANA, MIN_POR_SEMANA, clavesDeReceta, topeDeBase } from "../lib/bases.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
+import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { MAIN_BASES } from "../data/recipeSchema.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { ingredientThumbSrc } from "../lib/ingredientImages.js";
@@ -83,6 +84,27 @@ const PLATOS_POR_BASE = (() => {
   return n;
 })();
 
+/**
+ * De los platos de cada base, cuántos NO cuentan para cada objetivo semanal.
+ *
+ * Es lo que permite saber cuánto se puede pedir de una base sin chocar con su
+ * tope: de los 31 platos de legumbre, solo 2 no cuentan para `legumbres`, así
+ * que con ese objetivo en 2 el límite real son 4 y no cinco.
+ */
+const SIN_CONTAR_POR_BASE = (() => {
+  const n = {};
+  for (const r of recipeCatalog) {
+    if (!r.estrella || r.type === "base" || r.type === "salsa") continue;
+    for (const c of clavesDeReceta(r)) {
+      n[c] ??= {};
+      for (const [clave, casa] of Object.entries(FREQ_KEY_MATCHERS)) {
+        if (!casa(r)) n[c][clave] = (n[c][clave] ?? 0) + 1;
+      }
+    }
+  }
+  return n;
+})();
+
 export function BasesPreferidas({ data, setData }) {
   const libreta = normalizarLibreta(data?.notepad);
 
@@ -90,6 +112,10 @@ export function BasesPreferidas({ data, setData }) {
   // semanas, cada una tiene sus huecos y su propio cuarto del recetario.
   const semanas = Math.max(1, data?.menuWeekOffsets?.length ?? 1);
   const huecosSemana = DAYS.length * Math.max(1, getDayMeals(data).length);
+  // Los objetivos semanales de la casa, que son MÁXIMOS y por tanto topan lo
+  // que se puede pedir de las bases que los consumen.
+  const objetivosDeLaCasa = Object.entries(data?.freqs ?? {})
+    .filter(([clave, tope]) => FREQ_KEY_MATCHERS[clave] && tope >= 0);
 
   const vecesDe = (id) => {
     const n = Math.round(valorDe(libreta, `base.${id}`) ?? 0);
@@ -162,6 +188,10 @@ export function BasesPreferidas({ data, setData }) {
               const tope = topeDeBase(PLATOS_POR_BASE[id] ?? 0, {
                 semanas,
                 huecosLibres: huecosSemana - (pedidoTotal - n),
+                objetivos: objetivosDeLaCasa.map(([clave, tope]) => ({
+                  tope,
+                  sinContar: SIN_CONTAR_POR_BASE[id]?.[clave] ?? 0,
+                })),
               });
               const sinSitio = tope < MIN_POR_SEMANA;
               return {

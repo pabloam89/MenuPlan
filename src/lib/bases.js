@@ -381,10 +381,34 @@ export function loQueGana(receta, clavesListas) {
  * @param {number} disponibles platos del pool con esa base
  * @param {{semanas?: number, huecosLibres?: number}} opts
  */
-export function topeDeBase(disponibles, { semanas = 1, huecosLibres = null } = {}) {
+export function topeDeBase(disponibles, {
+  semanas = 1, huecosLibres = null, objetivos = null,
+} = {}) {
   const porSemana = Math.floor((Number(disponibles) || 0) / Math.max(1, semanas));
   const topes = [porSemana, MAX_POR_SEMANA];
   if (huecosLibres != null) topes.push(huecosLibres);
+
+  // Y los OBJETIVOS SEMANALES, que van al revés: son máximos.
+  //
+  // Cuatro bases consumen uno —pasta y pesto el de pasta_arroz, legumbre el de
+  // legumbres, verdura asada el de verdura— y son dos mandos que se pueden
+  // contradecir: pedir 3 de legumbre con el tope de legumbres en 2. Antes no
+  // reventaba (la reparación respeta el máximo siempre) pero el usuario
+  // recibía un aviso en vez de no poder pedirlo.
+  //
+  // Lo que cabe es: los platos de esta base que NO cuentan para ese objetivo,
+  // más el propio tope. De los 31 platos de legumbre, 2 no cuentan para
+  // `legumbres`, así que con el tope en 2 el límite real son 4.
+  //
+  // Una simplificación conocida: si DOS bases consumen el mismo objetivo
+  // (pasta y pesto), cada una ve el tope entero y entre las dos pueden
+  // pasarse. Corregirlo bien pide saber qué plato concreto va a cada hueco,
+  // que es justo lo que aún no se sabe al mover un deslizador.
+  for (const { tope, sinContar } of objetivos ?? []) {
+    if (!(tope >= 0)) continue;
+    topes.push(Math.floor((Number(sinContar) || 0) / Math.max(1, semanas)) + tope);
+  }
+
   return Math.max(0, Math.min(...topes));
 }
 
