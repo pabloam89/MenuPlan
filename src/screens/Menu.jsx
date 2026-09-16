@@ -3231,6 +3231,19 @@ function monthCellsFromWeeks(menuWeeks, data, visibleGroups) {
  * Lo que no está en el catálogo —recetas propias, generadas por IA— se sigue
  * leyendo de donde estaba.
  */
+/**
+ * El nombre de la base como se lee en la tarjeta.
+ *
+ * Quita el "base" del final. Dentro del catálogo "Sofrito base" distingue la
+ * receta de la tanda del sofrito que hace un plato por su cuenta, pero en una
+ * pestaña que ya se llama Tanda y en una tarjeta que ya pone BASE arriba, el
+ * sufijo lo dice por tercera vez.
+ *
+ * Solo lo llevan tres ("Sofrito base", "Salsa de tomate base", "Bechamel
+ * base"); las demás se leen tal cual.
+ */
+const nombreDeBase = (base) => String(base?.name ?? "").replace(/\s+base$/i, "");
+
 function lookupDeTanda() {
   const m = new Map(Object.entries(RECIPES_BY_ID));
   for (const [id, r] of Object.entries(recipeCatalogById)) m.set(id, r);
@@ -3268,11 +3281,11 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
   return (
     <div style={{ padding: "4px 14px 18px" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "2px 2px 12px" }}>
+        {/* Solo el título. Los minutos totales de la sesión estaban de más: cada
+            tarjeta ya lleva los suyos, y el domingo no se decide por un número
+            agregado que nadie va a cocinar de una sentada. */}
         <span style={{ fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.3px" }}>
           Deja esto hecho
-        </span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#7a9485" }}>
-          {sesion.minutosTotales} min · {sesion.minutosActivosTotales} tuyos
         </span>
       </div>
 
@@ -3291,8 +3304,9 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
  * la compra, y con ellos es un plan.
  */
 function BatchBaseCard({ entrada, onDishTap }) {
-  const { base, raciones, huecos, minutos, ahorroActivo } = entrada;
+  const { base, raciones, huecos, minutos } = entrada;
   const [failed, setFailed] = useState(false);
+  const [huecosAbiertos, setHuecosAbiertos] = useState(false);
   // La base se pinta y se abre por el MISMO puente que un plato del menú. Sin
   // esto la ficha salía con el formato del catálogo: cantidades en blanco
   // (`amount` en vez de `qty`), la dificultad en minúscula y sin macros. Y las
@@ -3348,21 +3362,36 @@ function BatchBaseCard({ entrada, onDishTap }) {
             color: "#fff", fontSize: 19, fontWeight: 900, lineHeight: 1.15,
             letterSpacing: "-.3px", textShadow: "0 2px 12px rgba(0,0,0,.45)",
           }}>
-            {base.name}
+            {nombreDeBase(base)}
           </div>
         </div>
       </button>
 
-      <div style={{ padding: "10px 14px 12px" }}>
-        {/* El ahorro en minutos TUYOS, y solo si lo hay. Ver `ahorroActivo` en
-            lib/bases.js: el de reloj se queda fuera porque prometía horas que
-            en realidad eran la olla hirviendo sola. */}
-        {ahorroActivo > 0 && (
-          <div style={{ fontSize: 11.5, fontWeight: 800, color: "#2d5a3d", marginBottom: 7 }}>
-            Te quita {ahorroActivo} min de estar delante entre semana
-          </div>
-        )}
-        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+      {/* Los platos a los que alimenta, detrás de un botón. Son el dato que
+          convierte una lista de la compra en un plan, pero con cinco bases
+          abiertas a la vez la pestaña era un muro de texto y las fotos
+          desaparecían. */}
+      <button
+        type="button"
+        onClick={() => setHuecosAbiertos((v) => !v)}
+        aria-expanded={huecosAbiertos}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          width: "100%", padding: "10px 14px", border: "none", background: "transparent",
+          cursor: "pointer", fontFamily: "inherit",
+          fontSize: 12, fontWeight: 800, color: "#2d5a3d",
+        }}
+      >
+        <span>{huecos.length === 1 ? "1 plato" : `${huecos.length} platos`} esta semana</span>
+        <ChevronDown
+          size={16}
+          strokeWidth={2.6}
+          style={{ transform: huecosAbiertos ? "rotate(180deg)" : "none", transition: "transform .15s ease" }}
+        />
+      </button>
+
+      {huecosAbiertos && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 5, padding: "0 14px 12px" }}>
           {huecos.map((h) => (
             <div key={`${h.groupId}-${h.clave}`} style={{ display: "flex", alignItems: "baseline", gap: 7, minWidth: 0 }}>
               <span style={{
@@ -3380,7 +3409,7 @@ function BatchBaseCard({ entrada, onDishTap }) {
             </div>
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

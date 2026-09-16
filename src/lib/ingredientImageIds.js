@@ -332,6 +332,7 @@ export const INGREDIENT_IMAGE_IDS = [
   "pasta-fresca",
   "pasta-pequena",
   "patata",
+  "patatas-asadas",
   "patatas-cocidas",
   "pate",
   "pato",
