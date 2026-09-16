@@ -595,6 +595,15 @@ export function decisionCatalog(filteredRecipes) {
     // otherwise "Judías verdes rehogadas" reads as mainProtein "none" and it
     // can't tell the dish carries meat.
     if (r.extraProteins?.length) entry.extraProteins = r.extraProteins;
+    // Qué tandas aprovecha el plato. Sin esto el modelo no podía cumplir la
+    // petición de bases ni queriendo: sabía que la casa quiere dos platos con
+    // bechamel, pero no cuáles de las 700 recetas la llevan. La regla se
+    // arreglaba después a golpe de sustitución, que funciona pero cambia platos
+    // que el modelo había elegido por otros motivos.
+    if (r.basesAparte?.length) entry.basesAparte = r.basesAparte;
+    // Y si su fécula se cuece APARTE, que es lo que la hace batcheable: el
+    // arroz de un bowl sí, el de un risotto no.
+    if (r.baseMode) entry.baseMode = r.baseMode;
     // The "cocinas" instruction in buildUserMessage tells the model these
     // recipes carry their "cocina" field — without it here it had nothing to
     // go on and only ajustarCuota's post-pass placed them.

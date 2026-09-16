@@ -3564,23 +3564,35 @@ function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
             const [dia, comida] = String(h.clave).split("-");
             const meta = MEAL_META[comida] ?? { label: comida, Icon: Utensils };
             const MealIcon = meta.Icon;
+            // La miniatura del plato, la misma que en el menú: se reconoce
+            // antes por la foto que por el nombre.
+            const receta = RECIPES_BY_ID[catalogIdOfPlanRecipe(h.recipeId)]
+              ?? recipeCatalogById[catalogIdOfPlanRecipe(h.recipeId)];
+            const foto = receta ? deckImg(dishImageForRecipe(receta), 120) : null;
             return (
               <div
                 key={`${h.groupId}-${h.clave}`}
                 style={{
-                  display: "flex", alignItems: "center", gap: 9,
-                  padding: "9px 2px", borderBottom: "1px solid #eef3f0",
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "8px 2px", borderBottom: "1px solid #eef3f0",
                 }}
               >
                 <span style={{
-                  width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+                  width: 42, height: 42, borderRadius: 11, flexShrink: 0, overflow: "hidden",
                   background: "#f2f0e9", display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <MealIcon size={15} color="#b2622f" strokeWidth={2.2} />
+                  {foto
+                    ? <img src={foto} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <UtensilsCrossed size={16} color="#bcc9c4" strokeWidth={1.8} />}
                 </span>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 900, color: "#7a9485", letterSpacing: ".4px", textTransform: "uppercase" }}>
-                    {dayLabel(dia)} · {meta.label}
+                  {/* El día y el icono de la comida. El "SÁB · CENA" de antes
+                      repetía en texto lo que el icono ya dice. */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 1 }}>
+                    <span style={{ fontSize: 10.5, fontWeight: 900, color: "#7a9485", letterSpacing: ".4px", textTransform: "uppercase" }}>
+                      {dayLabel(dia)}
+                    </span>
+                    <MealIcon size={13} color="#b2622f" strokeWidth={2.3} />
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#142f1d", lineHeight: 1.3 }}>
                     {h.nombre}

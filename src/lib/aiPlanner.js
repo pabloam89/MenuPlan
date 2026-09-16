@@ -700,7 +700,7 @@ export function compactCatalogTable(catalog) {
 }
 
 // `format`: "json" (task "planner") or "compact" (task "planner-compact").
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null, format = "json") {
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null, format = "json", bases = null) {
   const catalog = decisionCatalog(filteredRecipes);
   // How a boolean catalog flag reads in each format, for the instructions below.
   const flagText = (field) => (format === "compact" ? `${field} = 1` : `"${field}": true`);
@@ -765,6 +765,29 @@ INSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): GASTA esta lista. Coloca platos que use
     parts.push(
       `\nCOCINAS QUE LA CASA QUIERE ESTA SEMANA:\n${lista}` +
         `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): coloca ESE número de platos de cada una de esas cocinas, repartidos por la semana y no seguidos. Las recetas de esas cocinas llevan su campo "cocina" en el catálogo de arriba. No pongas más de los pedidos, y no metas platos de otras cocinas extranjeras que no estén en esta lista. Nunca rompas por esto las demás reglas: alergias, complementación escolar, tipo de plato, ni dos veces la misma proteína en comidas seguidas.`,
+    );
+  }
+
+  // BASES pedidas. Va junto a las cocinas porque es la misma forma de petición
+  // —"quiero N platos de esto"— y se cumple igual: colocando, no corrigiendo
+  // después.
+  //
+  // Antes esto no se le decía al modelo. La regla existía y se cumplía, pero
+  // solo como reparación posterior: el menú se escribía a ciegas y luego se
+  // sustituían huecos para meter la base. Funciona, pero cambia platos que el
+  // modelo había elegido por otros motivos, y falla en cuanto el hueco que
+  // habría que tocar tiene otras restricciones.
+  const basesPedidasLista = Object.entries(bases ?? {}).filter(([, n]) => n > 0);
+  if (basesPedidasLista.length > 0) {
+    const lista = basesPedidasLista
+      .map(([clave, n]) => `- ${clave}: ${n} ${n === 1 ? "plato" : "platos"}`)
+      .join("\n");
+    parts.push(
+      `\nBASES QUE LA CASA COCINA EN TANDA ESTA SEMANA:\n${lista}`
+      + "\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): coloca ESE número de platos de cada base."
+      + " Un plato lleva una base si la nombra en su campo basesAparte, o si su mainBase coincide y además trae baseMode aparte."
+      + " El sentido es cocinar esa olla UNA vez el domingo y repartirla entre varios días, así que reparte esos platos por la semana en vez de ponerlos seguidos."
+      + " No hace falta pasarse: más de los pedidos no aporta nada. Y nunca rompas por esto las demás reglas: alergias, objetivos semanales, complementación escolar, tipo de plato ni proteína repetida en comidas seguidas.",
     );
   }
 
@@ -1156,6 +1179,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     fridgeDishes,
     ctx.filterOpts.cocinas,
     format,
+    basesDeLaSemana,
   );
 
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
