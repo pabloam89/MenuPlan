@@ -22503,5 +22503,148 @@
       "Terminar con un hilo de {{Miel}} y servir caliente."
     ],
     "methods": []
+  },
+  {
+    "id": "ensaladas_verduras_135",
+    "name": "Ensalada templada de patatas especiadas y atún",
+    "mainProtein": "pescado_azul",
+    "mainBase": "patatas",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "patatas_asadas"
+    ],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "estrella": true,
+    "time": 48,
+    "difficulty": "facil",
+    "kcal": 430,
+    "protein_g": 22,
+    "carbs_g": 38,
+    "fat_g": 20,
+    "fiber_g": 5,
+    "sugar_g": 4,
+    "saturated_fat_g": 3,
+    "sodium_mg": 560,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "pescado"
+    ],
+    "season": "all",
+    "description": "Patatas asadas aún templadas con atún, cebolleta y un aliño de limón.",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "ingredientId": "comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Atún en aceite",
+        "ingredientId": "atun",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "ingredientId": "cebolleta",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "ingredientId": "limon",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Rúcula",
+        "ingredientId": "rucula",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 210 grados.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Picar {{Cebolleta}} en aros finos y dejarla 5 min en agua fría para que pierda el picor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar las patatas templadas con {{Atún en aceite}} escurrido y la cebolleta.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con el zumo de {{Limón}} y un hilo de aceite, y añadir {{Rúcula}} al final.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "ensaladas_verduras",
+    "steps": [
+      "Encender el {{@Horno}} a 210 grados.",
+      "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+      "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+      "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+      "Picar {{Cebolleta}} en aros finos y dejarla 5 min en agua fría para que pierda el picor.",
+      "Mezclar las patatas templadas con {{Atún en aceite}} escurrido y la cebolleta.",
+      "Aliñar con el zumo de {{Limón}} y un hilo de aceite, y añadir {{Rúcula}} al final."
+    ],
+    "methods": []
   }
 ]

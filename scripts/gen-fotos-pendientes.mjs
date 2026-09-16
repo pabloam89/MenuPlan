@@ -40,7 +40,7 @@ const CONFIRMA = process.argv.includes("--si");
  * doradas contaría otra receta — el mismo tipo de mentira que la foto que
  * enseña una guarnición que el plato no lleva.
  */
-const DE_BANDEJA = new Set(["bases_007", "bases_011"]);
+const DE_BANDEJA = new Set(["bases_007", "bases_011", "bases_014"]);
 
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 const conFoto = new Set(Object.keys(manifest).filter((k) => !k.includes("+")));

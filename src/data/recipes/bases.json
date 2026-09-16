@@ -1681,5 +1681,136 @@
       "Añadir {{Sal}} y {{Nuez moscada}}, remover y retirar del fuego.",
       "Repartir en botes y cubrir con film a piel, pegado a la salsa, para que no haga costra."
     ]
+  },
+  {
+    "id": "bases_014",
+    "name": "Patatas asadas en dados con especias",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "patatas_asadas",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "description": "Dados de patata asados con pimentón, comino y ajo, dorados por fuera y tiernos por dentro, para bowls, huevos rotos y ensaladas templadas.",
+    "rinde": {
+      "amount": 1000,
+      "unit": "g"
+    },
+    "time": 50,
+    "minutosFijos": 45,
+    "minutosPorRacion": 2,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 190,
+    "protein_g": 4,
+    "carbs_g": 30,
+    "fat_g": 6,
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 210,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 1200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "ingredientId": "comino",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 6,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 210 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm, todos del mismo tamaño para que se asen a la vez.",
+        "minutes": 10,
+        "kind": "prep"
+      },
+      {
+        "text": "Secar los dados con un paño: mojados se cuecen al vapor en vez de dorarse.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Aliñar los dados en un bol con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}}, {{Ajo}} picado y {{Sal}}.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender los dados en la bandeja en una sola capa, sin que se toquen.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Asar hasta que estén dorados por fuera, dándoles la vuelta a mitad.",
+        "minutes": 30,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar destapados para que no se ablanden y repartir en tápers.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar los dados de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Devolverles el crujiente en la sartén o el horno fuerte. En el microondas se quedan blandos y pierden lo que los hace buenos.",
+        "minutes": 4,
+        "kind": "activo"
+      }
+    ],
+    "steps": [
+      "Encender el {{@Horno}} a 210 grados con calor arriba y abajo.",
+      "Pelar {{Patata}} y cortarla en dados de unos 2 cm, todos del mismo tamaño para que se asen a la vez.",
+      "Secar los dados con un paño: mojados se cuecen al vapor en vez de dorarse.",
+      "Aliñar los dados en un bol con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}}, {{Ajo}} picado y {{Sal}}.",
+      "Extender los dados en la bandeja en una sola capa, sin que se toquen.",
+      "Asar hasta que estén dorados por fuera, dándoles la vuelta a mitad.",
+      "Dejar templar destapados para que no se ablanden y repartir en tápers."
+    ]
   }
 ]

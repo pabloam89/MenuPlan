@@ -34509,5 +34509,154 @@
       "Dejar reposar 2 min y servir con el jugo de la bandeja."
     ],
     "methods": []
+  },
+  {
+    "id": "carnes_171",
+    "name": "Bowl de pollo con patatas especiadas y yogur",
+    "mainProtein": "pollo",
+    "mainBase": "patatas",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "patatas_asadas"
+    ],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "estrella": true,
+    "time": 55,
+    "difficulty": "facil",
+    "kcal": 540,
+    "protein_g": 38,
+    "carbs_g": 40,
+    "fat_g": 24,
+    "fiber_g": 5,
+    "sugar_g": 5,
+    "saturated_fat_g": 5,
+    "sodium_mg": 580,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "description": "Pechuga dorada sobre patatas asadas con especias, con salsa de yogur y limón por encima.",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "ingredientId": "comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur natural",
+        "ingredientId": "yogur",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "ingredientId": "limon",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 210 grados.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Salar {{Pechuga de pollo}} y dorarla en la sartén por los dos lados hasta que esté hecha por dentro.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar {{Yogur natural}} con el zumo de {{Limón}} y una pizca de sal.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la pechuga en tiras y {{Cebolla morada}} en plumas finas.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Montar el bowl con las patatas debajo, el pollo encima y la salsa de yogur por hilos.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "carnes",
+    "steps": [
+      "Encender el {{@Horno}} a 210 grados.",
+      "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+      "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+      "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+      "Salar {{Pechuga de pollo}} y dorarla en la sartén por los dos lados hasta que esté hecha por dentro.",
+      "Mezclar {{Yogur natural}} con el zumo de {{Limón}} y una pizca de sal.",
+      "Cortar la pechuga en tiras y {{Cebolla morada}} en plumas finas.",
+      "Montar el bowl con las patatas debajo, el pollo encima y la salsa de yogur por hilos."
+    ],
+    "methods": []
   }
 ]

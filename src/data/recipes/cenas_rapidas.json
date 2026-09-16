@@ -1872,5 +1872,144 @@
       "fruta"
     ],
     "tecnica": "crudo"
+  },
+  {
+    "id": "cenas_rapidas_061",
+    "name": "Patatas bravas al horno",
+    "mainProtein": "none",
+    "mainBase": "patatas",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "patatas_asadas",
+      "salsa_tomate"
+    ],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "estrella": true,
+    "time": 50,
+    "difficulty": "facil",
+    "kcal": 380,
+    "protein_g": 6,
+    "carbs_g": 44,
+    "fat_g": 20,
+    "fiber_g": 5,
+    "sugar_g": 6,
+    "saturated_fat_g": 3,
+    "sodium_mg": 640,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "huevo"
+    ],
+    "season": "all",
+    "description": "Las bravas de siempre pero asadas: dados especiados con salsa picante y un hilo de alioli.",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "ingredientId": "comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate frito",
+        "ingredientId": "tomate-frito",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Mayonesa",
+        "ingredientId": "mayonesa",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 210 grados.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Calentar {{Tomate frito}} en un cazo con una pizca más de {{Pimentón dulce}} hasta que espese.",
+        "minutes": 6,
+        "kind": "activo",
+        "base": "salsa_tomate"
+      },
+      {
+        "text": "Mezclar {{Mayonesa}} con {{Ajo}} picado muy fino para el alioli rápido.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Servir las patatas con la salsa por encima y el alioli en hilos.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "cenas_rapidas",
+    "steps": [
+      "Encender el {{@Horno}} a 210 grados.",
+      "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+      "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+      "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+      "Calentar {{Tomate frito}} en un cazo con una pizca más de {{Pimentón dulce}} hasta que espese.",
+      "Mezclar {{Mayonesa}} con {{Ajo}} picado muy fino para el alioli rápido.",
+      "Servir las patatas con la salsa por encima y el alioli en hilos."
+    ],
+    "methods": []
   }
 ]

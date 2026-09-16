@@ -14604,5 +14604,151 @@
       "Espolvorear {{Pimentón dulce}} y {{Perejil}} picado y servir en la misma fuente."
     ],
     "methods": []
+  },
+  {
+    "id": "huevos_092",
+    "name": "Huevos rotos sobre patatas especiadas",
+    "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mainBase": "patatas",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "patatas_asadas"
+    ],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "estrella": true,
+    "time": 50,
+    "difficulty": "facil",
+    "kcal": 520,
+    "protein_g": 19,
+    "carbs_g": 42,
+    "fat_g": 30,
+    "fiber_g": 4,
+    "sugar_g": 3,
+    "saturated_fat_g": 8,
+    "sodium_mg": 620,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "freezable": false,
+    "allergens": [
+      "huevo"
+    ],
+    "season": "all",
+    "description": "Patatas asadas con pimentón bajo dos huevos fritos de yema blanda, para romper y mezclar.",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "ingredientId": "comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "ingredientId": "huevos",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Chorizo",
+        "ingredientId": "chorizo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "ingredientId": "perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 210 grados.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Dorar {{Chorizo}} en rodajas en la sartén hasta que suelte su grasa roja.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír {{Huevo}} en esa misma grasa, con la yema blanda y los bordes encajados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las patatas en el plato, los huevos encima y romperlos con el canto de una cuchara.",
+        "minutes": 2,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Terminar con {{Perejil}} picado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "huevos",
+    "steps": [
+      "Encender el {{@Horno}} a 210 grados.",
+      "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+      "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+      "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+      "Dorar {{Chorizo}} en rodajas en la sartén hasta que suelte su grasa roja.",
+      "Freír {{Huevo}} en esa misma grasa, con la yema blanda y los bordes encajados.",
+      "Servir las patatas en el plato, los huevos encima y romperlos con el canto de una cuchara.",
+      "Terminar con {{Perejil}} picado."
+    ],
+    "methods": []
   }
 ]

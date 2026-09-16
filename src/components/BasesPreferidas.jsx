@@ -52,8 +52,12 @@ const GREEN = "#2d5a3d";
  */
 const GRUPOS = [
   { titulo: "Sofritos y salsas", claves: ["sofrito", "salsa_tomate", "bechamel", "pesto"] },
-  { titulo: "Verduras y caldos", claves: ["verdura_asada", "caldo"] },
-  { titulo: "Féculas", claves: MAIN_BASES },
+  // La bandeja del horno es un bloque propio y no "verduras": la patata asada
+  // en dados especiados es fécula, no verdura, y ocupa otro sitio en la cena.
+  // Lo que las junta es el gesto — una bandeja, una vez, y de ahí toda la
+  // semana—, que es lo que el usuario reconoce al elegir.
+  { titulo: "Del horno", claves: ["verdura_asada", "patatas_asadas"] },
+  { titulo: "Ollas y cazuelas", claves: ["caldo", ...MAIN_BASES] },
 ];
 
 
