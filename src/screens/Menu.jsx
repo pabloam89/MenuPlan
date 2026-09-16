@@ -121,7 +121,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, WizardSheet, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CommentThread } from "../components/CommentThread.jsx";
 import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
@@ -3375,6 +3375,7 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
 function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
   const { base, raciones, huecos, minutos, racionesNevera, racionesCongelador, diasEnNevera } = entrada;
   const [failed, setFailed] = useState(false);
+  const [platosAbiertos, setPlatosAbiertos] = useState(false);
   // La base se pinta y se abre por el MISMO puente que un plato del menú. Sin
   // esto la ficha salía con el formato del catálogo: cantidades en blanco
   // (`amount` en vez de `qty`), la dificultad en minúscula y sin macros. Y las
@@ -3441,16 +3442,40 @@ function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
           decide el domingo es cuántas cenas cubre esa olla. Va arriba a la
           izquierda, a la altura de la dificultad, que es donde el ojo ya busca
           los datos del plato. */}
-      <div style={{ position: "absolute", top: 12, left: 12 }}>
-        <span style={{
-          display: "inline-flex", alignItems: "center", gap: 5,
-          height: 26, padding: "0 10px", borderRadius: 999,
-          background: "rgba(255,255,255,.94)", color: "#b2622f",
-          fontSize: 12, fontWeight: 900,
-          boxShadow: "0 2px 8px rgba(9,18,12,.3)",
-        }}>
+      <div style={{
+        position: "absolute", top: 12, left: 12,
+        display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6,
+      }}>
+        {/* Cuántas veces sale, y al tocarla, cuáles. `stopPropagation` porque va
+            DENTRO del botón de la tarjeta: sin él, abrir la lista abría también
+            la ficha de la base por debajo. */}
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={(e) => { e.stopPropagation(); setPlatosAbiertos(true); }}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault(); e.stopPropagation(); setPlatosAbiertos(true);
+          }}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            height: 26, padding: "0 10px", borderRadius: 999,
+            background: "rgba(255,255,255,.94)", color: "#b2622f",
+            fontSize: 12, fontWeight: 900, cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(9,18,12,.3)",
+          }}
+        >
           <BookOpen size={13} strokeWidth={2.6} />
           {huecos.length}x
+        </span>
+        <span style={{
+          display: "inline-flex", alignItems: "center",
+          height: 24, padding: "0 10px", borderRadius: 999,
+          background: "rgba(255,255,255,.88)", color: "#3c5346",
+          fontSize: 11.5, fontWeight: 800,
+          boxShadow: "0 2px 8px rgba(9,18,12,.25)",
+        }}>
+          {raciones} raciones
         </span>
       </div>
 
@@ -3458,7 +3483,6 @@ function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
         position: "absolute", top: 12, right: 12,
         display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 7,
       }}>
-        <DishSpecPills difficulty={receta.difficulty} time={minutos} align="flex-end" />
         {gruposDeLaTanda.length > 0 && (
           <div style={{ display: "flex", gap: 4 }}>
             {gruposDeLaTanda.map((g) => (
@@ -3466,6 +3490,7 @@ function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
             ))}
           </div>
         )}
+        <DishSpecPills difficulty={receta.difficulty} time={minutos} align="flex-end" />
       </div>
 
       <div style={{ position: "absolute", left: 14, right: 14, bottom: 13 }}>
@@ -3474,7 +3499,7 @@ function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
           letterSpacing: ".7px", textTransform: "uppercase",
           textShadow: "0 1px 6px rgba(0,0,0,.5)", marginBottom: 5,
         }}>
-          Base · {raciones} raciones
+          Base
         </div>
         <div style={{
           color: "#fff", fontSize: 20, fontWeight: 900, lineHeight: 1.15,
@@ -3485,38 +3510,93 @@ function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
       </div>
     </button>
 
-    {/* DÓNDE VA CADA RACIÓN, debajo y con sus iconos.
+    {/* DÓNDE VA CADA RACIÓN, debajo de la tarjeta y con sus iconos.
         Antes decía "6 raciones · 4 días en nevera · 2 al congelador" dentro de
-        la foto, y ahí no se sabía si el 2 eran días o raciones ni cuántas iban
-        a cada sitio. Ahora cada número va pegado a su icono y las dos cifras
-        suman el total, que es la pregunta de verdad: cuánto meto en la nevera
-        y cuánto congelo.
+        la foto, y ahí no se sabía si el 2 eran días o raciones. Ahora cada
+        número va pegado a su icono, una línea por destino, y las dos cifras
+        suman el total: cuánto meto en la nevera y cuánto congelo.
 
-        No hay tercera cifra de "hoy" porque la tanda se cocina el día ANTES de
+        No hay una tercera de "hoy" porque la tanda se cocina el día ANTES de
         que empiece la semana: nada de esta olla se come el mismo día. */}
     <div style={{
-      display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+      display: "flex", flexDirection: "column", gap: 3,
       padding: "8px 4px 0", fontSize: 11.5, fontWeight: 700, color: "#3c5346",
     }}>
       {racionesNevera > 0 && (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <Refrigerator size={14} color="#2f6d8a" strokeWidth={2.4} />
-          {racionesNevera === 1 ? "1 ración" : `${racionesNevera} raciones`}
-          {diasEnNevera != null && (
-            <span style={{ fontWeight: 600, color: "#8aa093" }}>
-              {diasEnNevera === 1 ? "hasta mañana" : `hasta ${diasEnNevera} días`}
-            </span>
-          )}
+          <span style={{ fontWeight: 600, color: "#6b7d70" }}>
+            {racionesNevera === 1 ? "1 ración" : `${racionesNevera} raciones`}
+            {diasEnNevera != null && (
+              <>
+                {" hasta "}
+                <strong style={{ color: "#3c5346", fontWeight: 800 }}>
+                  {diasEnNevera === 1 ? "mañana" : `${diasEnNevera} días`}
+                </strong>
+              </>
+            )}
+          </span>
         </span>
       )}
       {racionesCongelador > 0 && (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <Snowflake size={14} color="#3d6b93" strokeWidth={2.4} />
-          {racionesCongelador === 1 ? "1 ración" : `${racionesCongelador} raciones`}
-          <span style={{ fontWeight: 600, color: "#8aa093" }}>al congelador</span>
+          <span style={{ fontWeight: 600, color: "#6b7d70" }}>
+            {racionesCongelador === 1 ? "1 ración" : `${racionesCongelador} raciones`}
+            {" "}
+            <strong style={{ color: "#3c5346", fontWeight: 800 }}>al congelador</strong>
+          </span>
         </span>
       )}
     </div>
+
+    {platosAbiertos && (
+      <WizardSheet
+        icon={BookOpen}
+        iconColor="#b2622f"
+        title={nombreDeBase(base)}
+        subtitle={huecos.length === 1 ? "El plato que la usa" : `Los ${huecos.length} platos que la usan`}
+        onClose={() => setPlatosAbiertos(false)}
+        maxWidth={360}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {huecos.map((h) => {
+            const [dia, comida] = String(h.clave).split("-");
+            const meta = MEAL_META[comida] ?? { label: comida, Icon: Utensils };
+            const MealIcon = meta.Icon;
+            return (
+              <div
+                key={`${h.groupId}-${h.clave}`}
+                style={{
+                  display: "flex", alignItems: "center", gap: 9,
+                  padding: "9px 2px", borderBottom: "1px solid #eef3f0",
+                }}
+              >
+                <span style={{
+                  width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+                  background: "#f2f0e9", display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <MealIcon size={15} color="#b2622f" strokeWidth={2.2} />
+                </span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 900, color: "#7a9485", letterSpacing: ".4px", textTransform: "uppercase" }}>
+                    {dayLabel(dia)} · {meta.label}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#142f1d", lineHeight: 1.3 }}>
+                    {h.nombre}
+                  </div>
+                </div>
+                {/* De dónde sale ese día: de la nevera o del congelador. Es el
+                    dato que convierte la lista en un plan. */}
+                {h.desde === "congelador"
+                  ? <Snowflake size={15} color="#3d6b93" strokeWidth={2.4} />
+                  : <Refrigerator size={15} color="#2f6d8a" strokeWidth={2.4} />}
+              </div>
+            );
+          })}
+        </div>
+      </WizardSheet>
+    )}
     </div>
   );
 }
