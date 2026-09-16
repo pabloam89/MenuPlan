@@ -3330,7 +3330,13 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {sesion.bases.map((b) => (
-          <BatchBaseCard key={b.base.id} entrada={b} onDishTap={onDishTap} />
+          <BatchBaseCard
+            key={b.base.id}
+            entrada={b}
+            onDishTap={onDishTap}
+            grupos={visibleGroups}
+            members={data?.members ?? []}
+          />
         ))}
       </div>
 
@@ -3366,8 +3372,8 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
  * alimenta. Los días son la mitad que importa — sin ellos esto es una lista de
  * la compra, y con ellos es un plan.
  */
-function BatchBaseCard({ entrada, onDishTap }) {
-  const { base, raciones, huecos, minutos, racionesCongelador, diasEnNevera } = entrada;
+function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
+  const { base, raciones, huecos, minutos, racionesNevera, racionesCongelador, diasEnNevera } = entrada;
   const [failed, setFailed] = useState(false);
   // La base se pinta y se abre por el MISMO puente que un plato del menú. Sin
   // esto la ficha salía con el formato del catálogo: cantidades en blanco
@@ -3375,6 +3381,13 @@ function BatchBaseCard({ entrada, onDishTap }) {
   // raciones que se le pasan son las de la TANDA, no las de un plato, que es lo
   // que hace que la lista de ingredientes sea la de la olla del domingo.
   const receta = useMemo(() => catalogToFrontendRecipe(base, raciones), [base, raciones]);
+  // Para quién es esta olla. Un hogar con varios menús —dieta, bebé, niños—
+  // puede tener el mismo sofrito alimentando a dos, y saber a cuál sirve cambia
+  // cuánto hay que cocinar.
+  const gruposDeLaTanda = useMemo(() => {
+    const ids = new Set(huecos.map((h) => h.groupId));
+    return grupos.filter((g) => ids.has(g.id));
+  }, [huecos, grupos]);
   const srcUrl = dishImageForRecipe(base);
   const optimized = deckImg(srcUrl, 760);
   const visual = visualForRecipe(base);
@@ -3441,8 +3454,18 @@ function BatchBaseCard({ entrada, onDishTap }) {
         </span>
       </div>
 
-      <div style={{ position: "absolute", top: 12, right: 12 }}>
+      <div style={{
+        position: "absolute", top: 12, right: 12,
+        display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 7,
+      }}>
         <DishSpecPills difficulty={receta.difficulty} time={minutos} align="flex-end" />
+        {gruposDeLaTanda.length > 0 && (
+          <div style={{ display: "flex", gap: 4 }}>
+            {gruposDeLaTanda.map((g) => (
+              <GroupMenuBadge key={g.id} group={g} size={24} members={members} max={2} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ position: "absolute", left: 14, right: 14, bottom: 13 }}>
@@ -3462,25 +3485,35 @@ function BatchBaseCard({ entrada, onDishTap }) {
       </div>
     </button>
 
-    {/* Dónde se guarda, DEBAJO y con sus iconos.
-        Dentro de la foto y separado por puntos —"6 raciones · 4 días en nevera
-        · 2 al congelador"— no se sabía si el 2 eran días o raciones, y la foto
-        acababa con cuatro datos encima. Los iconos son los mismos que ya usa
-        el menú para la nevera y el congelador. */}
+    {/* DÓNDE VA CADA RACIÓN, debajo y con sus iconos.
+        Antes decía "6 raciones · 4 días en nevera · 2 al congelador" dentro de
+        la foto, y ahí no se sabía si el 2 eran días o raciones ni cuántas iban
+        a cada sitio. Ahora cada número va pegado a su icono y las dos cifras
+        suman el total, que es la pregunta de verdad: cuánto meto en la nevera
+        y cuánto congelo.
+
+        No hay tercera cifra de "hoy" porque la tanda se cocina el día ANTES de
+        que empiece la semana: nada de esta olla se come el mismo día. */}
     <div style={{
-      display: "flex", alignItems: "center", gap: 14,
-      padding: "8px 4px 0", fontSize: 11.5, fontWeight: 700, color: "#6b7d70",
+      display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+      padding: "8px 4px 0", fontSize: 11.5, fontWeight: 700, color: "#3c5346",
     }}>
-      {diasEnNevera != null && (
+      {racionesNevera > 0 && (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
           <Refrigerator size={14} color="#2f6d8a" strokeWidth={2.4} />
-          {diasEnNevera === 1 ? "1 día" : `${diasEnNevera} días`}
+          {racionesNevera === 1 ? "1 ración" : `${racionesNevera} raciones`}
+          {diasEnNevera != null && (
+            <span style={{ fontWeight: 600, color: "#8aa093" }}>
+              {diasEnNevera === 1 ? "hasta mañana" : `hasta ${diasEnNevera} días`}
+            </span>
+          )}
         </span>
       )}
       {racionesCongelador > 0 && (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
           <Snowflake size={14} color="#3d6b93" strokeWidth={2.4} />
           {racionesCongelador === 1 ? "1 ración" : `${racionesCongelador} raciones`}
+          <span style={{ fontWeight: 600, color: "#8aa093" }}>al congelador</span>
         </span>
       )}
     </div>
