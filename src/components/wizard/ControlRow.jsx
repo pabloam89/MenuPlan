@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
-  ChefHat, Clock, Flame, Globe, Microwave, Scale, SlidersHorizontal, UtensilsCrossed,
+  ChefHat, Clock, Flame, Globe, Microwave, MoreHorizontal, Scale, SlidersHorizontal,
+  UtensilsCrossed, X, Zap,
 } from "../icons.jsx";
 import { controlesVisibles, valorDePregunta } from "../../lib/wizardRegistry.js";
 import { BarraRehacer } from "./BarraRehacer.jsx";
@@ -56,6 +57,56 @@ const VERDE = "#2d5a3d";
 // ya usan las tarjetas del wizard clásico. "Marcado" tiene que verse igual en
 // los tres sitios o deja de leerse como un estado y pasa a ser decoración.
 const TEAL = "#0f766e";
+
+/**
+ * La forma de una baldosa: cuadrado de 56 con su nombre debajo.
+ *
+ * Se exporta porque las ACCIONES del menú —activar, favorito, publicar— se
+ * despliegan en esta misma fila y tienen que ser la misma baldosa: si al
+ * desplegarlas aparecieran pastillas, la fila cambiaría de idioma a mitad de
+ * gesto. Lo único que cambia es que llevan icono en vez de ilustración y que
+ * su aro no significa "pendiente" sino "puesto" (favorito guardado).
+ */
+export function BaldosaAccion({ Icono, etiqueta, color = VERDE, tinte = "#fff", marcado = false, onClick, title, ariaPressed }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-label={title ?? etiqueta}
+      aria-pressed={ariaPressed}
+      style={{
+        flexShrink: 0, width: 76,
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+        background: "none", border: "none", padding: 0,
+        cursor: "pointer", fontFamily: "inherit",
+      }}
+    >
+      <span
+        style={{
+          width: 56, height: 56, borderRadius: 18,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: tinte,
+          border: marcado ? `2px solid ${color}` : "2px solid transparent",
+          boxShadow: marcado
+            ? `0 6px 16px -8px ${color}99`
+            : "0 2px 8px -4px rgba(20,47,29,.18)",
+          transition: "box-shadow .2s, border-color .2s",
+        }}
+      >
+        <Icono size={24} color={color} strokeWidth={marcado ? 2.4 : 2} />
+      </span>
+      <span
+        style={{
+          fontSize: 11.5, fontWeight: 800, textAlign: "center", lineHeight: 1.15,
+          color: marcado ? "#142f1d" : "#5a7066",
+        }}
+      >
+        {etiqueta}
+      </span>
+    </button>
+  );
+}
 
 function Baldosa({ pregunta, tocado, onClick }) {
   const Icono = ICONOS[pregunta.icono] ?? SlidersHorizontal;
@@ -117,7 +168,7 @@ function Baldosa({ pregunta, tocado, onClick }) {
 export function ControlRow({
   data, notepad, reparto, sesgos, movidas, porQue,
   onReparto, onSesgos, onData, onAplicar, tocados = new Set(),
-  acciones = null, accionesAbiertas = false, onAccionesAbiertas,
+  acciones = null, accionesAbiertas = false, onAccionesAbiertas, accionesAviso = false,
 }) {
   const [abierta, setAbierta] = useState(null);
   const controles = controlesVisibles(notepad, data);
@@ -134,7 +185,10 @@ export function ControlRow({
           el resto y no se leían como una barra de mandos. */}
       <div
         style={{
-          display: "flex", alignItems: "center",
+          // `stretch` y no `center`: la pestaña tiene que medir lo mismo que
+          // la fila de baldosas, o se lee como un botón suelto flotando al
+          // lado en vez de como la otra mitad de la misma franja.
+          display: "flex", alignItems: "stretch",
           // Sangra hasta el borde: el contenedor de la cabecera ya mete 16px
           // de lado, y una franja de fondo cortada a 16px del borde parece un
           // recuadro suelto en vez de una barra.
@@ -166,8 +220,15 @@ export function ControlRow({
             style={{
               // La base se queda fija y lo que se anima es cuánto crece:
               // interpolar de px a % no lo sabe hacer el navegador.
-              flexBasis: 46, flexGrow: accionesAbiertas ? 1 : 0, flexShrink: 0,
-              paddingTop: 12, paddingBottom: hayQueRehacer ? 10 : 12,
+              flexBasis: 52, flexGrow: accionesAbiertas ? 1 : 0, flexShrink: 0,
+              display: "flex", alignItems: "center", gap: 4,
+              // Otro color: la franja es verde pálido y las baldosas blancas,
+              // así que la pestaña en teja se lee como OTRA cosa sin tener que
+              // explicarse. Es el mismo tono con el que Publicar asoma en Gente.
+              background: accionesAviso ? "#fdf3df" : "#f6efe6",
+              borderRadius: "0 18px 18px 0",
+              padding: accionesAbiertas ? "12px 10px 12px 14px" : "0 6px 0 14px",
+              cursor: accionesAbiertas ? "default" : "pointer",
             }}
             {...(accionesAbiertas ? {} : {
               role: "button",
@@ -182,7 +243,60 @@ export function ControlRow({
               },
             })}
           >
-            {acciones}
+            {/* Plegada asoma su icono, centrado a la altura de las baldosas. Y
+                si el menú está sin activar, asoma el RAYO: ese aviso no puede
+                quedarse detrás de un pliegue, que es justo para lo que está. */}
+            <span
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0, height: 32, borderRadius: 999,
+                background: accionesAviso ? "#f8e3b0" : "rgba(178,98,47,.12)",
+                // Al desplegarse el icono sobra: lo que hay dentro ya dice qué
+                // es. Se queda ocupando su sitio para que las baldosas no den un
+                // salto al entrar.
+                opacity: accionesAbiertas ? 0 : 1,
+                width: accionesAbiertas ? 0 : 32,
+                marginRight: accionesAbiertas ? -4 : 0,
+                transition: "opacity .2s ease, width .3s cubic-bezier(.22,1,.36,1)",
+                overflow: "hidden",
+              }}
+            >
+              {accionesAviso
+                ? <Zap size={17} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
+                : <MoreHorizontal size={18} strokeWidth={2.6} color="#b2622f" />}
+            </span>
+
+            {/* El contenido no se desmonta al plegar: se queda detrás del
+                recorte y reaparece deslizándose. Montarlo y desmontarlo lo
+                haría aparecer de golpe a mitad de la animación. */}
+            <div
+              style={{
+                display: "flex", alignItems: "center", gap: 4, flex: 1, minWidth: 0,
+                overflowX: "auto",
+                opacity: accionesAbiertas ? 1 : 0,
+                pointerEvents: accionesAbiertas ? "auto" : "none",
+                transition: "opacity .2s ease",
+                scrollbarWidth: "none", msOverflowStyle: "none",
+              }}
+              aria-hidden={!accionesAbiertas}
+            >
+              {acciones}
+            </div>
+
+            {accionesAbiertas && (
+              <button
+                type="button"
+                onClick={() => onAccionesAbiertas?.(false)}
+                aria-label="Cerrar"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  width: 26, height: 26, borderRadius: 999, border: "none",
+                  background: "rgba(178,98,47,.14)", color: "#b2622f", cursor: "pointer",
+                }}
+              >
+                <X size={14} strokeWidth={2.8} />
+              </button>
+            )}
           </div>
         )}
 
@@ -197,7 +311,7 @@ export function ControlRow({
             flexGrow: conAcordeon && accionesAbiertas ? 0 : 1,
             opacity: conAcordeon && accionesAbiertas ? 0 : 1,
             padding: "12px 16px",
-            paddingLeft: conAcordeon ? 8 : 16,
+            paddingLeft: conAcordeon ? 10 : 16,
             paddingBottom: hayQueRehacer ? 10 : 12,
             scrollbarWidth: "none", msOverflowStyle: "none",
           }}

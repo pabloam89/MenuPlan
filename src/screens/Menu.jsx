@@ -171,6 +171,9 @@ import {
   todayDayIdx,
 } from "../lib/weekCalendar.js";
 import { orderedWeeks } from "../lib/menuArchive.js";
+// La MISMA baldosa que un mando del wizard: las acciones se despliegan en su
+// fila, y con otra forma la fila cambiaría de idioma a mitad de gesto.
+import { BaldosaAccion } from "../components/wizard/ControlRow.jsx";
 
 // Los 1,7 MB de pasos precomputados por electrodomestico se cargan BAJO DEMANDA.
 // Antes viajaban como import estatico, o sea dentro del chunk de Menu -- el mas
@@ -3256,13 +3259,13 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
   // Lo que hay en esta cocina cambia la tanda entera, no solo una etiqueta: la
   // bechamel son 25 minutos removiendo o 12 sin tocarla, y la legumbre 60 o 25.
   // Es justo donde el domingo se paga o no se paga.
-  const utensilios = data?.kitchenTools ?? [];
+  const utensilios = data?.kitchenTools;
   const sesion = useMemo(() => {
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
     return sesionDeBases(plan, lookupDeTanda(), {
       dias: days, comidas,
-      metodoDeBase: (b) => selectMethodForRecipe(b, utensilios),
+      metodoDeBase: (b) => selectMethodForRecipe(b, utensilios ?? []),
     });
   }, [days, comidas, menuPlan, visibleGroups, utensilios]);
 
@@ -4907,128 +4910,67 @@ export const MenuScreen = memo(function MenuScreen({
   const hasMenu = !isGenerating && !error && hasVisibleMenu;
 
   /**
-   * Las otras acciones del menú —activar, favorito, y la puerta al resto—
-   * plegadas a la izquierda de la fila de mandos, como Publicar en Gente.
+   * Las acciones del menú —activar, favorito, publicar— como BALDOSAS, en la
+   * misma fila que los mandos y plegadas tras una pestaña.
    *
-   * Vivían sueltas arriba a la derecha, y esa esquina ya estaba llena: en
-   * cuanto la semana trae su propio paso de semanas no queda sitio para nada
-   * más, y cualquier mando nuevo —las bases, sin ir más lejos— no tenía
-   * dónde entrar. Aquí comparten fila con las baldosas y se turnan: o ajustas
-   * el menú o haces algo CON el menú, nunca las dos a la vez.
+   * Vivían sueltas arriba a la derecha, y esa esquina ya estaba llena: con
+   * varias semanas la fila de debajo trae además su paso de semanas, y
+   * cualquier mando nuevo —las bases, sin ir más lejos— no tenía dónde
+   * entrar. Aquí comparten fila con las baldosas y se turnan: o ajustas el
+   * menú o haces algo CON el menú, nunca las dos a la vez.
    *
-   * Por defecto se ven las BALDOSAS. Lo otro asoma por el borde, y lo que
-   * asoma es el rayo cuando el menú está sin activar — ese aviso no puede
-   * quedarse detrás de un pliegue, que es justo para lo que está.
+   * Son la MISMA baldosa que un mando —mismo cuadrado, mismo nombre debajo—
+   * con icono en vez de ilustración. Si al desplegarlas aparecieran pastillas,
+   * la fila cambiaría de idioma a mitad de gesto.
+   *
+   * Aquí solo vienen las tres que se hacen de un toque. Lo demás —menús
+   * guardados, compartir, PDF, regenerar— sigue en el burger de la cabecera,
+   * que se queda donde estaba: son destinos y diálogos, no interruptores, y
+   * una baldosa que abre una pantalla promete algo que no es.
    */
-  const accionesEnLaFila = hasMenu && Boolean(wizardControls);
+  const [publishSheetOpen, setPublishSheetOpen] = useState(false);
   const abrirAcciones = useCallback((v) => setAccionesAbiertas(v), []);
-  const accionesDelMenu = useMemo(() => {
-    const puedeActivar = Boolean(onActivateMenu && menuNeedsActivation);
-    const puedeFavorito = Boolean(onToggleFavorite && user);
-    const pastilla = (extra) => ({
-      display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0,
-      height: 30, padding: "0 11px", borderRadius: 999,
-      border: "1.5px solid #dbe7df", background: "#fff", color: "#2d5a3d",
-      fontSize: 11.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-      whiteSpace: "nowrap", ...extra,
-    });
-    return (
-      <div
-        style={{
-          // Nace pegada al borde izquierdo —la franja ya sangra hasta el
-          // borde— y solo se redondea por la derecha, que es el lado que se ve
-          // cuando está plegada.
-          display: "flex", alignItems: "center", gap: 6, minWidth: "100%",
-          padding: "5px 8px 5px 10px",
-          borderRadius: "0 14px 14px 0", background: "#fff",
-          boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
-          boxSizing: "border-box",
-          cursor: accionesAbiertas ? "default" : "pointer",
-        }}
-      >
-        <span
-          style={{
-            display: "inline-flex", alignItems: "center", justifyContent: "center",
-            width: 30, height: 30, borderRadius: 999, flexShrink: 0,
-            background: puedeActivar ? "#fff6e0" : "#eef4ef",
-            color: puedeActivar ? "#c9922a" : "#2d5a3d",
-          }}
-        >
-          {puedeActivar
-            ? <Zap size={16} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
-            : <MenuIcon size={16} strokeWidth={2.4} />}
-        </span>
-
-        {/* El contenido no se desmonta al plegar: se queda detrás del recorte y
-            reaparece deslizándose. Montarlo y desmontarlo lo haría aparecer de
-            golpe a mitad de la animación. */}
-        <span
-          style={{
-            display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0,
-            opacity: accionesAbiertas ? 1 : 0,
-            pointerEvents: accionesAbiertas ? "auto" : "none",
-            transition: "opacity .2s ease",
-          }}
-        >
-          {puedeActivar && (
-            <button
-              type="button"
-              onClick={onActivateMenu}
-              title="Activar menú — En casa se moverá según tus preferencias"
-              style={pastilla({ background: "#fff6e0", borderColor: "#f0d48a", color: "#8a6415" })}
-            >
-              <Zap size={14} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
-              Activar
-            </button>
-          )}
-          {puedeFavorito && (
-            <button
-              type="button"
-              onClick={onToggleFavorite}
-              aria-pressed={activeFavorite}
-              style={pastilla(activeFavorite
-                ? { background: "#fff0f3", borderColor: "#f6bcc9", color: "#a32740" }
-                : {})}
-            >
-              <Heart
-                size={14}
-                strokeWidth={2.4}
-                color={activeFavorite ? "#e0405a" : "#2d5a3d"}
-                fill={activeFavorite ? "#e0405a" : "none"}
-              />
-              {activeFavorite ? "Guardado" : "Favorito"}
-            </button>
-          )}
-          <button
-            type="button"
-            data-coach="menu-options"
-            onClick={() => setHeaderMenuOpen(true)}
-            aria-haspopup="menu"
-            aria-expanded={headerMenuOpen}
-            style={pastilla({ background: headerMenuOpen ? "#e8f0ea" : "#fff" })}
-          >
-            <MenuIcon size={14} strokeWidth={2.4} />
-            Más
-          </button>
-        </span>
-
-        {accionesAbiertas && (
-          <button
-            type="button"
-            onClick={() => setAccionesAbiertas(false)}
-            aria-label="Cerrar"
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-              width: 24, height: 24, borderRadius: 999, border: "none",
-              background: "rgba(20,47,29,.07)", color: "#7a8a7f", cursor: "pointer",
-            }}
-          >
-            <X size={13} strokeWidth={2.8} />
-          </button>
-        )}
-      </div>
-    );
-  }, [accionesAbiertas, activeFavorite, headerMenuOpen, menuNeedsActivation, onActivateMenu, onToggleFavorite, user]);
+  const puedeActivar = Boolean(hasMenu && onActivateMenu && menuNeedsActivation);
+  // Sin cuenta no hay ninguna de las tres, y entonces la pestaña no existe:
+  // una que se despliega y no enseña nada es peor que no tenerla.
+  const hayAcciones = puedeActivar || Boolean(onToggleFavorite && user) || Boolean(onPublishToFeed);
+  const accionesEnLaFila = hasMenu && hayAcciones && Boolean(wizardControls);
+  const accionesDelMenu = useMemo(() => (
+    <>
+      {puedeActivar && (
+        <BaldosaAccion
+          Icono={Zap}
+          etiqueta="Activar"
+          color="#c9922a"
+          tinte="#fff6e0"
+          marcado
+          title="Activar menú — En casa se moverá según tus preferencias"
+          onClick={onActivateMenu}
+        />
+      )}
+      {onToggleFavorite && user && (
+        <BaldosaAccion
+          Icono={Heart}
+          etiqueta={activeFavorite ? "Guardado" : "Favorito"}
+          color={activeFavorite ? "#e0405a" : "#2d5a3d"}
+          marcado={activeFavorite}
+          ariaPressed={activeFavorite}
+          title={activeFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
+          onClick={onToggleFavorite}
+        />
+      )}
+      {onPublishToFeed && (
+        <BaldosaAccion
+          Icono={Users}
+          etiqueta={menuSharedInFeed ? "Publicado" : "Publicar"}
+          color="#4a6fd4"
+          marcado={menuSharedInFeed}
+          title={menuSharedInFeed ? "Menú publicado en Gente" : "Publicar en Gente"}
+          onClick={() => setPublishSheetOpen(true)}
+        />
+      )}
+    </>
+  ), [activeFavorite, menuSharedInFeed, onPublishToFeed, onToggleFavorite, puedeActivar, onActivateMenu, user]);
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
@@ -5090,7 +5032,6 @@ export const MenuScreen = memo(function MenuScreen({
     [data.groups, data.members],
   );
 
-  const [publishSheetOpen, setPublishSheetOpen] = useState(false);
 
   const handleShare = async () => {
     try {
@@ -5311,14 +5252,17 @@ export const MenuScreen = memo(function MenuScreen({
             </h2>
             <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
-          {/* Cuando caben en la fila de mandos, estas tres se van allí plegadas
-              y la cabecera se queda solo con el título. Ver `accionesDelMenu`. */}
-          {!accionesEnLaFila && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            {/* Guardar como favorito solo tiene sentido con cuenta: sin ella no
+            {/* Activar y favorito se van a la fila de mandos como baldosas en
+                cuanto esa fila existe (ver `accionesDelMenu`); si no hay fila,
+                se quedan aquí. El burger NO se mueve: sus entradas son
+                destinos y diálogos, no interruptores, y este es el sitio donde
+                se busca "lo demás" en toda la app.
+
+                Guardar como favorito solo tiene sentido con cuenta: sin ella no
                 hay histórico/favoritos persistentes donde recuperarlo, así que
                 no ofrecemos algo que no podemos cumplir. */}
-            {hasMenu && onActivateMenu && menuNeedsActivation && (
+            {!accionesEnLaFila && hasMenu && onActivateMenu && menuNeedsActivation && (
               <button
                 type="button"
                 onClick={onActivateMenu}
@@ -5333,7 +5277,7 @@ export const MenuScreen = memo(function MenuScreen({
                 <Zap size={18} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
               </button>
             )}
-            {hasMenu && onToggleFavorite && user && (
+            {!accionesEnLaFila && hasMenu && onToggleFavorite && user && (
               <button
                 type="button"
                 onClick={onToggleFavorite}
@@ -5367,7 +5311,6 @@ export const MenuScreen = memo(function MenuScreen({
               <MenuIcon size={18} strokeWidth={2.4} />
             </button>
           </div>
-          )}
           {headerMenuOpen && (
             <div
               onClick={() => setHeaderMenuOpen(false)}
@@ -5438,7 +5381,9 @@ export const MenuScreen = memo(function MenuScreen({
                     // "Análisis" y "Borrar menú" quitados de momento (2026-08-27):
                     // para borrar, ahora se genera otro menú por encima.
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
-                    hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
+                    // Solo si no es ya una baldosa: la misma acción en dos
+                    // sitios obliga a mirar los dos para saber si está hecha.
+                    !accionesEnLaFila && hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
                     hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
                     !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
@@ -5538,6 +5483,7 @@ export const MenuScreen = memo(function MenuScreen({
               acciones: accionesDelMenu,
               accionesAbiertas,
               onAccionesAbiertas: abrirAcciones,
+              accionesAviso: puedeActivar,
             })
           : hasMenu && wizardControls}
       </div>
