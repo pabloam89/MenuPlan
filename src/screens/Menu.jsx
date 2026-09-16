@@ -3253,11 +3253,18 @@ function lookupDeTanda() {
 
 function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
   const comidas = getDayMeals(data);
+  // Lo que hay en esta cocina cambia la tanda entera, no solo una etiqueta: la
+  // bechamel son 25 minutos removiendo o 12 sin tocarla, y la legumbre 60 o 25.
+  // Es justo donde el domingo se paga o no se paga.
+  const utensilios = data?.kitchenTools ?? [];
   const sesion = useMemo(() => {
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
-    return sesionDeBases(plan, lookupDeTanda(), { dias: days, comidas });
-  }, [days, comidas, menuPlan, visibleGroups]);
+    return sesionDeBases(plan, lookupDeTanda(), {
+      dias: days, comidas,
+      metodoDeBase: (b) => selectMethodForRecipe(b, utensilios),
+    });
+  }, [days, comidas, menuPlan, visibleGroups, utensilios]);
 
   // Las que el usuario PIDIÓ y esta semana no puede dar. Sin esto, marcar tres
   // bases y ver una sola tarjeta parece un fallo: no lo es — una tanda existe
@@ -3373,7 +3380,7 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
  * la compra, y con ellos es un plan.
  */
 function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
-  const { base, raciones, huecos, minutos, racionesNevera, racionesCongelador, diasEnNevera } = entrada;
+  const { base, raciones, huecos, minutos, racionesNevera, racionesCongelador, diasEnNevera, metodo } = entrada;
   const [failed, setFailed] = useState(false);
   const [platosAbiertos, setPlatosAbiertos] = useState(false);
   // La base se pinta y se abre por el MISMO puente que un plato del menú. Sin
@@ -3406,6 +3413,10 @@ function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
         // los comensales son las raciones de la TANDA, que es lo que se cocina.
         slot: { eaters: raciones },
         browse: true,
+        // Si la tarjeta cuenta 12 minutos de Thermomix, la ficha tiene que
+        // abrirse en Thermomix. Abrirla en "Tradicional" y ensenar 25 hacia
+        // que el numero de la tanda pareciera un error.
+        initialAppliance: metodo?.appliance ?? null,
       })}
       style={{
         position: "relative", display: "block", width: "100%", height: 186,
@@ -3491,6 +3502,25 @@ function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
           </div>
         )}
         <DishSpecPills difficulty={receta.difficulty} time={minutos} align="flex-end" />
+        {/* Con que aparato esta contado. Sin decirlo, una legumbre que pasa de
+            60 a 25 minutos porque la casa tiene olla rapida parece un fallo de
+            la app y no la razon por la que merece la pena. */}
+        {metodo && (
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            height: 22, padding: "0 9px", borderRadius: 999,
+            background: "rgba(255,255,255,.92)",
+            color: APPLIANCE_COLORS[metodo.appliance] ?? "#3c5346",
+            fontSize: 11, fontWeight: 800,
+            boxShadow: "0 2px 8px rgba(9,18,12,.25)",
+          }}>
+            {(() => {
+              const Icono = APPLIANCE_ICONS[metodo.appliance];
+              return Icono ? <Icono size={12} strokeWidth={2.5} /> : null;
+            })()}
+            {APPLIANCE_LABELS[metodo.appliance] ?? metodo.appliance}
+          </span>
+        )}
       </div>
 
       <div style={{ position: "absolute", left: 14, right: 14, bottom: 13 }}>
@@ -6411,6 +6441,21 @@ export function DishDetail({
   const activeMethod =
     methodOptions.find((o) => o.appliance === activeAppliance) ?? methodOptions[0];
 
+  /**
+   * Los minutos que se anuncian arriba son los de la receta que se está
+   * viendo, no siempre los del método.
+   *
+   * Con el interruptor de bases en SÍ, los pasos de abajo ya son los cortos
+   * —la base sale de la nevera— pero la píldora seguía diciendo los 33
+   * minutos de cocinarla desde cero. Decía una cosa y enseñaba otra.
+   *
+   * Solo aplica al método tradicional: el ahorro se mide sobre SUS pasos
+   * (`stepsRich`), y un airfryer reescribe la receta entera, así que restarle
+   * un tiempo calculado sobre otra técnica daría un número inventado.
+   */
+  const minutosDelPlato =
+    usandoBases && activeMethod?.appliance === "base" ? vistaBases.minutos : activeMethod.time;
+
   // Demo autoplay for the value-prop carousel (guarded by autoDemo).
   useEffect(() => {
     if (autoDemo !== "methods" || methodOptions.length <= 1) return undefined;
@@ -6691,7 +6736,7 @@ export function DishDetail({
               <Users size={12} /> {slot.eaters} comensales
             </span>
             <span style={detailTagStyle}>
-              <Clock3 size={12} /> {activeMethod.time} min
+              <Clock3 size={12} /> {minutosDelPlato} min
             </span>
             <span style={detailTagStyle}>
               <Gauge size={12} /> {activeMethod.difficultyLabel}
@@ -6980,7 +7025,7 @@ export function DishDetail({
 
             {recipeExpanded && (
               <>
-            {/* ── ¿Tienes la base hecha? ────────────────────────────────────
+            {/* ── ¿Tienes la base hecha? ────────────────────────────
                 Una PREGUNTA con su interruptor, no un botón que dice "la
                 tengo". "Ya la tengo / La tengo" era equívoco: no se sabía si
                 describía el estado o lo que iba a pasar al tocarlo.
@@ -6989,34 +7034,41 @@ export function DishDetail({
                 quien llega a este plato desde una semana con tanda lo normal es
                 que la tenga hecha, y encontrarse la receta larga cuando no toca
                 molesta más que al revés. El que no la tenga lo apaga y ve la
-                receta entera. */}
+                receta entera.
+
+                Una sola fila: base a la izquierda, pregunta, interruptor. El
+                ahorro NO se cuenta aquí — "18 min en vez de 33" dentro de la
+                tarjeta era el mismo dato que la píldora de minutos de arriba,
+                dicho dos veces y con distinta forma. Ahora la píldora cambia
+                sola al mover el interruptor, que es donde el usuario ya mira
+                el tiempo del plato. */}
             {puedeConBases && (
               <div
                 style={{
-                  padding: "12px 12px 10px", marginBottom: 12, borderRadius: 12,
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 12px", marginBottom: 12, borderRadius: 12,
                   background: usandoBases ? "#e8f5ec" : "#f7f9f7",
                   outline: usandoBases ? "1.5px solid #2d5a3d" : "1px solid #e3ede6",
                   outlineOffset: -1,
                   transition: "background .15s, outline .15s",
                 }}
               >
-                {/* Ilustración arriba y el nombre debajo, como en el selector
-                    de bases: es la misma cosa y se reconoce por el dibujo. */}
-                <div style={{ display: "flex", justifyContent: "center", gap: 14, marginBottom: 2 }}>
+                {/* Ilustración con su nombre debajo, como en el selector de
+                    bases: es la misma cosa y se reconoce por el dibujo. */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexShrink: 0 }}>
                   {vistaBases.bases.map((b) => {
                     const img = ingredientThumbSrc(BASES_UI[b.clave]?.foto ?? b.clave);
                     return (
-                      <div key={b.clave} style={{ textAlign: "center", minWidth: 0 }}>
+                      <div key={b.clave} style={{ textAlign: "center", width: 54 }}>
                         {img && (
                           <img
                             src={img}
                             alt=""
-                            style={{ width: 52, height: 52, objectFit: "contain", display: "block", margin: "0 auto" }}
+                            style={{ width: 42, height: 42, objectFit: "contain", display: "block", margin: "0 auto" }}
                           />
                         )}
                         <div style={{
-                          fontSize: 11, fontWeight: 800, color: "#142f1d",
-                          lineHeight: 1.2, marginTop: 2, maxWidth: 92,
+                          fontSize: 10, fontWeight: 800, color: "#142f1d", lineHeight: 1.15, marginTop: 2,
                         }}>
                           {BASES_UI[b.clave]?.etiqueta ?? b.nombre}
                         </div>
@@ -7025,38 +7077,30 @@ export function DishDetail({
                   })}
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.3 }}>
-                      {vistaBases.bases.length === 1
-                        ? "¿Tienes cocinada esta base?"
-                        : "¿Tienes cocinadas estas bases?"}
-                    </div>
-                    {usandoBases && vistaBases.ahorro > 0 && (
-                      <div style={{ fontSize: 11.5, color: "#6b7d70", lineHeight: 1.35, marginTop: 1 }}>
-                        {vistaBases.minutos} min en vez de {vistaBases.minutosEnteros}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", flexShrink: 0, background: "#fff", borderRadius: 999, padding: 3, outline: "1.5px solid #cfe0d5", outlineOffset: -1.5 }}>
-                    {[["si", "Sí", true], ["no", "No", false]].map(([id, texto, valor]) => (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => setConBases(valor)}
-                        aria-pressed={usandoBases === valor}
-                        style={{
-                          padding: "5px 14px", borderRadius: 999, border: "none",
-                          background: usandoBases === valor ? "#2d5a3d" : "transparent",
-                          color: usandoBases === valor ? "#fff" : "#7a9485",
-                          fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                          transition: "background .15s, color .15s",
-                        }}
-                      >
-                        {texto}
-                      </button>
-                    ))}
-                  </div>
+                <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.3 }}>
+                  {vistaBases.bases.length === 1
+                    ? "¿Tienes cocinada esta base?"
+                    : "¿Tienes cocinadas estas bases?"}
+                </div>
+
+                <div style={{ display: "flex", flexShrink: 0, background: "#fff", borderRadius: 999, padding: 3, outline: "1.5px solid #cfe0d5", outlineOffset: -1.5 }}>
+                  {[["si", "Sí", true], ["no", "No", false]].map(([id, texto, valor]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setConBases(valor)}
+                      aria-pressed={usandoBases === valor}
+                      style={{
+                        padding: "5px 13px", borderRadius: 999, border: "none",
+                        background: usandoBases === valor ? "#2d5a3d" : "transparent",
+                        color: usandoBases === valor ? "#fff" : "#7a9485",
+                        fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                        transition: "background .15s, color .15s",
+                      }}
+                    >
+                      {texto}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}

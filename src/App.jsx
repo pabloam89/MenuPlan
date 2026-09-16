@@ -5392,6 +5392,7 @@ export default function App() {
           kitchenTools={data.kitchenTools ?? []}
           browse={Boolean(selectedSlot.browse)}
           initialCourse={selectedSlot.initialCourse ?? "principal"}
+          initialAppliance={selectedSlot.initialAppliance ?? null}
           userVote={householdReadOnly ? null : voteOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
           onVote={householdReadOnly ? undefined : (vote) => handleVoteRecipe(selectedSlot.recipe.id, vote)}
           favoriteScope={favScopeOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}

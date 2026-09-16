@@ -143,14 +143,57 @@ export function fraccionActiva(base) {
   return total > 0 ? activos / total : 1;
 }
 
-export function tiempoDeBase(base, raciones) {
+/**
+ * Las manos que pide una base hecha con un aparato.
+ *
+ * Un aparato no te quita el PICAR, te quita el ESTAR. Los minutos `activo` de
+ * una base —remover la bechamel veinte minutos, vigilar que el sofrito no se
+ * agarre— son exactamente lo que la máquina hace en tu lugar; los `prep`
+ * —pelar, trocear, pesar— los sigues haciendo tú. Así que las manos de un
+ * método son su `prep` más lo que cuesta cargarlo, programarlo y vaciarlo.
+ *
+ * La Thermomix es la excepción por arriba: también pica, así que su `prep`
+ * cuenta a la mitad. Y por eso la bechamel pasa de 22 minutos tuyos a 4, que
+ * es el caso que hace que esto merezca la pena de verdad.
+ *
+ * No se usa una fracción del reloj, como en la versión tradicional, porque con
+ * un aparato el reloj y las manos dejan de ir juntos: la legumbre tiene nueve
+ * horas de pasos —casi todas de remojo— y una fracción sobre ese total daba
+ * medio minuto de atención para algo que sí pide cinco de pelar y lavar.
+ */
+const MINUTOS_DE_CARGAR = 3;
+
+export function manosDeMetodo(base, metodo) {
+  const pasos = base?.stepsRich ?? [];
+  let prep = 0;
+  for (const paso of pasos) {
+    if (paso?.kind === "prep") prep += Number(paso?.minutes) || 0;
+  }
+  const pica = metodo?.appliance === "thermomix";
+  return Math.round(prep * (pica ? 0.5 : 1) + MINUTOS_DE_CARGAR);
+}
+
+/**
+ * @param {object} base
+ * @param {number|number[]} raciones
+ * @param {object} [metodo] el método de `base.methods` que tiene esta casa,
+ *   si lo tiene. Cambia el reloj (`time` del método) y las manos (ver
+ *   `manosDeMetodo`); sin él se cocina como siempre.
+ */
+export function tiempoDeBase(base, raciones, metodo = null) {
   const porPlato = (Array.isArray(raciones) ? raciones : [raciones])
     .map((n) => Math.max(0, Math.floor(Number(n) || 0)))
     .filter((n) => n > 0);
   const total = porPlato.reduce((s, n) => s + n, 0);
   if (!base || total === 0) return { tandas: 0, minutos: 0, minutosSueltos: 0, ahorro: 0 };
 
-  const fijos = Number(base.minutosFijos) || Number(base.time) || 0;
+  const propios = Number(base.minutosFijos) || Number(base.time) || 0;
+  // El método trae el reloj ENTERO, no los fijos, así que se le descuenta el
+  // mismo margen por raciones que lleva la versión tradicional: lo que cambia
+  // el aparato es la coccion, no lo que crece con la cantidad.
+  const fijos = metodo?.time > 0
+    ? Math.max(1, Number(metodo.time) - ((Number(base.time) || 0) - propios))
+    : propios;
   const porRacion = Number(base.minutosPorRacion) || 0;
   const capacidad = Math.max(1, Number(base.capacidadMax) || total);
 
@@ -173,18 +216,39 @@ export function tiempoDeBase(base, raciones) {
   const minutosSueltos = porPlato.reduce((s, n) => s + minutosDe(n), 0);
 
   const ahorro = Math.max(0, Math.round(minutosSueltos - minutos));
-  const activa = fraccionActiva(base);
+  const tandas = Math.ceil(total / capacidad);
+
+  // Con aparato las manos no son una fracción del reloj sino un coste por
+  // olla: cargarla y vaciarla. Lo que se ahorra es hacerlo UNA vez en vez de
+  // una por plato.
+  let minutosActivos;
+  let ahorroActivo;
+  if (metodo) {
+    const manos = manosDeMetodo(base, metodo);
+    const ollasSueltas = porPlato.reduce((n, r) => n + Math.ceil(r / capacidad), 0);
+    minutosActivos = manos * tandas;
+    ahorroActivo = Math.max(0, manos * (ollasSueltas - tandas));
+  } else {
+    const activa = fraccionActiva(base);
+    minutosActivos = Math.round(Math.round(minutos) * activa);
+    ahorroActivo = Math.round(ahorro * activa);
+  }
+
   return {
-    tandas: Math.ceil(total / capacidad),
+    tandas,
     minutos: Math.round(minutos),
     minutosSueltos: Math.round(minutosSueltos),
     ahorro,
+    // Qué aparato se ha contado, o null si la cazuela de siempre. Lo lee la
+    // tarjeta de la tanda para poder decirlo: un número que baja de 46 a 11
+    // sin explicar por qué parece un error.
+    metodo: metodo ?? null,
     // Los dos, y el que se le enseña al usuario es `ahorroActivo`. `ahorro`
     // se queda porque también significa algo: es ESPERA que te quitas de
     // encima un martes (no cenas mas tarde por esperar al arroz). Pero no es
     // "tienes una hora mas", y enseñarlo como si lo fuera era mentir.
-    ahorroActivo: Math.round(ahorro * activa),
-    minutosActivos: Math.round(Math.round(minutos) * activa),
+    ahorroActivo,
+    minutosActivos,
   };
 }
 
@@ -538,7 +602,11 @@ export function sesionDeBases(plan, recetasPorId, opts = {}) {
     const raciones = huecos.reduce((n, h) => n + h.raciones, 0);
     // Las raciones van plato a plato, no sumadas: es lo que hace que el ahorro
     // se compare contra "una olla por plato" y no contra "una olla por ración".
-    const t = tiempoDeBase(entrada.base, huecos.map((h) => h.raciones));
+    // El aparato que tiene ESTA casa, si lo tiene. Se pasa desde fuera en vez
+    // de resolverlo aqui porque `applianceMethods.js` arrastra los iconos
+    // (JSX), y esta libreria se prueba y se usa sin pantalla.
+    const metodo = opts.metodoDeBase?.(entrada.base) ?? null;
+    const t = tiempoDeBase(entrada.base, huecos.map((h) => h.raciones), metodo);
     bases.push({
       ...entrada,
       huecos,

@@ -142,6 +142,20 @@
         "minutes": 3,
         "kind": "activo"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Rehoga el arroz un minuto en la olla destapada, añade el doble de agua y sal. Cierra y cuenta 5 minutos desde que sube la válvula. Despresuriza y deja reposar 3 minutos tapado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Arroz, agua y sal en el vaso. Programa 14 minutos, 100°C, velocidad cuchara giro inverso. Vuelca en una fuente ancha para que se enfríe rápido antes de guardarlo."
+      }
     ]
   },
   {
@@ -370,6 +384,26 @@
         "minutes": 2,
         "kind": "activo"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Patatas enteras con piel en el cestillo, un dedo de agua y sal. Cierra y cuenta 8 minutos desde que sube la válvula. Pélalas en caliente, que salen solas."
+      },
+      {
+        "appliance": "microondas",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Patatas enteras pinchadas con un tenedor, en un bol tapado con dos dedos de agua. 10-12 minutos a máxima potencia, dándoles la vuelta a mitad. Comprueba con la punta de un cuchillo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Patatas en dados en la bandeja perforada, 22-25 minutos al vapor. Quedan más secas que cocidas y aguantan mejor la semana en la nevera."
+      }
     ]
   },
   {
@@ -515,6 +549,20 @@
         "minutes": 5,
         "kind": "activo"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Con la legumbre ya remojada, ponla en la olla con agua fría que la cubra tres dedos, la hoja de laurel y la sal. Cierra y cuenta 18 minutos desde que sube la válvula. Despresuriza sin prisa y escurre."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Coloca la legumbre remojada en el vaso con agua hasta la marca de 2 litros y el laurel. Programa 45 minutos, 100°C, velocidad cuchara giro inverso. Escurre en el cestillo."
+      }
     ]
   },
   {
@@ -630,6 +678,20 @@
         "text": "Calentar en el microondas removiendo a mitad, hasta que esté caliente.",
         "minutes": 3,
         "kind": "activo"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 11,
+        "difficulty": "facil",
+        "prepSummary": "Quinoa bien enjuagada con el doble de agua y sal. Cierra y cuenta 3 minutos desde que sube la válvula. Despresuriza, destapa y ahueca con un tenedor."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Enjuaga la quinoa en el cestillo bajo el grifo. Ponla en el vaso con el doble de agua y sal, 14 minutos, 100°C, velocidad cuchara giro inverso."
       }
     ]
   },
@@ -865,6 +927,20 @@
         "minutes": 8,
         "kind": "activo"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Boniato entero con piel, pinchado y pincelado con aceite. 25 minutos a 200°C, dándole la vuelta a mitad. La piel se arruga y el interior queda cremoso."
+      },
+      {
+        "appliance": "microondas",
+        "time": 16,
+        "difficulty": "facil",
+        "prepSummary": "Pincha el boniato por varios sitios y envuélvelo en papel de cocina húmedo. 10-12 minutos a máxima potencia según el tamaño. Es el más rápido, pero no coge nada de tostado."
+      }
     ]
   },
   {
@@ -1017,7 +1093,15 @@
         "kind": "activo"
       }
     ],
-    "description": "La base de medio recetario español: cebolla, ajo y pimiento pochados despacio con tomate. Es lo que más manos pide de un guiso y lo que mejor se guarda — en la nevera aguanta cuatro días y en el congelador, meses."
+    "description": "La base de medio recetario español: cebolla, ajo y pimiento pochados despacio con tomate. Es lo que más manos pide de un guiso y lo que mejor se guarda — en la nevera aguanta cuatro días y en el congelador, meses.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 32,
+        "difficulty": "facil",
+        "prepSummary": "Cebolla y pimiento en trozos, 4 segundos a velocidad 4. Añade el aceite y sofríe 8 minutos, 120°C, velocidad 1. Incorpora el tomate y programa 20 minutos, Varoma, velocidad 1 con el cubilete quitado para que reduzca. Ni un removido."
+      }
+    ]
   },
   {
     "id": "bases_009",
@@ -1165,7 +1249,21 @@
       "Colar el caldo, salar al gusto y retirar el pollo y la verdura.",
       "Dejar enfriar y repartir en botes o bolsas, dejando un dedo libre si van al congelador."
     ],
-    "description": "Caldo de pollo y verduras colado, la base de arroces, cremas, guisos y sopas de toda la semana."
+    "description": "Caldo de pollo y verduras colado, la base de arroces, cremas, guisos y sopas de toda la semana.",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Mete la carcasa, las verduras y el agua en la olla sin pasar de dos tercios. Cierra y cuenta 25 minutos desde que sube la válvula. Cuela en caliente y desgrasa cuando enfríe."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "facil",
+        "prepSummary": "Carcasa y verduras troceadas en el vaso, agua hasta 2 litros. Programa 50 minutos, Varoma, velocidad cuchara giro inverso. Cuela por el cestillo apretando poco, para que salga limpio."
+      }
+    ]
   },
   {
     "id": "bases_010",
@@ -1305,7 +1403,21 @@
       "Cocer a fuego lento, removiendo de vez en cuando, hasta que espese y el aceite suba a la superficie.",
       "Dejar templar y repartir en botes; se puede triturar si se quiere fina."
     ],
-    "description": "Salsa de tomate pochada despacio y en cantidad, lista para pasta, huevos, carnes en salsa y gratinados."
+    "description": "Salsa de tomate pochada despacio y en cantidad, lista para pasta, huevos, carnes en salsa y gratinados.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 38,
+        "difficulty": "facil",
+        "prepSummary": "Tritura la cebolla y el ajo 4 segundos a velocidad 5, sofríe 7 minutos a 120°C velocidad 1, añade el tomate y programa 25 minutos, Varoma, velocidad 1 sin cubilete. Termina triturando 30 segundos a velocidad 6 si la quieres fina."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y ajo en la olla destapada, añade el tomate y una pizca de azúcar. Cierra y cuenta 10 minutos desde que sube la válvula. Al abrir, reduce a fuego vivo lo que le sobre de agua."
+      }
+    ]
   },
   {
     "id": "bases_011",
@@ -1439,7 +1551,15 @@
       "Remover y devolver al horno otros diez minutos, hasta que estén tiernas y doradas.",
       "Dejar templar destapadas para que no suden y repartir en tápers."
     ],
-    "description": "Bandeja de calabacín, berenjena, pimiento y cebolla asados, para ensaladas, tostas, bowls y guarniciones."
+    "description": "Bandeja de calabacín, berenjena, pimiento y cebolla asados, para ensaladas, tostas, bowls y guarniciones.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 32,
+        "difficulty": "facil",
+        "prepSummary": "Verduras en dados parejos, aceite y sal, sin llenar más de dos tercios de la cesta. 25 minutos a 190°C agitando dos veces. En dos tandas si son muchas: aun así sale antes que el horno."
+      }
+    ]
   },
   {
     "id": "bases_012",
@@ -1576,7 +1696,15 @@
       "Añadir {{Aceite de oliva virgen extra}} en hilo y seguir triturando hasta que ligue.",
       "Pasar a un bote y cubrir con un dedo de aceite por encima: así aguanta una semana en la nevera sin perder el color."
     ],
-    "description": "Pesto de albahaca, piñones y parmesano, cubierto de aceite para que aguante la semana en la nevera."
+    "description": "Pesto de albahaca, piñones y parmesano, cubierto de aceite para que aguante la semana en la nevera.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 7,
+        "difficulty": "facil",
+        "prepSummary": "Piñones, ajo y queso 10 segundos a velocidad 7. Añade la albahaca y el aceite y tritura 20 segundos a velocidad 5, bajando lo de las paredes con la espátula."
+      }
+    ]
   },
   {
     "id": "bases_013",
@@ -1719,6 +1847,14 @@
       "Cocer a fuego suave removiendo, hasta que espese y cubra el dorso de una cuchara.",
       "Añadir {{Sal}} y {{Nuez moscada}}, remover y retirar del fuego.",
       "Repartir en botes y cubrir con film a piel, pegado a la salsa, para que no haga costra."
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Mantequilla y harina en el vaso, 2 minutos a 100°C velocidad 3. Añade la leche fría de golpe con la nuez moscada y la sal, y programa 7 minutos, 90°C, velocidad 4. Sale sin un grumo y sin estar delante."
+      }
     ]
   },
   {
@@ -1853,6 +1989,14 @@
       "Extender los dados en la bandeja en una sola capa, sin que se toquen.",
       "Asar hasta que estén dorados por fuera, dándoles la vuelta a mitad.",
       "Dejar templar destapados para que no se ablanden y repartir en tápers."
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Dados de patata secos, con el aceite y las especias bien repartidos. 22 minutos a 200°C agitando la cesta a mitad. Quedan más crujientes que en el horno y en la mitad de tiempo."
+      }
     ]
   }
 ]
