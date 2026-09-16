@@ -594,6 +594,101 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     setEditingMemberId(id);
   };
 
+  // Arrastrar un perfil de la paleta hasta "Tu familia" ─────────────────────
+  // Alternativa al toque (que se queda tal cual): coges un perfil de abajo y
+  // lo sueltas en la tarjeta de arriba; al soltarlo se abre el mismo popup de
+  // nombre + avatar. Con ratón arranca al mover 8px; con el dedo hay que
+  // mantener pulsado ~180ms, porque la paleta vive abajo del todo y si no el
+  // gesto se lo queda el scroll de la página. Mientras el arrastre está vivo
+  // bloqueamos el scroll con un touchmove no pasivo (el dedo lleva 180ms
+  // quieto, así que el navegador aún no ha empezado a desplazar y respeta el
+  // preventDefault).
+  const dropZoneRef = useRef(null);
+  const profileDragRef = useRef(null);
+  const suppressClickRef = useRef(false);
+  const [dragGhost, setDragGhost] = useState(null);
+  const [dropHot, setDropHot] = useState(false);
+
+  const isOverDropZone = (x, y) => {
+    const box = dropZoneRef.current?.getBoundingClientRect();
+    if (!box) return false;
+    return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom;
+  };
+
+  const endProfileDrag = () => {
+    const d = profileDragRef.current;
+    if (d?.holdTimer) clearTimeout(d.holdTimer);
+    profileDragRef.current = null;
+    setDragGhost(null);
+    setDropHot(false);
+  };
+
+  const beginProfileDrag = (e, profile) => {
+    if (e.button > 0) return;
+    const touch = e.pointerType !== "mouse";
+    const d = {
+      profile,
+      startX: e.clientX,
+      startY: e.clientY,
+      armed: !touch,
+      active: false,
+      holdTimer: null,
+    };
+    if (touch) {
+      d.holdTimer = setTimeout(() => {
+        const cur = profileDragRef.current;
+        if (!cur) return;
+        cur.armed = true;
+        cur.active = true;
+        setDragGhost({ profile: cur.profile, x: cur.startX, y: cur.startY });
+        setDropHot(isOverDropZone(cur.startX, cur.startY));
+      }, 180);
+    }
+    profileDragRef.current = d;
+  };
+
+  useEffect(() => {
+    const move = (e) => {
+      const d = profileDragRef.current;
+      if (!d) return;
+      const far = Math.hypot(e.clientX - d.startX, e.clientY - d.startY) > 8;
+      if (!d.armed) {
+        // Se ha movido antes de completar la pulsación larga: era un scroll.
+        if (far) endProfileDrag();
+        return;
+      }
+      if (!d.active) {
+        if (!far) return;
+        d.active = true;
+      }
+      setDragGhost({ profile: d.profile, x: e.clientX, y: e.clientY });
+      setDropHot(isOverDropZone(e.clientX, e.clientY));
+    };
+    const up = (e) => {
+      const d = profileDragRef.current;
+      if (!d) return;
+      const dropped = d.active && isOverDropZone(e.clientX, e.clientY);
+      // Un arrastre no debe disparar además el onClick del botón.
+      suppressClickRef.current = d.active;
+      endProfileDrag();
+      if (dropped) addProfile(d.profile);
+    };
+    const blockScroll = (e) => {
+      if (profileDragRef.current?.active) e.preventDefault();
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", endProfileDrag);
+    window.addEventListener("touchmove", blockScroll, { passive: false });
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", endProfileDrag);
+      window.removeEventListener("touchmove", blockScroll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const updateMemberName = (id, name) => {
     setData((d) => ({
       ...d,
@@ -1172,14 +1267,55 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
           to   { opacity: 1; transform: translateY(0)   scale(1);    }
         }
         @keyframes miniPopFade { from { opacity: 0; } to { opacity: 1; } }
+        /* El fantasma va 26px por encima del puntero para que el dedo no lo
+           tape ni tape el "Suéltalo aquí" de la zona de destino. */
+        @keyframes ghostPop {
+          from { opacity: 0; transform: translate(-50%, calc(-50% - 26px)) scale(0.7); }
+          to   { opacity: 1; transform: translate(-50%, calc(-50% - 26px)) scale(1);   }
+        }
         .member-enter   { animation: memberIn .28s cubic-bezier(.34,1.3,.64,1) both; }
         .member-leaving { animation: memberOut .26s cubic-bezier(.4,0,.2,1) both; overflow: hidden; }
-        .palette-cell { transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, border-color .15s ease; }
+        .palette-cell { transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, border-color .15s ease, opacity .15s ease; }
         .palette-cell:hover { box-shadow: 0 4px 14px rgba(45,90,61,.12); }
         .palette-cell:active { transform: scale(0.95); }
         .fam-chip { transition: transform .12s cubic-bezier(.34,1.56,.64,1); }
         .fam-chip:active { transform: scale(0.94); }
       `}</style>
+
+      {/* Perfil "en la mano" mientras se arrastra: sigue al dedo/ratón y no
+          intercepta punteros para no tapar la zona de soltar. */}
+      {dragGhost && (() => {
+        const p = dragGhost.profile;
+        const GhostIcon = p.icon;
+        return (
+          <div style={{
+            position: "fixed", left: dragGhost.x, top: dragGhost.y, zIndex: 130,
+            transform: "translate(-50%, calc(-50% - 26px))", pointerEvents: "none",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+            animation: "ghostPop .16s cubic-bezier(.34,1.5,.64,1) both",
+          }}>
+            <span style={{
+              width: 58, height: 58, borderRadius: 999, overflow: "hidden",
+              background: p.tint, color: "#fff", display: "inline-flex",
+              alignItems: "center", justifyContent: "center",
+              border: "3px solid #fff", boxShadow: `0 12px 26px ${p.tint}66`,
+            }}>
+              {AVATAR_FOLDER[p.key] ? (
+                <img src={avatarThumbSrcByKey(DEFAULT_AVATAR[p.key] ?? `${AVATAR_FOLDER[p.key]}_1`)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <GhostIcon size={26} strokeWidth={2.3} />
+              )}
+            </span>
+            <span style={{
+              fontSize: 11, fontWeight: 800, color: "#25402f", background: "#fff",
+              borderRadius: 999, padding: "3px 9px", lineHeight: 1,
+              boxShadow: "0 2px 8px rgba(45,90,61,.16)",
+            }}>
+              {p.label}
+            </span>
+          </div>
+        );
+      })()}
 
       {builderMode === "family" ? (
         <>
@@ -1196,11 +1332,19 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
               {data.members.length}
             </span>
           </div>
-          <div style={{
-            background: "#fff",
-            border: "1px solid #e6efe9", borderRadius: 20,
+          {/* Tarjeta de la familia = también la zona donde se sueltan los
+              perfiles arrastrados. El borde cambia de sólido a discontinuo
+              mientras hay un arrastre vivo, sin cambiar de grosor para que no
+              baile el layout. */}
+          <div ref={dropZoneRef} style={{
+            background: dropHot ? "#f2fbf5" : "#fff",
+            border: `1px ${dragGhost ? "dashed" : "solid"} ${dropHot ? "#2d5a3d" : dragGhost ? "#bcd6c6" : "#e6efe9"}`,
+            borderRadius: 20,
             padding: hasMembers ? "16px 18px 20px" : 18, marginBottom: 18,
-            boxShadow: "0 8px 24px rgba(45,90,61,.08)",
+            boxShadow: dropHot
+              ? "0 0 0 3px rgba(45,90,61,.13), 0 10px 26px rgba(45,90,61,.16)"
+              : "0 8px 24px rgba(45,90,61,.08)",
+            transition: "background .15s ease, border-color .15s ease, box-shadow .18s ease",
           }}>
             {hasMembers ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px 4px" }}>
@@ -1251,8 +1395,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                 })}
               </div>
             ) : (
-              <div style={{ position: "relative", textAlign: "center", color: "#8aa093", fontSize: 12.5, fontWeight: 600, padding: "14px 0 6px" }}>
-                Toca un perfil de abajo para empezar a construir tu familia.
+              <div style={{ position: "relative", textAlign: "center", color: dropHot ? "#2d5a3d" : "#8aa093", fontSize: 12.5, fontWeight: dropHot ? 800 : 600, padding: "14px 0 6px", transition: "color .15s ease" }}>
+                {dropHot ? "Suéltalo aquí" : "Toca o arrastra un perfil de abajo para construir tu familia."}
               </div>
             )}
           </div>
@@ -1269,13 +1413,20 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                   key={p.key}
                   type="button"
                   className="palette-cell"
-                  onClick={() => addProfile(p)}
+                  onPointerDown={(e) => beginProfileDrag(e, p)}
+                  onClick={() => {
+                    if (suppressClickRef.current) { suppressClickRef.current = false; return; }
+                    addProfile(p);
+                  }}
                   style={{
                     display: "flex", alignItems: "center", gap: 11,
                     padding: "10px 12px", borderRadius: 14,
                     border: `1.5px solid ${p.tint}33`, background: "#fff",
                     cursor: "pointer", fontFamily: "inherit", textAlign: "left",
                     boxShadow: "0 1px 4px rgba(45,90,61,.05)",
+                    opacity: dragGhost?.profile.key === p.key ? 0.4 : 1,
+                    userSelect: "none", WebkitUserSelect: "none",
+                    touchAction: "manipulation",
                   }}
                 >
                   <span style={{ width: 36, height: 36, borderRadius: 999, overflow: "hidden", background: p.tint, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 3px 10px ${p.tint}44` }}>
