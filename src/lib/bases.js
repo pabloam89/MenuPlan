@@ -376,23 +376,29 @@ export function basesPedidas(sesgos) {
   const out = {};
   for (const [clave, valor] of Object.entries(sesgos?.base ?? {})) {
     const n = Math.round(Number(valor) || 0);
-    if (n > 0) out[clave] = Math.min(n, MAX_POR_SEMANA);
+    // Cualquier positivo vale como "encendida", pero lo que se pide nunca baja
+    // del mínimo que hace tanda: un 1 guardado por una versión vieja del
+    // selector se lee como los dos que de verdad sirven.
+    if (n > 0) out[clave] = Math.min(Math.max(n, MIN_POR_SEMANA), MAX_POR_SEMANA);
   }
   return out;
 }
 
 /**
- * El tope del deslizador: de 1 a 4 platos por semana con la misma base.
+ * El recorrido del deslizador: de 2 a 5 platos por semana con la misma base.
  *
- * Cuatro y no más porque a partir de ahí la semana empieza a saber a lo mismo,
- * que es justo lo que el menú existe para evitar. Y uno se admite —aunque una
- * tanda de un plato no sea una tanda— porque es el usuario quien decide: hay
- * quien quiere el caldo hecho aunque solo lo use una vez.
+ * Empieza en DOS y no en uno porque uno no es una tanda: ese plato lo cocinas
+ * ese día y no hay nada que partir. Por eso encender una base ya la pone en
+ * dos, y el deslizador solo sube desde ahí.
+ *
+ * Y para en cinco porque a partir de ahí la semana empieza a saber a lo mismo,
+ * que es justo lo que el menú existe para evitar.
  */
-export const MAX_POR_SEMANA = 4;
+export const MIN_POR_SEMANA = 2;
+export const MAX_POR_SEMANA = 5;
 
-/** Lo que trae el deslizador de serie: dos platos, el mínimo que hace tanda. */
-export const POR_DEFECTO_POR_SEMANA = 2;
+/** Lo que trae el deslizador al encender una base: el mínimo que hace tanda. */
+export const POR_DEFECTO_POR_SEMANA = MIN_POR_SEMANA;
 
 /**
  * Cuántos platos tienen que compartir una base para que valga la pena sacarla

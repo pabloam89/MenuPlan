@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { applyFallback, basesAlcanzables, validateMenu } from "./validateMenu.js";
-import { MAX_POR_SEMANA, POR_DEFECTO_POR_SEMANA, basesPedidas } from "../lib/bases.js";
+import { MAX_POR_SEMANA, MIN_POR_SEMANA, POR_DEFECTO_POR_SEMANA, basesPedidas } from "../lib/bases.js";
 
 /**
  * La regla 11b: una base pedida sale al menos N veces, o no sale.
@@ -114,7 +114,14 @@ describe("basesAlcanzables · todo o nada", () => {
 
 describe("basesPedidas · lo que el selector escribe en la libreta", () => {
   it("lee el número de huecos, no un sí/no", () => {
-    expect(basesPedidas({ base: { sofrito: 2, pasta: 1 } })).toEqual({ sofrito: 2, pasta: 1 });
+    expect(basesPedidas({ base: { sofrito: 2, pasta: 4 } })).toEqual({ sofrito: 2, pasta: 4 });
+  });
+
+  it("un 1 de la versión vieja del selector se lee como el mínimo que hace tanda", () => {
+    // El selector ciclaba 0-1-2-3 antes de tener deslizador. Un 1 guardado
+    // entonces significa "la quiero", y una tanda de un plato no existe: se
+    // lee como dos, que es lo que de verdad pidió.
+    expect(basesPedidas({ base: { pasta: 1 } })).toEqual({ pasta: MIN_POR_SEMANA });
   });
 
   it("ignora el cero y lo negativo", () => {
@@ -125,9 +132,12 @@ describe("basesPedidas · lo que el selector escribe en la libreta", () => {
     expect(basesPedidas({ base: { sofrito: 99 } })).toEqual({ sofrito: MAX_POR_SEMANA });
   });
 
-  it("el valor por defecto del deslizador es el mínimo que hace tanda", () => {
-    expect(POR_DEFECTO_POR_SEMANA).toBe(2);
-    expect(MAX_POR_SEMANA).toBe(4);
+  it("el deslizador va del mínimo que hace tanda al tope", () => {
+    expect(MIN_POR_SEMANA).toBe(2);
+    expect(MAX_POR_SEMANA).toBe(5);
+    // Encender una base la pone en el mínimo, no en uno: con un solo plato no
+    // hay nada que partir.
+    expect(POR_DEFECTO_POR_SEMANA).toBe(MIN_POR_SEMANA);
   });
 
   it("sin libreta no pide nada", () => {

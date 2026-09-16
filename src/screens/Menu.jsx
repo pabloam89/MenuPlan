@@ -2084,9 +2084,13 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   // ¿Este plato tira de alguna tanda de esta semana? Se mira contra las bases
   // que la sesión del domingo justifica, no contra las que el plato declara:
   // un sofrito que nadie más comparte no se va a cocinar aparte.
+  // El eje de bases se lee del CATÁLOGO y no de la receta guardada, por lo
+  // mismo que `lookupDeTanda`: una semana generada antes de que el puente
+  // copiara `basesAparte` la trae vacía, y el icono no aparecería nunca.
+  const delCatalogo = recipe ? (recipeCatalogById[String(recipe.id).split("__").pop()] ?? recipe) : null;
   const deTanda = Boolean(
-    recipe && clavesTanda?.size
-    && clavesDeReceta(recipe).some((c) => clavesTanda.has(c)),
+    delCatalogo && clavesTanda?.size
+    && clavesDeReceta(delCatalogo).some((c) => clavesTanda.has(c)),
   );
   const emptyMealLabel = MEAL_META[meal]?.label ?? meal;
   if (isEmpty) {
@@ -3211,12 +3215,34 @@ function monthCellsFromWeeks(menuWeeks, data, visibleGroups) {
  * base es una receta como las demás y se abre igual. La ilustración de dibujo
  * se queda en el selector del wizard, que es donde se ELIGE; aquí se cocina.
  */
+/**
+ * El índice de recetas con el que se calcula la tanda.
+ *
+ * Manda el CATÁLOGO, no lo que el menú guardó. `RECIPES_BY_ID` se rellena con
+ * las recetas persistidas del menú, y las de un menú generado antes de que el
+ * puente copiara `basesAparte` llegan sin el eje de bases: para ellas la sesión
+ * salía vacía aunque el catálogo supiera perfectamente que ese plato lleva
+ * sofrito.
+ *
+ * Arreglar el puente no bastaba: las semanas YA generadas seguían rotas hasta
+ * que alguien las regenerara, y nadie iba a saber por qué. Mirando primero el
+ * catálogo, una semana vieja funciona igual.
+ *
+ * Lo que no está en el catálogo —recetas propias, generadas por IA— se sigue
+ * leyendo de donde estaba.
+ */
+function lookupDeTanda() {
+  const m = new Map(Object.entries(RECIPES_BY_ID));
+  for (const [id, r] of Object.entries(recipeCatalogById)) m.set(id, r);
+  return m;
+}
+
 function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
   const comidas = getDayMeals(data);
   const sesion = useMemo(() => {
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
-    return sesionDeBases(plan, RECIPES_BY_ID, { dias: days, comidas });
+    return sesionDeBases(plan, lookupDeTanda(), { dias: days, comidas });
   }, [days, comidas, menuPlan, visibleGroups]);
 
   if (sesion.bases.length === 0) {
@@ -3546,7 +3572,7 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
   const clavesTanda = useMemo(() => {
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
-    const s = sesionDeBases(plan, RECIPES_BY_ID, { dias: days, comidas: comidasDeLaSemana });
+    const s = sesionDeBases(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana });
     return new Set(s.bases.map((b) => claveDeBase(b.base)).filter(Boolean));
   }, [days, comidasDeLaSemana, menuPlan, visibleGroups]);
   return (

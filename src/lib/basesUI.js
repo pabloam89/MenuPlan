@@ -13,6 +13,14 @@
  * Las ilustraciones salen de `ingredientThumbSrc`, o sea el MISMO resolvedor
  * que usa Añadir ingredientes.
  */
+/**
+ * Todas enseñan la PREPARACIÓN, no el ingrediente crudo.
+ *
+ * Aquí se elige "qué me gusta tener hecho", así que un paquete de pasta seca o
+ * unas patatas con tierra contaban otra cosa: lo que vas a encontrar en la
+ * nevera el martes es pasta cocida y patatas cocidas. Se cambiaron las tres
+ * que quedaban crudas (pasta, patata y boniato) el 16 sep 2026.
+ */
 export const BASES_UI = {
   sofrito: { etiqueta: "Sofrito", foto: "sofrito" },
   verdura_asada: { etiqueta: "Verdura asada", foto: "verduras asadas" },
@@ -22,9 +30,9 @@ export const BASES_UI = {
   pesto: { etiqueta: "Pesto", foto: "pesto" },
   caldo: { etiqueta: "Caldo", foto: "caldo de pollo" },
   arroz: { etiqueta: "Arroz", foto: "arroz" },
-  pasta: { etiqueta: "Pasta", foto: "pasta corta" },
-  patatas: { etiqueta: "Patatas", foto: "patata" },
-  boniato: { etiqueta: "Boniato", foto: "boniato" },
+  pasta: { etiqueta: "Pasta", foto: "pasta cocida" },
+  patatas: { etiqueta: "Patatas", foto: "patatas cocidas" },
+  boniato: { etiqueta: "Boniato", foto: "boniato asado" },
   legumbre: { etiqueta: "Garbanzos", foto: "garbanzos" },
   quinoa: { etiqueta: "Quinoa", foto: "quinoa" },
   cuscus: { etiqueta: "Cuscús", foto: "cuscus" },
