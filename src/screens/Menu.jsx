@@ -109,7 +109,7 @@ import {
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
 import { recetaConBases } from "../lib/recetaConBases.js";
-import { claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
+import { basesPedidas, claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
@@ -3258,6 +3258,18 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
     return sesionDeBases(plan, lookupDeTanda(), { dias: days, comidas });
   }, [days, comidas, menuPlan, visibleGroups]);
 
+  // Las que el usuario PIDIÓ y esta semana no puede dar. Sin esto, marcar tres
+  // bases y ver una sola tarjeta parece un fallo: no lo es — una tanda existe
+  // porque DOS platos comparten la olla, y el menú que ya estaba generado no
+  // sabía nada de lo que se ha pedido después— pero callarlo es peor que el
+  // fallo, porque no hay forma de saber que hay que regenerar.
+  const sinCubrir = useMemo(() => {
+    const puestas = new Set(sesion.bases.map((b) => claveDeBase(b.base)));
+    return Object.keys(basesPedidas(data?.sesgos))
+      .filter((c) => !puestas.has(c))
+      .map((c) => BASES_UI[c]?.etiqueta ?? c);
+  }, [sesion, data?.sesgos]);
+
   if (sesion.bases.length === 0) {
     return (
       <div style={{ padding: "28px 18px", textAlign: "center" }}>
@@ -3294,6 +3306,17 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
           <BatchBaseCard key={b.base.id} entrada={b} onDishTap={onDishTap} />
         ))}
       </div>
+
+      {sinCubrir.length > 0 && (
+        <p style={{
+          margin: "14px 2px 0", fontSize: 12, color: "#6b7d70", lineHeight: 1.45,
+        }}>
+          {sinCubrir.length === 1
+            ? `Pediste ${sinCubrir[0]} y esta semana no lo comparten dos platos, así que no hay tanda que hacer.`
+            : `Pediste ${sinCubrir.join(", ")} y esta semana no los comparten dos platos, así que no hay tanda que hacer.`}
+          {" "}Regenera la semana para que entren.
+        </p>
+      )}
     </div>
   );
 }
@@ -3306,7 +3329,6 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
 function BatchBaseCard({ entrada, onDishTap }) {
   const { base, raciones, huecos, minutos } = entrada;
   const [failed, setFailed] = useState(false);
-  const [huecosAbiertos, setHuecosAbiertos] = useState(false);
   // La base se pinta y se abre por el MISMO puente que un plato del menú. Sin
   // esto la ficha salía con el formato del catálogo: cantidades en blanco
   // (`amount` en vez de `qty`), la dificultad en minúscula y sin macros. Y las
@@ -3319,98 +3341,77 @@ function BatchBaseCard({ entrada, onDishTap }) {
   const showPhoto = optimized && !failed;
 
   return (
-    <div style={{ borderRadius: 18, overflow: "hidden", background: "#fff", boxShadow: "0 6px 20px rgba(20,47,29,.12)" }}>
-      <button
-        type="button"
-        onClick={() => onDishTap?.({ recipe: receta, browse: true })}
-        style={{
-          position: "relative", display: "block", width: "100%", height: 168,
-          border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit",
-          background: visual.surface, textAlign: "left",
-        }}
-      >
-        {showPhoto ? (
-          <img
-            src={optimized}
-            srcSet={deckSrcSet(srcUrl, 760)}
-            sizes="760px"
-            alt={base.name}
-            loading="lazy"
-            decoding="async"
-            onError={() => setFailed(true)}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : (
-          <div style={{ position: "absolute", inset: 0, background: visual.surface }} />
-        )}
-        <div style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(to top, rgba(0,0,0,.74) 0%, rgba(0,0,0,.25) 42%, rgba(0,0,0,0) 66%)",
-        }} />
-        <div style={{ position: "absolute", top: 12, right: 12 }}>
-          <DishSpecPills difficulty={receta.difficulty} time={minutos} align="flex-end" />
-        </div>
-        <div style={{ position: "absolute", left: 14, right: 14, bottom: 12 }}>
-          <div style={{
-            color: "rgba(255,255,255,.95)", fontSize: 10.5, fontWeight: 800,
-            letterSpacing: ".7px", textTransform: "uppercase",
-            textShadow: "0 1px 6px rgba(0,0,0,.5)", marginBottom: 5,
-          }}>
-            Base · {raciones} raciones
-          </div>
-          <div style={{
-            color: "#fff", fontSize: 19, fontWeight: 900, lineHeight: 1.15,
-            letterSpacing: "-.3px", textShadow: "0 2px 12px rgba(0,0,0,.45)",
-          }}>
-            {nombreDeBase(base)}
-          </div>
-        </div>
-      </button>
-
-      {/* Los platos a los que alimenta, detrás de un botón. Son el dato que
-          convierte una lista de la compra en un plan, pero con cinco bases
-          abiertas a la vez la pestaña era un muro de texto y las fotos
-          desaparecían. */}
-      <button
-        type="button"
-        onClick={() => setHuecosAbiertos((v) => !v)}
-        aria-expanded={huecosAbiertos}
-        style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          width: "100%", padding: "10px 14px", border: "none", background: "transparent",
-          cursor: "pointer", fontFamily: "inherit",
-          fontSize: 12, fontWeight: 800, color: "#2d5a3d",
-        }}
-      >
-        <span>{huecos.length === 1 ? "1 plato" : `${huecos.length} platos`} esta semana</span>
-        <ChevronDown
-          size={16}
-          strokeWidth={2.6}
-          style={{ transform: huecosAbiertos ? "rotate(180deg)" : "none", transition: "transform .15s ease" }}
+    <button
+      type="button"
+      onClick={() => onDishTap?.({ recipe: receta, browse: true })}
+      style={{
+        position: "relative", display: "block", width: "100%", height: 186,
+        // El mismo radio que las fichas de Día y Semana: son la misma tarjeta
+        // en la misma pantalla, y un borde menos redondeado se lee como otro
+        // componente.
+        border: "none", padding: 0, borderRadius: 22, overflow: "hidden",
+        cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+        background: visual.surface,
+        boxShadow: "0 6px 20px rgba(20,47,29,.14)",
+      }}
+    >
+      {showPhoto ? (
+        <img
+          src={optimized}
+          srcSet={deckSrcSet(srcUrl, 760)}
+          sizes="760px"
+          alt={base.name}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
         />
-      </button>
-
-      {huecosAbiertos && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 5, padding: "0 14px 12px" }}>
-          {huecos.map((h) => (
-            <div key={`${h.groupId}-${h.clave}`} style={{ display: "flex", alignItems: "baseline", gap: 7, minWidth: 0 }}>
-              <span style={{
-                fontSize: 10.5, fontWeight: 900, color: "#b2622f", textTransform: "uppercase",
-                letterSpacing: ".5px", flexShrink: 0, minWidth: 30,
-              }}>
-                {dayLabel(String(h.clave).split("-")[0])?.slice(0, 3) ?? ""}
-              </span>
-              <span style={{
-                fontSize: 12.5, fontWeight: 700, color: "#3c5346", lineHeight: 1.3,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {h.nombre}
-              </span>
-            </div>
-          ))}
-        </div>
+      ) : (
+        <div style={{ position: "absolute", inset: 0, background: visual.surface }} />
       )}
-    </div>
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(to top, rgba(0,0,0,.74) 0%, rgba(0,0,0,.25) 42%, rgba(0,0,0,0) 66%)",
+      }} />
+
+      {/* CUÁNTAS VECES, no cuántas raciones. Las raciones son ambiguas — seis
+          pueden ser dos platos para tres o tres platos para dos— y lo que se
+          decide el domingo es cuántas cenas cubre esa olla. Va arriba a la
+          izquierda, a la altura de la dificultad, que es donde el ojo ya busca
+          los datos del plato. */}
+      <div style={{ position: "absolute", top: 12, left: 12 }}>
+        <span style={{
+          display: "inline-flex", alignItems: "center", gap: 5,
+          height: 26, padding: "0 10px", borderRadius: 999,
+          background: "rgba(255,255,255,.94)", color: "#b2622f",
+          fontSize: 12, fontWeight: 900,
+          boxShadow: "0 2px 8px rgba(9,18,12,.3)",
+        }}>
+          <BookOpen size={13} strokeWidth={2.6} />
+          {huecos.length}x
+        </span>
+      </div>
+
+      <div style={{ position: "absolute", top: 12, right: 12 }}>
+        <DishSpecPills difficulty={receta.difficulty} time={minutos} align="flex-end" />
+      </div>
+
+      <div style={{ position: "absolute", left: 14, right: 14, bottom: 13 }}>
+        <div style={{
+          color: "rgba(255,255,255,.95)", fontSize: 10.5, fontWeight: 800,
+          letterSpacing: ".7px", textTransform: "uppercase",
+          textShadow: "0 1px 6px rgba(0,0,0,.5)", marginBottom: 5,
+        }}>
+          Base · {raciones} raciones
+        </div>
+        <div style={{
+          color: "#fff", fontSize: 20, fontWeight: 900, lineHeight: 1.15,
+          letterSpacing: "-.3px", textShadow: "0 2px 12px rgba(0,0,0,.45)",
+        }}>
+          {nombreDeBase(base)}
+        </div>
+      </div>
+    </button>
   );
 }
 
@@ -5608,13 +5609,16 @@ export function DishDetail({
   // Receta section: segmented control between "Ingredientes" and "Pasos".
   const [recipeTab, setRecipeTab] = useState(initialRecipeTab);
   const [recipeExpanded, setRecipeExpanded] = useState(true);
-  // ¿Se cocina con las bases YA hechas? Empieza en `false` a propósito: marcar
-  // una base en el onboarding es una PREFERENCIA ("me gusta tenerlo hecho"),
-  // no un parte de que el domingo cocinaras. Dar por hecho que hay sofrito en
-  // la nevera y quitar el paso de pocharlo sería mentir sobre la cena de hoy.
-  // Cuando exista la vista de la sesión del domingo, ella sabrá qué se cocinó
-  // de verdad y podrá encenderlo sola.
-  const [conBases, setConBases] = useState(false);
+  // ¿Se cocina con las bases YA hechas? Empieza en SÍ.
+  //
+  // Es una decisión de producto y no una deducción: quien abre un plato de una
+  // semana con tanda lo normal es que la tenga hecha, y encontrarse la receta
+  // larga cuando no toca molesta más que al revés. El que no la tenga lo apaga
+  // y ve la receta entera; nadie se queda sin poder cocinar.
+  //
+  // Cuando la vista del domingo sepa qué se cocinó de verdad, podrá decidirlo
+  // ella en vez de asumirlo.
+  const [conBases, setConBases] = useState(true);
   const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
   // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
@@ -6778,62 +6782,84 @@ export function DishDetail({
 
             {recipeExpanded && (
               <>
-            {/* ── Bases: "ya lo tienes hecho" ───────────────────────────────
-                Solo aparece si el plato de verdad aprovecha alguna tanda. Es
-                un interruptor y no un estado deducido: ver el comentario de
-                `conBases`. Apagado, la receta se pinta entera como siempre. */}
+            {/* ── ¿Tienes la base hecha? ────────────────────────────────────
+                Una PREGUNTA con su interruptor, no un botón que dice "la
+                tengo". "Ya la tengo / La tengo" era equívoco: no se sabía si
+                describía el estado o lo que iba a pasar al tocarlo.
+
+                Empieza en SÍ. Es una decisión de producto, no una deducción:
+                quien llega a este plato desde una semana con tanda lo normal es
+                que la tenga hecha, y encontrarse la receta larga cuando no toca
+                molesta más que al revés. El que no la tenga lo apaga y ve la
+                receta entera. */}
             {puedeConBases && (
               <div
                 style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "10px 12px", marginBottom: 12,
-                  borderRadius: 12,
+                  padding: "12px 12px 10px", marginBottom: 12, borderRadius: 12,
                   background: usandoBases ? "#e8f5ec" : "#f7f9f7",
                   outline: usandoBases ? "1.5px solid #2d5a3d" : "1px solid #e3ede6",
                   outlineOffset: -1,
                   transition: "background .15s, outline .15s",
                 }}
               >
-                <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                {/* Ilustración arriba y el nombre debajo, como en el selector
+                    de bases: es la misma cosa y se reconoce por el dibujo. */}
+                <div style={{ display: "flex", justifyContent: "center", gap: 14, marginBottom: 2 }}>
                   {vistaBases.bases.map((b) => {
                     const img = ingredientThumbSrc(BASES_UI[b.clave]?.foto ?? b.clave);
-                    return img ? (
-                      <img
-                        key={b.clave}
-                        src={img}
-                        alt=""
-                        style={{ width: 34, height: 34, objectFit: "contain", display: "block" }}
-                      />
-                    ) : null;
+                    return (
+                      <div key={b.clave} style={{ textAlign: "center", minWidth: 0 }}>
+                        {img && (
+                          <img
+                            src={img}
+                            alt=""
+                            style={{ width: 52, height: 52, objectFit: "contain", display: "block", margin: "0 auto" }}
+                          />
+                        )}
+                        <div style={{
+                          fontSize: 11, fontWeight: 800, color: "#142f1d",
+                          lineHeight: 1.2, marginTop: 2, maxWidth: 92,
+                        }}>
+                          {BASES_UI[b.clave]?.etiqueta ?? b.nombre}
+                        </div>
+                      </div>
+                    );
                   })}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.3 }}>
-                    {vistaBases.bases.map((b) => b.nombre).join(" · ")}{" "}
-                    <span style={{ color: "#7a9485", fontWeight: 700 }}>(Base)</span>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.3 }}>
+                      {vistaBases.bases.length === 1
+                        ? "¿Tienes cocinada esta base?"
+                        : "¿Tienes cocinadas estas bases?"}
+                    </div>
+                    {usandoBases && vistaBases.ahorro > 0 && (
+                      <div style={{ fontSize: 11.5, color: "#6b7d70", lineHeight: 1.35, marginTop: 1 }}>
+                        {vistaBases.minutos} min en vez de {vistaBases.minutosEnteros}
+                      </div>
+                    )}
                   </div>
-                  <div style={{ fontSize: 11.5, color: "#6b7d70", lineHeight: 1.35, marginTop: 1 }}>
-                    {usandoBases
-                      ? (vistaBases.ahorro > 0
-                        ? `${vistaBases.minutos} min en vez de ${vistaBases.minutosEnteros}`
-                        : "Sin pasos que ahorrar, pero ya está cocinada")
-                      : "Si ya la tienes hecha, la receta se acorta"}
+                  <div style={{ display: "flex", flexShrink: 0, background: "#fff", borderRadius: 999, padding: 3, outline: "1.5px solid #cfe0d5", outlineOffset: -1.5 }}>
+                    {[["si", "Sí", true], ["no", "No", false]].map(([id, texto, valor]) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setConBases(valor)}
+                        aria-pressed={usandoBases === valor}
+                        style={{
+                          padding: "5px 14px", borderRadius: 999, border: "none",
+                          background: usandoBases === valor ? "#2d5a3d" : "transparent",
+                          color: usandoBases === valor ? "#fff" : "#7a9485",
+                          fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                          transition: "background .15s, color .15s",
+                        }}
+                      >
+                        {texto}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setConBases((v) => !v)}
-                  aria-pressed={usandoBases}
-                  style={{
-                    flexShrink: 0, padding: "7px 12px", borderRadius: 999, border: "none",
-                    background: usandoBases ? "#2d5a3d" : "#fff",
-                    color: usandoBases ? "#fff" : "#2d5a3d",
-                    outline: usandoBases ? "none" : "1.5px solid #cfe0d5",
-                    fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                  }}
-                >
-                  {usandoBases ? "La tengo" : "Ya la tengo"}
-                </button>
               </div>
             )}
 
@@ -7085,7 +7111,9 @@ export function DishDetail({
                     (recetas de usuario vía API), cae a la lista numerada. */}
                 {activeAppliance === "base" && richSteps?.length > 0 ? (
                   <RecipeStepList
-                    rich={hasOwnParts ? (ownStepsByPart.principal ?? richSteps) : richSteps}
+                    rich={usandoBases
+                      ? vistaBases.pasos
+                      : (hasOwnParts ? (ownStepsByPart.principal ?? richSteps) : richSteps)}
                     plain={mainPlainSteps}
                     ingredients={hasOwnParts ? (ownIngredientsByPart.principal ?? ingredients) : ingredients}
                     kitchenTools={kitchenTools}
