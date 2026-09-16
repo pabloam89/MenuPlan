@@ -1615,6 +1615,28 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
     // Structured steps (optional): carried through so DishDetail can render the
     // stepper with time + kind. Falls back to `steps` when absent.
     stepsRich: r.stepsRich,
+    // ── El eje de las bases ────────────────────────────────────────────────
+    // Se perdía aquí, y es la SEXTA vez que un campo se cae en un puente sin
+    // que salte nada (antes: apetecible, montaje, estrella, occasion,
+    // extraProteins). `stepsRich` sí viajaba, así que los pasos llegaban
+    // etiquetados con su base y nadie podía leerlos: `clavesDeReceta` pregunta
+    // por `mainBase` y `basesAparte`, que llegaban undefined.
+    //
+    // El síntoma era que la vista Tanda salía siempre vacía —ningún plato del
+    // menú declaraba base, así que nunca había dos compartiendo olla— y la
+    // tarjeta de "ya la tengo hecha" no aparecía en ninguna ficha abierta
+    // desde el menú. Todo el trabajo de etiquetar el catálogo moría aquí.
+    mainBase: r.mainBase,
+    baseMode: r.baseMode,
+    basesAparte: r.basesAparte,
+    // ── El congelador ──────────────────────────────────────────────────────
+    // Y estos se perdían igual, con un síntoma más caro: `canFreezeRecipe` lee
+    // `recipe.freezable === true`, así que para TODO plato que entrara por el
+    // menú la respuesta era que no se congela. La opción no se ofrecía nunca, y
+    // los pasos de descongelado de 291 recetas no se pintaban en ningún sitio.
+    // Lo encontró el fusible de este puente el día que se escribió.
+    freezable: r.freezable,
+    thawSteps: r.thawSteps,
     image: r.photo ?? `/dishes/${r.id}.webp`,
     photo: r.photo ?? undefined,
     ingredients: merged,
