@@ -3367,7 +3367,7 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
  * la compra, y con ellos es un plan.
  */
 function BatchBaseCard({ entrada, onDishTap }) {
-  const { base, raciones, huecos, minutos } = entrada;
+  const { base, raciones, huecos, minutos, racionesCongelador, diasEnNevera } = entrada;
   const [failed, setFailed] = useState(false);
   // La base se pinta y se abre por el MISMO puente que un plato del menú. Sin
   // esto la ficha salía con el formato del catálogo: cantidades en blanco
@@ -3443,6 +3443,20 @@ function BatchBaseCard({ entrada, onDishTap }) {
           textShadow: "0 1px 6px rgba(0,0,0,.5)", marginBottom: 5,
         }}>
           Base · {raciones} raciones
+          {/* Cuánto aguanta y qué hay que congelar. No es un detalle de cocina:
+              el arroz cocido son dos días por seguridad, no por textura, y una
+              tarjeta que dice "6 raciones" sin decir eso invita a dejarlas en
+              la nevera hasta el viernes. */}
+          {diasEnNevera != null && (
+            <span style={{ fontWeight: 700, opacity: .85 }}>
+              {" · "}{diasEnNevera} días en nevera
+            </span>
+          )}
+          {racionesCongelador > 0 && (
+            <span style={{ fontWeight: 700, opacity: .85 }}>
+              {" · "}{racionesCongelador} al congelador
+            </span>
+          )}
         </div>
         <div style={{
           color: "#fff", fontSize: 20, fontWeight: 900, lineHeight: 1.15,

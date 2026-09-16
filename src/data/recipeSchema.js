@@ -583,6 +583,21 @@ export const RecipeSchema = z
     // Va sin marcadores, igual que thawSteps: aquí no hay cantidades que
     // escalar porque lo que se reactiva ya está cocinado.
     reactivacion: z.array(StepRichSchema).min(1).optional(),
+    // ── Solo en `type: "base"`: cuántos días aguanta en la nevera ─────────
+    // No es una preferencia de textura: es seguridad alimentaria. El arroz y la
+    // pasta cocidos aguantan uno o dos días a 4 °C por el *Bacillus cereus*,
+    // que no cambia ni el olor ni el sabor, y las guías serias dicen que por eso
+    // no son preparaciones de tanda semanal. Las verduras asadas aguantan
+    // cuatro o cinco, y el sofrito o la salsa de tomate tres o cuatro.
+    //
+    // Sin este campo la sesión del domingo proponía cocinar arroz para el
+    // jueves. Con él, lo que no cabe en la ventana se manda al congelador si la
+    // base lo admite, y si no, ese hueco deja de contar para la tanda.
+    conservacion: z.object({
+      // Días que se puede tener en la nevera contando desde el día siguiente al
+      // de cocinarla.
+      nevera: z.number().int().positive(),
+    }).optional(),
     description: z.string().min(1),
     methods: z.array(MethodSchema).optional(),
     // Names this dish is commonly sold as a ready-made product under (e.g.
@@ -697,6 +712,13 @@ export const RecipeSchema = z
     // Unos pasos de reactivación en algo que no es una base no los pintaría
     // nadie, y peor: `montajeTrasBases` los cobraría como coste de una tanda
     // que no existe.
+    if (recipe.conservacion && type !== "base") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": conservacion solo es válido en type "base"`,
+      });
+    }
+
     if (recipe.reactivacion && type !== "base") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

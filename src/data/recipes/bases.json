@@ -30,6 +30,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": true,
+    "conservacion": {
+      "nevera": 2
+    },
     "allergens": [],
     "season": "all",
     "ingredients": [
@@ -172,6 +175,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": false,
+    "conservacion": {
+      "nevera": 2
+    },
     "allergens": [
       "gluten"
     ],
@@ -287,6 +293,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": false,
+    "conservacion": {
+      "nevera": 3
+    },
     "allergens": [],
     "season": "all",
     "ingredients": [
@@ -394,6 +403,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": true,
+    "conservacion": {
+      "nevera": 3
+    },
     "allergens": [],
     "season": "all",
     "ingredients": [
@@ -536,6 +548,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": true,
+    "conservacion": {
+      "nevera": 2
+    },
     "allergens": [],
     "season": "all",
     "ingredients": [
@@ -649,6 +664,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": false,
+    "conservacion": {
+      "nevera": 2
+    },
     "allergens": [
       "gluten"
     ],
@@ -758,6 +776,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": true,
+    "conservacion": {
+      "nevera": 4
+    },
     "allergens": [],
     "season": "all",
     "ingredients": [
@@ -877,6 +898,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": true,
+    "conservacion": {
+      "nevera": 4
+    },
     "allergens": [],
     "season": "all",
     "ingredients": [
@@ -1026,6 +1050,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": true,
+    "conservacion": {
+      "nevera": 3
+    },
     "allergens": [
       "apio"
     ],
@@ -1171,6 +1198,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": true,
+    "conservacion": {
+      "nevera": 4
+    },
     "allergens": [],
     "season": "all",
     "ingredients": [
@@ -1308,6 +1338,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": false,
+    "conservacion": {
+      "nevera": 4
+    },
     "allergens": [],
     "season": "all",
     "ingredients": [
@@ -1439,6 +1472,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": true,
+    "conservacion": {
+      "nevera": 7
+    },
     "allergens": [
       "frutos_secos",
       "lactosa"
@@ -1574,6 +1610,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": true,
+    "conservacion": {
+      "nevera": 3
+    },
     "allergens": [
       "gluten",
       "lactosa"
@@ -1714,6 +1753,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": false,
+    "conservacion": {
+      "nevera": 4
+    },
     "allergens": [],
     "season": "all",
     "ingredients": [

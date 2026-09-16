@@ -48,6 +48,7 @@ const NO_VIAJAN = {
   minutosPorRacion: "solo las 7 recetas type:base",
   capacidadMax: "solo las 7 recetas type:base",
   reactivacion: "solo recetas type:base, que van siempre en el bundle",
+  conservacion: "solo recetas type:base, que van siempre en el bundle",
 };
 
 /**

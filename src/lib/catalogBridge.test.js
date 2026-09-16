@@ -78,6 +78,7 @@ const NO_CRUZAN = {
   minutosPorRacion: "solo type:base",
   capacidadMax: "solo type:base",
   reactivacion: "solo type:base",
+  conservacion: "solo type:base",
 };
 
 const UNA_RECETA = {

@@ -500,7 +500,13 @@ export function sesionDeBases(plan, recetasPorId, opts = {}) {
         for (const base of basesDeReceta(receta)) {
           const entrada = porBase.get(base.id) ?? { base, raciones: 0, huecos: [] };
           entrada.raciones += eaters;
-          entrada.huecos.push({ groupId, clave, recipeId: rid, nombre: receta.name, raciones: eaters });
+          entrada.huecos.push({
+            groupId, clave, recipeId: rid, nombre: receta.name, raciones: eaters,
+            // A qué distancia del domingo cae este hueco. El índice sale de
+            // `dias`, no de una lista fija, para que una semana acortada cuente
+            // bien: si el menú empieza el miércoles, el miércoles es el día 1.
+            dia: dias.indexOf(clave.split("-")[0]) + 1,
+          });
           porBase.set(base.id, entrada);
         }
       }
@@ -509,11 +515,42 @@ export function sesionDeBases(plan, recetasPorId, opts = {}) {
 
   const bases = [];
   for (const entrada of porBase.values()) {
-    if (entrada.huecos.length < MIN_PLATOS_POR_BASE) continue;
+    // ── Cuánto aguanta, y qué pasa con lo que no cabe en la nevera ───────
+    // No es una preferencia de textura: el arroz y la pasta cocidos aguantan
+    // uno o dos días por el *Bacillus cereus*, que no cambia el olor ni el
+    // sabor. Sin esto la sesión proponía cocinar arroz el domingo para el
+    // jueves.
+    //
+    // Lo que cae fuera de la ventana va al CONGELADOR si la base lo admite —y
+    // para eso están sus `thawSteps`— y si no lo admite, ese hueco deja de
+    // contar: ese día se cocina desde cero y la tanda no se lo apunta.
+    const dias = entrada.base.conservacion?.nevera ?? Infinity;
+    const congela = entrada.base.freezable === true;
+    const huecos = [];
+    for (const h of entrada.huecos) {
+      const enNevera = h.dia > 0 && h.dia <= dias;
+      if (enNevera) huecos.push({ ...h, desde: "nevera" });
+      else if (congela) huecos.push({ ...h, desde: "congelador" });
+      // else: se cae. Ese día no hay tanda que valga.
+    }
+    if (huecos.length < MIN_PLATOS_POR_BASE) continue;
+
+    const raciones = huecos.reduce((n, h) => n + h.raciones, 0);
     // Las raciones van plato a plato, no sumadas: es lo que hace que el ahorro
     // se compare contra "una olla por plato" y no contra "una olla por ración".
-    const t = tiempoDeBase(entrada.base, entrada.huecos.map((h) => h.raciones));
-    bases.push({ ...entrada, ...t });
+    const t = tiempoDeBase(entrada.base, huecos.map((h) => h.raciones));
+    bases.push({
+      ...entrada,
+      huecos,
+      raciones,
+      racionesNevera: huecos.filter((h) => h.desde === "nevera").reduce((n, h) => n + h.raciones, 0),
+      racionesCongelador: huecos.filter((h) => h.desde === "congelador").reduce((n, h) => n + h.raciones, 0),
+      diasEnNevera: Number.isFinite(dias) ? dias : null,
+      // Los huecos que la tanda NO puede cubrir: ni caben en la nevera ni la
+      // base se congela. Se devuelven para poder decirlo en vez de callarlo.
+      huecosFuera: entrada.huecos.filter((h) => !(h.dia > 0 && h.dia <= dias) && !congela),
+      ...t,
+    });
   }
   // Se ordena por el ahorro ACTIVO, no por el de reloj: lo que mas arriba
   // aparece tiene que ser lo que mas trabajo te quita, no lo que mas tiempo
