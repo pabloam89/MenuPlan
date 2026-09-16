@@ -7,6 +7,7 @@
 
 import { HEALTH_PROFILE_BADGE } from "../lib/healthProfileMatch.js";
 import { CARB_TYPE_BY_BASE, isMontaje } from "../data/recipeSchema.js";
+import { clavesDeReceta } from "../lib/bases.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
 // presence-based profile ("must contain iron-rich flag") rather than
@@ -317,6 +318,43 @@ export function splitAchievableFreqs(filteredPool, freqs) {
   return { achievable, warnings };
 }
 
+/**
+ * Qué bases pedidas puede dar la semana ENTERAS, y cuáles hay que dejar fuera.
+ *
+ * Todo o nada, y es una decisión de producto, no una limitación técnica: pedir
+ * dos platos de sofrito y colocar uno no deja al usuario a medias, lo deja en
+ * cero. Una tanda existe porque DOS platos comparten la olla; con uno solo, lo
+ * cocinas ese día y no hay nada que partir.
+ *
+ * Se cae una base por dos motivos: la semana no tiene huecos para tantos (una
+ * semana acortada) o el recetario no tiene tantos platos con esa base después
+ * de alergias y preferencias (cuscús tiene seis en todo el catálogo).
+ *
+ * @returns {{alcanzables: Record<string, number>, warnings: string[]}}
+ */
+export function basesAlcanzables(filteredPool, basesPedidas, huecos) {
+  const alcanzables = {};
+  const warnings = [];
+  for (const [clave, pedidas] of Object.entries(basesPedidas ?? {})) {
+    if (!(pedidas > 0)) continue;
+    const disponibles = filteredPool.filter((r) => clavesDeReceta(r).includes(clave)).length;
+    if (disponibles < pedidas) {
+      warnings.push(
+        `No caben ${pedidas} platos con "${clave}": el recetario solo tiene ${disponibles} tras aplicar alergias y preferencias. Se deja fuera esa tanda entera, porque con menos no ahorra nada.`,
+      );
+      continue;
+    }
+    if (huecos != null && huecos < pedidas) {
+      warnings.push(
+        `No caben ${pedidas} platos con "${clave}" en una semana de ${huecos} hueco(s). Se deja fuera esa tanda entera.`,
+      );
+      continue;
+    }
+    alcanzables[clave] = pedidas;
+  }
+  return { alcanzables, warnings };
+}
+
 // Soft ceiling for primero + segundo of the same comida (see rule 7b).
 // Derived from this catalog: median comida ≈ 606 kcal, p90+p90 ≈ 862, worst
 // possible pairing ≈ 1006. 850 sits above the normal range and only catches
@@ -366,6 +404,7 @@ export function validateMenu(
   slotsContext,
   activeHealthProfiles = [],
   freqs = {},
+  basesPedidas = {},
 ) {
   const violations = [];
   const poolIds = new Set(filteredPool.map((r) => r.id));
@@ -877,6 +916,50 @@ export function validateMenu(
     }
   }
 
+  // 11b. Las BASES pedidas salen al menos N veces.
+  //
+  // Es la única regla de MÍNIMO del fichero, y va al revés que la 11 a
+  // propósito: los objetivos semanales son topes ("como mucho un pescado"),
+  // pero una tanda es lo contrario — si el sofrito sale una sola vez, no hay
+  // tanda que hacer y cocinarlo aparte no tiene sentido.
+  //
+  // De ahí que sea TODO O NADA. `basesAlcanzables` deja fuera la base que la
+  // semana no puede dar entera (semana corta, pool pequeño), en vez de colocar
+  // una sola: media tanda no es media ventaja, es ninguna.
+  {
+    const cuentaPorBase = {};
+    const sinBasePedida = [];
+    for (const m of mealOrder) {
+      const r = poolById[m.recipeId];
+      const suyas = r ? clavesDeReceta(r).filter((c) => basesPedidas[c] > 0) : [];
+      if (suyas.length === 0) sinBasePedida.push(m);
+      for (const c of suyas) cuentaPorBase[c] = (cuentaPorBase[c] ?? 0) + 1;
+    }
+
+    // Un hueco solo se ofrece una vez: si dos bases van cortas, cada una se
+    // lleva un hueco distinto y no se pisan.
+    const ofrecidos = new Set();
+    for (const [clave, pedidas] of Object.entries(basesPedidas)) {
+      if (!(pedidas > 0)) continue;
+      const faltan = pedidas - (cuentaPorBase[clave] ?? 0);
+      if (faltan <= 0) continue;
+
+      // Se ceden los ÚLTIMOS huecos sin base, por el mismo motivo que la 11
+      // se lleva los últimos excesos: los primeros días de la semana son los
+      // que el usuario ya ha visto y moverá menos.
+      const candidatos = sinBasePedida.filter((m) => !ofrecidos.has(m.slotId)).slice(-faltan);
+      for (const c of candidatos) {
+        ofrecidos.add(c.slotId);
+        violations.push({
+          rule: "base_pedida_insuficiente",
+          slotId: c.slotId,
+          targetKey: clave,
+          message: `Has pedido ${pedidas} plato(s) con "${clave}" y hay ${cuentaPorBase[clave] ?? 0}. Cambia "${poolById[c.recipeId]?.name ?? c.recipeId}" (${c.slotId}) por algo que lleve esa base.`,
+        });
+      }
+    }
+  }
+
   // 12. No two fried mains in consecutive meals — soft style backstop. Uses the
   // same mainMeals chronological sequence as rule 3 so "seguidos" means the same
   // thing (across the day boundary too). The `frito` flag is derived/declared in
@@ -1009,6 +1092,11 @@ export const GUARD_FOR_RULE = {
   cena_rapida_no_solicitada: "cenaRapida",
   comida_desproporcionada: "weight",
   legumbres_en_cena: null,
+  // Sin guardia relajable a propósito: "el sustituto tiene que llevar esa
+  // base" se comprueba en la parte que NO se relaja nunca. Si se pudiera
+  // soltar, el arreglo elegiría un plato sin la base y dejaría la violación
+  // exactamente igual que estaba, habiendo cambiado la cena de sitio.
+  base_pedida_insuficiente: null,
 };
 
 /**
@@ -1412,6 +1500,12 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         // from when this was a minimum-deficit fix).
         const matcher = FREQ_KEY_MATCHERS[v.targetKey];
         if (matcher && matcher(r)) return false;
+      }
+
+      // Regla 11b al reves que la 11: aqui el candidato tiene que LLEVAR la
+      // base que falta, que es justo el motivo de cambiar este hueco.
+      if (v.rule === "base_pedida_insuficiente" && v.targetKey) {
+        if (!clavesDeReceta(r).includes(v.targetKey)) return false;
       }
 
       // Y el tope, SIEMPRE, se arregle lo que se arregle: meter el candidato no

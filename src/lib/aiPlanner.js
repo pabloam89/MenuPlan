@@ -2,6 +2,7 @@ import { etapasServibles } from "./babyStage.js";
 import { z } from "zod";
 import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
+import { basesPedidas } from "./bases.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
@@ -17,6 +18,7 @@ import {
   applyFallback,
   carbTypeFromText,
   getCarbType,
+  basesAlcanzables,
   splitAchievableFreqs,
   slotAcceptsRole,
 } from "../utils/validateMenu.js";
@@ -1085,6 +1087,17 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   );
   const warnings = freqWarnings.map((msg) => `${group.label}: ${msg}`);
 
+  // Las BASES que la casa ha pedido para esta semana, y cuáles de ellas caben
+  // enteras. Todo o nada: una tanda a medias no ahorra nada (ver
+  // basesAlcanzables). Una semana acortada deja fuera las que no quepan y lo
+  // dice, en vez de colocar un plato suelto y llamarlo tanda.
+  const { alcanzables: basesDeLaSemana, warnings: baseWarnings } = basesAlcanzables(
+    filteredPool,
+    basesPedidas(data?.sesgos),
+    ctx.slots.length,
+  );
+  for (const msg of baseWarnings) warnings.push(`${group.label}: ${msg}`);
+
   // Los platos cocinados viven en la misma tabla que los ingredientes, así que
   // hay que separarlos: "Lentejas estofadas" no es un ingrediente que sumar a la
   // lista de la despensa, es un plato entero listo para colocar en un hueco.
@@ -1243,7 +1256,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // making the old unconditional re-validation below redundant.
   let finalCheck = null;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs);
+    finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs, basesDeLaSemana);
     if (finalCheck.valid) break;
     if (attempt === 0 && stats) stats.invalidFirstPass++;
 
@@ -1448,6 +1461,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       ctx.slots,
       ctx.config.healthProfiles,
       achievableFreqs,
+      basesDeLaSemana,
     );
     if (!postCheck.valid) {
       const fixedIds = allFixedDishIds(data.fixedDishes);
@@ -1487,6 +1501,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
         ctx.slots,
         ctx.config.healthProfiles,
         achievableFreqs,
+        basesDeLaSemana,
       );
       const finalAssignBySlot = Object.fromEntries(slotAssignments.map((s) => [s.slotId, s.recipeId]));
       const stillUnexpected = finalPostCheck.violations.filter((v) => {

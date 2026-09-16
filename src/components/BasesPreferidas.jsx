@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-import { Check, UtensilsCrossed } from "./icons.jsx";
+import { UtensilsCrossed } from "./icons.jsx";
+import { MAX_POR_SEMANA, POR_DEFECTO_POR_SEMANA } from "../lib/bases.js";
 import { MAIN_BASES } from "../data/recipeSchema.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { ingredientThumbSrc } from "../lib/ingredientImages.js";
@@ -49,23 +50,14 @@ const GREEN = "#2d5a3d";
  * Las que no son fécula no están en MAIN_BASES: viven en `basesAparte`, y
  * `sesgos.js` casa por los dos sitios.
  */
-const ORDEN = [
-  "sofrito", "verdura_asada", "salsa_tomate", "bechamel", "pesto", "caldo",
-  ...MAIN_BASES,
+const GRUPOS = [
+  { titulo: "Sofritos y salsas", claves: ["sofrito", "salsa_tomate", "bechamel", "pesto"] },
+  { titulo: "Verduras y caldos", claves: ["verdura_asada", "caldo"] },
+  { titulo: "Féculas", claves: MAIN_BASES },
 ];
 
 
-/**
- * Ficha de base: el dibujo arriba y el nombre DEBAJO, sobre blanco.
- *
- * Nació copiando tal cual la de Añadir ingredientes, que lleva el nombre
- * encima de la foto sobre un degradado oscuro. Allí funciona porque hay
- * decenas de ingredientes y la foto manda; aquí son siete y el degradado
- * ensuciaba unas ilustraciones que ya vienen sobre blanco — ponía una sombra
- * grisácea sobre el cuenco. Con el nombre fuera, el dibujo se ve limpio y la
- * etiqueta se lee sin pelearse con él.
- */
-function FichaDeBase({ id, elegida, onToggle }) {
+function FichaDeBase({ id, veces, onToggle }) {
   const ui = BASES_UI[id] ?? { etiqueta: id, foto: id };
   const img = ingredientThumbSrc(ui.foto);
   const [failed, setFailed] = useState(false);
@@ -75,13 +67,13 @@ function FichaDeBase({ id, elegida, onToggle }) {
     <button
       type="button"
       onClick={() => onToggle(id)}
-      aria-pressed={elegida}
+      aria-pressed={veces > 0}
       style={{
         display: "flex", flexDirection: "column", alignItems: "stretch",
         gap: 0, padding: 0, border: "none", borderRadius: 10, cursor: "pointer",
         fontFamily: "inherit", overflow: "hidden",
-        background: elegida ? "#e8f5ec" : "#fff",
-        outline: elegida ? `2px solid ${GREEN}` : "1.5px solid #e8efe9",
+        background: veces > 0 ? "#e8f5ec" : "#fff",
+        outline: veces > 0 ? `2px solid ${GREEN}` : "1.5px solid #e8efe9",
         outlineOffset: -1.5,
         transition: "background .14s ease, outline .14s ease",
         position: "relative",
@@ -106,21 +98,26 @@ function FichaDeBase({ id, elegida, onToggle }) {
           display: "block", padding: "3px 4px 6px",
           fontSize: 9.5, fontWeight: 800, textAlign: "center",
           lineHeight: 1.15, letterSpacing: "-.1px",
-          color: elegida ? GREEN : "#2f4a3a",
+          color: veces > 0 ? GREEN : "#2f4a3a",
         }}
       >
         {ui.etiqueta}
       </span>
-      {elegida && (
+      {/* El NÚMERO, no un tick: lo que se elige no es "sí o no" sino CUÁNTOS
+          platos de esa base quieres en la semana. Con un tick la pregunta se
+          quedaba a medias — marcar sofrito no decía si lo quieres dos veces o
+          cuatro, y el generador no tenía nada concreto que cumplir. */}
+      {veces > 0 && (
         <span
           style={{
             position: "absolute", top: 3, right: 3,
-            width: 13, height: 13, borderRadius: 999,
+            minWidth: 15, height: 15, padding: "0 3px", borderRadius: 999,
             background: GREEN, display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#fff", fontSize: 9.5, fontWeight: 900, lineHeight: 1,
             boxShadow: "0 1px 3px rgba(0,0,0,.2)",
           }}
         >
-          <Check size={8} strokeWidth={3.5} color="#fff" />
+          {veces}
         </span>
       )}
     </button>
@@ -128,13 +125,23 @@ function FichaDeBase({ id, elegida, onToggle }) {
 }
 export function BasesPreferidas({ data, setData }) {
   const libreta = normalizarLibreta(data?.notepad);
-  const elegida = (id) => (valorDe(libreta, `base.${id}`) ?? 0) > 0;
+  const vecesDe = (id) => Math.min(MAX_POR_SEMANA, Math.round(valorDe(libreta, `base.${id}`) ?? 0));
 
-  const alternar = (id) => {
+  /**
+   * Un toque sube; pasado el tope, vuelve a cero.
+   *
+   * Empieza en DOS y no en uno porque dos es el mínimo que hace tanda: con un
+   * solo plato cocinas ese día y no hay nada que partir. Quien quiera uno
+   * —el caldo de un domingo, por ejemplo— llega dando la vuelta.
+   */
+  const subir = (id) => {
     setData((d) => {
       const actual = normalizarLibreta(d?.notepad);
-      const puesta = (valorDe(actual, `base.${id}`) ?? 0) > 0;
-      const siguiente = poner(actual, `base.${id}`, puesta ? 0 : 1, { origen: "pregunta" });
+      const ahora = Math.round(valorDe(actual, `base.${id}`) ?? 0);
+      const siguienteN = ahora <= 0
+        ? POR_DEFECTO_POR_SEMANA
+        : (ahora >= MAX_POR_SEMANA ? 0 : ahora + 1);
+      const siguiente = poner(actual, `base.${id}`, siguienteN, { origen: "pregunta" });
       return { ...d, notepad: siguiente, sesgos: proyectar(siguiente).sesgos ?? {} };
     });
   };
@@ -142,14 +149,28 @@ export function BasesPreferidas({ data, setData }) {
   return (
     <div>
       <p style={{ fontSize: 12, color: "#6b7d70", margin: "0 0 10px", lineHeight: 1.4 }}>
-        Marca las que te gusta tener hechas: buscaremos platos que compartan olla.
+        Toca para pedir cuántos platos quieres de cada base. Vuelve a tocar para
+        subir, y de {MAX_POR_SEMANA} pasa a ninguno.
       </p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 9 }}>
-        {ORDEN.map((id) => (
-          <FichaDeBase key={id} id={id} elegida={elegida(id)} onToggle={alternar} />
-        ))}
-      </div>
+      {GRUPOS.map((grupo) => (
+        <div key={grupo.titulo} style={{ marginBottom: 14 }}>
+          {/* Cabecera de bloque, el mismo patrón con el que la ficha separa
+              salsa y guarnición: trece fichas seguidas son una reja sin
+              gramática, y además dejaban una huérfana al final. */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 8px" }}>
+            <span style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", whiteSpace: "nowrap", letterSpacing: ".2px" }}>
+              {grupo.titulo}
+            </span>
+            <div style={{ flex: 1, borderTop: "1.5px dashed #dfeae2" }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 9 }}>
+            {grupo.claves.map((id) => (
+              <FichaDeBase key={id} id={id} veces={vecesDe(id)} onToggle={subir} />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

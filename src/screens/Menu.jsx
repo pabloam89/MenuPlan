@@ -3267,6 +3267,12 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
 function BatchBaseCard({ entrada, onDishTap }) {
   const { base, raciones, huecos, minutos, ahorroActivo } = entrada;
   const [failed, setFailed] = useState(false);
+  // La base se pinta y se abre por el MISMO puente que un plato del menú. Sin
+  // esto la ficha salía con el formato del catálogo: cantidades en blanco
+  // (`amount` en vez de `qty`), la dificultad en minúscula y sin macros. Y las
+  // raciones que se le pasan son las de la TANDA, no las de un plato, que es lo
+  // que hace que la lista de ingredientes sea la de la olla del domingo.
+  const receta = useMemo(() => catalogToFrontendRecipe(base, raciones), [base, raciones]);
   const srcUrl = dishImageForRecipe(base);
   const optimized = deckImg(srcUrl, 760);
   const visual = visualForRecipe(base);
@@ -3276,7 +3282,7 @@ function BatchBaseCard({ entrada, onDishTap }) {
     <div style={{ borderRadius: 18, overflow: "hidden", background: "#fff", boxShadow: "0 6px 20px rgba(20,47,29,.12)" }}>
       <button
         type="button"
-        onClick={() => onDishTap?.({ recipe: base, browse: true })}
+        onClick={() => onDishTap?.({ recipe: receta, browse: true })}
         style={{
           position: "relative", display: "block", width: "100%", height: 168,
           border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit",
@@ -3302,7 +3308,7 @@ function BatchBaseCard({ entrada, onDishTap }) {
           background: "linear-gradient(to top, rgba(0,0,0,.74) 0%, rgba(0,0,0,.25) 42%, rgba(0,0,0,0) 66%)",
         }} />
         <div style={{ position: "absolute", top: 12, right: 12 }}>
-          <DishSpecPills difficulty={base.difficulty} time={minutos} align="flex-end" />
+          <DishSpecPills difficulty={receta.difficulty} time={minutos} align="flex-end" />
         </div>
         <div style={{ position: "absolute", left: 14, right: 14, bottom: 12 }}>
           <div style={{

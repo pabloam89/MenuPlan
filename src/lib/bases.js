@@ -359,6 +359,42 @@ export function loQueGana(receta, clavesListas) {
 }
 
 /**
+ * Cuántos platos con cada base pide la casa esta semana.
+ *
+ * Sale del mismo sitio donde el selector del wizard escribe: el eje `base` de
+ * la libreta. El valor ya no es un 0/1 sino CUÁNTOS huecos quieres de esa base
+ * —entre 1 y MAX_POR_SEMANA—, y eso convierte una preferencia en una peticion
+ * comprobable: "ponme dos de sofrito" se puede cumplir o no, y "me gusta el
+ * sofrito" no.
+ *
+ * El sesgo de `lib/sesgos.js` sigue funcionando igual porque lee el SIGNO, no
+ * el número: cualquier valor positivo empuja lo mismo.
+ *
+ * @returns {Record<string, number>} clave de base → huecos pedidos
+ */
+export function basesPedidas(sesgos) {
+  const out = {};
+  for (const [clave, valor] of Object.entries(sesgos?.base ?? {})) {
+    const n = Math.round(Number(valor) || 0);
+    if (n > 0) out[clave] = Math.min(n, MAX_POR_SEMANA);
+  }
+  return out;
+}
+
+/**
+ * El tope del deslizador: de 1 a 4 platos por semana con la misma base.
+ *
+ * Cuatro y no más porque a partir de ahí la semana empieza a saber a lo mismo,
+ * que es justo lo que el menú existe para evitar. Y uno se admite —aunque una
+ * tanda de un plato no sea una tanda— porque es el usuario quien decide: hay
+ * quien quiere el caldo hecho aunque solo lo use una vez.
+ */
+export const MAX_POR_SEMANA = 4;
+
+/** Lo que trae el deslizador de serie: dos platos, el mínimo que hace tanda. */
+export const POR_DEFECTO_POR_SEMANA = 2;
+
+/**
  * Cuántos platos tienen que compartir una base para que valga la pena sacarla
  * como tanda aparte.
  *
