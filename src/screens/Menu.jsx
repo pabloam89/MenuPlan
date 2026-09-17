@@ -4923,54 +4923,74 @@ export const MenuScreen = memo(function MenuScreen({
    * con icono en vez de ilustración. Si al desplegarlas aparecieran pastillas,
    * la fila cambiaría de idioma a mitad de gesto.
    *
-   * Aquí solo vienen las tres que se hacen de un toque. Lo demás —menús
-   * guardados, compartir, PDF, regenerar— sigue en el burger de la cabecera,
-   * que se queda donde estaba: son destinos y diálogos, no interruptores, y
-   * una baldosa que abre una pantalla promete algo que no es.
+   * ── Las tres están SIEMPRE ────────────────────────────────────────────
+   * Antes cada una se escondía cuando no procedía: activar solo si el menú
+   * estaba sin activar, favorito solo con cuenta. El resultado era una fila
+   * que cambiaba de contenido sin avisar —con el menú ya activado y sin
+   * sesión quedaba solo publicar— y no había forma de saber si activar
+   * faltaba porque ya estaba hecho o porque la app se lo había comido.
+   *
+   * Ahora salen las tres y lo que cambia es el estado: APAGADA cuando esa
+   * acción ya no está pendiente. Apagada no es muerta —quitar de favoritos y
+   * volver a la hoja de publicar siguen pulsando—: solo se bloquea lo que de
+   * verdad no tiene nada que hacer, un menú ya activado o guardar sin cuenta
+   * donde guardarlo.
+   *
+   * Lo demás —menús guardados, compartir, PDF, regenerar— sigue en el burger
+   * de la cabecera, que se queda donde estaba: son destinos y diálogos, no
+   * interruptores, y una baldosa que abre una pantalla promete algo que no es.
    */
   const [publishSheetOpen, setPublishSheetOpen] = useState(false);
   const abrirAcciones = useCallback((v) => setAccionesAbiertas(v), []);
+  // Sin activar Y con cuenta para activarlo: es la única de las tres que pide
+  // un toque ya mismo, así que es la única que se destaca —y la que asoma
+  // cuando la pestaña está plegada.
   const puedeActivar = Boolean(hasMenu && onActivateMenu && menuNeedsActivation);
-  // Sin cuenta no hay ninguna de las tres, y entonces la pestaña no existe:
-  // una que se despliega y no enseña nada es peor que no tenerla.
-  const hayAcciones = puedeActivar || Boolean(onToggleFavorite && user) || Boolean(onPublishToFeed);
-  const accionesEnLaFila = hasMenu && hayAcciones && Boolean(wizardControls);
+  const puedeFavorito = Boolean(onToggleFavorite && user);
+  const accionesEnLaFila = hasMenu && Boolean(wizardControls);
   const accionesDelMenu = useMemo(() => (
     <>
-      {puedeActivar && (
-        <BaldosaAccion
-          Icono={Zap}
-          etiqueta="Activar"
-          color="#c9922a"
-          tinte="#fff6e0"
-          marcado
-          title="Activar menú — En casa se moverá según tus preferencias"
-          onClick={onActivateMenu}
-        />
-      )}
-      {onToggleFavorite && user && (
-        <BaldosaAccion
-          Icono={Heart}
-          etiqueta={activeFavorite ? "Guardado" : "Favorito"}
-          color={activeFavorite ? "#e0405a" : "#2d5a3d"}
-          marcado={activeFavorite}
-          ariaPressed={activeFavorite}
-          title={activeFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
-          onClick={onToggleFavorite}
-        />
-      )}
-      {onPublishToFeed && (
-        <BaldosaAccion
-          Icono={Users}
-          etiqueta={menuSharedInFeed ? "Publicado" : "Publicar"}
-          color="#4a6fd4"
-          marcado={menuSharedInFeed}
-          title={menuSharedInFeed ? "Menú publicado en Gente" : "Publicar en Gente"}
-          onClick={() => setPublishSheetOpen(true)}
-        />
-      )}
+      <BaldosaAccion
+        Icono={Zap}
+        etiqueta={onActivateMenu && !menuNeedsActivation ? "Activado" : "Activar"}
+        color="#c9922a"
+        tinte="#fff6e0"
+        marcado={puedeActivar}
+        apagado={!puedeActivar}
+        title={
+          !onActivateMenu ? "Necesitas cuenta para activar el menú"
+            : menuNeedsActivation ? "Activar menú — En casa se moverá según tus preferencias"
+              : "Menú ya activo — En casa se mueve según tus preferencias"
+        }
+        onClick={puedeActivar ? onActivateMenu : null}
+      />
+      <BaldosaAccion
+        Icono={Heart}
+        etiqueta={activeFavorite ? "Guardado" : "Favorito"}
+        color="#e0405a"
+        tinte="#fff0f3"
+        apagado={activeFavorite || !puedeFavorito}
+        ariaPressed={activeFavorite}
+        title={
+          !puedeFavorito ? "Necesitas cuenta para guardar favoritos"
+            : activeFavorite ? "Quitar de favoritos" : "Guardar en favoritos"
+        }
+        onClick={puedeFavorito ? onToggleFavorite : null}
+      />
+      <BaldosaAccion
+        Icono={Users}
+        etiqueta={menuSharedInFeed ? "Publicado" : "Publicar"}
+        color="#4a6fd4"
+        tinte="#e6efff"
+        apagado={menuSharedInFeed || !onPublishToFeed}
+        title={
+          !onPublishToFeed ? "Necesitas cuenta para publicar en Gente"
+            : menuSharedInFeed ? "Menú publicado en Gente" : "Publicar en Gente"
+        }
+        onClick={onPublishToFeed ? () => setPublishSheetOpen(true) : null}
+      />
     </>
-  ), [activeFavorite, menuSharedInFeed, onPublishToFeed, onToggleFavorite, puedeActivar, onActivateMenu, user]);
+  ), [activeFavorite, menuNeedsActivation, menuSharedInFeed, onActivateMenu, onPublishToFeed, onToggleFavorite, puedeActivar, puedeFavorito]);
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),

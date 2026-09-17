@@ -64,14 +64,29 @@ const TEAL = "#0f766e";
  * Se exporta porque las ACCIONES del menú —activar, favorito, publicar— se
  * despliegan en esta misma fila y tienen que ser la misma baldosa: si al
  * desplegarlas aparecieran pastillas, la fila cambiaría de idioma a mitad de
- * gesto. Lo único que cambia es que llevan icono en vez de ilustración y que
- * su aro no significa "pendiente" sino "puesto" (favorito guardado).
+ * gesto. Lo único que cambia es el icono, que aquí va en vez de ilustración.
+ *
+ * ── Tres estados, y el de en medio es el normal ───────────────────────────
+ * `marcado` es "esto está pendiente y te conviene tocarlo" —el aro y el color
+ * propio, como el rayo de un menú sin activar—. `apagado` es lo contrario:
+ * esa acción ya no está pendiente, porque ya está hecha (ya es favorito, ya
+ * está publicado, ya se activó) o porque aquí no se puede hacer. En gris, y
+ * sin aro.
+ *
+ * Apagada NO significa muerta: lo que se puede deshacer —quitar de favoritos,
+ * volver a la hoja de publicar— sigue pulsando. Solo se bloquea lo que de
+ * verdad no tiene nada que hacer, y entonces se pasa `onClick` a null.
  */
-export function BaldosaAccion({ Icono, etiqueta, color = VERDE, tinte = "#fff", marcado = false, onClick, title, ariaPressed }) {
+export function BaldosaAccion({
+  Icono, etiqueta, color = VERDE, tinte = "#fff",
+  marcado = false, apagado = false, onClick, title, ariaPressed,
+}) {
+  const tinta = apagado ? "#9ab0a1" : color;
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={onClick ?? undefined}
+      disabled={!onClick}
       title={title}
       aria-label={title ?? etiqueta}
       aria-pressed={ariaPressed}
@@ -79,27 +94,30 @@ export function BaldosaAccion({ Icono, etiqueta, color = VERDE, tinte = "#fff", 
         flexShrink: 0, width: 76,
         display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
         background: "none", border: "none", padding: 0,
-        cursor: "pointer", fontFamily: "inherit",
+        cursor: onClick ? "pointer" : "default", fontFamily: "inherit",
       }}
     >
       <span
         style={{
           width: 56, height: 56, borderRadius: 18,
           display: "flex", alignItems: "center", justifyContent: "center",
-          background: tinte,
-          border: marcado ? `2px solid ${color}` : "2px solid transparent",
+          background: apagado ? "#eef2ef" : tinte,
+          // Lo no marcado NO lleva borde, pero sí reserva su grosor en
+          // transparente: sin eso la baldosa encoge 4px al marcarse y la fila
+          // entera da un salto.
+          border: marcado ? `2px solid ${tinta}` : "2px solid transparent",
           boxShadow: marcado
-            ? `0 6px 16px -8px ${color}99`
-            : "0 2px 8px -4px rgba(20,47,29,.18)",
-          transition: "box-shadow .2s, border-color .2s",
+            ? `0 6px 16px -8px ${tinta}99`
+            : apagado ? "none" : "0 2px 8px -4px rgba(20,47,29,.18)",
+          transition: "box-shadow .2s, border-color .2s, background .2s",
         }}
       >
-        <Icono size={24} color={color} strokeWidth={marcado ? 2.4 : 2} />
+        <Icono size={24} color={tinta} strokeWidth={marcado ? 2.4 : 2} />
       </span>
       <span
         style={{
           fontSize: 11.5, fontWeight: 800, textAlign: "center", lineHeight: 1.15,
-          color: marcado ? "#142f1d" : "#5a7066",
+          color: apagado ? "#9aa89e" : marcado ? "#142f1d" : "#5a7066",
         }}
       >
         {etiqueta}
