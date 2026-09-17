@@ -27,7 +27,51 @@
  *   - ingredient-overrides.mjs — las decisiones de canonicalización revisadas
  *     a mano, que ganan a la heurística de la cascada de arte.
  *
- * Uso:  node scripts/build-ingredient-catalog.mjs
+ * ─────────────────────────────────────────────────────────────────────────
+ * ⚠️  ESTE SCRIPT YA NO REGENERA src/data/ingredients.json. NO LO ARREGLES
+ *     PARA QUE VUELVA A ESCRIBIR.  (2026-09-10)
+ *
+ * `src/data/ingredients.json` dejó de ser un artefacto generado y es FUENTE.
+ * El fichero y este generador han derivado, y medida la diferencia sobre el
+ * catálogo real, una regeneración hoy:
+ *
+ *   · produce 378 ingredientes, no los 383 que hay
+ *   · RENOMBRA ~12 ids (ajete→ajetes, pasta→pasta-pequena, grelo→grelos…)
+ *   · BORRA 7 (arandanos, cereales, clara-de-huevo, endivia, mermelada,
+ *     salmonete, yema-de-huevo)
+ *   · cambia 73 campos, casi todos `medianAmount`
+ *   · y PIERDE las 87 filas de `nutrition`, porque la proyección de abajo no
+ *     incluye ese campo (lo rellena scripts/bedca-nutrition.mjs, después)
+ *
+ * Y los ids de ingrediente NO son internos: son claves publicadas con
+ * integridad referencial en Postgres.
+ *   · recipe_ingredients.ingredient_id → references ingredients(id)
+ *     ON DELETE RESTRICT   (supabase/migrations/0030_recipe_ingredients.sql:33)
+ *   · user_pantry.ingredient_id        (0041_pantry_ingredient_id.sql)
+ *   · seed_ingredients.sql, seed_recipe_ingredients.sql,
+ *     seed_ingredient_substitutions.sql
+ * Renombrar o borrar un id es una MIGRACIÓN DE DATOS, nunca un paso de build:
+ * la despensa que un usuario guardó apunta a ese id.
+ *
+ * EL FUSIBLE. Hoy el script muere en su propia validación porque genera los
+ * ingredientes sin `nutrition`, y el esquema lo declara `.nullable()` pero NO
+ * `.optional()` (src/data/ingredientSchema.js:121). Ese fallo es lo ÚNICO que
+ * impide que alguien ejecute esto y se lleve por delante las 87 filas de
+ * nutrición. Es un fusible deliberado: no lo hagas `.optional()`.
+ *
+ * Lo que sí sirve, y por eso el alias de npm es `audit:ingredients`: los tres
+ * informes de output/. Para volver a usarlo como generador habría que
+ * reapuntar la escritura a output/ingredients.generated.json y resolver los
+ * ~12 renombres y las 7 bajas uno a uno, con la regla por defecto de ALIAS y
+ * nunca renombre. Eso es trabajo del carril de datos, previo a la tipología
+ * fina de ingredientes.
+ *
+ * (Nota: para ejecutarlo hace falta un runtime que cargue .jsx —
+ * allergens.js:15 importa components/icons.jsx—, o separar antes los iconos
+ * del vocabulario de alérgenos, que es la solución buena.)
+ * ─────────────────────────────────────────────────────────────────────────
+ *
+ * Uso:  npm run audit:ingredients   (solo informes; no escribe el catálogo)
  */
 
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "fs";

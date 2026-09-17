@@ -183,6 +183,41 @@ export function writeCookTimeMode(data, mode) {
   return { ...data, cookTime: { ...cur, mode: "split" } };
 }
 
+/**
+ * Cocinar cada día o cocinar en tanda — el reparto del tiempo en la semana.
+ *
+ * Es OTRO eje que el ritmo: el ritmo dice cuánto rato tienes por comida, y
+ * esto cómo lo repartes. Por eso "con prisa entre semana Y cocino el domingo"
+ * se puede decir: son dos respuestas, no una.
+ *
+ * Se guarda EXPLÍCITO y no se deduce de los minutos. Deducirlo de la asimetría
+ * ("el finde tiene el doble que el diario") parecía elegante y estaba mal: el
+ * valor por defecto de la app ya es 30 y 60, justo el doble, así que cualquiera
+ * que no hubiera tocado nada habría salido marcado "en tanda" sin pedirlo.
+ *
+ * Y hace algo de verdad, no es una etiqueta: abre el presupuesto del fin de
+ * semana sin tocar el de diario, y eso lo lee el planner por `maxCookTime` — un
+ * domingo de 90 minutos admite un guiso que un martes de 20 no.
+ */
+export function writeCookTimeTanda(data, tanda) {
+  const ct = migrateCookTime(data);
+  const diario = ct.weekday?.Comida ?? COOK_TIME_DEFAULTS.weekday.Comida;
+  const finde = tanda ? Math.max(90, diario * 3) : diario;
+  return {
+    ...data,
+    cookTime: {
+      ...ct,
+      tanda: Boolean(tanda),
+      weekend: { Comida: finde, Cena: finde },
+    },
+  };
+}
+
+/** ¿Esta casa cocina en tanda? `undefined` = todavía no lo ha dicho. */
+export function cocinaEnTanda(data) {
+  return data?.cookTime?.tanda;
+}
+
 export function writeCookTimeShared(data, period, value) {
   return writeCookTimePeriod(data, period, { Comida: value, Cena: value });
 }

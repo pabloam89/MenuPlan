@@ -19,7 +19,9 @@
  * pipeline de fotos (queue-missing-photos.mjs) → promoción a estrella.
  *
  * Después de ejecutarlo:
- *   npm run build:ingredients   # da de alta los ingredientes nuevos
+ *   npm run audit:ingredients   # informe: qué ingredientes nuevos faltan
+ *                               # (ya NO regenera ingredients.json — ver su cabecera;
+ *                               #  los que falten se añaden a mano al JSON)
  *   npm run check:catalog       # valida
  *   npm run enrich:steps        # genera stepsRich (opcional, gasta API)
  */
@@ -51,7 +53,12 @@ const RECETAS = [
     fat_g: 28,
     kidFriendly: true,
     tupperFriendly: true,
-    allergens: ['soja'],
+    // La salsa de soja lleva trigo. `gluten` es de los ocho alérgenos SIN red
+    // de seguridad por nombre de ingrediente (INGREDIENT_ALLERGEN_KEYWORDS solo
+    // cubre soja, cacahuetes, apio, mostaza, sulfitos y altramuces), así que si
+    // no se declara aquí no lo atrapa nadie más abajo. Vale para los cuatro
+    // platos de esta tanda que llevan salsa de soja.
+    allergens: ['soja', 'gluten'],
     description:
       'El plato bandera del Perú: tiras de ternera salteadas a fuego vivo con cebolla y tomate, salsa de soja y vinagre, servidas con patatas fritas y arroz blanco.',
     ingredients: [
@@ -98,7 +105,7 @@ const RECETAS = [
     fat_g: 26,
     kidFriendly: true,
     tupperFriendly: true,
-    allergens: ['gluten', 'lactosa', 'frutos_secos'],
+    allergens: ['gluten', 'lactosa', 'frutos_secos', 'huevo'],
     description:
       'Pollo deshilachado en una crema suave y amarilla de ají, pan y leche, con nueces molidas. Se sirve con arroz blanco, patata cocida y huevo duro.',
     ingredients: [
@@ -146,7 +153,7 @@ const RECETAS = [
     fat_g: 18,
     kidFriendly: true,
     tupperFriendly: true,
-    allergens: ['lactosa', 'huevo', 'gluten'],
+    allergens: ['lactosa', 'huevo', 'gluten', 'sulfitos'],
     description:
       'Rodajas de patata cocida bañadas en una salsa cremosa de queso fresco y ají amarillo. El entrante más conocido de la cocina peruana.',
     ingredients: [
@@ -190,7 +197,7 @@ const RECETAS = [
     fat_g: 19,
     kidFriendly: true,
     tupperFriendly: true,
-    allergens: ['huevo'],
+    allergens: ['huevo', 'sulfitos'],
     description:
       'Pastel frío de puré de patata amarilla al ají y lima, relleno de pollo con mayonesa y aguacate. Se come frío, ideal para verano.',
     ingredients: [
@@ -275,7 +282,7 @@ const RECETAS = [
     fat_g: 27,
     kidFriendly: true,
     tupperFriendly: true,
-    allergens: ['gluten', 'lactosa', 'frutos_secos'],
+    allergens: ['gluten', 'lactosa', 'frutos_secos', 'huevo'],
     description:
       'La versión peruana del pesto: albahaca y espinaca trituradas con queso y leche, muy cremosa, sobre tallarines y con un filete a la plancha encima.',
     ingredients: [
@@ -364,7 +371,7 @@ const RECETAS = [
     fat_g: 18,
     kidFriendly: true,
     tupperFriendly: true,
-    allergens: ['huevo', 'soja', 'sesamo'],
+    allergens: ['huevo', 'soja', 'sesamo', 'gluten'],
     description:
       'El arroz frito peruano-chino: arroz salteado a fuego vivo con pollo, tortilla en tiras, cebolleta y soja. Resuelve una cena en 25 minutos.',
     ingredients: [
@@ -456,7 +463,7 @@ const RECETAS = [
     fat_g: 34,
     kidFriendly: true,
     tupperFriendly: true,
-    allergens: ['soja', 'lactosa', 'huevo'],
+    allergens: ['soja', 'lactosa', 'huevo', 'gluten'],
     description:
       'Pollo entero macerado en soja, comino y ají amarillo, asado al horno hasta que la piel queda lacada. Con patatas y salsa de ají verde.',
     ingredients: [
@@ -500,7 +507,7 @@ const RECETAS = [
     fat_g: 14,
     kidFriendly: true,
     tupperFriendly: true,
-    allergens: ['lactosa'],
+    allergens: ['lactosa', 'sulfitos'],
     description:
       'Ensalada fría de habas, maíz, queso fresco y aceituna, aliñada con vinagre y ají. Fresca, crujiente y de una sola pieza.',
     ingredients: [
@@ -1036,7 +1043,7 @@ const RECETAS = [
     fat_g: 34,
     kidFriendly: true,
     tupperFriendly: true,
-    allergens: ['sulfitos', 'gluten'],
+    allergens: ['sulfitos', 'gluten', 'lactosa'],
     description:
       'Ternera guisada durante horas en vino tinto de Borgoña con bacon, cebollitas y champiñones. El guiso francés por antonomasia.',
     ingredients: [
@@ -1179,4 +1186,4 @@ for (const [file, nuevas] of porFichero) {
 }
 
 console.log(`\n${total} recetas añadidas.`)
-console.log('Siguiente: npm run build:ingredients && npm run check:catalog')
+console.log('Siguiente: npm run check:catalog  (y añadir a mano a ingredients.json los ingredientes nuevos que señale)')

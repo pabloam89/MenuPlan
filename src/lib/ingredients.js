@@ -26,16 +26,25 @@ import { createIngredientResolver } from "./ingredientResolver.js";
 import { guessShoppingAisle, guessIngredientCategory, normalizeName } from "./ingredientCategories.js";
 import { gramsForRecipeQuantity, gramsPerPiece } from "./kitchenUnits.js";
 
-// Mismo criterio que recipeCatalog.js: el JSON va bundleado con la app, así que
-// si está roto tiene que fallar de forma ruidosa e incondicional. El generador
-// ya valida antes de escribir, y scripts/validate-catalog.mjs lo revalida en
-// CI; esto es la última red.
-const errors = validateIngredients(ingredientsJson);
-if (errors.length > 0) {
-  throw new Error(
-    `Catálogo de ingredientes inválido (${errors.length} error/es):\n` +
-      errors.map((e) => `  - ${e}`).join("\n"),
-  );
+// Mismo criterio que recipeCatalog.js, y por el mismo motivo: solo en
+// desarrollo y en tests. `scripts/validate-catalog.mjs` valida este fichero en
+// `prebuild` y en `pretest`, y el JSON va dentro del bundle, así que en
+// producción esto revalidaba algo que no puede haber cambiado.
+//
+// Aquí son ~11-50 ms, bastante menos que los ~210 ms de las recetas — se cambia
+// por coherencia entre los dos catálogos, no porque el ahorro lo justifique
+// solo. Lo que ya NO es cierto es la frase que había aquí sobre "el generador
+// valida antes de escribir": el generador está desarmado desde el 10 sep y este
+// fichero es fuente, no artefacto (ver la cabecera de
+// scripts/build-ingredient-catalog.mjs).
+if (import.meta.env.DEV) {
+  const errors = validateIngredients(ingredientsJson);
+  if (errors.length > 0) {
+    throw new Error(
+      `Catálogo de ingredientes inválido (${errors.length} error/es):\n` +
+        errors.map((e) => `  - ${e}`).join("\n"),
+    );
+  }
 }
 
 /** @typedef {(typeof ingredientsJson)[number]} Ingredient */

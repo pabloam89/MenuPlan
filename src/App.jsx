@@ -96,6 +96,7 @@ import {
   orderedWeeks,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
+import { proyectarReglas, reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
   saveMenu as saveMenuRemote,
   loadMenuSummaries as loadMenuSummariesRemote,
@@ -277,6 +278,14 @@ const RESET_VARIANTS = {
 
 const INITIAL_DATA = {
   members: [],
+  // Las reglas de la casa: lo que la libreta no puede decir porque tiene
+  // nombre propio, fecha o excepción. "El miércoles viene mi hermano", "Lucía
+  // no cena en casa hasta el día 20", "pasta los viernes, salvo el 26".
+  //
+  // Se guardan LAS REGLAS, nunca sus efectos: los invitados que produce una
+  // regla viven solo dentro del delta de una generación y se tiran con ella
+  // (ver lib/reglas.js). Borrar una visita es borrar su regla.
+  reglas: [],
   dislikes: [],
   customAllergies: [],
   customDislikes: [],
@@ -292,15 +301,18 @@ const INITIAL_DATA = {
   // How «En casa» stock feeds menu generation:
   //   "only"   → strong bias: build the menu mostly from what's at home
   //   "prefer" → soft, secondary preference (the historical useHomeStock:true)
-  //   "off"    → ignore the pantry when planning
-  // useHomeStock is kept in sync as a legacy boolean (off ⇄ false).
+  // useHomeStock is kept in sync as a legacy boolean.
   //
-  // Default "off": aprovechar lo de casa es una decisión que hay que TOMAR, no
-  // un supuesto. El asistente se puede saltar entero desde el paso 0 ("Generar
-  // menú" sin abrir ningún paso), y con "prefer" de partida el menú saldría
-  // sesgado por un inventario que nadie ha rellenado. Mismo criterio que
-  // hasBudget: false — lo que no se ha preguntado, no se aplica.
-  pantryMode: "off",
+  // Hubo un cuarto, "off" (ignorar la despensa al planificar). Se quitó: nadie
+  // rellena el inventario para que luego no cuente. Sigue siendo un valor que
+  // el motor entiende —para no romper un save viejo— pero ya no lo produce
+  // nadie salvo el modo básico, que simplifica por su cuenta (resolveModeData).
+  //
+  // Default "only" — "aprovecha todo lo que hay en casa, y el resto lo eliges
+  // tú". Es lo que hace quien cocina: no dejar que se eche a perder lo que ya
+  // compró. "prefer" (romper empates) sigue existiendo en el motor pero ya no
+  // se ofrece ni se siembra: era una diferencia que no se nota.
+  pantryMode: "only",
   // ¿Se ha elegido el modo de despensa a propósito? Sirve para distinguir un
   // "prefer" que puso el usuario de uno que puso un default antiguo: sin este
   // flag no se pueden separar, y los saves de entonces llevan "prefer" escrito.
@@ -483,11 +495,26 @@ function resolveModeData(data) {
     extraMeals: { desayuno: "off", merienda: "off", postre: "off", postreTipo: "inmediato", postreInmediato: "mix" },
     // Sin cenas rápidas.
     slotType: cleanedSlotType,
-    // Nivel de cocina normal.
-    cookLevel: "normal",
-    // Despensa: no la tenemos en cuenta mientras no se diga lo contrario.
-    pantryMode: "off",
-    useHomeStock: false,
+    // Nivel de cocina normal... salvo que lo hayas elegido tu desde la fila de
+    // mandos del menu (`cookLevelManual`, ver el mando "Esfuerzo" en
+    // lib/wizardRegistry.js). Mismo trato que `manualSlotType` aqui arriba: el
+    // modo basico simplifica lo que NO has contestado, no lo que acabas de
+    // decidir. Sin esto el mando se pintaba y no cambiaba el menu.
+    cookLevel: data.cookLevelManual ? (data.cookLevel ?? "normal") : "normal",
+    // La despensa NO se toca aquí, y es un cambio respecto a antes: el modo
+    // básico forzaba `pantryMode: "off"`, o sea que a casi todo el mundo —el
+    // básico es el defecto— la despensa no le contaba para nada.
+    //
+    // Se cae por lo mismo que se cayó la opción "Que no cuente": nadie rellena
+    // el inventario para que luego no cuente. Y arrastraba un daño que no se
+    // veía: los platos YA COCINADOS (tuppers de nevera y congelador) salen de
+    // la misma lista que los ingredientes (ver frozenDishes/fridgeDishes en
+    // lib/aiPlanner.js), así que apagarla no solo quitaba el sesgo — dejaba de
+    // ofrecerte un táper que caduca en tres días.
+    //
+    // Ahora el modo de despensa es de quien lo elige, no del modo básico, y
+    // manda igual sobre ingredientes y sobre platos hechos: quien sube algo
+    // quiere que entre en el menú, y lo que se gradúa es cuánto pesa.
     // Multisemana: cosas distintas cada semana (sin repetir platos).
     menuVarietyPref: "strict",
     // Estilo de comida: equilibrado, sin diferenciar por grupo.
@@ -695,29 +722,26 @@ function migrate(state) {
   }
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
-  // Los saves anteriores a `pantryModeSet` llevan el pantryMode que les escribió
-  // el normalizador viejo (useHomeStock:true → "prefer"), no una elección de
-  // nadie — así que la tarjeta del asistente decía "Aprovechamos lo que hay" en
-  // cuentas que nunca lo habían pedido. Se apaga una vez; el flag queda
-  // guardado (en false: sigue sin elegirse) y la migración no se repite.
-  if (typeof d.pantryModeSet !== "boolean") {
-    d.pantryModeSet = false;
-    d.pantryMode = "off";
-    d.useHomeStock = false;
-  }
-  if (typeof d.useHomeStock !== "boolean") d.useHomeStock = false;
-  // pantryMode is the richer 4-way successor to the useHomeStock boolean.
-  // "strict" (solo con lo de casa, sin comprar) is the newest, strongest tier.
+  // `pantryModeSet` marca si la elección es de alguien o del normalizador.
+  if (typeof d.pantryModeSet !== "boolean") d.pantryModeSet = false;
+  // El asistente ofrece DOS (ver PANTRY_MODES en screens/Onboarding.jsx), y la
+  // diferencia entre ellas es una sola pregunta: ¿compro o no compro? Las dos
+  // aprovechan todo lo que hay en casa.
   //
-  // Sin un pantryMode válido guardado no hay elección que respetar: el
-  // useHomeStock:true de los saves antiguos era el default de entonces, no algo
-  // que nadie marcase, así que sembrar "prefer" desde ahí dejaba la despensa
-  // sesgando el menú sin que se hubiera pedido. Se siembra "off" y se pide
-  // desde la pantalla de despensa como cualquier otro ajuste.
-  if (!["strict", "only", "prefer", "off"].includes(d.pantryMode)) {
-    d.pantryMode = "off";
-    d.useHomeStock = false;
+  // "off" (ignorar la despensa) y "prefer" (romper empates) siguen siendo
+  // valores que el motor entiende —para no romper un save viejo a mitad de
+  // lectura— pero ya no los ofrece ni los siembra nadie. "off" se cayó porque
+  // nadie rellena el inventario para que luego no cuente; "prefer" porque la
+  // diferencia no se nota.
+  //
+  // Se siembra "only". Reactiva la despensa en cuentas que estaban en "off"
+  // sin haberlo elegido, y ese es el cambio que se busca: lo que ya compraste
+  // deja de echarse a perder mientras el menú te manda a comprar otra cosa.
+  if (!["strict", "only", "prefer"].includes(d.pantryMode)) {
+    d.pantryMode = "only";
   }
+  d.useHomeStock = d.pantryMode !== "off";
+  if (typeof d.pantryHasItems !== "boolean") d.pantryHasItems = false;
   // ── Modo básico / avanzado ──
   const looksEstablished =
     (Array.isArray(d.members) && d.members.length > 0) ||
@@ -1960,7 +1984,7 @@ export default function App() {
       let spreadPantry = pantryIngredients;
       const effectiveConcurrency = pantryMultiWeek === "spread" ? 1 : WEEK_CONCURRENCY;
       const weekResults = await mapWithConcurrency(weekOffsets, effectiveConcurrency, async (offset, w) => {
-        const { startDayIdx, days, startISO, endISO } = weekMeta[w];
+        const { startDayIdx, days, activeDays, startISO, endISO } = weekMeta[w];
         const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
           ? working.schedule
           : (working.menuWeekOverrides?.[offset] ?? working.schedule);
@@ -1975,10 +1999,41 @@ export default function App() {
           schedule: weekSchedule,
           menuWeek: { offset, startDayIdx, days },
           schoolMenus: schoolMenusForWeekIndex(working.schoolMenus, w),
-          // kidDinnerConfig manda: derivamos el flag legacy que consume el
-          // planner a partir de la config por niño + el horario de esta semana.
-          kidDinnerMatchesAdultLunch: deriveKidDinnerMatchesAdultLunch({ ...working, schedule: weekSchedule }),
         };
+
+        // ── Las reglas, justo antes de generar ──────────────────────────
+        // Una regla ("el miércoles viene mi hermano", "Lucía no cena en casa
+        // hasta el día 20") se convierte aquí en un delta sobre `data.*` que
+        // el motor ya entiende: un invitado es una PERSONA temporal con su
+        // horario, no un número suelto, así que a partir de este punto
+        // `eatersForSlot` lo cuenta, el plato escala y la compra sube — sin
+        // que nada de aguas abajo sepa que existen las reglas.
+        //
+        // El delta se consume UNA vez y se tira: no se persiste jamás. Es lo
+        // que impide que se acumule gente fantasma en la casa.
+        //
+        // `activeDays` y NO `days`: son cosas distintas y weekMeta trae las
+        // dos. `days` son los días que el usuario eligió; `activeDays` los
+        // que esta semana tiene de verdad. Pasar el otro haría que una regla
+        // "los sábados" se aplicara en una semana que empieza en miércoles.
+        const { delta: deltaReglas, avisos: avisosReglas } = proyectarReglas(
+          weekData.reglas,
+          weekData,
+          { hoy: isoLocalDate(new Date()), semana: { inicioISO: startISO, finISO: endISO, dias: activeDays } },
+        );
+        if (avisosReglas.length > 0) {
+          // Todavía sin sitio en la UI. Se registran para no perderlos en
+          // silencio: un aviso es "te he entendido y esto NO lo he hecho", y
+          // callarlo es peor que no entender.
+          console.warn("[reglas] avisos sin pintar:", avisosReglas);
+        }
+        Object.assign(weekData, deltaReglas);
+
+        // DESPUÉS del delta, no antes: se calcula sobre el horario, y un
+        // `presente` sobre un niño en Cena lo deja obsoleto — el flag diría
+        // "la cena del niño copia la comida del adulto" para un niño que esa
+        // noche no está en casa.
+        weekData.kidDinnerMatchesAdultLunch = deriveKidDinnerMatchesAdultLunch(weekData);
         const crossWeek = varietyPref === "relaxed" || weekCount <= 1
           ? null
           : { weekIndex: w, weekCount, varietyPref };
@@ -3584,6 +3639,111 @@ export default function App() {
     showToast("Encaje de la receta actualizado");
   }, [selectedSlot, data.members, user, showToast]);
 
+  /**
+   * "Esta noche somos uno más", desde los controles de un plato.
+   *
+   * No escribe un comensal: escribe una REGLA. La diferencia importa — un
+   * invitado es una persona temporal con su horario, y en cuanto lo es, todo
+   * lo demás funciona sin tocarlo: `eatersForSlot` lo cuenta, la receta escala
+   * sus cantidades y la lista de la compra sube. Un campo "comensales: +1"
+   * habría necesitado un camino nuevo en los cuatro sitios.
+   *
+   * La regla se acota a ESTA semana con la fecha real del día: sin eso, la
+   * visita del miércoles vendría todos los miércoles.
+   */
+  // Los invitados de la semana que se está mirando, por hueco. Sale de las
+  // reglas y no de un campo en el plan: ver invitadosPorHueco en lib/reglas.js.
+  const invitadosDeLaSemana = useMemo(() => {
+    const { dates } = getWeekDatesByMenuWeek({
+      offset: data.menuWeek?.offset ?? 0,
+      startDayIdx: data.menuWeek?.startDayIdx ?? 0,
+    });
+    const primer = dates ? Object.values(dates)[0] : null;
+    return invitadosPorHueco(data.reglas, {
+      semanaISO: primer ? isoLocalDate(primer) : undefined,
+    });
+  }, [data.reglas, data.menuWeek]);
+
+  /**
+   * Cuántos comensales de más tiene este plato. FIJA el total, no suma.
+   *
+   * El contador de la tarjeta parte de los que ya hay y puede bajar a cero, así
+   * que "añadir" y "quitar" son la misma acción con otro número. Pensarlo como
+   * un delta obligaba a la UI a saber cuántos había y a mandar la diferencia:
+   * dos sitios donde equivocarse en vez de uno.
+   *
+   * Hace las dos cosas, y las dos hacen falta:
+   *   · reescribe las REGLAS del hueco (quita las que había, pone una si n>0),
+   *     que es lo que sobrevive a regenerar el menú;
+   *   · y ajusta `slot.eaters` del plan que ya está en pantalla, que es lo que
+   *     leen la ficha del plato y la lista de la compra AHORA.
+   */
+  const handleSetGuests = useCallback(async (selection, total) => {
+    if (householdReadOnly || !selection?.day || !selection?.meal) return;
+    const { groupId, day, meal } = selection;
+    const n = Math.max(0, Math.min(20, Math.round(Number(total) || 0)));
+
+    const { dates } = getWeekDatesByMenuWeek({
+      offset: data.menuWeek?.offset ?? 0,
+      startDayIdx: data.menuWeek?.startDayIdx ?? 0,
+    });
+    const fecha = dates?.[day];
+    const semanaISO = fecha ? isoLocalDate(fecha) : undefined;
+    const hueco = { dia: day, comida: meal, grupoRef: groupId, semanaISO };
+
+    const antes = invitadosDeLaSemana[`${groupId}|${day}|${meal}`] ?? 0;
+    if (antes === n) return;
+
+    setData((d) => {
+      const limpias = sinInvitadosDelHueco(d.reglas, hueco);
+      if (n === 0) return { ...d, reglas: limpias };
+      const regla = reglaDeInvitado({ dia: day, comida: meal, n, grupoRef: groupId, semanaISO });
+      return { ...d, reglas: regla ? [...limpias, regla] : limpias };
+    });
+
+    const delta = n - antes;
+    const grupos =
+      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const key = `${day}-${meal}`;
+      const prev = plan[groupId]?.[key];
+      if (!prev) return plan;
+      const next = {
+        ...plan,
+        [groupId]: {
+          ...(plan[groupId] ?? {}),
+          [key]: { ...prev, eaters: Math.max(1, (Number(prev.eaters) || 1) + delta) },
+        },
+      };
+      const sh = buildShoppingList(next, grupos, getDayMeals(data), pantryIngredients);
+      setShopping((prevSh) => {
+        // Se conservan las marcas de "ya lo tengo": tocar los comensales no
+        // puede desmarcar media compra.
+        const flags = Object.fromEntries(
+          prevSh.items.map((i) => [
+            normalizeIngredientKey(i.name, i.unit ?? "ud"),
+            { have: i.have, atHome: i.atHome },
+          ]),
+        );
+        return {
+          items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
+            ...it,
+            have: flags[it.id]?.have ?? false,
+            atHome: flags[it.id]?.atHome ?? false,
+          })),
+        };
+      });
+      return next;
+    });
+
+    showToast(
+      n === 0 ? `Sin invitados el ${day}`
+      : n === 1 ? `Un comensal más el ${day}`
+      : `${n} comensales más el ${day}`,
+    );
+  }, [householdReadOnly, data, user, showToast, invitadosDeLaSemana]);
+
   const handleReplaceSlot = useCallback(async (selection, { sameCategory = false, reason = null } = {}) => {
     if (householdReadOnly) return;
     // Learn from the rejection (discard/cooldown/favorite) BEFORE the slot
@@ -4297,6 +4457,12 @@ export default function App() {
   const basicMode = !data.expertMode;
   // Presupuesto semanal / Tu compra (paso 6): ya cableado (toggle, cards y precios Mercadona).
   const skipBudgetStep = false;
+  // "¿Cuánto tiramos de lo de casa?" (13) solo si hay algo en casa. Con la
+  // nevera vacía es la pregunta más tonta del asistente, y encima bloquearía
+  // el Continuar por una respuesta que no significa nada. Lo apunta la pantalla
+  // anterior (ver `apuntarCuantos` en OnboardingPantryInventory): la despensa
+  // no vive en `data`, así que sin ese rastro aquí no hay forma de saberlo.
+  const skipPantryMode = data.pantryHasItems !== true;
   // El perfil (quién come + qué evitáis) ya está hecho: se rellenó en el alta.
   const profileAlreadySetUp = (data.members?.length ?? 0) > 0;
   // Pasos que ha pedido ajustar el picker (paso 0). Vacío = no ha pedido
@@ -4320,6 +4486,7 @@ export default function App() {
       (i === 3 && skipMenuModel) ||
       (i === 4 && skipSchoolMenu) ||
       (i === 6 && skipBudgetStep) ||
+      (i === 13 && skipPantryMode) ||
       (i === 8 && (skipKidsDinner || basicMode)) ||
       (basicMode && (i === 9 || i === 10 || i === 11)) ||
       // Avatares (1) y alergias (2) son perfil, no asistente: se rellenan en el
@@ -4331,7 +4498,7 @@ export default function App() {
       // alergias"): ahí el paso 2 ES el destino, y ocultarlo hacía que el
       // normalizador saltase al siguiente visible (la semana del menú).
       (!firstRunOnboarding && !editPreferencesOrigin && profileAlreadySetUp && (i === 1 || i === 2)),
-    [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode, firstRunOnboarding, profileAlreadySetUp, editPreferencesOrigin, scopeSteps]
+    [skipMenuModel, skipSchoolMenu, skipKidsDinner, skipPantryMode, quickMenu, basicMode, firstRunOnboarding, profileAlreadySetUp, editPreferencesOrigin, scopeSteps]
   );
   const stepNeighbor = useCallback(
     (from, dir) => {
@@ -4706,6 +4873,8 @@ export default function App() {
               restrictionConflicts={restrictionConflicts}
               onDishTap={handleDishTap}
               onDishReplace={householdReadOnly ? undefined : handleReplaceSlot}
+              onSetGuests={householdReadOnly ? undefined : handleSetGuests}
+              invitadosPorHueco={invitadosDeLaSemana}
               onDishClear={householdReadOnly ? undefined : handleClearSlot}
               onSlotStructure={householdReadOnly ? undefined : handleSlotStructure}
               onDishSwap={householdReadOnly ? undefined : handleSwapSlots}
@@ -5230,6 +5399,12 @@ export default function App() {
           scopeGroups={favoriteScopeGroups}
           onSetFavoriteScope={householdReadOnly ? undefined : (scope) => handleSetFavoriteScope(selectedSlot.recipe.id, scope)}
           onClose={() => setSelectedSlot(null)}
+          // Tocar el nombre o la cara de quien subió la receta abre su perfil,
+          // por el mismo camino que ya usa un enlace compartido (?u=): el feed
+          // es quien monta PersonSheet, así que se navega allí con la persona
+          // ya elegida. Sin esto el nombre era texto muerto en una ficha donde
+          // todo lo demás se toca.
+          onOpenPerson={(id) => { setSelectedSlot(null); setDeepLinkPerson(id); handleNav("feed"); }}
           onReject={householdReadOnly || selectedSlot.browse ? undefined : () => handleReplaceSlot(selectedSlot)}
           day={selectedSlot.day ?? null}
           meal={selectedSlot.meal ?? null}

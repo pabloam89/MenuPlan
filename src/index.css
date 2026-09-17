@@ -387,14 +387,28 @@ button {
    raton, de que esto no se pulsa sino que se lleva. */
 .mp-barra-rehacer button:active { cursor: grabbing; }
 
-/* Las puntas del final de la barra de regenerar: se encienden en cadena hacia
-   la derecha. Son la unica pista de que el tirador se lleva y no se pulsa, asi
-   que apuntan al sitio exacto donde hay que soltarlo. */
+/* El rastro de puntas de la barra de regenerar: se encienden EN CADENA hacia la
+   derecha, como una ola. Eran tres apelotonadas en el extremo y no se entendia
+   que habia que deslizar; ahora cruzan la barra entera, que es el recorrido que
+   tiene que hacer el dedo. El retardo lo pone cada una inline (--d). */
 @keyframes mpDeslizPunta {
-  0%, 100% { opacity: .22; }
-  50%      { opacity: .95; }
+  0%, 100% { opacity: .18; transform: translateX(0); }
+  45%      { opacity: .95; transform: translateX(2px); }
 }
-.mp-desliz-punta { animation: mpDeslizPunta 1.5s ease-in-out infinite; }
+.mp-desliz-punta {
+  animation: mpDeslizPunta 1.6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+/* El brillo que barre la barra de izquierda a derecha. Es la senal que la gente
+   YA conoce —la del "desliza para desbloquear"— y hace el trabajo que el texto
+   no puede hacer sin ponerse a dar instrucciones: dice la DIRECCION. Va sobre
+   el fondo, por debajo del tirador y del texto. */
+@keyframes mpDeslizBrillo {
+  0%        { transform: translateX(-60%); }
+  60%, 100% { transform: translateX(320%); }
+}
+.mp-desliz-brillo { animation: mpDeslizBrillo 2.6s ease-in-out infinite; }
 
 /* Y el tirador se asoma cada pocos segundos. Un icono quieto dentro de un
    cuadrado blanco se lee como un boton; este se mueve solo un poco, lo justo

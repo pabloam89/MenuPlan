@@ -320,6 +320,41 @@ describe("coherencia entre los ingredientes y lo que declara cada receta", () =>
     }
     expect(fallos).toEqual([]);
   });
+
+  // El enlace por id. Cada línea de ingrediente del catálogo lleva
+  // `ingredientId`, apunta a un ingrediente que existe, y coincide con lo que
+  // resuelve su `name`. Las tres cosas a la vez: sin la primera el campo vuelve
+  // a ser opcional de facto (el destino de sauceId); sin la tercera, nombre e
+  // id pueden decir ingredientes distintos y la lista de la compra no sabría
+  // a cuál creer. validate-catalog.mjs comprueba lo mismo en prebuild; esto es
+  // la misma invariante vista desde el resolutor de runtime, que es el que
+  // usa la app.
+  it("toda línea de ingrediente lleva ingredientId, existe y coincide con su nombre", () => {
+    const fallos = [];
+    let lineas = 0;
+    for (const recipe of recipeCatalog) {
+      for (const line of recipe.ingredients ?? []) {
+        lineas++;
+        if (!line.ingredientId) {
+          fallos.push(`${recipe.id} "${line.name}" sin ingredientId`);
+          continue;
+        }
+        if (!ingredientById[line.ingredientId]) {
+          fallos.push(`${recipe.id} "${line.name}" → "${line.ingredientId}" no existe`);
+          continue;
+        }
+        const resuelto = resolveIngredientId(line.name);
+        if (resuelto !== line.ingredientId) {
+          fallos.push(`${recipe.id} "${line.name}" lleva "${line.ingredientId}" pero resuelve a "${resuelto}"`);
+        }
+      }
+    }
+    // Suelo de cordura, no censo: `recipeCatalog` son las ~934 recetas de menú
+    // (sin guarniciones, salsas ni bases), unas 6.980 líneas. Si esto baja de
+    // golpe, el bucle ha recorrido nada y el `[]` de abajo sería un falso verde.
+    expect(lineas).toBeGreaterThan(6000);
+    expect(fallos).toEqual([]);
+  });
 });
 
 describe("sustituciones (Fase 3)", () => {

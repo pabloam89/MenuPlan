@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   CalendarDays,
   BookOpen,
-  UserRound,
+  ClipboardList,
+  CookingPot,
+  Settings,
   Plus,
   ChefHat,
   Users,
@@ -96,7 +98,9 @@ export const HOME_COACH_STEPS = [
   },
   {
     selector: '[data-coach="nav-menu"]',
-    Icon: UtensilsCrossed,
+    // El mismo icono que pinta la pestaña (BottomNav en ui.jsx): la burbuja
+    // enseña lo que el dedo va a buscar, no un sinónimo.
+    Icon: ClipboardList,
     title: "Tu menú",
     desc: "El plan de esta semana, día a día, listo para cocinar.",
     place: "above",
@@ -112,7 +116,9 @@ export const HOME_COACH_STEPS = [
     // "Perfil" moved off the bottom nav (now a single, always-consistent bar
     // — see BottomNav in ui.jsx) onto this icon in the Inicio hero.
     selector: '[data-coach="dashboard-profile"]',
-    Icon: UserRound,
+    // El botón del hero es una rueda dentada, no una silueta: la burbuja
+    // decía "perfil" con una carita y arriba había un engranaje.
+    Icon: Settings,
     title: "Perfil",
     desc: "Ajusta tu familia, tus preferencias y tu cuenta siempre que quieras.",
     place: "below",
@@ -272,7 +278,9 @@ export const PANTRY_COACH_STEPS = [
 export const FEED_COACH_STEPS = [
   {
     selector: '[data-coach="feed-weekly"]',
-    Icon: CalendarDays,
+    // Resto de cuando esta fila eran menús de la semana. Hoy enseña quién ha
+    // cocinado HOY, con su foto — un calendario prometía otra cosa.
+    Icon: CookingPot,
     title: "Hoy cocinan…",
     desc: "Lo que ha cocinado hoy tu gente, con su foto. Caduca en 48 h, y el primer hueco es el tuyo: una foto, el plato al que va, y ya.",
     place: "below",
@@ -316,17 +324,59 @@ const PAD = 8; // spotlight breathing room around the target
 const GAP = 14; // distance between spotlight and bubble
 const BUBBLE_MAX_W = 320;
 
-function measure(selector) {
+// El radio del recorte lo pone el PROPIO objetivo, no una constante.
+//
+// Con un radio fijo de 16 el recorte no encuadraba: el botón de perfil es un
+// círculo de 34 px (`borderRadius: "50%"`) y el de regenerar un día es una
+// píldora (`999`), así que los dos quedaban dentro de una caja casi cuadrada
+// con cuatro esquinas oscuras alrededor. Es exactamente el fallo que PanelCoach
+// ya había arreglado a mano para su FAB ("un spotlight cuadrado dejaba cuatro
+// esquinas oscuras"), pero allí se resolvió con un 999 escrito a pelo, que solo
+// vale porque ese botón siempre es redondo. Aquí los objetivos son 29 y de
+// cualquier forma, así que el radio se lee.
+//
+// Se SUMA el PAD para que el recorte sea concéntrico con el objetivo: una caja
+// separada 8 px de un círculo de radio 17 vuelve a ser un círculo exacto si su
+// radio es 25. Sin sumarlo, un botón redondo recibiría un recorte con las
+// esquinas más cerradas que él.
+//
+// El suelo de 12 es el radio por defecto de los controles del sistema de
+// diseño (DESIGN_SYSTEM.md §3.2): los objetivos que son una REGIÓN y no un
+// control —el bloque de "añadir a la despensa", el carrusel del feed— no
+// declaran radio, y un recorte de esquinas vivas desentona con una app que
+// pide redondez en todo (§0.6).
+const RADIO_MIN = 12;
+
+function radioDe(el, pad) {
+  if (typeof window === "undefined") return RADIO_MIN;
+  const crudo = window.getComputedStyle(el).borderTopLeftRadius;
+  // getComputedStyle resuelve los porcentajes a px, así que un "50%" llega ya
+  // como la mitad del lado y no hay que tratarlo aparte.
+  const n = Number.parseFloat(crudo);
+  if (!Number.isFinite(n) || n <= 0) return RADIO_MIN;
+  return Math.max(RADIO_MIN, n + pad);
+}
+
+function measure(selector, pad = PAD) {
   const el = typeof document !== "undefined" ? document.querySelector(selector) : null;
   if (!el) return null;
   const r = el.getBoundingClientRect();
   if (r.width === 0 && r.height === 0) return null;
-  return { top: r.top, left: r.left, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+  return {
+    top: r.top, left: r.left, right: r.right, bottom: r.bottom,
+    width: r.width, height: r.height,
+    radius: radioDe(el, pad),
+  };
 }
 
 export function CoachTour({ steps, onClose, onStepChange }) {
   const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState(null);
+  // Alto real de la burbuja, medido tras pintarla. Se necesita para acotarla
+  // al viewport (ver `layout`), y no se puede saber antes: el texto de cada
+  // paso va de dos líneas a cinco.
+  const bubbleRef = useRef(null);
+  const [bubbleH, setBubbleH] = useState(0);
   const [vp, setVp] = useState(() => ({
     w: typeof window !== "undefined" ? window.innerWidth : 375,
     h: typeof window !== "undefined" ? window.innerHeight : 812,
@@ -366,6 +416,19 @@ export function CoachTour({ steps, onClose, onStepChange }) {
     };
   }, [idx, step.selector, recompute, step, onStepChange]);
 
+  // Mide la burbuja ya pintada. Va en useLayoutEffect para que el ajuste ocurra
+  // antes del paint y no se vea saltar; y solo escribe el estado cuando cambia
+  // de verdad, porque `bubbleH` realimenta a `layout`, que reposiciona la
+  // burbuja, que vuelve a medir — sin la comparación es un bucle infinito.
+  useLayoutEffect(() => {
+    const h = bubbleRef.current?.getBoundingClientRect().height;
+    if (h && Math.abs(h - bubbleH) > 1) setBubbleH(h);
+    // `idx` porque cada paso trae un texto de alto distinto, y `vp.w` porque al
+    // estrecharse la burbuja el texto reparte en más líneas. `bubbleH` está
+    // para que el propio ajuste vuelva a comprobarse una vez y pare ahí: quien
+    // corta el bucle es la comparación de arriba, no la lista.
+  }, [idx, vp.w, bubbleH]);
+
   useEffect(() => {
     window.addEventListener("resize", recompute);
     window.addEventListener("scroll", recompute, true);
@@ -387,20 +450,43 @@ export function CoachTour({ steps, onClose, onStepChange }) {
     const targetCX = rect.left + rect.width / 2;
     const left = Math.max(12, Math.min(targetCX - bubbleW / 2, vp.w - bubbleW - 12));
 
-    // Prefer the step's requested side, but flip if there's clearly no room.
+    // Se respeta el lado que pide el paso, y solo se cambia si de verdad no
+    // cabe. "Caber" se mide contra el alto REAL de la burbuja (`bubbleH`, del
+    // DOM) en vez de contra los 190 px fijos de antes: las burbujas van de dos
+    // líneas a cinco, y con las largas ese número se quedaba corto, elegía el
+    // lado malo y la burbuja acababa recortada contra el borde.
+    const alto = bubbleH || 180;
+    const necesario = alto + PAD + GAP + 12;
     const spaceBelow = vp.h - rect.bottom;
     const spaceAbove = rect.top;
     let place = step.place;
-    if (place === "below" && spaceBelow < 190 && spaceAbove > spaceBelow) place = "above";
-    if (place === "above" && spaceAbove < 190 && spaceBelow > spaceAbove) place = "below";
+    if (place === "below" && spaceBelow < necesario && spaceAbove > spaceBelow) place = "above";
+    if (place === "above" && spaceAbove < necesario && spaceBelow > spaceAbove) place = "below";
 
     const arrowX = Math.max(18, Math.min(targetCX - left, bubbleW - 18));
-    const pos =
-      place === "below"
-        ? { top: rect.bottom + PAD + GAP }
-        : { bottom: vp.h - rect.top + PAD + GAP };
-    return { bubbleW, left, place, arrowX, pos };
-  }, [rect, vp, step.place]);
+
+    // Y aquí va SIEMPRE `top`, aunque la burbuja se pinte arriba.
+    //
+    // Anclarla por `bottom` dejaba su borde superior donde cayera, y con un
+    // objetivo alto —el bloque entero de "añadir a la despensa", el carrusel
+    // del feed— la burbuja se salía de la pantalla por arriba sin que nada la
+    // parara: la comparación de 190 px solo elige lado, no acota nada, y si
+    // ninguno de los dos tiene sitio se queda con el que pidió el paso.
+    //
+    // Con `top` se puede acotar de verdad, y el margen de 12 px es el mismo
+    // que ya usa `left`. `bubbleH` llega medido del DOM (abajo): las burbujas
+    // van de dos líneas a cinco y estimar su alto es justo lo que dejaba el
+    // borde cortado en las largas.
+    const crudo = place === "below"
+      ? rect.bottom + PAD + GAP
+      : rect.top - PAD - GAP - alto;
+    const top = Math.max(12, Math.min(crudo, vp.h - alto - 12));
+
+    // Si hubo que moverla para que cupiera, la flecha ya no toca el objetivo:
+    // se quedaría clavada en el borde de la burbuja señalando al vacío, que
+    // miente más que no poner nada. El recorte iluminado ya dice dónde mirar.
+    return { bubbleW, left, place, arrowX, pos: { top }, conFlecha: top === crudo };
+  }, [rect, vp, step.place, bubbleH]);
 
   const overlay = (
     <div
@@ -434,11 +520,11 @@ export function CoachTour({ steps, onClose, onStepChange }) {
             left: rect.left - PAD,
             width: rect.width + PAD * 2,
             height: rect.height + PAD * 2,
-            borderRadius: 16,
+            borderRadius: rect.radius,
             boxShadow: "0 0 0 9999px rgba(11,28,18,.66)",
             border: "2px solid rgba(255,255,255,.85)",
             pointerEvents: "none",
-            transition: "top .28s cubic-bezier(.4,0,.2,1), left .28s cubic-bezier(.4,0,.2,1), width .28s cubic-bezier(.4,0,.2,1), height .28s cubic-bezier(.4,0,.2,1)",
+            transition: "top .28s cubic-bezier(.4,0,.2,1), left .28s cubic-bezier(.4,0,.2,1), width .28s cubic-bezier(.4,0,.2,1), height .28s cubic-bezier(.4,0,.2,1), border-radius .28s cubic-bezier(.4,0,.2,1)",
           }}
         />
       ) : (
@@ -454,6 +540,7 @@ export function CoachTour({ steps, onClose, onStepChange }) {
       {/* Bubble */}
       {layout && (
         <div
+          ref={bubbleRef}
           onClick={(e) => e.stopPropagation()}
           style={{
             position: "fixed",
@@ -468,7 +555,7 @@ export function CoachTour({ steps, onClose, onStepChange }) {
           }}
         >
           {/* pointer arrow toward the target */}
-          <div
+          {layout.conFlecha && <div
             style={{
               position: "absolute",
               left: layout.arrowX - 9,
@@ -483,7 +570,7 @@ export function CoachTour({ steps, onClose, onStepChange }) {
                   ? "-2px -2px 4px rgba(20,47,29,.06)"
                   : "2px 2px 4px rgba(20,47,29,.06)",
             }}
-          />
+          />}
 
           <div style={{ display: "flex", alignItems: "flex-start", gap: 11, position: "relative" }}>
             <div

@@ -7,10 +7,13 @@ import {
   buildCorrectionMessage,
   applyFallback,
   carbTypeFromText,
+  getCarbType,
+  CARB_TYPES,
   splitAchievableFreqs,
   slotAcceptsRole,
   GUARD_FOR_RULE,
 } from "./validateMenu.js";
+import { CARB_TYPE_BY_BASE, MAIN_BASES } from "../data/recipeSchema.js";
 
 function recipe(overrides) {
   // El nombre por defecto sale del id porque hay reglas que miran el NOMBRE
@@ -1077,6 +1080,205 @@ describe("carbTypeFromText", () => {
     expect(carbTypeFromText("Merluza a la plancha")).toBeNull();
     expect(carbTypeFromText("")).toBeNull();
     expect(carbTypeFromText(undefined)).toBeNull();
+  });
+});
+
+describe("getCarbType: el mainBase declarado manda sobre el regex", () => {
+  // El eje de la base (qué olla comparte el plato, lib/bases.js) y el del
+  // hidrato (si el comensal percibe "otra vez lo mismo", regla 9) eran el mismo
+  // concepto modelado dos veces y sin hablarse. La tabla CARB_TYPE_BY_BASE es
+  // la unión; estas pruebas fijan lo que cambia y lo que NO.
+
+  it("cubre TODOS los valores de MAIN_BASES — una base nueva obliga a decidir", () => {
+    // Sin esto, añadir una base al enum la dejaría cayendo al regex en
+    // silencio: volveríamos justo a la divergencia que la tabla cierra.
+    for (const base of MAIN_BASES) {
+      expect(Object.hasOwn(CARB_TYPE_BY_BASE, base)).toBe(true);
+    }
+    expect(Object.keys(CARB_TYPE_BY_BASE).sort()).toEqual([...MAIN_BASES].sort());
+  });
+
+  it("solo mapea a hidratos que el regex también sabe producir", () => {
+    // Si una base apuntara a un carbType fuera del vocabulario, un plato con
+    // base declarada y otro sin ella contarían distinto siendo lo mismo.
+    for (const carbType of Object.values(CARB_TYPE_BY_BASE)) {
+      if (carbType === null) continue;
+      expect(CARB_TYPES).toContain(carbType);
+    }
+  });
+
+  it("usa mainBase en vez de un ingrediente secundario del regex", () => {
+    // "Trofie al pesto genovés": el pesto genovés lleva patata, así que el
+    // regex lo contaba como patatas y no chocaba con otra pasta el mismo día.
+    const trofie = recipe({
+      id: "trofie", name: "Trofie al pesto genovés", mainBase: "pasta",
+      ingredients: [{ name: "Trofie" }, { name: "Patata" }, { name: "Albahaca" }],
+    });
+    expect(carbTypeFromText("Trofie al pesto genovés patata")).toBe("patatas");
+    expect(getCarbType(trofie)).toBe("pasta");
+  });
+
+  it("clasifica pastas que el regex no nombra", () => {
+    // "Fettuccine Alfredo" no tenía base NINGUNA: se podían servir espaguetis de
+    // comida y fettuccine de cena sin que saltara nada.
+    const fettuccine = recipe({
+      id: "fettuccine", name: "Fettuccine Alfredo", mainBase: "pasta",
+      ingredients: [{ name: "Fettuccine" }, { name: "Nata" }],
+    });
+    expect(carbTypeFromText("Fettuccine Alfredo nata")).toBeNull();
+    expect(getCarbType(fettuccine)).toBe("pasta");
+  });
+
+  it("el pan NO es una base: un taco se clasifica por el regex, no por mainBase", () => {
+    // `pan` salió de MAIN_BASES el 11 sep — ni uno de sus 83 platos se cocinaba
+    // "aparte", así que no era una olla, era una percepción. Sigue existiendo
+    // como carbType (lo pone CARB_PATTERNS), pero ya no como base declarable.
+    const tacos = recipe({
+      id: "tacos", name: "Tacos de pollo",
+      ingredients: [{ name: "Tortillas de trigo" }, { name: "Pollo" }],
+    });
+    expect(getCarbType(tacos)).toBeNull();
+    // Y lo que el regex sí nombra sigue contando como pan, sin declarar nada.
+    const bocadillo = recipe({
+      id: "boca", name: "Bocadillo de calamares",
+      ingredients: [{ name: "Pan" }, { name: "Calamares" }],
+    });
+    expect(getCarbType(bocadillo)).toBe("pan");
+  });
+
+  it("boniato cuenta como patatas aunque sea una base (olla) distinta", () => {
+    // bases_007 es su propia bandeja, pero en la mesa es el mismo tubérculo
+    // asado dos veces — y el regex ya metía boniato en "patatas" para los
+    // platos que no declaran base: separarlos aquí los descuadraría.
+    const boniato = recipe({
+      id: "boniato", name: "Puré de boniato con pavo", mainBase: "boniato",
+      ingredients: [{ name: "Boniato" }],
+    });
+    expect(getCarbType(boniato)).toBe("patatas");
+  });
+
+  it("legumbre NO es un hidrato: el eje que la gobierna es el de proteína", () => {
+    // 81 de las 83 recetas con mainBase "legumbre" llevan mainProtein
+    // "legumbre", así que las reglas 2/3b/3c/15 ya impiden repetirla. Lo que
+    // esto quita es el carbType FALSO que arrastraban 14 guisos por llevar
+    // patata o pan de acompañamiento: un potaje bloqueaba las patatas del día.
+    const potaje = recipe({
+      id: "potaje", name: "Potaje de habichuelas", mainBase: "legumbre",
+      mainProtein: "legumbre",
+      ingredients: [{ name: "Alubias" }, { name: "Patata" }],
+    });
+    expect(carbTypeFromText("Potaje de habichuelas alubias patata")).toBe("patatas");
+    expect(getCarbType(potaje)).toBeNull();
+  });
+
+  it("un potaje ya no bloquea las patatas del mismo día (regla 9)", () => {
+    const pool = [
+      recipe({
+        id: "potaje", mealRole: ["primero"], mainProtein: "legumbre",
+        name: "Potaje de habichuelas", mainBase: "legumbre",
+        ingredients: [{ name: "Alubias" }, { name: "Patata" }],
+      }),
+      recipe({
+        id: "merluza", mealRole: ["segundo"], mainProtein: "pescado_blanco",
+        name: "Merluza con patatas panadera",
+        ingredients: [{ name: "Merluza" }, { name: "Patata" }],
+      }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "potaje" },
+      { slotId: "lun_comida_2", recipeId: "merluza" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("guarnicion_repetida");
+  });
+
+  it("dos pastas el mismo día siguen chocando aunque el regex no las nombre", () => {
+    const pool = [
+      recipe({
+        id: "fettuccine", mealRole: ["primero"], mainProtein: "none",
+        name: "Fettuccine Alfredo", mainBase: "pasta",
+        ingredients: [{ name: "Fettuccine" }],
+      }),
+      recipe({
+        id: "orzo", mealRole: ["cena"], mainProtein: "pollo",
+        name: "Orzo con pollo y limón", mainBase: "pasta",
+        ingredients: [{ name: "Orzo" }],
+      }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "fettuccine" },
+      { slotId: "lun_cena", recipeId: "orzo" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("guarnicion_repetida");
+  });
+
+  it("una receta sin mainBase sigue clasificándose por el regex", () => {
+    // Es lo que cubre las ~500 recetas que no declaran el campo.
+    const arroz = recipe({
+      id: "arroz", name: "Arroz tres delicias",
+      ingredients: [{ name: "Arroz" }, { name: "Guisantes" }],
+    });
+    expect(getCarbType(arroz)).toBe("arroz");
+  });
+
+  // La regla 14 es donde la tabla más muerde, y donde no había cobertura.
+  // Los platos que el regex no nombraba y que `mainBase` rescata son
+  // abrumadoramente de rol cena —wraps, quesadillas, tacos, empanadas— así que
+  // el salto grande no está en la regla 9 (mismo día) sino en las cenas de días
+  // consecutivos: medido sobre el pool de cena, las semanas con al menos un
+  // choque suben del 35,7 % al 38,7 %.
+  //
+  // Sin este test, la tabla podía dejar de aplicarse a la regla 14 sin que
+  // fallara nada: los dos platos dan carbType `null` por el regex, así que un
+  // `getCarbType` que ignorase `mainBase` los daría por buenos en silencio.
+  it("dos cenas consecutivas de base pasta chocan, aunque el regex no las nombre", () => {
+    const pool = [
+      recipe({
+        id: "fettuccine", name: "Fettuccine Alfredo",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Fettuccine" }],
+      }),
+      recipe({
+        id: "orzo", name: "Orzo con verduras",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Orzo" }],
+      }),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "fettuccine" },
+      { slotId: "mar_cena", recipeId: "orzo" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("guarnicion_cena_consecutiva");
+  });
+
+  // La otra cara: dejar un día de por medio tiene que bastar. Es exactamente la
+  // pauta que hereda el batch cooking — repartir la tanda por la semana no
+  // basta si dos de sus platos caen en cenas seguidas.
+  it("las mismas dos cenas con un día de por medio no chocan", () => {
+    const pool = [
+      recipe({
+        id: "fettuccine", name: "Fettuccine Alfredo",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Fettuccine" }],
+      }),
+      recipe({
+        id: "orzo", name: "Orzo con verduras",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Orzo" }],
+      }),
+    ];
+    const slots = [slot("lun_cena"), slot("mie_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "fettuccine" },
+      { slotId: "mie_cena", recipeId: "orzo" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("guarnicion_cena_consecutiva");
   });
 });
 

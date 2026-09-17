@@ -73,6 +73,68 @@ describe("la fila de controles sale del registro, no de un componente", () => {
     expect(ids).not.toContain("tecnica");
   });
 
+  it("lo que escribe cada control cae en un campo que el motor LEE", () => {
+    // El fallo que esto sujeta: Trastos escribía en `data.appliances` y el
+    // motor lee `data.kitchenTools`. El control se pintaba, se marcaba y se
+    // guardaba — y marcar "Airfryer" no metía ni un plato de airfryer. Un mando
+    // que no cambia el menú es peor que no tenerlo, y por fuera no se distingue
+    // de uno que funciona.
+    //
+    // Se comprueba escribiendo de verdad y mirando qué claves de `data` se
+    // mueven, en vez de leer el código: así vale para cualquier `escribe`,
+    // incluido el de Tiempo, que toca cuatro casillas de una.
+    const CONSUMIDOS = new Set([
+      "freqs", "cocinas", "mealStructure", "cookLevel", "kitchenTools",
+      "customKitchenTools", "cookTime", "kidDinner", "notepad",
+      // Lo lee `resolveModeData` (App.jsx) para NO pisar en modo basico un
+      // nivel de cocina que elegiste tu desde la fila de mandos.
+      "cookLevelManual",
+    ]);
+    const base = { ...CIMIENTOS };
+    for (const p of controlesVisibles(libretaVacia(), CIMIENTOS)) {
+      if (p.fuente !== "data" || !p.escribe) continue;
+      const valor = p.opciones?.[0]?.valor ?? p.opciones?.[0] ?? "x";
+      const despues = p.escribe(base, Array.isArray(p.opciones) && p.control === "multi" ? [valor] : valor);
+      const tocadas = Object.keys(despues).filter((k) => despues[k] !== base[k]);
+      expect(tocadas.length, `${p.id} no escribe nada`).toBeGreaterThan(0);
+      for (const k of tocadas) {
+        expect(CONSUMIDOS.has(k), `${p.id} escribe en "${k}", que no lo lee el motor`).toBe(true);
+      }
+    }
+  });
+
+  it("el modo basico no pisa lo que acabas de elegir a mano", () => {
+    // El fallo que esto sujeta: `resolveModeData` (App.jsx) fuerza
+    // `cookLevel: "normal"` en modo basico —el de por defecto— y se comia la
+    // eleccion del mando "Esfuerzo". El mando se pintaba, se guardaba, se
+    // marcaba con su aro teal, y el menu salia igual.
+    //
+    // Se comprueba sobre la LISTA de campos que el modo basico fuerza, no solo
+    // sobre cookLevel: si manana el modo basico empieza a forzar otro campo que
+    // un mando escribe, esto lo caza.
+    const FUERZA_EL_BASICO = new Set([
+      "extraMeals", "slotType", "cookLevel", "menuVarietyPref",
+      "mealStyleByGroup", "mealStructureByGroup", "cookTime",
+    ]);
+    // Los que llevan su propia marca de "lo eligio el usuario", que es como
+    // sobreviven (el patron de `manualSlotType`).
+    const CON_MARCA = { cookLevel: "cookLevelManual", slotType: "manualSlotType", cookTime: "cookTime" };
+
+    for (const p of controlesVisibles(libretaVacia(), CIMIENTOS)) {
+      if (p.fuente !== "data" || !p.escribe) continue;
+      const valor = p.opciones?.[0]?.valor ?? p.opciones?.[0] ?? "x";
+      const despues = p.escribe(CIMIENTOS, p.control === "multi" ? [valor] : valor);
+      for (const k of Object.keys(despues)) {
+        if (despues[k] === CIMIENTOS[k] || !FUERZA_EL_BASICO.has(k)) continue;
+        const marca = CON_MARCA[k];
+        expect(
+          marca && despues[marca] !== undefined,
+          `${p.id} escribe en "${k}", que el modo basico fuerza, y no deja marca de que lo elegiste tu`,
+        ).toBe(true);
+      }
+    }
+  });
+
   it("cada control trae lo que la fila necesita para pintarse", () => {
     for (const p of controlesVisibles(libretaVacia(), CIMIENTOS)) {
       expect(p.corto, `${p.id} sin etiqueta corta`).toBeTruthy();
@@ -143,11 +205,17 @@ describe("la fila de controles sale del registro, no de un componente", () => {
     for (const p of controlesVisibles(libretaVacia(), CIMIENTOS).filter((x) => x.fuente === "data")) {
       expect(typeof p.lee, `${p.id}`).toBe("function");
       expect(typeof p.escribe, `${p.id}`).toBe("function");
-      expect(p.opciones, `${p.id} sin dominio que ofrecer`).toBeTruthy();
+      // Una fila de dos bloques (`grupo`) ofrece su dominio por `subejes`, no
+      // por `opciones`: su valor es un objeto con una eleccion por bloque. Es
+      // lo que hace la pregunta del tiempo desde que el ritmo y el reparto
+      // (cada dia / en tanda) viven juntos.
+      const dominio = p.control === "grupo" ? p.subejes : p.opciones;
+      expect(dominio, `${p.id} sin dominio que ofrecer`).toBeTruthy();
 
-      const primera = p.opciones[0];
-      // "multi" lleva un dominio de strings; el resto, de {valor, etiqueta}.
-      const valor = p.control === "multi" ? [primera] : primera.valor ?? primera;
+      const valor = p.control === "grupo"
+        ? Object.fromEntries(p.subejes.map((e) => [e.campo, e.opciones[0].valor]))
+        // "multi" lleva un dominio de strings; el resto, de {valor, etiqueta}.
+        : p.control === "multi" ? [p.opciones[0]] : p.opciones[0].valor ?? p.opciones[0];
 
       const nuevo = p.escribe({ hola: 1 }, valor);
       expect(nuevo.hola, `${p.id} no debe pisar el resto de data`).toBe(1);
@@ -181,9 +249,36 @@ describe("la fila de controles sale del registro, no de un componente", () => {
     expect(valores).not.toContain("unico");
   });
 
-  it("el tiempo ofrece los cuatro niveles que ya usa la app", () => {
-    expect(PREGUNTAS_POR_ID.tiempo.opciones.map((o) => o.valor))
+  it("el tiempo ofrece los cuatro niveles que ya usa la app, y el reparto", () => {
+    const [ritmo, reparto] = PREGUNTAS_POR_ID.tiempo.subejes;
+    expect(ritmo.opciones.map((o) => o.valor))
       .toEqual(["con_prisa", "normal", "con_tiempo", "depende"]);
+    // El segundo bloque es OTRO eje, no un quinto nivel: cuanto rato tienes
+    // por comida y como lo repartes en la semana son dos respuestas, y hacen
+    // falta las dos para decir "voy con prisa entre semana y cocino el
+    // domingo".
+    expect(reparto.opciones.map((o) => o.valor)).toEqual(["cada_dia", "tanda"]);
+  });
+
+  it("elegir la tanda no pisa el ritmo, y al reves tampoco", () => {
+    const p = PREGUNTAS_POR_ID.tiempo;
+    const conPrisa = p.escribe({}, { nivel: "con_prisa" });
+    expect(conPrisa.cookTime.weekday.Comida).toBe(20);
+
+    const enTanda = p.escribe(conPrisa, { ...p.lee(conPrisa), tanda: "tanda" });
+    // El diario sigue siendo el que eligio; solo se abre el fin de semana.
+    expect(enTanda.cookTime.weekday.Comida).toBe(20);
+    expect(enTanda.cookTime.weekend.Comida).toBeGreaterThanOrEqual(90);
+
+    // Y cambiar de ritmo despues no borra la tanda.
+    const otroRitmo = p.escribe(enTanda, { ...p.lee(enTanda), nivel: "normal" });
+    expect(p.lee(otroRitmo)).toEqual({ nivel: "normal", tanda: "tanda" });
+  });
+
+  it("sin contestar, la pregunta del tiempo esta PENDIENTE", () => {
+    // La trampa en la que cai: si `lee` devuelve algo cuando nadie ha
+    // contestado, el wizard la da por hecha y no la ensena nunca.
+    expect(PREGUNTAS_POR_ID.tiempo.lee({})).toBe(null);
   });
 });
 
@@ -384,8 +479,20 @@ describe("el wizard se acorta mientras hablas", () => {
       ...CIMIENTOS,
       mealStructure: "primero_segundo",
       cookLevel: "normal",
-      cookTime: 30,
-      appliances: ["Horno"],
+      // La forma de verdad, no un número suelto: desde que existe la pregunta
+      // de las tandas hacen falta los dos presupuestos y la bandera. Un
+      // `cookTime: 30` a secas dejaba la pregunta de tandas pendiente, y este
+      // test dice "con TODO contestado".
+      cookTime: {
+        mode: "shared",
+        weekday: { Comida: 30, Cena: 30 },
+        weekend: { Comida: 30, Cena: 30 },
+        tanda: false,
+      },
+      // `kitchenTools`, que es lo que lee el motor. Este fixture decía
+      // `appliances` — el mismo campo huérfano al que apuntaba Trastos, así que
+      // el test daba por contestada una pregunta que en realidad no movía nada.
+      kitchenTools: ["Horno"],
       budget: 100,
       pantryMode: "prefer",
     };

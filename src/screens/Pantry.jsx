@@ -1879,7 +1879,11 @@ export function PantryScreen({
               subtitle={
                 readOnly
                   ? "Cuando el propietario añada ingredientes, los verás aquí."
-                  : "Añade lo que tienes en casa: ingredientes de la nevera, la despensa o el congelador, y platos que ya has cocinado."
+                  // Corto a propósito: la cabecera de encima ya explica qué
+                  // entra (nevera, despensa, congelador, platos hechos), y
+                  // repetirlo aquí estiraba el vacío hasta obligar a hacer
+                  // scroll en móvil para llegar al botón de añadir.
+                  : "Añade lo que tienes en casa."
               }
               maxWidth={compactEmptyState ? 240 : 300}
               imgAspect={compactEmptyState ? "1 / 1" : "16 / 12"}

@@ -228,8 +228,12 @@ export function proyectar(notepad) {
     } else if (campoId === "favoritos") {
       if (campo.valor) favoritos.push(valorId);
     } else {
-      // base, cocina, tecnica, salsa, esfuerzo — ejes de sesgo, sin consumidor
-      // todavía: los estrenará el panel.
+      // base, cocina, tecnica, salsa, esfuerzo — ejes de sesgo. `cocina` sale
+      // a `data.cocinas` (puerta opt-in en filterRecipes); base, tecnica y
+      // salsa a `data.sesgos` y de ahí a lib/sesgos.js, que ordena candidatos
+      // en las sustituciones y en el fallback. `esfuerzo` sigue sin consumidor
+      // —no hay campo del plato que lo represente sin ambigüedad— y está
+      // anotado allí. La proyección la escribe useWizardMenu.jsx#guardar.
       (sesgos[campoId] ??= {})[valorId] = campo.valor;
     }
   }

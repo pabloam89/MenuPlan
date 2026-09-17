@@ -19,6 +19,7 @@ import {
   Apple,
   Coffee,
   CopyPlus,
+  UserPlus,
   CookingPot,
   History,
   IceCream,
@@ -2029,7 +2030,7 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
 }
 
 /** A single photo-forward dish tile. Fills its parent (parent controls size). */
-function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, showGroup = false, members = null }) {
+function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, showGroup = false, members = null, invitados = 0 }) {
   const { meal, group, slot, dish } = tile;
   const armed = useContext(ArmedContext);
   const isEmpty = Boolean(tile.empty);
@@ -2192,8 +2193,31 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       <div style={{ position: "absolute", top: compact ? 8 : 12, right: compact ? 8 : 12 }}>
         <DishSpecPills difficulty={recipe.difficulty} time={recipe.time} compact={compact} align="flex-end" />
       </div>
+      {/* Invitados en este hueco. Comparte esquina con las chapas de grupo y
+          va DELANTE: "esta noche sois uno más" cambia lo que hay que cocinar,
+          y de quién es el menú no. */}
+      {invitados > 0 && (
+        <div style={{
+          position: "absolute", top: compact ? 8 : 12, left: compact ? 8 : 12,
+          display: "inline-flex", alignItems: "center", gap: 3,
+          height: compact ? 20 : 26, padding: compact ? "0 7px" : "0 9px",
+          borderRadius: 999, background: "#2d5a3d", color: "#fff",
+          fontSize: compact ? 10.5 : 12, fontWeight: 800,
+          boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+        }}
+        title={invitados === 1 ? "Un comensal más" : `${invitados} comensales más`}
+        >
+          <UserPlus size={compact ? 11 : 13} strokeWidth={2.6} />
+          {invitados > 1 && <span>{invitados}</span>}
+        </div>
+      )}
       {showGroup && badgeGroups.length > 0 && (
-        <div style={{ position: "absolute", top: compact ? 8 : 12, left: compact ? 8 : 12, display: "flex", gap: 4 }}>
+        <div style={{
+          position: "absolute", top: compact ? 8 : 12,
+          // Se aparta para no taparse con la chapa de invitados.
+          left: (compact ? 8 : 12) + (invitados > 0 ? (compact ? 30 : 40) : 0),
+          display: "flex", gap: 4,
+        }}>
           {badgeGroups.map((gr) => (
             // Two faces then a counter: a dish shared by several menús already
             // shows one badge per group, so letting each one run to three would
@@ -2399,7 +2423,7 @@ function DayRegenButton({ day, onRegenerateDay, groups = [], compact = false }) 
   );
 }
 
-function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false }) {
+function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null }) {
   const scrollerRef = useRef(null);
   const rafRef = useRef(0);
 
@@ -2501,7 +2525,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
                     key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`}
                     style={many ? { height: 172, flexShrink: 0 } : { flex: 1, minHeight: 0 }}
                   >
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} members={data?.members} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} />
                   </div>
                 ))
               )}
@@ -2514,7 +2538,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 }
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
-function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false }) {
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       {days.map((day) => {
@@ -2532,7 +2556,7 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
               {tiles.map((tile, i) => (
                 <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: "0 0 46%" }}>
                   <div style={{ height: 150 }}>
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={16} compact showGroup={showGroup} members={data?.members} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={16} compact showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} />
                   </div>
                 </div>
               ))}
@@ -3301,7 +3325,7 @@ const monthDots = {
   alignItems: "center", gap: 3, maxWidth: 30,
 };
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay }) {
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
@@ -3321,10 +3345,11 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           onRegenerateDay={onRegenerateDay}
           regenGroups={regenGroups}
           showGroup={showGroup}
+          invitadosPorHueco={invitadosPorHueco}
         />
       )}
       {deckView === "semana" && (
-        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} />
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} />
       )}
       {deckView === "mes" && (
         <DeckMonth
@@ -3906,6 +3931,81 @@ export function RoscoMenu({ anchor, actions, onClose, center = null, inline = fa
 // Acciones rápidas de un plato: fila horizontal (icono + copy debajo), sin
 // radial y sin sub-menús — cada botón ejecuta directamente al tocarlo.
 // Sustituye al RoscoMenu de "Regenerar/Mover/Duplicar/Quitar" (2026-08-28).
+/**
+ * Cuántos comensales de más tiene este plato. Un contador, no un campo de
+ * texto: el número realista es 1, 2 o 3, y sacar el teclado numérico del móvil
+ * para eso es un peaje. El campo sigue ahí para quien monte una mesa de doce.
+ *
+ * EDITA el total, no suma: arranca en los que ya hay y baja hasta cero, así
+ * que quitar invitados es el mismo gesto que ponerlos. Por eso el botón dice
+ * "Guardar" y no "Añadir" cuando ya había alguno.
+ */
+function GuestCountSheet({ inicial = 0, onConfirm, onClose }) {
+  const [n, setN] = useState(Math.max(0, inicial));
+  const paso = (d) => setN((v) => Math.max(0, Math.min(20, v + d)));
+  const redondo = {
+    width: 44, height: 44, borderRadius: 999, border: "1.5px solid #dbe7de",
+    background: "#fff", color: "#2d5a3d", fontSize: 22, fontWeight: 800,
+    display: "grid", placeItems: "center", cursor: "pointer",
+    transition: "transform .15s ease",
+  };
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 1250,
+        background: "rgba(9,18,12,.8)",
+        display: "grid", placeItems: "center", padding: 20,
+        animation: "deckFadeIn .16s ease both",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 22, padding: "22px 20px 18px",
+          width: "100%", maxWidth: 300, textAlign: "center",
+          boxShadow: "0 18px 48px rgba(9,18,12,.28)",
+        }}
+      >
+        <div style={{ fontSize: 15, fontWeight: 800, color: "#1f3326" }}>
+          {inicial > 0 ? "Comensales de más" : "¿Cuántos más?"}
+        </div>
+        <div style={{ fontSize: 12.5, color: "#6b7d70", marginTop: 4, lineHeight: 1.35 }}>
+          {n === 0 ? "Sin invitados en este plato" : "Se suman solo a este plato"}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, margin: "18px 0 20px" }}>
+          <button type="button" aria-label="Uno menos" onClick={() => paso(-1)} disabled={n <= 0}
+            style={{ ...redondo, opacity: n <= 0 ? 0.4 : 1 }}>−</button>
+          <input
+            type="number" inputMode="numeric" min={0} max={20} value={n}
+            aria-label="Comensales de más"
+            onChange={(e) => setN(Math.max(0, Math.min(20, Math.round(Number(e.target.value) || 0))))}
+            style={{
+              width: 68, textAlign: "center", fontSize: 30, fontWeight: 900,
+              color: "#2d5a3d", border: "none", outline: "none",
+              fontVariantNumeric: "tabular-nums", background: "transparent",
+            }}
+          />
+          <button type="button" aria-label="Uno más" onClick={() => paso(1)} disabled={n >= 20}
+            style={{ ...redondo, opacity: n >= 20 ? 0.4 : 1 }}>+</button>
+        </div>
+        <button
+          type="button"
+          onClick={() => { onConfirm(n); onClose(); }}
+          style={{
+            width: "100%", padding: "13px 0", borderRadius: 999, border: "none",
+            background: "#2d5a3d", color: "#fff", fontSize: 14.5, fontWeight: 800,
+            cursor: "pointer",
+          }}
+        >
+          {inicial > 0 ? "Guardar" : "Añadir"}
+        </button>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function DishActionBar({ anchor, actions, onClose }) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -4037,6 +4137,11 @@ export const MenuScreen = memo(function MenuScreen({
   onDishSwap,
   onDishDuplicate,
   onDishClear,
+  // Ausente = el control no se pinta (menus de solo lectura).
+  onSetGuests,
+  // Invitados por hueco, clave `"<grupoId>|<dia>|<comida>"`. Sale de las
+  // reglas (lib/reglas.js#invitadosPorHueco), no de un campo en el plan.
+  invitadosPorHueco = null,
   onSlotStructure,
   incomingDish = null,
   onDishPlace,
@@ -4124,6 +4229,11 @@ export const MenuScreen = memo(function MenuScreen({
     },
     [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly],
   );
+
+  // El hueco al que se le estan añadiendo comensales, o null. Vive aparte de
+  // `dishAction` porque la barra se cierra al elegir: el contador es el paso
+  // siguiente, no otra barra.
+  const [guestFor, setGuestFor] = useState(null);
 
   const handleTileLongPress = useCallback(
     (sel) => {
@@ -4820,6 +4930,7 @@ export const MenuScreen = memo(function MenuScreen({
               regenGroups={activeMenus}
               menuWeeks={monthWeeks}
               onPickMonthDay={handlePickMonthDay}
+              invitadosPorHueco={invitadosPorHueco}
             />
             </ArmedContext.Provider>
           </div>
@@ -4846,6 +4957,20 @@ export const MenuScreen = memo(function MenuScreen({
                 id: "dup", Icon: CopyPlus, label: "Duplicar",
                 onPick: () => { setArmed({ mode: "duplicate", source: dishAction }); setDishAction(null); },
               },
+              // "Uno mas": escribe una REGLA de invitado para ESTE hueco, no
+              // un numero. A partir de ahi el comensal se cuenta solo, la
+              // receta escala y la compra sube (ver handleAddGuest en
+              // App.jsx). Se queda fuera cuando el padre no lo pasa, que es
+              // como se apaga en los menus de solo lectura.
+              ...(onSetGuests ? [{
+                id: "guest", Icon: UserPlus,
+                // La etiqueta cambia porque la acción cambia: con invitados ya
+                // puestos, el contador sirve para bajarlos, y llamarlo
+                // "Añadir" sería mentir sobre lo que hay detrás.
+                label: (invitadosPorHueco?.[`${dishAction.groupId}|${dishAction.day}|${dishAction.meal}`] ?? 0) > 0
+                  ? "Comensales" : "Añadir comensal",
+                onPick: () => { setGuestFor(dishAction); setDishAction(null); },
+              }] : []),
               {
                 id: "clear", Icon: Trash2, label: "Quitar",
                 onPick: () => { onDishClear?.(dishAction); setDishAction(null); },
@@ -4860,6 +4985,14 @@ export const MenuScreen = memo(function MenuScreen({
                   })]
                 : []),
             ]}
+          />
+        )}
+
+        {guestFor && !readOnly && (
+          <GuestCountSheet
+            inicial={invitadosPorHueco?.[`${guestFor.groupId}|${guestFor.day}|${guestFor.meal}`] ?? 0}
+            onClose={() => setGuestFor(null)}
+            onConfirm={(n) => onSetGuests?.(guestFor, n)}
           />
         )}
 
@@ -5170,9 +5303,17 @@ export function DishDetail({
   onSlotFreezerChange = null,
   // Owner-only: patch classification (tipo / aplica) on a user-created recipe.
   onUpdateUserRecipe = null,
+  // Abrir el perfil de quien subió esta receta. Sin este callback el nombre y
+  // la cara siguen ahí, pero como texto: no se pinta un enlace que no lleva a
+  // ningún sitio.
+  onOpenPerson = null,
   readOnly = false,
 }) {
   const isFavorite = favoriteScope != null;
+  // Solo hay perfil que abrir si la receta es de ALGUIEN. Las del catálogo son
+  // de la casa ("HoMenu"), y ahí no hay perfil detrás.
+  const ownerId = recipe.owner?.id ?? recipe.owner?.userId ?? null;
+  const abrirPerfil = onOpenPerson && ownerId ? () => onOpenPerson(ownerId) : null;
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
   const [rejected, setRejected] = useState(null);
   // Demo only (autoDemo="reject"): visual "press" on "Sustituir plato" right
@@ -5930,6 +6071,7 @@ export function DishDetail({
           </button>
         )}
 
+
         <DishVisual
           recipe={recipe}
           height={220}
@@ -5946,22 +6088,55 @@ export function DishDetail({
                   top-left of the sheet. */}
               {(recipe.owner || recipe.rating || browse) && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {/* La cara abre el perfil igual que el nombre: son el mismo
+                      objetivo, y tocar el avatar de alguien es el gesto que la
+                      gente prueba primero. */}
                   {recipe.owner?.avatar ? (
                     <img
                       src={recipe.owner.avatar}
                       alt={recipe.owner.name ?? ""}
-                      style={{ width: 30, height: 30, borderRadius: 999, objectFit: "cover", flexShrink: 0 }}
+                      onClick={abrirPerfil ?? undefined}
+                      style={{
+                        width: 30, height: 30, borderRadius: 999, objectFit: "cover", flexShrink: 0,
+                        cursor: abrirPerfil ? "pointer" : "default",
+                      }}
                     />
                   ) : (
                     <MenuPlanBadge size={30} />
                   )}
-                  <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 800, color: recipe.owner ? "#2f6fb8" : "#2d5a3d" }}>
-                      {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
-                    </span>
+                  {/* Nombre y fecha en VERDE los dos, con la fecha más suave.
+                      El nombre iba en un azul (#2f6fb8) que no está en la
+                      paleta y que no significaba nada: no era un enlace, no
+                      era una categoría, era un color suelto en una ficha donde
+                      todo lo demás es verde. Y entre ese azul y el gris de la
+                      fecha, dos datos del mismo hecho —quién y cuándo— parecían
+                      de dos sitios distintos.
+
+                      Sin el "·" delante de la fecha: separaba dos cosas que ya
+                      están separadas por un espacio y por el peso del texto, y
+                      en una ficha con cuatro pastillas debajo era un punto más
+                      que leer. */}
+                  <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 7, flexWrap: "wrap" }}>
+                    {abrirPerfil ? (
+                      <button
+                        type="button"
+                        onClick={abrirPerfil}
+                        style={{
+                          border: "none", background: "none", padding: 0, cursor: "pointer",
+                          fontFamily: "inherit", fontSize: 13.5, fontWeight: 800, color: "#2d5a3d",
+                          textAlign: "left",
+                        }}
+                      >
+                        {recipe.owner.name ?? "Tú"}
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: 13.5, fontWeight: 800, color: "#2d5a3d" }}>
+                        {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
+                      </span>
+                    )}
                     {recipe.createdAt && (
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#9ab0a1" }}>
-                        · {formatRecipeDate(recipe.createdAt)}
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#7a9485" }}>
+                        {formatRecipeDate(recipe.createdAt)}
                       </span>
                     )}
                   </div>

@@ -9,6 +9,7 @@ Specs producidas por ingeniería inversa del código real (`src/`, `api/`, esque
 | [shopping-list.md](shopping-list.md) | Lista de la compra (vista derivada, sin tabla propia) |
 | [receipt-ocr.md](receipt-ocr.md) | OCR de tickets y fotos de despensa vía visión IA |
 | [recipe-catalog.md](recipe-catalog.md) | Catálogo de recetas, pasos enriquecidos, recetas de usuario |
+| [batch-cooking.md](batch-cooking.md) | Bases: cocinar una vez para varios platos (`type: "base"`, `mainBase`, `baseMode`) |
 | [pagos.md](pagos.md) | No existe — documentado como ausencia, con evidencia |
 
 ## Mapa de dependencias entre dominios

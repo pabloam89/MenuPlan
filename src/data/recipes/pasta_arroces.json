@@ -6,6 +6,9 @@
     "mainProtein": "none",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -27,31 +30,37 @@
     "ingredients": [
       {
         "name": "Macarrones",
+        "ingredientId": "macarrones",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 3,
         "unit": "g"
       }
@@ -178,6 +187,9 @@
     "mainProtein": "ternera",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -198,41 +210,49 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
         "amount": 40,
         "unit": "ml"
       }
@@ -407,21 +427,25 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       }
@@ -539,41 +563,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Costilla de cerdo",
+        "ingredientId": "costilla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Morcilla",
+        "ingredientId": "morcilla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       }
@@ -705,26 +737,31 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Panceta",
+        "ingredientId": "panceta",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -835,6 +872,9 @@
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "cena"
@@ -857,36 +897,43 @@
     "ingredients": [
       {
         "name": "Macarrones",
+        "ingredientId": "macarrones",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Atún en conserva",
+        "ingredientId": "atun-lata",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 2,
         "unit": "g"
       }
@@ -1013,6 +1060,9 @@
     "mainProtein": "pollo",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -1031,41 +1081,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Contramuslo de pollo",
+        "ingredientId": "contramuslos-de-pollo",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       }
@@ -1208,6 +1266,9 @@
     "mainProtein": "cerdo",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -1228,41 +1289,49 @@
     "ingredients": [
       {
         "name": "Fideos gruesos",
+        "ingredientId": "fideos",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Carne picada de cerdo",
+        "ingredientId": "carne-picada",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       }
@@ -1417,31 +1486,37 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Plátano macho",
+        "ingredientId": "platano-macho",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       }
@@ -1565,31 +1640,37 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       }
@@ -1705,41 +1786,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Judías verdes",
+        "ingredientId": "judia-verde",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       }
@@ -1873,36 +1962,43 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Gambas peladas",
+        "ingredientId": "gambas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 12,
         "unit": "g"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -2001,6 +2097,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -2023,41 +2122,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Sepia",
+        "ingredientId": "sepia",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tinta de calamar",
+        "ingredientId": "tinta-de-calamar",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 400,
         "unit": "ml"
       }
@@ -2179,6 +2286,9 @@
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "cena"
@@ -2202,41 +2312,49 @@
     "ingredients": [
       {
         "name": "Macarrones",
+        "ingredientId": "macarrones",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Salmón",
+        "ingredientId": "salmon",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Nata",
+        "ingredientId": "nata",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -2377,36 +2495,43 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Salsa de soja",
+        "ingredientId": "salsa-soja",
         "amount": 15,
         "unit": "ml"
       }
@@ -2551,36 +2676,43 @@
     "ingredients": [
       {
         "name": "Tallarines",
+        "ingredientId": "tallarines",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Salsa de soja",
+        "ingredientId": "salsa-soja",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -2699,6 +2831,9 @@
     "mainProtein": "ternera",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -2722,36 +2857,43 @@
     "ingredients": [
       {
         "name": "Placas de lasaña",
+        "ingredientId": "lasana",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Bechamel",
+        "ingredientId": "bechamel",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -2923,6 +3065,9 @@
     "mainProtein": "ternera",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -2945,41 +3090,49 @@
     "ingredients": [
       {
         "name": "Placas de cannelones",
+        "ingredientId": "placas-de-cannelones",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Bechamel",
+        "ingredientId": "bechamel",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 2,
         "unit": "g"
       }
@@ -3208,41 +3361,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Gambas",
+        "ingredientId": "gambas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Almejas",
+        "ingredientId": "almejas",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Sepia",
+        "ingredientId": "sepia",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 500,
         "unit": "ml"
       }
@@ -3361,36 +3522,43 @@
     "ingredients": [
       {
         "name": "Penne",
+        "ingredientId": "penne",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Berenjena",
+        "ingredientId": "berenjena",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Albahaca",
+        "ingredientId": "albahaca",
         "amount": 5,
         "unit": "g"
       }
@@ -3514,41 +3682,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Rape",
+        "ingredientId": "monkfish",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Gambas",
+        "ingredientId": "gambas",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 400,
         "unit": "ml"
       }
@@ -3591,87 +3767,104 @@
       {
         "text": "Pelar {{Gambas}}, reservar las colas y apartar las cabezas para el caldo.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Limpiar {{Rape}} y cortar en dados de unos 3 cm; reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Ajo}} muy fino; reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Verter {{Caldo de pescado}} en un cazo, añadir las cabezas de las gambas reservadas y llevar a ebullición a fuego fuerte.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer el caldo a fuego medio durante 5 min, colar y mantener caliente a fuego suave.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una paella o cazuela amplia a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír el ajo picado hasta que esté dorado, sin que se queme.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que pierda el agua y se concentre, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Pimentón|pizca}} y remover 20 segundos fuera del fuego para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar {{Arroz}} y sofreír removiendo a fuego medio durante 1 min hasta que los granos estén nacarados.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Verter el caldo caliente colado en proporción 2,2:1 sobre el arroz y remover una sola vez para igualar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego fuerte los primeros 5 min sin tapar y sin remover.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Bajar a fuego suave y cocer 13 min más hasta que el arroz absorba todo el caldo.",
         "minutes": 13,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar una {{@Plancha}} a fuego fuerte y marcar los dados de rape 1 min por cada lado hasta que estén dorados.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Marcar las colas de gambas en la misma {{@Plancha}} a fuego fuerte durante 1 min hasta que estén rosadas.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar el arroz del fuego y dejar reposar tapado 2 min.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Servir el arroz en un plato y el rape y las gambas marcadas aparte, al estilo tradicional.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -3712,26 +3905,31 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -3839,41 +4037,49 @@
     "ingredients": [
       {
         "name": "Fideos n°2",
+        "ingredientId": "fideo-mediano",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Contramuslo de pollo",
+        "ingredientId": "contramuslos-de-pollo",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Caldo de pollo",
+        "ingredientId": "caldo-de-pollo",
         "amount": 400,
         "unit": "ml"
       }
@@ -4042,36 +4248,43 @@
     "ingredients": [
       {
         "name": "Fusilli",
+        "ingredientId": "fusilli",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Mozzarella fresca",
+        "ingredientId": "mozzarella",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Rúcula",
+        "ingredientId": "rucula",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceitunas negras",
+        "ingredientId": "aceitunas-negras",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Pesto",
+        "ingredientId": "pesto",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -4152,6 +4365,9 @@
     "mainProtein": "none",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -4174,36 +4390,43 @@
     "ingredients": [
       {
         "name": "Arroz arborio",
+        "ingredientId": "arroz-arborio",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 500,
         "unit": "ml"
       }
@@ -4346,36 +4569,43 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Tomates cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 20,
         "unit": "g"
       }
@@ -4511,36 +4741,43 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Yema de huevo",
+        "ingredientId": "yema-de-huevo",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Bacon en taquitos",
+        "ingredientId": "bacon",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -4668,31 +4905,37 @@
     "ingredients": [
       {
         "name": "Fusilli",
+        "ingredientId": "fusilli",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Pesto de albahaca",
+        "ingredientId": "pesto",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomates cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -4800,36 +5043,43 @@
     "ingredients": [
       {
         "name": "Macarrones",
+        "ingredientId": "macarrones",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Atún en conserva",
+        "ingredientId": "atun-lata",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Aceitunas negras",
+        "ingredientId": "aceitunas-negras",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -4930,6 +5180,9 @@
     "mainProtein": "none",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -4957,51 +5210,61 @@
     "ingredients": [
       {
         "name": "Arroz arborio",
+        "ingredientId": "arroz-arborio",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Setas variadas",
+        "ingredientId": "setas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 700,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Trufa negra",
+        "ingredientId": "trufa-negra",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -5130,6 +5393,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -5154,56 +5420,67 @@
     "ingredients": [
       {
         "name": "Arroz bomba",
+        "ingredientId": "arroz-bomba",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Calamar",
+        "ingredientId": "calamar",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tinta de calamar",
+        "ingredientId": "tinta-de-calamar",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 450,
         "unit": "ml"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Alioli",
+        "ingredientId": "alioli",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -5313,6 +5590,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -5337,61 +5617,73 @@
     "ingredients": [
       {
         "name": "Arroz bomba",
+        "ingredientId": "arroz-bomba",
         "amount": 320,
         "unit": "g"
       },
       {
         "name": "Gambas",
+        "ingredientId": "gambas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Mejillones",
+        "ingredientId": "mejillones",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Calamar",
+        "ingredientId": "calamar",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 900,
         "unit": "ml"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Azafrán",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 5,
         "unit": "g"
       }
@@ -5543,6 +5835,9 @@
     "mainProtein": "marisco",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -5569,56 +5864,67 @@
     "ingredients": [
       {
         "name": "Fideos huecos nº 2",
+        "ingredientId": "fideos",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Calamar",
+        "ingredientId": "calamar",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Gambas",
+        "ingredientId": "gambas",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tinta de calamar",
+        "ingredientId": "tinta-de-calamar",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 500,
         "unit": "ml"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Alioli",
+        "ingredientId": "alioli",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -5740,6 +6046,9 @@
     "mainProtein": "ternera",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -5762,56 +6071,67 @@
     "ingredients": [
       {
         "name": "Rabo de toro troceado",
+        "ingredientId": "rabo-de-toro",
         "amount": 800,
         "unit": "g"
       },
       {
         "name": "Arroz bomba",
+        "ingredientId": "arroz-bomba",
         "amount": 320,
         "unit": "g"
       },
       {
         "name": "Caldo de carne",
+        "ingredientId": "caldo-de-carne",
         "amount": 900,
         "unit": "ml"
       },
       {
         "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 5,
         "unit": "g"
       }
@@ -5972,41 +6292,49 @@
     "ingredients": [
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Boletus secos",
+        "ingredientId": "boletus",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Ricotta",
+        "ingredientId": "ricotta",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salvia fresca",
+        "ingredientId": "salvia",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -6075,107 +6403,127 @@
       {
         "text": "Hidratar {{Boletus secos}} en agua templada hasta que estén rehidratados.",
         "minutes": 20,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Tamizar {{Harina de trigo}} sobre la encimera y hacer un volcán en el centro.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cascar {{Huevo}} en el centro del volcán de harina.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar los huevos con la harina desde el centro hacia fuera hasta integrar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Amasar la masa con fuerza hasta que esté lisa y elástica.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Envolver la masa en film transparente y dejar reposar a temperatura ambiente.",
         "minutes": 30,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Escurrir los boletus rehidratados reservando el agua de remojo, y picar fino.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Rallar {{Queso parmesano}} finamente.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Mezclar los boletus picados con {{Ricotta}} y el parmesano rallado en un bol.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Añadir {{Sal|gusto}} al relleno y remover hasta obtener una mezcla homogénea.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Dividir la masa reposada en 2 porciones y estirar cada una con rodillo hasta dejarla muy fina.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar montoncitos de relleno sobre una lámina, separados unos 4 cm entre sí.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cubrir con la segunda lámina de masa y presionar alrededor de cada montoncito para sellar sin dejar aire.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cortar los ravioli con un cortapastas o cuchillo, dejando borde sellado en cada pieza.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cocer los ravioli hasta que suban a la superficie y estén tiernos.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Mantequilla}} en {{@Sartén}} a fuego medio hasta que empiece a dorarse ligeramente.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 15
+        "during": 15,
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Salvia fresca}} a la mantequilla dorada y freír hasta que esté crujiente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Escurrir los ravioli con cuidado y pasarlos a la sartén con la mantequilla de salvia.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir los ravioli con la mantequilla de salvia por encima y láminas de parmesano.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -6192,6 +6540,9 @@
     "mainProtein": "ternera",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -6217,56 +6568,67 @@
     "ingredients": [
       {
         "name": "Carne de jabalí picada",
+        "ingredientId": "carne-de-jabali-picada",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Tagliatelle",
+        "ingredientId": "tallarines",
         "amount": 320,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Apio",
+        "ingredientId": "apio",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -6322,89 +6684,106 @@
       {
         "text": "Picar {{Cebolla}} muy fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Zanahoria}} muy fina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Apio}} muy fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Sofreír la cebolla picada, la zanahoria picada, el apio picado y el ajo picado hasta que estén blandos.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Carne de jabalí picada}} y dorar hasta que no quede rosada, deshaciendo los grumos.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter {{Vino tinto}} y llevar a fuego fuerte hasta que se evapore el alcohol.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Tomate triturado}} y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar con {{Sal|gusto}} y remover.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Tapar parcialmente y cocer a fuego muy suave hasta obtener un ragú denso y oscuro, removiendo de vez en cuando.",
         "minutes": 120,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal cuando falten 15 min para que el ragú esté listo.",
         "minutes": 8,
         "kind": "paralelo",
-        "during": 10
+        "during": 10,
+        "part": "principal"
       },
       {
         "text": "Rallar {{Queso parmesano}} y reservar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 10
+        "during": 10,
+        "part": "guarnicion"
       },
       {
         "text": "Cocer {{Tagliatelle}} en el agua hirviendo según el tiempo del envase hasta que estén al dente.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir la pasta reservando un vaso del agua de cocción.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar los tagliatelle escurridos con el ragú, añadiendo agua de cocción si hace falta para ligar la salsa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir con el parmesano rallado por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -6419,6 +6798,9 @@
     "mainProtein": "none",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -6445,46 +6827,55 @@
     "ingredients": [
       {
         "name": "Arroz arborio",
+        "ingredientId": "arroz-arborio",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 700,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -6637,36 +7028,43 @@
     "ingredients": [
       {
         "name": "Orecchiette",
+        "ingredientId": "orecchiette",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Anchoas en aceite",
+        "ingredientId": "anchoa-en-aceite",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -6775,6 +7173,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -6798,51 +7199,61 @@
     "ingredients": [
       {
         "name": "Bogavante",
+        "ingredientId": "bogavante",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Arroz bomba",
+        "ingredientId": "arroz-bomba",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 800,
         "unit": "ml"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -6946,6 +7357,9 @@
     "mainProtein": "ternera",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -6971,71 +7385,85 @@
     "ingredients": [
       {
         "name": "Rabo de toro troceado",
+        "ingredientId": "rabo-de-toro",
         "amount": 800,
         "unit": "g"
       },
       {
         "name": "Placas de canelones",
+        "ingredientId": "canelones",
         "amount": 16,
         "unit": "ud"
       },
       {
         "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Caldo de carne",
+        "ingredientId": "caldo-de-carne",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 600,
         "unit": "ml"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 5,
         "unit": "g"
       }
@@ -7111,92 +7539,110 @@
       {
         "text": "Pelar y picar {{Cebolla}}, {{Zanahoria}}, {{Puerro}} y {{Ajo}} en trozos finos.",
         "minutes": 8,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar {{Rabo de toro troceado}} por todas sus caras con {{Sal|gusto}}.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego fuerte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dorar el rabo de toro en la olla por todas sus caras hasta que esté bien sellado.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el rabo de toro de la olla y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla picada, la zanahoria picada, el puerro picado y el ajo picado en la misma olla a fuego medio.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Devolver el rabo de toro a la olla y añadir {{Vino tinto}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dejar reducir el vino tinto a fuego medio hasta que se evapore el alcohol.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Caldo de carne}}, tapar la olla y cocer a fuego suave hasta que la carne se despegue del hueso.",
         "minutes": 180,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar el rabo de toro de la olla y dejar templar hasta que esté manejable.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Colar la salsa de cocción y reservarla.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Desmigar la carne del rabo de toro descartando huesos y grasa.",
         "minutes": 8,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar la carne desmigada con parte de la salsa colada hasta obtener un relleno jugoso.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición abundante agua con sal en una olla grande.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer {{Placas de canelones}} en el agua hirviendo el tiempo indicado en el envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las placas de canelones y extenderlas sobre un paño limpio sin que se peguen.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir el relleno de carne sobre cada placa y enrollar formando los canelones.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
@@ -7225,13 +7671,14 @@
       {
         "text": "Rallar {{Queso parmesano}}.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Colocar los canelones en una fuente de horno en una sola capa.",
         "minutes": 2,
         "kind": "activo",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Cubrir los canelones con la bechamel y espolvorear el queso parmesano rallado por encima.",
@@ -7290,41 +7737,49 @@
     "ingredients": [
       {
         "name": "Linguine",
+        "ingredientId": "linguine",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Almejas",
+        "ingredientId": "almejas",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 12,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 35,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -7446,6 +7901,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -7471,51 +7929,61 @@
     "ingredients": [
       {
         "name": "Arroz arborio",
+        "ingredientId": "arroz-arborio",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Calamar",
+        "ingredientId": "calamar",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Tinta de calamar",
+        "ingredientId": "tinta-de-calamar",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 700,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -7672,61 +8140,73 @@
     "ingredients": [
       {
         "name": "Arroz bomba",
+        "ingredientId": "arroz-bomba",
         "amount": 320,
         "unit": "g"
       },
       {
         "name": "Muslo de pollo deshuesado",
+        "ingredientId": "muslo-de-pollo",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Costillas de cerdo",
+        "ingredientId": "costilla",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Butifarra",
+        "ingredientId": "butifarra",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Caldo de pollo",
+        "ingredientId": "caldo-de-pollo",
         "amount": 750,
         "unit": "ml"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Azafrán",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 5,
         "unit": "g"
       }
@@ -7868,6 +8348,9 @@
     "mainProtein": "pollo",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -7893,51 +8376,61 @@
     "ingredients": [
       {
         "name": "Muslos de pato",
+        "ingredientId": "pato",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Pappardelle",
+        "ingredientId": "tallarines",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Apio",
+        "ingredientId": "apio",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -8127,31 +8620,37 @@
     "ingredients": [
       {
         "name": "Macarrones",
+        "ingredientId": "macarrones",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salvia fresca",
+        "ingredientId": "salvia",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -8276,21 +8775,25 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Queso pecorino",
+        "ingredientId": "parmesano",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimienta negra en grano",
+        "ingredientId": "pimienta",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -8414,36 +8917,43 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Guanciale",
+        "ingredientId": "guanciale",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Yema de huevo",
+        "ingredientId": "yema-de-huevo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Queso pecorino",
+        "ingredientId": "parmesano",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -8589,36 +9099,43 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -8760,41 +9277,49 @@
     "ingredients": [
       {
         "name": "Rigatoni",
+        "ingredientId": "rigatoni",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Berenjena",
+        "ingredientId": "berenjena",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Ricotta salada",
+        "ingredientId": "ricotta",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -8830,118 +9355,99 @@
       {
         "text": "Cortar {{Berenjena}} en dados de 2 cm.",
         "minutes": 3,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Salar los dados de berenjena con {{Sal|gusto}} y extenderlos sobre un colador.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Reposar la berenjena salada 15 min para que suelte el amargor.",
         "minutes": 15,
-        "kind": "espera",
-        "part": "principal"
+        "kind": "espera"
       },
       {
         "text": "Laminar {{Ajo}}.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "salsa",
         "during": 2
       },
       {
         "text": "Rallar {{Ricotta salada}} y reservar.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
         "during": 2
       },
       {
         "text": "Secar los dados de berenjena con papel de cocina para eliminar la humedad.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Calentar la mitad de {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Freír la berenjena por tandas hasta que esté dorada y tierna, sin amontonar la sartén.",
         "minutes": 10,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Retirar la berenjena frita y reservar sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal.",
         "minutes": 5,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Cocer {{Rigatoni}} en el agua hirviendo hasta que estén al dente, siguiendo el tiempo del envase.",
         "minutes": 11,
-        "kind": "pasivo",
-        "part": "principal"
+        "kind": "pasivo"
       },
       {
         "text": "Bajar el fuego a suave en la misma sartén y añadir el resto del aceite de oliva.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Sofreír el ajo laminado a fuego suave hasta que empiece a dorarse, sin que se queme.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego suave hasta que la salsa espese.",
         "minutes": 15,
-        "kind": "pasivo",
-        "part": "salsa"
+        "kind": "pasivo"
       },
       {
         "text": "Escurrir los rigatoni reservando un vaso del agua de cocción.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Incorporar la berenjena reservada a la salsa de tomate y mezclar con cuidado.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Añadir los rigatoni escurridos a la sartén y saltear con la salsa a fuego medio.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Añadir un poco del agua de cocción reservada si la salsa queda demasiado espesa.",
         "minutes": 1,
-        "kind": "opcional",
-        "part": "combinado"
+        "kind": "opcional"
       },
       {
         "text": "Servir en platos hondos con la ricotta salada rallada y {{Albahaca fresca}} por encima.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "estrella": true,
@@ -8979,31 +9485,37 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Guindilla seca",
+        "ingredientId": "guindilla",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -9127,41 +9639,49 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salvia fresca",
+        "ingredientId": "salvia",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Parmesano",
+        "ingredientId": "parmesano",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       }
@@ -9328,41 +9848,49 @@
     "ingredients": [
       {
         "name": "Ricotta",
+        "ingredientId": "ricotta",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Parmesano",
+        "ingredientId": "parmesano",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -9520,41 +10048,49 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Almejas",
+        "ingredientId": "almejas",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -9703,26 +10239,31 @@
     "ingredients": [
       {
         "name": "Tortellini frescos rellenos de carne",
+        "ingredientId": "ravioli",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Caldo de carne",
+        "ingredientId": "caldo-de-carne",
         "amount": 800,
         "unit": "ml"
       },
       {
         "name": "Parmesano",
+        "ingredientId": "parmesano",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -9823,36 +10364,43 @@
     "ingredients": [
       {
         "name": "Macarrones",
+        "ingredientId": "macarrones",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 800,
         "unit": "ml"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 5,
         "unit": "g"
       }
@@ -9999,6 +10547,9 @@
     "mainProtein": "none",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -10023,61 +10574,73 @@
     "ingredients": [
       {
         "name": "Láminas de lasaña",
+        "ingredientId": "lasana",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Berenjena",
+        "ingredientId": "berenjena",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 700,
         "unit": "ml"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 5,
         "unit": "g"
       }
@@ -10179,116 +10742,97 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir el calabacín, la berenjena y el pimiento en dados y sofreír a fuego medio hasta que estén tiernos.",
         "minutes": 12,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que se integre con las verduras.",
         "minutes": 5,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Salpimentar el sofrito con {{Sal|gusto}}, remover y reservar fuera del fuego.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego suave hasta que esté líquida.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Harina de trigo}} de golpe y remover sin parar hasta que forme una pasta dorada.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover a fuego suave.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Cocer la bechamel a fuego suave, removiendo sin parar, hasta que espese y no haya grumos.",
         "minutes": 6,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Hidratar {{Láminas de lasaña}} en agua caliente según las instrucciones del envase, si no son precocidas.",
         "minutes": 5,
-        "kind": "opcional",
-        "part": "principal"
+        "kind": "opcional"
       },
       {
         "text": "Extender una capa fina de bechamel en el fondo de una fuente de horno.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Colocar una capa de láminas de lasaña sobre la bechamel del fondo.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Repartir una parte del sofrito de verduras sobre las láminas.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Cubrir el sofrito con una capa de bechamel.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Repetir las capas de láminas, sofrito y bechamel hasta agotar los ingredientes, terminando con bechamel.",
         "minutes": 3,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Repartir {{Queso rallado}} de forma uniforme sobre la última capa de bechamel.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Hornear a 200 °C durante 25 min hasta que la superficie esté dorada.",
         "minutes": 25,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Reposar la lasaña dentro del horno apagado antes de cortar.",
         "minutes": 5,
-        "kind": "espera",
-        "part": "combinado"
+        "kind": "espera"
       },
       {
         "text": "Cortar en porciones y servir directamente desde la fuente.",
         "minutes": 2,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "estrella": true,
@@ -10307,6 +10851,9 @@
     "mainProtein": "none",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -10332,56 +10879,67 @@
     "ingredients": [
       {
         "name": "Placas de canelones",
+        "ingredientId": "canelones",
         "amount": 16,
         "unit": "ud"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 600,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 700,
         "unit": "ml"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -10511,92 +11069,77 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Harina de trigo}} de golpe y remover sin parar hasta que se forme una pasta dorada.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover hasta que no haya grumos.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Cocer la bechamel a fuego suave, removiendo, hasta que espese y tenga cuerpo.",
         "minutes": 6,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} y {{Sal|gusto}}; remover y retirar del fuego.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Mezclar las espinacas picadas y los piñones tostados con un tercio de la bechamel en un bol.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Distribuir el relleno de espinacas sobre cada placa de canelón.",
         "minutes": 3,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Enrollar cada placa sobre el relleno para formar los canelones.",
         "minutes": 3,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Colocar los canelones en una fuente de horno en una sola capa.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Cubrir los canelones con el resto de la bechamel de forma uniforme.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Repartir {{Queso rallado}} por encima de la bechamel.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Hornear a 200 °C durante 20 min hasta que la superficie esté dorada y gratinada.",
         "minutes": 20,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Reposar la fuente fuera del horno 5 min antes de servir.",
         "minutes": 5,
-        "kind": "espera",
-        "part": "combinado"
+        "kind": "espera"
       },
       {
         "text": "Servir los canelones racionados directamente desde la fuente.",
         "minutes": 2,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "estrella": true,
@@ -10616,6 +11159,9 @@
     "mainProtein": "pollo",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -10640,51 +11186,61 @@
     "ingredients": [
       {
         "name": "Placas de canelones",
+        "ingredientId": "canelones",
         "amount": 16,
         "unit": "ud"
       },
       {
         "name": "Pechuga de pollo asada",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 700,
         "unit": "ml"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -10898,6 +11454,9 @@
     "mainProtein": "ternera",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -10924,66 +11483,79 @@
     "ingredients": [
       {
         "name": "Láminas de lasaña",
+        "ingredientId": "lasana",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 600,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Apio",
+        "ingredientId": "apio",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 700,
         "unit": "ml"
       },
       {
         "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 800,
         "unit": "ml"
       },
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 6,
         "unit": "g"
       }
@@ -11101,26 +11673,22 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Harina de trigo}} y remover sin parar hasta que la mezcla esté tostada y homogénea.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco sin dejar de remover, a fuego medio, hasta que la bechamel espese.",
         "minutes": 8,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Salpimentar la bechamel y reservar fuera del fuego.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "salsa"
+        "kind": "prep"
       },
       {
         "text": "Hidratar {{Láminas de lasaña}} según las instrucciones del envase si no son precocidas.",
@@ -11130,50 +11698,42 @@
       {
         "text": "Extender una capa fina de bechamel en el fondo de una fuente de horno.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Colocar una capa de láminas de lasaña sobre la bechamel.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Repartir una capa de boloñesa sobre las láminas y cubrir con un poco de bechamel.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Repetir las capas de láminas, boloñesa y bechamel hasta agotar los ingredientes, terminando con bechamel.",
         "minutes": 4,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Repartir {{Queso rallado}} uniformemente sobre la última capa de bechamel.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Hornear a 200 °C hasta que la superficie esté dorada.",
         "minutes": 30,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Reposar la lasaña fuera del horno antes de cortar.",
         "minutes": 10,
-        "kind": "espera",
-        "part": "combinado"
+        "kind": "espera"
       },
       {
         "text": "Cortar en porciones y servir.",
         "minutes": 2,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "estrella": true,
@@ -11214,36 +11774,43 @@
     "ingredients": [
       {
         "name": "Fusilli",
+        "ingredientId": "fusilli",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Mozzarella",
+        "ingredientId": "mozzarella",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Vinagre balsámico",
+        "ingredientId": "vinagre-balsamico",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -11358,46 +11925,55 @@
     "ingredients": [
       {
         "name": "Fusilli",
+        "ingredientId": "fusilli",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Atún en conserva",
+        "ingredientId": "atun-lata",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Aceitunas negras",
+        "ingredientId": "aceitunas-negras",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -11508,46 +12084,55 @@
     "ingredients": [
       {
         "name": "Trofie",
+        "ingredientId": "trofie",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Judía verde",
+        "ingredientId": "judia-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Parmesano",
+        "ingredientId": "parmesano",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -11576,62 +12161,74 @@
       {
         "text": "Pelar {{Patata}} y cortar en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Limpiar {{Judía verde}} y cortar en trozos de unos 3 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Ajo}} al vaso de la batidora junto con {{Albahaca fresca}}, {{Piñones}}, {{Parmesano}} y {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Triturar hasta obtener un pesto homogéneo.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir la patata y la judía verde al agua hirviendo y cocer 8 min.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Trofie}} al agua con la patata y la judía verde y cocer el tiempo indicado en el envase.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Reservar un cazo del agua de cocción antes de escurrir la pasta y las verduras.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir la pasta junto con la patata y la judía verde.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol amplio la pasta, la patata y la judía verde con el pesto hasta cubrir bien.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Añadir agua de cocción a cucharadas si el pesto ha quedado demasiado espeso, hasta conseguir la textura deseada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir templado con parmesano rallado por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -11650,6 +12247,9 @@
     "mainProtein": "cerdo",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -11672,46 +12272,55 @@
     "ingredients": [
       {
         "name": "Rigatoni",
+        "ingredientId": "rigatoni",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Salchicha fresca italiana",
+        "ingredientId": "salchicha",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -11844,36 +12453,43 @@
     "ingredients": [
       {
         "name": "Penne",
+        "ingredientId": "penne",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -11980,6 +12596,9 @@
     "mainProtein": "none",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -12004,41 +12623,49 @@
     "ingredients": [
       {
         "name": "Tagliatelle",
+        "ingredientId": "tallarines",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Boletus",
+        "ingredientId": "boletus",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -12159,6 +12786,9 @@
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -12182,41 +12812,49 @@
     "ingredients": [
       {
         "name": "Farfalle",
+        "ingredientId": "farfalle",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Salmón fresco",
+        "ingredientId": "salmon-fresco",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Eneldo fresco",
+        "ingredientId": "eneldo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -12345,36 +12983,43 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Gambas peladas",
+        "ingredientId": "gambas",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 12,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -12492,41 +13137,49 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Almejas",
+        "ingredientId": "almejas",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 12,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -12667,46 +13320,55 @@
     "ingredients": [
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Ricotta",
+        "ingredientId": "ricotta",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Parmesano",
+        "ingredientId": "parmesano",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salvia fresca",
+        "ingredientId": "salvia",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -12776,108 +13438,129 @@
       {
         "text": "Mezclar {{Harina de trigo}} con 2 unidades de {{Huevo}} en un bol hasta integrar.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Amasar la mezcla sobre la superficie de trabajo hasta obtener una masa lisa y elástica.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Envolver la masa en film y dejar reposar a temperatura ambiente.",
         "minutes": 30,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición una olla con agua y {{Sal|gusto}} a fuego fuerte.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Escaldar {{Espinacas frescas}} en el agua hirviendo durante 1 min.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las espinacas y presionar bien con las manos para eliminar el exceso de agua.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar las espinacas escurridas fino sobre la tabla.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Parmesano}} fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol {{Ricotta}}, las espinacas picadas, el parmesano rallado, 1 unidad de {{Huevo}} y {{Nuez moscada|pizca}}.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar el relleno con {{Sal|gusto}} y remover hasta obtener una mezcla homogénea.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Dividir la masa reposada en 2 partes y estirar cada una con rodillo hasta obtener láminas finas.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir montoncitos de relleno sobre una lámina dejando 3 cm entre cada uno.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cubrir con la segunda lámina de masa y presionar alrededor de cada montón de relleno para sellar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cortar los ravioli con un cortapastas y reservar sobre una superficie enharinada.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal a fuego fuerte.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer los ravioli en el agua hirviendo por tandas hasta que floten, unos 3 min por tanda.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los ravioli con una espumadera y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Mantequilla}} en {{@Sartén}} a fuego medio hasta que tome color avellana.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Salvia fresca}} a la mantequilla y dorar las hojas 1 min hasta que estén crujientes.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir los ravioli reservados a la sartén y saltear con cuidado 1 min para que se impregnen.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir los ravioli en plato y acabar con parmesano rallado por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -12922,41 +13605,49 @@
     "ingredients": [
       {
         "name": "Harina de trigo",
+        "ingredientId": "harina",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Parmesano",
+        "ingredientId": "parmesano",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salvia fresca",
+        "ingredientId": "salvia",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -13027,112 +13718,134 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Calabaza}} en trozos de tamaño similar.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar los trozos de calabaza en una bandeja y hornear a 200 °C hasta que estén tiernos.",
         "minutes": 35,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Disponer {{Harina de trigo}} en forma de volcán sobre la superficie de trabajo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cascar 2 {{Huevo}} en el centro del volcán de harina.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar los huevos con la harina desde el centro hacia fuera hasta integrar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Amasar la masa sobre la superficie hasta que esté lisa y elástica.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Envolver la masa en film transparente y dejar reposar.",
         "minutes": 30,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Retirar la calabaza del horno cuando esté tierna y dejar templar.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Parmesano}} finamente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar la calabaza templada con el parmesano rallado, 1 huevo, {{Nuez moscada|pizca}} y {{Sal|gusto}} hasta obtener un puré espeso.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dividir la masa en 2 porciones y estirar cada una con el rodillo hasta obtener láminas finas.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir montoncitos de relleno sobre una lámina, dejando espacio entre ellos.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cubrir con la segunda lámina y presionar alrededor de cada montón de relleno para sellar bien.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cortar los ravioli con un cortapastas o cuchillo y reservar en una superficie enharinada.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cocer los ravioli por tandas cuando el agua rompa a hervir, hasta que floten.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los ravioli con espumadera y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Mantequilla}} en {{@Sartén}} a fuego medio hasta que tome color avellana.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Salvia fresca}} a la mantequilla y dorar las hojas hasta que estén crujientes.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir los ravioli reservados a la sartén y saltear con cuidado hasta que se impregnen.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir los ravioli con parmesano rallado por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -13176,31 +13889,37 @@
     "ingredients": [
       {
         "name": "Fettuccine",
+        "ingredientId": "fettuccine",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Parmesano",
+        "ingredientId": "parmesano",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimienta negra",
+        "ingredientId": "pimienta",
         "amount": 1,
         "unit": "g"
       }
@@ -13321,31 +14040,37 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Anchoas en aceite",
+        "ingredientId": "anchoa-en-aceite",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 20,
         "unit": "g"
       }
@@ -13468,6 +14193,9 @@
     "mainProtein": "pollo",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -13486,51 +14214,61 @@
     "ingredients": [
       {
         "name": "Arroz basmati",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Leche de coco",
+        "ingredientId": "leche-coco",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Jengibre",
+        "ingredientId": "jengibre",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Curry en polvo",
+        "ingredientId": "curry",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Caldo de pollo",
+        "ingredientId": "caldo-de-pollo",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 5,
         "unit": "g"
       }
@@ -13648,6 +14386,9 @@
     "mainProtein": "none",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -13670,46 +14411,55 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Setas variadas",
+        "ingredientId": "setas",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 600,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -13864,51 +14614,61 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Costillas de cerdo troceadas",
+        "ingredientId": "costilla",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Judías verdes",
+        "ingredientId": "judia-verde",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Caldo de carne",
+        "ingredientId": "caldo-de-carne",
         "amount": 500,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       }
@@ -14026,6 +14786,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -14049,51 +14812,61 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Gambas",
+        "ingredientId": "gambas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Mejillones",
+        "ingredientId": "mejillones",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Rape",
+        "ingredientId": "monkfish",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 550,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       }
@@ -14197,7 +14970,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_077",
@@ -14228,61 +15002,73 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Muslos de pollo deshuesados",
+        "ingredientId": "muslo-de-pollo",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Gambas",
+        "ingredientId": "gambas",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Mejillones",
+        "ingredientId": "mejillones",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Judía verde plana",
+        "ingredientId": "judia-verde",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate rallado",
+        "ingredientId": "tomate",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Azafrán",
+        "ingredientId": "azafran",
         "amount": 0.3,
         "unit": "g"
       },
       {
         "name": "Caldo de pollo y marisco",
+        "ingredientId": "caldo-de-marisco",
         "amount": 500,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       }
@@ -14429,7 +15215,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "occasion": "especial"
   },
   {
     "id": "pasta_arroces_078",
@@ -14457,51 +15244,61 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Costillas de cerdo",
+        "ingredientId": "costilla",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cabeza de ajos",
+        "ingredientId": "ajo",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Caldo de carne",
+        "ingredientId": "caldo-de-carne",
         "amount": 450,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Azafrán",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       }
@@ -14621,6 +15418,9 @@
     "mainProtein": "none",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -14644,36 +15444,43 @@
     "ingredients": [
       {
         "name": "Arroz arborio",
+        "ingredientId": "arroz-arborio",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Espárragos verdes",
+        "ingredientId": "esparragos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 500,
         "unit": "ml"
       }
@@ -14798,6 +15605,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -14823,41 +15633,49 @@
     "ingredients": [
       {
         "name": "Arroz arborio",
+        "ingredientId": "arroz-arborio",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Gambas peladas",
+        "ingredientId": "gambas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 500,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -14929,14 +15747,12 @@
       {
         "text": "Salpimentar {{Gambas peladas}} cuando falten 5 min para que el arroz esté al dente.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego fuerte y saltear las gambas 1 min por cada lado hasta que estén rosadas; reservar.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Retirar la olla del fuego cuando el arroz esté al dente y cremoso.",
@@ -14998,36 +15814,43 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Salsa de soja",
+        "ingredientId": "salsa-soja",
         "amount": 15,
         "unit": "ml"
       }
@@ -15145,6 +15968,9 @@
     "mainProtein": "pollo",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -15165,51 +15991,61 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Muslos de pato",
+        "ingredientId": "pato",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Caldo de carne",
+        "ingredientId": "caldo-de-carne",
         "amount": 500,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Tomillo",
+        "ingredientId": "tomillo",
         "amount": 2,
         "unit": "g"
       }
@@ -15349,6 +16185,9 @@
     "mainProtein": "cerdo",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -15369,46 +16208,55 @@
     "ingredients": [
       {
         "name": "Fideos gordos",
+        "ingredientId": "fideos",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Costillas de cerdo troceadas",
+        "ingredientId": "costilla",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Caldo de carne",
+        "ingredientId": "caldo-de-carne",
         "amount": 500,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       }
@@ -15573,36 +16421,43 @@
     "ingredients": [
       {
         "name": "Fusilli",
+        "ingredientId": "fusilli",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomates secos en aceite",
+        "ingredientId": "tomate-seco",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 10,
         "unit": "g"
       }
@@ -15630,57 +16485,68 @@
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Tostar {{Piñones}} en {{@Sartén}} sin aceite a fuego suave hasta que estén ligeramente dorados.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Retirar los piñones de la sartén y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Escurrir {{Tomates secos en aceite}} y cortar en trozos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Rallar {{Queso parmesano}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Triturar los tomates secos, los piñones tostados, {{Ajo}}, {{Albahaca fresca}}, el queso parmesano y {{Aceite de oliva}} hasta obtener una pasta homogénea.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cocer {{Fusilli}} en el agua hirviendo según el tiempo indicado en el paquete.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Reservar un cazo del agua de cocción antes de escurrir la pasta.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir la pasta.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar la pasta caliente con el pesto rojo, añadiendo agua de cocción si la salsa ha quedado demasiado espesa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -15698,6 +16564,9 @@
     "mainProtein": "ternera",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "requiredAppliance": "horno",
     "mealRole": [
       "plato_unico"
@@ -15721,46 +16590,55 @@
     "ingredients": [
       {
         "name": "Nidos de tallarines",
+        "ingredientId": "tallarines",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Queso mozzarella rallado",
+        "ingredientId": "mozzarella",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 3,
         "unit": "g"
       }
@@ -15889,6 +16767,9 @@
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "requiredAppliance": "horno",
     "mealRole": [
       "plato_unico"
@@ -15912,46 +16793,55 @@
     "ingredients": [
       {
         "name": "Macarrones",
+        "ingredientId": "macarrones",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Atún en aceite",
+        "ingredientId": "atun",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Tomate frito",
+        "ingredientId": "tomate-frito",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Leche entera",
+        "ingredientId": "leche",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 1,
         "unit": "g"
       }
@@ -16023,104 +16913,87 @@
       {
         "text": "Picar {{Cebolla}} fino.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Llevar a ebullición una olla con agua abundante y sal.",
         "minutes": 5,
-        "kind": "activo",
-        "part": "guarnicion"
+        "kind": "activo"
       },
       {
         "text": "Cocer {{Macarrones}} en el agua hirviendo el tiempo indicado en el envase.",
         "minutes": 10,
-        "kind": "pasivo",
-        "part": "guarnicion"
+        "kind": "pasivo"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}} y sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Atún en aceite}} escurrido y {{Tomate frito}}, remover y cocer 3 min a fuego medio.",
         "minutes": 3,
-        "kind": "activo",
-        "part": "principal"
+        "kind": "activo"
       },
       {
         "text": "Retirar el sofrito del fuego y reservar.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "principal"
+        "kind": "prep"
       },
       {
         "text": "Escurrir los macarrones cocidos y reservar.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "guarnicion"
+        "kind": "prep"
       },
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego suave.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar 1 min hasta obtener una pasta homogénea.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Verter {{Leche entera}} poco a poco sin dejar de remover hasta que la bechamel espese a fuego suave.",
         "minutes": 6,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Nuez moscada|pizca}} a la bechamel y remover para integrar.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Mezclar los macarrones escurridos con el sofrito de atún y la mitad de la bechamel en un bol grande.",
         "minutes": 2,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Verter la mezcla en un molde apto para horno y extenderla de forma uniforme.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Cubrir con la bechamel restante y espolvorear {{Queso rallado}} por encima.",
         "minutes": 1,
-        "kind": "prep",
-        "part": "combinado"
+        "kind": "prep"
       },
       {
         "text": "Hornear a 200 °C durante 15 min hasta que la superficie esté dorada.",
         "minutes": 15,
-        "kind": "pasivo",
-        "part": "combinado"
+        "kind": "pasivo"
       },
       {
         "text": "Reposar el pastel fuera del horno 5 min antes de servir.",
         "minutes": 5,
-        "kind": "espera",
-        "part": "combinado"
+        "kind": "espera"
       },
       {
         "text": "Servir directamente del molde en porciones.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "estrella": true,
@@ -16161,36 +17034,43 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Almejas",
+        "ingredientId": "almejas",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Guindilla fresca",
+        "ingredientId": "guindilla",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 8,
         "unit": "g"
       }
@@ -16312,6 +17192,9 @@
     "mainProtein": "marisco",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -16334,41 +17217,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Sepia",
+        "ingredientId": "sepia",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Tinta de calamar",
+        "ingredientId": "tinta-de-calamar",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 450,
         "unit": "ml"
       }
@@ -16493,36 +17384,43 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Gambas peladas",
+        "ingredientId": "gambas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Guindilla",
+        "ingredientId": "guindilla",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -16659,36 +17557,43 @@
     "ingredients": [
       {
         "name": "Penne",
+        "ingredientId": "penne",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Queso feta",
+        "ingredientId": "queso-feta",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomates cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 3,
         "unit": "g"
       }
@@ -16719,78 +17624,92 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Pelar {{Ajo}} y dejar los dientes enteros.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "salsa"
       },
       {
         "text": "Colocar {{Queso feta}} en el centro de una fuente de horno.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "salsa"
       },
       {
         "text": "Rodear el queso feta con {{Tomates cherry}} enteros y los dientes de ajo.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "salsa"
       },
       {
         "text": "Regar con {{Aceite de oliva}} y espolvorear {{Orégano|gusto}} sobre el conjunto.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "salsa"
       },
       {
         "text": "Hornear 25 min hasta que los tomates cherry estén arrugados y el queso feta blando y ligeramente dorado.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Llevar a ebullición una olla con agua abundante y sal.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Cocer {{Penne}} en el agua hirviendo el tiempo indicado en el envase hasta que esté al dente.",
         "minutes": 10,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Reservar un cazo del agua de cocción y escurrir la pasta.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Picar {{Albahaca fresca}} en fino.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar la fuente del horno y aplastar el queso feta y los tomates cherry con un tenedor hasta obtener una salsa cremosa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir la pasta escurrida a la fuente y mezclar con la salsa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Añadir agua de cocción reservada si la salsa ha quedado demasiado espesa y remover hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir de inmediato con la albahaca fresca picada por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -16808,6 +17727,9 @@
     "mainProtein": "cerdo",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -16829,36 +17751,43 @@
     "ingredients": [
       {
         "name": "Penne",
+        "ingredientId": "penne",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Panceta ahumada",
+        "ingredientId": "panceta",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Vodka",
+        "ingredientId": "vodka",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 20,
         "unit": "g"
       }
@@ -16925,44 +17854,37 @@
       {
         "text": "Sofreír la cebolla picada en la grasa de la panceta a fuego medio hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Vodka}} y dejar reducir a fuego fuerte hasta que se evapore casi por completo.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego suave hasta que la salsa espese.",
         "minutes": 10,
-        "kind": "pasivo",
-        "part": "salsa"
+        "kind": "pasivo"
       },
       {
         "text": "Añadir {{Nata para cocinar}} y remover hasta que la salsa quede homogénea y de color rosado.",
         "minutes": 2,
-        "kind": "activo",
-        "part": "salsa"
+        "kind": "activo"
       },
       {
         "text": "Escurrir la pasta cocida y añadirla a la salsa.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Añadir el queso parmesano rallado y remover hasta que se integre.",
         "minutes": 1,
-        "kind": "activo",
-        "part": "combinado"
+        "kind": "activo"
       },
       {
         "text": "Servir la pasta en platos y colocar la panceta crujiente por encima.",
         "minutes": 1,
-        "kind": "emplatado",
-        "part": "combinado"
+        "kind": "emplatado"
       }
     ],
     "estrella": true,
@@ -17002,41 +17924,49 @@
     "ingredients": [
       {
         "name": "Orzo",
+        "ingredientId": "orzo",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Caldo de pollo",
+        "ingredientId": "caldo-de-pollo",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Queso feta",
+        "ingredientId": "queso-feta",
         "amount": 40,
         "unit": "g"
       }
@@ -17148,6 +18078,9 @@
     "mainProtein": "none",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "cena"
@@ -17170,41 +18103,49 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 400,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 20,
         "unit": "g"
       }
@@ -17307,6 +18248,9 @@
     "mainProtein": "none",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -17329,41 +18273,49 @@
     "ingredients": [
       {
         "name": "Macarrones",
+        "ingredientId": "macarrones",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Queso rallado curado",
+        "ingredientId": "queso",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -17390,52 +18342,62 @@
       {
         "text": "Picar {{Cebolla}} y {{Ajo}} muy finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado a fuego medio hasta que la cebolla esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cocer {{Macarrones}} en el agua hirviendo el tiempo indicado en el envase hasta que estén al dente.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Orégano|pizca}} a la sartén y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cocer la salsa a fuego suave, removiendo de vez en cuando, hasta que espese y pierda acidez.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Escurrir los macarrones cuando estén al dente y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir los macarrones escurridos a la sartén con la salsa y mezclar bien a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Repartir en los platos y cubrir con {{Queso rallado curado}} por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -17475,31 +18437,37 @@
     "ingredients": [
       {
         "name": "Pasta corta",
+        "ingredientId": "pasta-corta",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Bacon en tiras",
+        "ingredientId": "bacon",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -17618,26 +18586,31 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Tomate frito",
+        "ingredientId": "tomate-frito",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       }
@@ -17670,29 +18643,34 @@
       {
         "text": "Llevar a ebullición una olla con agua abundante y sal.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Arroz}} cuando el agua hierva y cocer a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer el arroz hasta que esté tierno, sin tapar.",
         "minutes": 16,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Plátano}} en rodajas de 1 cm mientras el arroz cuece.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Freír las rodajas de plátano hasta que estén doradas por ambos lados.",
@@ -17716,19 +18694,19 @@
         "text": "Calentar {{Aceite de oliva|chorrito}} en la misma sartén a fuego fuerte.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Cascar {{Huevo}} en la sartén caliente con cuidado de no romper la yema.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Freír los huevos hasta que la clara esté cuajada y los bordes dorados.",
         "minutes": 2,
         "kind": "activo",
-        "part": "principal"
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Tomate frito}} en un cazo a fuego suave hasta que esté caliente.",
@@ -17757,6 +18735,9 @@
     "mainProtein": "cerdo",
     "mainBase": "pasta",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -17779,31 +18760,37 @@
     "ingredients": [
       {
         "name": "Macarrones",
+        "ingredientId": "macarrones",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -17943,31 +18930,37 @@
     "ingredients": [
       {
         "name": "Espaguetis",
+        "ingredientId": "espaguetis",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Queso parmesano",
+        "ingredientId": "parmesano",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -17998,63 +18991,75 @@
       {
         "text": "Pelar {{Ajo}} y picar fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Rallar {{Queso parmesano}} y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Albahaca fresca}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Sofreír el ajo picado hasta que esté dorado, sin que se queme.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Tomate triturado}} y remover para integrar con el ajo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que espese y pierda el sabor ácido.",
         "minutes": 12,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Llevar a ebullición una olla grande con agua abundante y sal al gusto.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "principal"
       },
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente.",
         "minutes": 9,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los espaguetis y añadir a la sartén con la salsa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Remover para que la pasta quede bien cubierta de salsa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir con la albahaca fresca picada y el queso parmesano rallado por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ]
   },
@@ -18065,6 +19070,9 @@
     "mainProtein": "none",
     "mainBase": "arroz",
     "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico",
       "primero"
@@ -18084,36 +19092,43 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 550,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -18214,46 +19229,55 @@
     "ingredients": [
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Chile fresco",
+        "ingredientId": "cayena",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -18285,6 +19309,9 @@
     "cocina": "mexicana",
     "mainBase": "arroz",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
@@ -18302,8 +19329,8 @@
         "text": "Llevar a ebullición agua con {{Sal|gusto}} en un cazo a fuego fuerte.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Cocer {{Arroz}} en el agua hirviendo a fuego medio hasta que esté en su punto.",
@@ -18315,22 +19342,22 @@
         "text": "Pelar y cortar {{Cebolla}} en juliana fina.",
         "minutes": 3,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Pelar y picar {{Ajo}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Tomate maduro}} en trozos y triturar junto con {{Chile fresco}} hasta obtener una salsa homogénea.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Retirar la pechuga cocida, dejar templar y desmenuzar con dos tenedores.",
@@ -18366,15 +19393,15 @@
         "text": "Escurrir el arroz cocido y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 11
+        "during": 11,
+        "part": "guarnicion"
       },
       {
         "text": "Pelar y laminar {{Aguacate}}.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "guarnicion",
-        "during": 11
+        "during": 11,
+        "part": "guarnicion"
       },
       {
         "text": "Incorporar el pollo desmenuzado a la salsa y remover para que se impregne bien.",
@@ -18424,51 +19451,61 @@
     "ingredients": [
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Vinagre de vino",
+        "ingredientId": "vinagre",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Azúcar",
+        "ingredientId": "azucar",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Salsa de soja",
+        "ingredientId": "salsa-soja",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Maicena",
+        "ingredientId": "maicena",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de girasol",
+        "ingredientId": "aceite-girasol",
         "amount": 40,
         "unit": "ml"
       }
@@ -18574,7 +19611,7 @@
         "text": "Añadir el pollo reservado a la sartén y remover hasta que quede bien glaseado con la salsa.",
         "minutes": 2,
         "kind": "activo",
-        "part": "combinado"
+        "part": "principal"
       },
       {
         "text": "Servir el pollo agridulce sobre el arroz reservado.",
@@ -18616,41 +19653,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salsa de soja",
+        "ingredientId": "salsa-soja",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Aceite de girasol",
+        "ingredientId": "aceite-girasol",
         "amount": 30,
         "unit": "ml"
       }
@@ -18754,6 +19799,9 @@
     "mainProtein": "ternera",
     "mainBase": "pasta",
     "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -18771,56 +19819,67 @@
     "allergens": [
       "gluten",
       "lactosa",
-      "frutos_secos"
+      "frutos_secos",
+      "huevo"
     ],
     "ingredients": [
       {
         "name": "Tallarines",
+        "ingredientId": "tallarines",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Espinacas",
+        "ingredientId": "espinacas",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Queso fresco",
+        "ingredientId": "queso-fresco",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 120,
         "unit": "ml"
       },
       {
         "name": "Nueces",
+        "ingredientId": "nueces",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Filete de ternera",
+        "ingredientId": "filete-de-ternera",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       }
@@ -18864,56 +19923,67 @@
     "allergens": [
       "huevo",
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Salsa de soja",
+        "ingredientId": "salsa-soja",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de sésamo",
+        "ingredientId": "aceite-de-sesamo",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Jengibre",
+        "ingredientId": "jengibre",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -18962,66 +20032,79 @@
     "ingredients": [
       {
         "name": "Arroz basmati",
+        "ingredientId": "arroz",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Contramuslo de pollo",
+        "ingredientId": "contramuslos-de-pollo",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Jengibre",
+        "ingredientId": "jengibre",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 12,
         "unit": "g"
       },
       {
         "name": "Curry en polvo",
+        "ingredientId": "curry",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Cúrcuma",
+        "ingredientId": "curcuma",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Azafrán",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Almendras",
+        "ingredientId": "almendras",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       }

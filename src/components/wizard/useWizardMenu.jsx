@@ -75,6 +75,16 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
       // cuota. Se proyecta aquí y no se lee de la libreta en el motor, para que
       // aiPlanner siga sin saber que la libreta existe.
       cocinas: vista.sesgos?.cocina ?? {},
+      // Y el resto de la proyección, por el mismo camino y por el mismo
+      // motivo. Hasta el 11 sep 2026 `sesgos` (tecnica, salsa, base),
+      // `favoritos` y `excluidos` se calculaban aquí y morían en la UI: el
+      // usuario pedía "más horno" o "nada de coliflor" y el menú salía igual.
+      // Ahora los lee aiPlanner —excluidos se suma a los dislikes; sesgos y
+      // favoritos ordenan candidatos vía lib/sesgos.js— sin saber que la
+      // libreta existe.
+      sesgos: vista.sesgos ?? {},
+      favoritos: vista.favoritos ?? [],
+      excluidos: vista.excluidos ?? [],
     };
     setData(siguiente);
     return siguiente;

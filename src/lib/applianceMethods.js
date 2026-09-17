@@ -29,6 +29,19 @@ export const APPLIANCE_COLORS = {
   microondas: "#3b82f6",
 };
 
+// Icono por slug de `methods[]`. Comparte los dibujos con
+// REQUIRED_APPLIANCE_ICONS de abajo (que es el otro sistema de ids) porque un
+// horno se dibuja igual se llame como se llame la clave; lo que no se comparte
+// son los ids. Lo usa el modo cocina para decir con qué estás cocinando.
+export const APPLIANCE_ICONS = {
+  airfryer: Wind,
+  horno: Flame,
+  thermomix: Bot,
+  vaporera: Layers2,
+  olla_express: CookingPot,
+  microondas: Microwave,
+};
+
 // Segundo sistema de electrodoméstico, DELIBERADAMENTE separado del de arriba
 // (APPLIANCE_LABELS/APPLIANCE_COLORS, ids en snake_case, para `methods[]` —
 // técnicas alternativas de un mismo plato). Este es el de `requiredAppliances`
