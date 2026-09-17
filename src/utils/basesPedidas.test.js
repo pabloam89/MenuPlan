@@ -165,22 +165,33 @@ describe("basesAlcanzables · todo o nada", () => {
 
 describe("basesPedidas · lo que el selector escribe en la libreta", () => {
   it("lee el número de huecos, no un sí/no", () => {
-    expect(basesPedidas({ base: { sofrito: 2, pasta: 4 } })).toEqual({ sofrito: 2, pasta: 4 });
+    expect(basesPedidas({ sofrito: 2, pasta: 4 })).toEqual({ sofrito: 2, pasta: 4 });
   });
 
-  it("un 1 de la versión vieja del selector se lee como el mínimo que hace tanda", () => {
-    // El selector ciclaba 0-1-2-3 antes de tener deslizador. Un 1 guardado
-    // entonces significa "la quiero", y una tanda de un plato no existe: se
-    // lee como dos, que es lo que de verdad pidió.
-    expect(basesPedidas({ base: { pasta: 1 } })).toEqual({ pasta: MIN_POR_SEMANA });
+  it("un 1 NO se promueve a tanda: es un sesgo, no una petición", () => {
+    // El bug que esto sujeta. Este campo era `sesgos.base`, compartido con el
+    // panel de texto, que escribe ±1 para decir "me apetece un poco más de
+    // pasta". Un `Math.max(n, 2)` convertía ese 1 en "dos platos de pasta en
+    // tanda" — o sea, en la regla 11b: la única de MÍNIMO, todo o nada, la
+    // primera que se repara y cuya base el fallback no puede soltar.
+    //
+    // Ahora son dos campos (`base` sesgo, `tanda` cuenta) y aquí solo llega el
+    // segundo, así que un 1 es un dato corrupto y se ignora.
+    expect(basesPedidas({ pasta: 1 })).toEqual({});
   });
 
   it("ignora el cero y lo negativo", () => {
-    expect(basesPedidas({ base: { sofrito: 0, pasta: -1 } })).toEqual({});
+    expect(basesPedidas({ sofrito: 0, pasta: -1 })).toEqual({});
   });
 
   it("recorta al tope del deslizador", () => {
-    expect(basesPedidas({ base: { sofrito: 99 } })).toEqual({ sofrito: MAX_POR_SEMANA });
+    expect(basesPedidas({ sofrito: 99 })).toEqual({ sofrito: MAX_POR_SEMANA });
+  });
+
+  it("acepta el recorrido entero del deslizador", () => {
+    for (let n = MIN_POR_SEMANA; n <= MAX_POR_SEMANA; n++) {
+      expect(basesPedidas({ sofrito: n })).toEqual({ sofrito: n });
+    }
   });
 
   it("el deslizador va del mínimo que hace tanda al tope", () => {

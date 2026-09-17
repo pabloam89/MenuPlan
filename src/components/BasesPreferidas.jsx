@@ -118,7 +118,7 @@ export function BasesPreferidas({ data, setData }) {
     .filter(([clave, tope]) => FREQ_KEY_MATCHERS[clave] && tope >= 0);
 
   const vecesDe = (id) => {
-    const n = Math.round(valorDe(libreta, `base.${id}`) ?? 0);
+    const n = Math.round(valorDe(libreta, `tanda.${id}`) ?? 0);
     if (n <= 0) return 0;
     // Un 1 guardado por la versión anterior del selector se lee como el mínimo
     // que de verdad sirve, en vez de dejar el pulgar en una posición inválida.
@@ -146,8 +146,9 @@ export function BasesPreferidas({ data, setData }) {
     const n = v <= 0 ? 0 : Math.min(Math.max(v, MIN_POR_SEMANA), MAX_POR_SEMANA);
     setData((d) => {
       const actual = normalizarLibreta(d?.notepad);
-      const siguiente = poner(actual, `base.${id}`, n, { origen: "pregunta" });
-      return { ...d, notepad: siguiente, sesgos: proyectar(siguiente).sesgos ?? {} };
+      const siguiente = poner(actual, `tanda.${id}`, n, { origen: "pregunta" });
+      const vista = proyectar(siguiente);
+      return { ...d, notepad: siguiente, sesgos: vista.sesgos ?? {}, tanda: vista.tanda ?? {} };
     });
   };
 

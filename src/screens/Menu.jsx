@@ -3276,7 +3276,7 @@ function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
   // fallo, porque no hay forma de saber que hay que regenerar.
   const sinCubrir = useMemo(() => {
     const puestas = new Set(sesion.bases.map((b) => claveDeBase(b.base)));
-    const pedidas = Object.keys(basesPedidas(data?.sesgos)).filter((c) => !puestas.has(c));
+    const pedidas = Object.keys(basesPedidas(data?.tanda)).filter((c) => !puestas.has(c));
     if (pedidas.length === 0) return [];
 
     // Cuántos platos de la semana llevan cada una. El número es la explicación:

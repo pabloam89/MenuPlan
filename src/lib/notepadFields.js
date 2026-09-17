@@ -120,6 +120,33 @@ export const CAMPOS = [
     ejemplo: "echo de menos más pasta",
   },
   {
+    id: "tanda",
+    grupo: "base",
+    etiqueta: "Lo que cocinas en tanda",
+    // El MISMO dominio que `base`, y ahí está justo la razón de que sean dos
+    // campos y no uno.
+    //
+    // Los dos se escribían en `base.*` queriendo decir cosas distintas: el
+    // panel un SESGO (±1, "me apetece más pasta") y este selector una CUENTA
+    // (2-5, "quiero tres platos con sofrito esta semana"). Y `basesPedidas`
+    // leía el campo sin saber quién lo había escrito: veía un 1, lo subía a 2
+    // con un `Math.max`, y una preferencia blanda se convertía en la regla 11b
+    // — la única de MÍNIMO del validador, todo o nada, la primera que se repara
+    // y cuya base el fallback tiene prohibido soltar.
+    //
+    // O sea: decías "echo de menos más pasta" y el motor entendía "dos platos
+    // de pasta en tanda, obligatorio". Y pasaba con las catorce bases.
+    dominio: DOMINIO_BASES,
+    proyecta: "tanda",
+    unidad: "platos por semana",
+    rango: [2, 5],
+    // Sin `ejemplo` a propósito, igual que `reparto`: el parser NO escribe aquí.
+    // Una tanda es una petición comprobable con consecuencias duras, y se pide
+    // con el selector, no de pasada en una frase.
+    ejemplo: null,
+    panel: false,
+  },
+  {
     id: "cocina",
     grupo: "cocina",
     etiqueta: "De dónde es el plato",

@@ -490,14 +490,23 @@ export function topeDeBase(disponibles, {
  *
  * @returns {Record<string, number>} clave de base → huecos pedidos
  */
-export function basesPedidas(sesgos) {
+export function basesPedidas(tanda) {
   const out = {};
-  for (const [clave, valor] of Object.entries(sesgos?.base ?? {})) {
+  for (const [clave, valor] of Object.entries(tanda ?? {})) {
     const n = Math.round(Number(valor) || 0);
-    // Cualquier positivo vale como "encendida", pero lo que se pide nunca baja
-    // del mínimo que hace tanda: un 1 guardado por una versión vieja del
-    // selector se lee como los dos que de verdad sirven.
-    if (n > 0) out[clave] = Math.min(Math.max(n, MIN_POR_SEMANA), MAX_POR_SEMANA);
+    // Se acota al recorrido del selector, pero NO se promueve nada.
+    //
+    // Aquí vivía un `Math.max(n, MIN_POR_SEMANA)` que subía cualquier positivo
+    // a dos, y era el corazón del problema: este campo era `sesgos.base`, donde
+    // el panel escribía un 1 para decir "me apetece un poco más de pasta". Ese
+    // 1 salía de aquí como "dos platos de pasta en tanda", que el validador
+    // exige por la regla 11b — la única de MÍNIMO, todo o nada, la primera que
+    // se repara y cuya base el fallback no puede soltar.
+    //
+    // Ahora lee `tanda`, que solo escribe el selector y solo con 2..5, así que
+    // no hay nada que promover: un valor fuera de rango es un dato corrupto y
+    // se ignora en vez de convertirse en una petición que nadie hizo.
+    if (n >= MIN_POR_SEMANA) out[clave] = Math.min(n, MAX_POR_SEMANA);
   }
   return out;
 }
