@@ -32,7 +32,7 @@
 <body>
 <main>
   <h1>Política de privacidad de HoMenu</h1>
-  <p class="updated">Última actualización: 16 de agosto de 2026</p>
+  <p class="updated">Última actualización: 17 de septiembre de 2026</p>
 
   <p>
     HoMenu ("nosotros") ofrece una aplicación para planificar menús familiares,
@@ -41,39 +41,57 @@
   </p>
 
   <h2>1. Datos que recogemos</h2>
+  <p>
+    Puedes usar HoMenu sin crear una cuenta. En ese caso tus datos (familia, menús, despensa)
+    se guardan solo en tu dispositivo, y únicamente recogemos datos de uso anónimos, asociados
+    a un identificador aleatorio que no está vinculado a ninguna persona.
+  </p>
   <ul>
-    <li><strong>Cuenta:</strong> tu email y nombre, a través de tu cuenta de Google (inicio de sesión con Google) o email/contraseña.</li>
+    <li><strong>Cuenta:</strong> si inicias sesión con Google, recibimos tu email, tu nombre y tu foto de perfil de Google. No hay registro con email y contraseña.</li>
     <li><strong>Datos de familia y salud:</strong> los miembros del hogar que añades, sus alergias, intolerancias y preferencias alimentarias, que introduces voluntariamente para personalizar los menús.</li>
-    <li><strong>Despensa y compra:</strong> los productos que registras en tu despensa y tus listas de la compra, incluidas fotos de tickets de compra que escaneas (el reconocimiento de texto se procesa en tu propio dispositivo, no se envían las imágenes del ticket a nuestros servidores).</li>
-    <li><strong>Recetas y menús:</strong> las recetas que guardas o creas, los menús generados y tu historial de uso (favoritos, valoraciones, platos descartados).</li>
+    <li><strong>Despensa y compra:</strong> los productos que registras en tu despensa y tus listas de la compra.</li>
+    <li><strong>Fotos de tickets y de tu despensa:</strong> cuando escaneas un ticket o haces una foto de tu nevera o despensa, la imagen se envía a nuestro proveedor de inteligencia artificial (Anthropic) para reconocer los productos. No guardamos esa imagen: se descarta en cuanto se obtiene el resultado, y los productos no se añaden hasta que tú los revisas y confirmas.</li>
+    <li><strong>Recetas, menús y fotos de platos:</strong> las recetas que guardas o creas (incluidas las fotos que subes o generas), los menús generados y tu historial de uso (favoritos, valoraciones, platos descartados).</li>
     <li><strong>Datos de uso:</strong> eventos básicos de uso de la app (por ejemplo, qué pantallas visitas) para poder mantener y mejorar el servicio. No usamos redes publicitarias ni herramientas de rastreo de terceros.</li>
+    <li><strong>Datos técnicos:</strong> tu dirección IP, de forma temporal, para limitar abusos del servicio (por ejemplo, un número excesivo de peticiones).</li>
   </ul>
 
-  <h2>2. Para qué usamos tus datos</h2>
+  <h2>2. Contenido que compartes con otros usuarios</h2>
+  <p>
+    HoMenu tiene funciones sociales opcionales. Tu perfil social es privado por defecto. Solo si
+    tú lo decides, otras personas pueden ver tu nombre de usuario, tu foto y lo que publiques
+    (menús, recetas, fotos de platos y comentarios), según la visibilidad que elijas: solo tus
+    seguidores o cualquier persona. También puedes seguir a otros usuarios, bloquearlos y
+    denunciar contenido inapropiado.
+  </p>
+
+  <h2>3. Para qué usamos tus datos</h2>
   <ul>
     <li>Generar menús y recetas adaptados a tu familia, sus alergias y preferencias.</li>
     <li>Sincronizar tu información entre tus dispositivos.</li>
-    <li>Mantener, depurar y mejorar la aplicación.</li>
+    <li>Mostrar a otros usuarios el contenido que decides publicar.</li>
+    <li>Mantener, depurar y mejorar la aplicación, y protegerla frente a abusos.</li>
   </ul>
 
-  <h2>3. Con quién compartimos datos</h2>
+  <h2>4. Con quién compartimos datos</h2>
   <p>No vendemos tus datos. Los compartimos únicamente con proveedores que nos ayudan a operar la app, bajo sus propias condiciones de privacidad:</p>
   <ul>
-    <li><strong>Supabase</strong> — alojamiento de la base de datos y autenticación.</li>
-    <li><strong>Vercel</strong> — alojamiento de la aplicación.</li>
-    <li><strong>Google (Gemini API)</strong> y <strong>fal.ai</strong> — generación de recetas e imágenes mediante inteligencia artificial. Cuando pides que se genere una receta o imagen, el contenido necesario para esa petición se envía a estos proveedores para procesarla.</li>
+    <li><strong>Supabase</strong> — alojamiento de la base de datos, de las fotos y de la autenticación.</li>
+    <li><strong>Vercel</strong> y <strong>Upstash</strong> — alojamiento de la aplicación y control de abusos.</li>
+    <li><strong>Google</strong> — inicio de sesión con Google.</li>
+    <li><strong>Anthropic (Claude)</strong> y <strong>Google (Gemini)</strong> — inteligencia artificial para generar menús, recetas y fotos de platos, y para reconocer productos en fotos de tickets y de tu despensa. Solo se les envía el contenido necesario para cada petición.</li>
   </ul>
   <p>
-    Algunos de estos proveedores (Google, fal.ai) pueden procesar datos fuera del Espacio Económico
-    Europeo. En esos casos, la transferencia se ampara en las garantías previstas por el RGPD
-    (como las Cláusulas Contractuales Tipo de la Comisión Europea o decisiones de adecuación),
+    Algunos de estos proveedores (como Anthropic o Google) pueden procesar datos fuera del Espacio
+    Económico Europeo. En esos casos, la transferencia se ampara en las garantías previstas por el
+    RGPD (como las Cláusulas Contractuales Tipo de la Comisión Europea o decisiones de adecuación),
     exigidas contractualmente a estos proveedores.
   </p>
 
-  <h2>4. Cuánto tiempo conservamos tus datos</h2>
-  <p>Conservamos tus datos mientras tu cuenta esté activa. Si eliminas tu cuenta desde la app (Mi cuenta → Eliminar cuenta), tu cuenta y todos los datos asociados (familia, despensa, menús, recetas guardadas, historial) se borran de forma permanente e inmediata.</p>
+  <h2>5. Cuánto tiempo conservamos tus datos</h2>
+  <p>Conservamos tus datos mientras tu cuenta esté activa. Si eliminas tu cuenta desde la app (Mi cuenta → Eliminar cuenta), tu cuenta y todos los datos asociados (familia, despensa, menús, recetas guardadas, contenido publicado, historial) se borran de forma permanente e inmediata. Los comentarios o sugerencias que nos hayas enviado se conservan de forma anónima, sin vínculo con tu cuenta.</p>
 
-  <h2>5. Tus derechos</h2>
+  <h2>6. Tus derechos</h2>
   <p>Puedes acceder, corregir o eliminar tus datos en cualquier momento:</p>
   <ul>
     <li><strong>Desde la app:</strong> edita tus datos de familia y preferencias en "Mi perfil", o elimina tu cuenta por completo desde "Mi cuenta → Eliminar cuenta".</li>
@@ -85,11 +103,11 @@
     <a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>.
   </p>
 
-  <h2>6. Menores</h2>
+  <h2>7. Menores</h2>
   <p>HoMenu está pensado para ser usado por adultos que gestionan la alimentación de su familia. Los datos de menores (por ejemplo, alergias de un hijo o hija) los introduce el titular adulto de la cuenta como parte de la planificación familiar, y se tratan con las mismas garantías que el resto de datos de la cuenta.</p>
 
-  <h2>7. Seguridad</h2>
-  <p>Tus datos se transmiten de forma cifrada (HTTPS) y se almacenan en bases de datos protegidas con controles de acceso por usuario, de forma que cada persona solo puede ver y modificar sus propios datos.</p>
+  <h2>8. Seguridad</h2>
+  <p>Tus datos se transmiten de forma cifrada (HTTPS) y se almacenan en bases de datos protegidas con controles de acceso por usuario, de forma que cada persona solo puede ver y modificar sus propios datos y lo que otros usuarios hayan decidido compartir.</p>
 
   <div class="contact">
     <strong>Contacto</strong><br />
