@@ -1,4 +1,4 @@
-import { getWeekDatesByMenuWeek } from "./weekCalendar.js";
+import { getWeekDatesByMenuWeek, mondayISOForOffset } from "./weekCalendar.js";
 
 // A "menú" used to mean exactly one calendar week. It can now span several
 // weeks generated in one go (`data.menuWeekOffsets`, not necessarily
@@ -78,8 +78,51 @@ export function computeWeekRange(offset, startDayIdx = 0, days = null) {
  * existiera, así que un menú/archivo viejo sin este campo no cambia.
  */
 export function explicitDaysForOffset(data, offset) {
-  const days = data?.menuWeekDays?.[offset];
+  const days = weekEntry(data?.menuWeekDays, offset);
   return Array.isArray(days) && days.length > 0 ? days : null;
+}
+
+// ── Las semanas se guardan por su LUNES, no por offset ─────────────────────
+//
+// Un `offset` es relativo a HOY, así que la misma clave apunta a una semana
+// distinta cada día que pasa: lo que marcaste como "la semana que viene" el
+// jueves 17 es, el jueves 24, la semana siguiente — y tu selección de días se
+// muda sola a una semana que nunca elegiste. Lo mismo con el horario propio de
+// una semana (`menuWeekOverrides`), que además no se limpia al generar.
+//
+// El lunes en ISO no se mueve. Es la misma decisión que `lib/reglas.js` ya toma
+// para el ámbito de las reglas temporales, con su propio comentario de "bomba
+// de relojería"; aquí solo se aplica al otro sitio que tenía el problema.
+
+/** Lee una entrada por lunes ISO, cayendo a la clave numérica sin migrar. */
+export function weekEntry(mapa, offset) {
+  if (!mapa) return undefined;
+  const porLunes = mapa[mondayISOForOffset(offset)];
+  if (porLunes !== undefined) return porLunes;
+  // Compatibilidad: un blob guardado antes de la migración, o escrito por una
+  // pestaña vieja abierta desde antes del despliegue.
+  return mapa[offset];
+}
+
+/**
+ * Reindexa un mapa `{offset: valor}` a `{lunesISO: valor}`. Las claves que ya
+ * son ISO se dejan como están, así que es idempotente y se puede llamar en cada
+ * carga sin miedo.
+ *
+ * Una clave numérica se traduce con el HOY del momento de migrar. Para el caso
+ * normal —lo marcaste hace poco y vas a generar ahora— es exactamente lo que
+ * querías decir. Si llevaba semanas ahí, el resultado puede no ser la semana que
+ * pensabas: pero ese dato ya estaba mal por definición, y congelarlo en una
+ * semana concreta es mejor que dejarlo deslizándose para siempre.
+ */
+export function rekeyWeeksByMonday(mapa, today = new Date()) {
+  if (!mapa || typeof mapa !== "object" || Array.isArray(mapa)) return {};
+  const salida = {};
+  for (const [clave, valor] of Object.entries(mapa)) {
+    if (valor === undefined || valor === null) continue;
+    salida[/^-?\d+$/.test(clave) ? mondayISOForOffset(Number(clave), today) : clave] = valor;
+  }
+  return salida;
 }
 
 export function formatISODateShort(iso) {

@@ -87,9 +87,9 @@ import {
   ToggleSwitch,
   WeekChips,
 } from "../components/ui.jsx";
-import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
+import { MAX_MENU_WEEKS, weekEntry } from "../lib/menuArchive.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
-import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from "../lib/weekCalendar.js";
+import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset } from "../lib/weekCalendar.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { StoreBadge } from "./SpendPanel.jsx";
@@ -4575,7 +4575,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       startDayIdx: viewingOffset === baseOffset ? (data.menuWeek?.startDayIdx ?? 0) : 0,
       // Días sueltos marcados a mano (arrastre en OnboardingWeek) para la
       // semana que se está viendo aquí — no solo la semana ancla.
-      days: data.menuWeekDays?.[viewingOffset] ?? null,
+      days: weekEntry(data.menuWeekDays, viewingOffset) ?? null,
     }),
     [viewingOffset, baseOffset, data.menuWeek, data.menuWeekDays],
   );
@@ -4590,7 +4590,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       total: weekOffsets.length,
       label: formatWeekRangeLabel(weekDates, activeDays),
       modified: viewingOffset !== weekOffsets[0]
-        && Boolean(data.menuWeekOverrides?.[viewingOffset]),
+        && Boolean(weekEntry(data.menuWeekOverrides, viewingOffset)),
       onPrev: i > 0 ? () => setEditingWeekOffset(weekOffsets[i - 1]) : null,
       onNext: i < weekOffsets.length - 1 ? () => setEditingWeekOffset(weekOffsets[i + 1]) : null,
     };
@@ -4598,15 +4598,19 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
   const effectiveSchedule = isEditingBaseWeek
     ? data.schedule
-    : (data.menuWeekOverrides?.[viewingOffset] ?? data.schedule);
+    : (weekEntry(data.menuWeekOverrides, viewingOffset) ?? data.schedule);
 
   const updateSchedule = (updater) => {
     setData((d) => {
       if (isEditingBaseWeek) {
         return { ...d, schedule: updater(d.schedule) };
       }
-      const base = d.menuWeekOverrides?.[viewingOffset] ?? d.schedule;
-      return { ...d, menuWeekOverrides: { ...(d.menuWeekOverrides ?? {}), [viewingOffset]: updater(base) } };
+      // Se guarda por el LUNES de esa semana, no por su offset: un offset es
+      // relativo a hoy y el horario se mudaría solo a otra semana pasados unos
+      // días (ver rekeyWeeksByMonday en lib/menuArchive.js).
+      const clave = mondayISOForOffset(viewingOffset);
+      const base = weekEntry(d.menuWeekOverrides, viewingOffset) ?? d.schedule;
+      return { ...d, menuWeekOverrides: { ...(d.menuWeekOverrides ?? {}), [clave]: updater(base) } };
     });
   };
 
@@ -9886,7 +9890,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
   // menuWeekOffsets/menuWeek — así un menú/borrador guardado antes de que
   // existiera el arrastre por días sigue viéndose exactamente igual.
   const daysForOffset = (d, offset) => {
-    const explicit = d.menuWeekDays?.[offset];
+    const explicit = weekEntry(d.menuWeekDays, offset);
     if (Array.isArray(explicit)) return explicit;
     const legacyOffsets = Array.isArray(d.menuWeekOffsets) && d.menuWeekOffsets.length
       ? d.menuWeekOffsets
@@ -9917,9 +9921,14 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
       if (selected) current.add(dayCode);
       else current.delete(dayCode);
       const nextDays = DAYS.filter((day) => current.has(day));
+      // Por el LUNES de esa semana, no por su offset — ver rekeyWeeksByMonday.
+      // Se borra también la clave numérica vieja por si quedaba alguna sin
+      // migrar, para que no reaparezca por el fallback de `weekEntry`.
+      const clave = mondayISOForOffset(offset);
       const menuWeekDays = { ...(d.menuWeekDays ?? {}) };
-      if (nextDays.length > 0) menuWeekDays[offset] = nextDays;
-      else delete menuWeekDays[offset];
+      delete menuWeekDays[offset];
+      if (nextDays.length > 0) menuWeekDays[clave] = nextDays;
+      else delete menuWeekDays[clave];
       const nextOffsets = allOffsets.filter((o) =>
         o === offset ? nextDays.length > 0 : daysForOffset(d, o).length > 0
       );
@@ -9938,9 +9947,11 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
 
   const setWeekDays = (offset, days) => {
     setData((d) => {
+      const clave = mondayISOForOffset(offset);
       const menuWeekDays = { ...(d.menuWeekDays ?? {}) };
-      if (days.length > 0) menuWeekDays[offset] = days;
-      else delete menuWeekDays[offset];
+      delete menuWeekDays[offset];
+      if (days.length > 0) menuWeekDays[clave] = days;
+      else delete menuWeekDays[clave];
       const nextOffsets = allOffsets.filter((o) =>
         o === offset ? days.length > 0 : daysForOffset(d, o).length > 0
       );
