@@ -7,7 +7,6 @@
 
 import { HEALTH_PROFILE_BADGE } from "../lib/healthProfileMatch.js";
 import { CARB_TYPE_BY_BASE, isMontaje } from "../data/recipeSchema.js";
-import { aporteDe } from "../lib/aporte.js";
 import { clavesDeReceta } from "../lib/bases.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
@@ -284,21 +283,24 @@ function mainMealsOf(mealOrder, poolById) {
 // cuenta por proteína). Ver el comentario de `pasta_arroz` justo debajo.
 const FECULAS = new Set(["arroz", "pasta", "quinoa", "cuscus"]);
 
-// ── Identidad ∪ aporte ─────────────────────────────────────────────────────
-// `category` dice qué ES el plato (decisión de archivo); `aporteDe` dice qué
-// RACIONES entrega (ver lib/aporte.js). Los objetivos semanales necesitan lo
-// segundo, y contaban solo lo primero: "Ternera a la jardinera" lleva 130 g de
-// verdura por ración y contaba cero. La unión suma 97 platos al eje de verdura
-// y no quita ninguno de ningún otro (medido: las cinco familias restantes solo
-// ganan). Un plato puede entregar varias cosas a la vez, que es justo lo que
-// `extraProteins` ya hacía para las proteínas — esto lo completa.
-const entrega = (r, familia) => aporteDe(r).has(familia);
+// ── Los MÁXIMOS leen IDENTIDAD, no aporte ──────────────────────────────────
+// `category` (más la proteína y la fécula declaradas) dice qué ES el plato;
+// `aporteDe` (lib/aporte.js) dice qué RACIONES entrega, y un plato entrega
+// varias a la vez. Los topes semanales son máximos sobre la identidad: "como
+// mucho dos platos DE pasta". Hubo una versión que contaba aquí por aporte, y
+// el solver (lib/solver.js) demostró al primer intento por qué no:
+//   · verdura como tope + aporte = "evita la verdura": 277 platos la entregan,
+//     así que con el tope en 3 había que esquivarla en 18 de 21 huecos;
+//   · seis topes que suman 21 sobre 21 huecos, con cada plato consumiendo dos o
+//     tres topes a la vez → sin solución posible (12/21 tras 5000 nodos).
+// `aporte` es para los MÍNIMOS ("al menos 4 días con verdura"), que todavía no
+// existen como regla, y viaja al prompt como información para repartir.
 
 export const FREQ_KEY_MATCHERS = {
-  carne: (r) => r.category === "carnes" || proteinGroupsOf(r).has("carne") || entrega(r, "carne"),
-  pescado: (r) => r.category === "pescados" || proteinGroupsOf(r).has("pescado") || entrega(r, "pescado"),
-  legumbres: (r) => r.category === "legumbres" || proteinGroupsOf(r).has("legumbres") || entrega(r, "legumbres"),
-  huevos: (r) => r.category === "huevos" || proteinGroupsOf(r).has("huevos") || entrega(r, "huevos"),
+  carne: (r) => r.category === "carnes" || proteinGroupsOf(r).has("carne"),
+  pescado: (r) => r.category === "pescados" || proteinGroupsOf(r).has("pescado"),
+  legumbres: (r) => r.category === "legumbres" || proteinGroupsOf(r).has("legumbres"),
+  huevos: (r) => r.category === "huevos" || proteinGroupsOf(r).has("huevos"),
   // Por categoría O por `mainBase` declarado. Solo la categoría dejaba fuera
   // 29 platos del estrella que ENTREGAN una ración de fécula y viven en otro
   // cajón: "Lomo saltado" y "Pollo tikka masala" (carnes, mainBase arroz),
@@ -309,8 +311,8 @@ export const FREQ_KEY_MATCHERS = {
   // `boniato` se quedan fuera a propósito: la patata es guarnición, no plato,
   // y no va en este cubo — la vigilan las reglas 9 y 14 por `carbType` y, el
   // día que haga falta, un tope propio. `legumbre` ya cuenta por mainProtein.
-  pasta_arroz: (r) => r.category === "pasta_arroces" || FECULAS.has(r.mainBase) || entrega(r, "pasta_arroz"),
-  verdura: (r) => r.category === "ensaladas_verduras" || r.category === "sopas_cremas" || entrega(r, "verdura"),
+  pasta_arroz: (r) => r.category === "pasta_arroces" || FECULAS.has(r.mainBase),
+  verdura: (r) => r.category === "ensaladas_verduras" || r.category === "sopas_cremas",
 };
 
 /**
