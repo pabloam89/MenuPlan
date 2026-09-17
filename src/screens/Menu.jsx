@@ -4536,7 +4536,13 @@ function DishActionBar({ anchor, actions, onClose }) {
   // estrecho. Se reparten 3+2 (cinco) o 2+2 (cuatro, cuando la comida no admite
   // cambio de estructura). Nunca se deja un hueco suelto en la fila de abajo:
   // preferimos que los botones bailen de sitio a que se vea un agujero.
-  const topCount = actions.length >= 5 ? 3 : Math.ceil(actions.length / 2);
+  //
+  // Hasta TRES caben en una sola fila y van en horizontal: 3×62 + 2×8 + 24 de
+  // padding son 226 px, que entran de sobra en el móvil más estrecho. La
+  // fórmula de antes (`ceil(n/2)`) partía también los casos pequeños, así que
+  // el submenú de "Cambiar" —dos acciones— salía una debajo de otra, en
+  // vertical, sin necesidad ninguna.
+  const topCount = actions.length <= 3 ? actions.length : actions.length >= 5 ? 3 : 2;
   const rows = [actions.slice(0, topCount), actions.slice(topCount)].filter((r) => r.length > 0);
   const widest = Math.max(...rows.map((r) => r.length));
   const barW = widest * BTN + (widest - 1) * GAP + PAD * 2;
