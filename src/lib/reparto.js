@@ -40,6 +40,31 @@ export const TOTAL = 100;
  */
 export const PRESUPUESTO = Object.values(DEFAULT_FREQS).reduce((a, b) => a + b, 0);
 
+/**
+ * Cuántos TOPES consume un plato de media. Medido sobre el pool servible de
+ * una casa normal (341 platos del estrella): 207 consumen un tope, 127 dos,
+ * 6 tres y UNO ninguno → 1,4. Hay un test que lo vuelve a medir contra el
+ * catálogo y avisa si el número se mueve.
+ *
+ * Por qué existe: los `freqs` son máximos y se solapan —"Revuelto de gambas"
+ * gasta `huevos` Y `pescado`, "Pollo tikka con arroz" gasta `carne` Y
+ * `pasta_arroz`—, así que 21 huecos no consumen 21 puntos de tope sino unos
+ * 29. Bajar el reparto a EXACTAMENTE los huecos (la primera corrección de C2)
+ * dejaba un problema sin solución: el solver (lib/solver.js) lo demostró,
+ * 12 de 21 huecos tras agotar la búsqueda, y con holgura 1,3 o más converge
+ * en un segundo. Sin solver el síntoma era el mismo de siempre, solo que
+ * invisible: el modelo no podía cumplir y todo acababa en el fallback.
+ */
+export const HOLGURA_TOPES = 1.4;
+
+/**
+ * De huecos reales a presupuesto de topes. Es lo que hay que pasarle a
+ * `repartoAFreqs` como `presupuesto` cuando se genera de verdad.
+ */
+export function presupuestoDeTopes(huecos) {
+  return Math.max(1, Math.round(Number(huecos) * HOLGURA_TOPES));
+}
+
 /** Un reparto con todo a cero: el punto de partida de `normalizar`. */
 function vacio() {
   return Object.fromEntries(FAMILIAS.map((f) => [f, 0]));
@@ -173,17 +198,19 @@ export function mover(reparto, familia, valor) {
 /**
  * El reparto bajado a lo que el motor entiende: máximos por semana.
  *
- * `presupuesto` es cuántos huecos reparte en total, y el que hay que pasarle es
- * el REAL de esa semana y ese grupo (`ctx.slots.length` en aiPlanner), no una
- * constante. El default sigue siendo la suma de DEFAULT_FREQS para que quien
- * no lo pase no cambie de comportamiento, pero es un mal default y por eso está
- * anotado aquí:
+ * `presupuesto` son los PUNTOS DE TOPE que reparte en total, y el que hay que
+ * pasarle es `presupuestoDeTopes(huecos reales de esa semana y ese grupo)`,
+ * no una constante. El default sigue siendo la suma de DEFAULT_FREQS para que
+ * quien no lo pase no cambie de comportamiento, pero es un mal default y por
+ * eso está anotado aquí:
  *
  * Con 21 huecos y un presupuesto de 14, SIETE huecos se quedan sin cuota y cada
  * uno es una violación garantizada de la regla 11. Medido: 470 de las 471
  * recetas servibles cuentan para al menos una clave, así que no hay huecos
  * "gratis" que absorban la diferencia. La telemetría de producción lo confirma
  * — 19 de 19 unidades de planificación acabaron en el fallback determinista.
+ * Y con un presupuesto de exactamente 21 tampoco alcanza, porque los platos
+ * gastan 1,4 topes de media: ver HOLGURA_TOPES.
  *
  * El redondeo se reparte por MAYOR RESTO, no familia a familia. Redondeando
  * cada una por su cuenta la suma se iba (con 21 salían 22), y un tope total por

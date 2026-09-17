@@ -4,7 +4,7 @@ import { ControlRow } from "./ControlRow.jsx";
 // de abajo). El componente sigue existiendo y se puede volver a montar con los
 // dos cabos que devuelve este hook en `panel`.
 import { normalizar as normalizarLibreta, poner, porQue, proyectar, valorDe } from "../../lib/notepad.js";
-import { freqsEfectivos, repartoConFreq, repartoVisible, rutaDeReparto } from "../../lib/reparto.js";
+import { freqsEfectivos, presupuestoDeTopes, repartoConFreq, repartoVisible, rutaDeReparto } from "../../lib/reparto.js";
 import { weeklySlotBudget } from "../../lib/planner.js";
 import { recuentoDelMenu } from "../../lib/menuRecuento.js";
 import { contextoParaElModelo } from "../../lib/panelSuggestions.js";
@@ -79,7 +79,7 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
       // `freqsEfectivos`.
       freqs: freqsEfectivos(
         { freqs: vista.freqs, reparto: vista.reparto },
-        { presupuesto: weeklySlotBudget(data).total },
+        { presupuesto: presupuestoDeTopes(weeklySlotBudget(data).total) },
       ),
       // Los dos ejes SIN fundir, para que el motor pueda rehacer la proyección
       // con los huecos reales de cada grupo y cada semana (`ctx.slots.length`).

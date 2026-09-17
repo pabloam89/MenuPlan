@@ -62,7 +62,7 @@ import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { getDayMeals, getMeals, DAYS, weeklySlotBudget } from "./lib/planner.js";
-import { freqsEfectivos } from "./lib/reparto.js";
+import { freqsEfectivos, presupuestoDeTopes } from "./lib/reparto.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,
@@ -2074,14 +2074,20 @@ export default function App() {
         // grupo concreto, una decisión más específica que el reparto de la casa.
         if (working.reparto && Object.keys(working.reparto).length > 0) {
           const porGrupo = { ...(weekData.freqsByGroup ?? {}) };
+          const objetivoPorGrupo = {};
           for (const g of groups) {
+            const huecos = weeklySlotBudget(weekData, g).total;
+            const ejes = { freqs: working.freqsPedidos ?? {}, reparto: working.reparto };
+            // El OBJETIVO es el reparto exacto sobre los huecos: a dónde va el
+            // solver. Los TOPES llevan holgura (HOLGURA_TOPES): hasta dónde
+            // puede. Sin holgura los topes no tienen solución, y sin objetivo
+            // la holgura se convertiría en siete carnes. Ver lib/reparto.js.
+            objetivoPorGrupo[g.id] = freqsEfectivos(ejes, { presupuesto: huecos });
             if (porGrupo[g.id]) continue;
-            porGrupo[g.id] = freqsEfectivos(
-              { freqs: working.freqsPedidos ?? {}, reparto: working.reparto },
-              { presupuesto: weeklySlotBudget(weekData, g).total },
-            );
+            porGrupo[g.id] = freqsEfectivos(ejes, { presupuesto: presupuestoDeTopes(huecos) });
           }
           weekData.freqsByGroup = porGrupo;
+          weekData.objetivoByGroup = objetivoPorGrupo;
         }
         const crossWeek = varietyPref === "relaxed" || weekCount <= 1
           ? null

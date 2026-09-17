@@ -2,10 +2,12 @@ import { describe, it, expect } from "vitest";
 import {
   TOTAL, PRESUPUESTO, normalizar, repartoPorDefecto, mover,
   repartoAFreqs, freqsAReparto, freqsEfectivos, rutaDeReparto,
-  repartoVisible, repartoConFreq,
+  repartoVisible, repartoConFreq, presupuestoDeTopes, HOLGURA_TOPES,
 } from "./reparto.js";
-import { DEFAULT_FREQS } from "./aiPlanner.js";
+import { DEFAULT_FREQS, buildGroupContext } from "./aiPlanner.js";
 import { FAMILIAS } from "./notepadFields.js";
+import { filterRecipes } from "../utils/filterRecipes.js";
+import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 
 const suma = (r) => FAMILIAS.reduce((a, f) => a + r[f], 0);
 
@@ -338,5 +340,33 @@ describe("pedirlo por voz mueve el slider", () => {
 describe("vive en la libreta como todo lo demás", () => {
   it("la ruta tiene el formato de notepadFields", () => {
     expect(rutaDeReparto("pescado")).toBe("reparto.pescado");
+  });
+});
+
+describe("la holgura de los topes", () => {
+  // Los `freqs` son máximos que se SOLAPAN: "Revuelto de gambas" gasta huevos y
+  // pescado a la vez. Bajar el reparto a exactamente los huecos dejaba un
+  // problema sin solución (el solver lo demostró: 12 de 21 huecos tras agotar
+  // la búsqueda). La holgura es lo que miden los platos, no un número elegido.
+  it("21 huecos son 29 puntos de tope", () => {
+    expect(presupuestoDeTopes(21)).toBe(29);
+    expect(presupuestoDeTopes(9)).toBe(13);
+    expect(presupuestoDeTopes(0)).toBe(1);
+  });
+
+  it("HOLGURA_TOPES es la media real de topes por plato del pool servible", () => {
+    const casa = {
+      members: [{ id: "m1", age: 38 }, { id: "m2", age: 40 }],
+      groups: [{ id: "g1", label: "Adultos", memberIds: ["m1", "m2"] }],
+      meals: ["Comida", "Cena"], schedule: {}, slotType: {},
+      cookLevel: "normal", timeWeekday: 45, timeWeekend: 60,
+    };
+    const ctx = buildGroupContext(casa, casa.groups[0]);
+    const { recipes } = filterRecipes(ctx.filterOpts);
+    const matchers = Object.values(FREQ_KEY_MATCHERS);
+    const media = recipes.reduce((a, r) => a + matchers.filter((m) => m(r)).length, 0) / recipes.length;
+    // Si esto falla, el catálogo ha cambiado de forma: vuelve a medir y ajusta
+    // la constante, no el test.
+    expect(Math.abs(media - HOLGURA_TOPES)).toBeLessThan(0.15);
   });
 });
