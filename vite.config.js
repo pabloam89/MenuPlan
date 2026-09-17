@@ -145,9 +145,19 @@ export default defineConfig(({ mode }) => {
     env.VITE_APP_VERSION ||
     'dev'
 
+  // Qué motor asigna los platos (ver solverActivo en src/lib/solver.js). En
+  // los builds de la rama `staging` el solver va encendido por defecto; en
+  // producción y en local sigue el modelo, salvo que VITE_MOTOR diga otra
+  // cosa. Así staging prueba el solver con casas reales sin tocar prod, y un
+  // navegador concreto puede volver al modelo con localStorage.mp_motor.
+  const gitRef = process.env.VERCEL_GIT_COMMIT_REF || env.VERCEL_GIT_COMMIT_REF || ''
+  const motor =
+    process.env.VITE_MOTOR || env.VITE_MOTOR || (gitRef === 'staging' ? 'solver' : 'modelo')
+
   return {
     define: {
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+      'import.meta.env.VITE_MOTOR': JSON.stringify(motor),
     },
     plugins: [
       react(),
