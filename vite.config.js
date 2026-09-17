@@ -130,7 +130,25 @@ function devDishPhotoApi(env) {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
+  // El commit del que sale este build, para sellar cada evento de analítica
+  // (ver APP_VERSION en src/lib/analytics.js). Vercel expone
+  // VERCEL_GIT_COMMIT_SHA en el entorno de build; en local no existe y queda
+  // "dev", que es exactamente lo que se quiere — así los eventos de un `npm run
+  // dev` no se mezclan con los de un deploy real.
+  //
+  // Sin esto, `import.meta.env.VITE_APP_VERSION` era siempre undefined y todos
+  // los eventos del histórico quedaron sellados con la misma constante: no hay
+  // forma de saber qué build produjo cuál, ni por tanto de medir si un cambio
+  // de motor mejoró algo.
+  const appVersion =
+    (process.env.VERCEL_GIT_COMMIT_SHA || env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) ||
+    env.VITE_APP_VERSION ||
+    'dev'
+
   return {
+    define: {
+      'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+    },
     plugins: [
       react(),
       devGenerateApi(env),
