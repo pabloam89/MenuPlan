@@ -77,6 +77,7 @@ describe("weekToRow / rowToWeek round-trip", () => {
       week_end: "2026-07-19",
       week_offset: 1,
       start_day_idx: 0,
+      active_days: null,
       plan: week.plan,
       shopping: week.shopping,
       schedule: week.schedule,
@@ -89,12 +90,34 @@ describe("weekToRow / rowToWeek round-trip", () => {
     expect(back).toEqual({
       offset: week.offset,
       startDayIdx: week.startDayIdx,
+      days: null,
       startISO: week.startISO,
       endISO: week.endISO,
       plan: week.plan,
       shopping: week.shopping,
       schedule: week.schedule,
     });
+  });
+
+  it("los días sueltos viajan a la tabla y vuelven", () => {
+    // Sin esto, una semana no contigua (L/X/V) releída desde `user_menu_weeks`
+    // volvía como semana entera: `start_day_idx` dice "desde el lunes", no
+    // "lunes, miércoles y viernes". Se perdían cuatro días en silencio.
+    const week = {
+      offset: 0, startDayIdx: 0, startISO: "2026-07-13", endISO: "2026-07-17",
+      days: ["Lun", "Mié", "Vie"], plan: {}, shopping: { items: [] }, schedule: {},
+    };
+    const row = weekToRow("user-1", "menu_abc", week.startISO, week);
+    expect(row.active_days).toEqual(["Lun", "Mié", "Vie"]);
+    expect(rowToWeek({ ...row }).days).toEqual(["Lun", "Mié", "Vie"]);
+  });
+
+  it("una lista vacía vuelve como null, no como cero días", () => {
+    // `[]` apagaría la semana entera aguas abajo (getWeekDatesFromStartISO);
+    // `null` significa "no se marcó nada", que es el comportamiento de siempre.
+    expect(weekToRow("u", "m", "2026-07-13", { offset: 0, endISO: "2026-07-19", days: [] }).active_days).toBeNull();
+    expect(rowToWeek({ week_offset: 0, start_day_idx: 0, active_days: [] }).days).toBeNull();
+    expect(rowToWeek({ week_offset: 0, start_day_idx: 0 }).days).toBeNull();
   });
 
   it("defaults missing plan/shopping/schedule to empty shapes", () => {

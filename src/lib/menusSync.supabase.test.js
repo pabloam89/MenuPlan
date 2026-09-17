@@ -202,7 +202,7 @@ describe("loadMenuDetail (mocked client)", () => {
     const detail = await loadMenuDetail("user-1", "menu_abc");
     expect(detail.menu.id).toBe("menu_abc");
     expect(detail.menu.weeks["2026-07-13"]).toEqual({
-      offset: 0, startDayIdx: 0, startISO: "2026-07-13", endISO: "2026-07-19",
+      offset: 0, startDayIdx: 0, days: null, startISO: "2026-07-13", endISO: "2026-07-19",
       plan: weekRow.plan, shopping: weekRow.shopping, schedule: weekRow.schedule,
     });
     expect(detail.recipes).toEqual([recipeRow.recipe_snapshot]);

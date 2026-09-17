@@ -52,6 +52,11 @@ export function weekToRow(userId, menuId, startISO, week, householdId = null) {
     week_end: week.endISO,
     week_offset: week.offset,
     start_day_idx: week.startDayIdx ?? 0,
+    // Los días sueltos marcados a mano. `start_day_idx` NO los representa: dice
+    // "desde el miércoles", no "lunes, miércoles y viernes". Sin esta columna
+    // una semana no contigua releída desde la tabla volvía como semana entera.
+    // NULL cuando no se marcó nada, que es el comportamiento de siempre.
+    active_days: Array.isArray(week.days) && week.days.length > 0 ? week.days : null,
     plan: week.plan ?? {},
     shopping: week.shopping ?? { items: [] },
     schedule: week.schedule ?? {},
@@ -62,6 +67,10 @@ export function rowToWeek(row) {
   return {
     offset: row.week_offset,
     startDayIdx: row.start_day_idx,
+    // `null` y no `[]`: el resto del código (getWeekDatesFromStartISO,
+    // computeWeekRange) distingue "no se marcaron días" de "se marcaron cero",
+    // y una lista vacía apagaría la semana entera.
+    days: Array.isArray(row.active_days) && row.active_days.length > 0 ? row.active_days : null,
     startISO: row.week_start,
     endISO: row.week_end,
     plan: row.plan ?? {},
