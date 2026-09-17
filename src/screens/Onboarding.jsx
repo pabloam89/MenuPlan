@@ -4557,7 +4557,31 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       : [data.menuWeek?.offset ?? 0];
     return [...new Set(raw)].sort((a, b) => a - b);
   }, [data.menuWeekOffsets, data.menuWeek]);
-  const sameForAllWeeks = data.menuScheduleSameForAllWeeks !== false;
+  // ¿Cubren todas las semanas los MISMOS días?
+  //
+  // Se puede elegir tres días de esta semana y cuatro de la siguiente
+  // (arrastrando en OnboardingWeek). Cuando eso pasa, "misma configuración en
+  // todas las semanas" no significa nada: las semanas ya son distintas de
+  // partida, y el toggle prometía copiar un horario entre calendarios que no
+  // se parecen.
+  const semanasIrregulares = useMemo(() => {
+    if (weekOffsets.length <= 1) return false;
+    const huellaDe = (offset) =>
+      getWeekDatesByMenuWeek({
+        offset,
+        startDayIdx: offset === weekOffsets[0] ? (data.menuWeek?.startDayIdx ?? 0) : 0,
+        days: weekEntry(data.menuWeekDays, offset) ?? null,
+      }).activeDays.join(",");
+    const primera = huellaDe(weekOffsets[0]);
+    return weekOffsets.some((o) => huellaDe(o) !== primera);
+  }, [weekOffsets, data.menuWeekDays, data.menuWeek]);
+
+  // Con semanas irregulares el toggle arranca APAGADO aunque nunca se haya
+  // tocado: el default de "todas iguales" solo tiene sentido cuando lo son.
+  // Sigue siendo pulsable — si el usuario lo enciende a propósito, manda él.
+  const sameForAllWeeks = semanasIrregulares
+    ? data.menuScheduleSameForAllWeeks === true
+    : data.menuScheduleSameForAllWeeks !== false;
   const [editingWeekOffset, setEditingWeekOffset] = useState(weekOffsets[0]);
   // Deselecting a week can leave this pointing at one that no longer exists;
   // falling back while rendering avoids the extra render an effect would cost.
@@ -4889,6 +4913,11 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         >
           <span style={{ fontSize: 12.5, fontWeight: 700, color: "#142f1d", paddingRight: 10 }}>
             Misma configuración en todas las semanas
+            {semanasIrregulares && (
+              <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#6b7d70", marginTop: 3, lineHeight: 1.3 }}>
+                Has elegido días distintos en cada semana
+              </span>
+            )}
           </span>
           <ToggleSwitch
             checked={sameForAllWeeks}

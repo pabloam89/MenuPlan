@@ -59,6 +59,7 @@ import {
   Undo2,
   Users,
   Utensils,
+  Tag,
   UtensilsCrossed,
   Wand2,
   Wheat,
@@ -4715,6 +4716,12 @@ export const MenuScreen = memo(function MenuScreen({
   // a two-tap mode (`armed`), where the next dish/hueco tapped is the target;
   // "Cambiar" executes on the spot, no extra step.
   const [dishAction, setDishAction] = useState(null);
+  // Segundo nivel de "Cambiar". No es una barra nueva: es la MISMA
+  // `DishActionBar`, con el mismo ancla y los mismos estilos, a la que se le
+  // pasa otra lista de acciones. Así el submenú no puede desentonar con el
+  // menú del que sale, porque es él.
+  const [cambiarSub, setCambiarSub] = useState(false);
+  const cerrarAcciones = useCallback(() => { setDishAction(null); setCambiarSub(false); }, []);
   const [armed, setArmed] = useState(null); // null | { mode: "swap" | "duplicate" | "incoming", source }
 
   // Un plato copiado del menu de otra persona llega ya armado: has cruzado de
@@ -5626,26 +5633,50 @@ export const MenuScreen = memo(function MenuScreen({
           </div>
         )}
 
-        {dishAction && autoDemo !== "actions" && !readOnly && (
+        {dishAction && cambiarSub && autoDemo !== "actions" && !readOnly && (
           <DishActionBar
             anchor={dishAction.anchor}
-            onClose={() => setDishAction(null)}
+            onClose={cerrarAcciones}
+            actions={[
+              ...(onDishManualPick ? [{
+                id: "manual", Icon: BookOpen, label: "Elegir a mano",
+                onPick: () => { onDishManualPick(dishAction); cerrarAcciones(); },
+              }] : []),
+              {
+                id: "mismo", Icon: Tag, label: "Del mismo tipo",
+                // `sameCategory` acota el reemplazo a la categoría del plato que
+                // hay (carnes → otra carne). Ya existía en el motor
+                // (pickCatalogReplacement) y no lo usaba nadie.
+                onPick: () => { onDishReplace?.(dishAction, { sameCategory: true }); cerrarAcciones(); },
+              },
+            ]}
+          />
+        )}
+
+        {dishAction && !cambiarSub && autoDemo !== "actions" && !readOnly && (
+          <DishActionBar
+            anchor={dishAction.anchor}
+            onClose={cerrarAcciones}
             actions={[
               {
                 id: "regen", Icon: RotateCw, label: "Cambiar",
-                // Sin submenú de "cómo reemplazar": elige otra receta compatible
-                // con el hueco (mismo día/comida/curso) y la aplica ya — el
-                // criterio de "al azar" es cosa nuestra, no una decisión que deba
-                // tomar el usuario cada vez.
-                onPick: () => { onDishReplace?.(dishAction); setDishAction(null); },
+                // Abre un segundo nivel en vez de cambiar el plato de golpe.
+                //
+                // Hasta el 17 sep 2026 ejecutaba al toque, y el comentario de
+                // aquí defendía que el criterio de reemplazo "es cosa nuestra,
+                // no una decisión que deba tomar el usuario cada vez". Era
+                // razonable cuando no había selector manual; ahora sí lo hay
+                // (`onDishManualPick`, que abre el catálogo) y esconderlo
+                // detrás de una pulsación larga lo dejaba sin encontrar.
+                onPick: () => setCambiarSub(true),
               },
               {
                 id: "swap", Icon: ArrowLeftRight, label: "Mover",
-                onPick: () => { setArmed({ mode: "swap", source: dishAction }); setDishAction(null); },
+                onPick: () => { setArmed({ mode: "swap", source: dishAction }); cerrarAcciones(); },
               },
               {
                 id: "dup", Icon: CopyPlus, label: "Duplicar",
-                onPick: () => { setArmed({ mode: "duplicate", source: dishAction }); setDishAction(null); },
+                onPick: () => { setArmed({ mode: "duplicate", source: dishAction }); cerrarAcciones(); },
               },
               // "Uno mas": escribe una REGLA de invitado para ESTE hueco, no
               // un numero. A partir de ahi el comensal se cuenta solo, la
@@ -5659,11 +5690,11 @@ export const MenuScreen = memo(function MenuScreen({
                 // "Añadir" sería mentir sobre lo que hay detrás.
                 label: (invitadosPorHueco?.[`${dishAction.groupId}|${dishAction.day}|${dishAction.meal}`] ?? 0) > 0
                   ? "Comensales" : "Añadir comensal",
-                onPick: () => { setGuestFor(dishAction); setDishAction(null); },
+                onPick: () => { setGuestFor(dishAction); cerrarAcciones(); },
               }] : []),
               {
                 id: "clear", Icon: Trash2, label: "Quitar",
-                onPick: () => { onDishClear?.(dishAction); setDishAction(null); },
+                onPick: () => { onDishClear?.(dishAction); cerrarAcciones(); },
               },
               // Estructura: solo en comidas y cenas. En desayuno, merienda o
               // postre no hay primero y segundo que repartir, así que la barra
@@ -5671,7 +5702,7 @@ export const MenuScreen = memo(function MenuScreen({
               ...(onSlotStructure && isStructuralMeal(dishAction.meal)
                 ? [structureActionFor(dishAction, menuPlan, (structure) => {
                     onSlotStructure(dishAction, structure);
-                    setDishAction(null);
+                    cerrarAcciones();
                   })]
                 : []),
             ]}
