@@ -11,6 +11,7 @@ import {
   selectReplacementCandidates,
   callModel,
   poolForWeek,
+  validarNinosConCopias,
   createPlannerStats,
   compactCatalogTable,
 } from "./aiPlanner.js";
@@ -1495,6 +1496,50 @@ describe("poolForWeek — variedad multi-semana", () => {
     for (const w of weeks) expect(w.size).toBeGreaterThanOrEqual(slotCount);
   });
 
+  it("reparte cada CATEGORÍA entre las semanas, no la bolsa entera", () => {
+    // El bug que esto sujeta: el cubo salía de un hash del id sobre el pool
+    // completo, ciego a qué es cada receta. Con cuatro semanas, a una le podían
+    // tocar seis pescados y a otra uno — y la que se queda corta pierde su
+    // objetivo semanal de pescado con un aviso, mientras la otra va sobrada.
+    const catalogo = [];
+    for (const cat of ["carnes", "pescados", "legumbres", "huevos"]) {
+      for (let i = 0; i < 12; i++) catalogo.push({ id: `${cat}_${i}`, category: cat });
+    }
+    const weekCount = 4;
+    for (let weekIndex = 0; weekIndex < weekCount; weekIndex++) {
+      const semana = poolForWeek(catalogo, { weekIndex, weekCount, varietyPref: "strict" }, 4);
+      for (const cat of ["carnes", "pescados", "legumbres", "huevos"]) {
+        const n = semana.filter((r) => r.category === cat).length;
+        // 12 recetas entre 4 semanas: exactamente 3 de cada categoría.
+        expect(n).toBe(3);
+      }
+    }
+  });
+
+  it("y sigue siendo determinista y sin mirar a las otras semanas", () => {
+    const catalogo = Array.from({ length: 40 }, (_, i) => ({
+      id: `r${i}`,
+      category: i % 2 ? "carnes" : "pescados",
+    }));
+    const args = { weekIndex: 1, weekCount: 3, varietyPref: "strict" };
+    const a = poolForWeek(catalogo, args, 5).map((r) => r.id);
+    const b = poolForWeek(catalogo, args, 5).map((r) => r.id);
+    expect(a).toEqual(b);
+  });
+
+  it("conserva el orden del pool original (importa para el fallback)", () => {
+    // El fallback coge "el primero que pasa" y `ordenarPorSesgo` es un sort
+    // estable encima: si la partición reordenara el pool, cambiaría en silencio
+    // qué plato sale elegido.
+    const catalogo = Array.from({ length: 40 }, (_, i) => ({
+      id: `r${i}`,
+      category: i % 3 === 0 ? "carnes" : i % 3 === 1 ? "pescados" : "huevos",
+    }));
+    const semana = poolForWeek(catalogo, { weekIndex: 0, weekCount: 3, varietyPref: "strict" }, 5);
+    const posiciones = semana.map((r) => catalogo.findIndex((c) => c.id === r.id));
+    expect(posiciones).toEqual([...posiciones].sort((a, b) => a - b));
+  });
+
   it("strict con pool ajustado: hace top-up best-effort sin fallar (no lanza)", () => {
     const small = Array.from({ length: 14 }, (_, i) => ({ id: `s${i}` }));
     expect(() =>
@@ -1545,5 +1590,74 @@ describe("mergeIngredientLines", () => {
       { name: "Pimienta", qty: null, unit: "al gusto" },
     ]);
     expect(merged).toEqual([expect.objectContaining({ name: "Pimienta", qty: null })]);
+  });
+});
+
+describe("validarNinosConCopias — las cenas de los niños ven sus comidas copiadas", () => {
+  // El bug: los huecos de Niños que copian del menú de Adultos se saltan en
+  // buildGroupContext y se materializan en la hidratación, fuera del
+  // validador. Así que el grupo Niños se validaba a solas con sus cenas, sin
+  // ver nunca sus comidas: los adultos comían pollo, se copiaba al niño, y al
+  // niño se le generaba aparte un pollo de cena que nadie veía como repetición.
+  const receta = (id, mainProtein, mealRole, extra = {}) => ({
+    id, name: id, mainProtein, mealRole, category: "carnes",
+    ingredients: [], allergens: [], time: 20, kcal: 400, ...extra,
+  });
+  const adults = { id: "ga", label: "Adultos", memberIds: ["a1"] };
+  const kids = { id: "gk", label: "Niños", memberIds: ["k1"] };
+  const data = {
+    members: [{ id: "a1", age: 40 }, { id: "k1", age: 8 }],
+    groups: [adults, kids],
+    schedule: {},
+    // Mediodía en familia (se copia de los adultos), cena aparte (se genera).
+    kidDinnerConfig: { byMember: { k1: { weekdayLunch: "together", dinner: "different", weekend: "together" } } },
+  };
+  const crema = receta("crema", "none", ["primero"], { category: "sopas_cremas" });
+  const polloSeg = receta("pollo_seg", "pollo", ["segundo"]);
+  const polloCena = receta("pollo_cena", "pollo", ["cena"]);
+  const merluzaCena = receta("merluza_cena", "pescado_blanco", ["cena"], { category: "pescados" });
+  const ctx = (slotId, mealType, position) =>
+    ({ slotId, mealType, position, day: "Lun", daySlug: "lun", eaters: 2, mode: "casa", maxTime: 60 });
+  const adultsRes = () => ({
+    group: adults,
+    slotAssignments: [{ slotId: "lun_comida_1", recipeId: "crema" }, { slotId: "lun_comida_2", recipeId: "pollo_seg" }],
+    filteredPool: [crema, polloSeg],
+    slotsContext: [ctx("lun_comida_1", "comida", "primero"), ctx("lun_comida_2", "comida", "segundo")],
+    warnings: [],
+  });
+  const kidsRes = (cena) => ({
+    group: kids,
+    slotAssignments: [{ slotId: "lun_cena", recipeId: cena }],
+    filteredPool: [polloCena, merluzaCena],
+    slotsContext: [ctx("lun_cena", "cena", undefined)],
+    warnings: [],
+  });
+
+  it("repara la cena propia cuando repite la proteína de la comida copiada", () => {
+    const a = adultsRes();
+    const k = kidsRes("pollo_cena");
+    validarNinosConCopias(data, a, k);
+    expect(k.slotAssignments).toEqual([{ slotId: "lun_cena", recipeId: "merluza_cena" }]);
+    // La comida de los padres no se toca: es su decisión, no la del niño.
+    expect(a.slotAssignments[1].recipeId).toBe("pollo_seg");
+  });
+
+  it("no toca nada cuando no hay choque", () => {
+    const k = kidsRes("merluza_cena");
+    validarNinosConCopias(data, adultsRes(), k);
+    expect(k.slotAssignments).toEqual([{ slotId: "lun_cena", recipeId: "merluza_cena" }]);
+    expect(k.warnings).toEqual([]);
+  });
+
+  it("solo devuelve los huecos propios: los copiados no se cuelan en el resultado", () => {
+    const k = kidsRes("pollo_cena");
+    validarNinosConCopias(data, adultsRes(), k);
+    expect(k.slotAssignments.map((s) => s.slotId)).toEqual(["lun_cena"]);
+  });
+
+  it("sin política de niños no hace nada", () => {
+    const k = kidsRes("pollo_cena");
+    validarNinosConCopias({ ...data, kidDinnerConfig: undefined }, adultsRes(), k);
+    expect(k.slotAssignments[0].recipeId).toBe("pollo_cena");
   });
 });

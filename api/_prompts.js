@@ -47,7 +47,7 @@ OBJETIVOS SEMANALES (config.freqs) — MÁXIMOS por semana, no mínimos:
   - pescado: category "pescados" o mainProtein pescado_blanco/pescado_azul/marisco
   - legumbres: category "legumbres" o mainProtein legumbre
   - huevos: category "huevos" o mainProtein huevo
-  - pasta_arroz: category "pasta_arroces"
+  - pasta_arroz: category "pasta_arroces", O cualquier plato con mainBase arroz/pasta/quinoa/cuscus (un pollo tikka con arroz cuenta como pasta_arroz Y como carne). Ojo: mainBase patatas o boniato NO cuenta aquí
   - verdura: category "ensaladas_verduras" o "sopas_cremas" (van sobre todo en el primero de la comida)
 - Reparte el resto de huecos (los que no hacen falta para llegar a ningún máximo) con variedad, sin amontonar en una sola categoría aunque ninguna tenga tope explícito.
 
@@ -68,13 +68,13 @@ RESTRICCIONES POR SLOT:
   · slot con preferType "plato_unico" → receta con mealRole "plato_unico" (ver más abajo).
   Un plato de solo cena (p. ej. quesadillas, tostas, wraps) NUNCA va en una comida. Un "plato_unico" (lasaña, paella, carbonara…) ES la comida entera: no lo pongas de primero con un segundo detrás, solo en un hueco marcado como plato único.
 - Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
-- Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
-- Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/boniato/quinoa/cuscus) en la CENA de ese día.
+- Si un slot trae schoolProteinsToAvoid, no uses esas proteínas EN ESE SLOT. Normalmente es la cena, pero cuando los niños cenan lo que los adultos comieron al mediodía el campo viaja en el slot de COMIDA: respétalo esté donde esté.
+- Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/boniato/quinoa/cuscus) EN ESE SLOT, con el mismo criterio.
 - Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
 - Si un slot trae preferType "plato_unico" (excepción marcada por el usuario), asígnale una receta con mealRole "plato_unico" (paella, pizza, guiso completo…). Ese día NO lleva primero ni segundo: solo el slot _comida_1 con ese plato.
-- Si un slot trae preferType "cena_rapida", asígnale una receta de category "cenas_rapidas" (sándwich, tosta, ensalada, revuelto…): algo ligero y rápido (≤ 15 min).
-- Si un slot trae preferType "comida_rapida", asígnale un plato de comida rápido (≤ 15 min): ensalada, filete/pescado a la plancha, tortilla, revuelto… NUNCA uses category "cenas_rapidas" ahí.
-- NUNCA uses una receta de category "cenas_rapidas" en un slot que NO tenga preferType "cena_rapida". Esa categoría es solo para el hueco marcado explícitamente por el usuario como cena rápida.
+- Si un slot trae preferType "cena_rapida", asígnale una receta de MONTAJE (sándwich, tosta, wrap, tabla, ensalada de asamblaje: las que traen montaje = 1) O bien una receta con mealRole "cena", difficulty "facil" y time < 20. Algo ligero que se resuelve en un momento.
+- Si un slot trae preferType "comida_rapida", asígnale un plato de comida rápido (≤ 15 min): ensalada, filete/pescado a la plancha, tortilla, revuelto… NUNCA uses ahí una receta de montaje (montaje = 1).
+- NUNCA uses una receta de montaje (montaje = 1) en un slot que NO tenga preferType "cena_rapida". Son solo para el hueco marcado explícitamente por el usuario como cena rápida.
 - Si hay platos a repetir (fixedDishes), cada plato debe aparecer exactamente timesPerWeek veces a lo largo de la semana, en slots del tipo indicado en meals (comida o cena) y REPARTIDO en días distintos (no días seguidos). Colócalo en la posición que le corresponda por su mealRole: si es "primero" va en comida_1, si es "segundo" va en comida_2, si es "cena" en el hueco de cena. NUNCA pongas una verdura/primero como segundo (plato principal): el día debe conservar su proteína. Usa SOLO recipeIds del catálogo: si catalogMatches trae ids usa uno de esos; si está vacío elige la receta más parecida por nombre; NUNCA inventes ids.
 
 IMPORTANTE: Debes cubrir TODOS los slots del listado. Cada día tiene 3 huecos (comida_1, comida_2, cena) o 2 si usas plato_unico. No omitas ninguno.

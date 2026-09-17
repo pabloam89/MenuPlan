@@ -1876,6 +1876,7 @@
   {
     "id": "cenas_rapidas_061",
     "name": "Patatas bravas al horno",
+    "montaje": false,
     "mainProtein": "none",
     "mainBase": "patatas",
     "baseMode": "aparte",

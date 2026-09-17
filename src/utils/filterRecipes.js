@@ -625,6 +625,13 @@ export function decisionCatalog(filteredRecipes) {
     if (r.pantryScore > 0) {
       entry.pantryScore = Math.round(r.pantryScore * 100) / 100;
     }
+    // Plato de MONTAJE (sándwich, tosta, tabla, ensalada de asamblaje). El
+    // prompt lo nombra dos veces —"solo en un hueco de cena rápida", "nunca en
+    // uno de comida rápida"— y hasta ahora no viajaba, así que el modelo tenía
+    // que adivinarlo por el nombre. Se manda con `isMontaje` y no con
+    // `r.montaje` para respetar el fallback a la categoría deprecada que
+    // arrastran las recetas de usuario ya guardadas (ver recipeSchema.js).
+    if (isMontaje(r)) entry.montaje = true;
     // Signals for prioritization (only present when true, to keep payload lean).
     if (r.isFavorite) entry.favorite = true;
     if (r.source === "user") entry.own = true;

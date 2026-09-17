@@ -12,10 +12,14 @@ const PROTEIN_GROUP_MAP = {
   legumbre: "legumbres", huevo: "huevos",
 };
 
-/** True when placing `recipe` in the cena slot at `ctx` would reintroduce a
- * protein or carb base the school menu already served that day (validateMenu
- * rules 4 / 4b). Only meaningful for cena — comida slots never carry
- * schoolProteinsToAvoid/schoolCarbsToAvoid. */
+/** True when placing `recipe` at `ctx` would reintroduce a protein or carb base
+ * the school menu already served that day (validateMenu rules 4 / 4b).
+ *
+ * Se comprueba por PRESENCIA del campo, no por tipo de comida, y es lo correcto:
+ * el comentario anterior decía que solo la cena lleva estos campos y era falso
+ * desde que existe "el niño cena lo del mediodía" (`reuseColeDinner`), donde
+ * viajan en el slot de COMIDA de los adultos. Esta función ya acertaba; las
+ * reglas 4/4b y la reparación filtraban por `cena` y no. */
 function conflictsWithSchoolMenu(recipe, ctx) {
   if (!ctx) return false;
   if (ctx.schoolProteinsToAvoid?.length) {

@@ -277,12 +277,28 @@ function mainMealsOf(mealOrder, poolById) {
 // pescado cap couldn't see it at all. That let marisco dishes stack up
 // unbounded regardless of the configured limit (a tester reported gambas in
 // nearly every slot of the week).
+// Las bases que son fécula "de plato" — las que hacen que un plato cuente como
+// pasta_arroz aunque esté archivado en carnes o ensaladas. Subconjunto
+// deliberado de MAIN_BASES: sin patatas/boniato (guarnición) ni legumbre (ya
+// cuenta por proteína). Ver el comentario de `pasta_arroz` justo debajo.
+const FECULAS = new Set(["arroz", "pasta", "quinoa", "cuscus"]);
+
 export const FREQ_KEY_MATCHERS = {
   carne: (r) => r.category === "carnes" || proteinGroupsOf(r).has("carne"),
   pescado: (r) => r.category === "pescados" || proteinGroupsOf(r).has("pescado"),
   legumbres: (r) => r.category === "legumbres" || proteinGroupsOf(r).has("legumbres"),
   huevos: (r) => r.category === "huevos" || proteinGroupsOf(r).has("huevos"),
-  pasta_arroz: (r) => r.category === "pasta_arroces",
+  // Por categoría O por `mainBase` declarado. Solo la categoría dejaba fuera
+  // 29 platos del estrella que ENTREGAN una ración de fécula y viven en otro
+  // cajón: "Lomo saltado" y "Pollo tikka masala" (carnes, mainBase arroz),
+  // "Tabulé de cuscús" (ensaladas, mainBase cuscus), los bowls de quinoa…
+  // Cuatro días de pollo con arroz y el tope de pasta_arroz no se enteraba.
+  //
+  // Solo las FÉCULAS de verdad (arroz, pasta, quinoa, cuscús). `patatas` y
+  // `boniato` se quedan fuera a propósito: la patata es guarnición, no plato,
+  // y no va en este cubo — la vigilan las reglas 9 y 14 por `carbType` y, el
+  // día que haga falta, un tope propio. `legumbre` ya cuenta por mainProtein.
+  pasta_arroz: (r) => r.category === "pasta_arroces" || FECULAS.has(r.mainBase),
   verdura: (r) => r.category === "ensaladas_verduras" || r.category === "sopas_cremas",
 };
 
@@ -679,9 +695,19 @@ export function validateMenu(
     });
   }
 
-  // 4. schoolProteinsToAvoid respected in cena
-  for (const { slotId, recipeId, mealType } of mealOrder) {
-    if (mealType !== "cena") continue;
+  // 4. schoolProteinsToAvoid respetado DONDE ESTÉ EL CAMPO, no solo en cena.
+  //
+  // Llevaba un `if (mealType !== "cena") continue` y era un fallo real. Cuando
+  // los niños cenan lo que los padres comieron al mediodía (`reuseColeDinner`),
+  // `buildGroupContext` cuelga este campo del SEGUNDO DE LA COMIDA de los
+  // adultos — porque esa comida es lo que el niño va a cenar. El filtro por
+  // `cena` lo saltaba, así que el día que el niño comía pollo en el cole nada
+  // impedía que los padres comieran pollo. La restricción estaba puesta y no la
+  // leía nadie, ni aquí, ni en la reparación, ni en el prompt.
+  //
+  // El campo solo lo llevan los huecos que lo necesitan, así que mirar si está
+  // presente es más preciso que adivinar por el tipo de comida.
+  for (const { slotId, recipeId } of mealOrder) {
     const ctx = contextBySlot[slotId];
     if (!ctx?.schoolProteinsToAvoid?.length) continue;
     const recipe = poolById[recipeId];
@@ -696,12 +722,10 @@ export function validateMenu(
     }
   }
 
-  // 4b. schoolCarbsToAvoid respected in cena — same idea as rule 4 above but
-  // for the carbohydrate base (e.g. school served arroz at lunch, so dinner
-  // shouldn't also be arroz-based). Reuses the same carb taxonomy as rule 9's
-  // same-day guarnición-repetida check below, via getCarbType.
-  for (const { slotId, recipeId, mealType } of mealOrder) {
-    if (mealType !== "cena") continue;
+  // 4b. schoolCarbsToAvoid — misma idea que la 4, y mismo arreglo: se mira
+  // donde esté el campo, no solo en la cena (el arroz del cole tiene que
+  // bloquear también la comida de los padres si es lo que el niño va a cenar).
+  for (const { slotId, recipeId } of mealOrder) {
     const ctx = contextBySlot[slotId];
     if (!ctx?.schoolCarbsToAvoid?.length) continue;
     const recipe = poolById[recipeId];
@@ -1556,11 +1580,15 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
 
       if (ctx?.mode === "tupper" && !r.tupperFriendly) return false;
 
-      if (mealType === "cena" && ctx?.schoolProteinsToAvoid) {
+      // Sin filtrar por `cena`: el campo solo lo llevan los huecos que lo
+      // necesitan, y con "el niño cena lo del mediodía" ese hueco es la COMIDA
+      // de los adultos (ver reglas 4 y 4b). Filtrar por tipo de comida dejaba la
+      // reparación ciega justo en ese caso.
+      if (ctx?.schoolProteinsToAvoid) {
         if ([...proteinGroupsOf(r)].some((g) => ctx.schoolProteinsToAvoid.includes(g))) return false;
       }
 
-      if (mealType === "cena" && ctx?.schoolCarbsToAvoid) {
+      if (ctx?.schoolCarbsToAvoid) {
         const carb = getCarbType(r);
         if (carb && ctx.schoolCarbsToAvoid.includes(carb)) return false;
       }

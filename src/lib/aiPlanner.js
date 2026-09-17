@@ -672,7 +672,7 @@ export function buildGroupContext(data, group) {
 const COMPACT_CATALOG_COLUMNS = [
   "id", "name", "category", "mainProtein", "mealRole", "time", "kcal",
   "kidFriendly", "tupperFriendly", "mainBase", "extraProteins", "cocina",
-  "protein_g", "carbs_g", "fat_g", "healthFlags", "pantryScore", "favorite", "own",
+  "protein_g", "carbs_g", "fat_g", "healthFlags", "pantryScore", "montaje", "favorite", "own",
 ];
 
 function compactCell(value) {
@@ -998,9 +998,10 @@ const LLMResponseSchema = z.preprocess(
 // ── Cross-week variety (parallel-safe) ──────────────────────────
 // Multi-week menús are generated in parallel (see App.jsx#regenerateMenu), so a
 // week can't look at what the previous week picked. Instead of a runtime
-// exclusion set, each recipe gets a STABLE bucket in [0, weekCount); a week
-// keeps its own bucket and only tops up from other buckets to stay above a safe
-// floor. Different weeks therefore lean toward disjoint dishes, deterministically
+// exclusion set, each recipe gets a STABLE bucket in [0, weekCount) *within its
+// own category*; a week keeps its own bucket and only tops up from other buckets
+// to stay above a safe floor. Different weeks therefore lean toward disjoint
+// dishes — and toward a comparable mix of meat/fish/legume/etc — deterministically
 // and without any inter-week dependency. "relaxed" disables it; "moderate" uses
 // a higher floor than "strict" (more overlap allowed, milder bias).
 
@@ -1025,12 +1026,43 @@ export function poolForWeek(pool, crossWeek, slotCount) {
       : Math.max(slotCount * 2, 12);
   if (pool.length <= floor) return pool;
 
-  const own = [];
-  const rest = [];
+  // ── Se reparte DENTRO de cada categoría, no sobre el pool entero ────────
+  //
+  // Antes el cubo salía de `hashId(r.id) % weekCount` sobre la bolsa completa,
+  // que es ciego a QUÉ es cada receta: con cuatro semanas, a una le podían
+  // tocar seis pescados y a otra uno. La que se queda corta pierde su objetivo
+  // semanal —`splitAchievableFreqs` lo descarta con un aviso— y la otra va
+  // sobrada. El sesgo entre semanas salía gratis y el desequilibrio también.
+  //
+  // Estratificando por `category` (que es lo que cuentan las claves de `freqs`)
+  // cada semana recibe su parte proporcional de cada familia. Se conservan las
+  // dos propiedades que hacen que esto funcione en paralelo: es DETERMINISTA
+  // —misma entrada, misma salida— y no depende de lo que eligiera otra semana.
+  const porEstrato = new Map();
   for (const r of pool) {
-    if (hashId(r.id) % weekCount === weekIndex % weekCount) own.push(r);
-    else rest.push(r);
+    const k = r.category ?? "sin_categoria";
+    if (!porEstrato.has(k)) porEstrato.set(k, []);
+    porEstrato.get(k).push(r);
   }
+  const elegidos = new Set();
+  for (const recetas of porEstrato.values()) {
+    // Se ordena por hash y no por id: los ids del catálogo van por orden de
+    // alta dentro de su fichero, así que un reparto por posición podía
+    // correlacionar con el rol del plato (los primeros cincuenta "carnes" no
+    // son una muestra representativa de las carnes).
+    const ordenadas = [...recetas].sort(
+      (a, b) => hashId(a.id) - hashId(b.id) || (a.id < b.id ? -1 : 1),
+    );
+    ordenadas.forEach((r, i) => {
+      if (i % weekCount === weekIndex % weekCount) elegidos.add(r.id);
+    });
+  }
+  // Se filtra el pool original en vez de devolver las recetas ya agrupadas: el
+  // ORDEN del pool significa algo aguas abajo (el fallback coge "el primero que
+  // pasa", y `ordenarPorSesgo` es un sort estable encima de él), así que
+  // reordenarlo por categoría cambiaría en silencio qué plato sale.
+  const own = pool.filter((r) => elegidos.has(r.id));
+  const rest = pool.filter((r) => !elegidos.has(r.id));
   if (own.length >= floor) return own;
 
   const need = floor - own.length;
@@ -1116,7 +1148,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // dice, en vez de colocar un plato suelto y llamarlo tanda.
   const { alcanzables: basesDeLaSemana, warnings: baseWarnings } = basesAlcanzables(
     filteredPool,
-    basesPedidas(data?.sesgos),
+    basesPedidas(data?.tanda),
     ctx.slots.length,
   );
   for (const msg of baseWarnings) warnings.push(`${group.label}: ${msg}`);
@@ -1826,6 +1858,101 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   return out;
 }
 
+/**
+ * Valida el menú de los Niños incluyendo los platos que van a copiar de los
+ * Adultos, y repara solo los huecos propios del niño. Muta `kidsRes` en sitio
+ * (`slotAssignments` y `warnings`), igual que hace el resto del pipeline con
+ * sus resultados. Ver el comentario en generateMenuWithAI.
+ *
+ * Lo que se sintetiza, hueco a hueco, según `kidsSlotAction`:
+ *   adultLunch  → Comida   los dos huecos de comida de los adultos, tal cual
+ *   adultLunch  → Cena     el SEGUNDO de los adultos como cena del niño (es lo
+ *                          que se come; el primero no lleva la proteína del día)
+ *   adultDinner → Cena     la cena de los adultos, tal cual
+ *
+ * Limitación conocida: una violación que caiga SOBRE un hueco copiado (p. ej.
+ * la cena propia del lunes choca con la comida copiada del martes — la regla 3
+ * señala el segundo de los dos) no se repara, porque tocarla sería cambiar la
+ * comida de los padres. Es el caso raro; el común —comida copiada → cena propia
+ * el mismo día— cae siempre sobre el hueco propio y sí se arregla.
+ */
+// Exported for tests only — not used elsewhere outside this module.
+export function validarNinosConCopias(data, adultsRes, kidsRes) {
+  const adultBySlot = Object.fromEntries(adultsRes.slotAssignments.map((s) => [s.slotId, s]));
+  const adultCtxBySlot = Object.fromEntries(adultsRes.slotsContext.map((s) => [s.slotId, s]));
+  const adultPoolById = Object.fromEntries(adultsRes.filteredPool.map((r) => [r.id, r]));
+
+  const copiadas = [];
+  const copiadasCtx = [];
+  const copiadasRecetas = new Map();
+  const sintetiza = (dstSlotId, srcSlotId, mealType, position) => {
+    const src = adultBySlot[srcSlotId];
+    const receta = src && adultPoolById[src.recipeId];
+    if (!receta) return;
+    const ctx = adultCtxBySlot[srcSlotId] ?? {};
+    copiadas.push({ slotId: dstSlotId, recipeId: src.recipeId });
+    copiadasCtx.push({
+      slotId: dstSlotId, mealType, position,
+      day: ctx.day, daySlug: ctx.daySlug, eaters: ctx.eaters, mode: ctx.mode, maxTime: ctx.maxTime,
+      // Marca para quien lea el contexto: este hueco es de los padres.
+      copiado: true,
+    });
+    copiadasRecetas.set(receta.id, receta);
+  };
+
+  for (const day of DAYS) {
+    const slug = DAY_SLUG[day];
+    for (const meal of ["Comida", "Cena"]) {
+      const action = kidsSlotAction(data, day, meal);
+      if (action === "adultLunch" && meal === "Comida") {
+        sintetiza(`${slug}_comida_1`, `${slug}_comida_1`, "comida", "primero");
+        sintetiza(`${slug}_comida_2`, `${slug}_comida_2`, "comida", "segundo");
+      } else if (action === "adultLunch" && meal === "Cena") {
+        // Si los adultos comieron plato único, el "segundo" es el comida_1.
+        const main = adultBySlot[`${slug}_comida_2`] ? `${slug}_comida_2` : `${slug}_comida_1`;
+        sintetiza(`${slug}_cena`, main, "cena", undefined);
+      } else if (action === "adultDinner") {
+        sintetiza(`${slug}_cena`, `${slug}_cena`, "cena", undefined);
+      }
+    }
+  }
+  if (copiadas.length === 0) return;
+
+  const propios = new Set(kidsRes.slotAssignments.map((s) => s.slotId));
+  // Los copiados nunca pisan un propio: si por lo que sea coinciden, manda el
+  // hueco que el niño generó para sí.
+  const copiadasLimpias = copiadas.filter((s) => !propios.has(s.slotId));
+  const copiadasCtxLimpias = copiadasCtx.filter((s) => !propios.has(s.slotId));
+
+  const asignaciones = [...kidsRes.slotAssignments, ...copiadasLimpias];
+  const contextos = [...kidsRes.slotsContext, ...copiadasCtxLimpias];
+  // El pool del niño más las recetas copiadas, para que el validador las
+  // resuelva (regla 1) y vea su proteína (reglas 3, 3c, 15). Las copiadas van
+  // al FINAL: applyFallback coge "el primero que pasa" y prefiere no usadas,
+  // así que solo las elegiría como último recurso — y en ese caso ya son
+  // platos que el niño come ese mismo día.
+  const kidsIds = new Set(kidsRes.filteredPool.map((r) => r.id));
+  const pool = [
+    ...kidsRes.filteredPool,
+    ...[...copiadasRecetas.values()].filter((r) => !kidsIds.has(r.id)),
+  ];
+
+  const check = validateMenu(asignaciones, pool, contextos, [], {}, {});
+  if (check.valid) return;
+  const sobrePropios = check.violations.filter((v) => propios.has(v.slotId));
+  if (sobrePropios.length === 0) return;
+
+  const reparadas = applyFallback(asignaciones, sobrePropios, pool, contextos, [], null, null);
+  // Solo vuelven al resultado los huecos propios; los copiados se descartan
+  // aquí y la hidratación los volverá a materializar desde el menú de Adultos.
+  kidsRes.slotAssignments = reparadas.filter((s) => propios.has(s.slotId));
+  for (const v of reparadas.unfixedViolations ?? []) {
+    kidsRes.warnings.push(
+      `${kidsRes.group.label}: no se pudo evitar "${v.rule}" en ${v.slotId} respecto a lo que comen con los adultos.`,
+    );
+  }
+}
+
 export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL, groupCache = null, stats = null, plannerFormat = "json" } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
@@ -1863,6 +1990,28 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     return result;
   };
   const results = await Promise.all(activeGroups.map(runGroup));
+
+  // ── Los niños, validados CON lo que van a comer copiado ──────────────────
+  //
+  // Los huecos de Niños que copian del menú de Adultos (mediodía en familia,
+  // "cena como los padres", "lo del mediodía" los días de cole, finde juntos)
+  // se SALTAN en buildGroupContext y se materializan en la hidratación de más
+  // abajo, ya fuera del validador. Así que el grupo Niños se validaba a solas
+  // con sus huecos propios — sus cenas, normalmente — sin ver nunca sus
+  // comidas. La regla 3 (proteína seguida comida→cena) no podía saltar: los
+  // adultos comían pollo, se copiaba a los niños, y a los niños se les
+  // generaba aparte un pollo de cena que nadie veía como repetición.
+  //
+  // Se arregla AQUÍ, sobre los resultados crudos y antes de hidratar, para no
+  // tocar ni la hidratación ni el bloque de copia: se sintetizan los huecos
+  // copiados con el plato de los adultos, se valida el conjunto, y se reparan
+  // SOLO los huecos propios del niño — los copiados son la comida de la
+  // familia y no se tocan. Sin serializar los grupos: siguen en paralelo.
+  if (householdKidPolicy(data)) {
+    const adultsRes = results.find((r) => r.group.label === "Adultos");
+    const kidsRes = results.find((r) => r.group.label === "Niños");
+    if (adultsRes && kidsRes) validarNinosConCopias(data, adultsRes, kidsRes);
+  }
 
   const multi = results.length > 1;
   const plan = { _warnings: [] };

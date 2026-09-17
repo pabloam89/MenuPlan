@@ -330,6 +330,46 @@ describe("validateMenu", () => {
     expect(violations.map((v) => v.rule)).toContain("school_protein_conflict");
   });
 
+  it("flags a school-avoided protein in a COMIDA slot (niños cenan lo del mediodía)", () => {
+    // El fallo que esto sujeta: con `reuseColeDinner`, buildGroupContext cuelga
+    // schoolProteinsToAvoid del SEGUNDO DE LA COMIDA de los adultos, porque esa
+    // comida es lo que el niño cenará. Las reglas 4/4b filtraban por
+    // `mealType === "cena"` y se lo saltaban: el día que el niño comía pollo en
+    // el cole, nada impedía que los padres comieran pollo. La restricción estaba
+    // puesta y no la leía nadie.
+    const pool = [
+      recipe({ id: "p", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "a", mainProtein: "pollo", mealRole: ["segundo"] }),
+    ];
+    const slots = [
+      slot("lun_comida_1", { mealType: "comida", position: "primero" }),
+      slot("lun_comida_2", { mealType: "comida", position: "segundo", schoolProteinsToAvoid: ["carne"] }),
+    ];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "p" },
+      { slotId: "lun_comida_2", recipeId: "a" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("school_protein_conflict");
+  });
+
+  it("y lo mismo con la base de hidratos en un hueco de comida", () => {
+    const pool = [
+      recipe({ id: "p", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "a", name: "Merluza con arroz", mainProtein: "pescado_blanco", mealRole: ["segundo"], mainBase: "arroz" }),
+    ];
+    const slots = [
+      slot("lun_comida_1", { mealType: "comida", position: "primero" }),
+      slot("lun_comida_2", { mealType: "comida", position: "segundo", schoolCarbsToAvoid: ["arroz"] }),
+    ];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "p" },
+      { slotId: "lun_comida_2", recipeId: "a" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("school_carb_conflict");
+  });
+
   it("flags a school-avoided carb base reused in cena", () => {
     const pool = [
       recipe({
