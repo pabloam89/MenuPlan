@@ -232,6 +232,27 @@ export function ControlRow({
             Los dos paneles están siempre montados y lo que se anima es su
             reparto (`flex-grow`): desmontar uno daría el salto a mitad de
             animación. Y por defecto se ven las BALDOSAS — lo otro asoma. */}
+        {/* ── El acordeón horizontal, como el de Gente ─────────────────
+            Las acciones del menú viven plegadas asomando por el borde
+            izquierdo y comparten fila con las baldosas: al desplegarse, las
+            baldosas se pliegan en el mismo gesto. Son dos cosas que nunca se
+            necesitan a la vez —o ajustas el menú o haces algo CON el menú— así
+            que la cabecera no tiene que crecer para tener las dos.
+
+            Los dos paneles están siempre montados y lo que se anima es su
+            reparto (`flex-grow`): desmontar uno daría el salto a mitad de
+            animación. Y por defecto se ven las BALDOSAS — lo otro asoma.
+
+            ── Por qué la X no va al final ───────────────────────────────────
+            Porque las acciones son más de las que caben y la tira scrollea. Un
+            botón de cerrar al final del flex se va con el scroll —te quedas
+            dentro sin poder salir, y sin poder salir no se llega a los
+            mandos— y pinarlo a la derecha corta la tira antes del borde de la
+            pantalla, que se ve como un recorte y no como una tira.
+
+            Así que la cabecera de la pestaña ES el interruptor: fija a la
+            izquierda, fuera del scroll, abre y cierra desde el mismo sitio. Y
+            la tira usa todo lo que queda hasta el borde. */}
         {conAcordeon && (
           <div
             className="mp-hpanel"
@@ -243,78 +264,54 @@ export function ControlRow({
               // Otro color: la franja es verde pálido y las baldosas blancas,
               // así que la pestaña en teja se lee como OTRA cosa sin tener que
               // explicarse. Es el mismo tono con el que Publicar asoma en Gente.
-              background: accionesAviso ? "#fdf3df" : "#f6efe6",
+              background: accionesAviso && !accionesAbiertas ? "#fdf3df" : "#f6efe6",
               borderRadius: "0 18px 18px 0",
-              padding: accionesAbiertas ? "12px 10px 12px 14px" : "0 6px 0 14px",
-              cursor: accionesAbiertas ? "default" : "pointer",
+              paddingLeft: 14,
             }}
-            {...(accionesAbiertas ? {} : {
-              role: "button",
-              tabIndex: 0,
-              "aria-label": "Otras acciones del menú",
-              onClick: () => onAccionesAbiertas?.(true),
-              onKeyDown: (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onAccionesAbiertas?.(true);
-                }
-              },
-            })}
           >
-            {/* Plegada asoma su icono, centrado a la altura de las baldosas. Y
-                si el menú está sin activar, asoma el RAYO: ese aviso no puede
-                quedarse detrás de un pliegue, que es justo para lo que está. */}
-            <span
+            {/* Plegada asoma su icono; desplegada, la X. Mismo botón y mismo
+                sitio: lo que abre esto es lo que lo cierra.
+
+                Y lo que asoma es el RAYO si el menú está sin activar —ese
+                aviso no puede quedarse detrás de un pliegue, que es justo para
+                lo que está—. */}
+            <button
+              type="button"
+              onClick={() => onAccionesAbiertas?.(!accionesAbiertas)}
+              aria-expanded={accionesAbiertas}
+              aria-label={accionesAbiertas ? "Cerrar" : "Otras acciones del menú"}
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, height: 32, borderRadius: 999,
-                background: accionesAviso ? "#f8e3b0" : "rgba(178,98,47,.12)",
-                // Al desplegarse el icono sobra: lo que hay dentro ya dice qué
-                // es. Se queda ocupando su sitio para que las baldosas no den un
-                // salto al entrar.
-                opacity: accionesAbiertas ? 0 : 1,
-                width: accionesAbiertas ? 0 : 32,
-                marginRight: accionesAbiertas ? -4 : 0,
-                transition: "opacity .2s ease, width .3s cubic-bezier(.22,1,.36,1)",
-                overflow: "hidden",
+                flexShrink: 0, width: 32, height: 32, borderRadius: 999,
+                border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit",
+                background: accionesAviso && !accionesAbiertas ? "#f8e3b0" : "rgba(178,98,47,.12)",
+                transition: "background .2s ease",
               }}
             >
-              {accionesAviso
-                ? <Zap size={17} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
-                : <MoreHorizontal size={18} strokeWidth={2.6} color="#b2622f" />}
-            </span>
+              {accionesAbiertas
+                ? <X size={16} strokeWidth={2.8} color="#b2622f" />
+                : accionesAviso
+                  ? <Zap size={17} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
+                  : <MoreHorizontal size={18} strokeWidth={2.6} color="#b2622f" />}
+            </button>
 
-            {/* El contenido no se desmonta al plegar: se queda detrás del
-                recorte y reaparece deslizándose. Montarlo y desmontarlo lo
-                haría aparecer de golpe a mitad de la animación. */}
+            {/* La tira. No se desmonta al plegar: se queda detrás del recorte y
+                reaparece deslizándose. Montarla y desmontarla la haría aparecer
+                de golpe a mitad de la animación. */}
             <div
               style={{
                 display: "flex", alignItems: "center", gap: 4, flex: 1, minWidth: 0,
-                overflowX: "auto",
+                overflowX: "auto", padding: "12px 4px 12px 2px",
                 opacity: accionesAbiertas ? 1 : 0,
                 pointerEvents: accionesAbiertas ? "auto" : "none",
                 transition: "opacity .2s ease",
                 scrollbarWidth: "none", msOverflowStyle: "none",
               }}
               aria-hidden={!accionesAbiertas}
+              data-tira-acciones=""
             >
               {acciones}
             </div>
-
-            {accionesAbiertas && (
-              <button
-                type="button"
-                onClick={() => onAccionesAbiertas?.(false)}
-                aria-label="Cerrar"
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                  width: 26, height: 26, borderRadius: 999, border: "none",
-                  background: "rgba(178,98,47,.14)", color: "#b2622f", cursor: "pointer",
-                }}
-              >
-                <X size={14} strokeWidth={2.8} />
-              </button>
-            )}
           </div>
         )}
 
@@ -335,7 +332,8 @@ export function ControlRow({
           }}
           aria-hidden={conAcordeon && accionesAbiertas}
         >
-          <style>{`[data-coach="wizard-controles"]::-webkit-scrollbar { display: none; }`}</style>
+          <style>{`[data-coach="wizard-controles"]::-webkit-scrollbar,
+                   [data-tira-acciones]::-webkit-scrollbar { display: none; }`}</style>
 
           {controles.map((p) => (
             <Baldosa
