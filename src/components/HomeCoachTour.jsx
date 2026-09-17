@@ -11,7 +11,6 @@ import {
   Users,
   Menu as MenuIcon,
   UtensilsCrossed,
-  MessageCircle,
   MoreVertical,
   RotateCw,
   SlidersHorizontal,
@@ -157,15 +156,12 @@ const WIZARD_COACH_STEPS = [
     desc: "Cuánto de cada cosa, cuánto tiempo tienes, con qué lo haces.",
     place: "below",
   },
-  {
-    selector: '[data-coach="wizard-bot"]',
-    // Bocadillo y no micro: la burbuja es de escribir. El micro vivía en el
-    // modal de entrada, que ya no existe.
-    Icon: MessageCircle,
-    title: "O pídemelo",
-    desc: "Escríbelo con tus palabras y verás moverse esos mismos controles.",
-    place: "above",
-  },
+  // Aquí había un segundo paso ("O pídemelo") apuntando a `wizard-bot`, la
+  // burbuja de texto libre. La burbuja se apagó el 17 sep 2026 por meter
+  // demasiado ruido sobre el menú (ver el `bubble: null` de useWizardMenu), así
+  // que el paso se quedó señalando un hueco: el tutorial abría, buscaba el
+  // ancla y no la encontraba. Vuelve con ella si algún día se reactiva —
+  // coachAnchors.test.js es justo lo que sujeta que no queden pasos huérfanos.
 ];
 
 export const MENU_COACH_STEPS = [

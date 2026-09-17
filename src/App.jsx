@@ -61,7 +61,8 @@ import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { getDayMeals, getMeals, DAYS } from "./lib/planner.js";
+import { getDayMeals, getMeals, DAYS, weeklySlotBudget } from "./lib/planner.js";
+import { freqsEfectivos } from "./lib/reparto.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,
@@ -83,6 +84,8 @@ import {
   clampWeekCount,
   computeWeekRange,
   explicitDaysForOffset,
+  rekeyWeeksByMonday,
+  weekEntry,
   createMenuId,
   foldInNewMenu,
   removeMenu,
@@ -400,6 +403,17 @@ const INITIAL_DATA = {
   goalsByGroup: {},
   kcalByGroup: {},
   freqsByGroup: {},
+  // Proyección de la libreta, sin fundir (ver useWizardMenu#guardar): `reparto`
+  // son porcentajes que suman 100 y `freqsPedidos` los números que alguien pidió
+  // a mano. Vacíos para quien no ha tocado la pantalla del reparto, y entonces
+  // manda `freqs` como siempre.
+  reparto: {},
+  freqsPedidos: {},
+  // Cuántos platos de cada base quiere la casa cocinados EN TANDA (2..5).
+  // Separado de `sesgos.base`, que es la preferencia blanda sobre esas mismas
+  // bases: mezclarlos convertía "más pasta" en dos platos obligatorios. Ver la
+  // cabecera de `tanda` en lib/notepadFields.js.
+  tanda: {},
   cookLevel: "normal",
   cookSkills: [],
   // Cual de los miembros es la persona de la cuenta. Se marca a mano en Mi
@@ -814,8 +828,14 @@ function migrate(state) {
     ? d.menuVarietyPref
     : d.menuVarietyPref === "max" ? "strict" : d.menuVarietyPref === "relaxed" ? "relaxed" : "strict";
   d.menuScheduleSameForAllWeeks = d.menuScheduleSameForAllWeeks !== false;
-  d.menuWeekOverrides =
-    d.menuWeekOverrides && typeof d.menuWeekOverrides === "object" ? d.menuWeekOverrides : {};
+  // Las dos cosas que pertenecen a una SEMANA concreta —los días sueltos
+  // marcados a mano y el horario propio de esa semana— se guardaban indexadas
+  // por `offset`, que es relativo a hoy: el "1" de esta semana es otra semana
+  // dentro de siete días, así que la selección se mudaba sola. Se reindexan por
+  // el LUNES en ISO, que no se mueve. Es idempotente: una clave que ya es ISO se
+  // deja como está, así que esto puede correr en cada carga.
+  d.menuWeekDays = rekeyWeeksByMonday(d.menuWeekDays);
+  d.menuWeekOverrides = rekeyWeeksByMonday(d.menuWeekOverrides);
   // Backfill: `menuPlan`/`shopping` predate the multi-week archive (`data.menus`)
   // and live outside `data` (see App() — they're their own useState, restored
   // from `state.menuPlan`/`state.shopping`). An account whose last menú was
@@ -1986,7 +2006,7 @@ export default function App() {
         const { startDayIdx, days, activeDays, startISO, endISO } = weekMeta[w];
         const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
           ? working.schedule
-          : (working.menuWeekOverrides?.[offset] ?? working.schedule);
+          : (weekEntry(working.menuWeekOverrides, offset) ?? working.schedule);
         // Each generated week pulls its own school week (positional mapping:
         // 1st menú week → 1st selected school week, …, cycling when there are
         // fewer school weeks than menú weeks). Passed as a plain single-week
@@ -2033,6 +2053,36 @@ export default function App() {
         // "la cena del niño copia la comida del adulto" para un niño que esa
         // noche no está en casa.
         weekData.kidDinnerMatchesAdultLunch = deriveKidDinnerMatchesAdultLunch(weekData);
+
+        // ── El reparto, bajado a topes con los huecos REALES ─────────────
+        // El reparto se guarda en PORCENTAJES (suma 100) justo para no depender
+        // del número de huecos, pero al bajarlo a `freqs` se multiplicaba por
+        // una constante de 14. Una semana normal de primero+segundo+cena tiene
+        // 21 huecos, así que siete se quedaban sin cuota — y como 470 de las 471
+        // recetas servibles cuentan para alguna clave, no hay huecos libres que
+        // absorban la diferencia: son siete violaciones garantizadas de la regla
+        // 11, cada una con su reintento al modelo y su reparación.
+        //
+        // Se hace AQUÍ y no en el motor porque el número correcto depende del
+        // grupo y de la semana —los niños que comen en el cole tres días tienen
+        // menos huecos que los adultos, y una semana partida menos que una
+        // entera— y este es el único punto que conoce las dos cosas. `aiPlanner`
+        // sigue leyendo `data.freqsByGroup` como siempre, sin saber que la
+        // libreta existe.
+        //
+        // Un `freqsByGroup` ya escrito NO se toca: es el estilo de comida de ese
+        // grupo concreto, una decisión más específica que el reparto de la casa.
+        if (working.reparto && Object.keys(working.reparto).length > 0) {
+          const porGrupo = { ...(weekData.freqsByGroup ?? {}) };
+          for (const g of groups) {
+            if (porGrupo[g.id]) continue;
+            porGrupo[g.id] = freqsEfectivos(
+              { freqs: working.freqsPedidos ?? {}, reparto: working.reparto },
+              { presupuesto: weeklySlotBudget(weekData, g).total },
+            );
+          }
+          weekData.freqsByGroup = porGrupo;
+        }
         const crossWeek = varietyPref === "relaxed" || weekCount <= 1
           ? null
           : { weekIndex: w, weekCount, varietyPref };

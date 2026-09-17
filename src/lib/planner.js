@@ -141,6 +141,53 @@ export function cookDayCounts(data) {
   return counts;
 }
 
+/**
+ * Cuántos HUECOS de plato tiene la semana: 2 por cada comida que se cocina
+ * (primero + segundo), 1 por cada cena, menos 1 por cada comida que sea de un
+ * solo plato (plato único marcado a mano, o la estructura "1_plato" de la casa).
+ *
+ * Es el presupuesto real al que hay que bajar el reparto (`repartoAFreqs`), y
+ * cambia por grupo y por semana: una casa con los niños en el cole tres días,
+ * o una semana que empieza en miércoles, tienen menos huecos que los 21 de
+ * libro. Bajar un porcentaje contra una constante es lo que dejaba siete huecos
+ * por semana sin cuota — ver el comentario de `repartoAFreqs`.
+ *
+ * `aiPlanner` no necesita llamar a esto: al generar ya tiene `ctx.slots.length`,
+ * que es este mismo número contado slot a slot. Esto es para quien lo necesita
+ * ANTES de generar (la pantalla del reparto, el estilo de comida).
+ *
+ * @param {object} data
+ * @param {object} [group] - grupo concreto; sin él, la casa entera.
+ */
+export function weeklySlotBudget(data, group = null) {
+  const meals = getMeals(data);
+  const members = data?.members ?? [];
+  const schedule = data?.schedule ?? {};
+  const slotType = data?.slotType ?? {};
+  const target = group ?? { memberIds: members.map((m) => m.id) };
+  const mealStructure =
+    data?.mealStructureByGroup?.[group?.id] ?? data?.mealStructure ?? "primero_segundo";
+
+  let comidaDays = 0;
+  let cenaDays = 0;
+  let platoUnicoDays = 0;
+  for (const day of DAYS) {
+    if (meals.includes("Comida") && modeForGroupSlot(target, members, schedule, day, "Comida").cook) {
+      comidaDays += 1;
+      if (slotType[`${day}|Comida`] === "unico" || mealStructure === "1_plato") platoUnicoDays += 1;
+    }
+    if (meals.includes("Cena") && modeForGroupSlot(target, members, schedule, day, "Cena").cook) {
+      cenaDays += 1;
+    }
+  }
+  return {
+    comidaDays,
+    cenaDays,
+    platoUnicoDays,
+    total: Math.max(1, comidaDays * 2 + cenaDays - platoUnicoDays),
+  };
+}
+
 function recipeMealType(meal) {
   // Map any user-defined meal label to a recipe mealType. Only "cena"
   // requires the cena tag; everything else (Comida, Desayuno, Almuerzo,

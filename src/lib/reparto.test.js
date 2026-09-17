@@ -24,8 +24,44 @@ describe("no tocar nada genera el menú de siempre", () => {
     expect(repartoAFreqs(freqsAReparto(undefined))).toEqual(DEFAULT_FREQS);
   });
 
-  it("el presupuesto es la suma de los máximos de siempre, no los 21 huecos", () => {
+  // PRESUPUESTO sigue siendo 14 porque es lo que hace que un reparto sin tocar
+  // dé exactamente DEFAULT_FREQS (el test de arriba). Pero es SOLO el default
+  // de compatibilidad: el presupuesto de verdad es el número de huecos de esa
+  // semana y ese grupo, y quien genera lo pasa (ver App.jsx#regenerateMenu).
+  it("el presupuesto por defecto es 14, y es solo compatibilidad", () => {
     expect(PRESUPUESTO).toBe(14);
+  });
+});
+
+describe("el presupuesto son los huecos reales, no una constante", () => {
+  // Por qué importa: con 21 huecos y un tope total de 14, SIETE huecos se
+  // quedan sin cuota, y 470 de las 471 recetas servibles cuentan para alguna
+  // clave — así que no hay huecos libres que absorban la diferencia. Son siete
+  // violaciones garantizadas de la regla 11 por semana. La telemetría de
+  // producción lo confirmó: 19 de 19 unidades acabaron en el fallback.
+  it("una semana de 21 huecos reparte 21, no 14", () => {
+    const freqs = repartoAFreqs(repartoPorDefecto(), { presupuesto: 21 });
+    expect(suma(freqs)).toBe(21);
+  });
+
+  it("y la suma cuadra EXACTA para cualquier presupuesto", () => {
+    // Redondeando familia a familia la suma se iba (con 21 salían 22), y un
+    // tope por encima de los huecos reales reabre el mismo agujero.
+    for (const huecos of [7, 11, 14, 15, 18, 19, 20, 21]) {
+      expect(suma(repartoAFreqs(repartoPorDefecto(), { presupuesto: huecos }))).toBe(huecos);
+    }
+  });
+
+  it("una semana partida reparte menos, sin que el usuario toque nada", () => {
+    const corta = repartoAFreqs(repartoPorDefecto(), { presupuesto: 9 });
+    expect(suma(corta)).toBe(9);
+    FAMILIAS.forEach((f) => expect(corta[f]).toBeGreaterThanOrEqual(0));
+  });
+
+  it("sigue siendo determinista: misma entrada, misma salida", () => {
+    const a = repartoAFreqs(repartoPorDefecto(), { presupuesto: 21 });
+    const b = repartoAFreqs(repartoPorDefecto(), { presupuesto: 21 });
+    expect(a).toEqual(b);
   });
 });
 
@@ -168,6 +204,37 @@ describe("cuando los dos ejes están escritos, manda quien lo pidió a mano", ()
 
   it("sin freqs, manda el reparto entero", () => {
     expect(freqsEfectivos({ reparto: repartoPorDefecto() })).toEqual(DEFAULT_FREQS);
+  });
+
+  it("un estilo de comida NO puede anular el deslizador del reparto", () => {
+    // El bug que esto sujeta: `guardar` pasaba `{...data.freqs, ...vista.freqs}`
+    // y un estilo de comida escribe en `data.freqs` las SEIS familias. Como todo
+    // lo que entra por `freqs` pisa al reparto, el deslizador quedaba muerto:
+    // eligiendo "Ligero" y subiendo la carne al 40 %, la salida era idéntica a
+    // "Ligero", carne incluida. Ahora solo entran los pedidos a mano.
+    const ligero = { verdura: 6, pescado: 4, legumbres: 3, huevos: 2, carne: 1, pasta_arroz: 1 };
+    const subeCarne = normalizar({ carne: 40, pescado: 12, legumbres: 12, pasta_arroz: 12, huevos: 12, verdura: 12 });
+
+    // Lo que pasaba antes: el estilo entero como `freqs`.
+    expect(freqsEfectivos({ freqs: ligero, reparto: subeCarne })).toEqual(ligero);
+
+    // Lo que pasa ahora: solo lo pedido a mano (aquí, nada), así que el
+    // deslizador manda y la carne sube de verdad.
+    const efectivos = freqsEfectivos({ freqs: {}, reparto: subeCarne }, { presupuesto: 21 });
+    expect(efectivos.carne).toBeGreaterThan(ligero.carne);
+    // 20 y no 21: pedir el 40 % de 21 huecos son 8,4 platos de carne y el tope
+    // por familia es 7 (ver repartoAFreqs). Un reparto muy escorado deja un
+    // hueco sin cuota — uno, no los siete de antes.
+    expect(suma(efectivos)).toBe(20);
+    expect(efectivos.carne).toBe(7);
+  });
+
+  it("pero un número pedido a mano sí sigue ganándole al reparto", () => {
+    // La otra mitad de la política, que no cambia: "pescado tres veces" lo dijo
+    // alguien con un número, y mover otro slider no puede borrarlo.
+    const subeCarne = normalizar({ carne: 40, pescado: 12, legumbres: 12, pasta_arroz: 12, huevos: 12, verdura: 12 });
+    const efectivos = freqsEfectivos({ freqs: { pescado: 3 }, reparto: subeCarne }, { presupuesto: 21 });
+    expect(efectivos.pescado).toBe(3);
   });
 
   it("un freq pedido a mano sobrevive a mover otro slider", () => {

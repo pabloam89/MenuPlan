@@ -173,20 +173,49 @@ export function mover(reparto, familia, valor) {
 /**
  * El reparto bajado a lo que el motor entiende: máximos por semana.
  *
- * `presupuesto` es cuántas raciones reparte en total. Por defecto la suma de
- * DEFAULT_FREQS, para que un reparto sin tocar dé exactamente los freqs de
- * siempre. Se puede subir cuando la semana tiene más huecos de lo normal.
+ * `presupuesto` es cuántos huecos reparte en total, y el que hay que pasarle es
+ * el REAL de esa semana y ese grupo (`ctx.slots.length` en aiPlanner), no una
+ * constante. El default sigue siendo la suma de DEFAULT_FREQS para que quien
+ * no lo pase no cambie de comportamiento, pero es un mal default y por eso está
+ * anotado aquí:
+ *
+ * Con 21 huecos y un presupuesto de 14, SIETE huecos se quedan sin cuota y cada
+ * uno es una violación garantizada de la regla 11. Medido: 470 de las 471
+ * recetas servibles cuentan para al menos una clave, así que no hay huecos
+ * "gratis" que absorban la diferencia. La telemetría de producción lo confirma
+ * — 19 de 19 unidades de planificación acabaron en el fallback determinista.
+ *
+ * El redondeo se reparte por MAYOR RESTO, no familia a familia. Redondeando
+ * cada una por su cuenta la suma se iba (con 21 salían 22), y un tope total por
+ * encima de los huecos reales vuelve a dejar sitio a lo mismo que esto arregla.
  */
 export function repartoAFreqs(reparto, { presupuesto = PRESUPUESTO } = {}) {
   const pct = normalizar(reparto);
+  const exactos = {};
   const freqs = {};
+  let asignado = 0;
   for (const f of FAMILIAS) {
-    const veces = Math.round((pct[f] / TOTAL) * presupuesto);
-    // El dominio de un `freq` es 0..7 (una vez al día como mucho), igual que
-    // el `n` que puede emitir el panel. Un 9 no lo rechazaría nadie aguas
-    // abajo, simplemente dejaría de limitar.
-    freqs[f] = Math.max(0, Math.min(7, veces));
+    exactos[f] = (pct[f] / TOTAL) * presupuesto;
+    freqs[f] = Math.floor(exactos[f]);
+    asignado += freqs[f];
   }
+  // Mayor resto, con el orden de FAMILIAS como desempate para que sea
+  // determinista (misma entrada, misma salida) igual que `aPorcentajes`.
+  const restos = FAMILIAS
+    .map((f) => ({ f, resto: exactos[f] - freqs[f] }))
+    .sort((a, b) => b.resto - a.resto || FAMILIAS.indexOf(a.f) - FAMILIAS.indexOf(b.f));
+  for (let i = 0; asignado < presupuesto && i < FAMILIAS.length * 8; i++, asignado++) {
+    freqs[restos[i % FAMILIAS.length].f] += 1;
+  }
+  // El dominio de un `freq` es 0..7 (una vez al día como mucho), igual que
+  // el `n` que puede emitir el panel. Un 9 no lo rechazaría nadie aguas
+  // abajo, simplemente dejaría de limitar.
+  //
+  // Con un reparto muy escorado el tope puede dejar la suma por debajo del
+  // presupuesto: pedir el 40 % de 21 huecos son 8,4 platos de carne y salen 7.
+  // Se deja así a propósito —siete platos de lo mismo ya son muchos— y el coste
+  // es UN hueco sin cuota, no los siete que dejaba la constante de 14.
+  for (const f of FAMILIAS) freqs[f] = Math.max(0, Math.min(7, freqs[f]));
   return freqs;
 }
 
@@ -209,6 +238,22 @@ export function freqsAReparto(freqs) {
  *
  * Sin reparto escrito devuelve los `freqs` tal cual, así que una casa que
  * nunca abra la pantalla nueva no nota nada.
+ *
+ * ── `freqs` son los PEDIDOS A MANO, no todos los que haya por ahí ─────────
+ * Lo que entre aquí PISA el reparto entero, familia a familia, así que solo
+ * puede entrar lo que alguien pidió con un número: las claves `freqs.*` de la
+ * libreta, que llevan procedencia.
+ *
+ * NO puede entrar `data.freqs` en bloque. Es una vista calculada, y después de
+ * elegir un estilo de comida ("Ligero", "De todo"…) trae las SEIS familias con
+ * número. Pasarlo entero dejaba el deslizador del reparto muerto: lo movías,
+ * se guardaba, se pintaba moviéndose... y las seis se sobrescribían con las del
+ * estilo. Comprobado: eligiendo "Ligero" y subiendo la carne al 40 %, la salida
+ * era idéntica a "Ligero", carne incluida.
+ *
+ * Y el orden correcto es este y no el contrario: mover un deslizador es la
+ * decisión más reciente y más explícita que ha tomado el usuario, y tiene que
+ * ganarle a un preset que eligió en el alta.
  */
 export function freqsEfectivos({ freqs = {}, reparto = null } = {}, opciones = {}) {
   if (!reparto || Object.keys(reparto).length === 0) return { ...freqs };

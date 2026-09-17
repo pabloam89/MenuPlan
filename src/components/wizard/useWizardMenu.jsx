@@ -1,8 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { ControlRow } from "./ControlRow.jsx";
-import { PanelCoach } from "../PanelCoach.jsx";
+// PanelCoach ya no se monta aquí: la burbuja está apagada (ver el `bubble: null`
+// de abajo). El componente sigue existiendo y se puede volver a montar con los
+// dos cabos que devuelve este hook en `panel`.
 import { normalizar as normalizarLibreta, poner, porQue, proyectar, valorDe } from "../../lib/notepad.js";
 import { freqsEfectivos, repartoConFreq, repartoVisible, rutaDeReparto } from "../../lib/reparto.js";
+import { weeklySlotBudget } from "../../lib/planner.js";
 import { recuentoDelMenu } from "../../lib/menuRecuento.js";
 import { contextoParaElModelo } from "../../lib/panelSuggestions.js";
 import { aplicarOpcion, respuestaDeGuarda, validarRespuesta } from "../../lib/panelParser.js";
@@ -68,7 +71,23 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
       notepad: libreta,
       // El motor sigue leyendo `data.freqs`: la libreta es la fuente, esto es
       // la vista que ella misma calcula.
-      freqs: freqsEfectivos({ freqs: { ...data?.freqs, ...vista.freqs }, reparto: vista.reparto }),
+      //
+      // Solo entran los pedidos A MANO (`vista.freqs`, las claves `freqs.*` de
+      // la libreta). Antes entraba también `data.freqs` en bloque, y como un
+      // estilo de comida escribe ahí las seis familias, el reparto se quedaba
+      // sin efecto: movías el deslizador y salía el estilo otra vez. Ver
+      // `freqsEfectivos`.
+      freqs: freqsEfectivos(
+        { freqs: vista.freqs, reparto: vista.reparto },
+        { presupuesto: weeklySlotBudget(data).total },
+      ),
+      // Los dos ejes SIN fundir, para que el motor pueda rehacer la proyección
+      // con los huecos reales de cada grupo y cada semana (`ctx.slots.length`).
+      // `data.freqs` de aquí arriba es solo la vista para pintar: usa una
+      // estimación de la casa entera, que no distingue el menú de los niños del
+      // de los adultos ni una semana partida de una completa.
+      reparto: vista.reparto ?? {},
+      freqsPedidos: vista.freqs ?? {},
       // Y `data.cocinas`, por el mismo camino: cuántos platos de cada cocina
       // extranjera quiere la casa. Lo lee `filterRecipes` como puerta de
       // entrada (las que están a cero no entran) y el prompt del planner como
@@ -83,6 +102,9 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
       // favoritos ordenan candidatos vía lib/sesgos.js— sin saber que la
       // libreta existe.
       sesgos: vista.sesgos ?? {},
+      // Las tandas pedidas, aparte de los sesgos: es una CUENTA que el validador
+      // exige como minimo (regla 11b), no una preferencia que ordena candidatos.
+      tanda: vista.tanda ?? {},
       favoritos: vista.favoritos ?? [],
       excluidos: vista.excluidos ?? [],
     };
@@ -177,7 +199,7 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
   }, [notepad, reparto, guardar, onRegenerar]);
 
   if (!habilitado) {
-    return { controls: null, bubble: null };
+    return { controls: null, bubble: null, panel: null };
   }
 
   return {
@@ -197,20 +219,32 @@ export function useWizardMenu({ data, setData, menuPlan, onRegenerar, habilitado
       />
     ),
 
-    bubble: (
-      <div data-coach="wizard-bot">
-        <PanelCoach
-          // Sin sugerencias a propósito: el reparto, la cocina y el tiempo
-          // están a un toque en la fila de arriba, así que cuatro tarjetas
-          // proponiendo lo mismo competirían con ellos. Aquí queda lo único que
-          // un control no sabe hacer — entender una frase.
-          sugerencias={[]}
-          titulo="¿Afinamos algo?"
-          notepad={notepad}
-          onConsultar={consultarPanel}
-          onAplicar={aplicarPanel}
-        />
-      </div>
-    ),
+    // ── La burbuja, apagada (17 sep 2026) ────────────────────────────────
+    //
+    // Decisión de producto de Pablo: metía demasiado ruido sobre el menú. No se
+    // borra nada —`PanelCoach`, `panelParser`, `panelSuggestions` y el prompt
+    // del panel siguen enteros— porque queda pendiente decidir si vuelve como
+    // un control más de la fila en vez de como una burbuja suelta.
+    //
+    // Lo que se lleva por delante mientras esté apagada, para que no sorprenda:
+    //
+    //   · `excluidos` y `favoritos` se quedan SIN NINGÚN ESCRITOR. Son los dos
+    //     únicos ejes de la libreta que no tienen deslizador propio (los demás
+    //     —cocina, tecnica, salsa, base— se tocan desde ControlSheet). O sea que
+    //     hasta que exista una pantalla de "qué no queréis ver", nadie puede
+    //     decir "nada de coliflor" salvo una regla temporal.
+    //   · Con ella se va también el principal escritor de un `1` en el eje
+    //     `base`, que era lo que convertía "más pasta" en una tanda obligatoria
+    //     de dos platos (ver `basesPedidas` en lib/bases.js). El campo sigue
+    //     teniendo dos significados y hay que separarlo igual, porque
+    //     `reglas.js` puede escribirlo por su cuenta — solo baja la urgencia.
+    bubble: null,
+
+    // Los dos cabos de la burbuja, servidos sin pintar nada: consultar al
+    // modelo y aplicar la opción elegida. Se devuelven en vez de dejarlos
+    // muertos dentro del hook para que volver a encenderla sea montar un
+    // `<PanelCoach onConsultar={panel.consultar} onAplicar={panel.aplicar} />`
+    // donde se decida, y para que el camino siga siendo visible desde fuera.
+    panel: { consultar: consultarPanel, aplicar: aplicarPanel },
   };
 }
