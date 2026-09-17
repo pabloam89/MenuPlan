@@ -4,6 +4,7 @@ import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { basesPedidas } from "./bases.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
+import { resolverMenu, solverActivo } from "./solver.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
@@ -365,6 +366,15 @@ export function createPlannerStats() {
     invalidFirstPass: 0,
     fallbackUsed: 0,
     groupsReused: 0,
+    // Qué motor asignó los platos: "modelo" (LLM + reintentos + fallback) o
+    // "solver" (lib/solver.js). Las tres de abajo solo se rellenan con solver.
+    // Viajan enteras en el evento de telemetría (App.jsx hace `...plannerStats`),
+    // que es lo que permite comparar los dos motores sobre menús reales.
+    motor: "modelo",
+    solverNodos: 0,
+    solverMs: 0,
+    solverCompleto: null,
+    solverSemilla: null,
   };
 }
 
@@ -647,6 +657,10 @@ export function buildGroupContext(data, group) {
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
       freqs: data.freqsByGroup?.[group.id] ?? data.freqs ?? DEFAULT_FREQS,
+      // El reparto EXACTO sobre los huecos de este grupo y esta semana (lo
+      // proyecta App.jsx junto a freqsByGroup). Solo lo lee el solver, como
+      // guía: `freqs` son los topes, esto es a dónde apuntar dentro de ellos.
+      objetivo: data.objetivoByGroup?.[group.id] ?? null,
       cookLevel: data.cookLevel ?? "normal",
       cookTime,
       // "Menú más cuidado" profiles present in the group (soft bias for the LLM).
@@ -1086,134 +1100,17 @@ export function poolForWeek(pool, crossWeek, slotCount) {
 // ── Generation ──────────────────────────────────────────────────
 
 // Exported for tests only — not used elsewhere outside this module.
-export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null, format = "json" } = {}) {
-  const ctx = buildGroupContext(data, group);
-  // Pantry is family-wide (not per-group), so it's merged into filterOpts
-  // here rather than inside buildGroupContext.
-  const filterOpts = {
-    ...ctx.filterOpts,
-    pantryIngredients: pantryIngredients.map((p) => p.ingredientNormalized),
-    // Fase 8: id canónico por fila de despensa cuando resolvió al guardar
-    // (user_pantry.ingredient_id) — mismo orden que pantryIngredients, para
-    // que scorePantryMatch pueda cruzar por id además de por texto.
-    pantryIngredientIds: pantryIngredients.map((p) => p.ingredientId ?? null),
-  };
-
-  let { recipes: filteredPool, error: filterError } = filterRecipes(filterOpts);
-  if (filterError) {
-    throw new AIPlannerError(filterError);
-  }
-
-  // Multi-week menús bias against repeating the same dish across weeks. This is
-  // a deterministic per-week pool partition (see poolForWeek) rather than a
-  // runtime exclusion set, so weeks can be generated in parallel.
-  filteredPool = poolForWeek(filteredPool, crossWeek, ctx.slots.length);
-
-  // Baby groups use a deterministic planner — no LLM call needed
-  if (ctx.isBabyGroup) {
-    const slotAssignments = generateBabyMenuDeterministic(filteredPool, ctx.slots);
-    return {
-      group,
-      slotAssignments,
-      filteredPool,
-      slotsContext: ctx.slots,
-      // Same as the non-baby return below — without this, hydration falls
-      // back to buildAdaptationMap's default `[]` and lactosa_fina/etc. never
-      // get their ingredient swap applied for baby-only menus.
-      restrictions: ctx.filterOpts.intolerances ?? [],
-      warnings: [],
-    };
-  }
-
-  // Garnishes come from a separate catalog (guarniciones.json) that never
-  // goes through filterRecipes, so it needs its own allergy/intolerance/
-  // alcohol pass — otherwise pairGarnishes could attach a side dish carrying
-  // a restriction the main dish was correctly filtered to avoid.
-  const safeGarnishes = filterGarnishes(filterOpts);
-
-  // config.freqs (weekly category quotas) can only be enforced for keys the
-  // filtered pool actually has enough recipes for — retrying the LLM can't
-  // conjure up a 3rd pescado dish that isn't in the pool. Unachievable keys
-  // are dropped from what validateMenu checks below and surfaced as a
-  // warning instead of silently shipping an unbalanced week.
-  const { achievable: achievableFreqs, warnings: freqWarnings } = splitAchievableFreqs(
-    filteredPool,
-    ctx.config.freqs,
-  );
-  const warnings = freqWarnings.map((msg) => `${group.label}: ${msg}`);
-
-  // Las BASES que la casa ha pedido para esta semana, y cuáles de ellas caben
-  // enteras. Todo o nada: una tanda a medias no ahorra nada (ver
-  // basesAlcanzables). Una semana acortada deja fuera las que no quepan y lo
-  // dice, en vez de colocar un plato suelto y llamarlo tanda.
-  const { alcanzables: basesDeLaSemana, warnings: baseWarnings } = basesAlcanzables(
-    filteredPool,
-    basesPedidas(data?.tanda),
-    ctx.slots.length,
-  );
-  for (const msg of baseWarnings) warnings.push(`${group.label}: ${msg}`);
-
-  // Los platos cocinados viven en la misma tabla que los ingredientes, así que
-  // hay que separarlos: "Lentejas estofadas" no es un ingrediente que sumar a la
-  // lista de la despensa, es un plato entero listo para colocar en un hueco.
-  //
-  // Separados para USARLOS distinto, no para decidir distinto si entran: el
-  // modo de despensa manda sobre los dos por igual (ver `pantryIngredients` en
-  // App.jsx). Quien sube un táper quiere que entre en el menú, igual que quien
-  // sube un bote de garbanzos; lo que se gradúa es cuánto pesa lo de casa, no
-  // qué tipo de cosa cuenta.
-  // Solo se ofrecen los que sobrevivieron al filtro del grupo (alergias, tiempo,
-  // temporada): sugerir un plato congelado que este grupo no puede comer sería
-  // peor que no sugerir nada.
-  const frozenPoolIds = new Set(filteredPool.map((r) => r.id));
-  const frozenDishes = [];
-  for (const [recipeRef, items] of indexFrozenDishes(pantryIngredients)) {
-    if (!frozenPoolIds.has(recipeRef)) continue;
-    frozenDishes.push({
-      recipeId: recipeRef,
-      name:
-        recipeCatalogById[recipeRef]?.name ??
-        filteredPool.find((r) => r.id === recipeRef)?.name ??
-        items[0].ingredientName,
-      portions: items.reduce((s, it) => s + itemPortions(it), 0),
-    });
-  }
-
-  const fridgeDishes = [];
-  for (const [recipeRef, items] of indexFridgeDishes(pantryIngredients)) {
-    if (!frozenPoolIds.has(recipeRef)) continue;
-    const garnishRef = items.find((it) => it.garnishRef)?.garnishRef ?? null;
-    const garnishMatch = garnishRef ? guarnicionesData.find((g) => g.id === garnishRef) : null;
-    const garnishName = garnishMatch ? (garnishMatch.shortName ?? garnishMatch.name) : null;
-    fridgeDishes.push({
-      recipeId: recipeRef,
-      name:
-        recipeCatalogById[recipeRef]?.name ??
-        filteredPool.find((r) => r.id === recipeRef)?.name ??
-        items[0].ingredientName,
-      portions: items.reduce((s, it) => s + itemPortions(it), 0),
-      garnishName,
-    });
-  }
-
-  const userMessage = buildUserMessage(
-    filteredPool,
-    ctx.slots,
-    ctx.config,
-    ctx.schoolMenuByDay,
-    data.fixedDishes,
-    pantryIngredients
-      .filter((p) => (p.itemType ?? "ingredient") !== "cooked_dish")
-      .map((p) => p.ingredientName),
-    pantryMode,
-    frozenDishes,
-    ctx.filterOpts.recipeMode ?? "preferred",
-    fridgeDishes,
-    ctx.filterOpts.cocinas,
-    format,
-    basesDeLaSemana,
-  );
-
+/**
+ * Pasos 1–3 del camino de siempre: llamada al modelo, reintentos de formato y
+ * de corrección, y fallback determinista si sigue sin ser válido. Devuelve la
+ * primera asignación de platos; lo que viene después (fijados, forzados,
+ * cocinas, guarniciones, revalidación) lo hace generateGroupMenu igual para
+ * este camino y para el solver.
+ */
+async function asignarConModelo({
+  userMessage, format, plannerModel, signal, stats,
+  filteredPool, ctx, achievableFreqs, basesDeLaSemana, data, group, warnings,
+}) {
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
   // Haiku); format/correction retries stay on the cheap FAST_MODEL.
   // Answer shape echoed in retry/correction messages, matching the task's format.
@@ -1368,6 +1265,203 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     if (repeated.length > 0) {
       warnings.push(`${group.label}: se han repetido ${repeated.length} plato(s) porque no hay suficientes recetas distintas que cumplan tus restricciones (prueba a subir el tiempo de cocina).`);
     }
+  }
+
+  return slotAssignments;
+}
+
+/**
+ * El otro camino: lib/solver.js. Sin modelo, sin reintentos, sin fallback:
+ * construye el menú ya válido, o el parcial válido más largo que encuentre.
+ *
+ * El OBJETIVO (`ctx.config.objetivo`, el reparto exacto sobre los huecos
+ * reales) guía la elección; los TOPES (`achievableFreqs`, con holgura) solo
+ * dicen hasta dónde se puede llegar. Ver el comentario de resolverMenu.
+ */
+function asignarConSolver({
+  group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings,
+}) {
+  const semilla = semillaDeGeneracion();
+  const res = resolverMenu(
+    ctx.slots,
+    ordenarPorSesgo(filteredPool, data.sesgos, data.favoritos),
+    {
+      healthProfiles: ctx.config.healthProfiles,
+      freqs: achievableFreqs,
+      objetivo: ctx.config.objetivo ?? null,
+      basesPedidas: basesDeLaSemana,
+      semilla,
+    },
+  );
+  if (stats) {
+    stats.motor = "solver";
+    stats.solverNodos = res.nodos;
+    stats.solverMs = res.ms;
+    stats.solverCompleto = res.completo;
+    stats.solverSemilla = semilla;
+  }
+  // Los huecos SIN candidatos ya los avisa el paso 3c de generateGroupMenu
+  // uno a uno. Esto es lo otro: había candidatos, pero ninguno compatible con
+  // el resto de la semana.
+  if (res.sinCombinacion.length > 0) {
+    warnings.push(
+      `${group.label}: no se encontró una combinación que cumpla todas las reglas a la vez; ${res.sinCombinacion.length} plato(s) se quedan sin asignar (${res.sinCombinacion.join(", ")}).`,
+    );
+  }
+  return res.asignaciones;
+}
+
+/**
+ * Una semilla nueva por generación, para que "regenerar" dé otra semana. Va a
+ * la telemetría (solverSemilla) para poder reproducir un menú concreto.
+ */
+function semillaDeGeneracion() {
+  return (Date.now() % 1_000_000) >>> 0;
+}
+
+export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null, format = "json" } = {}) {
+  const ctx = buildGroupContext(data, group);
+  // Pantry is family-wide (not per-group), so it's merged into filterOpts
+  // here rather than inside buildGroupContext.
+  const filterOpts = {
+    ...ctx.filterOpts,
+    pantryIngredients: pantryIngredients.map((p) => p.ingredientNormalized),
+    // Fase 8: id canónico por fila de despensa cuando resolvió al guardar
+    // (user_pantry.ingredient_id) — mismo orden que pantryIngredients, para
+    // que scorePantryMatch pueda cruzar por id además de por texto.
+    pantryIngredientIds: pantryIngredients.map((p) => p.ingredientId ?? null),
+  };
+
+  let { recipes: filteredPool, error: filterError } = filterRecipes(filterOpts);
+  if (filterError) {
+    throw new AIPlannerError(filterError);
+  }
+
+  // Multi-week menús bias against repeating the same dish across weeks. This is
+  // a deterministic per-week pool partition (see poolForWeek) rather than a
+  // runtime exclusion set, so weeks can be generated in parallel.
+  filteredPool = poolForWeek(filteredPool, crossWeek, ctx.slots.length);
+
+  // Baby groups use a deterministic planner — no LLM call needed
+  if (ctx.isBabyGroup) {
+    const slotAssignments = generateBabyMenuDeterministic(filteredPool, ctx.slots);
+    return {
+      group,
+      slotAssignments,
+      filteredPool,
+      slotsContext: ctx.slots,
+      // Same as the non-baby return below — without this, hydration falls
+      // back to buildAdaptationMap's default `[]` and lactosa_fina/etc. never
+      // get their ingredient swap applied for baby-only menus.
+      restrictions: ctx.filterOpts.intolerances ?? [],
+      warnings: [],
+    };
+  }
+
+  // Garnishes come from a separate catalog (guarniciones.json) that never
+  // goes through filterRecipes, so it needs its own allergy/intolerance/
+  // alcohol pass — otherwise pairGarnishes could attach a side dish carrying
+  // a restriction the main dish was correctly filtered to avoid.
+  const safeGarnishes = filterGarnishes(filterOpts);
+
+  // config.freqs (weekly category quotas) can only be enforced for keys the
+  // filtered pool actually has enough recipes for — retrying the LLM can't
+  // conjure up a 3rd pescado dish that isn't in the pool. Unachievable keys
+  // are dropped from what validateMenu checks below and surfaced as a
+  // warning instead of silently shipping an unbalanced week.
+  const { achievable: achievableFreqs, warnings: freqWarnings } = splitAchievableFreqs(
+    filteredPool,
+    ctx.config.freqs,
+  );
+  const warnings = freqWarnings.map((msg) => `${group.label}: ${msg}`);
+
+  // Las BASES que la casa ha pedido para esta semana, y cuáles de ellas caben
+  // enteras. Todo o nada: una tanda a medias no ahorra nada (ver
+  // basesAlcanzables). Una semana acortada deja fuera las que no quepan y lo
+  // dice, en vez de colocar un plato suelto y llamarlo tanda.
+  const { alcanzables: basesDeLaSemana, warnings: baseWarnings } = basesAlcanzables(
+    filteredPool,
+    basesPedidas(data?.tanda),
+    ctx.slots.length,
+  );
+  for (const msg of baseWarnings) warnings.push(`${group.label}: ${msg}`);
+
+  // Los platos cocinados viven en la misma tabla que los ingredientes, así que
+  // hay que separarlos: "Lentejas estofadas" no es un ingrediente que sumar a la
+  // lista de la despensa, es un plato entero listo para colocar en un hueco.
+  //
+  // Separados para USARLOS distinto, no para decidir distinto si entran: el
+  // modo de despensa manda sobre los dos por igual (ver `pantryIngredients` en
+  // App.jsx). Quien sube un táper quiere que entre en el menú, igual que quien
+  // sube un bote de garbanzos; lo que se gradúa es cuánto pesa lo de casa, no
+  // qué tipo de cosa cuenta.
+  // Solo se ofrecen los que sobrevivieron al filtro del grupo (alergias, tiempo,
+  // temporada): sugerir un plato congelado que este grupo no puede comer sería
+  // peor que no sugerir nada.
+  const frozenPoolIds = new Set(filteredPool.map((r) => r.id));
+  const frozenDishes = [];
+  for (const [recipeRef, items] of indexFrozenDishes(pantryIngredients)) {
+    if (!frozenPoolIds.has(recipeRef)) continue;
+    frozenDishes.push({
+      recipeId: recipeRef,
+      name:
+        recipeCatalogById[recipeRef]?.name ??
+        filteredPool.find((r) => r.id === recipeRef)?.name ??
+        items[0].ingredientName,
+      portions: items.reduce((s, it) => s + itemPortions(it), 0),
+    });
+  }
+
+  const fridgeDishes = [];
+  for (const [recipeRef, items] of indexFridgeDishes(pantryIngredients)) {
+    if (!frozenPoolIds.has(recipeRef)) continue;
+    const garnishRef = items.find((it) => it.garnishRef)?.garnishRef ?? null;
+    const garnishMatch = garnishRef ? guarnicionesData.find((g) => g.id === garnishRef) : null;
+    const garnishName = garnishMatch ? (garnishMatch.shortName ?? garnishMatch.name) : null;
+    fridgeDishes.push({
+      recipeId: recipeRef,
+      name:
+        recipeCatalogById[recipeRef]?.name ??
+        filteredPool.find((r) => r.id === recipeRef)?.name ??
+        items[0].ingredientName,
+      portions: items.reduce((s, it) => s + itemPortions(it), 0),
+      garnishName,
+    });
+  }
+
+  const userMessage = buildUserMessage(
+    filteredPool,
+    ctx.slots,
+    ctx.config,
+    ctx.schoolMenuByDay,
+    data.fixedDishes,
+    pantryIngredients
+      .filter((p) => (p.itemType ?? "ingredient") !== "cooked_dish")
+      .map((p) => p.ingredientName),
+    pantryMode,
+    frozenDishes,
+    ctx.filterOpts.recipeMode ?? "preferred",
+    fridgeDishes,
+    ctx.filterOpts.cocinas,
+    format,
+    basesDeLaSemana,
+  );
+
+  // Quién asigna los platos. El solver (lib/solver.js) construye el menú ya
+  // válido sin llamar al modelo; el modelo es el camino de siempre: llamada,
+  // reintentos de corrección y fallback determinista. Los pasos de después
+  // (platos fijados, slots forzados, cocinas, guarniciones, revalidación) son
+  // los mismos para los dos: aquí solo cambia de dónde sale la asignación.
+  let slotAssignments;
+  if (solverActivo()) {
+    slotAssignments = asignarConSolver({
+      group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings,
+    });
+  } else {
+    slotAssignments = await asignarConModelo({
+      userMessage, format, plannerModel, signal, stats,
+      filteredPool, ctx, achievableFreqs, basesDeLaSemana, data, group, warnings,
+    });
   }
 
   // 3b. Last-resort safety net: hydration (generateMenuWithAI) resolves each
