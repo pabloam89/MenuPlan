@@ -59,3 +59,7 @@ supabase/.temp/
 # bundle. Los mp4 se regeneran; solo se commitea el que acabe usando la app.
 /out/
 .remotion/
+
+# bancos de pruebas del motor (solver.stress / solver.vs.modelo)
+stress.json
+vs-modelo.json
