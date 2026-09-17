@@ -70,7 +70,16 @@ export function solverActivo() {
   } catch {
     // Safari en privado lanza al leer localStorage; no es motivo para decidir nada.
   }
-  return import.meta.env?.VITE_MOTOR === "solver";
+  // EXACTAMENTE `import.meta.env.VITE_MOTOR`: es lo que vite.config.js
+  // sustituye en el build con `define`. La primera versión leía
+  // `import.meta.env?.VITE_MOTOR`, y con el `?.` Vite no reconoce la expresión,
+  // así que en el build de staging salía undefined y el solver nunca llegó a
+  // ejecutarse: la primera generación real siguió por el modelo.
+  try {
+    return import.meta.env.VITE_MOTOR === "solver";
+  } catch {
+    return false;
+  }
 }
 
 /** Violaciones que NO significan nada mientras el menú está a medias. */
