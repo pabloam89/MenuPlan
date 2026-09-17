@@ -1,5 +1,5 @@
 import { MAX_POR_SEMANA, MIN_POR_SEMANA, clavesDeReceta, topeDeBase } from "../lib/bases.js";
-import { DAYS, getDayMeals } from "../lib/planner.js";
+import { weeklySlotBudget } from "../lib/planner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { MAIN_BASES } from "../data/recipeSchema.js";
@@ -111,7 +111,17 @@ export function BasesPreferidas({ data, setData }) {
   // El presupuesto es de CADA semana, no del menú entero: si se generan cuatro
   // semanas, cada una tiene sus huecos y su propio cuarto del recetario.
   const semanas = Math.max(1, data?.menuWeekOffsets?.length ?? 1);
-  const huecosSemana = DAYS.length * Math.max(1, getDayMeals(data).length);
+  // Los huecos REALES de la semana, no siete días por la cara.
+  //
+  // Esto era `DAYS.length * comidas`, o sea siempre 7 días. En una semana
+  // partida —tres días de esta y cuatro de la siguiente, que el selector de
+  // semanas deja elegir— el deslizador creía tener el doble de sitio del que
+  // hay y dejaba pedir tandas que no caben: `basesAlcanzables` las tiraba
+  // después con un aviso, así que pedías cinco de sofrito y no salía ninguno.
+  //
+  // `weeklySlotBudget` es el mismo número que usa el motor al generar
+  // (`ctx.slots.length`): cuenta el horario, los días activos y el plato único.
+  const huecosSemana = weeklySlotBudget(data).total;
   // Los objetivos semanales de la casa, que son MÁXIMOS y por tanto topan lo
   // que se puede pedir de las bases que los consumen.
   const objetivosDeLaCasa = Object.entries(data?.freqs ?? {})
