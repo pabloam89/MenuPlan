@@ -5,6 +5,8 @@ import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { basesPedidas } from "./bases.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverMenu, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
+import { DEFAULT_FREQS } from "./defaultFreqs.js";
+import { HOLGURA_TOPES } from "./reparto.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
@@ -140,7 +142,7 @@ function proteinGroupsOf(recipe) {
 // Exportado (y solo eso: los valores no cambian) porque lib/reparto.js lo usa
 // como punto de partida del eje de reparto, y tenerlo duplicado allí dejaba
 // dos defaults que se desincronizan en cuanto alguien afine uno de los dos.
-export const DEFAULT_FREQS = { carne: 3, pescado: 2, legumbres: 2, pasta_arroz: 2, huevos: 2, verdura: 3 };
+export { DEFAULT_FREQS };
 
 const DAY_SLUG = {
   Lun: "lun", Mar: "mar", Mié: "mie", Jue: "jue",
@@ -377,6 +379,35 @@ export function createPlannerStats() {
     solverRelajados: 0,
     solverSemilla: null,
   };
+}
+
+/**
+ * Los topes semanales de un grupo y a dónde apuntar dentro de ellos.
+ *
+ * Dos orígenes:
+ *   · La libreta nueva: App.jsx proyecta `freqsByGroup` CON holgura
+ *     (presupuestoDeTopes) y escribe `objetivoByGroup` con el reparto exacto.
+ *     Se usan tal cual.
+ *   · El wizard viejo o un estilo de comida: `data.freqs` / un `freqsByGroup`
+ *     escrito a mano, sin objetivo. Son el PEDIDO exacto ("carne 3, pescado
+ *     1…"), y suman 10 u 11 para semanas de 10 a 21 huecos: no hay solución
+ *     con ellos como máximos. Medido en una casa real: el solver agotaba
+ *     2 s de búsqueda por grupo y semana antes de rendirse y relajar. Así que
+ *     se guardan como objetivo y se les da la misma holgura que a los otros.
+ *
+ * Solo con solver. El camino del modelo conserva sus topes exactos: sus
+ * tests los fijan y cambiarlos ahí es otra decisión.
+ */
+function topesDelGrupo(data, group) {
+  const freqs = data.freqsByGroup?.[group.id] ?? data.freqs ?? DEFAULT_FREQS;
+  const objetivo = data.objetivoByGroup?.[group.id] ?? null;
+  if (objetivo || !solverActivo()) return { freqs, objetivo };
+  const conHolgura = {};
+  for (const [f, v] of Object.entries(freqs)) {
+    const n = Number(v) || 0;
+    conHolgura[f] = n <= 0 ? 0 : Math.min(7, Math.max(n + 1, Math.round(n * HOLGURA_TOPES)));
+  }
+  return { freqs: conHolgura, objetivo: freqs };
 }
 
 function recordCall(stats, kind, result) {
@@ -657,11 +688,9 @@ export function buildGroupContext(data, group) {
     },
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
-      freqs: data.freqsByGroup?.[group.id] ?? data.freqs ?? DEFAULT_FREQS,
-      // El reparto EXACTO sobre los huecos de este grupo y esta semana (lo
-      // proyecta App.jsx junto a freqsByGroup). Solo lo lee el solver, como
-      // guía: `freqs` son los topes, esto es a dónde apuntar dentro de ellos.
-      objetivo: data.objetivoByGroup?.[group.id] ?? null,
+      // `freqs` son los topes y `objetivo` a dónde apuntar dentro de ellos
+      // (solo lo lee el solver). Ver topesDelGrupo.
+      ...topesDelGrupo(data, group),
       cookLevel: data.cookLevel ?? "normal",
       cookTime,
       // "Menú más cuidado" profiles present in the group (soft bias for the LLM).
@@ -1462,7 +1491,10 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     });
   }
 
-  const userMessage = buildUserMessage(
+  // Con solver no hace falta el mensaje para el modelo: construirlo cuesta
+  // (serializa el catálogo entero) y nadie lo lee.
+  const usarSolver = solverActivo();
+  const userMessage = usarSolver ? null : buildUserMessage(
     filteredPool,
     ctx.slots,
     ctx.config,
@@ -1492,7 +1524,6 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   let slotsRelajados = new Set();
   let familiasRelajadas = new Set();
   let slotsVacios = new Set();
-  const usarSolver = solverActivo();
   if (usarSolver) {
     const resuelto = asignarConSolver({
       group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings,

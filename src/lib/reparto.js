@@ -26,7 +26,7 @@
  * movido en silencio el menú de todo el mundo.
  */
 
-import { DEFAULT_FREQS } from "./aiPlanner.js";
+import { DEFAULT_FREQS } from "./defaultFreqs.js";
 import { FAMILIAS } from "./notepadFields.js";
 
 /** La suma es fija, y es 100. Porcentajes enteros: no hay medio plato. */

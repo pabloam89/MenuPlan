@@ -185,8 +185,11 @@ export function familiasDe(r) {
  *
  * ── Los dos topes ─────────────────────────────────────────────────────────
  * Un problema SIN solución hace que la búsqueda recorra el árbol entero antes
- * de rendirse, y eso a ~1 ms por nodo son minutos. Con solución converge en
- * cientos o pocos miles de nodos. Si se agota, devuelve el parcial más
+ * de rendirse, y eso a ~0,5 ms por nodo son minutos. Con solución converge en
+ * cientos de nodos (p50 medido: 519 en 1.200 unidades aleatorias), así que
+ * el presupuesto es corto a propósito: lo que no sale en 2.500 nodos casi
+ * nunca sale, y cada segundo de búsqueda inútil lo paga quien espera con la
+ * app abierta. Si se agota, devuelve el parcial más
  * profundo que vio, que es válido en todo lo que tiene puesto: mejor 17 huecos
  * buenos que ninguno. La primera versión devolvía CERO en ese caso, porque al
  * rendirse la recursión deshacía sus asignaciones al subir — correcto para
@@ -194,7 +197,7 @@ export function familiasDe(r) {
  */
 export function resolverMenu(slots, pool, {
   healthProfiles = [], freqs = {}, objetivo = null, basesPedidas = {}, cocinas = null,
-  semilla = 1, maxNodos = 5000, maxMs = 4000,
+  semilla = 1, maxNodos = 2500, maxMs = 2000,
 } = {}) {
   const dominios = new Map();
   const sinCandidatos = [];
@@ -336,7 +339,7 @@ export function resolverMenu(slots, pool, {
     const t1 = Date.now();
     const nodos1 = nodos;
     const agotado2 = () =>
-      nodos - nodos1 >= Math.max(1000, maxNodos / 2) || Date.now() - t1 >= Math.max(1500, maxMs / 2);
+      nodos - nodos1 >= Math.max(800, maxNodos / 2) || Date.now() - t1 >= Math.max(800, maxMs / 2);
 
     const saltados = [];
     let mejorSaltos = Infinity;
