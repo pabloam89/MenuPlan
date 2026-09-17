@@ -672,7 +672,7 @@ export function buildGroupContext(data, group) {
 const COMPACT_CATALOG_COLUMNS = [
   "id", "name", "category", "mainProtein", "mealRole", "time", "kcal",
   "kidFriendly", "tupperFriendly", "mainBase", "extraProteins", "cocina",
-  "protein_g", "carbs_g", "fat_g", "healthFlags", "pantryScore", "montaje", "favorite", "own",
+  "protein_g", "carbs_g", "fat_g", "healthFlags", "pantryScore", "aporte", "montaje", "favorite", "own",
 ];
 
 function compactCell(value) {

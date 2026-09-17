@@ -300,6 +300,22 @@ export const RecipeSchema = z
     // enum, porque es la clave por la que se agrupan los platos que comparten
     // olla en una sesión de batch cooking.
     mainBase: z.enum(MAIN_BASES).optional(),
+    // Qué RACIONES entrega el plato, que no es lo mismo que qué plato ES.
+    //
+    // `category` archiva ("dónde busco esta receta"); esto cuenta ("qué me
+    // como"). Una "Ternera a la jardinera" lleva 130 g de verdura por ración y
+    // está archivada en `carnes`: es carne Y entrega verdura, y los objetivos
+    // semanales necesitan las dos cosas. Es la misma idea que `extraProteins`
+    // ya aplicaba a las proteínas, extendida al resto de familias.
+    //
+    // OPCIONAL y casi siempre ausente a propósito: `lib/aporte.js` lo deriva de
+    // los ingredientes (gramos por familia, descontando aromáticos y lo que
+    // llega disuelto en salsa). Este campo es el override a mano para cuando la
+    // derivación se equivoque, igual que `mainBase` manda sobre el regex en
+    // `getCarbType`. Escribirlo apaga la derivación entera para esa receta.
+    aporte: z.array(z.enum([
+      "carne", "pescado", "legumbres", "huevos", "pasta_arroz", "patata", "verdura",
+    ])).optional(),
     // ¿La base se cocina APARTE del plato, o DENTRO de él?
     //
     // Es la distinción que hace posible el batch cooking y la única que

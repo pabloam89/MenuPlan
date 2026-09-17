@@ -8,6 +8,7 @@ import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 import { isMontaje, effectiveRecipeTime } from "../data/recipeSchema.js";
 import { resolveIngredientId } from "../lib/ingredients.js";
 import { esAnadido } from "../lib/cocinaTopes.js";
+import { aporteDe } from "../lib/aporte.js";
 
 // Off-menu categories: the optional desayuno/merienda/postre pool. They live in
 // the same catalog but must never be picked by the comida/cena planner (see the
@@ -625,6 +626,14 @@ export function decisionCatalog(filteredRecipes) {
     if (r.pantryScore > 0) {
       entry.pantryScore = Math.round(r.pantryScore * 100) / 100;
     }
+    // Qué raciones entrega (ver lib/aporte.js). El prompt lo nombra en el
+    // mapeo de los objetivos semanales, así que tiene que viajar o el modelo no
+    // puede aplicar la regla: una "Ternera a la jardinera" cuenta para carne Y
+    // para verdura, y por la categoría sola parecía solo carne. Se manda ya
+    // resuelto (declarado o derivado) para que el modelo vea exactamente lo
+    // mismo que contará después `FREQ_KEY_MATCHERS`.
+    const entregas = [...aporteDe(r)];
+    if (entregas.length > 0) entry.aporte = entregas;
     // Plato de MONTAJE (sándwich, tosta, tabla, ensalada de asamblaje). El
     // prompt lo nombra dos veces —"solo en un hueco de cena rápida", "nunca en
     // uno de comida rápida"— y hasta ahora no viajaba, así que el modelo tenía

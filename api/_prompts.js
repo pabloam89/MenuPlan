@@ -48,7 +48,8 @@ OBJETIVOS SEMANALES (config.freqs) — MÁXIMOS por semana, no mínimos:
   - legumbres: category "legumbres" o mainProtein legumbre
   - huevos: category "huevos" o mainProtein huevo
   - pasta_arroz: category "pasta_arroces", O cualquier plato con mainBase arroz/pasta/quinoa/cuscus (un pollo tikka con arroz cuenta como pasta_arroz Y como carne). Ojo: mainBase patatas o boniato NO cuenta aquí
-  - verdura: category "ensaladas_verduras" o "sopas_cremas" (van sobre todo en el primero de la comida)
+  - verdura: category "ensaladas_verduras" o "sopas_cremas" (van sobre todo en el primero de la comida), O cualquier plato que traiga "verdura" en su campo "aporte"
+- IMPORTANTE — el campo "aporte" del catálogo: dice qué RACIONES entrega el plato, que no es lo mismo que en qué categoría está archivado. Una "Ternera a la jardinera" es category "carnes" y trae aporte ["carne","verdura"]: cuenta para las DOS claves. Súmalo siempre a lo que diga la categoría, nunca en su lugar. Un plato sin "aporte" cuenta solo por su categoría y su proteína.
 - Reparte el resto de huecos (los que no hacen falta para llegar a ningún máximo) con variedad, sin amontonar en una sola categoría aunque ninguna tenga tope explícito.
 
 PERFILES DE SALUD (config.healthProfiles) — ORIENTACIÓN, nunca exclusión:

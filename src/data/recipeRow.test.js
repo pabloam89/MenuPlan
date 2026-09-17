@@ -39,6 +39,17 @@ const NO_VIAJAN = {
   // Cero recetas del catálogo lo escriben: es un campo de las recetas propias
   // del usuario, que van por otra tabla (user_recipes) y otro mapeador.
   scalesWithEaters: "0 filas en el catálogo; es de user_recipes",
+  // `aporte` es el OVERRIDE a mano de lo que `lib/aporte.js` deriva de los
+  // ingredientes (mismo patrón que `mainBase` sobre el regex de `getCarbType`).
+  // Hoy lo declaran CERO recetas, así que no viajar no pierde nada: una receta
+  // servida desde la nube se deriva igual que una del bundle.
+  //
+  // El día que se cure a mano —que es para lo que existe— hace falta columna
+  // `aporte text[]` en `recipes`, su línea en `rowToRecipe`, y quitar esta
+  // entrada. Ojo: las cinco columnas de la 0051 llevan aplicadas desde
+  // septiembre y siguen VACÍAS porque el catálogo no se ha vuelto a subir;
+  // añadir la columna antes de tener el dato repetiría eso.
+  aporte: "se deriva en runtime (lib/aporte.js); 0 recetas lo declaran todavía",
   // Todo lo que sigue solo lo llevan las recetas `type: "base"`, y esas NO se
   // sirven nunca desde Supabase: bases.json se importa directamente en
   // recipeCatalog.js, siempre desde el bundle. Serían columnas muertas.
