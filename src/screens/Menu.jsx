@@ -4954,63 +4954,6 @@ export const MenuScreen = memo(function MenuScreen({
   const puedeActivar = Boolean(hasMenu && onActivateMenu && menuNeedsActivation);
   const puedeFavorito = Boolean(onToggleFavorite && user);
   const accionesEnLaFila = hasMenu && Boolean(wizardControls);
-  const accionesDelMenu = useMemo(() => (
-    <>
-      <BaldosaAccion
-        Icono={Zap}
-        etiqueta={menuActivado ? "Activado" : "Activar"}
-        color="#c9922a"
-        tinte="#fff6e0"
-        marcado={puedeActivar}
-        apagado={!puedeActivar}
-        ariaPressed={menuActivado}
-        title={
-          menuActivado ? "Desactivar — se devuelve a En casa lo que este menú descontó"
-            : puedeActivar ? "Activar menú — En casa se moverá según tus preferencias"
-              : "Necesitas cuenta para activar el menú"
-        }
-        onClick={
-          menuActivado ? (onDeactivateMenu ?? null)
-            : puedeActivar ? onActivateMenu : null
-        }
-      />
-      <BaldosaAccion
-        Icono={Heart}
-        etiqueta={activeFavorite ? "Guardado" : "Favorito"}
-        color="#e0405a"
-        tinte="#fff0f3"
-        apagado={activeFavorite || !puedeFavorito}
-        ariaPressed={activeFavorite}
-        title={
-          !puedeFavorito ? "Necesitas cuenta para guardar favoritos"
-            : activeFavorite ? "Quitar de favoritos" : "Guardar en favoritos"
-        }
-        onClick={puedeFavorito ? onToggleFavorite : null}
-      />
-      <BaldosaAccion
-        Icono={Users}
-        etiqueta={menuSharedInFeed ? "Publicado" : "Publicar"}
-        color="#4a6fd4"
-        tinte="#e6efff"
-        apagado={menuSharedInFeed || !onPublishToFeed}
-        title={
-          !onPublishToFeed ? "Necesitas cuenta para publicar en Gente"
-            : menuSharedInFeed ? "Menú publicado en Gente" : "Publicar en Gente"
-        }
-        onClick={onPublishToFeed ? () => setPublishSheetOpen(true) : null}
-      />
-      {/* Descargar no tiene estado: o te bajas el PDF o no. Nunca se apaga
-          porque nunca está "hecha" — bajarlo dos veces es legitimo. */}
-      <BaldosaAccion
-        Icono={Download}
-        etiqueta="Descargar"
-        color="#d97706"
-        tinte="#fdf0e0"
-        title="Descargar el menú en PDF"
-        onClick={handleDownload}
-      />
-    </>
-  ), [activeFavorite, handleDownload, menuActivado, menuSharedInFeed, onDeactivateMenu, onActivateMenu, onPublishToFeed, onToggleFavorite, puedeActivar, puedeFavorito]);
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
@@ -5089,6 +5032,110 @@ export const MenuScreen = memo(function MenuScreen({
       onToast?.("No se pudo compartir el menú");
     }
   };
+
+
+  /**
+   * Las siete, en orden: lo que cambia el estado del menú primero, lo que se
+   * lo lleva fuera después, y el histórico al final porque no es una acción
+   * sobre este menú sino irse a otro sitio.
+   *
+   * Todas CON COLOR, siempre. Estuvieron un rato apagándose al completarse
+   * —gris para "ya está activado", gris para "ya es favorito"— y leído en la
+   * fila parecía que la app las había deshabilitado, cuando es justo al
+   * revés: activado y guardado son los estados BUENOS. Lo que dice si está
+   * hecho es el aro y el nombre, no el apagarse.
+   *
+   * El gris queda solo para lo que de verdad no se puede hacer aquí —guardar
+   * sin cuenta donde guardarlo—, y entonces el botón ni siquiera responde.
+   */
+  // Lo que hoy no se puede hacer no se apaga: se toca igual y contesta. Un
+  // botón gris y muerto no explica por qué no va.
+  const sinCuenta = (que) => () => onToast?.(`Necesitas cuenta para ${que}`);
+
+  const accionesDelMenu = (
+    <>
+      <BaldosaAccion
+        Icono={Zap}
+        etiqueta={menuActivado ? "Activado" : "Activar"}
+        color="#c9922a"
+        tinte="#fff6e0"
+        marcado={menuActivado}
+        ariaPressed={menuActivado}
+        title={
+          menuActivado ? "Desactivar — se devuelve a En casa lo que este menú descontó"
+            : puedeActivar ? "Activar menú — En casa se moverá según tus preferencias"
+              : "Necesitas cuenta para activar el menú"
+        }
+        onClick={
+          menuActivado ? (onDeactivateMenu ?? sinCuenta("activar el menú"))
+            : puedeActivar ? onActivateMenu : sinCuenta("activar el menú")
+        }
+      />
+      <BaldosaAccion
+        Icono={Heart}
+        etiqueta={activeFavorite ? "Guardado" : "Favorito"}
+        color="#e0405a"
+        tinte="#fff0f3"
+        marcado={activeFavorite}
+        ariaPressed={activeFavorite}
+        title={
+          !puedeFavorito ? "Necesitas cuenta para guardar favoritos"
+            : activeFavorite ? "Quitar de favoritos" : "Guardar en favoritos"
+        }
+        onClick={puedeFavorito ? onToggleFavorite : sinCuenta("guardar favoritos")}
+      />
+      <BaldosaAccion
+        Icono={Users}
+        etiqueta={menuSharedInFeed ? "Publicado" : "Publicar"}
+        color="#4a6fd4"
+        tinte="#e6efff"
+        marcado={menuSharedInFeed}
+        title={
+          !onPublishToFeed ? "Necesitas cuenta para publicar en Gente"
+            : menuSharedInFeed ? "Menú publicado en Gente" : "Publicar en Gente"
+        }
+        onClick={onPublishToFeed ? () => setPublishSheetOpen(true) : sinCuenta("publicar en Gente")}
+      />
+      {/* Estas cuatro no tienen estado: o las haces o no. Nunca llevan aro ni
+          se apagan — compartir dos veces o bajar el PDF otra vez es legítimo. */}
+      <BaldosaAccion
+        Icono={Share2}
+        etiqueta="Compartir"
+        color="#0d9488"
+        tinte="#e0f4f1"
+        title="Compartir el menú fuera de la app"
+        onClick={handleShare}
+      />
+      <BaldosaAccion
+        Icono={Download}
+        etiqueta="Descargar"
+        color="#d97706"
+        tinte="#fdf0e0"
+        title="Descargar el menú en PDF"
+        onClick={handleDownload}
+      />
+      {!isGenerating && !readOnly && onRegenerate && (
+        <BaldosaAccion
+          Icono={RotateCw}
+          etiqueta="Regenerar"
+          color="#16a34a"
+          tinte="#e6f6ec"
+          title="Regenerar el menú entero"
+          onClick={onRegenerate}
+        />
+      )}
+      {onOpenMenus && (
+        <BaldosaAccion
+          Icono={History}
+          etiqueta="Menús"
+          color="#7c3aed"
+          tinte="#f0e9fe"
+          title="Menús guardados"
+          onClick={onOpenMenus}
+        />
+      )}
+    </>
+  );
 
   const runPdfDownload = async (exportOptions) => {
     try {
@@ -5334,18 +5381,25 @@ export const MenuScreen = memo(function MenuScreen({
                 />
               </button>
             )}
-            <button
-              type="button"
-              data-coach="menu-options"
-              onClick={() => setHeaderMenuOpen(true)}
-              aria-label="Opciones del menú"
-              aria-haspopup="menu"
-              aria-expanded={headerMenuOpen}
-              title="Opciones"
-              style={{ ...iconChipButtonStyle, background: headerMenuOpen ? "#e8f0ea" : "#fff" }}
-            >
-              <MenuIcon size={18} strokeWidth={2.4} />
-            </button>
+            {/* El burger es el PLAN B. Cuando hay fila de mandos, sus entradas
+                viven allí como baldosas y este botón sobra: tener las mismas
+                acciones en dos sitios obliga a mirar los dos para saber si
+                algo está hecho. Sin fila —hogar de solo lectura, o ningún
+                control visible— es la única puerta, así que no se borra. */}
+            {!accionesEnLaFila && (
+              <button
+                type="button"
+                data-coach="menu-options"
+                onClick={() => setHeaderMenuOpen(true)}
+                aria-label="Opciones del menú"
+                aria-haspopup="menu"
+                aria-expanded={headerMenuOpen}
+                title="Opciones"
+                style={{ ...iconChipButtonStyle, background: headerMenuOpen ? "#e8f0ea" : "#fff" }}
+              >
+                <MenuIcon size={18} strokeWidth={2.4} />
+              </button>
+            )}
           </div>
           {headerMenuOpen && (
             <div
@@ -5417,11 +5471,9 @@ export const MenuScreen = memo(function MenuScreen({
                     // "Análisis" y "Borrar menú" quitados de momento (2026-08-27):
                     // para borrar, ahora se genera otro menú por encima.
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
-                    // Solo si no es ya una baldosa: la misma acción en dos
-                    // sitios obliga a mirar los dos para saber si está hecha.
-                    !accionesEnLaFila && hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
+                    hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
                     hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
-                    !accionesEnLaFila && hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
+                    hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
                     !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
                   ]
                     .filter(Boolean)

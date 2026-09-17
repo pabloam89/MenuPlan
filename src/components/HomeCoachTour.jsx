@@ -219,12 +219,15 @@ export const MENU_COACH_STEPS = [
     place: "above",
   },
   {
-    // Everything that used to be separate header icons now lives inside this
-    // burger: Análisis, Menús guardados, Perfil, Compartir, PDF y Regenerar.
+    // Todo lo que se hace CON el menú vive detrás de esta pestaña, que
+    // comparte fila con los mandos: activarlo, guardarlo, publicarlo,
+    // compartirlo, el PDF, regenerarlo y el histórico. El mismo `data-coach`
+    // de siempre —era el burger de la cabecera— porque es la misma puerta
+    // cambiada de sitio, y así el paso no hay que renumerarlo.
     selector: '[data-coach="menu-options"]',
     Icon: MenuIcon,
-    title: "Opciones de tu menú",
-    desc: "Aquí dentro tienes el análisis nutricional, tus menús guardados, compartir, descargar en PDF y regenerar el menú entero.",
+    title: "Todo lo que puedes hacer con tu menú",
+    desc: "Detrás de esta pestaña: activarlo, guardarlo en favoritos, publicarlo, compartirlo, descargarlo en PDF, regenerarlo y tus menús guardados.",
     place: "below",
   },
 ];

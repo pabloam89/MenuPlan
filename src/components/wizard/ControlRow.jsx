@@ -61,32 +61,31 @@ const TEAL = "#0f766e";
 /**
  * La forma de una baldosa: cuadrado de 56 con su nombre debajo.
  *
- * Se exporta porque las ACCIONES del menú —activar, favorito, publicar— se
- * despliegan en esta misma fila y tienen que ser la misma baldosa: si al
- * desplegarlas aparecieran pastillas, la fila cambiaría de idioma a mitad de
- * gesto. Lo único que cambia es el icono, que aquí va en vez de ilustración.
+ * Se exporta porque las ACCIONES del menú —activar, favorito, publicar y las
+ * demás— se despliegan en esta misma fila y tienen que ser la misma baldosa:
+ * si al desplegarlas aparecieran pastillas, la fila cambiaría de idioma a
+ * mitad de gesto. Lo único que cambia es el icono, que aquí va en vez de
+ * ilustración.
  *
- * ── Tres estados, y el de en medio es el normal ───────────────────────────
- * `marcado` es "esto está pendiente y te conviene tocarlo" —el aro y el color
- * propio, como el rayo de un menú sin activar—. `apagado` es lo contrario:
- * esa acción ya no está pendiente, porque ya está hecha (ya es favorito, ya
- * está publicado, ya se activó) o porque aquí no se puede hacer. En gris, y
- * sin aro.
+ * ── Siempre con color ─────────────────────────────────────────────────────
+ * Estuvieron un rato apagándose al completarse —gris para "ya está activado",
+ * gris para "ya es favorito"— y leído en la fila parecía que la app las había
+ * deshabilitado, cuando es justo al revés: activado y guardado son los
+ * estados buenos. Lo que dice si algo está hecho es el ARO y el nombre
+ * —"Activar" pasa a "Activado"—, nunca el apagarse.
  *
- * Apagada NO significa muerta: lo que se puede deshacer —quitar de favoritos,
- * volver a la hoja de publicar— sigue pulsando. Solo se bloquea lo que de
- * verdad no tiene nada que hacer, y entonces se pasa `onClick` a null.
+ * Y las que hoy no se pueden hacer tampoco se apagan: se tocan igual y
+ * contestan. Un botón gris y muerto no explica por qué; uno que al tocarlo
+ * dice "necesitas cuenta para guardar favoritos", sí.
  */
 export function BaldosaAccion({
   Icono, etiqueta, color = VERDE, tinte = "#fff",
-  marcado = false, apagado = false, onClick, title, ariaPressed,
+  marcado = false, onClick, title, ariaPressed,
 }) {
-  const tinta = apagado ? "#9ab0a1" : color;
   return (
     <button
       type="button"
-      onClick={onClick ?? undefined}
-      disabled={!onClick}
+      onClick={onClick}
       title={title}
       aria-label={title ?? etiqueta}
       aria-pressed={ariaPressed}
@@ -94,30 +93,30 @@ export function BaldosaAccion({
         flexShrink: 0, width: 76,
         display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
         background: "none", border: "none", padding: 0,
-        cursor: onClick ? "pointer" : "default", fontFamily: "inherit",
+        cursor: "pointer", fontFamily: "inherit",
       }}
     >
       <span
         style={{
           width: 56, height: 56, borderRadius: 18,
           display: "flex", alignItems: "center", justifyContent: "center",
-          background: apagado ? "#eef2ef" : tinte,
+          background: tinte,
           // Lo no marcado NO lleva borde, pero sí reserva su grosor en
           // transparente: sin eso la baldosa encoge 4px al marcarse y la fila
           // entera da un salto.
-          border: marcado ? `2px solid ${tinta}` : "2px solid transparent",
+          border: marcado ? `2px solid ${color}` : "2px solid transparent",
           boxShadow: marcado
-            ? `0 6px 16px -8px ${tinta}99`
-            : apagado ? "none" : "0 2px 8px -4px rgba(20,47,29,.18)",
-          transition: "box-shadow .2s, border-color .2s, background .2s",
+            ? `0 6px 16px -8px ${color}99`
+            : "0 2px 8px -4px rgba(20,47,29,.18)",
+          transition: "box-shadow .2s, border-color .2s",
         }}
       >
-        <Icono size={24} color={tinta} strokeWidth={marcado ? 2.4 : 2} />
+        <Icono size={24} color={color} strokeWidth={marcado ? 2.4 : 2} />
       </span>
       <span
         style={{
           fontSize: 11.5, fontWeight: 800, textAlign: "center", lineHeight: 1.15,
-          color: apagado ? "#9aa89e" : marcado ? "#142f1d" : "#5a7066",
+          color: marcado ? "#142f1d" : "#5a7066",
         }}
       >
         {etiqueta}
@@ -264,9 +263,18 @@ export function ControlRow({
               // Otro color: la franja es verde pálido y las baldosas blancas,
               // así que la pestaña en teja se lee como OTRA cosa sin tener que
               // explicarse. Es el mismo tono con el que Publicar asoma en Gente.
-              background: accionesAviso && !accionesAbiertas ? "#fdf3df" : "#f6efe6",
-              borderRadius: "0 18px 18px 0",
+              // Plegada es una pestaña: teja clara y redondeada por la
+              // derecha, que es el lado que se ve. Desplegada deja de ser una
+              // pestaña y pasa a ser la franja entera, así que llega hasta el
+              // borde —sin redondeo— y baja un tono: sobre ese fondo las
+              // baldosas blancas se despegan, y de un vistazo se ve que la
+              // fila ha cambiado de modo y no que le han añadido cosas.
+              background: accionesAbiertas
+                ? "#f1e7db"
+                : accionesAviso ? "#fdf3df" : "#f6efe6",
+              borderRadius: accionesAbiertas ? 0 : "0 18px 18px 0",
               paddingLeft: 14,
+              transition: "background .25s ease, border-radius .25s ease",
             }}
           >
             {/* Plegada asoma su icono; desplegada, la X. Mismo botón y mismo
@@ -277,6 +285,7 @@ export function ControlRow({
                 lo que está—. */}
             <button
               type="button"
+              data-coach="menu-options"
               onClick={() => onAccionesAbiertas?.(!accionesAbiertas)}
               aria-expanded={accionesAbiertas}
               aria-label={accionesAbiertas ? "Cerrar" : "Otras acciones del menú"}
@@ -284,7 +293,9 @@ export function ControlRow({
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0, width: 32, height: 32, borderRadius: 999,
                 border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit",
-                background: accionesAviso && !accionesAbiertas ? "#f8e3b0" : "rgba(178,98,47,.12)",
+                background: accionesAviso && !accionesAbiertas
+                  ? "#f8e3b0"
+                  : accionesAbiertas ? "rgba(178,98,47,.18)" : "rgba(178,98,47,.12)",
                 transition: "background .2s ease",
               }}
             >
@@ -325,9 +336,17 @@ export function ControlRow({
             flexBasis: 0,
             flexGrow: conAcordeon && accionesAbiertas ? 0 : 1,
             opacity: conAcordeon && accionesAbiertas ? 0 : 1,
-            padding: "12px 16px",
-            paddingLeft: conAcordeon ? 10 : 16,
+            // El relleno se va con el panel. Un `flex-basis: 0` con
+            // `flex-grow: 0` sigue midiendo su padding, así que la franja de
+            // baldosas plegada dejaba 26px vivos a la derecha y la banda de
+            // las acciones se cortaba ahí en vez de llegar al borde. Es el
+            // mismo motivo por el que se anima: si desapareciera de golpe, la
+            // banda pegaría un tirón al final del despliegue.
+            paddingTop: 12,
             paddingBottom: hayQueRehacer ? 10 : 12,
+            paddingLeft: conAcordeon && accionesAbiertas ? 0 : conAcordeon ? 10 : 16,
+            paddingRight: conAcordeon && accionesAbiertas ? 0 : 16,
+            transition: "padding .34s cubic-bezier(.22,1,.36,1)",
             scrollbarWidth: "none", msOverflowStyle: "none",
           }}
           aria-hidden={conAcordeon && accionesAbiertas}
