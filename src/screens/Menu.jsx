@@ -4676,6 +4676,7 @@ export const MenuScreen = memo(function MenuScreen({
   activeFavorite = false,
   onToggleFavorite,
   onActivateMenu = null,
+  onDeactivateMenu = null,
   onSwitchWeek,
   onOpenMenus,
   onOpenAnalytics,
@@ -4907,6 +4908,7 @@ export const MenuScreen = memo(function MenuScreen({
   const menuNeedsActivation = Boolean(
     user && activeMenu && activeMenu.activatedAt === null && onActivateMenu,
   );
+  const menuActivado = Boolean(activeMenu?.activatedAt);
   const hasMenu = !isGenerating && !error && hasVisibleMenu;
 
   /**
@@ -4941,6 +4943,10 @@ export const MenuScreen = memo(function MenuScreen({
    * interruptores, y una baldosa que abre una pantalla promete algo que no es.
    */
   const [publishSheetOpen, setPublishSheetOpen] = useState(false);
+  // Vive aqui arriba, y no junto a los demás manejadores de exportar, porque
+  // la baldosa de Descargar lo lleva en sus dependencias: declarado abajo se
+  // lee antes de existir y revienta en el primer render.
+  const handleDownload = useCallback(() => setPdfExportOpen(true), []);
   const abrirAcciones = useCallback((v) => setAccionesAbiertas(v), []);
   // Sin activar Y con cuenta para activarlo: es la única de las tres que pide
   // un toque ya mismo, así que es la única que se destaca —y la que asoma
@@ -4952,17 +4958,21 @@ export const MenuScreen = memo(function MenuScreen({
     <>
       <BaldosaAccion
         Icono={Zap}
-        etiqueta={onActivateMenu && !menuNeedsActivation ? "Activado" : "Activar"}
+        etiqueta={menuActivado ? "Activado" : "Activar"}
         color="#c9922a"
         tinte="#fff6e0"
         marcado={puedeActivar}
         apagado={!puedeActivar}
+        ariaPressed={menuActivado}
         title={
-          !onActivateMenu ? "Necesitas cuenta para activar el menú"
-            : menuNeedsActivation ? "Activar menú — En casa se moverá según tus preferencias"
-              : "Menú ya activo — En casa se mueve según tus preferencias"
+          menuActivado ? "Desactivar — se devuelve a En casa lo que este menú descontó"
+            : puedeActivar ? "Activar menú — En casa se moverá según tus preferencias"
+              : "Necesitas cuenta para activar el menú"
         }
-        onClick={puedeActivar ? onActivateMenu : null}
+        onClick={
+          menuActivado ? (onDeactivateMenu ?? null)
+            : puedeActivar ? onActivateMenu : null
+        }
       />
       <BaldosaAccion
         Icono={Heart}
@@ -4989,8 +4999,18 @@ export const MenuScreen = memo(function MenuScreen({
         }
         onClick={onPublishToFeed ? () => setPublishSheetOpen(true) : null}
       />
+      {/* Descargar no tiene estado: o te bajas el PDF o no. Nunca se apaga
+          porque nunca está "hecha" — bajarlo dos veces es legitimo. */}
+      <BaldosaAccion
+        Icono={Download}
+        etiqueta="Descargar"
+        color="#d97706"
+        tinte="#fdf0e0"
+        title="Descargar el menú en PDF"
+        onClick={handleDownload}
+      />
     </>
-  ), [activeFavorite, menuNeedsActivation, menuSharedInFeed, onActivateMenu, onPublishToFeed, onToggleFavorite, puedeActivar, puedeFavorito]);
+  ), [activeFavorite, handleDownload, menuActivado, menuSharedInFeed, onDeactivateMenu, onActivateMenu, onPublishToFeed, onToggleFavorite, puedeActivar, puedeFavorito]);
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
@@ -5068,10 +5088,6 @@ export const MenuScreen = memo(function MenuScreen({
     } catch {
       onToast?.("No se pudo compartir el menú");
     }
-  };
-
-  const handleDownload = () => {
-    setPdfExportOpen(true);
   };
 
   const runPdfDownload = async (exportOptions) => {
@@ -5405,7 +5421,7 @@ export const MenuScreen = memo(function MenuScreen({
                     // sitios obliga a mirar los dos para saber si está hecha.
                     !accionesEnLaFila && hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú publicado" : "Publicar en Gente", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
                     hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
-                    hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
+                    !accionesEnLaFila && hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
                     !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
                   ]
                     .filter(Boolean)

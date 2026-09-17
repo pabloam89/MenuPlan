@@ -2747,6 +2747,46 @@ export default function App() {
     showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
   }, [data, householdReadOnly, user, showToast]);
 
+  /**
+   * Desactivar: lo contrario de activar, y ya existía a medias.
+   *
+   * Activar un menú DESACTIVA los demás —les devuelve a la despensa lo que se
+   * habían llevado— con `reconcileMenusRemoval`. Esto es exactamente esa misma
+   * operación aplicada al menú de delante: la misma función y los mismos
+   * buckets que ya corren en producción cada vez que alguien activa un segundo
+   * menú, no un camino nuevo.
+   *
+   * Y por eso devuelve TODO lo del menú —generación, día y cocinado— y no solo
+   * lo de generación: si se quedara la mitad, el menú desactivado seguiría
+   * descontando de En casa sin estar activo, que es el estado imposible que
+   * `reconcileMenusRemoval` existe para evitar.
+   */
+  const deactivateActiveMenu = useCallback(async () => {
+    if (householdReadOnly) return;
+    const menuId = data.activeMenuId;
+    const menu = data.menus?.[menuId];
+    if (!user || !menu || menu.activatedAt == null) return;
+
+    const recon = reconcileMenusRemoval(data, [menuId]);
+    if (recon.deltas.length) {
+      await restoreToPantry(recon.deltas, { user });
+    }
+    setData((d) => ({
+      ...d,
+      menus: {
+        ...d.menus,
+        [menuId]: { ...d.menus[menuId], activatedAt: null },
+      },
+      pantryGenDeltas: recon.genOut,
+      pantryDayDeltas: recon.dayOut,
+      cookedDeltas: recon.cookedOut,
+    }));
+    setPantryEpoch((n) => n + 1);
+    showToast(recon.deltas.length
+      ? `Menú desactivado · devuelto a En casa (${recon.deltas.length})`
+      : "Menú desactivado");
+  }, [data, householdReadOnly, user, showToast]);
+
   // Deletes a non-active menú from the histórico. Unlike deleteActiveMenu,
   // never touches menuPlan/shopping — those mirror the active menú's current
   // week and have nothing to do with a history entry.
@@ -4893,6 +4933,7 @@ export default function App() {
               activeFavorite={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
               onToggleFavorite={householdReadOnly ? undefined : toggleActiveFavorite}
               onActivateMenu={householdReadOnly || !user ? undefined : activateActiveMenu}
+              onDeactivateMenu={householdReadOnly || !user ? undefined : deactivateActiveMenu}
               onSwitchWeek={switchActiveWeek}
               onOpenMenus={openMenusScreen}
               onOpenAnalytics={() => {
