@@ -119,3 +119,68 @@ describe("tolera recetas incompletas sin romper", () => {
     expect(aporteDe({ ingredients: [ing("Calabacín", 400)] }).has("verdura")).toBe(true);
   });
 });
+
+describe("revisión contra el vocabulario real del catálogo (17 sep 2026)", () => {
+  // Estos salieron de auditar los 683 nombres de ingrediente del recetario
+  // estrella, ordenados por cuánto pesan. Cada uno es un fallo que estaba y ya
+  // no está: quedan fijados para que una lista de palabras futura no los
+  // reabra.
+
+  it("un fondo no es una ración, aunque lleve el nombre del bicho", () => {
+    // "Fumet de pescado" pesaba 300 g/ración en seis recetas y contaba como
+    // pescado. Es caldo.
+    expect(familiaDeIngrediente("Fumet de pescado")).toBeNull();
+    expect(familiaDeIngrediente("Fumet de marisco")).toBeNull();
+    expect(familiaDeIngrediente("Cáscaras y cabezas de langostinos")).toBeNull();
+    expect(familiaDeIngrediente("Hueso de ternera")).toBeNull();
+    expect(familiaDeIngrediente("Bolsas de tinta de calamar")).toBeNull();
+  });
+
+  it("pero el mismo bicho entero sí, aunque la palabra aparezca dentro", () => {
+    // El par que obliga a anclar al principio en vez de usar `includes`.
+    expect(familiaDeIngrediente("Langostinos frescos con cáscara")).toBe("pescado");
+    expect(familiaDeIngrediente("Jarrete de ternera con hueso (ossobuco)")).toBe("carne");
+    expect(familiaDeIngrediente("Calamares limpios con sus tintas")).toBe("pescado");
+  });
+
+  it("el pan no es carne por llamarse de hamburguesa", () => {
+    expect(familiaDeIngrediente("Pan de hamburguesa")).toBeNull();
+    expect(familiaDeIngrediente("Pan de hamburguesa brioche")).toBeNull();
+  });
+
+  it("la pasta rellena es pasta, no su relleno", () => {
+    expect(familiaDeIngrediente("Tortellini frescos rellenos de carne")).toBe("pasta_arroz");
+  });
+
+  it("un pescado que no estaba en la lista no puede acabar en carne", () => {
+    // "Corvina fresca en lomo limpio" casaba con "lomo" → carne, 150 g.
+    expect(familiaDeIngrediente("Corvina fresca en lomo limpio")).toBe("pescado");
+    expect(familiaDeIngrediente("Corvina fresca")).toBe("pescado");
+  });
+
+  it("«en conserva» no anula una ración de verdad", () => {
+    // Estaba en la lista de «disuelto» pensando en el tomate, y lo que
+    // bloqueaba era atún, bonito y espárragos.
+    expect(familiaDeIngrediente("Atún en conserva")).toBe("pescado");
+    expect(familiaDeIngrediente("Bonito en conserva")).toBe("pescado");
+    expect(familiaDeIngrediente("Espárragos blancos en conserva")).toBe("verdura");
+  });
+
+  it("vocabulario que faltaba y pesaba", () => {
+    expect(familiaDeIngrediente("Medio cochinillo")).toBe("carne");   // 417 g/ración
+    expect(familiaDeIngrediente("Boletus")).toBe("verdura");          // en 8 recetas
+  });
+
+  it("los nachos y las tortillas de maíz no son verdura", () => {
+    expect(familiaDeIngrediente("Nachos de maíz")).toBeNull();
+    expect(familiaDeIngrediente("Tortillas de maíz")).toBeNull();
+    // Pero el maíz de verdad sí.
+    expect(familiaDeIngrediente("Maíz dulce cocido")).toBe("verdura");
+  });
+
+  it("las grasas y los condimentos no son ración", () => {
+    expect(familiaDeIngrediente("Manteca de cerdo")).toBeNull();
+    expect(familiaDeIngrediente("Vinagre de arroz")).toBeNull();
+    expect(familiaDeIngrediente("Paté de cerdo")).toBeNull();
+  });
+});

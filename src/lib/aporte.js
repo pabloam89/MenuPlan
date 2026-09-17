@@ -7,10 +7,10 @@
  * te comes. Medido sobre el recetario estrella, eso dejaba invisible media
  * despensa:
  *
- *   · "Ternera a la jardinera" → 195 g de verdura por ración (zanahoria,
+ *   · "Ternera a la jardinera" → 130 g de verdura por ración (zanahoria,
  *     guisantes, judía verde), archivada en `carnes`: contaba CERO verdura.
- *   · 184 platos entregaban 80 g o más de verdura y no contaban ninguna.
- *   · Y al revés: 47 platos archivados en `ensaladas_verduras` llevan menos.
+ *   · 101 platos del recetario estrella entregan verdura y no la contaban.
+ *   · Y al revés: hay platos en `ensaladas_verduras` que no llegan al umbral.
  *
  * Con el tope de verdura en 3 y 127 de los 181 primeros contando como verdura
  * por su categoría, el motor tenía que ESQUIVAR la verdura en la mayoría de los
@@ -37,8 +37,8 @@
  * `aporteDe` SUMA a lo que ya decía el catálogo, no lo sustituye. Medido: para
  * las proteínas el umbral por gramos PIERDE platos (un filete de 150 g es carne
  * y se cae del corte de 175), así que la identidad declarada sigue mandando y
- * los gramos solo añaden. La verdura gana los 33 que hoy pierde y la carne no
- * pierde ninguno.
+ * los gramos solo añaden: verdura +101, pescado +17, legumbres +10, carne +8,
+ * pasta +7, huevos +1, y ninguna familia pierde un solo plato.
  *
  * ── Derivado, con override declarado ──────────────────────────────────────
  * Mismo patrón que `getCarbType`: si la receta trae `aporte` escrito a mano,
@@ -80,16 +80,48 @@ const AROMATICOS = [
 ];
 
 // Marcadores de que el ingrediente llega DISUELTO: es salsa o fondo, no trozo.
+//
+// "en conserva" estuvo aquí y se quitó: se puso pensando en el tomate y lo que
+// bloqueaba era "Atún en conserva", "Bonito en conserva" y "Espárragos blancos
+// en conserva" —raciones de verdad, 80-150 g— mientras que ningún tomate del
+// catálogo se llama así (los de lata ya vienen como "triturado").
 const DISUELTO = [
-  "triturado", "concentrado", "passata", "pure de", "puré de", "en conserva",
+  "triturado", "concentrado", "passata", "pure de", "puré de",
   "caldo", "salsa de", "sofrito", "frito",
 ];
+
+/**
+ * Lo que va al plato pero NO es una ración: fondos, huesos, condimentos y
+ * envoltorios. Se mira por el PRINCIPIO del nombre, y esa es toda la gracia:
+ *
+ *   "Cáscaras y cabezas de langostinos" → fondo de fumet, no marisco
+ *   "Langostinos frescos con cáscara"   → langostinos, y sí cuentan
+ *   "Hueso de ternera"                  → para el caldo
+ *   "Jarrete de ternera con hueso"      → carne, y de las buenas
+ *
+ * Un `includes` suelto no distingue esos pares; el ancla al principio sí,
+ * porque en una lista de la compra la primera palabra dice QUÉ es.
+ */
+const NO_ES_RACION = [
+  "fumet", "hueso", "cascara", "cabeza", "tinta", "bolsa", "bolsita",
+  "manteca", "pate", "pan de", "nachos", "vinagre", "tortilla de maiz",
+  "tortillas de maiz",
+];
+
+/**
+ * Pasta rellena: es pasta, aunque el relleno sea carne.
+ *
+ * Va antes que todo lo demás porque "Tortellini frescos rellenos de carne"
+ * casaba con "carne" (que se mira antes que los hidratos) y contaba como
+ * ración de carne. El relleno de unos tortellini no es un filete.
+ */
+const PASTA_RELLENA = ["tortellini", "ravioli", "canelon", "lasa"];
 
 const PALABRAS = {
   verdura: [
     "lechuga", "tomate", "pimiento", "calabacin", "berenjena", "zanahoria",
     "brocoli", "coliflor", "espinaca", "acelga", "calabaza", "apio", "champinon",
-    "seta", "pepino", "rabano", "remolacha", "alcachofa", "esparrago", "guisante",
+    "seta", "boletus", "pepino", "rabano", "remolacha", "alcachofa", "esparrago", "guisante",
     "repollo", "endibia", "endivia", "escarola", "rucula", "canonigo", "brotes",
     "maiz", "nabo", "verdura", "calcot", "escalivada", "judia verde",
     "judias verdes", "berza", "grelo", "cardo", "hinojo", "aguacate", "lombarda",
@@ -99,7 +131,7 @@ const PALABRAS = {
     "arroz", "pasta", "espagueti", "macarron", "fideo", "tallarin", "penne",
     "lasa", "canelon", "ravioli", "risotto", "quinoa", "cuscus", "couscous",
     "bulgur", "orecchiette", "linguine", "trofie", "fusilli", "tagliatelle",
-    "pappardelle", "noodle", "ñoqui", "noqui",
+    "pappardelle", "tortellini", "noodle", "ñoqui", "noqui",
   ],
   legumbres: [
     "lenteja", "garbanzo", "alubi", "judion", "fabe", "frijol", "haba", "soja",
@@ -109,14 +141,14 @@ const PALABRAS = {
     "pollo", "pavo", "ternera", "cerdo", "carne", "lomo", "chorizo", "salchich",
     "jamon", "bacon", "beicon", "panceta", "tocino", "cordero", "solomillo",
     "chuleta", "morcilla", "costilla", "entrecot", "hamburgues", "albondig",
-    "conejo", "pato", "secreto", "presa", "pluma", "carrillera", "rabo",
+    "conejo", "pato", "cochinillo", "secreto", "presa", "pluma", "carrillera", "rabo",
     "codorniz", "higado", "fiambre", "mortadela", "fuet", "butifarra", "picada",
   ],
   pescado: [
     "merluza", "salmon", "bacalao", "atun", "gamba", "langostino", "cigala",
     "sardina", "anchoa", "calamar", "sepia", "mejillon", "pescado", "rape",
     "lubina", "rodaballo", "dorada", "boqueron", "besugo", "lenguado",
-    "emperador", "caballa", "trucha", "almeja", "pulpo", "bonito", "navaja",
+    "emperador", "caballa", "trucha", "corvina", "abadejo", "salmonete", "cabracho", "congrio", "almeja", "pulpo", "bonito", "navaja",
     "marisco", "bogavante", "chipiron", "vieira", "zamburi", "berberecho",
     "chirla", "langosta", "centollo", "necora", "percebe", "txangurro",
   ],
@@ -162,6 +194,8 @@ function gramos(ingrediente) {
  */
 export function familiaDeIngrediente(nombre) {
   const n = normalizeText(nombre);
+  if (NO_ES_RACION.some((x) => n.startsWith(x))) return null;
+  if (PASTA_RELLENA.some((x) => n.startsWith(x))) return "pasta_arroz";
   if (RE_AROMATICOS.test(n)) return null;
   if (DISUELTO.some((m) => n.includes(m))) return null;
   // Antes que nada: "judía verde" es verdura y "judía" a secas es legumbre, así
