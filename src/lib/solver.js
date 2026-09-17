@@ -51,6 +51,7 @@
 import { validateMenu, slotAcceptsRole, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { isMontaje } from "../data/recipeSchema.js";
+import { esAnadido, topeDe } from "./cocinaTopes.js";
 
 /**
  * ¿Está encendido? Apagado por defecto: el motor de siempre no cambia hasta
@@ -130,7 +131,7 @@ function hash(texto, semilla) {
 }
 
 /** Las familias (claves de freqs) que consume un plato. */
-function familiasDe(r) {
+export function familiasDe(r) {
   const out = [];
   for (const [familia, matcher] of Object.entries(FREQ_KEY_MATCHERS)) {
     if (matcher(r)) out.push(familia);
@@ -150,12 +151,15 @@ function familiasDe(r) {
  *                                             QUEREMOS (el reparto exacto);
  *                                             guía la elección, no la limita
  * @param {object}   [opciones.basesPedidas]   tandas alcanzables
+ * @param {object}   [opciones.cocinas]        cocina → platos por semana que
+ *                                             pidió la casa (mando de Cocina);
+ *                                             guía la elección, como el objetivo
  * @param {number}   [opciones.semilla]        para reproducir un resultado
  * @param {number}   [opciones.maxNodos]       tope de nodos antes de rendirse
  * @param {number}   [opciones.maxMs]          tope de tiempo antes de rendirse
  * @returns {{ asignaciones: {slotId,recipeId}[], completo: boolean,
  *            sinCandidatos: string[], sinCombinacion: string[],
- *            nodos: number, ms: number }}
+ *            relajados: string[], nodos: number, ms: number }}
  *
  * ── Cómo elige, que es donde vive la calidad ──────────────────────────────
  * El solver coge el primer candidato que no rompe nada, así que el ORDEN de
@@ -180,8 +184,8 @@ function familiasDe(r) {
  * seguir buscando, lo peor posible como resultado final.
  */
 export function resolverMenu(slots, pool, {
-  healthProfiles = [], freqs = {}, objetivo = null, basesPedidas = {}, semilla = 1,
-  maxNodos = 5000, maxMs = 4000,
+  healthProfiles = [], freqs = {}, objetivo = null, basesPedidas = {}, cocinas = null,
+  semilla = 1, maxNodos = 5000, maxMs = 4000,
 } = {}) {
   const dominios = new Map();
   const sinCandidatos = [];
@@ -205,6 +209,17 @@ export function resolverMenu(slots, pool, {
   const cuenta = {};
   const meta = objetivo ?? freqs;
 
+  // La cuota de cocinas (mando de Cocina): cuántos platos de cada cocina
+  // añadida quiere la casa, recortado al tope de esa cocina. Mismo cálculo que
+  // lib/cuotaCocinas.js, que es quien lo hacía a posteriori (y sin validar).
+  const cuotaCocinas = {};
+  for (const [cocina, n] of Object.entries(cocinas ?? {})) {
+    if (!esAnadido(cocina)) continue;
+    const q = Math.min(Number(n) || 0, topeDe(cocina));
+    if (q > 0) cuotaCocinas[cocina] = q;
+  }
+  const cuentaCocina = {};
+
   // Cuánto se pasaría del objetivo poner este plato ahora. Cero mientras cabe.
   const exceso = (r) => {
     let e = 0;
@@ -215,6 +230,10 @@ export function resolverMenu(slots, pool, {
     }
     return e;
   };
+  // Un plato de una cocina que la casa pidió y aún no ha llegado a su cuota
+  // va antes que los demás de su mismo escalón de exceso.
+  const cocinaPendiente = (r) =>
+    r.cocina && cuotaCocinas[r.cocina] !== undefined && (cuentaCocina[r.cocina] ?? 0) < cuotaCocinas[r.cocina];
 
   // Se ordena en cada nodo porque el exceso depende de lo que ya hay puesto.
   // El ruido con semilla mueve un plato hasta ~20 posiciones dentro de su
@@ -224,7 +243,8 @@ export function resolverMenu(slots, pool, {
     [...dominios.get(slot.slotId)]
       .map((r) => ({
         r,
-        clave: exceso(r) * 1e6 + indice.get(r.id) + (hash(r.id + slot.slotId, semilla) % 20),
+        clave: exceso(r) * 1e6 - (cocinaPendiente(r) ? 5e5 : 0)
+          + indice.get(r.id) + (hash(r.id + slot.slotId, semilla) % 20),
       }))
       .sort((a, b) => a.clave - b.clave)
       .map((x) => x.r);
@@ -249,11 +269,13 @@ export function resolverMenu(slots, pool, {
     asignadas.push({ slotId: slot.slotId, recipeId: receta.id });
     usados.add(receta.id);
     for (const f of familias.get(receta.id)) cuenta[f] = (cuenta[f] ?? 0) + 1;
+    if (receta.cocina) cuentaCocina[receta.cocina] = (cuentaCocina[receta.cocina] ?? 0) + 1;
   };
   const quitar = (receta) => {
     asignadas.pop();
     usados.delete(receta.id);
     for (const f of familias.get(receta.id)) cuenta[f] -= 1;
+    if (receta.cocina) cuentaCocina[receta.cocina] -= 1;
   };
 
   const buscar = (i) => {
@@ -299,6 +321,7 @@ export function resolverMenu(slots, pool, {
     asignadas.length = 0;
     usados.clear();
     for (const f of Object.keys(cuenta)) cuenta[f] = 0;
+    for (const c of Object.keys(cuentaCocina)) cuentaCocina[c] = 0;
     // Presupuesto propio: si la fase 1 se agotó demostrando que no hay semana
     // entera, esta no puede quedarse sin turno.
     const t1 = Date.now();
@@ -337,14 +360,82 @@ export function resolverMenu(slots, pool, {
     completo = mejorSaltos === 0 && sinCandidatos.length === 0;
   }
 
+  // ── Fase 3: relleno, y si hace falta, relajando lo que ya era orientación ─
+  // Dos pasadas sobre los huecos que siguen vacíos, partiendo del mejor
+  // parcial:
+  //   1. estricta: un plato que cabe con TODAS las reglas. La poda de la fase
+  //      2 puede haberse rendido antes de probarlo (medido: 42 candidatos que
+  //      cabían en huecos que se quedaron vacíos);
+  //   2. relajada: se ignoran SOLO los perfiles de salud y los topes
+  //      semanales (REGLAS_RELAJABLES). Son las dos reglas que el prompt del
+  //      modelo describe como preferencia —"ORIENTACIÓN, nunca exclusión",
+  //      "nunca dejes un hueco sin cubrir por cumplir un perfil"— y que el
+  //      validador trata como duras. Medido sobre 26 unidades aleatorias:
+  //      bloquean 207 y 164 candidatos, y sin ellas se cierran 17 semanas
+  //      enteras en vez de 10. Todo lo demás (alergias, roles, proteína
+  //      consecutiva, peso de la comida…) sigue siendo inamovible.
+  // Lo relajado se devuelve con nombre, para avisar al usuario y para que la
+  // revalidación de después no lo "repare" con el fallback.
+  const relajados = [];
+  if (!completo) {
+    const porId = new Map(pool.map((r) => [r.id, r]));
+    const slotPorId = new Map(slots.map((s) => [s.slotId, s]));
+    asignadas.length = 0;
+    usados.clear();
+    for (const f of Object.keys(cuenta)) cuenta[f] = 0;
+    for (const c of Object.keys(cuentaCocina)) cuentaCocina[c] = 0;
+    for (const a of mejor) poner(slotPorId.get(a.slotId), porId.get(a.recipeId));
+
+    const vacios = () => orden.filter((s) => !asignadas.some((a) => a.slotId === s.slotId));
+    const rellenar = (valida) => {
+      for (const slot of vacios()) {
+        for (const receta of ordenados(slot)) {
+          if (usados.has(receta.id)) continue;
+          nodos += 1;
+          poner(slot, receta);
+          if (valida()) break;
+          quitar(receta);
+        }
+      }
+    };
+    rellenar(parcialValida);
+    const estrictos = new Set(asignadas.map((a) => a.slotId));
+    const relajadaValida = () => {
+      const { violations } = validateMenu(asignadas, pool, contexto, [], {}, basesPedidas);
+      return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule));
+    };
+    rellenar(relajadaValida);
+    for (const a of asignadas) if (!estrictos.has(a.slotId)) relajados.push(a.slotId);
+
+    mejor = [...asignadas];
+    sinCombinacion = vacios().map((s) => s.slotId);
+    completo = sinCombinacion.length === 0 && sinCandidatos.length === 0;
+  }
+
   return {
     asignaciones: completo ? [...asignadas] : mejor,
     completo,
     // Huecos en los que ningún plato encaja por sí solo (tiempo, rol, tupper…).
     sinCandidatos,
-    // Huecos con candidatos, pero ninguno compatible con el resto de la semana.
+    // Huecos con candidatos, pero ninguno compatible con el resto de la semana
+    // ni siquiera relajando REGLAS_RELAJABLES.
     sinCombinacion,
+    // Huecos colocados saltándose el tope semanal o el perfil de salud.
+    relajados,
+    // Cocina → platos que la casa pidió y no han cabido.
+    cocinasSinSitio: Object.fromEntries(
+      Object.entries(cuotaCocinas)
+        .map(([c, q]) => [c, q - (cuentaCocina[c] ?? 0)])
+        .filter(([, falta]) => falta > 0),
+    ),
     nodos,
     ms: Date.now() - t0,
   };
 }
+
+/**
+ * Las reglas que la fase 3 puede saltarse para no dejar un hueco vacío. Son
+ * exactamente las que el prompt del planner llama orientación. La
+ * revalidación de generateGroupMenu las ignora en los huecos `relajados`.
+ */
+export const REGLAS_RELAJABLES = new Set(["health_profile_conflict", "freq_max_exceeded"]);

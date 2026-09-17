@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolverMenu, candidatosDeHueco } from "./solver.js";
+import { resolverMenu, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
 import { buildGroupContext } from "./aiPlanner.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
 import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
@@ -95,7 +95,8 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
     // candidatos, y el solver lo dice en vez de esconderlo — es el primer
     // caso real de la pantalla de ajuste.
     // Quedan CUATRO primeros para siete huecos, y chocan entre sí: no hay
-    // semana entera, y la búsqueda lo demuestra en dieciséis nodos.
+    // semana entera con todas las reglas, y la búsqueda lo demuestra en
+    // dieciséis nodos.
     expect(r.completo).toBe(false);
     expect(r.sinCombinacion.length).toBeGreaterThan(0);
     // Pero todo lo demás se coloca: cada segundo y cada cena tienen plato.
@@ -105,10 +106,16 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
     expect(sinPlato.filter((id) => !id.endsWith("_comida_1"))).toEqual([]);
     // Y todo lo que falta está explicado, y solo eso.
     expect([...sinPlato].sort()).toEqual([...r.sinCandidatos, ...r.sinCombinacion].sort());
+    // Lo que se colocó relajando la orientación (fase 3) viene con nombre, y
+    // fuera de esos huecos no hay ni una violación.
+    const relajados = new Set(r.relajados);
     const { violations } = validateMenu(
       r.asignaciones, r.pool, r.ctx.slots, r.ctx.config.healthProfiles, r.achievable, {},
     );
-    expect(violations.map((v) => v.rule).filter((x) => x !== "slot_faltante")).toEqual([]);
+    const inesperadas = violations.filter(
+      (v) => v.rule !== "slot_faltante" && !(relajados.has(v.slotId) && REGLAS_RELAJABLES.has(v.rule)),
+    );
+    expect(inesperadas.map((v) => `${v.rule}@${v.slotId}`)).toEqual([]);
     // 1,7 s solo; con la suite entera en paralelo pasa de los 5 s por defecto.
   }, 30000);
 

@@ -4,7 +4,7 @@ import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { basesPedidas } from "./bases.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
-import { resolverMenu, solverActivo } from "./solver.js";
+import { resolverMenu, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
@@ -374,6 +374,7 @@ export function createPlannerStats() {
     solverNodos: 0,
     solverMs: 0,
     solverCompleto: null,
+    solverRelajados: 0,
     solverSemilla: null,
   };
 }
@@ -1290,14 +1291,21 @@ function asignarConSolver({
       freqs: achievableFreqs,
       objetivo: ctx.config.objetivo ?? null,
       basesPedidas: basesDeLaSemana,
+      cocinas: ctx.filterOpts.cocinas ?? null,
       semilla,
     },
   );
+  for (const [cocina, cuantos] of Object.entries(res.cocinasSinSitio)) {
+    warnings.push(
+      `${group.label}: no cabían ${cuantos} plato(s) de cocina ${cocina} esta semana (el catálogo se queda corto o los huecos estaban ocupados).`,
+    );
+  }
   if (stats) {
     stats.motor = "solver";
     stats.solverNodos = res.nodos;
     stats.solverMs = res.ms;
     stats.solverCompleto = res.completo;
+    stats.solverRelajados = res.relajados.length;
     stats.solverSemilla = semilla;
   }
   // Los huecos SIN candidatos ya los avisa el paso 3c de generateGroupMenu
@@ -1308,7 +1316,32 @@ function asignarConSolver({
       `${group.label}: no se encontró una combinación que cumpla todas las reglas a la vez; ${res.sinCombinacion.length} plato(s) se quedan sin asignar (${res.sinCombinacion.join(", ")}).`,
     );
   }
-  return res.asignaciones;
+  if (res.relajados.length > 0) {
+    warnings.push(
+      `${group.label}: en ${res.relajados.join(", ")} no cabía ningún plato sin pasarse del reparto semanal o del perfil de salud; se ha puesto el mejor disponible.`,
+    );
+  }
+  // La regla 11 culpa del exceso al ÚLTIMO plato de esa familia en orden de
+  // comidas, no al que se relajó. Así que la revalidación no puede ignorar el
+  // aviso por hueco: tiene que ignorarlo por FAMILIA relajada, o "repara" un
+  // plato correcto y arrastra una cascada de cambios (medido: seis huecos
+  // cambiados en una semana por un tope relajado en una cena).
+  const porId = new Map(filteredPool.map((r) => [r.id, r]));
+  const familiasRelajadas = new Set();
+  for (const a of res.asignaciones) {
+    if (!res.relajados.includes(a.slotId)) continue;
+    for (const f of familiasDe(porId.get(a.recipeId) ?? {})) familiasRelajadas.add(f);
+  }
+  return {
+    asignaciones: res.asignaciones,
+    relajados: new Set(res.relajados),
+    familiasRelajadas,
+    // Los huecos que se quedan vacíos A PROPÓSITO: ningún plato cabe ni
+    // relajando la orientación. Se dejan vacíos y explicados; rellenarlos con
+    // el fallback pondría un plato que rompe una regla dura, que es justo el
+    // "arroz de primero y arroz de segundo" que llegó a un usuario.
+    vacios: new Set([...res.sinCandidatos, ...res.sinCombinacion]),
+  };
 }
 
 /**
@@ -1453,10 +1486,21 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // (platos fijados, slots forzados, cocinas, guarniciones, revalidación) son
   // los mismos para los dos: aquí solo cambia de dónde sale la asignación.
   let slotAssignments;
-  if (solverActivo()) {
-    slotAssignments = asignarConSolver({
+  // Huecos que el solver colocó saltándose una regla de orientación (ver
+  // REGLAS_RELAJABLES): la revalidación del paso 6 no los toca, porque
+  // "repararlos" con el fallback deshace justo lo que se decidió a propósito.
+  let slotsRelajados = new Set();
+  let familiasRelajadas = new Set();
+  let slotsVacios = new Set();
+  const usarSolver = solverActivo();
+  if (usarSolver) {
+    const resuelto = asignarConSolver({
       group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings,
     });
+    slotAssignments = resuelto.asignaciones;
+    slotsRelajados = resuelto.relajados;
+    familiasRelajadas = resuelto.familiasRelajadas;
+    slotsVacios = resuelto.vacios;
   } else {
     slotAssignments = await asignarConModelo({
       userMessage, format, plannerModel, signal, stats,
@@ -1533,13 +1577,24 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   //     NON-forced side of each such pair with a pool alternative that carries a
   //     different protein. Never touches a fixed/forced slot and never empties a
   //     slot, so it can only improve (or no-op) the menu.
-  slotAssignments = breakProteinClusters(slotAssignments, {
-    data,
-    ctx,
-    poolById,
-    filteredPool,
-    achievableFreqs,
-  });
+  //
+  //     Con el SOLVER no se ejecuta. Su salida ya cumple la regla 3 por
+  //     construcción, y esta pasada aplica una regla MÁS ESTRICTA que el
+  //     validador (compara por GRUPO de proteína: pollo → cerdo le parece una
+  //     repetición, cuando la regla 3 compara la proteína concreta) y re-elige
+  //     platos sin mirar el resto de reglas. Medido sobre menús válidos del
+  //     solver: era la única fuente de platos de montaje fuera de cena rápida,
+  //     conflictos de perfil y comidas desproporcionadas en el menú final. Un
+  //     plato fijado que cree un choque real lo ve la revalidación del paso 6.
+  if (!usarSolver) {
+    slotAssignments = breakProteinClusters(slotAssignments, {
+      data,
+      ctx,
+      poolById,
+      filteredPool,
+      achievableFreqs,
+    });
+  }
 
   // 4d. Cuota de cocinas. La puerta de filterRecipes ya impidió que entrara lo
   //     que la casa NO pidió; esto comprueba que lo que SÍ pidió está puesto, y
@@ -1550,7 +1605,12 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   //     Sin esta pasada, el mando de Cocina cumpliría "casi siempre" —el modelo
   //     se salta instrucciones— y un control que cumple cuatro de cada cinco
   //     veces no se lee como que a veces falla: se lee como que no hace nada.
-  if (ctx.filterOpts.cocinas && Object.keys(ctx.filterOpts.cocinas).length > 0) {
+  //
+  //     Con el SOLVER tampoco: la cuota entra como objetivo del propio solver
+  //     (ver `cocinas` en resolverMenu), y esta pasada coloca sin validar
+  //     (medido: un plato de 60 minutos en un hueco de 30, montaje fuera de
+  //     cena rápida). Lo que no quepa lo avisa asignarConSolver.
+  if (!usarSolver && ctx.filterOpts.cocinas && Object.keys(ctx.filterOpts.cocinas).length > 0) {
     const forzados = new Set(ctx.slots.filter((sl) => sl.preferType).map((sl) => sl.slotId));
     const fijados = new Set(allFixedDishIds(data.fixedDishes));
     const cuota = ajustarCuota(slotAssignments, {
@@ -1623,6 +1683,11 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       const unexpected = postCheck.violations.filter((v) => {
         if (v.rule === "recipeId_repetido" && fixedIds.has(assignBySlot[v.slotId])) return false;
         if (forcedSlotIds.has(v.slotId)) return false;
+        if (slotsRelajados.has(v.slotId) && REGLAS_RELAJABLES.has(v.rule)) return false;
+        if (v.rule === "freq_max_exceeded" && familiasRelajadas.has(v.targetKey)) return false;
+        if (v.rule === "slot_faltante" && slotsVacios.has(v.slotId)) return false;
+        // Un primero sin segundo porque el segundo se dejó vacío a propósito.
+        if (v.rule === "comida_sin_segundo" && slotsVacios.has(`${v.slotId.split("_")[0]}_comida_2`)) return false;
         return true;
       });
 
@@ -1659,6 +1724,10 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       const stillUnexpected = finalPostCheck.violations.filter((v) => {
         if (v.rule === "recipeId_repetido" && fixedIds.has(finalAssignBySlot[v.slotId])) return false;
         if (forcedSlotIds.has(v.slotId)) return false;
+        if (slotsRelajados.has(v.slotId) && REGLAS_RELAJABLES.has(v.rule)) return false;
+        if (v.rule === "freq_max_exceeded" && familiasRelajadas.has(v.targetKey)) return false;
+        if (v.rule === "slot_faltante" && slotsVacios.has(v.slotId)) return false;
+        if (v.rule === "comida_sin_segundo" && slotsVacios.has(`${v.slotId.split("_")[0]}_comida_2`)) return false;
         return true;
       });
       for (const v of stillUnexpected) {
@@ -1678,6 +1747,10 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     // invisible ingredient swaps (e.g. lactose-free) to the chosen recipes.
     restrictions: ctx.filterOpts.intolerances ?? [],
     warnings,
+    // Solo con solver: huecos colocados relajando la orientación, y huecos
+    // dejados vacíos a propósito. Vacíos con el modelo (no los distingue).
+    relajados: [...slotsRelajados],
+    vacios: [...slotsVacios],
   };
 }
 
