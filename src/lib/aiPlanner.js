@@ -13,6 +13,7 @@ import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, 
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { ajustarCuota } from "./cuotaCocinas.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
+import { recetasRecientes } from "./recientes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { isMontaje } from "../data/recipeSchema.js";
 import {
@@ -1375,6 +1376,10 @@ function asignarConSolver({
       objetivo: ctx.config.objetivo ?? null,
       basesPedidas: basesDeLaSemana,
       cocinas: ctx.filterOpts.cocinas ?? null,
+      // Lo que ya saliste comiendo, para no repetirlo. Las favoritas de este
+      // grupo van exentas: si lo marcaste como favorito, que vuelva es lo que
+      // querías.
+      recientes: recetasRecientes(data, { exentos: ctx.filterOpts.favoriteIds }),
       semilla,
     },
   );

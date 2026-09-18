@@ -178,6 +178,9 @@ export function familiasDe(r) {
  * @param {object}   [opciones.cocinas]        cocina → platos por semana que
  *                                             pidió la casa (mando de Cocina);
  *                                             guía la elección, como el objetivo
+ * @param {Map<string,number>} [opciones.recientes] qué salió las últimas
+ *                                             semanas y cuánto pesa (ver
+ *                                             lib/recientes.js)
  * @param {number}   [opciones.semilla]        para reproducir un resultado
  * @param {number}   [opciones.maxNodos]       tope de nodos antes de rendirse
  * @param {number}   [opciones.maxMs]          tope de tiempo antes de rendirse
@@ -216,7 +219,7 @@ export function familiasDe(r) {
  */
 export function resolverMenu(slots, pool, {
   healthProfiles = [], freqs = {}, objetivo = null, basesPedidas = {}, cocinas = null,
-  semilla = 1, maxNodos = 400, maxMs = 400,
+  recientes = null, semilla = 1, maxNodos = 400, maxMs = 400,
 } = {}) {
   const dominios = new Map();
   const sinCandidatos = [];
@@ -419,6 +422,18 @@ export function resolverMenu(slots, pool, {
   //    mismo". Entre semanas no pasa, porque poolForWeek parte el recetario.
   const RUIDO = Math.max(30, pool.length);
 
+  // Lo que saliste comiendo la semana pasada se va al final de su escalón.
+  //
+  // Pesa 6.000, o sea: por debajo del déficit (10.000 por familia que falta)
+  // y muy por encima del sesgo del pool y del ruido, que juntos no llegan a
+  // 700. Esa es la frase entera de la política: la variedad NO puede
+  // desequilibrar la semana —si falta pescado, sale pescado aunque saliera el
+  // martes pasado— pero entre dos platos igual de útiles gana el que hace más
+  // que no ves. Subirlo por encima del déficit convertiría el reparto en
+  // decorado; bajarlo al nivel del ruido lo dejaría sin efecto, que es
+  // exactamente de donde venimos.
+  const PESO_RECIENTE = 6e3;
+
   // ── La mitad que no cambia, ordenada UNA vez por hueco ────────────────────
   // De los cinco términos, tres solo dependen del plato y del hueco
   // (completitud, tiempo, sesgo+ruido) y dos de lo que ya está puesto (lo que
@@ -434,6 +449,7 @@ export function resolverMenu(slots, pool, {
       .map((r) => ({
         r,
         clave: -(solo ? completitud(r) * 4e3 : 0)
+          + (recientes?.get(r.id) ?? 0) * PESO_RECIENTE
           + costeTiempo(r, slot) * 1e3
           + indice.get(r.id) * 0.5
           + (hash(r.id + slot.slotId, semilla) % RUIDO),
