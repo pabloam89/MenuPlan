@@ -1609,20 +1609,28 @@ export function sameDish(a, b) {
 }
 
 export function dishesFromSlot(slot, isLunch) {
-  if (!slot?.recipeId) return [];
+  // El primero cuenta aunque falte el segundo. Antes se salía en seco si no
+  // había `recipeId`, así que una comida con primero y sin segundo no se
+  // pintaba — y si ese día tampoco había cena, el día entero desaparecía de
+  // la lista. Ver el comentario gemelo en aiPlanner.js, donde esa misma comida
+  // ni siquiera llegaba a entrar en el plan.
+  const tienePrimero = Boolean(isLunch && slot?.firstRecipeId);
+  if (!slot?.recipeId && !tienePrimero) return [];
   const items = [];
-  if (isLunch && slot.firstRecipeId) {
+  if (tienePrimero) {
     items.push({
       course: "1º",
       courseKey: "first",
       recipeId: slot.firstRecipeId,
     });
   }
-  items.push({
-    course: isLunch && slot.firstRecipeId ? "2º" : null,
-    courseKey: "main",
-    recipeId: slot.recipeId,
-  });
+  if (slot?.recipeId) {
+    items.push({
+      course: tienePrimero ? "2º" : null,
+      courseKey: "main",
+      recipeId: slot.recipeId,
+    });
+  }
   return items;
 }
 

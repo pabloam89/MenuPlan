@@ -2369,8 +2369,19 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       }
     }
 
+    // Una comida entra en el plan si tiene ALGÚN plato, no solo si tiene el
+    // segundo.
+    //
+    // Con `if (slot.recipeId)` una comida con primero y sin segundo se caía
+    // ENTERA y en silencio: no es que se viera el primero sin el segundo, es
+    // que ese mediodía desaparecía del menú. Y si además esa noche tampoco
+    // había cena, el día entero se esfumaba de la lista — reportado tal cual,
+    // "me deja libres jueves y viernes", con el resto de la semana normal.
+    //
+    // Que falte un plato es información: sale su aviso y se ve el hueco. Que
+    // se borre el día es una mentira.
     for (const [key, slot] of Object.entries(byDayMeal)) {
-      if (slot.recipeId) {
+      if (slot.recipeId || slot.firstRecipeId) {
         plan[group.id][key] = slot;
         placedSlots++;
       }
