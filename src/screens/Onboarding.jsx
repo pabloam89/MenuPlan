@@ -159,6 +159,25 @@ const MEAL_STRUCTURE_CARDS = [
   },
 ];
 
+// La cena tiene su propia pregunta y sus propias palabras. No reusa las de la
+// comida porque no significan lo mismo: de noche "dos platos" no es primero y
+// segundo, es una crema o una ensalada por delante y algo ligero detrás. Y el
+// defecto es al revés que en la comida — en España se cena una cosa.
+const CENA_STRUCTURE_CARDS = [
+  {
+    id: "1_plato",
+    title: "Un plato",
+    subtitle: "Lo normal",
+    img: "/avatares/cards/estructura_cena_un_plato.png",
+  },
+  {
+    id: "primero_segundo",
+    title: "Crema y algo más",
+    subtitle: "Dos platos ligeros",
+    img: "/avatares/cards/estructura_cena_dos_platos.png",
+  },
+];
+
 // Etiquetas por tiempo en vez de por nivel (2026-08-29): "sencillo/avanzado"
 // pedía juzgar tu propia implicación sin haber visto nada de la app todavía.
 // El tiempo es concreto y no juzga.
@@ -8578,6 +8597,9 @@ function OnboardingMealExtrasShared({ data, setData, onNext, onBack, onFinish, o
   const expert = Boolean(data.expertMode);
   const postreOn = em.postre && em.postre !== "off";
   const structureId = data.mealStructureByGroup?.[subjectId] ?? "primero_segundo";
+  // La cena empieza en un plato, que es como se cena aquí. Ver
+  // CENA_STRUCTURE_CARDS y `mealStructureCena` en App.jsx.
+  const cenaStructureId = data.mealStructureCenaByGroup?.[subjectId] ?? "1_plato";
 
   const extrasSection = (key, children) => ({ key, children });
 
@@ -8623,6 +8645,32 @@ function OnboardingMealExtrasShared({ data, setData, onNext, onBack, onFinish, o
             setData((d) => ({
               ...d,
                     mealStructureByGroup: { ...(d.mealStructureByGroup ?? {}), [subjectId]: t.id },
+                  }))
+                }
+              />
+            ))}
+          </div>
+        </>,
+      ),
+    );
+    comidaSections.push(
+      extrasSection("estructura_cena",
+        <>
+          <SectionTitle Icon={Moon} color={mealTimeColor("Cena")}>¿Y la cena?</SectionTitle>
+          <div style={{ display: "flex", gap: 8 }}>
+            {CENA_STRUCTURE_CARDS.map((t) => (
+              <RestrictionTabCard
+                key={t.id}
+                img={t.img}
+                title={t.title}
+                subtitle={t.subtitle}
+                imgHeight={160}
+                textOverlay
+                active={cenaStructureId === t.id}
+                onClick={() =>
+                  setData((d) => ({
+                    ...d,
+                    mealStructureCenaByGroup: { ...(d.mealStructureCenaByGroup ?? {}), [subjectId]: t.id },
                   }))
                 }
               />
