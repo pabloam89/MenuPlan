@@ -10,10 +10,7 @@ import './index.css'
 // del indicador de inicio del iPhone. Se hace antes de pintar nada para que la
 // primera pantalla ya salga en su sitio, sin dar un salto. Ver nativeShell.js.
 if (isNativeApp) {
-  import('./lib/nativeShell.js').then(({ aplicarViewportNativo, ajustarBarraDeEstado }) => {
-    aplicarViewportNativo()
-    ajustarBarraDeEstado()
-  })
+  import('./lib/nativeShell.js').then(({ aplicarViewportNativo }) => aplicarViewportNativo())
 }
 
 // A tab left open across a deploy still holds the OLD index.html, which

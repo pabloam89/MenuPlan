@@ -7,10 +7,14 @@
 //
 // Se arregla por los dos extremos, y a propósito de formas distintas:
 //
-//   · Arriba, por el lado nativo: se le dice al sistema que la barra de estado
-//     NO se superponga, así la webview empieza justo debajo. Es preferible a
-//     meter padding por CSS porque funciona en las ~50 pantallas de golpe, sin
-//     tocar ni una.
+//   · Arriba, por el lado nativo, en capacitor.config.json (plugins.StatusBar):
+//     la barra de estado deja de superponerse y la webview empieza justo
+//     debajo. Vale para las ~50 pantallas de golpe, sin tocar ni una.
+//     Va en la config y no aquí porque el plugin la aplica al arrancar la vista
+//     nativa, antes de que se pinte nada; desde JS llegaría tarde y la primera
+//     pantalla daría un salto. Ojo con backgroundColor: el plugin pinta por
+//     defecto una franja NEGRA detrás del reloj, y con la hora en oscuro
+//     ("LIGHT") quedaría invisible. Por eso se fija en blanco.
 //   · Abajo, por CSS: la app ya está llena de `env(safe-area-inset-bottom)`
 //     (barra de navegación, hojas, botones flotantes...), pero esos valores
 //     valen 0 mientras el viewport no sea `viewport-fit=cover`. Basta con
@@ -27,17 +31,4 @@ const VIEWPORT_NATIVO =
 
 export function aplicarViewportNativo() {
   document.querySelector('meta[name="viewport"]')?.setAttribute("content", VIEWPORT_NATIVO);
-}
-
-export async function ajustarBarraDeEstado() {
-  try {
-    const { StatusBar, Style } = await import("@capacitor/status-bar");
-    await StatusBar.setOverlaysWebView({ overlay: false });
-    // La app es clara, así que la hora y la batería tienen que ir en oscuro.
-    await StatusBar.setStyle({ style: Style.Light });
-  } catch (err) {
-    // Si el plugin no está disponible, la app sigue funcionando: solo se ve
-    // peor arriba. No es motivo para no arrancar.
-    console.warn("[nativo] no se pudo ajustar la barra de estado", err);
-  }
 }

@@ -1,5 +1,12 @@
 {
   "appId": "com.homenu.app",
   "appName": "HoMenu",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": false,
+      "style": "LIGHT",
+      "backgroundColor": "#ffffff"
+    }
+  }
 }
