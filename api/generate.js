@@ -1,4 +1,4 @@
-import { blocked } from "./_guard.js";
+import { blocked, cors } from "./_guard.js";
 import { SYSTEM_PROMPTS } from "./_prompts.js";
 
 // Server-side proxy to the Anthropic API.
@@ -24,6 +24,7 @@ const DEFAULT_MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS_CAP = 32000;
 
 export default async function handler(req, res) {
+  if (cors(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

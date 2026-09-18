@@ -1,3 +1,5 @@
+import { cors } from "./_guard.js";
+
 // Real account deletion (Apple App Store Guideline 5.1.1(v)): removes the
 // auth.users row for the caller. Every user-scoped table (user_state,
 // user_pantry, user_profiles, user_events, recipe_votes, user_follows,
@@ -30,6 +32,7 @@ async function fetchWithTimeout(url, options) {
 }
 
 export default async function handler(req, res) {
+  if (cors(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
