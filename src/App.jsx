@@ -803,6 +803,9 @@ function migrate(state) {
   // Un save de antes de que la cena tuviera estructura no trae el campo, y su
   // cena era de un plato: ese es el default y así se queda.
   if (!["primero_segundo", "1_plato"].includes(d.mealStructureCena)) d.mealStructureCena = "1_plato";
+  // Minutos de MANOS que la casa quiere dedicar a la tanda del domingo. Sin
+  // guardar,  cae al escalon de en medio.
+  if (!Number.isFinite(d.tandaMinutos) || d.tandaMinutos <= 0) d.tandaMinutos = null;
   d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
   d.recipeVotes = d.recipeVotes && typeof d.recipeVotes === "object" ? d.recipeVotes : {};
   d.recipeCollections =

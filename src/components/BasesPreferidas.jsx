@@ -1,4 +1,6 @@
-import { MAX_POR_SEMANA, MIN_POR_SEMANA, clavesDeReceta, topeDeBase } from "../lib/bases.js";
+import { BASES, MAX_POR_SEMANA, MIN_POR_SEMANA, clavesDeReceta, tiempoDeBase, topeDeBase } from "../lib/bases.js";
+import { selectMethodForRecipe } from "../lib/applianceMethods.js";
+import { MINUTOS_DE_TANDA, minutosDeTanda } from "../lib/cookTime.js";
 import { weeklySlotBudget } from "../lib/planner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
@@ -111,6 +113,7 @@ export function BasesPreferidas({ data, setData }) {
   // El presupuesto es de CADA semana, no del menú entero: si se generan cuatro
   // semanas, cada una tiene sus huecos y su propio cuarto del recetario.
   const semanas = Math.max(1, data?.menuWeekOffsets?.length ?? 1);
+  const herramientas = [...(data?.kitchenTools ?? []), ...(data?.customKitchenTools ?? [])];
   // Los huecos REALES de la semana, no siete días por la cara.
   //
   // Esto era `DAYS.length * comidas`, o sea siempre 7 días. En una semana
@@ -152,6 +155,31 @@ export function BasesPreferidas({ data, setData }) {
     .flatMap((g) => g.claves)
     .reduce((suma, id) => suma + vecesDe(id), 0);
 
+  // ── Cuánto domingo llevas pedido ──────────────────────────────────────────
+  // En MANOS, no en reloj, y esa es toda la diferencia: mientras el caldo
+  // hierve cuarenta minutos puedes estar picando otra cosa, así que el tiempo
+  // muerto se solapa gratis y lo que de verdad se acumula es estar delante. Un
+  // presupuesto de reloj diría que dos guisos te comen la mañana cuando en
+  // realidad estás leyendo.
+  //
+  // Sale del aparato que la casa dijo tener en el paso de electrodomésticos:
+  // `selectMethodForRecipe` elige el mejor de los suyos para cada base, y con
+  // él salen las tandas (una Thermomix hace el caldo en tres vasos) y las
+  // manos (una Thermomix también pica, así que el pesto le cuesta menos).
+  const comensales = Math.max(1, (data?.members ?? []).length);
+  const manosPedidas = GRUPOS.flatMap((g) => g.claves).reduce((suma, id) => {
+    const veces = vecesDe(id);
+    if (veces <= 0) return suma;
+    const base = BASES.find((b) => (b.baseKey ?? b.mainBase) === id);
+    if (!base) return suma;
+    // Un plato de esa base por cada vez pedida, cada uno para toda la casa.
+    const raciones = Array.from({ length: veces }, () => comensales);
+    const metodo = selectMethodForRecipe(base, herramientas);
+    return suma + (tiempoDeBase(base, raciones, metodo).minutosActivos ?? 0);
+  }, 0);
+  const presupuesto = minutosDeTanda(data);
+  const pasado = manosPedidas > presupuesto;
+
   const cambiar = (id, v) => {
     const n = v <= 0 ? 0 : Math.min(Math.max(v, MIN_POR_SEMANA), MAX_POR_SEMANA);
     setData((d) => {
@@ -173,6 +201,51 @@ export function BasesPreferidas({ data, setData }) {
             huecos de la semana.
           </>
         )}
+      </p>
+
+      {/* ── Cuánto quieres cocinar ese día ──────────────────────────────────
+          El presupuesto va ARRIBA porque es la pregunta que ordena el resto:
+          sin él, los deslizadores de abajo son una lista de deseos.
+
+          Lo que se cuenta son MANOS, no reloj. El domingo se solapa —mientras
+          el caldo hierve estás picando otra cosa— así que sumar relojes diría
+          que dos guisos te comen la mañana cuando en realidad estás leyendo.
+          Los escalones son gruesos a propósito: nadie sabe si su domingo son
+          45 minutos o 55, pero sí sabe si tiene un rato o una mañana. */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+        {MINUTOS_DE_TANDA.map((op) => {
+          const activo = presupuesto === op.minutos;
+          return (
+            <button
+              key={op.id}
+              type="button"
+              onClick={() => setData((d) => ({ ...d, tandaMinutos: op.minutos }))}
+              style={{
+                flex: 1, padding: "8px 6px", borderRadius: 12, cursor: "pointer",
+                border: activo ? "1.5px solid #2d5a3d" : "1.5px solid #e3ebe6",
+                background: activo ? "#eaf6ee" : "#fff",
+                color: activo ? "#2d5a3d" : "#5a7066",
+                fontFamily: "inherit", lineHeight: 1.2,
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 800 }}>{op.label}</div>
+              <div style={{ fontSize: 10, fontWeight: 600, opacity: 0.8, marginTop: 2 }}>{op.sub}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* El marcador. Aproximado y dicho como tal: es una estimación sobre los
+          aparatos que tienes, no un cronómetro. */}
+      <p style={{
+        fontSize: 12, fontWeight: 700, margin: "0 0 12px",
+        color: pasado ? "#b45309" : "#5a7066",
+      }}>
+        {manosPedidas === 0
+          ? "Todavía no has pedido ninguna tanda."
+          : pasado
+            ? `Lo pedido son unos ${manosPedidas} min de estar delante: se pasa de lo que dijiste.`
+            : `Lo pedido son unos ${manosPedidas} min de estar delante, de los ${presupuesto} que tienes.`}
       </p>
 
       {GRUPOS.map((grupo) => (

@@ -221,3 +221,28 @@ export function cocinaEnTanda(data) {
 export function writeCookTimeShared(data, period, value) {
   return writeCookTimePeriod(data, period, { Comida: value, Cena: value });
 }
+
+/**
+ * El presupuesto de la sesión de tandas, en MINUTOS DE MANOS.
+ *
+ * De manos y no de reloj porque el domingo se solapa: mientras el caldo hierve
+ * cuarenta minutos puedes estar picando otra cosa. Lo que no se puede solapar
+ * es estar delante, así que eso es lo único que se suma. Ver el comentario de
+ * `manosDeMetodo` en lib/bases.js, que es quien calcula las manos de cada base
+ * según el aparato que la casa dijo tener.
+ *
+ * Los escalones son aproximados a propósito: nadie sabe si su domingo son 45
+ * o 55 minutos, pero sí sabe si tiene "un rato" o "una mañana".
+ */
+export const MINUTOS_DE_TANDA = [
+  { id: "poco", label: "Un rato", minutos: 30, sub: "Media hora de manos" },
+  { id: "normal", label: "Un par de horas", minutos: 60, sub: "Una hora de manos" },
+  { id: "mucho", label: "Una mañana", minutos: 120, sub: "Dos horas de manos" },
+];
+
+/** Los minutos de manos que esta casa quiere dedicar a la tanda. */
+export function minutosDeTanda(data) {
+  const guardado = Number(data?.tandaMinutos);
+  if (Number.isFinite(guardado) && guardado > 0) return guardado;
+  return MINUTOS_DE_TANDA[1].minutos;
+}
