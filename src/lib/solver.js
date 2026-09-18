@@ -48,11 +48,12 @@
  *     iguales y el mismo menú sí se pueda reproducir en un test.
  */
 
-import { validateMenu, slotAcceptsRole, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
+import { validateMenu, slotAcceptsRole, FREQ_KEY_MATCHERS, getCarbType } from "../utils/validateMenu.js";
 import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { isMontaje } from "../data/recipeSchema.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
 import { esCasqueria } from "./casqueria.js";
+import { aporteDe } from "./aporte.js";
 
 /**
  * ¿Está encendido? Apagado por defecto: el motor de siempre no cambia hasta
@@ -198,12 +199,16 @@ export function familiasDe(r) {
  *      calcados y el mismo menú sí se pueda reproducir.
  *
  * ── Los dos topes ─────────────────────────────────────────────────────────
- * Un problema SIN solución hace que la búsqueda recorra el árbol entero antes
- * de rendirse, y eso a ~0,5 ms por nodo son minutos. Con solución converge en
- * cientos de nodos (p50 medido: 519 en 1.200 unidades aleatorias), así que
- * el presupuesto es corto a propósito: lo que no sale en 2.500 nodos casi
- * nunca sale, y cada segundo de búsqueda inútil lo paga quien espera con la
- * app abierta. Si se agota, devuelve el parcial más
+ * Cortos a propósito, y medido: subirlos NO compra nada. De 300 nodos a 2.500
+ * sobre 60 casas aleatorias salen los mismos huecos (6,0 %), las mismas
+ * semanas enteras (53 de 77) y las mismas relajaciones (165 frente a 166);
+ * lo único que cambia es el tiempo, de 742 ms a 2.146 ms por unidad. En una
+ * casa real de tres grupos y cuatro semanas eso son doce búsquedas seguidas:
+ * 2,5 segundos contra 21.
+ *
+ * O sea que esta búsqueda encuentra pronto o no encuentra: la solución sale
+ * en decenas o pocos cientos de nodos, y a partir de ahí el árbol se recorre
+ * para nada. Si se agota, devuelve el parcial más
  * profundo que vio, que es válido en todo lo que tiene puesto: mejor 17 huecos
  * buenos que ninguno. La primera versión devolvía CERO en ese caso, porque al
  * rendirse la recursión deshacía sus asignaciones al subir — correcto para
@@ -211,7 +216,7 @@ export function familiasDe(r) {
  */
 export function resolverMenu(slots, pool, {
   healthProfiles = [], freqs = {}, objetivo = null, basesPedidas = {}, cocinas = null,
-  semilla = 1, maxNodos = 2500, maxMs = 2000,
+  semilla = 1, maxNodos = 400, maxMs = 400,
 } = {}) {
   const dominios = new Map();
   const sinCandidatos = [];
@@ -307,6 +312,40 @@ export function resolverMenu(slots, pool, {
   const cocinaPendiente = (r) =>
     r.cocina && cuotaCocinas[r.cocina] !== undefined && (cuentaCocina[r.cocina] ?? 0) < cuotaCocinas[r.cocina];
 
+  // 3b. Lo COMPLETO que es el plato, solo donde el plato va solo.
+  //
+  //     Un plato único no es un segundo: no viene nada detrás. Y "completo"
+  //     no es sí o no, es cuánto cubre de los tres ejes de un plato español
+  //     —proteína, hidrato, verdura—, que es como se mira un plato en la mesa:
+  //       · 3 ejes: cocido, garbanzos con espinacas y huevo;
+  //       · 2 ejes: paella (proteína + arroz), lomo con ensalada (proteína +
+  //         verdura), que a mucha gente le vale de sobra;
+  //       · 1 eje: cigalas a la plancha con alioli, 340 kcal. Eso no es una
+  //         comida, y es justo lo que se coló un sábado.
+  //     Medido sobre los 325 platos marcados como único: 50 cubren tres ejes,
+  //     229 cubren dos y 46 cubren uno.
+  //
+  //     No excluye a nadie, ORDENA: cuanto más completo, antes se prueba. Un
+  //     veto duro por ejes obligaría a decidir por todo el mundo dónde está la
+  //     frontera, y ahí no hay una respuesta buena — depende de la casa.
+  //     Se calcula UNA vez por receta y no en cada nodo: `aporteDe` deriva los
+  //     gramos ingrediente a ingrediente y `getCarbType` pasa regex sobre el
+  //     nombre entero. Calculado al vuelo dentro del orden de candidatos
+  //     —hasta 160 platos por nodo— subía el tiempo de una semana de 1,2 a 3,2
+  //     segundos. No depende de lo que ya haya puesto, así que se cachea.
+  const PROTE = new Set(["carne", "pescado", "huevos", "legumbres"]);
+  const completitudPorId = new Map(pool.map((r) => {
+    const entrega = aporteDe(r);
+    const prote = (r.mainProtein && r.mainProtein !== "none")
+      || (r.extraProteins ?? []).length > 0
+      || [...entrega].some((f) => PROTE.has(f));
+    const base = !!getCarbType(r) || r.category === "legumbres" || r.mainProtein === "legumbre";
+    const verdura = entrega.has("verdura") || r.category === "ensaladas_verduras";
+    return [r.id, (prote ? 1 : 0) + (base ? 1 : 0) + (verdura ? 1 : 0)];
+  }));
+  const completitud = (r) => completitudPorId.get(r.id) ?? 0;
+  const vaSolo = (slot) => slot.position === "plato_unico" || slot.preferType === "plato_unico";
+
   // 4. El tiempo, solo donde significa algo: un PRIMERO es un plato de
   //    entrada, y entre dos que valen es mejor el corto — deja sitio al
   //    segundo dentro del presupuesto de la comida (regla 7c). Sin esto el
@@ -327,19 +366,44 @@ export function resolverMenu(slots, pool, {
   //    puede adelantar a uno del 20, y el sesgo sigue notándose porque pesa el
   //    doble que el ruido.
   const RUIDO = Math.max(30, pool.length);
-  const ordenados = (slot) =>
-    [...dominios.get(slot.slotId)]
+
+  // ── La mitad que no cambia, ordenada UNA vez por hueco ────────────────────
+  // De los cinco términos, tres solo dependen del plato y del hueco
+  // (completitud, tiempo, sesgo+ruido) y dos de lo que ya está puesto (lo que
+  // sobra de cuota y lo que falta para el objetivo). Ordenar los cinco juntos
+  // obligaba a recorrer y ordenar el dominio entero en CADA nodo: hasta
+  // doscientos platos, miles de veces. Ahora la parte fija se ordena una vez y
+  // en cada nodo solo se reparte por la parte que cambia, conservando ese
+  // orden dentro de cada grupo. El resultado es exactamente el mismo menú.
+  const estaticos = new Map();
+  for (const slot of slots) {
+    const solo = vaSolo(slot);
+    estaticos.set(slot.slotId, [...(dominios.get(slot.slotId) ?? [])]
       .map((r) => ({
         r,
-        clave: exceso(r) * 1e6
-          - deficit(r) * 1e4
-          - (cocinaPendiente(r) ? 5e3 : 0)
+        clave: -(solo ? completitud(r) * 4e3 : 0)
           + costeTiempo(r, slot) * 1e3
           + indice.get(r.id) * 2
           + (hash(r.id + slot.slotId, semilla) % RUIDO),
       }))
       .sort((a, b) => a.clave - b.clave)
-      .map((x) => x.r);
+      .map((x) => x.r));
+  }
+
+  const ordenados = (slot) => {
+    const fijos = estaticos.get(slot.slotId) ?? [];
+    // Pocos valores distintos (sobra 0..3, falta 0..8), así que repartir por
+    // cubos y concatenar sale más barato que volver a ordenar.
+    const cubos = new Map();
+    for (const r of fijos) {
+      const dinamica = exceso(r) * 1e6 - deficit(r) * 1e4 - (cocinaPendiente(r) ? 5e3 : 0);
+      const cubo = cubos.get(dinamica);
+      if (cubo) cubo.push(r);
+      else cubos.set(dinamica, [r]);
+    }
+    if (cubos.size === 1) return fijos;
+    return [...cubos.keys()].sort((a, b) => a - b).flatMap((k) => cubos.get(k));
+  };
 
   const contexto = slots;
   const asignadas = [];
@@ -419,7 +483,7 @@ export function resolverMenu(slots, pool, {
     const t1 = Date.now();
     const nodos1 = nodos;
     const agotado2 = () =>
-      nodos - nodos1 >= Math.max(800, maxNodos / 2) || Date.now() - t1 >= Math.max(800, maxMs / 2);
+      nodos - nodos1 >= Math.max(200, maxNodos / 2) || Date.now() - t1 >= Math.max(200, maxMs / 2);
 
     const saltados = [];
     let mejorSaltos = Infinity;
