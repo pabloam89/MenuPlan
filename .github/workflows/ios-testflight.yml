@@ -30,8 +30,17 @@
 name: iOS → TestFlight
 
 on:
-  # Solo a mano: cada ejecución sube una build a TestFlight, y no queremos una
-  # por commit. Se lanza desde la pestaña Actions.
+  # Nunca en cada commit: cada ejecución sube una build a TestFlight. Dos formas
+  # de lanzarlo a propósito:
+  #
+  #   · Empujar una etiqueta que empiece por ios-  (git tag ios-1 && git push
+  #     origin ios-1). Funciona desde cualquier rama, porque GitHub usa el
+  #     workflow de la propia etiqueta.
+  #   · El botón de la pestaña Actions. Ese solo aparece cuando este fichero
+  #     existe en main — es una limitación de GitHub con workflow_dispatch.
+  push:
+    tags:
+      - "ios-*"
   workflow_dispatch:
     inputs:
       notas:
