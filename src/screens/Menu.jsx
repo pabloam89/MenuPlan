@@ -3833,11 +3833,16 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
   const showGroup = multiGroup && scope === "all";
   const comidasDeLaSemana = getDayMeals(data);
   const clavesTanda = useMemo(() => {
+    // Solo si esta casa cocina en tanda. El icono salía para todo el mundo,
+    // porque se calculaba de los platos de la semana (dos que comparten olla)
+    // sin mirar si alguien había pedido batch cooking. A quien no lo pidió le
+    // aparecían tandas que no existen.
+    if (cocinaEnTanda(data) !== true) return new Set();
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
     const s = sesionDeBases(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana });
     return new Set(s.bases.map((b) => claveDeBase(b.base)).filter(Boolean));
-  }, [days, comidasDeLaSemana, menuPlan, visibleGroups]);
+  }, [days, comidasDeLaSemana, menuPlan, visibleGroups, data]);
   return (
     <TandaContext.Provider value={clavesTanda}>
     <div key={deckView} className="deck-view-swap">

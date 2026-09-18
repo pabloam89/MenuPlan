@@ -213,7 +213,11 @@ function isEnsalada(recipe) {
 // un primero que SÍ es una ensalada, en la mesa hay dos ensaladas. Reportado
 // tal cual: "de primero ensalada de melón con jamón y de segundo filete de
 // pavo con ensalada de…". Ver la regla 3d.
-const CON_ENSALADA_RE = /\bcon ensalada\b/i;
+//
+// Vale cualquier "ensalada" dentro del nombre, no solo "con ensalada": se
+// escapó "Salmón ahumado con huevo revuelto Y ensalada de aguacate y eneldo",
+// que es la misma situación escrita con otra conjunción.
+const CON_ENSALADA_RE = /\bensalada\b/i;
 function traeEnsalada(recipe) {
   return recipe ? isEnsalada(recipe) || CON_ENSALADA_RE.test(recipe.name) : false;
 }

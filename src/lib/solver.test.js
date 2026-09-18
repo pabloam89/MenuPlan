@@ -90,9 +90,13 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
     for (const a of res.asignaciones) {
       for (const [f, m] of Object.entries(FREQ_KEY_MATCHERS)) if (m(porId[a.recipeId])) cuenta[f] = (cuenta[f] ?? 0) + 1;
     }
+    // El tope es el límite de verdad; el objetivo solo tira hacia él. Una
+    // familia puede pasarse del tope solo por los huecos que el solver relajó
+    // a propósito, y nunca puede comerse media semana.
     for (const f of Object.keys(objetivo)) {
-      expect(cuenta[f] ?? 0, `${f}: ${JSON.stringify(cuenta)} vs objetivo ${JSON.stringify(objetivo)}`)
-        .toBeLessThanOrEqual(objetivo[f] + 2);
+      const contexto = `${f}: ${JSON.stringify(cuenta)} vs topes ${JSON.stringify(achievable)} (relajados ${res.relajados.length})`;
+      expect(cuenta[f] ?? 0, contexto).toBeLessThanOrEqual((achievable[f] ?? 99) + res.relajados.length);
+      expect(cuenta[f] ?? 0, contexto).toBeLessThanOrEqual(Math.ceil(ctx.slots.length / 2));
     }
     // Tarda ~3,6 s sola; con la suite entera en paralelo pasa de los 5 s.
   }, 30000);

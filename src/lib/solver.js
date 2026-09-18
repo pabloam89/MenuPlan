@@ -48,7 +48,7 @@
  *     iguales y el mismo menú sí se pueda reproducir en un test.
  */
 
-import { validateMenu, slotAcceptsRole, FREQ_KEY_MATCHERS, getCarbType } from "../utils/validateMenu.js";
+import { validateMenu, slotAcceptsRole, FREQ_KEY_MATCHERS, getCarbType, COMIDA_KCAL_SOFT_CAP } from "../utils/validateMenu.js";
 import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { isMontaje } from "../data/recipeSchema.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
@@ -334,6 +334,19 @@ export function resolverMenu(slots, pool, {
   //     —hasta 160 platos por nodo— subía el tiempo de una semana de 1,2 a 3,2
   //     segundos. No depende de lo que ya haya puesto, así que se cachea.
   const PROTE = new Set(["carne", "pescado", "huevos", "legumbres"]);
+  //
+  //     Además de los tres ejes cuentan dos cosas más, y las dos solo donde el
+  //     plato va solo:
+  //       · el PLATO MONTADO: que la receta traiga guarnición y salsa propias.
+  //         Son los 42 platos del estrella con las tres partes (ossobuco,
+  //         entrecot con patatas y salsa de queso, solomillo a la pimienta,
+  //         pechuga de pato), y es lo que se pide cuando se pide "un plato
+  //         principal de verdad" para un domingo;
+  //       · las CALORÍAS. "Pisto con huevo frito por encima" cubre dos ejes
+  //         —huevo y verdura— y aun así son 295 kcal: el percentil UNO de los
+  //         platos únicos, cuya mediana está en 500. Como comida de sábado se
+  //         queda corto, y los ejes solos no lo veían.
+  const KCAL_MEDIANA_UNICO = 500;
   const completitudPorId = new Map(pool.map((r) => {
     const entrega = aporteDe(r);
     const prote = (r.mainProtein && r.mainProtein !== "none")
@@ -341,7 +354,15 @@ export function resolverMenu(slots, pool, {
       || [...entrega].some((f) => PROTE.has(f));
     const base = !!getCarbType(r) || r.category === "legumbres" || r.mainProtein === "legumbre";
     const verdura = entrega.has("verdura") || r.category === "ensaladas_verduras";
-    return [r.id, (prote ? 1 : 0) + (base ? 1 : 0) + (verdura ? 1 : 0)];
+    const ejes = (prote ? 1 : 0) + (base ? 1 : 0) + (verdura ? 1 : 0);
+
+    const partes = new Set((r.stepsRich ?? r.steps ?? [])
+      .filter((p) => p && typeof p === "object" && p.part)
+      .map((p) => p.part));
+    const montado = (partes.has("guarnicion") ? 1 : 0) + (partes.has("salsa") ? 1 : 0);
+    // De 0 (la mitad de lo normal o menos) a 1 (lo normal o más).
+    const llena = Math.max(0, Math.min(1, ((r.kcal ?? 0) / KCAL_MEDIANA_UNICO - 0.5) * 2));
+    return [r.id, ejes + montado * 0.75 + llena];
   }));
   const completitud = (r) => completitudPorId.get(r.id) ?? 0;
   const vaSolo = (slot) => slot.position === "plato_unico" || slot.preferType === "plato_unico";
@@ -352,9 +373,17 @@ export function resolverMenu(slots, pool, {
   //    solver elegía primeros de 40 minutos y luego se pasaba media búsqueda
   //    deshaciéndolos: medido, comidas de 45-49 minutos para un presupuesto
   //    de 30, y tres mil nodos en vez de doscientos.
+  //    Y lo mismo con el PESO, por el mismo motivo: un primero tiene que dejar
+  //    sitio al segundo. Medido en una semana que se quedó coja: el solver
+  //    puso de primero una carbonara de 560 kcal y después NINGUNO de los 18
+  //    segundos posibles cabía sin pasarse del peso de la comida (regla 7b),
+  //    así que el día se quedó con un plato. Una carbonara es un plato único o
+  //    un segundo; de entrada, no.
   const costeTiempo = (r, slot) => {
-    if (slot.position !== "primero" || !slot.mealBudget) return 0;
-    return Math.min(1, (r.time ?? 0) / slot.mealBudget);
+    if (slot.position !== "primero") return 0;
+    const tiempo = slot.mealBudget ? Math.min(1, (r.time ?? 0) / slot.mealBudget) : 0;
+    const peso = Math.min(1, (r.kcal ?? 0) / COMIDA_KCAL_SOFT_CAP);
+    return tiempo + peso;
   };
 
   // 5. El desempate: el orden del pool (que `ordenarPorSesgo` ya dejó puesto

@@ -2427,8 +2427,7 @@
       "pescado_azul"
     ],
     "mealRole": [
-      "cena",
-      "segundo"
+      "cena"
     ],
     "type": "principal",
     "time": 8,
@@ -7785,7 +7784,7 @@
         "text": "Tostar {{Pan}} en {{@Sartén}} a fuego medio hasta que esté crujiente por ambos lados.",
         "minutes": 3,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "combinado"
       },
       {
         "text": "Calentar agua en una cazuela con {{Vinagre}} hasta que rompa a hervir suave.",
@@ -9790,7 +9789,7 @@
         "minutes": 3,
         "kind": "paralelo",
         "during": 11,
-        "part": "guarnicion"
+        "part": "combinado"
       },
       {
         "text": "Servir la shakshuka directamente en la sartén acompañada del pan tostado para mojar.",
@@ -11553,7 +11552,7 @@
         "minutes": 3,
         "kind": "paralelo",
         "during": 10,
-        "part": "guarnicion"
+        "part": "combinado"
       },
       {
         "text": "Espolvorear el perejil picado sobre cada cazuelita y servir muy caliente con el pan tostado.",
