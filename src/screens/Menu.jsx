@@ -111,6 +111,7 @@ import {
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
 import { recetaConBases } from "../lib/recetaConBases.js";
+import { cocinaEnTanda } from "../lib/cookTime.js";
 import { basesPedidas, claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
@@ -6234,7 +6235,13 @@ export function DishDetail({
   // su propia pestaña con sus propios pasos, y meter ahí la tanda mezclaría
   // dos cosas que el usuario está mirando por separado.
   const vistaBases = useMemo(() => recetaConBases(recipe), [recipe]);
-  const puedeConBases = vistaBases.aplicada && !garnishRecipe && !sauceRecipe;
+  // La pregunta solo tiene sentido si esta casa cocina en tanda. Antes salía
+  // en cualquier plato que TUVIERA bases, que son casi todos, así que a quien
+  // nunca pidió batch cooking le preguntaba si tiene cocinado un sofrito que
+  // nadie le dijo que cocinara — y de paso hacía parecer que el menú traía
+  // tandas que no había pedido.
+  const puedeConBases =
+    vistaBases.aplicada && !garnishRecipe && !sauceRecipe && cocinaEnTanda(data) === true;
   const usandoBases = puedeConBases && conBases;
   // Los ingredientes de la ficha vienen escalados, así que la marca se cruza
   // por nombre — que es la misma clave con la que se resolvieron.
