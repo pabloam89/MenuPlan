@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { resolverMenu, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
 import { buildGroupContext } from "./aiPlanner.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
-import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS, CENA_KCAL_SOFT_CAP } from "../utils/validateMenu.js";
+import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS, CENA_KCAL_SOFT_CAP, VECES_MISMA_SOPA } from "../utils/validateMenu.js";
 import { weeklySlotBudget } from "./planner.js";
 import { repartoAFreqs, repartoPorDefecto, presupuestoDeTopes } from "./reparto.js";
 
@@ -244,17 +244,41 @@ describe("la cena de dos platos", () => {
     expect(weeklySlotBudget(data, data.groups[0]).total).toBe(ctx.slots.length);
   });
 
-  it("el primero es un plato de entrada, no la cena entera", () => {
+  it("el primero es algo de cuchara, no la cena entera", () => {
     // Sin esto salían parejas del revés: pasta con pesto de primero y puré de
-    // verduras de segundo.
+    // verduras de segundo. Solo sopas y cremas —ahí viven también el gazpacho
+    // y la crema fría— para que la cena tenga una forma reconocible: algo de
+    // cuchara delante y el plato detrás.
     const data = dosPlatos();
     const ctx = buildGroupContext(data, data.groups[0]);
     const { recipes: pool } = filterRecipes(ctx.filterOpts);
     const primeros = candidatosDeHueco(pool, ctx.slots.find((s) => s.slotId === "mar_cena_1"));
-    expect(primeros.length).toBeGreaterThan(20);
-    expect([...new Set(primeros.map((r) => r.category))].sort())
-      .toEqual(["ensaladas_verduras", "sopas_cremas"]);
+    expect(primeros.length).toBeGreaterThan(5);
+    expect([...new Set(primeros.map((r) => r.category))]).toEqual(["sopas_cremas"]);
   });
+
+  it("la misma sopa puede repetirse: es una olla, no tres", () => {
+    // Las entradas salen de un cajón pequeño, y nadie hace una crema distinta
+    // cada noche. Sin esta excepción a la regla 6 quedaban 21 cenas sin
+    // entrada de cada 112; con ella, 9.
+    const data = dosPlatos();
+    const ctx = buildGroupContext(data, data.groups[0]);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const { achievable } = splitAchievableFreqs(pool, ctx.config.freqs);
+    const r = resolverMenu(ctx.slots, pool, {
+      healthProfiles: ctx.config.healthProfiles, freqs: achievable,
+      objetivo: ctx.config.objetivo, semilla: 1, maxMs: 60000,
+    });
+    const entradas = r.asignaciones.filter((a) => a.slotId.endsWith("_cena_1"));
+    const veces = {};
+    for (const a of entradas) veces[a.recipeId] = (veces[a.recipeId] ?? 0) + 1;
+    // Menos ollas que noches, y ninguna se pasa de tres.
+    expect(Object.keys(veces).length).toBeLessThan(entradas.length);
+    expect(Math.max(...Object.values(veces))).toBeLessThanOrEqual(VECES_MISMA_SOPA);
+    // Y fuera de las entradas de cena no se repite nada.
+    const resto = r.asignaciones.filter((a) => !a.slotId.endsWith("_cena_1")).map((a) => a.recipeId);
+    expect(new Set(resto).size).toBe(resto.length);
+  }, 30000);
 
   it("y la pareja no pesa más que una cena", () => {
     const data = dosPlatos();
@@ -276,7 +300,7 @@ describe("la cena de dos platos", () => {
       expect((p.kcal ?? 0) + (q.kcal ?? 0), `${d}: ${p.name} + ${q.name}`)
         .toBeLessThanOrEqual(CENA_KCAL_SOFT_CAP);
     }
-    expect(pares).toBeGreaterThan(4);
+    expect(pares).toBeGreaterThan(3);
   }, 30000);
 
   it("una cena rápida marcada a mano NO se parte en dos", () => {

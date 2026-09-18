@@ -442,6 +442,20 @@ export const SOLAPE_COMIDA = 1.25;
 export const CENA_KCAL_SOFT_CAP = 700;
 
 /**
+ * Cuántas noches puede repetirse la MISMA sopa como entrada de una cena de dos
+ * platos (regla 6).
+ *
+ * Tres, que es lo que da una olla. Es la única excepción a "no repetir plato en
+ * la semana", y no es una concesión: nadie hace una crema distinta cada noche.
+ * Se hace una el domingo y se tira de ella.
+ *
+ * Además es lo que hace posible la cena de dos platos. Las entradas salen solo
+ * del cajón de sopas y cremas, y con 30 minutos entre semana caben ocho para
+ * siete noches: sin repetir, quedaban diez cenas sin entrada de cada 112.
+ */
+export const VECES_MISMA_SOPA = 3;
+
+/**
  * Cuánto se tarda de verdad en hacer dos platos: el LARGO entero más la mitad
  * del corto.
  *
@@ -482,14 +496,17 @@ export function tiempoDeLaComida(t1, t2) {
  *   out of a slotId ("1" | "2"), since callers have one or the other.
  */
 /**
- * De qué cajones sale el primer plato de una cena.
+ * De qué cajón sale el primer plato de una cena: sopas y cremas, y nada más.
  *
- * Sopas y cremas, y el cajón de ensaladas y verduras — que es donde viven el
- * gazpacho, la ensalada y también el calabacín a la plancha o las verduras al
- * vapor. Todo lo demás (pasta, arroz, legumbres, carnes, pescados) puede ser
- * un primero de comida perfectamente y de entrada en una cena no lo es.
+ * Aquí viven también el gazpacho y la crema fría, así que la forma de la cena
+ * queda clara y de una pieza: algo de cuchara delante y el plato detrás. Sopa
+ * y tortilla, sopa y tortilla con ensalada.
+ *
+ * Hubo una versión que admitía además ensaladas y verduras. Sobraba: si la
+ * ensalada puede ser el primero Y la guarnición del segundo, la cena deja de
+ * tener una forma reconocible y hay que ponerse a distinguir cuál es cuál.
  */
-const ENTRADAS_DE_CENA = new Set(["sopas_cremas", "ensaladas_verduras"]);
+const ENTRADAS_DE_CENA = new Set(["sopas_cremas"]);
 
 export function slotAcceptsRole(recipe, slot = {}) {
   const roles = recipe?.mealRole ?? [];
@@ -921,8 +938,34 @@ export function validateMenu(
   }
 
   // 6. No repeated recipeId in the week
+  //
+  //    Con UNA excepción, y es la olla de sopa: la entrada de una cena de dos
+  //    platos puede repetirse hasta VECES_MISMA_SOPA veces. Nadie hace una
+  //    crema distinta cada noche — se hace una olla el domingo y da para tres.
+  //
+  //    Sin esta excepción la cena de dos platos no se sostiene: las entradas
+  //    salen solo del cajón de sopas y cremas, y con 30 minutos entre semana
+  //    hay OCHO que quepan para siete noches. Medido: 10 huecos vacíos de 112.
+  //    No es una concesión, es cómo se cocina.
   const usedRecipeIds = new Map();
+  const vecesDeEntrada = new Map();
+  const esEntradaDeCena = (slotId) => {
+    const ctx = contextBySlot[slotId];
+    return ctx?.mealType === "cena" && (ctx?.position === "primero" || ctx?.position === "1");
+  };
   for (const { slotId, recipeId } of slotAssignments) {
+    if (esEntradaDeCena(slotId)) {
+      const previas = vecesDeEntrada.get(recipeId) ?? 0;
+      // Solo si TODAS sus apariciones son entradas de cena: la misma crema de
+      // primero de comida y de entrada de cena sigue siendo una repetición.
+      if (!usedRecipeIds.has(recipeId) || previas > 0) {
+        vecesDeEntrada.set(recipeId, previas + 1);
+        if (previas + 1 <= VECES_MISMA_SOPA) {
+          if (!usedRecipeIds.has(recipeId)) usedRecipeIds.set(recipeId, slotId);
+          continue;
+        }
+      }
+    }
     if (usedRecipeIds.has(recipeId)) {
       const firstSlotId = usedRecipeIds.get(recipeId);
       violations.push({

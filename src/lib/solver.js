@@ -48,7 +48,7 @@
  *     iguales y el mismo menú sí se pueda reproducir en un test.
  */
 
-import { validateMenu, slotAcceptsRole, FREQ_KEY_MATCHERS, getCarbType, COMIDA_KCAL_SOFT_CAP } from "../utils/validateMenu.js";
+import { validateMenu, slotAcceptsRole, FREQ_KEY_MATCHERS, getCarbType, COMIDA_KCAL_SOFT_CAP, VECES_MISMA_SOPA } from "../utils/validateMenu.js";
 import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { isMontaje } from "../data/recipeSchema.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
@@ -462,15 +462,36 @@ export function resolverMenu(slots, pool, {
     return !violations.some((v) => !IGNORAR_EN_PARCIAL.has(v.rule));
   };
 
+  // La olla de sopa: la entrada de una cena de dos platos puede repetir plato
+  // hasta VECES_MISMA_SOPA veces (regla 6). El solver lleva su propia cuenta
+  // porque `usados` es un Set y aquí hace falta contar, no solo saber si salió.
+  const entradaDeCena = (slot) =>
+    slot.mealType === "cena" && (slot.position === "primero" || slot.position === "1");
+  const vecesEntrada = new Map();
+  const yaGastado = (slot, receta) => {
+    if (!entradaDeCena(slot)) return usados.has(receta.id);
+    const n = vecesEntrada.get(receta.id) ?? 0;
+    // Si el plato salió fuera de una entrada de cena, cuenta como usado.
+    if (usados.has(receta.id) && n === 0) return true;
+    return n >= VECES_MISMA_SOPA;
+  };
+
   const poner = (slot, receta) => {
     asignadas.push({ slotId: slot.slotId, recipeId: receta.id });
+    if (entradaDeCena(slot)) vecesEntrada.set(receta.id, (vecesEntrada.get(receta.id) ?? 0) + 1);
     usados.add(receta.id);
     for (const f of familias.get(receta.id)) cuenta[f] = (cuenta[f] ?? 0) + 1;
     if (receta.cocina) cuentaCocina[receta.cocina] = (cuentaCocina[receta.cocina] ?? 0) + 1;
   };
-  const quitar = (receta) => {
+  const quitar = (slot, receta) => {
     asignadas.pop();
-    usados.delete(receta.id);
+    if (entradaDeCena(slot)) {
+      const n = (vecesEntrada.get(receta.id) ?? 1) - 1;
+      if (n > 0) vecesEntrada.set(receta.id, n);
+      else { vecesEntrada.delete(receta.id); usados.delete(receta.id); }
+    } else {
+      usados.delete(receta.id);
+    }
     for (const f of familias.get(receta.id)) cuenta[f] -= 1;
     if (receta.cocina) cuentaCocina[receta.cocina] -= 1;
   };
@@ -480,7 +501,7 @@ export function resolverMenu(slots, pool, {
     if (agotado()) return false;
     const slot = orden[i];
     for (const receta of ordenados(slot)) {
-      if (usados.has(receta.id)) continue; // regla 6, por construcción
+      if (yaGastado(slot, receta)) continue; // regla 6, con la olla de sopa dentro
       nodos += 1;
       if (agotado()) return false;
       poner(slot, receta);
@@ -488,7 +509,7 @@ export function resolverMenu(slots, pool, {
         if (asignadas.length > mejor.length) mejor = [...asignadas];
         if (buscar(i + 1)) return true;
       }
-      quitar(receta);
+      quitar(slot, receta);
     }
     return false;
   };
@@ -519,6 +540,7 @@ export function resolverMenu(slots, pool, {
     usados.clear();
     for (const f of Object.keys(cuenta)) cuenta[f] = 0;
     for (const c of Object.keys(cuentaCocina)) cuentaCocina[c] = 0;
+    vecesEntrada.clear();
     // Presupuesto propio: si la fase 1 se agotó demostrando que no hay semana
     // entera, esta no puede quedarse sin turno.
     const t1 = Date.now();
@@ -539,12 +561,12 @@ export function resolverMenu(slots, pool, {
       if (agotado2()) return;
       const slot = orden[i];
       for (const receta of ordenados(slot)) {
-        if (usados.has(receta.id)) continue;
+        if (yaGastado(slot, receta)) continue;
         nodos += 1;
         if (agotado2()) return;
         poner(slot, receta);
         if (parcialValida()) buscar2(i + 1);
-        quitar(receta);
+        quitar(slot, receta);
         if (mejorSaltos === 0) return;
       }
       saltados.push(slot.slotId);
@@ -581,17 +603,18 @@ export function resolverMenu(slots, pool, {
     usados.clear();
     for (const f of Object.keys(cuenta)) cuenta[f] = 0;
     for (const c of Object.keys(cuentaCocina)) cuentaCocina[c] = 0;
+    vecesEntrada.clear();
     for (const a of mejor) poner(slotPorId.get(a.slotId), porId.get(a.recipeId));
 
     const vacios = () => orden.filter((s) => !asignadas.some((a) => a.slotId === s.slotId));
     const rellenar = (valida) => {
       for (const slot of vacios()) {
         for (const receta of ordenados(slot)) {
-          if (usados.has(receta.id)) continue;
+          if (yaGastado(slot, receta)) continue;
           nodos += 1;
           poner(slot, receta);
           if (valida()) break;
-          quitar(receta);
+          quitar(slot, receta);
         }
       }
     };
