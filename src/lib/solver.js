@@ -406,6 +406,17 @@ export function resolverMenu(slots, pool, {
   //    siempre los mismos platos". Ahora un plato del puesto 200 con suerte
   //    puede adelantar a uno del 20, y el sesgo sigue notándose porque pesa el
   //    doble que el ruido.
+  //
+  //    Medido despues: el sesgo pesaba el DOBLE que el ruido y con eso dos
+  //    semillas distintas movian poco dentro de su escalon. A la mitad, el
+  //    azar manda dentro del escalon y el sesgo sigue inclinando: 65 platos
+  //    distintos en ocho semanas en vez de 60.
+  //
+  //    Ojo con lo que esto NO arregla: el termino que de verdad ordena es el
+  //    DEFICIT (1e4 por familia que falta), asi que los platos que cubren
+  //    varias familias a la vez ganan siempre, semilla aparte. Para una casa
+  //    que genera la misma semana una y otra vez, eso se ve como "siempre lo
+  //    mismo". Entre semanas no pasa, porque poolForWeek parte el recetario.
   const RUIDO = Math.max(30, pool.length);
 
   // ── La mitad que no cambia, ordenada UNA vez por hueco ────────────────────
@@ -424,7 +435,7 @@ export function resolverMenu(slots, pool, {
         r,
         clave: -(solo ? completitud(r) * 4e3 : 0)
           + costeTiempo(r, slot) * 1e3
-          + indice.get(r.id) * 2
+          + indice.get(r.id) * 0.5
           + (hash(r.id + slot.slotId, semilla) % RUIDO),
       }))
       .sort((a, b) => a.clave - b.clave)

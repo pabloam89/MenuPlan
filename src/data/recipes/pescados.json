@@ -23603,7 +23603,7 @@
       "Servir los boquerones junto a la ensalada de pepino y yogur."
     ],
     "description": "Boquerones fritos crujientes con una ensalada refrescante de pepino, yogur y menta.",
-    "estrella": true,
+    "estrella": false,
     "mainIngredients": [
       "verdura",
       "lacteo"
