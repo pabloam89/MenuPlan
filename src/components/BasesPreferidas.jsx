@@ -189,6 +189,21 @@ export function BasesPreferidas({ data, setData }) {
   };
 
   /**
+   * Lo pedido de una familia de plato. Vive en `tandaPlatos`, no en `tanda`:
+   * aquel cuenta ollas de base y este cuenta platos.
+   *
+   * Va PEGADO a `vecesDe` y no junto a los otros escritores, que es donde
+   * estaba: las manos de la tanda se suman unas lineas mas abajo y llamaban a
+   * esto antes de que existiera. En fuente es una zona muerta de manual y en
+   * produccion es "Cannot access before initialization" nada mas abrir la
+   * pantalla. Lo que se LEE va arriba; lo que ESCRIBE, abajo.
+   */
+  const vecesDePlato = (id) => {
+    const n = Math.round(valorDe(libreta, `tandaPlatos.${id}`) ?? 0);
+    return n <= 0 ? 0 : Math.min(n, MAX_PLATOS_SEMANA);
+  };
+
+  /**
    * Cero apaga la base; cualquier otra cosa entra al mínimo que hace tanda.
    *
    * El uno no existe como opción y por eso se sube a dos en vez de rechazarse:
@@ -247,13 +262,6 @@ export function BasesPreferidas({ data, setData }) {
   // disponible. Que te hayas pasado lo dice el color y el aviso, no una barra
   // que se sale, porque una barra que se sale no dice cuánto te has pasado.
   const gastado = Math.min(posicion(manosTotales), posicion(presupuesto));
-
-  /** Lo pedido de una familia de plato. Vive en `tandaPlatos`, no en `tanda`:
-   *  aquel cuenta ollas de base y este cuenta platos. */
-  const vecesDePlato = (id) => {
-    const n = Math.round(valorDe(libreta, `tandaPlatos.${id}`) ?? 0);
-    return n <= 0 ? 0 : Math.min(n, MAX_PLATOS_SEMANA);
-  };
 
   const escribir = (ruta, n) => setData((d) => {
     const actual = normalizarLibreta(d?.notepad);
