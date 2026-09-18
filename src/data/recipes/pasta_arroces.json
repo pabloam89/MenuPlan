@@ -197,7 +197,8 @@
     "mainBase": "pasta",
     "baseMode": "aparte",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bolonesa"
     ],
     "mealRole": [
       "plato_unico"
@@ -2898,7 +2899,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito",
-      "bechamel"
+      "bechamel",
+      "bolonesa"
     ],
     "mealRole": [
       "plato_unico"
@@ -11657,7 +11659,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito",
-      "bechamel"
+      "bechamel",
+      "bolonesa"
     ],
     "mealRole": [
       "plato_unico",
@@ -16836,7 +16839,8 @@
     "mainBase": "pasta",
     "baseMode": "dentro",
     "basesAparte": [
-      "sofrito"
+      "sofrito",
+      "bolonesa"
     ],
     "requiredAppliance": "horno",
     "mealRole": [

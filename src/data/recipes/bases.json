@@ -1998,5 +1998,172 @@
         "prepSummary": "Dados de patata secos, con el aceite y las especias bien repartidos. 22 minutos a 200°C agitando la cesta a mitad. Quedan más crujientes que en el horno y en la mitad de tiempo."
       }
     ]
+  },
+  {
+    "id": "bases_015",
+    "name": "Salsa boloñesa base",
+    "category": "bases",
+    "mainProtein": "ternera",
+    "baseKey": "bolonesa",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 1000,
+      "unit": "g"
+    },
+    "time": 55,
+    "minutosFijos": 45,
+    "minutosPorRacion": 1.5,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 215,
+    "protein_g": 14,
+    "carbs_g": 8,
+    "fat_g": 14,
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 5,
+    "sodium_mg": 320,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 3
+    },
+    "allergens": [
+      "apio",
+      "sulfitos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada-ternera",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "ingredientId": "zanahoria",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "ingredientId": "apio",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "ingredientId": "laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar muy fino {{Cebolla}}, {{Zanahoria}} y {{Apio}}: cuanto más menudo, mejor liga la salsa.",
+        "minutes": 8,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva virgen extra}} en una cazuela ancha y pochar la verdura picada a fuego suave hasta que esté tierna y sin color.",
+        "minutes": 12,
+        "kind": "activo"
+      },
+      {
+        "text": "Subir el fuego y añadir {{Carne picada de ternera}}, deshaciéndola con la cuchara hasta que pierda el rosa y empiece a dorarse.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Regar con {{Vino tinto}} y dejar que evapore el alcohol.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}}, {{Sal}} y {{Laurel}}.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego muy lento, removiendo de vez en cuando, hasta que espese y la grasa suba a la superficie.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel, dejar templar y repartir en botes o en bolsas planas para congelar.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "steps": [
+      "Picar muy fino cebolla, zanahoria y apio.",
+      "Pochar la verdura picada en aceite de oliva a fuego suave hasta que esté tierna y sin color.",
+      "Añadir la carne picada y deshacerla hasta que pierda el rosa y empiece a dorarse.",
+      "Regar con vino tinto y dejar evaporar el alcohol.",
+      "Incorporar el tomate triturado, la sal y el laurel.",
+      "Cocer a fuego muy lento hasta que espese y la grasa suba a la superficie.",
+      "Retirar el laurel, dejar templar y repartir en botes o bolsas planas para congelar."
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar a fuego medio removiendo; si ha quedado espesa, un chorro de agua de cocer la pasta la devuelve a su punto.",
+        "minutes": 4,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Pasar la bolsa del congelador a la nevera la noche antes.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar en la cazuela a fuego medio removiendo hasta que vuelva a ligar.",
+        "minutes": 6,
+        "kind": "pasivo"
+      }
+    ],
+    "description": "La salsa de toda la vida: sofrito menudo de cebolla, zanahoria y apio, carne picada bien dorada, vino y tomate a fuego lento. Hecha el domingo, convierte una lasaña de hora y media en montar y hornear."
   }
 ]

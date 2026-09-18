@@ -26,6 +26,7 @@ export const BASES_UI = {
   verdura_asada: { etiqueta: "Verdura asada", foto: "verduras asadas" },
   patatas_asadas: { etiqueta: "Patata asada", foto: "patatas asadas" },
   salsa_tomate: { etiqueta: "Tomate", foto: "tomate frito" },
+  bolonesa: { etiqueta: "Boloñesa", foto: "bolonesa" },
   bechamel: { etiqueta: "Bechamel", foto: "bechamel" },
   pesto: { etiqueta: "Pesto", foto: "pesto" },
   caldo: { etiqueta: "Caldo", foto: "caldo de pollo" },
