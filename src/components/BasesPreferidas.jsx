@@ -1,6 +1,6 @@
 import { BASES, MAX_POR_SEMANA, MIN_POR_SEMANA, clavesDeReceta, tiempoDeBase, topeDeBase } from "../lib/bases.js";
 import { selectMethodForRecipe } from "../lib/applianceMethods.js";
-import { MINUTOS_DE_TANDA, minutosDeTanda } from "../lib/cookTime.js";
+import { TANDA_MAX, TANDA_MIN, TANDA_PASO, enHoras, minutosDeTanda } from "../lib/cookTime.js";
 import { weeklySlotBudget } from "../lib/planner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
@@ -43,6 +43,19 @@ import { SliderEjes } from "./wizard/SliderEjes.jsx";
  * para que el cambio surta efecto sin esperar a que el usuario pase por la fila
  * de mandos. La libreta sigue siendo la única fuente.
  */
+
+// El deslizador del presupuesto. Misma pista de 7px y mismo pulgar de 20 que
+// SliderEjes, y por lo mismo: el pulgar visible es un div con su transición y
+// el input nativo va encima transparente, que es lo único que hace bien —
+// recoger el arrastre y el toque en cualquier punto de la barra.
+const CSS_TIEMPO = `
+  .sl-tiempo { -webkit-appearance: none; appearance: none; width: 100%; height: 16px; background: transparent; outline: none; cursor: pointer; position: relative; z-index: 1; margin: 0; padding: 0; touch-action: none; }
+  .sl-tiempo::-webkit-slider-runnable-track { background: transparent; height: 7px; }
+  .sl-tiempo::-moz-range-track { background: transparent; height: 7px; border: none; }
+  .sl-tiempo::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: transparent; border: none; margin-top: -7px; }
+  .sl-tiempo::-moz-range-thumb { width: 20px; height: 20px; border: none; border-radius: 50%; background: transparent; }
+  .sl-tiempo:focus-visible { outline: 2px solid #2d5a3d; outline-offset: 2px; border-radius: 4px; }
+`;
 
 /**
  * Los bloques, y por qué estos tres.
@@ -203,50 +216,79 @@ export function BasesPreferidas({ data, setData }) {
         )}
       </p>
 
-      {/* ── Cuánto quieres cocinar ese día ──────────────────────────────────
+      {/* ── Cuánto quieres cocinar ese día, y cuánto llevas ─────────────────
           El presupuesto va ARRIBA porque es la pregunta que ordena el resto:
           sin él, los deslizadores de abajo son una lista de deseos.
 
+          Dos barras en la MISMA escala y pegadas, que es lo que hace que se
+          lean de un vistazo: la de arriba se arrastra y dice lo que tienes, la
+          de abajo no se toca y dice lo que llevas gastado. Un segundo
+          deslizador para lo gastado habría invitado a arrastrarlo, y eso es
+          una salida, no una decisión.
+
           Lo que se cuenta son MANOS, no reloj. El domingo se solapa —mientras
           el caldo hierve estás picando otra cosa— así que sumar relojes diría
-          que dos guisos te comen la mañana cuando en realidad estás leyendo.
-          Los escalones son gruesos a propósito: nadie sabe si su domingo son
-          45 minutos o 55, pero sí sabe si tiene un rato o una mañana. */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-        {MINUTOS_DE_TANDA.map((op) => {
-          const activo = presupuesto === op.minutos;
-          return (
-            <button
-              key={op.id}
-              type="button"
-              onClick={() => setData((d) => ({ ...d, tandaMinutos: op.minutos }))}
-              style={{
-                flex: 1, padding: "8px 6px", borderRadius: 12, cursor: "pointer",
-                border: activo ? "1.5px solid #2d5a3d" : "1.5px solid #e3ebe6",
-                background: activo ? "#eaf6ee" : "#fff",
-                color: activo ? "#2d5a3d" : "#5a7066",
-                fontFamily: "inherit", lineHeight: 1.2,
-              }}
-            >
-              <div style={{ fontSize: 12, fontWeight: 800 }}>{op.label}</div>
-              <div style={{ fontSize: 10, fontWeight: 600, opacity: 0.8, marginTop: 2 }}>{op.sub}</div>
-            </button>
-          );
-        })}
-      </div>
+          que dos guisos te comen la mañana cuando en realidad estás leyendo. */}
+      <div style={{ background: "#fff", border: "1px solid #eef2ef", borderRadius: 16, padding: "12px 14px", marginBottom: 12 }}>
+        <style>{CSS_TIEMPO}</style>
 
-      {/* El marcador. Aproximado y dicho como tal: es una estimación sobre los
-          aparatos que tienes, no un cronómetro. */}
-      <p style={{
-        fontSize: 12, fontWeight: 700, margin: "0 0 12px",
-        color: pasado ? "#b45309" : "#5a7066",
-      }}>
-        {manosPedidas === 0
-          ? "Todavía no has pedido ninguna tanda."
-          : pasado
-            ? `Lo pedido son unos ${manosPedidas} min de estar delante: se pasa de lo que dijiste.`
-            : `Lo pedido son unos ${manosPedidas} min de estar delante, de los ${presupuesto} que tienes.`}
-      </p>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d" }}>Ese día tengo</span>
+          <span style={{ fontSize: 13, fontWeight: 900, color: "#2d5a3d" }}>{enHoras(presupuesto)}</span>
+        </div>
+
+        <span style={{ position: "relative", height: 16, display: "flex", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ position: "absolute", left: 0, right: 0, height: 7, borderRadius: 4, background: "#e4ede7", overflow: "hidden", pointerEvents: "none" }}>
+            <span style={{
+              display: "block", height: "100%", borderRadius: 4, background: "#2d5a3d",
+              width: `${((presupuesto - TANDA_MIN) / (TANDA_MAX - TANDA_MIN)) * 100}%`,
+              transition: "width .3s ease",
+            }} />
+          </span>
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute", width: 20, height: 20, borderRadius: "50%",
+              background: "#fff", border: "2.5px solid #2d5a3d", boxShadow: "0 1px 4px rgba(9,18,12,.2)",
+              left: `calc((100% - 13px) * ${(presupuesto - TANDA_MIN) / (TANDA_MAX - TANDA_MIN)})`,
+              pointerEvents: "none",
+            }}
+          />
+          <input
+            className="sl-tiempo"
+            type="range"
+            min={TANDA_MIN}
+            max={TANDA_MAX}
+            step={TANDA_PASO}
+            value={presupuesto}
+            aria-label="Tiempo que quieres dedicar a cocinar de antes"
+            onChange={(e) => setData((d) => ({ ...d, tandaMinutos: Number(e.target.value) }))}
+          />
+        </span>
+
+        {/* Lo gastado, en la misma escala y sin pulgar: es una lectura. */}
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, color: pasado ? "#b45309" : "#5a7066" }}>
+            Lo pedido ocupa
+          </span>
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: pasado ? "#b45309" : "#5a7066" }}>
+            {manosPedidas === 0 ? "nada todavía" : `unos ${enHoras(manosPedidas)}`}
+          </span>
+        </div>
+        <span style={{ display: "block", height: 7, borderRadius: 4, background: "#e4ede7", overflow: "hidden" }}>
+          <span style={{
+            display: "block", height: "100%", borderRadius: 4,
+            background: pasado ? "#b45309" : "#7bbf93",
+            width: `${Math.min(100, (manosPedidas / TANDA_MAX) * 100)}%`,
+            transition: "width .3s ease",
+          }} />
+        </span>
+        {pasado && (
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: "#b45309", margin: "8px 0 0", lineHeight: 1.35 }}>
+            Se pasa de lo que dijiste. Quita alguna tanda o date más tiempo.
+          </p>
+        )}
+      </div>
 
       {GRUPOS.map((grupo) => (
         <div key={grupo.titulo} style={{ marginBottom: 14 }}>

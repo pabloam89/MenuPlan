@@ -231,18 +231,34 @@ export function writeCookTimeShared(data, period, value) {
  * `manosDeMetodo` en lib/bases.js, que es quien calcula las manos de cada base
  * según el aparato que la casa dijo tener.
  *
- * Los escalones son aproximados a propósito: nadie sabe si su domingo son 45
- * o 55 minutos, pero sí sabe si tiene "un rato" o "una mañana".
+ * El recorrido del deslizador va de media hora a cuatro, de media en media.
+ * Media hora es el escalón porque es como se habla de esto —"tengo un par de
+ * horas"— y porque por debajo no cabe ni una tanda: el sofrito son 25 minutos
+ * de manos. Y cuatro arriba porque a partir de ahí ya no es un domingo, es un
+ * proyecto.
  */
-export const MINUTOS_DE_TANDA = [
-  { id: "poco", label: "Un rato", minutos: 30, sub: "Media hora de manos" },
-  { id: "normal", label: "Un par de horas", minutos: 60, sub: "Una hora de manos" },
-  { id: "mucho", label: "Una mañana", minutos: 120, sub: "Dos horas de manos" },
-];
+export const TANDA_MIN = 30;
+export const TANDA_MAX = 240;
+export const TANDA_PASO = 30;
+export const TANDA_POR_DEFECTO = 60;
 
 /** Los minutos de manos que esta casa quiere dedicar a la tanda. */
 export function minutosDeTanda(data) {
   const guardado = Number(data?.tandaMinutos);
-  if (Number.isFinite(guardado) && guardado > 0) return guardado;
-  return MINUTOS_DE_TANDA[1].minutos;
+  if (!Number.isFinite(guardado) || guardado <= 0) return TANDA_POR_DEFECTO;
+  return Math.min(TANDA_MAX, Math.max(TANDA_MIN, guardado));
+}
+
+/**
+ * Minutos dichos como los diría una persona: "1 h 30", no "90 min".
+ *
+ * Por debajo de la hora se quedan en minutos, que es como se piensan; a partir
+ * de ahí manda la hora y los minutos van detrás solo si los hay.
+ */
+export function enHoras(minutos) {
+  const m = Math.max(0, Math.round(Number(minutos) || 0));
+  if (m < 60) return `${m} min`;
+  const horas = Math.floor(m / 60);
+  const resto = m % 60;
+  return resto === 0 ? `${horas} h` : `${horas} h ${resto}`;
 }
