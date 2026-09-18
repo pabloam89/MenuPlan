@@ -31,6 +31,7 @@
 
 import basesCatalog from "../data/recipes/bases.json";
 import { catalogIdOfPlanRecipe } from "./freezer.js";
+import { CAPACIDAD_POR_APARATO } from "./applianceMethods.js";
 
 /** Todas las bases del catálogo. */
 export const BASES = basesCatalog;
@@ -195,7 +196,18 @@ export function tiempoDeBase(base, raciones, metodo = null) {
     ? Math.max(1, Number(metodo.time) - ((Number(base.time) || 0) - propios))
     : propios;
   const porRacion = Number(base.minutosPorRacion) || 0;
-  const capacidad = Math.max(1, Number(base.capacidadMax) || total);
+  // La capacidad es la del CACHARRO o la de la receta, lo que antes se agote:
+  // un caldo para doce cabe en una olla exprés y necesita tres vasos de
+  // Thermomix. Las raciones que caben en el aparato salen de su volumen útil
+  // (CAPACIDAD_POR_APARATO) y de lo que ocupa una ración de ESTA base, que su
+  // propio `rinde` ya dice — 250 ml una de caldo, 38 g una de pesto.
+  const deLaBase = Number(base.capacidadMax) || total;
+  const porRacionMl = Number(base.rinde?.amount) > 0 && Number(base.baseServings) > 0
+    ? Number(base.rinde.amount) / Number(base.baseServings)
+    : 0;
+  const volumen = metodo?.appliance ? CAPACIDAD_POR_APARATO[metodo.appliance] : null;
+  const delAparato = volumen && porRacionMl > 0 ? Math.floor(volumen / porRacionMl) : null;
+  const capacidad = Math.max(1, Math.min(deLaBase, delAparato ?? deLaBase));
 
   /** Minutos de cocinar `n` raciones de golpe, partiendo en tandas si no caben. */
   const minutosDe = (n) => {

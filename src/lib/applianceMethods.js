@@ -69,6 +69,34 @@ export const REQUIRED_APPLIANCE_COLORS = {
   "Vaporera": "#2d8659",
 };
 
+/**
+ * Cuánto cabe de UNA vez en cada aparato, en mililitros o gramos de producto.
+ *
+ * La capacidad es del CACHARRO, no de la receta. Hasta ahora `capacidadMax`
+ * vivía solo en la base, igual para todos los métodos, y eso hacía que un
+ * caldo para doce fuera "una tanda" con olla exprés y también con Thermomix.
+ * No: el vaso de una Thermomix son 2,2 litros y una olla exprés son seis, así
+ * que ese mismo caldo son tres vasos, cada uno con su carga y su lavado. Sin
+ * esto, el aparato salía mejor parado de lo que le toca en cuanto había
+ * volumen de por medio.
+ *
+ * Va en VOLUMEN y no en raciones porque una ración no mide lo mismo según qué:
+ * una de caldo son 250 ml y una de pesto 38 g. Con un número fijo de raciones
+ * por tanda, la bechamel para ocho salía en dos vasos cuando cabe de sobra en
+ * uno. Las raciones que caben se calculan con el `rinde` que cada base ya
+ * declara (ver `tiempoDeBase`).
+ *
+ * Son capacidades ÚTILES, no nominales: nadie llena un vaso hasta el borde.
+ */
+export const CAPACIDAD_POR_APARATO = {
+  thermomix: 1800,
+  microondas: 1500,
+  airfryer: 1200,
+  vaporera: 2500,
+  horno: 4000,
+  olla_express: 4500,
+};
+
 // Onboarding tool label (lowercased) → method appliance slug.
 const TOOL_TO_APPLIANCE = {
   "airfryer": "airfryer",
