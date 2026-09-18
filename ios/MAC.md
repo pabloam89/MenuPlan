@@ -37,3 +37,34 @@ Sacarlas del **Simulador de Xcode** (Xcode → Open Developer Tool → Simulator
 ## Estado de App Store Connect (2026-09-17)
 Ya hecho desde el navegador (sin esperar al Mac): Team ID, App ID `com.homenu.app` con Sign in with Apple, ficha "HoMenu" creada, Age Rating (13+ por UGC/feed social), App Privacy con los tipos de dato reales de la app (no los que Apple/otro dev había dejado puestos por defecto).
 Pendiente en App Store Connect: decidir trader/non-trader a nivel de app (Digital Services Act, en App Information), Support URL, capturas (arriba), Description/Keywords ya redactadas — ver conversación o pedir a Alvaro.
+
+## Problemas reales encontrados la primera vez (2026-09-18) y cómo se resolvieron
+
+1. **`xcodebuild` no encontraba Xcode**
+   `xcode-select: error: tool 'xcodebuild' requires Xcode, but active developer directory '/Library/Developer/CommandLineTools'`
+   → `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
+
+2. **No existe `App.xcworkspace`**
+   Este proyecto usa Swift Package Manager, no CocoaPods: hay que usar `-project App.xcodeproj`.
+
+3. **El panel "Signing & Capabilities" de Xcode engaña**
+   Muestra siempre el estado de firma del botón ▶ (Run → Debug → perfil de *desarrollo*), aunque tengas seleccionada la pestaña Release. El error "Your team has no devices from which to generate a provisioning profile" / "No profiles ... iOS App Development" es de desarrollo y **no bloquea el Archive**, que usa perfil de distribución. No perder tiempo ahí.
+
+4. **No había certificado de distribución.** Se creó a mano (sin la GUI de Acceso a Llaveros, que dio problemas):
+   ```bash
+   cd ~/Desktop
+   openssl genrsa -out ios_distribution.key 2048
+   openssl req -new -key ios_distribution.key -out CertificateSigningRequest.certSigningRequest -subj "/emailAddress=EMAIL/CN=Alvaro Giron Barquin/C=ES"
+   # subir el .certSigningRequest en developer.apple.com → Certificates → + → Apple Distribution
+   # descargar distribution.cer y luego:
+   security import ~/Desktop/ios_distribution.key -k ~/Library/Keychains/login.keychain-db -A
+   security import ~/Downloads/distribution.cer -k ~/Library/Keychains/login.keychain-db -A
+   ```
+
+5. **`DEVELOPMENT_TEAM` desapareció del proyecto** al desmarcar/marcar "Automatically manage signing" en la GUI. No tocar ese toggle; si pasa, pasar el equipo por línea de comandos.
+
+### Comando de archive que funciona
+```bash
+cd ~/Desktop/MenuPlan/ios/App
+xcodebuild -project App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' -archivePath ~/Desktop/HoMenu.xcarchive archive -allowProvisioningUpdates DEVELOPMENT_TEAM=64QZ74Y5M2 CODE_SIGN_STYLE=Automatic
+```
