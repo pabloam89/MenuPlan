@@ -658,7 +658,7 @@
     "saturated_fat_g": 1,
     "sodium_mg": 380,
     "freezable": false,
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "basesAparte": [
       "caldo"
     ]
@@ -1844,7 +1844,7 @@
     "saturated_fat_g": 4,
     "sodium_mg": 420,
     "freezable": false,
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "guarniciones_037",
@@ -2134,7 +2134,7 @@
     "saturated_fat_g": 10,
     "sodium_mg": 380,
     "freezable": false,
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "guarniciones_039",
@@ -2247,7 +2247,7 @@
     "saturated_fat_g": 2,
     "sodium_mg": 290,
     "freezable": false,
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "guarniciones_040",
@@ -2392,7 +2392,7 @@
     "saturated_fat_g": 4,
     "sodium_mg": 320,
     "freezable": false,
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "guarniciones_041",
@@ -3237,7 +3237,7 @@
     "saturated_fat_g": 1,
     "sodium_mg": 390,
     "freezable": false,
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "guarniciones_046",

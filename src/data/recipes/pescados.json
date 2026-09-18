@@ -186,7 +186,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -8797,7 +8797,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -10686,7 +10686,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "time": 35,
     "difficulty": "facil",
     "kcal": 646,
@@ -10918,7 +10918,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "time": 35,
     "difficulty": "facil",
     "kcal": 612,
@@ -14828,7 +14828,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
     ],
@@ -16244,7 +16244,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -18128,7 +18128,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -18568,7 +18568,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -18826,7 +18826,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -19314,7 +19314,7 @@
     "category": "pescados",
     "mainProtein": "pescado_blanco",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -22925,7 +22925,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"

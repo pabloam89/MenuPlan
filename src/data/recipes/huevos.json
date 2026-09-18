@@ -316,7 +316,7 @@
     "freezable": false,
     "tecnica": "sarten",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "huevos_004",
@@ -2148,7 +2148,7 @@
     ],
     "tecnica": "sarten",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
     ]
@@ -4254,7 +4254,7 @@
       "cerdo"
     ],
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -4384,7 +4384,7 @@
       "cerdo"
     ],
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -8271,7 +8271,7 @@
     "kidFavourite": true,
     "tecnica": "sarten",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "dentro"
   },
   {
     "id": "huevos_056",
@@ -12490,7 +12490,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "time": 35,
     "difficulty": "normal",
     "apetecible": true,
@@ -12714,7 +12714,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "time": 20,
     "difficulty": "facil",
     "season": "all",
@@ -13655,7 +13655,7 @@
     "estrella": true,
     "tecnica": "sarten",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "stepsRich": [
       {
         "text": "Pelar {{Patatas}} y cortar en rodajas finas de unos 3 mm.",
@@ -14166,7 +14166,7 @@
     "kidFavourite": true,
     "tecnica": "sarten",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "stepsRich": [
       {
         "text": "Pelar {{Patatas}} y cortar en bastones de unos 1 cm de grosor.",

@@ -2790,7 +2790,7 @@
     "category": "platos_unicos",
     "mainProtein": "huevo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "basesAparte": [
       "salsa_tomate"
     ],

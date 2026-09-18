@@ -5,7 +5,7 @@
     "category": "carnes",
     "mainProtein": "pollo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -888,7 +888,7 @@
     ],
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
     ]
@@ -12274,7 +12274,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -12500,7 +12500,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -13479,7 +13479,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -14941,7 +14941,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -15168,7 +15168,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "basesAparte": [
       "caldo"
     ],
@@ -16892,7 +16892,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -17287,7 +17287,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -17977,7 +17977,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -20666,7 +20666,7 @@
     "occasion": "especial",
     "tecnica": "horno",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -20892,7 +20892,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -21161,7 +21161,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "basesAparte": [
       "caldo"
     ],
@@ -21408,7 +21408,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -21929,7 +21929,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "requiredAppliance": "horno",
     "mealRole": [
       "segundo",
@@ -22372,7 +22372,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -22866,7 +22866,7 @@
     "category": "carnes",
     "mainProtein": "pollo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "basesAparte": [
       "caldo"
     ],
@@ -23133,7 +23133,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "basesAparte": [
       "caldo"
     ],
@@ -29773,7 +29773,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -31380,7 +31380,7 @@
     "estrella": true,
     "tecnica": "horno",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "stepsRich": [
       {
         "text": "Precalentar el horno a 200 °C.",
@@ -31931,7 +31931,7 @@
     "estrella": true,
     "tecnica": "horno",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "stepsRich": [
       {
         "text": "Precalentar el horno a 190 °C.",
@@ -33794,7 +33794,7 @@
     "cocina": "peruana",
     "mainProtein": "pollo",
     "mainBase": "patatas",
-    "baseMode": "aparte",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],

@@ -7756,7 +7756,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
     ],
@@ -11994,7 +11994,7 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
