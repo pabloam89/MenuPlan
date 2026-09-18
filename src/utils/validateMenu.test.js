@@ -88,6 +88,9 @@ describe("GUARD_FOR_RULE stays in sync with the rules validateMenu actually emit
       "slot_faltante", "recipeId_not_in_catalog", "rol_incompatible_con_hueco",
       "tiempo_excedido", "tupper_not_friendly", "recipeId_repetido",
       "comida_sin_segundo", "health_profile_conflict", "freq_max_exceeded",
+      // Estructural como tiempo_excedido: no se arregla aflojando una
+      // preferencia, se arregla cambiando el plato por uno mas corto.
+      "comida_demasiado_larga",
       "school_protein_conflict", "legumbres_en_cena",
     ]);
     const unmapped = [...emittedRuleNames].filter(
@@ -1396,9 +1399,19 @@ describe("splitAchievableFreqs", () => {
     expect(warnings[0]).toContain("pescado");
   });
 
-  it("ignores zero/undefined targets and unknown keys without crashing", () => {
+  it("un tope de CERO se respeta: es una exclusión, no un hueco sin tope", () => {
+    // Antes se descartaba junto a los nulos y salía de aquí como "sin tope",
+    // o sea lo contrario de lo pedido: un estilo de comida con carne 0 producía
+    // trece platos de carne en veintiún huecos.
     const pool = [recipe({ id: "a" })];
     const { achievable, warnings } = splitAchievableFreqs(pool, { carne: 0, misterio: 5 });
+    expect(achievable).toEqual({ carne: 0 });
+    expect(warnings).toEqual([]);
+  });
+
+  it("y las claves desconocidas o nulas se siguen ignorando sin romper", () => {
+    const pool = [recipe({ id: "a" })];
+    const { achievable, warnings } = splitAchievableFreqs(pool, { misterio: 5, pescado: undefined, carne: -2 });
     expect(achievable).toEqual({});
     expect(warnings).toEqual([]);
   });
@@ -1679,11 +1692,13 @@ describe("dos_ensaladas_en_comida", () => {
     expect(violations.map((v) => v.rule)).not.toContain("dos_ensaladas_en_comida");
   });
 
-  it("NO flags un segundo que lleva ensalada de guarnición (\"ensalada\" no está al principio del nombre)", () => {
-    // "Salmón a la plancha con ensalada de pepino y eneldo" es un plato de
-    // pescado con una ensalada de acompañamiento, no "una ensalada" — muy
-    // distinto de "Ensalada de pollo asado..." donde SÍ lo es. Real, del
-    // catálogo: 35 segundos contienen "ensalada" en el nombre así.
+  it("SÍ flags una ensalada de primero con un segundo que trae ensalada de guarnición", () => {
+    // Este test decía lo contrario: que "Salmón a la plancha con ensalada de
+    // pepino" es un plato de pescado CON ensalada, no "una ensalada", y que
+    // por eso no había que contarlo. Sigue siendo verdad lo primero y falso lo
+    // segundo, porque la regla mira la MESA, no el plato: reportado tal cual,
+    // "de primero ensalada de melón con jamón y de segundo filete de pavo con
+    // ensalada de…". Son dos ensaladas seguidas aunque una sea guarnición.
     const pool = [
       recipe({ id: "ens_rucula", name: "Ensalada de rúcula, parmesano y piñones", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"] }),
       recipe({ id: "salmon", name: "Salmón a la plancha con ensalada de pepino y eneldo", category: "pescados", mainProtein: "pescado_azul", mealRole: ["segundo"] }),
@@ -1691,6 +1706,23 @@ describe("dos_ensaladas_en_comida", () => {
     const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
     const assignments = [
       { slotId: "lun_comida_1", recipeId: "ens_rucula" },
+      { slotId: "lun_comida_2", recipeId: "salmon" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("dos_ensaladas_en_comida");
+  });
+
+  it("pero NO cuando el primero no es una ensalada: un segundo con guarnición verde es normal", () => {
+    // La otra mitad de la regla, y la que impide que se vuelva insufrible: un
+    // salmón con ensalada de pepino detrás de una crema o de unos macarrones
+    // es exactamente lo que se cena en cualquier casa.
+    const pool = [
+      recipe({ id: "crema", name: "Crema de calabacín", category: "sopas_cremas", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "salmon", name: "Salmón a la plancha con ensalada de pepino y eneldo", category: "pescados", mainProtein: "pescado_azul", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "crema" },
       { slotId: "lun_comida_2", recipeId: "salmon" },
     ];
     const { violations } = validateMenu(assignments, pool, slots);
@@ -1925,5 +1957,66 @@ describe("platos de ocasión entre semana (regla 3f)", () => {
     const { violations } = validateMenu(assignments, [cigalas, filete], slots);
     const result = applyFallback(assignments, violations, [cigalas, filete], slots);
     expect(result[0].recipeId).toBe("filete");
+  });
+});
+
+describe("la casquería es de fin de semana", () => {
+  const higado = recipe({ id: "hig", name: "Hígado encebollado", category: "carnes", mainProtein: "ternera", mealRole: ["segundo", "cena"], time: 20 });
+  const filete = recipe({ id: "fil", name: "Filete de ternera a la plancha", category: "carnes", mainProtein: "ternera", mealRole: ["segundo", "cena"], time: 15 });
+
+  it("un hígado encebollado un miércoles se marca", () => {
+    const { violations } = validateMenu(
+      [{ slotId: "mie_cena", recipeId: "hig" }], [higado, filete], [slot("mie_cena")],
+    );
+    expect(violations.map((v) => v.rule)).toContain("casqueria_entre_semana");
+  });
+
+  it("el sábado no", () => {
+    const { violations } = validateMenu(
+      [{ slotId: "sab_cena", recipeId: "hig" }], [higado, filete], [slot("sab_cena")],
+    );
+    expect(violations.map((v) => v.rule)).not.toContain("casqueria_entre_semana");
+  });
+
+  it("y un filete normal no es casquería ningún día", () => {
+    const { violations } = validateMenu(
+      [{ slotId: "mie_cena", recipeId: "fil" }], [higado, filete], [slot("mie_cena")],
+    );
+    expect(violations.map((v) => v.rule)).not.toContain("casqueria_entre_semana");
+  });
+});
+
+describe("la comida entera cabe en el tiempo que se pidió", () => {
+  const corto = recipe({ id: "c", name: "Ensalada de tomate", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"], time: 10 });
+  const medio = recipe({ id: "m", name: "Merluza al horno", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["segundo"], time: 30 });
+  const largo = recipe({ id: "l", name: "Estofado de ternera", category: "carnes", mainProtein: "ternera", mealRole: ["segundo"], time: 50 });
+  const pool = [corto, medio, largo];
+  const slotsDe = (budget) => [
+    { ...slot("lun_comida_1"), position: "primero", maxTime: budget, mealBudget: budget },
+    { ...slot("lun_comida_2"), position: "segundo", maxTime: budget, mealBudget: budget },
+  ];
+  const par = (a, b) => [{ slotId: "lun_comida_1", recipeId: a }, { slotId: "lun_comida_2", recipeId: b }];
+
+  it("una ensalada de 10 con un pescado de 30 entra en una comida de 30", () => {
+    const { violations } = validateMenu(par("c", "m"), pool, slotsDe(30));
+    expect(violations.map((v) => v.rule)).not.toContain("comida_demasiado_larga");
+  });
+
+  it("pero un pescado de 30 con un estofado de 50 no", () => {
+    // 80 minutos para una comida de 30: ni solapándolos.
+    const { violations } = validateMenu(
+      [{ slotId: "lun_comida_1", recipeId: "m" }, { slotId: "lun_comida_2", recipeId: "l" }],
+      pool, slotsDe(30),
+    );
+    expect(violations.map((v) => v.rule)).toContain("comida_demasiado_larga");
+  });
+
+  it("sin presupuesto declarado no dice nada: solo aplica donde hay dos platos", () => {
+    const sinBudget = [
+      { ...slot("lun_comida_1"), position: "primero" },
+      { ...slot("lun_comida_2"), position: "segundo" },
+    ];
+    const { violations } = validateMenu(par("c", "l"), pool, sinBudget);
+    expect(violations.map((v) => v.rule)).not.toContain("comida_demasiado_larga");
   });
 });

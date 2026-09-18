@@ -2159,8 +2159,7 @@
     "category": "huevos",
     "mainProtein": "huevo",
     "mealRole": [
-      "cena",
-      "segundo"
+      "cena"
     ],
     "type": "principal",
     "time": 10,
@@ -2745,9 +2744,7 @@
     "category": "huevos",
     "mainProtein": "huevo",
     "mealRole": [
-      "cena",
-      "segundo",
-      "plato_unico"
+      "cena"
     ],
     "type": "completo",
     "time": 15,
@@ -3250,9 +3247,7 @@
     "category": "huevos",
     "mainProtein": "huevo",
     "mealRole": [
-      "cena",
-      "segundo",
-      "plato_unico"
+      "cena"
     ],
     "type": "completo",
     "time": 15,

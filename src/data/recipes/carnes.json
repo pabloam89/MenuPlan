@@ -25172,7 +25172,7 @@
         "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta hasta que estén tiernos. Dora el hígado enharinado rápidamente, añade el vino y cierra la olla. Cocina 1-2 minutos desde que sube la presión. Libera la presión, rectifica la salsa y termina con perejil."
       }
     ],
-    "estrella": true,
+    "estrella": false,
     "tecnica": "sarten",
     "llevaSalsa": true,
     "basesAparte": [
@@ -27499,8 +27499,6 @@
     "category": "carnes",
     "mainProtein": "pavo",
     "mealRole": [
-      "segundo",
-      "plato_unico",
       "cena"
     ],
     "type": "completo",

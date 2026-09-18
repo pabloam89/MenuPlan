@@ -7,6 +7,7 @@
 
 import { HEALTH_PROFILE_BADGE } from "../lib/healthProfileMatch.js";
 import { CARB_TYPE_BY_BASE, isMontaje } from "../data/recipeSchema.js";
+import { esCasqueria } from "../lib/casqueria.js";
 import { clavesDeReceta } from "../lib/bases.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
@@ -206,6 +207,17 @@ function isEnsalada(recipe) {
   return recipe ? ENSALADA_NAME_RE.test(recipe.name.trim()) : false;
 }
 
+// Y los que LLEVAN ensalada de acompañamiento sin serlo: "Filete de pavo a la
+// plancha con ensalada de aguacate". Por sí solos son un segundo perfectamente
+// normal —el comentario de arriba sigue siendo cierto— pero puestos al lado de
+// un primero que SÍ es una ensalada, en la mesa hay dos ensaladas. Reportado
+// tal cual: "de primero ensalada de melón con jamón y de segundo filete de
+// pavo con ensalada de…". Ver la regla 3d.
+const CON_ENSALADA_RE = /\bcon ensalada\b/i;
+function traeEnsalada(recipe) {
+  return recipe ? isEnsalada(recipe) || CON_ENSALADA_RE.test(recipe.name) : false;
+}
+
 /**
  * La "familia" de un plato: la primera palabra de su nombre, que es la que
  * dice QUE ES antes de decir de que va. Hummus, quesadilla, tortilla, wrap,
@@ -332,9 +344,20 @@ export function splitAchievableFreqs(filteredPool, freqs) {
   const achievable = {};
   const warnings = [];
   for (const [key, target] of Object.entries(freqs ?? {})) {
-    if (!target || target <= 0) continue;
+    if (target == null || target < 0) continue;
     const matcher = FREQ_KEY_MATCHERS[key];
     if (!matcher) continue; // unknown/custom key — ignore rather than crash
+    // Un tope de CERO es un objetivo legítimo y siempre alcanzable: "esta
+    // semana, nada de carne". Aquí se descartaba junto a los nulos, y un cero
+    // salía de esta función como "sin tope", o sea lo contrario de lo que
+    // pidió el usuario: un estilo de comida sin carne producía trece platos de
+    // carne en veintiún huecos. La comprobación de disponibilidad de abajo no
+    // aplica —no hace falta ninguna receta para no poner ninguna—, así que
+    // pasa directo.
+    if (target === 0) {
+      achievable[key] = 0;
+      continue;
+    }
     const available = filteredPool.filter(matcher).length;
     if (available < target) {
       warnings.push(
@@ -390,6 +413,18 @@ export function basesAlcanzables(filteredPool, basesPedidas, huecos) {
 // two-main-sized-dishes-at-once. Tune here if the catalog's balance shifts.
 // It's a QUALITY preference: applyFallback relaxes it before leaving a hole.
 export const COMIDA_KCAL_SOFT_CAP = 850;
+
+/**
+ * Cuánto puede sumar primero + segundo sobre el presupuesto de la comida
+ * (regla 7c). 1,5 con los 30 minutos por defecto son 45: una ensalada de 10
+ * con un guiso de 30 entra, dos platos de media hora no.
+ *
+ * No es 1 porque los dos platos se solapan en la cocina. Con 1 —que es lo que
+ * hacía el reparto 40/60— el primero se quedaba en 12 minutos y solo cuatro
+ * platos del catálogo cabían: cinco comidas entre semana y cuatro candidatos,
+ * así que el hueco se quedaba vacío por aritmética.
+ */
+export const SOLAPE_COMIDA = 1.5;
 
 /**
  * Does this recipe's mealRole fit the slot it's been placed in?
@@ -634,7 +669,11 @@ export function validateMenu(
     const r1 = poolById[slot1.recipeId];
     const r2 = poolById[slot2.recipeId];
     if (!r1 || !r2) continue;
-    if (isEnsalada(r1) && isEnsalada(r2)) {
+    // Uno de los dos tiene que SER una ensalada; al otro le basta con traerla
+    // de guarnición. Sin la segunda mitad se escapaba el caso más común, que
+    // es justo el que se ve en la mesa: ensalada de primero y un filete con
+    // ensalada de segundo.
+    if ((isEnsalada(r1) && traeEnsalada(r2)) || (traeEnsalada(r1) && isEnsalada(r2))) {
       violations.push({
         rule: "dos_ensaladas_en_comida",
         slotId: slot2.slotId,
@@ -686,6 +725,29 @@ export function validateMenu(
         });
       }
     }
+  }
+
+  // 3e-bis. La CASQUERÍA es de fin de semana.
+  //
+  //     Mismo mecanismo que la regla 3f de aquí abajo y por el mismo motivo:
+  //     lo que hace raro un hígado encebollado un miércoles por la noche no es
+  //     el tiempo (20 minutos), ni la dificultad, ni la proteína — para el
+  //     motor era un segundo de carne rápido, igual que un filete. Es que la
+  //     casquería se come cuando se elige. Reportado tal cual: salió de cena
+  //     entre semana.
+  //
+  //     Qué cuenta como casquería se DERIVA de los ingredientes (lib/casqueria.js),
+  //     no se marca plato a plato, para que el catálogo pueda crecer sin que
+  //     esta regla se quede vieja en silencio.
+  for (const { slotId, recipeId, daySlug } of mealOrder) {
+    if (!WEEKDAY_SLUGS.has(daySlug)) continue;
+    const recipe = poolById[recipeId];
+    if (!esCasqueria(recipe)) continue;
+    violations.push({
+      rule: "casqueria_entre_semana",
+      slotId,
+      message: `"${recipe.name}" es casquería: va en fin de semana, no un ${daySlug}`,
+    });
   }
 
   // 3f. Los platos de OCASIÓN no caen entre semana.
@@ -828,6 +890,41 @@ export function validateMenu(
         // (the primero is usually the lighter, more "structural" half).
         slotId: second.slotId,
         message: `${daySlug}: "${r1.name}" + "${r2.name}" suman ${total} kcal, demasiado para una comida de dos platos`,
+      });
+    }
+  }
+
+  // 7c. La COMIDA entera cabe en el tiempo que dijo quien cocina.
+  //
+  // El deslizador de tiempo es el presupuesto de la comida, no de cada plato,
+  // y cada plato por su lado ya cabe en él (regla 8). Lo que falta es que la
+  // pareja no se vaya: dos platos de media hora no son una comida de media
+  // hora.
+  //
+  // El factor no es 1: los dos platos se solapan en la cocina —la ensalada se
+  // monta mientras el horno trabaja— así que sumar sus tiempos como si fueran
+  // consecutivos es la lectura más estricta posible, y ya se probó: repartía
+  // el presupuesto 40/60 y dejaba el primero en 12 minutos, con cuatro platos
+  // posibles en todo el catálogo. `SOLAPE_COMIDA` es cuánto se admite de más
+  // sobre el presupuesto contando ese solape.
+  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
+    const first = positions["1"];
+    const second = positions["2"];
+    if (!first || !second) continue;
+    const presupuesto = contextBySlot[first.slotId]?.mealBudget ?? contextBySlot[second.slotId]?.mealBudget;
+    if (!presupuesto) continue;
+    const r1 = poolById[first.recipeId];
+    const r2 = poolById[second.recipeId];
+    if (!r1 || !r2) continue;
+    const total = (r1.time ?? 0) + (r2.time ?? 0);
+    const tope = Math.round(presupuesto * SOLAPE_COMIDA);
+    if (total > tope) {
+      violations.push({
+        rule: "comida_demasiado_larga",
+        // Al segundo, igual que `comida_desproporcionada`: cambiar el principal
+        // molesta menos que cambiar el primero.
+        slotId: second.slotId,
+        message: `${daySlug}: "${r1.name}" (${r1.time}min) + "${r2.name}" (${r2.time}min) son ${total}min para una comida de ${presupuesto}min`,
       });
     }
   }
@@ -1144,6 +1241,9 @@ export const GUARD_FOR_RULE = {
   dos_ensaladas_en_comida: "ensaladaClash",
   mismo_plato_seguido: "familiaPlato",
   plato_ocasion_entre_semana: "ocasion",
+  // Mismo guardia que la ocasion: el arreglo es el mismo, cambiar el plato
+  // por uno que no sea de fin de semana.
+  casqueria_entre_semana: "ocasion",
   proteina_repetida_en_dia: "primeroGroup",
   proteina_cena_consecutiva: "cenaConsecutiva",
   dos_fritos_seguidos: "frito",
