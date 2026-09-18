@@ -76,18 +76,33 @@ function construir() {
   return { semi: rematar(semi, "semi"), cocinado: rematar(cocinado, "cocinado"), sinFamilia };
 }
 
-const { semi, cocinado, sinFamilia } = construir();
+/**
+ * Y se construye la PRIMERA VEZ que alguien pregunta, no al cargar el módulo.
+ *
+ * No es una optimización, es un arreglo. Esto vivía en un `const` de módulo, y
+ * el empaquetador colocó este fichero 336 KB por delante de `recipeCatalog` en
+ * el mismo trozo: al abrir la pantalla de tandas, `construir()` leía el
+ * catálogo antes de que existiera y la app moría con "Cannot access before
+ * initialization". En fuente no pasa —vite sirve los módulos en orden— así que
+ * solo se veía en producción.
+ *
+ * Perezoso, el cálculo cae dentro de un render, cuando hace mucho que todos
+ * los módulos están en pie, y deja de importar en qué orden los ponga nadie.
+ */
+let cache = null;
+const familias = () => (cache ??= construir());
 
-/** Platos marcados que no cayeron en ninguna familia. Debe estar vacio. */
-export const SIN_FAMILIA = sinFamilia;
+/** Platos marcados que no cayeron en ninguna familia. Debe estar vacío. */
+export const sinFamilia = () => familias().sinFamilia;
 
-export const FAMILIAS_SEMI = semi;
-export const FAMILIAS_COCINADO = cocinado;
-export const FAMILIAS_PLATO = [...semi, ...cocinado];
+export const familiasSemi = () => familias().semi;
+export const familiasCocinado = () => familias().cocinado;
+export const familiasPlato = () => [...familias().semi, ...familias().cocinado];
 export { CLAVES_PLATO } from "./tandaFamiliasDefs.js";
 
-const POR_ID = new Map(FAMILIAS_PLATO.map((f) => [f.id, f]));
-export const familiaDePlato = (id) => POR_ID.get(id) ?? null;
+export function familiaDePlato(id) {
+  return familiasPlato().find((f) => f.id === id) ?? null;
+}
 
 /**
  * Lo que cuesta dejar hechas `veces` tandas de esta familia, en minutos de manos.
@@ -99,7 +114,7 @@ export const familiaDePlato = (id) => POR_ID.get(id) ?? null;
  * `minutosPorRacion` dan a las bases.
  */
 export function manosDeTanda(familiaId, veces) {
-  const fam = POR_ID.get(familiaId);
+  const fam = familiaDePlato(familiaId);
   if (!fam || veces <= 0) return 0;
   return Math.round(fam.minutosPorTanda * (1 + (veces - 1) * 0.5));
 }

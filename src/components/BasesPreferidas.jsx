@@ -12,7 +12,7 @@ import { normalizar as normalizarLibreta, poner, proyectar, valorDe } from "../l
 import { SliderEjes } from "./wizard/SliderEjes.jsx";
 import { SegmentedControl } from "./ui.jsx";
 import { CookingPot, RollingPin, Soup } from "./icons.jsx";
-import { FAMILIAS_COCINADO, FAMILIAS_SEMI, manosDeTanda } from "../lib/tandaFamilias.js";
+import { familiasCocinado, familiasPlato, familiasSemi, manosDeTanda } from "../lib/tandaFamilias.js";
 
 /**
  * Qué bases te gusta tener hechas — el detalle del modo "cocino en tanda".
@@ -110,7 +110,10 @@ const PESTANAS = [
  *  su categoría (DESIGN_SYSTEM §1.6), que es literalmente lo que son. */
 const COLOR_PATA = { semi: "#cf7833", cocinado: "#8a6cc4" };
 
-const FAMILIAS_POR_PATA = { semi: FAMILIAS_SEMI, cocinado: FAMILIAS_COCINADO };
+// Las familias se piden, no se guardan en un const de módulo: el cálculo lee
+// el catálogo y el empaquetador no garantiza que ya exista cuando este fichero
+// se evalúa. Ver la cabecera de lib/tandaFamilias.js.
+const FAMILIAS_DE = (pata) => (pata === "semi" ? familiasSemi() : familiasCocinado());
 
 /** Tope de una familia de plato: el mismo rango que declara la libreta. */
 const MAX_PLATOS_SEMANA = 4;
@@ -227,7 +230,7 @@ export function BasesPreferidas({ data, setData }) {
   // Y lo que cuesta dejar hechos los PLATOS, que se paga igual de caro: una
   // tanda de croquetas son casi sesenta minutos de manos, mas que cualquier
   // base. Contarlo aparte habria dado dos presupuestos para una sola manana.
-  const manosDePlatos = [...FAMILIAS_SEMI, ...FAMILIAS_COCINADO]
+  const manosDePlatos = familiasPlato()
     .reduce((suma, f) => suma + manosDeTanda(f.id, vecesDePlato(f.id)), 0);
   const manosTotales = manosPedidas + manosDePlatos;
   const presupuesto = minutosDeTanda(data);
@@ -432,7 +435,7 @@ export function BasesPreferidas({ data, setData }) {
           min={0}
           max={MAX_PLATOS_SEMANA}
           step={1}
-          ejes={FAMILIAS_POR_PATA[pestana].map((f) => {
+          ejes={FAMILIAS_DE(pestana).map((f) => {
             const n = vecesDePlato(f.id);
             return {
               id: f.id,
