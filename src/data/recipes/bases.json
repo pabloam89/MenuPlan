@@ -2041,7 +2041,7 @@
     "ingredients": [
       {
         "name": "Carne picada de ternera",
-        "ingredientId": "carne-picada-ternera",
+        "ingredientId": "carne-picada",
         "amount": 500,
         "unit": "g"
       },

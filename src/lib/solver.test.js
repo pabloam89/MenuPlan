@@ -183,7 +183,8 @@ describe("determinista, y con variedad que se elige en vez de sufrirse", () => {
     const a = resolverPara(casa(), { semilla: 7 }).asignaciones;
     const b = resolverPara(casa(), { semilla: 7 }).asignaciones;
     expect(a).toEqual(b);
-  });
+    // Dos resoluciones completas; con la suite entera en paralelo pasa de 5 s.
+  }, 30000);
 
   it("una semilla distinta da un menú distinto", () => {
     // Hoy esto lo da la temperatura del modelo: azar que no se controla ni se
