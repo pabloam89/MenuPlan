@@ -425,6 +425,23 @@ export const COMIDA_KCAL_SOFT_CAP = 850;
 export const SOLAPE_COMIDA = 1.25;
 
 /**
+ * El mismo techo, para una CENA de dos platos (regla 7b).
+ *
+ * Más bajo que el de la comida a propósito: una cena es más ligera, y eso ya
+ * lo dice el catálogo solo — los platos con rol `cena` tienen 360 kcal de
+ * mediana frente a los 445 de un segundo de comida.
+ *
+ * El número sale de la misma cuenta que el de la comida, sobre las cenas: un
+ * primero de cena típico (crema, gazpacho, ensalada) son 262 kcal de mediana y
+ * un plato de cena 360, así que la pareja normal ronda las 620. 700 se queda
+ * por encima de lo normal y por debajo de las parejas pesadas — un gazpacho
+ * con una tortilla y su ensalada entra de sobra; una crema con una hamburguesa
+ * de 800, no. Si no existiera este techo, poner una crema delante serviría
+ * para cenar MÁS, que es justo lo contrario.
+ */
+export const CENA_KCAL_SOFT_CAP = 700;
+
+/**
  * Cuánto se tarda de verdad en hacer dos platos: el LARGO entero más la mitad
  * del corto.
  *
@@ -464,11 +481,44 @@ export function tiempoDeLaComida(t1, t2) {
  *   objects ("primero" | "segundo" | "plato_unico") and the raw form parsed
  *   out of a slotId ("1" | "2"), since callers have one or the other.
  */
+/**
+ * De qué cajones sale el primer plato de una cena.
+ *
+ * Sopas y cremas, y el cajón de ensaladas y verduras — que es donde viven el
+ * gazpacho, la ensalada y también el calabacín a la plancha o las verduras al
+ * vapor. Todo lo demás (pasta, arroz, legumbres, carnes, pescados) puede ser
+ * un primero de comida perfectamente y de entrada en una cena no lo es.
+ */
+const ENTRADAS_DE_CENA = new Set(["sopas_cremas", "ensaladas_verduras"]);
+
 export function slotAcceptsRole(recipe, slot = {}) {
   const roles = recipe?.mealRole ?? [];
   const { mealType, position, preferType } = slot;
 
-  if (mealType === "cena") return roles.includes("cena");
+  if (mealType === "cena") {
+    // En una cena de DOS platos, el primero es un plato de ENTRADA: una crema,
+    // un gazpacho, una ensalada. Eso es exactamente lo que dice el rol
+    // `primero`, y hay 156 en el recetario entre sopas y ensaladas, así que
+    // pedirlo no deja la cena sin candidatos.
+    //
+    // Y hay que pedirlo: aceptando también el rol `cena` salían parejas al
+    // revés —unos filetes de pavo de entrada y una sopa de tomate detrás—
+    // porque para el motor los dos huecos admitían lo mismo.
+    //
+    // El segundo sí va por `cena`, que es donde vive "esto se puede cenar". En
+    // una cena de un solo plato no hay posición y manda `cena`, como siempre.
+    //
+    // Y no basta con el rol: un primero de COMIDA puede ser un plato de pasta,
+    // y de entrada en una cena eso no es una entrada, es la cena. Se pide
+    // además que sea de lo que se pone delante por la noche — sopa, crema,
+    // gazpacho, ensalada o verdura. Sin este filtro salían parejas como "pasta
+    // con pesto de primero y puré de verduras de segundo", que es la cena del
+    // revés.
+    if (position === "primero" || position === "1") {
+      return roles.includes("primero") && ENTRADAS_DE_CENA.has(recipe?.category);
+    }
+    return roles.includes("cena");
+  }
   if (position === "plato_unico" || preferType === "plato_unico") {
     return roles.includes("plato_unico");
   }
@@ -498,9 +548,25 @@ export function validateMenu(
 
   const returnedIds = new Set(slotAssignments.map((s) => s.slotId));
 
-  // Build comidaByDay once — reused by rules 7 and future macro checks
+  // Las parejas primero+segundo de cada día, por franja.
+  //
+  // La comida las tuvo siempre. La cena puede tenerlas desde que existe la
+  // estructura de cena de dos platos (una crema y algo ligero detrás), y sus
+  // slotIds tienen la misma forma — "lun_cena_1", "lun_cena_2" — así que
+  // `buildMealOrder` ya les saca la posición sin tocar nada.
+  //
+  // Las reglas de PAREJA (dos ensaladas, peso, tiempo, falta el segundo) leen
+  // este mapa y valen para las dos franjas. Las que hablan solo de la comida
+  // —el primero que arrastra proteína al día entero— siguen leyendo
+  // `comidaByDay`, que se construye en la misma pasada.
+  const parejasPorDia = {};
   const comidaByDay = {};
   for (const m of mealOrder) {
+    if (m.position === "1" || m.position === "2") {
+      const clave = `${m.daySlug}|${m.mealType}`;
+      if (!parejasPorDia[clave]) parejasPorDia[clave] = { daySlug: m.daySlug, mealType: m.mealType };
+      parejasPorDia[clave][m.position] = m;
+    }
     if (m.mealType !== "comida") continue;
     if (!comidaByDay[m.daySlug]) comidaByDay[m.daySlug] = {};
     comidaByDay[m.daySlug][m.position] = m;
@@ -688,9 +754,7 @@ export function validateMenu(
   // have different categories (ensaladas_verduras vs carnes) and different
   // mainProtein, so rules 3b/3c never fire. Name-based like isPlatoCuchara,
   // because "looks like two salads" is what the user actually perceives.
-  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
-    const slot1 = positions["1"];
-    const slot2 = positions["2"];
+  for (const { daySlug, "1": slot1, "2": slot2 } of Object.values(parejasPorDia)) {
     if (!slot1 || !slot2) continue;
     const r1 = poolById[slot1.recipeId];
     const r2 = poolById[slot2.recipeId];
@@ -875,10 +939,9 @@ export function validateMenu(
     }
   }
 
-  // 7. Comida structure: primero+segundo or plato_unico
-  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
-    const slot1 = positions["1"];
-    const slot2 = positions["2"];
+  // 7. Estructura de la franja: primero+segundo, o un plato que vale por los
+  //    dos. Vale igual para una comida y para una cena de dos platos.
+  for (const { daySlug, "1": slot1, "2": slot2 } of Object.values(parejasPorDia)) {
     if (slot1 && !slot2) {
       const recipe = poolById[slot1.recipeId];
       if (recipe && !recipe.mealRole.includes("plato_unico")) {
@@ -901,21 +964,25 @@ export function validateMenu(
   // distribution: a typical comida is ~606 kcal (median primero 228 + median
   // segundo 378) and the heaviest possible pairing reaches ~1006. See
   // COMIDA_KCAL_SOFT_CAP — it's a starting value, meant to be tuned.
-  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
-    const first = positions["1"];
-    const second = positions["2"];
+  //
+  // La cena de dos platos tiene su propio techo y más bajo (CENA_KCAL_SOFT_CAP):
+  // una cena es más ligera que una comida, y si el par no lo respetara, poner
+  // una crema delante serviría para comer MÁS, que es lo contrario de lo que
+  // se busca.
+  for (const { daySlug, mealType, "1": first, "2": second } of Object.values(parejasPorDia)) {
     if (!first || !second) continue;
     const r1 = poolById[first.recipeId];
     const r2 = poolById[second.recipeId];
     if (!r1 || !r2) continue;
     const total = (r1.kcal ?? 0) + (r2.kcal ?? 0);
-    if (total > COMIDA_KCAL_SOFT_CAP) {
+    const tope = mealType === "cena" ? CENA_KCAL_SOFT_CAP : COMIDA_KCAL_SOFT_CAP;
+    if (total > tope) {
       violations.push({
         rule: "comida_desproporcionada",
         // Points at the segundo: swapping the main is the less disruptive fix
         // (the primero is usually the lighter, more "structural" half).
         slotId: second.slotId,
-        message: `${daySlug}: "${r1.name}" + "${r2.name}" suman ${total} kcal, demasiado para una comida de dos platos`,
+        message: `${daySlug}: "${r1.name}" + "${r2.name}" suman ${total} kcal, demasiado para una ${mealType} de dos platos`,
       });
     }
   }
@@ -933,9 +1000,7 @@ export function validateMenu(
   // el presupuesto 40/60 y dejaba el primero en 12 minutos, con cuatro platos
   // posibles en todo el catálogo. `SOLAPE_COMIDA` es cuánto se admite de más
   // sobre el presupuesto contando ese solape.
-  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
-    const first = positions["1"];
-    const second = positions["2"];
+  for (const { daySlug, "1": first, "2": second } of Object.values(parejasPorDia)) {
     if (!first || !second) continue;
     const presupuesto = contextBySlot[first.slotId]?.mealBudget ?? contextBySlot[second.slotId]?.mealBudget;
     if (!presupuesto) continue;

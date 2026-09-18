@@ -167,9 +167,14 @@ export function weeklySlotBudget(data, group = null) {
   const target = group ?? { memberIds: members.map((m) => m.id) };
   const mealStructure =
     data?.mealStructureByGroup?.[group?.id] ?? data?.mealStructure ?? "primero_segundo";
+  // La cena tiene estructura propia (ver buildGroupContext): una cena de dos
+  // platos son DOS huecos, igual que una comida.
+  const estructuraCena =
+    data?.mealStructureCenaByGroup?.[group?.id] ?? data?.mealStructureCena ?? "1_plato";
 
   let comidaDays = 0;
   let cenaDays = 0;
+  let cenaDobles = 0;
   let platoUnicoDays = 0;
   for (const day of DAYS) {
     if (meals.includes("Comida") && modeForGroupSlot(target, members, schedule, day, "Comida").cook) {
@@ -178,13 +183,15 @@ export function weeklySlotBudget(data, group = null) {
     }
     if (meals.includes("Cena") && modeForGroupSlot(target, members, schedule, day, "Cena").cook) {
       cenaDays += 1;
+      if (estructuraCena === "primero_segundo" && slotType[`${day}|Cena`] !== "rapida") cenaDobles += 1;
     }
   }
   return {
     comidaDays,
     cenaDays,
     platoUnicoDays,
-    total: Math.max(1, comidaDays * 2 + cenaDays - platoUnicoDays),
+    cenaDobles,
+    total: Math.max(1, comidaDays * 2 + cenaDays + cenaDobles - platoUnicoDays),
   };
 }
 

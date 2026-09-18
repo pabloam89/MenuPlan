@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { resolverMenu, candidatosDeHueco, REGLAS_RELAJABLES } from "./solver.js";
 import { buildGroupContext } from "./aiPlanner.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
-import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
+import { validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS, CENA_KCAL_SOFT_CAP } from "../utils/validateMenu.js";
+import { weeklySlotBudget } from "./planner.js";
 import { repartoAFreqs, repartoPorDefecto, presupuestoDeTopes } from "./reparto.js";
 
 /**
@@ -223,5 +224,72 @@ describe("candidatosDeHueco: el dato que necesita la pantalla de ajuste", () => 
     const ctx = buildGroupContext(data, data.groups[0]);
     const { recipes: pool } = filterRecipes(ctx.filterOpts);
     expect(candidatosDeHueco(pool, { ...ctx.slots[0], maxTime: 1 })).toEqual([]);
+  });
+});
+
+describe("la cena de dos platos", () => {
+  // Una crema sola es poca cena: 57 de las 69 sopas que pueden cenarse están
+  // por debajo de 300 kcal. El combo de toda la vida —gazpacho o crema delante,
+  // algo ligero detrás— necesitaba que la cena pudiera tener dos huecos.
+  const dosPlatos = (extra = {}) => casa({ mealStructureCena: "primero_segundo", ...extra });
+
+  it("abre dos huecos por cena y los llena", () => {
+    const data = dosPlatos();
+    const ctx = buildGroupContext(data, data.groups[0]);
+    const cenas = ctx.slots.filter((s) => s.mealType === "cena");
+    expect(cenas).toHaveLength(14);
+    expect(cenas.filter((s) => s.position === "primero")).toHaveLength(7);
+    expect(cenas.filter((s) => s.position === "segundo")).toHaveLength(7);
+    // Y el presupuesto semanal cuenta lo mismo que el motor.
+    expect(weeklySlotBudget(data, data.groups[0]).total).toBe(ctx.slots.length);
+  });
+
+  it("el primero es un plato de entrada, no la cena entera", () => {
+    // Sin esto salían parejas del revés: pasta con pesto de primero y puré de
+    // verduras de segundo.
+    const data = dosPlatos();
+    const ctx = buildGroupContext(data, data.groups[0]);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const primeros = candidatosDeHueco(pool, ctx.slots.find((s) => s.slotId === "mar_cena_1"));
+    expect(primeros.length).toBeGreaterThan(20);
+    expect([...new Set(primeros.map((r) => r.category))].sort())
+      .toEqual(["ensaladas_verduras", "sopas_cremas"]);
+  });
+
+  it("y la pareja no pesa más que una cena", () => {
+    const data = dosPlatos();
+    const ctx = buildGroupContext(data, data.groups[0]);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const { achievable } = splitAchievableFreqs(pool, ctx.config.freqs);
+    const r = resolverMenu(ctx.slots, pool, {
+      healthProfiles: ctx.config.healthProfiles, freqs: achievable,
+      objetivo: ctx.config.objetivo, semilla: 1, maxMs: 60000,
+    });
+    const porId = Object.fromEntries(pool.map((x) => [x.id, x]));
+    const by = Object.fromEntries(r.asignaciones.map((a) => [a.slotId, porId[a.recipeId]]));
+    let pares = 0;
+    for (const d of ["lun", "mar", "mie", "jue", "vie", "sab", "dom"]) {
+      const p = by[`${d}_cena_1`];
+      const q = by[`${d}_cena_2`];
+      if (!p || !q) continue;
+      pares += 1;
+      expect((p.kcal ?? 0) + (q.kcal ?? 0), `${d}: ${p.name} + ${q.name}`)
+        .toBeLessThanOrEqual(CENA_KCAL_SOFT_CAP);
+    }
+    expect(pares).toBeGreaterThan(4);
+  }, 30000);
+
+  it("una cena rápida marcada a mano NO se parte en dos", () => {
+    // Quien la marca pide justo lo contrario: un plato y pronto.
+    const data = dosPlatos({ slotType: { "Mié|Cena": "rapida" } });
+    const ctx = buildGroupContext(data, data.groups[0]);
+    expect(ctx.slots.some((s) => s.slotId === "mie_cena")).toBe(true);
+    expect(ctx.slots.some((s) => s.slotId === "mie_cena_1")).toBe(false);
+  });
+
+  it("y sin pedirla, la cena sigue siendo de un plato", () => {
+    const ctx = buildGroupContext(casa(), casa().groups[0]);
+    expect(ctx.slots.filter((s) => s.mealType === "cena")).toHaveLength(7);
+    expect(ctx.slots.every((s) => s.mealType !== "cena" || !s.position)).toBe(true);
   });
 });

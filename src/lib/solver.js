@@ -370,8 +370,14 @@ export function resolverMenu(slots, pool, {
   //     69 sopas que pueden ser cena están por debajo de 300 kcal (la mediana
   //     de una cena es 334). Una crema sola no es una cena; con algo al lado,
   //     sí — pero eso es una cena de dos platos, que hoy no existe.
+  //     Ojo: una cena de DOS platos ya no va sola. Ahí el segundo tiene un
+  //     primero delante, así que pedirle que llene por sí solo sería pedir dos
+  //     platos principales — justo lo que el techo de la cena (regla 7b)
+  //     prohíbe.
   const vaSolo = (slot) =>
-    slot.position === "plato_unico" || slot.preferType === "plato_unico" || slot.mealType === "cena";
+    slot.position === "plato_unico"
+    || slot.preferType === "plato_unico"
+    || (slot.mealType === "cena" && !slot.position);
 
   // 4. El tiempo, solo donde significa algo: un PRIMERO es un plato de
   //    entrada, y entre dos que valen es mejor el corto — deja sitio al

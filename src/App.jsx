@@ -376,6 +376,11 @@ const INITIAL_DATA = {
   // En modo básico se elige aquí (un solo control, aplica a todos). "1_plato" o
   // "primero_segundo".
   mealStructure: "primero_segundo",
+  // La CENA tiene su propia estructura, y su defecto es un solo plato: en
+  // España se cena una cosa. "primero_segundo" abre el combo de toda la vida,
+  // una crema o un gazpacho delante y algo ligero detrás — que es además lo que
+  // arregla que una crema de 148 kcal sea la cena entera.
+  mealStructureCena: "1_plato",
   schedule: {},
   // schoolMenus: { shared: { "Lun-Primero": "...", "Lun-Segundo": "...", "Lun-Postre": "..." },
   //                byMember: { [memberId]: { ... } } }
@@ -535,6 +540,9 @@ function resolveModeData(data) {
     // Estructura de plato única para todos (la global elegida en «¿Qué comidas
     // quieres organizar?»); ignora overrides por grupo del modo avanzado.
     mealStructureByGroup: {},
+    // Igual que la de la comida: en básico la estructura de cena es una sola
+    // para toda la casa, sin overrides por grupo.
+    mealStructureCenaByGroup: {},
     // Tiempo de cocina igual para comida y cena.
     cookTime: { mode: "shared", weekday: syncBlock(ct.weekday), weekend: syncBlock(ct.weekend) },
     // pantryPrefs NO se fuerza: "cuándo damos por gastado lo de casa" se
@@ -792,6 +800,9 @@ function migrate(state) {
     d.pantryEndOfDaySince = null;
   }
   if (!["primero_segundo", "1_plato"].includes(d.mealStructure)) d.mealStructure = "primero_segundo";
+  // Un save de antes de que la cena tuviera estructura no trae el campo, y su
+  // cena era de un plato: ese es el default y así se queda.
+  if (!["primero_segundo", "1_plato"].includes(d.mealStructureCena)) d.mealStructureCena = "1_plato";
   d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
   d.recipeVotes = d.recipeVotes && typeof d.recipeVotes === "object" ? d.recipeVotes : {};
   d.recipeCollections =

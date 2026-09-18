@@ -595,6 +595,12 @@ export function buildGroupContext(data, group) {
       // si no, primero+segundo.
       const mealStructure =
         data.mealStructureByGroup?.[group.id] ?? data.mealStructure ?? "primero_segundo";
+      // La cena tiene su propia estructura y su propio defecto. No hereda la de
+      // la comida: quien come de primero y segundo no cena por fuerza igual, y
+      // lo normal en España es cenar una cosa. Por eso el defecto es "1_plato"
+      // aunque la comida sea "primero_segundo".
+      const estructuraCena =
+        data.mealStructureCenaByGroup?.[group.id] ?? data.mealStructureCena ?? "1_plato";
 
       if (mealType === "comida") {
         if (isBabyGroup) {
@@ -659,6 +665,25 @@ export function buildGroupContext(data, group) {
         // (Los huecos de cena de niños que copian/omiten ya se filtraron arriba
         // con kidsSlotAction; aquí solo llega "cena diferente" o menú propio.)
         const isQuick = slotTypeSel === "rapida";
+        // La cena de DOS platos: una crema, un gazpacho o una ensalada delante,
+        // y algo ligero detrás. Una crema sola es poca cena —57 de las 69 sopas
+        // que pueden cenarse están por debajo de 300 kcal— y con algo al lado
+        // deja de serlo.
+        //
+        // Una cena rápida nunca se parte: quien la marcó pidió justo lo
+        // contrario, un solo plato y pronto.
+        const dosPlatos = estructuraCena === "primero_segundo" && !isQuick;
+        if (dosPlatos) {
+          const comun = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime };
+          const primeroCena = { ...comun, slotId: `${daySlug}_cena_1`, position: "primero" };
+          const segundoCena = { ...comun, slotId: `${daySlug}_cena_2`, position: "segundo" };
+          const avoid = effectiveSchoolAvoid(data);
+          if (avoid.protein && schoolProteins.size > 0) segundoCena.schoolProteinsToAvoid = Array.from(schoolProteins);
+          if (avoid.carbs && schoolCarbs.size > 0) segundoCena.schoolCarbsToAvoid = Array.from(schoolCarbs);
+          if (avoid.veg && schoolVeg.size > 0) primeroCena.schoolVegToAvoid = Array.from(schoolVeg);
+          slots.push(primeroCena, segundoCena);
+          continue;
+        }
         const slot = {
           day, daySlug, mealType, eaters, mode: mode.mode,
           maxTime: isQuick ? Math.min(maxTime, 15) : maxTime,
@@ -2301,11 +2326,12 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         allRecipes.push(fr);
       }
 
-      // Parse slotId: "lun_comida_1", "lun_comida_2", "lun_cena"
+      // Parse slotId: "lun_comida_1", "lun_comida_2", "lun_cena", y con cena de
+      // dos platos tambien "lun_cena_1" y "lun_cena_2".
       const parts = slotId.split("_");
       const daySlug = parts[0];
       const mealType = parts[1]; // "comida" or "cena"
-      const position = parts[2]; // "1", "2", or undefined for cena
+      const position = parts[2]; // "1", "2", o undefined en la cena de un plato
 
       const day = dayBySlot[slotId] ?? Object.entries(DAY_SLUG).find(([, v]) => v === daySlug)?.[0];
       if (!day) continue;
@@ -2323,7 +2349,11 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         };
       }
 
-      if (mealType === "cena") {
+      // Una cena de un plato no trae posición y es el plato de la noche. Una de
+      // DOS la trae, y entonces se reparte igual que una comida: el primero al
+      // `firstRecipeId` y el segundo al `recipeId`, que es lo que la pantalla
+      // ya sabe pintar como dos platos.
+      if (mealType === "cena" && !position) {
         byDayMeal[planKey].recipeId = frontendId;
       } else if (position === "1") {
         // Check if it's a plato_unico
