@@ -6090,7 +6090,12 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "adelanto": {
+      "hasta": 11,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "huevos_043",
@@ -6614,7 +6619,12 @@
     "tecnica": "horno",
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 6,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "huevos_046",
@@ -10809,7 +10819,12 @@
     "basesAparte": [
       "sofrito",
       "bechamel"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 17,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "huevos_070",
@@ -13105,7 +13120,12 @@
     "cocina": "francesa",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 16,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "huevos_082",
@@ -14449,7 +14469,12 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "adelanto": {
+      "hasta": 9,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "huevos_091",

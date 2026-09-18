@@ -40,6 +40,13 @@ export function rowToRecipe(row) {
     // platos). Sin esta línea, una receta servida desde la nube no propone
     // ninguna tanda de sofrito — que es la que más trabajo ahorra.
     ...(row.bases_aparte?.length ? { basesAparte: row.bases_aparte } : {}),
+    // Dónde se parte un plato a medio hacer (migración 0054). Lo llevan 39
+    // platos del catálogo estrella —croquetas, lasañas, empanadas, ravioli— y
+    // son recetas CORRIENTES, no `type: "base"`: se sirven desde la nube como
+    // cualquier otra. Sin esta línea, la sesión de tanda de una casa servida
+    // desde Supabase no ofrece ni un solo plato a medio hacer, que es
+    // exactamente la mitad de lo que esa sesión sabe hacer.
+    ...(row.adelanto ? { adelanto: row.adelanto } : {}),
     // Ejes separados (migración 0023_recipe_axes.sql). Los booleanos se
     // distinguen de "la columna no existe todavía" igual que freezable: un
     // `montaje: false` es un juicio ya tomado y debe sobrevivir el viaje.

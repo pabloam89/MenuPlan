@@ -5703,7 +5703,12 @@
     "cocina": "arabe",
     "llevaSalsa": true,
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "adelanto": {
+      "hasta": 7,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "legumbres_029",
@@ -7062,7 +7067,12 @@
     ],
     "tecnica": "sarten",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "adelanto": {
+      "hasta": 9,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "legumbres_035",

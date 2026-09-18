@@ -614,6 +614,33 @@ export const RecipeSchema = z
       // de cocinarla.
       nevera: z.number().int().positive(),
     }).optional(),
+    // ── Platos a medio hacer: dónde se parte la receta en dos días ──
+    // Una base es un ingrediente que sirve para varios platos. Esto es otra
+    // cosa: un plato CONCRETO cuya parte lenta se hace el día de la tanda y
+    // cuyo remate se hace el día que toca. Las croquetas se forman y se
+    // empanan, y el martes solo se fríen; la lasaña se monta entera y el
+    // jueves solo se mete al horno.
+    //
+    // Solo lo llevan los platos cuyo último acto es freír, hornear o gratinar.
+    // Un guiso NO entra: unas albóndigas en salsa salen mejor cocinadas del
+    // todo y congeladas, y para eso ya está `freezable`. Partir un guiso no
+    // ahorra nada y encima lo empeora.
+    //
+    // `hasta` es el índice del último paso de `stepsRich` que se hace el día
+    // de la tanda. El corte es siempre un prefijo porque el trabajo de
+    // adelantar vive al principio de la receta, sin una sola excepción en el
+    // catálogo. Los minutos de cada lado no se guardan: se suman de los pasos,
+    // que ya traen sus minutos y su `kind`. Guardarlos aparte sería otro
+    // número que puede mentir en cuanto alguien edite un paso.
+    adelanto: z.object({
+      hasta: z.number().int().nonnegative(),
+      // Cómo espera hasta el día que toca. `congelador` es lo que hace que
+      // valga la pena doblar cantidades: diez croquetas crudas dan para dos
+      // cenas. `nevera` es para lo que no congela bien crudo, como las masas
+      // con levadura, el huevo sin cuajar o la verdura rellena.
+      guarda: z.enum(["nevera", "congelador"]),
+      dias: z.number().int().positive(),
+    }).optional(),
     description: z.string().min(1),
     methods: z.array(MethodSchema).optional(),
     // Names this dish is commonly sold as a ready-made product under (e.g.
@@ -757,6 +784,37 @@ export const RecipeSchema = z
         code: z.ZodIssueCode.custom,
         message: `"${id}": thawSteps requiere freezable true`,
       });
+    }
+
+    // El corte de un plato a medio hacer tiene que caer DENTRO de la receta y
+    // dejar algo que cocinar el día que toca. Un corte en el último paso no es
+    // adelantar: es cocinar el plato entero y llamarlo de otra manera.
+    if (recipe.adelanto) {
+      const pasos = recipe.stepsRich?.length ?? 0;
+      if (!pasos) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${id}": adelanto requiere stepsRich`,
+        });
+      } else if (recipe.adelanto.hasta >= pasos - 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${id}": adelanto.hasta (${recipe.adelanto.hasta}) no deja ningún paso para el día que toca (${pasos} pasos)`,
+        });
+      } else {
+        // Y el remate tiene que ser una cocción de verdad. Si lo que queda
+        // después del corte es emplatar, el plato estaba terminado y esto
+        // sobra: es justo el error que separa un plato a medio hacer de uno
+        // que simplemente se guarda hecho.
+        const remate = recipe.stepsRich.slice(recipe.adelanto.hasta + 1);
+        const cuece = remate.some((s) => /freír|fríe|hornear|horno|gratinar|grill|dorar|cocer|hervir|saltear|plancha|vapor/i.test(s.text));
+        if (!cuece) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `"${id}": tras adelanto.hasta no queda ninguna cocción; eso no es un plato a medio hacer`,
+          });
+        }
+      }
     }
 
     // Un type "guarnicion" YA está en el pool de guarniciones; marcarlo además

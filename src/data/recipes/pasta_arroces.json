@@ -6654,7 +6654,12 @@
     "cocina": "italiana",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 13,
+      "guarda": "congelador",
+      "dias": 30
+    }
   },
   {
     "id": "pasta_arroces_036",
@@ -7841,7 +7846,12 @@
     ],
     "occasion": "especial",
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "adelanto": {
+      "hasta": 24,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "pasta_arroces_041",
@@ -11028,7 +11038,12 @@
     ],
     "tecnica": "horno",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "adelanto": {
+      "hasta": 20,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "pasta_arroces_057",
@@ -11345,7 +11360,12 @@
     ],
     "tecnica": "horno",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "adelanto": {
+      "hasta": 22,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "pasta_arroces_058",
@@ -11648,7 +11668,12 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "adelanto": {
+      "hasta": 21,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "pasta_arroces_059",
@@ -11951,7 +11976,12 @@
     ],
     "tecnica": "horno",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "adelanto": {
+      "hasta": 18,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "pasta_arroces_060",
@@ -13807,7 +13837,12 @@
     "cocina": "italiana",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 13,
+      "guarda": "congelador",
+      "dias": 30
+    }
   },
   {
     "id": "pasta_arroces_070",
@@ -14092,7 +14127,12 @@
     "cocina": "italiana",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 14,
+      "guarda": "congelador",
+      "dias": 30
+    }
   },
   {
     "id": "pasta_arroces_071",

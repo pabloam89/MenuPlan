@@ -15252,7 +15252,12 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "adelanto": {
+      "hasta": 17,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "ensaladas_verduras_094",
@@ -17087,7 +17092,12 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "adelanto": {
+      "hasta": 11,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "ensaladas_verduras_104",
@@ -17303,7 +17313,12 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "adelanto": {
+      "hasta": 15,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "ensaladas_verduras_105",
@@ -18116,7 +18131,12 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "adelanto": {
+      "hasta": 11,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "ensaladas_verduras_109",
@@ -19085,7 +19105,12 @@
       "lacteo",
       "seta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "adelanto": {
+      "hasta": 13,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "ensaladas_verduras_115",
@@ -19990,7 +20015,12 @@
     "basesAparte": [
       "sofrito",
       "bechamel"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 18,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "ensaladas_verduras_119",
@@ -20330,7 +20360,12 @@
     "basesAparte": [
       "sofrito",
       "bechamel"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 22,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "ensaladas_verduras_120",
@@ -20751,7 +20786,12 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 11,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "ensaladas_verduras_122",

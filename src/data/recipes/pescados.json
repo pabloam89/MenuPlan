@@ -13641,7 +13641,12 @@
     "basesAparte": [
       "sofrito",
       "bechamel"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 19,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "pescados_077",
@@ -16236,7 +16241,12 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "adelanto": {
+      "hasta": 6,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "pescados_090",
@@ -20809,7 +20819,12 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 23,
+      "guarda": "congelador",
+      "dias": 30
+    }
   },
   {
     "id": "pescados_110",
@@ -21184,7 +21199,12 @@
     "extraProteins": [
       "huevo"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "adelanto": {
+      "hasta": 8,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "pescados_112",
@@ -21728,7 +21748,12 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 24,
+      "guarda": "congelador",
+      "dias": 30
+    }
   },
   {
     "id": "pescados_114",
@@ -22026,7 +22051,12 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 23,
+      "guarda": "congelador",
+      "dias": 30
+    }
   },
   {
     "id": "pescados_115",
@@ -22917,7 +22947,12 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 13,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "pescados_119",

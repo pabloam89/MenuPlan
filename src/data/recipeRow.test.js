@@ -114,6 +114,7 @@ const FILA_COMPLETA = {
   steps_rich: [{ text: "Cocinar.", minutes: 30, kind: "activo", part: "principal" }],
   freezable: false,
   thaw_steps: [{ text: "Descongelar.", minutes: 10, kind: "espera" }],
+  adelanto: { hasta: 0, guarda: "congelador", dias: 60 },
   description: "Una receta de prueba.",
   methods: [{ appliance: "horno", time: 40, difficulty: "facil", prepSummary: "Al horno." }],
   product_aliases: ["pollo entero"],

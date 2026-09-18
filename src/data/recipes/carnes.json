@@ -17969,7 +17969,12 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "adelanto": {
+      "hasta": 9,
+      "guarda": "congelador",
+      "dias": 30
+    }
   },
   {
     "id": "carnes_087",
@@ -20234,7 +20239,12 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "americana"
+    "cocina": "americana",
+    "adelanto": {
+      "hasta": 14,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "carnes_097",
@@ -29059,7 +29069,12 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 13,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "carnes_138",
@@ -29314,7 +29329,12 @@
     "tecnica": "sarten",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 12,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "carnes_139",
@@ -29518,7 +29538,12 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 10,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "carnes_140",
@@ -30067,7 +30092,12 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "adelanto": {
+      "hasta": 16,
+      "guarda": "nevera",
+      "dias": 2
+    }
   },
   {
     "id": "carnes_142",
@@ -30449,7 +30479,12 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "adelanto": {
+      "hasta": 6,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "carnes_144",
@@ -30701,7 +30736,12 @@
     "tecnica": "sarten",
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "adelanto": {
+      "hasta": 11,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "carnes_145",
@@ -30986,7 +31026,12 @@
     "extraProteins": [
       "ternera"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "adelanto": {
+      "hasta": 7,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "carnes_146",
