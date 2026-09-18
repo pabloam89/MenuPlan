@@ -419,16 +419,28 @@ export function basesAlcanzables(filteredPool, basesPedidas, huecos) {
 export const COMIDA_KCAL_SOFT_CAP = 850;
 
 /**
- * Cuánto puede sumar primero + segundo sobre el presupuesto de la comida
- * (regla 7c). 1,5 con los 30 minutos por defecto son 45: una ensalada de 10
- * con un guiso de 30 entra, dos platos de media hora no.
- *
- * No es 1 porque los dos platos se solapan en la cocina. Con 1 —que es lo que
- * hacía el reparto 40/60— el primero se quedaba en 12 minutos y solo cuatro
- * platos del catálogo cabían: cinco comidas entre semana y cuatro candidatos,
- * así que el hueco se quedaba vacío por aritmética.
+ * Cuánto se admite por encima del presupuesto de la comida (regla 7c), una vez
+ * contado el solape de la cocina.
  */
-export const SOLAPE_COMIDA = 1.5;
+export const SOLAPE_COMIDA = 1.25;
+
+/**
+ * Cuánto se tarda de verdad en hacer dos platos: el LARGO entero más la mitad
+ * del corto.
+ *
+ * Sumarlos era el modelo equivocado, y se vio en cuanto alguien pidió comidas
+ * de 20 minutos: los primeros que caben en 20 minutos duran justo 20, así que
+ * al segundo le quedaban diez y no entraba nada — cuatro días de dos semanas
+ * se quedaron con un solo plato. Pero nadie cocina dos platos en fila: la
+ * ensalada se monta mientras el pescado está en el horno. Lo que no es cierto
+ * es lo contrario, que salgan gratis, porque hay un rato de manos que no se
+ * puede partir en dos; de ahí la mitad y no cero.
+ */
+export function tiempoDeLaComida(t1, t2) {
+  const a = t1 ?? 0;
+  const b = t2 ?? 0;
+  return Math.round(Math.max(a, b) + Math.min(a, b) / 2);
+}
 
 /**
  * Does this recipe's mealRole fit the slot it's been placed in?
@@ -930,7 +942,7 @@ export function validateMenu(
     const r1 = poolById[first.recipeId];
     const r2 = poolById[second.recipeId];
     if (!r1 || !r2) continue;
-    const total = (r1.time ?? 0) + (r2.time ?? 0);
+    const total = tiempoDeLaComida(r1.time, r2.time);
     const tope = Math.round(presupuesto * SOLAPE_COMIDA);
     if (total > tope) {
       violations.push({
@@ -938,7 +950,7 @@ export function validateMenu(
         // Al segundo, igual que `comida_desproporcionada`: cambiar el principal
         // molesta menos que cambiar el primero.
         slotId: second.slotId,
-        message: `${daySlug}: "${r1.name}" (${r1.time}min) + "${r2.name}" (${r2.time}min) son ${total}min para una comida de ${presupuesto}min`,
+        message: `${daySlug}: "${r1.name}" (${r1.time}min) + "${r2.name}" (${r2.time}min) son ${total}min de cocina para una comida de ${presupuesto}min`,
       });
     }
   }
