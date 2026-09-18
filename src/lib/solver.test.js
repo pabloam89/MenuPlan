@@ -94,7 +94,8 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
       expect(cuenta[f] ?? 0, `${f}: ${JSON.stringify(cuenta)} vs objetivo ${JSON.stringify(objetivo)}`)
         .toBeLessThanOrEqual(objetivo[f] + 2);
     }
-  });
+    // Tarda ~3,6 s sola; con la suite entera en paralelo pasa de los 5 s.
+  }, 30000);
 
   it("una casa con prisa y cocina básica también cierra la semana entera", () => {
     // Este test decía lo contrario, y tenía razón cuando se escribió: con 25

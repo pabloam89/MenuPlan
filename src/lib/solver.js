@@ -122,12 +122,19 @@ export function candidatosDeHueco(pool, slot) {
     if (slot.mealType === "cena" && (r.category === "legumbres" || r.mainProtein === "legumbre")) {
       return false;
     }
-    // Un plato de montaje (sándwich, ensalada de bote, tabla) solo va donde se
-    // pidió cena rápida (regla 2b). Es la regla que deja SIN candidatos los
-    // primeros de una casa con 25 minutos entre semana: todo lo que cabe en
-    // ese tiempo es de montaje. Aquí se ve; en el modelo se "cumplía" y luego
-    // el fallback lo parcheaba.
-    if (isMontaje(r) && slot.preferType !== "cena_rapida") return false;
+    // Un plato de montaje (sándwich, tosta, tabla, ensalada de bote) no es una
+    // COMIDA: ahí sigue vetado salvo que el hueco se marcara como rápido. Pero
+    // de CENA sí, si el catálogo dice que puede serlo.
+    //
+    // Antes estaba vetado en todas partes, y eso dejaba fuera de una cena
+    // normal a 43 platos del recetario estrella que llevan "cena" en su
+    // `mealRole` — carpaccio, wrap de pollo, quesadillas, sándwich club, poke
+    // bowl, ensalada de aguacate y gambas. Justo las cenas rápidas buenas. Con
+    // ellas fuera, el motor tiraba una y otra vez de tortilla.
+    //
+    // La decisión de si un plato puede ser cena ya está tomada en su ficha;
+    // esto era una segunda reja por encima que la contradecía.
+    if (isMontaje(r) && slot.preferType !== "cena_rapida" && slot.mealType !== "cena") return false;
     // Casquería solo en fin de semana, y platos de ocasión tampoco entre
     // semana. Las dos viven en `validateMenu` (reglas 3e-bis y 3f), pero son
     // unarias: puestas aquí, un hígado encebollado NO llega siquiera a

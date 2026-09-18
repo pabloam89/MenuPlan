@@ -552,14 +552,24 @@ export function validateMenu(
     }
   }
 
-  // 2b. A montaje dish (sándwich, tostas, tabla…) is only allowed in slots the
-  // user explicitly marked cena_rapida. Matched by isMontaje, which also covers
-  // the recipes still carrying the deprecated category (see recipeSchema.js).
+  // 2b. Un plato de montaje (sándwich, tostas, tabla…) no es una COMIDA.
+  //
+  // De CENA sí, cuando su ficha dice que puede serlo. Esta regla vetaba el
+  // montaje en TODAS partes salvo en un hueco marcado a mano como cena
+  // rápida, y eso dejaba fuera de una cena normal a 43 platos del recetario
+  // estrella que llevan "cena" en su `mealRole`: carpaccio, wrap de pollo,
+  // quesadillas, sándwich club, poke bowl, ensalada de aguacate y gambas. Las
+  // cenas rápidas buenas, precisamente. Con ellas vetadas, el motor volvía una
+  // y otra vez a la tortilla — reportado tal cual.
+  //
+  // Qué platos pueden ser cena se decide en el catálogo, plato a plato. Esto
+  // era una segunda reja por encima que contradecía esa decisión.
   for (const { slotId, recipeId } of slotAssignments) {
     const recipe = poolById[recipeId];
     if (!recipe || !isMontaje(recipe)) continue;
     const ctx = contextBySlot[slotId];
     if (ctx?.preferType === "cena_rapida") continue;
+    if (ctx?.mealType === "cena" && (recipe.mealRole ?? []).includes("cena")) continue;
     violations.push({
       rule: "cena_rapida_no_solicitada",
       slotId,
