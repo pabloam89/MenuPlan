@@ -144,6 +144,11 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
     );
     const inesperadas = violations.filter((v) => {
       if (v.rule === "slot_faltante") return false;
+      // La regla 11 no culpa al hueco que se relajó sino al ÚLTIMO plato de esa
+      // familia, así que el aviso sale en otro sitio. Si el solver relajó
+      // alguna cuota, una queja de cuota no es inesperada. (generateGroupMenu
+      // hace el mismo descarte, pero por familia, que ahí sí tiene el pool.)
+      if (v.rule === "freq_max_exceeded" && relajados.size > 0) return false;
       // Un primero sin segundo porque al segundo no llegaba ningún plato: es
       // la consecuencia de lo de arriba, no una violación aparte. Mismo trato
       // que le da generateGroupMenu.

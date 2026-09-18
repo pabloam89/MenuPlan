@@ -365,7 +365,13 @@ export function resolverMenu(slots, pool, {
     return [r.id, ejes + montado * 0.75 + llena];
   }));
   const completitud = (r) => completitudPorId.get(r.id) ?? 0;
-  const vaSolo = (slot) => slot.position === "plato_unico" || slot.preferType === "plato_unico";
+  //     Una CENA también va sola: es el plato único de la noche. Sin esto, una
+  //     "Crema de verduras" de 148 kcal podía ser la cena entera, y 57 de las
+  //     69 sopas que pueden ser cena están por debajo de 300 kcal (la mediana
+  //     de una cena es 334). Una crema sola no es una cena; con algo al lado,
+  //     sí — pero eso es una cena de dos platos, que hoy no existe.
+  const vaSolo = (slot) =>
+    slot.position === "plato_unico" || slot.preferType === "plato_unico" || slot.mealType === "cena";
 
   // 4. El tiempo, solo donde significa algo: un PRIMERO es un plato de
   //    entrada, y entre dos que valen es mejor el corto — deja sitio al
