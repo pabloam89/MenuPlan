@@ -63,8 +63,18 @@ Pendiente en App Store Connect: decidir trader/non-trader a nivel de app (Digita
 
 5. **`DEVELOPMENT_TEAM` desapareció del proyecto** al desmarcar/marcar "Automatically manage signing" en la GUI. No tocar ese toggle; si pasa, pasar el equipo por línea de comandos.
 
-### Comando de archive que funciona
+6. **La firma automatica no sirve para archivar aqui.** Aunque el certificado de distribucion sea valido (`security find-identity -v -p codesigning` lo lista), Xcode insiste en firmar "for development" y acaba en `App has conflicting provisioning settings`. La solucion es **firma manual** con un perfil App Store creado a mano en el portal (Profiles -> + -> Distribution -> App Store Connect -> App ID com.homenu.app -> cert Apple Distribution -> nombre `HoMenu App Store`), instalado con:
+   ```bash
+   mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
+   cp ~/Downloads/*.mobileprovision ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles/
+   ```
+   Un perfil App Store no necesita ningun dispositivo registrado: por eso este camino si funciona sin iPhone conectado.
+
+### Receta que funciona (archive + export)
 ```bash
 cd ~/Desktop/MenuPlan/ios/App
-xcodebuild -project App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' -archivePath ~/Desktop/HoMenu.xcarchive archive -allowProvisioningUpdates DEVELOPMENT_TEAM=64QZ74Y5M2 CODE_SIGN_STYLE=Automatic
+xcodebuild -project App.xcodeproj -scheme App -configuration Release   -destination 'generic/platform=iOS'   -archivePath ~/Desktop/HoMenu.xcarchive archive   CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=64QZ74Y5M2   PROVISIONING_PROFILE_SPECIFIER="HoMenu App Store"   CODE_SIGN_IDENTITY="Apple Distribution"
+
+xcodebuild -exportArchive -archivePath ~/Desktop/HoMenu.xcarchive   -exportOptionsPlist ~/Desktop/ExportOptions.plist   -exportPath ~/Desktop/HoMenuExport
 ```
+`ExportOptions.plist`: method `app-store-connect`, teamID `64QZ74Y5M2`, signingStyle `manual`, signingCertificate `Apple Distribution`, provisioningProfiles `com.homenu.app` -> `HoMenu App Store`.
