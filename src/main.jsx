@@ -3,7 +3,18 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { PanelPlayground } from './dev/PanelPlayground.jsx'
+import { isNativeApp } from './lib/apiUrl.js'
 import './index.css'
+
+// Dentro de la app nativa hay que apartar el contenido de la barra de estado y
+// del indicador de inicio del iPhone. Se hace antes de pintar nada para que la
+// primera pantalla ya salga en su sitio, sin dar un salto. Ver nativeShell.js.
+if (isNativeApp) {
+  import('./lib/nativeShell.js').then(({ aplicarViewportNativo, ajustarBarraDeEstado }) => {
+    aplicarViewportNativo()
+    ajustarBarraDeEstado()
+  })
+}
 
 // A tab left open across a deploy still holds the OLD index.html, which
 // references hashed chunk filenames (e.g. MenusScreen-CiI8Z4up.js) that the
