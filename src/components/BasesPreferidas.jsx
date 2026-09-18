@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { BASES, MAX_POR_SEMANA, MIN_POR_SEMANA, clavesDeReceta, tiempoDeBase, topeDeBase } from "../lib/bases.js";
 import { selectMethodForRecipe } from "../lib/applianceMethods.js";
-import { TANDA_MAX, TANDA_MIN, TANDA_PASO, enHoras, minutosDeTanda } from "../lib/cookTime.js";
+import { TANDA_MAX, TANDA_MIN, TANDA_PASO, aLoGrueso, enHoras, minutosDeTanda } from "../lib/cookTime.js";
 import { weeklySlotBudget } from "../lib/planner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
@@ -9,6 +10,9 @@ import { BASES_UI } from "../lib/basesUI.js";
 import { ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizar as normalizarLibreta, poner, proyectar, valorDe } from "../lib/notepad.js";
 import { SliderEjes } from "./wizard/SliderEjes.jsx";
+import { SegmentedControl } from "./ui.jsx";
+import { CookingPot, RollingPin, Soup } from "./icons.jsx";
+import { FAMILIAS_COCINADO, FAMILIAS_SEMI, manosDeTanda } from "../lib/tandaFamilias.js";
 
 /**
  * Qué bases te gusta tener hechas — el detalle del modo "cocino en tanda".
@@ -83,6 +87,35 @@ const GRUPOS = [
 ];
 
 /**
+ * Las tres patas de la sesión, y por qué son tres y no una lista larga.
+ *
+ * Cada una contesta una pregunta distinta y se paga distinto:
+ *
+ *   bases     qué INGREDIENTE dejo hecho. Sirve para varios platos.
+ *   semi      qué PLATO dejo a medio hacer. Se remata el día que toca.
+ *   cocinado  qué OLLA dejo hecha del todo. Dura varias noches.
+ *
+ * Juntas en una sola lista, "croquetas" y "arroz" parecían lo mismo y no lo
+ * son: el arroz lo repartes entre platos distintos y las croquetas son EL
+ * plato. El rodillo de los semi dice justo eso —el trabajo de ese día es dar
+ * forma, no cocinar— y la olla de los cocinados, lo contrario.
+ */
+const PESTANAS = [
+  { id: "bases", label: "Bases", Icon: CookingPot },
+  { id: "semi", label: "A medias", Icon: RollingPin },
+  { id: "cocinado", label: "Cocinados", Icon: Soup },
+];
+
+/** El color de cada pata cuando no es una base. El de sopas y cremas es el de
+ *  su categoría (DESIGN_SYSTEM §1.6), que es literalmente lo que son. */
+const COLOR_PATA = { semi: "#cf7833", cocinado: "#8a6cc4" };
+
+const FAMILIAS_POR_PATA = { semi: FAMILIAS_SEMI, cocinado: FAMILIAS_COCINADO };
+
+/** Tope de una familia de plato: el mismo rango que declara la libreta. */
+const MAX_PLATOS_SEMANA = 4;
+
+/**
  * Cuántos platos del recetario lleva cada base. Se calcula una vez: el
  * catálogo no cambia mientras la app está abierta.
  *
@@ -122,6 +155,7 @@ const SIN_CONTAR_POR_BASE = (() => {
 
 export function BasesPreferidas({ data, setData }) {
   const libreta = normalizarLibreta(data?.notepad);
+  const [pestana, setPestana] = useState("bases");
 
   // El presupuesto es de CADA semana, no del menú entero: si se generan cuatro
   // semanas, cada una tiene sus huecos y su propio cuarto del recetario.
@@ -190,29 +224,72 @@ export function BasesPreferidas({ data, setData }) {
     const metodo = selectMethodForRecipe(base, herramientas);
     return suma + (tiempoDeBase(base, raciones, metodo).minutosActivos ?? 0);
   }, 0);
+  // Y lo que cuesta dejar hechos los PLATOS, que se paga igual de caro: una
+  // tanda de croquetas son casi sesenta minutos de manos, mas que cualquier
+  // base. Contarlo aparte habria dado dos presupuestos para una sola manana.
+  const manosDePlatos = [...FAMILIAS_SEMI, ...FAMILIAS_COCINADO]
+    .reduce((suma, f) => suma + manosDeTanda(f.id, vecesDePlato(f.id)), 0);
+  const manosTotales = manosPedidas + manosDePlatos;
   const presupuesto = minutosDeTanda(data);
-  const pasado = manosPedidas > presupuesto;
+  const pasado = manosTotales > presupuesto;
+
+  /**
+   * Dónde cae un número de minutos en la barra. La MISMA para las dos, y ese
+   * es el arreglo: la de arriba iba por el recorrido del deslizador y la de
+   * abajo por el máximo, así que con hora y media disponible y media hora
+   * gastada, lo gastado se pintaba más largo que lo que tenías.
+   */
+  const posicion = (min) => Math.max(0, Math.min(1, (min - TANDA_MIN) / (TANDA_MAX - TANDA_MIN)));
+  // Y topada en el pulgar: lo invertido no puede dibujarse más allá de lo
+  // disponible. Que te hayas pasado lo dice el color y el aviso, no una barra
+  // que se sale, porque una barra que se sale no dice cuánto te has pasado.
+  const gastado = Math.min(posicion(manosTotales), posicion(presupuesto));
+
+  /** Lo pedido de una familia de plato. Vive en `tandaPlatos`, no en `tanda`:
+   *  aquel cuenta ollas de base y este cuenta platos. */
+  const vecesDePlato = (id) => {
+    const n = Math.round(valorDe(libreta, `tandaPlatos.${id}`) ?? 0);
+    return n <= 0 ? 0 : Math.min(n, MAX_PLATOS_SEMANA);
+  };
+
+  const escribir = (ruta, n) => setData((d) => {
+    const actual = normalizarLibreta(d?.notepad);
+    const siguiente = poner(actual, ruta, n, { origen: "pregunta" });
+    const vista = proyectar(siguiente);
+    return {
+      ...d,
+      notepad: siguiente,
+      sesgos: vista.sesgos ?? {},
+      tanda: vista.tanda ?? {},
+      tandaPlatos: vista.tandaPlatos ?? {},
+    };
+  });
+
+  const cambiarPlato = (id, v) => escribir(`tandaPlatos.${id}`, Math.max(0, Math.min(v, MAX_PLATOS_SEMANA)));
 
   const cambiar = (id, v) => {
     const n = v <= 0 ? 0 : Math.min(Math.max(v, MIN_POR_SEMANA), MAX_POR_SEMANA);
-    setData((d) => {
-      const actual = normalizarLibreta(d?.notepad);
-      const siguiente = poner(actual, `tanda.${id}`, n, { origen: "pregunta" });
-      const vista = proyectar(siguiente);
-      return { ...d, notepad: siguiente, sesgos: vista.sesgos ?? {}, tanda: vista.tanda ?? {} };
-    });
+    escribir(`tanda.${id}`, n);
   };
 
   return (
     <div>
       <p style={{ fontSize: 12, color: "#6b7d70", margin: "0 0 10px", lineHeight: 1.4 }}>
-        Cuántos platos quieres de cada base a la semana. Desde {MIN_POR_SEMANA},
-        que es lo mínimo para que merezca la pena cocinarla aparte.
-        {pedidoTotal > 0 && (
+        {pestana === "bases" ? (
           <>
-            {" "}Llevas <strong style={{ color: "#2d5a3d" }}>{pedidoTotal} de {huecosSemana}</strong>{" "}
-            huecos de la semana.
+            Cuántos platos quieres de cada base a la semana. Desde {MIN_POR_SEMANA},
+            que es lo mínimo para que merezca la pena cocinarla aparte.
+            {pedidoTotal > 0 && (
+              <>
+                {" "}Llevas <strong style={{ color: "#2d5a3d" }}>{pedidoTotal} de {huecosSemana}</strong>{" "}
+                huecos de la semana.
+              </>
+            )}
           </>
+        ) : pestana === "semi" ? (
+          <>El día de la tanda los dejas formados y listos; el día que toca solo se fríen o van al horno.</>
+        ) : (
+          <>Una olla que se hace entera y da para varias noches de la semana.</>
         )}
       </p>
 
@@ -233,7 +310,7 @@ export function BasesPreferidas({ data, setData }) {
         <style>{CSS_TIEMPO}</style>
 
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d" }}>Ese día tengo</span>
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d" }}>Tiempo disponible</span>
           <span style={{ fontSize: 13, fontWeight: 900, color: "#2d5a3d" }}>{enHoras(presupuesto)}</span>
         </div>
 
@@ -241,7 +318,7 @@ export function BasesPreferidas({ data, setData }) {
           <span style={{ position: "absolute", left: 0, right: 0, height: 7, borderRadius: 4, background: "#e4ede7", overflow: "hidden", pointerEvents: "none" }}>
             <span style={{
               display: "block", height: "100%", borderRadius: 4, background: "#2d5a3d",
-              width: `${((presupuesto - TANDA_MIN) / (TANDA_MAX - TANDA_MIN)) * 100}%`,
+              width: `${posicion(presupuesto) * 100}%`,
               transition: "width .3s ease",
             }} />
           </span>
@@ -269,17 +346,17 @@ export function BasesPreferidas({ data, setData }) {
         {/* Lo gastado, en la misma escala y sin pulgar: es una lectura. */}
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: pasado ? "#b45309" : "#5a7066" }}>
-            Lo pedido ocupa
+            Tiempo invertido
           </span>
           <span style={{ fontSize: 12.5, fontWeight: 800, color: pasado ? "#b45309" : "#5a7066" }}>
-            {manosPedidas === 0 ? "nada todavía" : `unos ${enHoras(manosPedidas)}`}
+            {manosTotales === 0 ? "nada todavía" : enHoras(aLoGrueso(manosTotales))}
           </span>
         </div>
         <span style={{ display: "block", height: 7, borderRadius: 4, background: "#e4ede7", overflow: "hidden" }}>
           <span style={{
             display: "block", height: "100%", borderRadius: 4,
             background: pasado ? "#b45309" : "#7bbf93",
-            width: `${Math.min(100, (manosPedidas / TANDA_MAX) * 100)}%`,
+            width: `${gastado * 100}%`,
             transition: "width .3s ease",
           }} />
         </span>
@@ -290,7 +367,18 @@ export function BasesPreferidas({ data, setData }) {
         )}
       </div>
 
-      {GRUPOS.map((grupo) => (
+      {/* Las tres patas de la sesión. El control va DEBAJO del tiempo porque
+          el tiempo manda sobre las tres: primero dices cuánto tienes y luego
+          en qué te lo gastas. Al revés, cada pestaña parecía un presupuesto
+          suyo y se podía pedir tres veces la misma mañana. */}
+      <SegmentedControl
+        options={PESTANAS}
+        value={pestana}
+        onChange={setPestana}
+        style={{ marginBottom: 12 }}
+      />
+
+      {pestana === "bases" && GRUPOS.map((grupo) => (
         <div key={grupo.titulo} style={{ marginBottom: 14 }}>
           {/* Cabecera de bloque, el mismo patrón con el que la ficha del plato
               separa salsa y guarnición. */}
@@ -338,6 +426,34 @@ export function BasesPreferidas({ data, setData }) {
           />
         </div>
       ))}
+
+      {pestana !== "bases" && (
+        <SliderEjes
+          min={0}
+          max={MAX_PLATOS_SEMANA}
+          step={1}
+          ejes={FAMILIAS_POR_PATA[pestana].map((f) => {
+            const n = vecesDePlato(f.id);
+            return {
+              id: f.id,
+              // La misma ilustración que las bases y por el mismo resolvedor:
+              // el id de la familia ES el nombre del dibujo.
+              arte: ingredientThumbSrc(f.id),
+              etiqueta: f.etiqueta,
+              aria: `${f.etiqueta}: veces por semana`,
+              color: COLOR_PATA[pestana],
+              max: MAX_PLATOS_SEMANA,
+              valor: n,
+              // El resumen dice los MINUTOS y no solo las veces, porque es lo
+              // que explica la barra de arriba: sin esto, subes croquetas un
+              // punto, el gasto pega un salto de media hora y no se ve por qué.
+              resumen: n > 0 ? `${n}/sem · ${enHoras(aLoGrueso(manosDeTanda(f.id, n)))}` : "No",
+              apagado: n === 0,
+            };
+          })}
+          onChange={cambiarPlato}
+        />
+      )}
     </div>
   );
 }

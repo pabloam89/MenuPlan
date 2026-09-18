@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  TANDA_MIN, TANDA_MAX, TANDA_POR_DEFECTO, minutosDeTanda, enHoras,
+  TANDA_MIN, TANDA_MAX, TANDA_POR_DEFECTO, minutosDeTanda, enHoras, aLoGrueso,
 } from "./cookTime.js";
 
 describe("el presupuesto de la tanda", () => {
@@ -22,5 +22,18 @@ describe("el presupuesto de la tanda", () => {
     expect(enHoras(90)).toBe("1 h 30");
     expect(enHoras(240)).toBe("4 h");
     expect(enHoras(0)).toBe("0 min");
+  });
+});
+
+describe("los minutos a lo grueso", () => {
+  it("redondea a cinco para no prometer precisión que no hay", () => {
+    expect(aLoGrueso(81)).toBe(80);
+    expect(aLoGrueso(83)).toBe(85);
+    expect(aLoGrueso(0)).toBe(0);
+    expect(aLoGrueso(undefined)).toBe(0);
+  });
+
+  it("y se dice como se diría en voz alta", () => {
+    expect(enHoras(aLoGrueso(81))).toBe("1 h 20");
   });
 });

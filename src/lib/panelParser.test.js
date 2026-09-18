@@ -225,6 +225,16 @@ describe("el prompt no se desincroniza del registro", () => {
 
   it("enumera exactamente los valores que el validador acepta", () => {
     for (const campo of CAMPOS) {
+      // `panel: false` deja de ser un comentario y pasa a contar: son campos
+      // que el parser NO puede escribir (reparto habla en porcentajes, tanda y
+      // tandaPlatos son peticiones con consecuencias que se piden con el
+      // selector). Exigir su vocabulario en el prompt seria pedir que el panel
+      // anuncie palabras que luego tiene prohibido emitir.
+      //
+      // Hasta ahora colaban de casualidad: `reparto` y `tanda` comparten
+      // dominio con `freqs` y `base`, que sí estan en el prompt. El primero
+      // con vocabulario propio —tandaPlatos— lo destapo.
+      if (campo.panel === false) continue;
       if (!campo.dominio) continue;
       for (const valor of campo.dominio) {
         expect(prompt, `falta «${valor}» de ${campo.id} en el prompt`).toContain(valor);

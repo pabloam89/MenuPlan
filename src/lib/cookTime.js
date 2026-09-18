@@ -262,3 +262,19 @@ export function enHoras(minutos) {
   const resto = m % 60;
   return resto === 0 ? `${horas} h` : `${horas} h ${resto}`;
 }
+
+/**
+ * Los minutos redondeados a cinco, para no prometer una precisión que no hay.
+ *
+ * El gasto de una tanda sale de sumar los minutos de cada paso de cada receta,
+ * y eso da números como 81. Escribir "1 h 21" dice que alguien lo ha medido, y
+ * nadie lo ha medido: son estimaciones de una tabla de métodos, y además tu
+ * cocina no es la de la tabla. "1 h 20" dice lo mismo y no miente.
+ *
+ * A cinco y no a la media hora porque el deslizador de al lado ya va de media
+ * en media: si los dos redondearan igual, la barra de lo gastado daría saltos
+ * de treinta minutos y parecería rota.
+ */
+export function aLoGrueso(minutos) {
+  return Math.round((Number(minutos) || 0) / 5) * 5;
+}

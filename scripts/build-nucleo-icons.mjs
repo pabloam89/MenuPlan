@@ -172,6 +172,11 @@ const MAP = {
   SlidersHorizontal: "Sliders2Outline24",
   Snowflake: "SnowflakeOutline24",
   Soup: "SoupOutline24",
+  // El rodillo es el icono de los platos a medio hacer: lo que define a esa
+  // pata no es el horno ni la sarten, sino el trabajo de dar forma —formar,
+  // montar, cerrar— que se hace el dia de la tanda. Una olla habria dicho
+  // "cocinar", que es justo lo que ese dia NO se hace.
+  RollingPin: "RollingPinOutline24",
   Sparkles: "SparkleOutline24",
   Sprout: "SeedlingOutline24",
   Star: "StarOutline24",

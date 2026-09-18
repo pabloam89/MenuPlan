@@ -202,6 +202,7 @@ export function proyectar(notepad) {
   const sesgos = {};
   const reparto = {};
   const tanda = {};
+  const tandaPlatos = {};
   const excluidos = [];
   const favoritos = [];
 
@@ -232,6 +233,11 @@ export function proyectar(notepad) {
       // pasta" en dos platos obligatorios — ver la cabecera de `tanda` en
       // notepadFields.js.
       tanda[valorId] = campo.valor;
+    } else if (campoId === "tandaPlatos") {
+      // Aparte de `tanda` por el vocabulario, no por el tipo: los dos son
+      // cuentas, pero uno cuenta ollas de base y el otro familias de plato.
+      // Ver la cabecera del campo en notepadFields.js.
+      tandaPlatos[valorId] = campo.valor;
     } else if (campoId === "excluidos") {
       if (campo.valor) excluidos.push(valorId);
     } else if (campoId === "favoritos") {
@@ -247,7 +253,7 @@ export function proyectar(notepad) {
     }
   }
 
-  return { freqs, freqsByGroup, sesgos, reparto, tanda, excluidos, favoritos };
+  return { freqs, freqsByGroup, sesgos, reparto, tanda, tandaPlatos, excluidos, favoritos };
 }
 
 /**

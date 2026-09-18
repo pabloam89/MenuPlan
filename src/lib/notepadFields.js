@@ -31,6 +31,7 @@
 
 import basesCatalog from "../data/recipes/bases.json";
 import { COCINAS, MAIN_BASES, TECNICAS } from "../data/recipeSchema.js";
+import { CLAVES_PLATO } from "./tandaFamiliasDefs.js";
 
 /**
  * El dominio del eje `base`: las féculas más TODA base del catálogo que no lo
@@ -143,6 +144,29 @@ export const CAMPOS = [
     // Sin `ejemplo` a propósito, igual que `reparto`: el parser NO escribe aquí.
     // Una tanda es una petición comprobable con consecuencias duras, y se pide
     // con el selector, no de pasada en una frase.
+    ejemplo: null,
+    panel: false,
+  },
+  {
+    id: "tandaPlatos",
+    grupo: "base",
+    etiqueta: "Los platos que dejas hechos o a medias",
+    // Hermano de `tanda`, y aparte por el VOCABULARIO: aquel cuenta BASES
+    // (arroz, sofrito) y este cuenta FAMILIAS DE PLATO (croquetas, cremas).
+    // Meterlos en un campo obligaba a un dominio que mezclara ingredientes y
+    // platos, y entonces "dos de pasta" no diría si es una olla de pasta para
+    // repartir o dos raviolis que hay que formar el día de la tanda.
+    //
+    // Las dos patas nuevas sí caben en un solo campo, porque el id ya dice
+    // cuál es: lib/tandaFamilias.js sabe si una familia se remata el día que
+    // toca o si es una olla que dura varias noches. Un campo por pata habría
+    // sido la misma tabla dos veces.
+    dominio: CLAVES_PLATO,
+    proyecta: "tandaPlatos",
+    unidad: "veces por semana",
+    rango: [1, 4],
+    // Igual que `tanda`: el parser NO escribe aquí. Se pide con el selector,
+    // porque es una petición con consecuencias, no un gusto de pasada.
     ejemplo: null,
     panel: false,
   },
