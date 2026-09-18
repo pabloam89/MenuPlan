@@ -4,6 +4,7 @@ import App from './App.jsx'
 import { ErrorBoundary } from './components/ErrorBoundary.jsx'
 import { InstallPwaBanner } from './components/InstallPwaBanner.jsx'
 import { PanelPlayground } from './dev/PanelPlayground.jsx'
+import { isNativeApp } from './lib/apiUrl.js'
 import './index.css'
 
 // A tab left open across a deploy still holds the OLD index.html, which
@@ -34,7 +35,10 @@ const PANEL_SUELTO =
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {PANEL_SUELTO ? <PanelPlayground /> : <><App /><InstallPwaBanner /></>}
+      {/* El banner invita a instalar la PWA: dentro de la app ya instalada
+          sobra. Y ahí se mostraría, porque el user-agent de la webview sigue
+          diciendo "iPhone" y no hay display-mode standalone que lo delate. */}
+      {PANEL_SUELTO ? <PanelPlayground /> : <><App />{!isNativeApp && <InstallPwaBanner />}</>}
     </ErrorBoundary>
   </React.StrictMode>,
 )

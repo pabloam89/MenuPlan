@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase.js";
 import { upsertUserProfile } from "./analytics.js";
+import { isNativeApp } from "./apiUrl.js";
 
 /**
  * Tracks the Supabase auth session and exposes Google sign-in / sign-out.
- * Local-only for now: the OAuth redirect is configured for localhost in the
- * Supabase dashboard. Falls back gracefully if Supabase env vars are missing.
+ * Falls back gracefully if Supabase env vars are missing.
+ *
+ * En la app nativa (iOS) el login va por otro camino — navegador del sistema y
+ * vuelta por com.homenu.app:// — porque Google no admite su pantalla de login
+ * dentro de un webview. Ver `nativeAuth.js`, que se carga solo ahí.
  */
 // Supabase re-fires SIGNED_IN on token refresh / tab focus; upsert the
 // profile only once per user per page load.
@@ -38,9 +42,21 @@ export function useAuth() {
       }
     });
 
+    // En nativo, la sesión no llega por la carga de la página sino por la URL
+    // con la que el sistema devuelve el control a la app tras el login.
+    let stopNativeListener = () => {};
+    if (isNativeApp) {
+      import("./nativeAuth.js")
+        .then(({ listenForNativeAuthCallback }) => {
+          if (mounted) stopNativeListener = listenForNativeAuthCallback(supabase);
+        })
+        .catch((err) => console.error("[auth] no se pudo escuchar la vuelta del login", err));
+    }
+
     return () => {
       mounted = false;
       sub?.subscription?.unsubscribe?.();
+      stopNativeListener();
     };
   }, []);
 
@@ -55,6 +71,13 @@ export function useAuth() {
         error: new Error("El inicio de sesión no está disponible en este entorno. Puedes entrar sin cuenta."),
       };
     }
+    if (isNativeApp) {
+      const { startNativeOAuth } = await import("./nativeAuth.js");
+      const { error } = await startNativeOAuth(supabase, "google");
+      if (error) console.error("[auth] Google sign-in failed (nativo)", error);
+      return { error: error ?? null };
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin },
