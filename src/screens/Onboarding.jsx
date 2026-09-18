@@ -3981,10 +3981,18 @@ const FUERA_COLOR = "#4c2168"; // violeta
 // importador— asi que mezclarlo con "come fuera" escondia justo el que si
 // aporta informacion. Y de paso la rejilla deja de ser dos colores.
 const COLE_COLOR = "#c0392b";
+// El tupper deja de compartir el violeta de "come fuera" y se queda con el
+// ámbar de aviso del sistema de diseño (#b45309, ver DESIGN_SYSTEM 1.6), que
+// es además el color con el que el menú ya escribe "· tupper" en la ficha del
+// plato. Tiene su propio color porque es el único estado "fuera de casa" para
+// el que SÍ hay que cocinar — y cocinar distinto, porque un rebozado o una
+// plancha de última hora no sobreviven al microondas (`tupperFriendly` lo
+// dice plato a plato: 258 de los 689 del recetario no valen).
+const TUPPER_COLOR = "#b45309";
 
 const SLOT_CONFIG = {
   casa:   { label: "En casa",     color: CASA_COLOR },
-  tupper: { label: "Tupper",      color: FUERA_COLOR },
+  tupper: { label: "Tupper",      color: TUPPER_COLOR },
   fuera:  { label: "Come fuera",  color: FUERA_COLOR },
   cole:   { label: "Comedor",     color: COLE_COLOR },
 };
@@ -4960,12 +4968,14 @@ function sheetColumns(showCole) {
   return showCole ? SLOT_COLUMNS : SLOT_COLUMNS.filter((s) => s !== "cole");
 }
 
-// La leyenda dice TRES cosas, no cuatro: cada entrada es un color que la
-// rejilla pinta de verdad. "Tupper" se queda fuera a proposito porque comparte
-// el navy de "come fuera" — enumerar dos etiquetas del mismo color es pedirle
-// al usuario que distinga algo que no se ve.
+// Cada entrada es un color que la rejilla pinta de verdad, y ahora son cuatro:
+// el tupper ya no comparte color con "come fuera" (ver TUPPER_COLOR), asi que
+// enumerarlo deja de pedirle al usuario que distinga algo que no se ve. Y hay
+// que enumerarlo, porque es el unico de los tres estados "fuera de casa" en el
+// que sigue habiendo que cocinar.
 const LEYENDA = [
   { label: "En casa", color: CASA_COLOR, estado: "casa" },
+  { label: "Tupper", color: TUPPER_COLOR, estado: "tupper" },
   { label: "Comedor", color: COLE_COLOR, estado: "cole" },
   { label: "Fuera de casa", color: FUERA_COLOR, estado: "fuera" },
 ];

@@ -21,6 +21,7 @@ import {
   CopyPlus,
   UserPlus,
   CookingPot,
+  BriefcaseBusiness,
   History,
   IceCream,
   Minimize2,
@@ -2098,6 +2099,9 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     delCatalogo && clavesTanda?.size
     && clavesDeReceta(delCatalogo).some((c) => clavesTanda.has(c)),
   );
+  // `slot.mode` lo pone modeForGroupSlot: "tupper" cuando alguien de este grupo
+  // se lleva esa comida fuera y hay que cocinarla igual.
+  const esTupper = slot?.mode === "tupper";
   const emptyMealLabel = MEAL_META[meal]?.label ?? meal;
   if (isEmpty) {
     // Use the meal's own MenuPlan icon (Comida = Sol, Cena = Luna…) inside a soft
@@ -2265,24 +2269,50 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           ))}
         </div>
       )}
-      {deTanda && (
+      {/* Las dos chapas de la esquina dicen cosas distintas y por eso van
+          juntas y separadas: la olla es "esto tira de algo que dejas hecho el
+          domingo" y el maletín es "esto te lo llevas". Se parecen —las dos
+          hablan de cocinar para otro momento— pero no son lo mismo: puedes
+          llevarte un tupper de lo que sobró sin haber hecho ninguna tanda. */}
+      {(deTanda || esTupper) && (
         <div
-          title="Lleva algo que dejas hecho el domingo"
           style={{
             position: "absolute", right: compact ? 8 : 12, bottom: compact ? 8 : 12,
-            width: compact ? 22 : 28, height: compact ? 22 : 28, borderRadius: 999,
-            background: "rgba(255,255,255,.92)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+            display: "flex", gap: compact ? 4 : 6,
           }}
         >
-          <CookingPot size={compact ? 12 : 15} color="#b2622f" strokeWidth={2.4} />
+          {deTanda && (
+            <div
+              title="Lleva algo que dejas hecho el domingo"
+              style={{
+                width: compact ? 22 : 28, height: compact ? 22 : 28, borderRadius: 999,
+                background: "rgba(255,255,255,.92)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+              }}
+            >
+              <CookingPot size={compact ? 12 : 15} color="#b2622f" strokeWidth={2.4} />
+            </div>
+          )}
+          {esTupper && (
+            <div
+              title="Esta comida te la llevas en tupper"
+              style={{
+                width: compact ? 22 : 28, height: compact ? 22 : 28, borderRadius: 999,
+                background: "rgba(255,255,255,.92)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+              }}
+            >
+              <BriefcaseBusiness size={compact ? 12 : 15} color="#b45309" strokeWidth={2.4} />
+            </div>
+          )}
         </div>
       )}
       <div style={{
         position: "absolute", left: compact ? 10 : 14,
         // Se aparta de la chapa de la tanda para que el título no pase por debajo.
-        right: (compact ? 10 : 14) + (deTanda ? (compact ? 26 : 34) : 0),
+        right: (compact ? 10 : 14) + ((deTanda ? 1 : 0) + (esTupper ? 1 : 0)) * (compact ? 26 : 34),
         bottom: compact ? 10 : 13,
       }}>
         <div

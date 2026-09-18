@@ -190,7 +190,8 @@ describe("determinista, y con variedad que se elige en vez de sufrirse", () => {
     const a = resolverPara(casa(), { semilla: 1 }).asignaciones.map((s) => s.recipeId);
     const b = resolverPara(casa(), { semilla: 99 }).asignaciones.map((s) => s.recipeId);
     expect(a).not.toEqual(b);
-  });
+    // Dos resoluciones completas; con la suite entera en paralelo pasa de 5 s.
+  }, 30000);
 
   it("nunca repite un plato en la semana", () => {
     const ids = resolverPara(casa()).asignaciones.map((s) => s.recipeId);
