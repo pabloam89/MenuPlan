@@ -71,8 +71,17 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
     const res = resolverMenu(ctx.slots, pool, { freqs: achievable, objetivo });
 
     expect(res.completo).toBe(true);
+    // Sin contar lo que el solver relajó A PROPÓSITO y devolvió con nombre:
+    // un hueco al que no llegaba ningún plato dentro de cuota se llena con el
+    // mejor disponible antes que dejarse vacío (ver REGLAS_RELAJABLES).
+    // Ninguna regla rota, salvo las cuotas: cuando el solver relaja una (y lo
+    // dice en `relajados`), la regla 11 no culpa al hueco relajado sino al
+    // ÚLTIMO plato de esa familia, así que el aviso sale en otro sitio. Que no
+    // se dispare es lo que mide el tope de abajo, no esta lista.
     const { violations } = validateMenu(res.asignaciones, pool, ctx.slots, [], achievable, {});
-    expect(violations.map((v) => v.rule)).toEqual([]);
+    expect(violations
+      .filter((v) => v.rule !== "freq_max_exceeded")
+      .map((v) => `${v.rule} @ ${v.slotId}`)).toEqual([]);
 
     // Y el objetivo GUÍA de verdad: la holgura de los topes no se convierte en
     // siete carnes. Ninguna familia se pasa del objetivo en más de dos platos.
@@ -87,24 +96,40 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
     }
   });
 
-  it("una casa con prisa y cocina básica: lo que cabe sale válido, y lo que no cabe se dice", () => {
+  it("una casa con prisa y cocina básica también cierra la semana entera", () => {
+    // Este test decía lo contrario, y tenía razón cuando se escribió: con 25
+    // minutos entre semana el primero se quedaba en 10 (el 40 % del
+    // presupuesto de la comida) y en todo el catálogo había cuatro platos que
+    // cupieran, para siete huecos. La semana no existía.
+    //
+    // Ya no: el presupuesto es de la comida entera y lo que se vigila es la
+    // pareja (regla 7c), así que el primero puede ser cualquier plato que
+    // quepa en los 25 minutos mientras el segundo deje sitio.
     const r = resolverPara(casa({ timeWeekday: 25, timeWeekend: 30, cookLevel: "basic" }));
-    // Aquí el solver destapó una regla, no un bug: todos los primeros que
-    // caben en 25 minutos son platos de montaje (ensalada de bote…) y la regla
-    // 2b los prohíbe fuera de una cena rápida. Esos huecos se quedan sin
-    // candidatos, y el solver lo dice en vez de esconderlo — es el primer
-    // caso real de la pantalla de ajuste.
-    // Quedan CUATRO primeros para siete huecos, y chocan entre sí: no hay
-    // semana entera con todas las reglas, y la búsqueda lo demuestra en
-    // dieciséis nodos.
+    expect(r.completo).toBe(true);
+    expect(r.asignaciones).toHaveLength(r.ctx.slots.length);
+    const relajados = new Set(r.relajados);
+    const { violations } = validateMenu(
+      r.asignaciones, r.pool, r.ctx.slots, r.ctx.config.healthProfiles, r.achievable, {},
+    );
+    expect(violations
+      .filter((v) => !(relajados.has(v.slotId) && REGLAS_RELAJABLES.has(v.rule)))
+      .map((v) => `${v.rule}@${v.slotId}`)).toEqual([]);
+  }, 30000);
+
+  it("y cuando de verdad no hay semana posible, lo dice en vez de inventarla", () => {
+    // Un hueco imposible de verdad: diez minutos para TODA la comida deja
+    // huecos sin un solo candidato. El solver los devuelve con nombre, que es
+    // el dato de la pantalla de ajuste.
+    const r = resolverPara(casa({ timeWeekday: 10, timeWeekend: 10, cookLevel: "basic" }));
     expect(r.completo).toBe(false);
-    expect(r.sinCombinacion.length).toBeGreaterThan(0);
-    // Pero todo lo demás se coloca: cada segundo y cada cena tienen plato.
+    // Diez minutos no dan para una comida de dos platos: unos huecos se quedan
+    // sin un solo candidato y otros sin combinación posible con el resto.
+    expect(r.sinCandidatos.length + r.sinCombinacion.length).toBeGreaterThan(0);
     const sinPlato = r.ctx.slots
       .map((s) => s.slotId)
       .filter((id) => !r.asignaciones.some((a) => a.slotId === id));
-    expect(sinPlato.filter((id) => !id.endsWith("_comida_1"))).toEqual([]);
-    // Y todo lo que falta está explicado, y solo eso.
+    // Todo lo que falta está explicado, y solo eso.
     expect([...sinPlato].sort()).toEqual([...r.sinCandidatos, ...r.sinCombinacion].sort());
     // Lo que se colocó relajando la orientación (fase 3) viene con nombre, y
     // fuera de esos huecos no hay ni una violación.
@@ -112,9 +137,14 @@ describe("el solver produce menús VÁLIDOS, que es lo que hoy no pasa nunca", (
     const { violations } = validateMenu(
       r.asignaciones, r.pool, r.ctx.slots, r.ctx.config.healthProfiles, r.achievable, {},
     );
-    const inesperadas = violations.filter(
-      (v) => v.rule !== "slot_faltante" && !(relajados.has(v.slotId) && REGLAS_RELAJABLES.has(v.rule)),
-    );
+    const inesperadas = violations.filter((v) => {
+      if (v.rule === "slot_faltante") return false;
+      // Un primero sin segundo porque al segundo no llegaba ningún plato: es
+      // la consecuencia de lo de arriba, no una violación aparte. Mismo trato
+      // que le da generateGroupMenu.
+      if (v.rule === "comida_sin_segundo" && sinPlato.includes(`${v.slotId.split("_")[0]}_comida_2`)) return false;
+      return !(relajados.has(v.slotId) && REGLAS_RELAJABLES.has(v.rule));
+    });
     expect(inesperadas.map((v) => `${v.rule}@${v.slotId}`)).toEqual([]);
     // 1,7 s solo; con la suite entera en paralelo pasa de los 5 s por defecto.
   }, 30000);

@@ -6,7 +6,7 @@ import { basesPedidas } from "./bases.js";
 import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
 import { resolverMenu, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
 import { DEFAULT_FREQS } from "./defaultFreqs.js";
-import { HOLGURA_TOPES } from "./reparto.js";
+import { HOLGURA_TOPES, presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
@@ -398,16 +398,38 @@ export function createPlannerStats() {
  * Solo con solver. El camino del modelo conserva sus topes exactos: sus
  * tests los fijan y cambiarlos ahí es otra decisión.
  */
-function topesDelGrupo(data, group) {
+function topesDelGrupo(data, group, huecos) {
   const freqs = data.freqsByGroup?.[group.id] ?? data.freqs ?? DEFAULT_FREQS;
   const objetivo = data.objetivoByGroup?.[group.id] ?? null;
   if (objetivo || !solverActivo()) return { freqs, objetivo };
-  const conHolgura = {};
-  for (const [f, v] of Object.entries(freqs)) {
-    const n = Number(v) || 0;
-    conHolgura[f] = n <= 0 ? 0 : Math.min(7, Math.max(n + 1, Math.round(n * HOLGURA_TOPES)));
-  }
-  return { freqs: conHolgura, objetivo: freqs };
+  // Las familias que NADIE ha nombrado se completan con la semana equilibrada
+  // de la app (DEFAULT_FREQS), y lo que el usuario sí dijo manda.
+  //
+  // Los `freqs` que trae la app por defecto solo hablan de tres familias
+  // (legumbres, verdura, pescado). Las otras tres quedaban sin objetivo, y sin
+  // objetivo el solver no tiene ninguna razón para preferirlas ni para
+  // moderarlas: cogía lo que más abunda en el catálogo y salían TRECE platos
+  // de carne en veintiún huecos. Un tope no es solo un techo, es también lo
+  // que dice que esa familia tiene que aparecer.
+  const completos = {};
+  for (const [f, v] of Object.entries({ ...DEFAULT_FREQS, ...freqs })) completos[f] = Number(v) || 0;
+
+  // Los topes se proyectan sobre el MISMO presupuesto que usa el reparto:
+  // los huecos de la semana por la holgura, porque un plato gasta 1,4 topes de
+  // media (ver HOLGURA_TOPES). Subir cada familia un 40 % por su cuenta no
+  // basta: DEFAULT_FREQS suma 14, así que los topes sumaban 20 para 21 huecos
+  // y el solver tenía que saltarse la cuota en ocho de ellos.
+  //
+  // Una familia que el usuario puso a CERO se queda a cero: "nada de carne" no
+  // es una proporción que repartir, es una exclusión.
+  const ceros = Object.keys(completos).filter((f) => completos[f] === 0);
+  const presupuesto = Math.max(
+    presupuestoDeTopes(huecos),
+    Object.values(completos).reduce((a, b) => a + b, 0),
+  );
+  const conHolgura = repartoAFreqs(freqsAReparto(completos), { presupuesto });
+  for (const f of ceros) conHolgura[f] = 0;
+  return { freqs: conHolgura, objetivo: completos };
 }
 
 function recordCall(stats, kind, result) {
@@ -610,14 +632,21 @@ export function buildGroupContext(data, group) {
           }
           slots.push(slot);
         } else {
-          // The user reads the cook-time slider as the budget for the WHOLE
-          // comida, not per dish. So split it (primeros are quicker → 40%,
-          // segundos get the rest → ~60%) instead of giving each the full max,
-          // which used to let primero+segundo sum up to 1.4× the limit.
-          const primeroMaxTime = Math.max(10, Math.round(maxTime * 0.4));
-          const segundoMaxTime = Math.max(10, maxTime - primeroMaxTime);
-          const primero = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime: primeroMaxTime, slotId: `${daySlug}_comida_1`, position: "primero" };
-          const segundo = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime: segundoMaxTime, slotId: `${daySlug}_comida_2`, position: "segundo" };
+          // El deslizador es el presupuesto de la COMIDA ENTERA, no de cada
+          // plato. Hubo una versión que lo repartía 40/60 y daba a cada plato
+          // un tope propio que sumaba exactamente el presupuesto. Suena bien y
+          // es inaplicable: con los 30 minutos que trae la app por defecto, el
+          // primero se quedaba en 12 minutos y en TODO el catálogo hay cuatro
+          // primeros que caben ahí. Cinco comidas entre semana, cuatro platos
+          // posibles: el hueco se quedaba vacío por aritmética, y por eso unos
+          // días salían con primero y segundo y otros con un solo plato.
+          //
+          // Dos platos no se cocinan uno detrás de otro: la ensalada se monta
+          // mientras el horno trabaja. Así que cada plato cabe en el
+          // presupuesto entero, y lo que se vigila es la PAREJA (regla 8b, con
+          // `mealBudget`): no vale juntar dos platos largos.
+          const primero = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime, slotId: `${daySlug}_comida_1`, position: "primero" };
+          const segundo = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime, slotId: `${daySlug}_comida_2`, position: "segundo" };
           if (linkKidDinner && isAdultsGroup && schoolProteins.size > 0) {
             segundo.schoolProteinsToAvoid = Array.from(schoolProteins);
           }
@@ -690,7 +719,7 @@ export function buildGroupContext(data, group) {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
       // `freqs` son los topes y `objetivo` a dónde apuntar dentro de ellos
       // (solo lo lee el solver). Ver topesDelGrupo.
-      ...topesDelGrupo(data, group),
+      ...topesDelGrupo(data, group, slots.length),
       cookLevel: data.cookLevel ?? "normal",
       cookTime,
       // "Menú más cuidado" profiles present in the group (soft bias for the LLM).

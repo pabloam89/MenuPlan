@@ -52,6 +52,7 @@ import { validateMenu, slotAcceptsRole, FREQ_KEY_MATCHERS } from "../utils/valid
 import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
 import { isMontaje } from "../data/recipeSchema.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
+import { esCasqueria } from "./casqueria.js";
 
 /**
  * ¿Está encendido? Apagado por defecto: el motor de siempre no cambia hasta
@@ -127,6 +128,12 @@ export function candidatosDeHueco(pool, slot) {
     // ese tiempo es de montaje. Aquí se ve; en el modelo se "cumplía" y luego
     // el fallback lo parcheaba.
     if (isMontaje(r) && slot.preferType !== "cena_rapida") return false;
+    // Casquería solo en fin de semana, y platos de ocasión tampoco entre
+    // semana. Las dos viven en `validateMenu` (reglas 3e-bis y 3f), pero son
+    // unarias: puestas aquí, un hígado encebollado NO llega siquiera a
+    // probarse un miércoles, en vez de probarse y rebotar en cada nodo.
+    const finde = slot.daySlug === "sab" || slot.daySlug === "dom";
+    if (!finde && (esCasqueria(r) || r.occasion === "especial")) return false;
     return true;
   });
 }
@@ -212,9 +219,30 @@ export function resolverMenu(slots, pool, {
   // haya llevado lo bueno. Los que no tienen candidatos se dejan fuera desde el
   // principio en vez de bloquear la búsqueda entera: son un dato para la
   // pantalla de ajuste, no un fallo del solver.
-  const orden = slots
+  const porTamano = slots
     .filter((s) => (dominios.get(s.slotId) ?? []).length > 0)
     .sort((a, b) => dominios.get(a.slotId).length - dominios.get(b.slotId).length);
+
+  // El primero y el segundo de un mismo día se resuelven JUNTOS. Están atados
+  // por tres reglas de pareja —el peso de la comida (7b), el tiempo total
+  // (7c) y las dos ensaladas (3d)— y si se deciden lejos el uno del otro, el
+  // choque aparece veinte huecos después y hay que deshacer media semana para
+  // arreglarlo. Medido al ampliar el tiempo del primero: la búsqueda pasó de
+  // doscientos nodos a agotar el presupuesto de dos mil quinientos.
+  const orden = [];
+  const puesto = new Set();
+  for (const s of porTamano) {
+    if (puesto.has(s.slotId)) continue;
+    orden.push(s);
+    puesto.add(s.slotId);
+    if (s.position !== "primero" && s.position !== "segundo") continue;
+    const parejaId = `${s.daySlug}_comida_${s.position === "primero" ? "2" : "1"}`;
+    const pareja = porTamano.find((o) => o.slotId === parejaId);
+    if (pareja && !puesto.has(pareja.slotId)) {
+      orden.push(pareja);
+      puesto.add(pareja.slotId);
+    }
+  }
 
   const familias = new Map(pool.map((r) => [r.id, familiasDe(r)]));
   const indice = new Map(pool.map((r, i) => [r.id, i]));
@@ -232,7 +260,15 @@ export function resolverMenu(slots, pool, {
   }
   const cuentaCocina = {};
 
-  // Cuánto se pasaría del objetivo poner este plato ahora. Cero mientras cabe.
+  // ── La puntuación: lo único que decide cuál de los cien platos válidos sale
+  //
+  // El solver coge el primer candidato que no rompe nada, así que este orden
+  // ES la calidad del menú. Cinco términos, de más a menos mandón. Los tres
+  // primeros son de PRODUCTO (lo que la casa pidió), el cuarto es el sesgo de
+  // la casa y el quinto es el azar reproducible.
+
+  // 1. Pasarse del tope. Va primero y con mucho peso: un plato que revienta
+  //    una cuota se prueba solo si no queda nada mejor.
   const exceso = (r) => {
     let e = 0;
     for (const f of familias.get(r.id)) {
@@ -242,21 +278,58 @@ export function resolverMenu(slots, pool, {
     }
     return e;
   };
-  // Un plato de una cocina que la casa pidió y aún no ha llegado a su cuota
-  // va antes que los demás de su mismo escalón de exceso.
+
+  // 2. Lo que FALTA para llegar al objetivo. Es el término que hace que el
+  //    estilo de comida se note: sin él, los topes solo saben decir "no más
+  //    pasta", nunca "aún no ha salido ninguna". Y como casi ningún menú llega
+  //    a los topes, un estilo con pasta_arroz 3 producía exactamente el mismo
+  //    menú que uno con 1 — que es justo lo que se veía al cambiar de estilo.
+  //    Cuenta lo LEJOS que está la familia de su objetivo, así que la primera
+  //    pasta tira más que la tercera.
+  const deficit = (r) => {
+    let d = 0;
+    for (const f of familias.get(r.id)) {
+      const quiero = objetivo?.[f];
+      if (quiero === undefined) continue;
+      d += Math.max(0, quiero - (cuenta[f] ?? 0));
+    }
+    return d;
+  };
+
+  // 3. Una cocina que la casa pidió y aún no ha salido.
   const cocinaPendiente = (r) =>
     r.cocina && cuotaCocinas[r.cocina] !== undefined && (cuentaCocina[r.cocina] ?? 0) < cuotaCocinas[r.cocina];
 
-  // Se ordena en cada nodo porque el exceso depende de lo que ya hay puesto.
-  // El ruido con semilla mueve un plato hasta ~20 posiciones dentro de su
-  // escalón de exceso: suficiente para que dos semillas den semanas distintas,
-  // poco para que el sesgo de la casa deje de mandar.
+  // 4. El tiempo, solo donde significa algo: un PRIMERO es un plato de
+  //    entrada, y entre dos que valen es mejor el corto — deja sitio al
+  //    segundo dentro del presupuesto de la comida (regla 7c). Sin esto el
+  //    solver elegía primeros de 40 minutos y luego se pasaba media búsqueda
+  //    deshaciéndolos: medido, comidas de 45-49 minutos para un presupuesto
+  //    de 30, y tres mil nodos en vez de doscientos.
+  const costeTiempo = (r, slot) => {
+    if (slot.position !== "primero" || !slot.mealBudget) return 0;
+    return Math.min(1, (r.time ?? 0) / slot.mealBudget);
+  };
+
+  // 5. El desempate: el orden del pool (que `ordenarPorSesgo` ya dejó puesto
+  //    con los sesgos de la casa, favoritas y despensa) mezclado con ruido de
+  //    la semilla. Las dos magnitudes son comparables A PROPÓSITO: con el
+  //    ruido en ±20 posiciones sobre un pool de 300, el sesgo ganaba siempre y
+  //    dos semillas distintas daban prácticamente el mismo menú — "repite
+  //    siempre los mismos platos". Ahora un plato del puesto 200 con suerte
+  //    puede adelantar a uno del 20, y el sesgo sigue notándose porque pesa el
+  //    doble que el ruido.
+  const RUIDO = Math.max(30, pool.length);
   const ordenados = (slot) =>
     [...dominios.get(slot.slotId)]
       .map((r) => ({
         r,
-        clave: exceso(r) * 1e6 - (cocinaPendiente(r) ? 5e5 : 0)
-          + indice.get(r.id) + (hash(r.id + slot.slotId, semilla) % 20),
+        clave: exceso(r) * 1e6
+          - deficit(r) * 1e4
+          - (cocinaPendiente(r) ? 5e3 : 0)
+          + costeTiempo(r, slot) * 1e3
+          + indice.get(r.id) * 2
+          + (hash(r.id + slot.slotId, semilla) % RUIDO),
       }))
       .sort((a, b) => a.clave - b.clave)
       .map((x) => x.r);
