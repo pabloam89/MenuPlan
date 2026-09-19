@@ -56,7 +56,7 @@ env:
   TEAM_ID: 64QZ74Y5M2
   BUNDLE_ID: com.homenu.app
   PROFILE_NAME: HoMenu App Store
-  APPSTORE_KEY_ID: BG2UU7RWM6
+  APPSTORE_KEY_ID: 2DD2NWMR54
   APPSTORE_ISSUER_ID: da38af23-d5a3-4d1e-b45f-d90810243b2e
   # Mismos valores que sirve la web en producción (son públicos, ver cabecera).
   VITE_SUPABASE_URL: https://mdzwbrworucnummibxrq.supabase.co
