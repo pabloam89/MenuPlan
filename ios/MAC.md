@@ -1,5 +1,18 @@
 # Compilar y subir la app iOS desde un Mac
 
+> **Desde el 2026-09-19 ya no hace falta un Mac.** Las builds salen de GitHub
+> Actions (`.github/workflows/ios-testflight.yml`): basta con empujar una
+> etiqueta que empiece por `ios-` sobre `feat/ios-capacitor`:
+>
+> ```bash
+> git tag -a ios-ci-6 -m "qué cambia" && git push origin ios-ci-6
+> ```
+>
+> En ~5 minutos está subida y, tras el procesado de Apple, en TestFlight. Los
+> secretos de firma están en GitHub (Settings → Secrets → Actions); si algo
+> falla, el workflow explica qué secreto revisar como anotación pública del run.
+> Esta guía queda como referencia por si alguna vez hay que firmar a mano.
+
 Guía para la primera sesión en el Mac (y contexto para Claude si se abre allí).
 
 ## Estado (2026-09-17)
