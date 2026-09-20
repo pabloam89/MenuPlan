@@ -28,6 +28,7 @@ import { fileURLToPath } from "url";
 import { computeRecipeNutrition } from "../src/lib/ingredients.js";
 import { availablePartsOf, ingredientsByPart, stepsByPart } from "../src/lib/recipeSteps.js";
 import { deriveStepParts, medirConcordancia } from "../src/lib/derive/stepParts.js";
+import { selectPartsTargets } from "./select-recipes-for-parts.mjs";
 import { gramsForRecipeQuantity } from "../src/lib/kitchenUnits.js";
 import { resolveIngredient } from "../src/lib/ingredients.js";
 
@@ -82,12 +83,33 @@ for (const r of recetas) {
 const MONO_CATEGORIES = new Set(["salsas", "guarniciones", "bases", "bebes", "postres", "desayunos", "meriendas"]);
 const MONO_TYPES = new Set(["salsa", "guarnicion", "base"]);
 
+// Juicios tomados a mano con el mismo criterio aparte/dentro que usa el
+// pipeline (PART_CRITERION, scripts/enrich-recipe-steps.mjs). Una entrada con
+// lista vacía significa "mirada y monocomponente", que NO es lo mismo que
+// "sin mirar": la puerta de select-recipes-for-parts es de recall y la mayoría
+// de sus objetivos resultan ser un solo componente. Sin este fichero, esas
+// recetas se contaban como hueco para siempre.
+const JUICIOS = JSON.parse(readFileSync(join(ROOT, "src", "data", "stepPartsLabels.json"), "utf8"));
+
+// La puerta de dos etapas: a qué recetas tiene sentido preguntarles por `part`.
+// Es de RECALL, así que lo que deja fuera no da NINGUNA señal de tener un
+// componente aparte — ni en el nombre ni en sus últimos pasos. Llamar "hueco"
+// a eso infla el problema: el hueco de verdad son las que dan señal y nadie ha
+// mirado todavía.
+const CON_SENAL = new Set(selectPartsTargets(recetas).targets.map((r) => r.id));
+
 const recipeParts = {};
 for (const r of recetas) {
   const partes = availablePartsOf(r.stepsRich);
   if (!partes.length) {
+    const porConstruccion = MONO_TYPES.has(r.type) || MONO_CATEGORIES.has(r.category);
+    const juzgada = Array.isArray(JUICIOS[r.id]) && JUICIOS[r.id].length === 0;
     recipeParts[r.id] = {
-      origen: MONO_TYPES.has(r.type) || MONO_CATEGORIES.has(r.category) ? "monocomponente" : "sin_curar",
+      origen: porConstruccion
+        ? "monocomponente"
+        : juzgada
+          ? "monocomponente_juzgado"
+          : CON_SENAL.has(r.id) ? "sin_curar" : "sin_senal",
       partes: null,
     };
     continue;

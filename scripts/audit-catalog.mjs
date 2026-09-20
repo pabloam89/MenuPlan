@@ -502,15 +502,22 @@ say("");
 say("═══ 5 · PARTES: qué componente del plato es cada cosa ═══");
 const PARTES = JSON.parse(readFileSync(join(ROOT, "src", "data", "derived", "recipeParts.json"), "utf8"));
 const META = JSON.parse(readFileSync(join(ROOT, "src", "data", "derived", "_meta.json"), "utf8"));
-const porOrigen = { curado: [], monocomponente: [], sin_curar: [] };
+const porOrigen = { curado: [], monocomponente: [], monocomponente_juzgado: [], sin_curar: [], sin_senal: [] };
 for (const r of estrella) {
   const fila = PARTES[r.id];
   if (fila) porOrigen[fila.origen]?.push(r);
 }
 const pcE = (n) => `${String(n).padStart(3)} (${(n / estrella.length * 100).toFixed(1)} %)`;
 say(`  Estrella con vector de partes curado:  ${pcE(porOrigen.curado.length)}`);
-say(`  monocomponente (no aplica, no es hueco): ${pcE(porOrigen.monocomponente.length)}`);
-say(`  sin curar:                             ${pcE(porOrigen.sin_curar.length)}  ← el hueco`);
+say(`  monocomponente por construcción:       ${pcE(porOrigen.monocomponente.length)}`);
+say(`  monocomponente tras mirarla:           ${pcE(porOrigen.monocomponente_juzgado.length)}`);
+say(`  sin señal de componente aparte:        ${pcE(porOrigen.sin_senal.length)}`);
+say(`  con señal y sin mirar:                 ${pcE(porOrigen.sin_curar.length)}  ← el hueco`);
+say("");
+say("  `sin señal` no es lo mismo que hueco: son las que la puerta de dos");
+say("  etapas (scripts/select-recipes-for-parts.mjs) descarta porque ni su");
+say("  nombre ni sus últimos pasos sugieren un componente aparte. La puerta es");
+say("  de recall, así que un falso negativo ahí es raro.");
 say("");
 say("  El hueco NO se puede tapar derivando. El operador determinista");
 say(`  (src/lib/derive/stepParts.js) concuerda con lo curado un ${(META.recipeParts.operador_determinista.concordancia_con_curado * 100).toFixed(1)} %,`);
@@ -520,7 +527,7 @@ say("  la guarnición en otra. Rellenarlo exige el pipeline curado");
 say("  (scripts/enrich-recipe-steps.mjs --parts) sobre los objetivos que marca");
 say("  scripts/select-recipes-for-parts.mjs.");
 for (const r of porOrigen.sin_curar) {
-  add("partes", "media", r.id, r.name, "sin `part` en sus pasos y no es monocomponente");
+  add("partes", "media", r.id, r.name, "da señal de tener componente aparte y nadie la ha mirado");
 }
 // Lo que el vector ya permite decir, que era la pregunta original: ¿manda el
 // principal en el plato, o lo hace su guarnición?

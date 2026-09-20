@@ -13395,102 +13395,122 @@
       {
         "text": "Cubrir {{Garbanzos}} con agua fría abundante y dejar en remojo un mínimo de 12 horas.",
         "minutes": 720,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y {{Zanahoria}} y cortar en trozos grandes.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Repollo}} en cuartos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Escurrir los garbanzos remojados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar {{Morcillo de ternera}}, {{Pollo}}, {{Tocino}} y {{Hueso de jamón}} en una olla grande y cubrir con agua fría abundante.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición a fuego fuerte.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Espumar la superficie con una espumadera hasta que el caldo salga limpio.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir los garbanzos escurridos y la zanahoria troceada, bajar a fuego suave y tapar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer tapado a fuego suave durante 60 min.",
         "minutes": 60,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Incorporar la patata troceada, el repollo y {{Chorizo}} entero; tapar y subir ligeramente el fuego.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer tapado a fuego suave hasta que la patata esté tierna, unos 20 min.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Morcilla}} entera y cocer tapado 10 min más para que no se deshaga.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar la morcilla, el chorizo, el morcillo, el pollo y el tocino de la olla y reservar en una fuente tapada.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Retirar los garbanzos, la patata, la zanahoria y el repollo con una espumadera y reservar en una fuente aparte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Colar el caldo sobrante y llevar a ebullición en un cazo a fuego fuerte.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Cocer {{Fideos finos}} en el caldo hirviendo hasta que estén tiernos, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir la sopa con los fideos como primer vuelco en soperas o platos hondos.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir como segundo vuelco los garbanzos con la zanahoria, la patata y el repollo bien escurridos en una fuente.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Trinchar el morcillo, el pollo y el tocino en porciones y cortar el chorizo y la morcilla en rodajas.",
         "minutes": 4,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir las carnes y embutidos como tercer vuelco en una fuente aparte.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,

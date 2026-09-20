@@ -12042,37 +12042,44 @@
       {
         "text": "Mezclar {{Mostaza de Dijon}} y {{Miel}} en un bol pequeño hasta obtener una salsa homogénea.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Filetes de pavo}} por ambas caras con {{Sal|gusto}} y {{Pimienta negra|pizca}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} con {{Aceite de oliva|chorrito}} a fuego medio-fuerte hasta que humee ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los filetes de pavo en la plancha y cocinar 3-4 min por cada lado hasta que estén dorados.",
         "minutes": 7,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego a suave y añadir la salsa de mostaza y miel sobre los filetes.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Remover suavemente para que la salsa cubra los filetes, hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir los filetes de pavo con la salsa de mostaza y miel por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 0,
@@ -34648,45 +34655,53 @@
         "text": "Encender el {{@Horno}} a 210 grados.",
         "minutes": 1,
         "kind": "prep",
-        "base": "patatas_asadas"
+        "base": "patatas_asadas",
+        "part": "guarnicion"
       },
       {
         "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
         "minutes": 8,
         "kind": "prep",
-        "base": "patatas_asadas"
+        "base": "patatas_asadas",
+        "part": "guarnicion"
       },
       {
         "text": "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
         "minutes": 4,
         "kind": "activo",
-        "base": "patatas_asadas"
+        "base": "patatas_asadas",
+        "part": "guarnicion"
       },
       {
         "text": "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
         "minutes": 30,
         "kind": "pasivo",
-        "base": "patatas_asadas"
+        "base": "patatas_asadas",
+        "part": "guarnicion"
       },
       {
         "text": "Salar {{Pechuga de pollo}} y dorarla en la sartén por los dos lados hasta que esté hecha por dentro.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Yogur natural}} con el zumo de {{Limón}} y una pizca de sal.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Cortar la pechuga en tiras y {{Cebolla morada}} en plumas finas.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Montar el bowl con las patatas debajo, el pollo encima y la salsa de yogur por hilos.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "category": "carnes",
