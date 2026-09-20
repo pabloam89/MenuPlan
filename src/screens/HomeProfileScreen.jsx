@@ -9,7 +9,7 @@ import {
   Info,
   ShieldCheck,
 } from "../components/icons.jsx";
-import { Avatar, BottomNav, bottomNavSpacer, safeTop, GoogleButton } from "../components/ui.jsx";
+import { Avatar, BottomNav, bottomNavSpacer, safeTop, SignInOptions } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember,
   resolveAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
@@ -245,6 +245,7 @@ export function HomeProfileScreen({
   onNav,
   onBack,
   onSignIn,
+  onAppleSignIn,
   onSignOut,
   onReset,
   onDeleteAccount,
@@ -424,7 +425,7 @@ export function HomeProfileScreen({
             <p style={{ margin: "0 0 14px", fontSize: 13, color: "#7a9485", lineHeight: 1.5 }}>
               Inicia sesión para sincronizar recetas, familia y preferencias.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </Card>
         )}
 

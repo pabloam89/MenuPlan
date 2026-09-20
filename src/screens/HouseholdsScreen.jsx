@@ -19,7 +19,7 @@ import {
   GroupAvatarStack,
   bottomNavSpacer,
   safeTop,
-  GoogleButton,
+  SignInOptions,
   groupAvatarFaces,
 } from "../components/ui.jsx";
 import {
@@ -1320,6 +1320,7 @@ export function HouseholdsScreen({
   onRemoveMember,
   onRenameHousehold,
   onSignIn,
+  onAppleSignIn,
   onToast,
   showCoach = false,
   onCoachClose,
@@ -1537,7 +1538,7 @@ export function HouseholdsScreen({
             <p style={{ margin: "0 0 10px", fontSize: 13.5, lineHeight: 1.45 }}>
               Inicia sesión para sincronizar hogares entre dispositivos.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </div>
         )}
 

@@ -701,7 +701,39 @@ function GoogleGlyph({ size = 18 }) {
   );
 }
 
-export function GoogleButton({ onClick, label = "Continuar con Google", variant = "light" }) {
+function AppleGlyph({ size = 18, color = "#fff" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path
+        fill={color}
+        d="M16.36 12.78c-.03-2.7 2.2-3.99 2.3-4.05-1.25-1.83-3.2-2.08-3.9-2.11-1.66-.17-3.24.98-4.08.98-.84 0-2.14-.96-3.52-.93-1.81.03-3.48 1.05-4.41 2.67-1.88 3.26-.48 8.08 1.35 10.72.9 1.29 1.97 2.74 3.38 2.69 1.36-.06 1.87-.88 3.51-.88 1.64 0 2.1.88 3.53.85 1.46-.03 2.38-1.32 3.27-2.62 1.03-1.5 1.45-2.95 1.48-3.03-.03-.01-2.84-1.09-2.87-4.32zM13.7 4.9c.74-.9 1.24-2.15 1.1-3.4-1.07.04-2.36.71-3.13 1.61-.69.79-1.29 2.06-1.13 3.28 1.19.09 2.41-.6 3.16-1.49z"
+      />
+    </svg>
+  );
+}
+
+/**
+ * El botón de entrar con un proveedor. Google y Apple comparten cuerpo porque
+ * comparten los dos comportamientos que importan: el estado "Redirigiendo…"
+ * mientras se abre el navegador del sistema, y un error que se lee bajo el
+ * botón en vez de perderse en la consola.
+ *
+ * Apple exige que su botón no se vea menos que el resto (Guideline 4.8), así
+ * que la única diferencia entre los dos es el color y el glifo, nunca el
+ * tamaño ni el peso.
+ */
+function OAuthButton({
+  onClick,
+  label,
+  glyph,
+  variant,
+  background,
+  color,
+  border,
+  spinnerTrack,
+  spinnerArc,
+  failMessage,
+}) {
   const dark = variant === "dark";
   const [pressed, setPressed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -713,10 +745,11 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
     setError(null);
     let failure = null;
     try {
-      // signInWithGoogle reports failures by *returning* { error } rather than
-      // throwing, so catching a rejection only covers half the cases. Missing
-      // Supabase env vars in a deploy hit the returned-error path, which used
-      // to leave the button spinning "Redirigiendo…" forever with no clue why.
+      // Los signIn del hook avisan de los fallos *devolviendo* { error }, no
+      // lanzando, así que capturar el rechazo solo cubre la mitad de los
+      // casos. Faltar las env de Supabase en un deploy cae por la rama del
+      // error devuelto, que antes dejaba el botón girando "Redirigiendo…"
+      // para siempre y sin pista de por qué.
       const result = await onClick?.();
       failure = result?.error ?? null;
     } catch (err) {
@@ -724,7 +757,7 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
     }
     if (failure) {
       setLoading(false);
-      setError(failure.message || "No se pudo conectar con Google.");
+      setError(failure.message || failMessage);
     }
     // On success the page redirects — no need to reset loading
   };
@@ -748,9 +781,9 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
         gap: 10,
         padding: "15px 20px",
         borderRadius: 999,
-        border: dark ? "1.5px solid rgba(255,255,255,.25)" : "1.5px solid #dbe5de",
-        background: "#fff",
-        color: "#1a3a24",
+        border,
+        background,
+        color,
         fontSize: 15,
         fontWeight: 800,
         cursor: loading ? "default" : "pointer",
@@ -770,11 +803,11 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
           style={{ flexShrink: 0 }}
           aria-hidden="true"
         >
-          <circle cx="9" cy="9" r="7" fill="none" stroke="#dbe5de" strokeWidth="2.5" />
-          <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke="#2d5a3d" strokeWidth="2.5" strokeLinecap="round" />
+          <circle cx="9" cy="9" r="7" fill="none" stroke={spinnerTrack} strokeWidth="2.5" />
+          <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke={spinnerArc} strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       ) : (
-        <GoogleGlyph size={18} />
+        glyph
       )}
       {loading ? "Redirigiendo…" : label}
     </button>
@@ -803,6 +836,56 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
       </p>
     )}
     </>
+  );
+}
+
+export function GoogleButton({ onClick, label = "Continuar con Google", variant = "light" }) {
+  return (
+    <OAuthButton
+      onClick={onClick}
+      label={label}
+      variant={variant}
+      glyph={<GoogleGlyph size={18} />}
+      background="#fff"
+      color="#1a3a24"
+      border={variant === "dark" ? "1.5px solid rgba(255,255,255,.25)" : "1.5px solid #dbe5de"}
+      spinnerTrack="#dbe5de"
+      spinnerArc="#2d5a3d"
+      failMessage="No se pudo conectar con Google."
+    />
+  );
+}
+
+export function AppleButton({ onClick, label = "Continuar con Apple", variant = "light" }) {
+  return (
+    <OAuthButton
+      onClick={onClick}
+      label={label}
+      variant={variant}
+      glyph={<AppleGlyph size={18} />}
+      background="#000"
+      color="#fff"
+      border="1.5px solid #000"
+      spinnerTrack="rgba(255,255,255,.35)"
+      spinnerArc="#fff"
+      failMessage="No se pudo conectar con Apple."
+    />
+  );
+}
+
+/**
+ * Las dos formas de entrar, juntas y con el mismo peso.
+ *
+ * Van siempre las dos: ofrecer Google a solas en iOS es rechazo de App Store
+ * por la Guideline 4.8. Por eso existe este componente y no se pinta
+ * `GoogleButton` suelto en ninguna pantalla.
+ */
+export function SignInOptions({ onGoogle, onApple, variant = "light" }) {
+  return (
+    <div style={{ display: "grid", gap: 10 }}>
+      <AppleButton onClick={onApple} variant={variant} />
+      <GoogleButton onClick={onGoogle} variant={variant} />
+    </div>
   );
 }
 

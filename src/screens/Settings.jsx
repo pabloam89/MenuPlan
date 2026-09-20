@@ -21,7 +21,7 @@ import {
 import {
   BottomNav,
   Avatar,
-  GoogleButton,
+  SignInOptions,
   bottomNavSpacer,
   safeTop,
 } from "../components/ui.jsx";
@@ -188,6 +188,7 @@ export function SettingsScreen({
   onOpenDashboard,
   onEditPreferences,
   onSignIn,
+  onAppleSignIn,
   onReset,
 }) {
   const g = googleInfo(user);
@@ -282,7 +283,7 @@ export function SettingsScreen({
             <p style={{ margin: "0 0 14px", fontSize: 13, color: "#7a8a7f", lineHeight: 1.5 }}>
               Inicia sesión para sincronizar tu familia y tus menús en todos tus dispositivos.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </div>
         )}
 
@@ -373,6 +374,7 @@ export function AccountScreen({
   onEditMembers,
   onEditPreferences,
   onSignIn,
+  onAppleSignIn,
   onSignOut,
   onToast,
 }) {
@@ -544,7 +546,7 @@ export function AccountScreen({
             <p style={{ margin: "0 0 12px", fontSize: 14, color: "#7a8a7f", lineHeight: 1.5 }}>
               Inicia sesión para guardar tu perfil y tus menús.
             </p>
-            <GoogleButton onClick={onSignIn} />
+            <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
           </Card>
         )}
 

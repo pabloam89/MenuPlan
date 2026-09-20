@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "./components/icons.jsx";
-import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH, SignInOptions, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -1261,7 +1261,7 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
-  const { user, session, loading: authLoading, signInWithGoogle, signOut } = useAuth();
+  const { user, session, loading: authLoading, signInWithGoogle, signInWithApple, signOut } = useAuth();
   const {
     households,
     activeHousehold,
@@ -4823,6 +4823,7 @@ export default function App() {
             onResume={() => fwd(() => setScreen("dashboard"))}
             isAuthed={Boolean(user)}
             onGoogle={signInWithGoogle}
+            onApple={signInWithApple}
           />
         )}
 
@@ -4936,6 +4937,7 @@ export default function App() {
                   if (user) toggleMenuFavoriteRemote(user.id, menuId, nextFavorite);
                 }}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onOpenHistory={openHistoryMenu}
                 onDeleteHistory={householdReadOnly ? undefined : deleteHistoryMenu}
               />
@@ -5027,6 +5029,7 @@ export default function App() {
                 onOpenDashboard={goToDashboard}
                 onEditPreferences={() => openEditPreferences("settings")}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onReset={handleReset}
               />
             </Suspense>
@@ -5050,6 +5053,7 @@ export default function App() {
                 onEditMembers={() => goToOnboardingStep(1)}
                 onEditPreferences={() => openEditPreferences("account")}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onSignOut={signOut}
                 onToast={showToast}
               />
@@ -5227,6 +5231,7 @@ export default function App() {
                 onRenameHousehold={renameHousehold}
                 onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onToast={showToast}
                 showCoach={Boolean(user) && !householdsCoachSeen}
                 onCoachClose={markHouseholdsCoachSeen}
@@ -5251,6 +5256,7 @@ export default function App() {
                 onBack={() => back(() => setScreen("households"))}
                 onOpenBiblioteca={() => fwd(() => setScreen("biblioteca"))}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
               />
             </Suspense>
           </div>
@@ -5314,6 +5320,7 @@ export default function App() {
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("dashboard"))}
                 onSignIn={signInWithGoogle}
+                onAppleSignIn={signInWithApple}
                 onSignOut={signOut}
                 onReset={handleSoftReset}
                 onDeleteAccount={handleDeleteAccount}
@@ -5992,7 +5999,7 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
   );
 }
 
-function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
+function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle, onApple }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
 
   // El vídeo de bienvenida ocupa la pantalla entera sobre negro verdoso, y el
@@ -6216,7 +6223,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
           </GhostPillButton>
         ) : (
           <>
-            <GoogleButton onClick={onGoogle} variant="dark" />
+            <SignInOptions onGoogle={onGoogle} onApple={onApple} variant="dark" />
             <GhostPillButton onClick={handleEnter} tone="light">
               Entrar sin cuenta
             </GhostPillButton>

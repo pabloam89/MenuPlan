@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, Heart, History, Loader2, RotateCw, Sparkles, Trash2, X } from "../components/icons.jsx";
-import { BottomNav, EmptyIllustration, GoogleButton, APP_SHELL_MAX_WIDTH, bottomNavSpacer, safeTop } from "../components/ui.jsx";
+import { BottomNav, EmptyIllustration, SignInOptions, APP_SHELL_MAX_WIDTH, bottomNavSpacer, safeTop } from "../components/ui.jsx";
 import { sortMenusDesc, orderedWeeks, formatMenuRangeLabel, clampWeekCount, MAX_MENU_WEEKS, menuHasContent } from "../lib/menuArchive.js";
 
 const cardStyle = {
@@ -270,13 +270,13 @@ function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, on
   );
 }
 
-function GuestHistoryPrompt({ onSignIn }) {
+function GuestHistoryPrompt({ onSignIn, onAppleSignIn }) {
   return (
     <div style={{ ...cardStyle, textAlign: "center", padding: "28px 20px" }}>
       <p style={{ fontSize: 14, color: "#5c6b60", margin: "0 0 16px", lineHeight: 1.5 }}>
         Crea una cuenta para guardar el histórico de tus menús y poder repetirlos cuando quieras.
       </p>
-      <GoogleButton onClick={onSignIn} />
+      <SignInOptions onGoogle={onSignIn} onApple={onAppleSignIn} />
     </div>
   );
 }
@@ -458,6 +458,7 @@ export function MenusScreen({
   onReuseMenu,
   onToggleFavorite,
   onSignIn,
+  onAppleSignIn,
   onOpenHistory,
   onDeleteHistory,
 }) {
@@ -515,7 +516,7 @@ export function MenusScreen({
         {!hasAccount ? (
           <>
             <SectionLabel>Histórico</SectionLabel>
-            <GuestHistoryPrompt onSignIn={onSignIn} />
+            <GuestHistoryPrompt onSignIn={onSignIn} onAppleSignIn={onAppleSignIn} />
           </>
         ) : (
           <>
