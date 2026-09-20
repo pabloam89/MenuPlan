@@ -1,16 +1,12 @@
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 import { getCarbType } from "../utils/validateMenu.js";
+import { PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 
 // Mirrors validateMenu.js rule 4's grouping (pollo/pavo/cerdo/ternera -> carne,
 // etc.) so enforceFixedDishes can check a cena candidate against the same
 // schoolProteinsToAvoid the day's slot context carries — kept as a local copy
 // (not imported) because validateMenu.js doesn't export it separately.
-const PROTEIN_GROUP_MAP = {
-  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
-  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
-  legumbre: "legumbres", huevo: "huevos",
-};
 
 /** True when placing `recipe` at `ctx` would reintroduce a protein or carb base
  * the school menu already served that day (validateMenu rules 4 / 4b).
@@ -23,7 +19,7 @@ const PROTEIN_GROUP_MAP = {
 function conflictsWithSchoolMenu(recipe, ctx) {
   if (!ctx) return false;
   if (ctx.schoolProteinsToAvoid?.length) {
-    const group = PROTEIN_GROUP_MAP[recipe.mainProtein] ?? recipe.mainProtein;
+    const group = PROTEIN_GROUP_BY_MAIN_PROTEIN[recipe.mainProtein] ?? recipe.mainProtein;
     if (ctx.schoolProteinsToAvoid.includes(group)) return true;
   }
   if (ctx.schoolCarbsToAvoid?.length) {

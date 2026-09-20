@@ -29,8 +29,9 @@ export const EU_ALLERGEN_IDS = [
 // "sin lactosa" conserva la proteína láctea y no vale para una alergia.
 export const ADAPTABLE_RESTRICTIONS = ["lactosa_fina", "alcohol_cocina"];
 
-// Mismas tres unidades que RecipeSchema — el catálogo entero se mide en g/ml/ud.
-const UNITS = ["g", "ml", "ud"];
+// Las tres unidades en que se mide el catálogo ENTERO, ingredientes y recetas.
+// RecipeSchema las importa de aquí: estuvieron definidas dos veces.
+export const UNITS = ["g", "ml", "ud"];
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -94,6 +95,9 @@ export const IngredientSchema = z
       .object({
         nombre: z.string().min(1),
         g: z.number().positive(),
+        // Solo cuando el plural no sale de la regla vocal+s / consonante+es
+        // (kitchenUnits.pluralDePieza): "vol-au-vent" → "vol-au-vents".
+        plural: z.string().min(1).optional(),
       })
       .optional(),
 

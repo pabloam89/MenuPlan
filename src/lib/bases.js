@@ -37,12 +37,20 @@ import { CAPACIDAD_POR_APARATO } from "./applianceMethods.js";
 export const BASES = basesCatalog;
 
 /**
+ * La clave con la que se busca una base: `baseKey` si lo trae (el sofrito), y
+ * si no su `mainBase` (las siete de fécula). Es la misma que escriben los
+ * pasos en `stepsRich[i].base` y la que lleva `basesAparte`. Va antes que
+ * BASE_POR_CLAVE porque BASE_POR_CLAVE la usa al evaluar el módulo.
+ */
+export const claveDeBase = (base) => base?.baseKey ?? base?.mainBase ?? null;
+
+/**
  * clave → receta de base. La clave es `baseKey` y, si no lo trae, `mainBase`:
  * las siete de fécula se buscan por su hidrato desde siempre, y las que no son
  * fécula (el sofrito) traen `baseKey` propio para no tener que colarse en
  * MAIN_BASES, que es el eje del hidrato y no el de "qué se puede batchear".
  */
-const BASE_POR_CLAVE = new Map(BASES.map((b) => [b.baseKey ?? b.mainBase, b]));
+export const BASE_POR_CLAVE = new Map(BASES.map((b) => [claveDeBase(b), b]));
 
 /**
  * TODAS las bases que un plato puede aprovechar ya hechas. Son dos caminos
@@ -263,13 +271,6 @@ export function tiempoDeBase(base, raciones, metodo = null) {
     minutosActivos,
   };
 }
-
-/**
- * La clave con la que se busca una base: `baseKey` si lo trae (el sofrito), y
- * si no su `mainBase` (las siete de fécula). Es la misma que escriben los
- * pasos en `stepsRich[i].base` y la que lleva `basesAparte`.
- */
-export const claveDeBase = (base) => base?.baseKey ?? base?.mainBase ?? null;
 
 /** Las claves de todas las bases que este plato puede aprovechar ya hechas. */
 export const clavesDeReceta = (receta) => basesDeReceta(receta).map(claveDeBase).filter(Boolean);

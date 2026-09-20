@@ -15,7 +15,7 @@ import { ajustarCuota } from "./cuotaCocinas.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recetasRecientes } from "./recientes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
-import { isMontaje } from "../data/recipeSchema.js";
+import { isMontaje, PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 import {
   validateMenu,
   buildCorrectionMessage,
@@ -110,13 +110,8 @@ function proteinFromText(text) {
 // Groups catalog mainProtein enums into the same buckets validateMenu.js uses
 // for its consecutive-protein rule. Returns null for "vegetal"/"none"/unmapped
 // values, i.e. dishes that don't carry a protein course.
-const PROTEIN_GROUP_MAP = {
-  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
-  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
-  legumbre: "legumbres", huevo: "huevos",
-};
 function proteinGroupOf(recipe) {
-  return recipe ? (PROTEIN_GROUP_MAP[recipe.mainProtein] ?? null) : null;
+  return recipe ? (PROTEIN_GROUP_BY_MAIN_PROTEIN[recipe.mainProtein] ?? null) : null;
 }
 
 // Every protein GROUP a dish carries — its mainProtein PLUS any secondary animal
@@ -129,7 +124,7 @@ function proteinGroupsOf(recipe) {
   const groups = new Set();
   if (!recipe) return groups;
   const add = (p) => {
-    const g = PROTEIN_GROUP_MAP[p];
+    const g = PROTEIN_GROUP_BY_MAIN_PROTEIN[p];
     if (g) groups.add(g);
   };
   add(recipe.mainProtein);

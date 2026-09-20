@@ -24,7 +24,7 @@ import substitutionsJson from "../data/ingredientSubstitutions.json";
 import { validateIngredients } from "../data/ingredientSchema.js";
 import { createIngredientResolver } from "./ingredientResolver.js";
 import { guessShoppingAisle, guessIngredientCategory, normalizeName } from "./ingredientCategories.js";
-import { gramsForRecipeQuantity, gramsPerPiece } from "./kitchenUnits.js";
+import { gramsForRecipeQuantity, gramsPerPiece, registerPieceCatalog } from "./kitchenUnits.js";
 
 // Mismo criterio que recipeCatalog.js, y por el mismo motivo: solo en
 // desarrollo y en tests. `scripts/validate-catalog.mjs` valida este fichero en
@@ -129,6 +129,13 @@ export function pieceFor(name) {
 export function pieceGramsFor(name) {
   return pieceFor(name)?.g ?? gramsPerPiece(name);
 }
+
+// A partir de aquí kitchenUnits ve el catálogo: sus lentes ("≈ 3 muslos",
+// "2 huevos"), convertStockAmount y gramsForRecipeQuantity (y con ella
+// computeRecipeNutrition) resuelven la pieza por id antes que por regex. Es lo
+// que cierra el viaje de ida de la lista de la compra — ver el comentario de
+// registerPieceCatalog en kitchenUnits.js.
+registerPieceCatalog(pieceFor);
 
 /**
  * Las líneas de ingrediente de una receta, resueltas contra el catálogo — el

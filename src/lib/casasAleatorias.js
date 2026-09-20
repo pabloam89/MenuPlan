@@ -11,6 +11,7 @@
 import { weeklySlotBudget, DAYS } from "./planner.js";
 import { freqsEfectivos, presupuestoDeTopes, mover, repartoPorDefecto } from "./reparto.js";
 import { FAMILIAS } from "./notepadFields.js";
+import { COCINAS } from "../data/recipeSchema.js";
 
 /** mulberry32: un PRNG pequeño y reproducible. */
 export function rng(semilla) {
@@ -28,7 +29,11 @@ const ALERGIAS = ["Gluten", "Leche", "Huevos", "Pescado", "Crustáceos", "Frutos
 const INTOLERANCIAS = ["lactosa_fina", "fructosa", "sorbitol", "vegano"];
 const PERFILES = ["glucemico", "corazon", "bajo_sodio", "reflux", "anemia"];
 const HERRAMIENTAS = ["Horno", "Batidora", "Olla exprés", "Freidora de aire", "Microondas", "Robot de cocina"];
-const COCINAS = ["italiana", "asiatica", "mexicana", "arabe", "india"];
+// Subconjunto del enum canónico, no una lista propia: las cinco que una casa
+// de prueba pide con más frecuencia. Se filtra contra COCINAS para que un valor
+// renombrado en el esquema no se quede aquí colgado en silencio; el test de
+// casasAleatorias comprueba que las cinco siguen existiendo.
+export const COCINAS_DEMO = COCINAS.filter((c) => ["italiana", "asiatica", "mexicana", "arabe", "india"].includes(c));
 const DISLIKES = ["coliflor", "brócoli", "hígado", "espinacas", "setas", "berenjena", "pimiento"];
 const MEALS_OPCIONES = [["Comida", "Cena"], ["Comida", "Cena"], ["Comida", "Cena"], ["Comida"], ["Cena"]];
 
@@ -113,7 +118,7 @@ export function casaAleatoria(semilla, { nivel = null } = {}) {
     reparto,
     freqsPedidos,
     dislikes: azar(r, 0.3) ? muestra(r, DISLIKES, entre(r, 1, 3)) : [],
-    cocinas: azar(r, 0.2) ? Object.fromEntries(muestra(r, COCINAS, entre(r, 1, 2)).map((c) => [c, entre(r, 1, 2)])) : null,
+    cocinas: azar(r, 0.2) ? Object.fromEntries(muestra(r, COCINAS_DEMO, entre(r, 1, 2)).map((c) => [c, entre(r, 1, 2)])) : null,
     kidDinnerMatchesAdultLunch: azar(r, 0.5),
     _semilla: semilla,
     _dureza: dureza,

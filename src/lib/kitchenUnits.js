@@ -33,6 +33,43 @@ const SALT_RE = /\bsal\b|flor de sal/;
 const SPICE_RE =
   /romero|tomillo|oregano|albahaca|perejil|cilantro|eneldo|hierbabuena|menta|salvia|estragon|mejorana|laurel|comino|curcuma|curry|pimenton|paprika|azafran|canela|nuez moscada|jengibre|clavo|\banis\b|hinojo|pimienta|ajo en polvo|cebolla en polvo|guindilla|cayena|chile|hierbas|especias|vainilla/;
 
+// ── El catálogo manda sobre PIECE_WEIGHTS ─────────────────────────
+// Hay dos verdades sobre cuánto pesa una pieza: `ingrediente.pieza` en
+// ingredients.json (resuelve por id, nombra la pieza) y la tabla de regex de
+// abajo (casa por parecido de nombre, para texto libre). Hasta ahora este
+// módulo solo miraba la segunda, y `pieceGramsFor` (lib/ingredients.js) miraba
+// las dos. Ese desacuerdo era un viaje de ida en la lista de la compra: la
+// agregación (que pregunta a pieceGramsFor) sacaba una línea de `ud` a gramos
+// y la lente "Unidades" (que preguntaba solo aquí) no sabía volver a piezas.
+//
+// La resolución del catálogo se INYECTA en vez de importarse porque
+// ingredients.js importa este módulo: importarlo de vuelta sería un ciclo.
+// ingredients.js llama a registerPieceCatalog(pieceFor) al cargar, así que en
+// la app todo consumidor de este módulo ve el catálogo primero y el regex de
+// red. Sin registro (un script que solo importa esto) queda el regex solo,
+// que es exactamente lo que había.
+/** @type {(name: string) => ({ nombre: string, g: number, plural?: string } | null)} */
+let catalogPiece = () => null;
+export function registerPieceCatalog(fn) {
+  catalogPiece = typeof fn === "function" ? fn : () => null;
+}
+
+// Plural por defecto de una pieza del catálogo cuando no declara el suyo,
+// palabra a palabra: vocal → +s; consonante → +es, y al alargarse la palabra
+// la tilde de la última sílaba se cae ("limón" → "limones", "champiñón" →
+// "champiñones", "pimiento choricero" → "pimientos choriceros").
+const SIN_TILDE = { á: "a", é: "e", í: "i", ó: "o", ú: "u" };
+function pluralDePieza(pieza) {
+  if (pieza.plural) return pieza.plural;
+  return pieza.nombre
+    .split(" ")
+    .map((w) => {
+      if (/[aeiouáéíóú]$/i.test(w)) return `${w}s`;
+      return `${w.replace(/[áéíóú](?=[^áéíóú]*$)/i, (t) => SIN_TILDE[t.toLowerCase()])}es`;
+    })
+    .join(" ");
+}
+
 // ── Block 2: piece weights (grams per typical piece) ───────────────
 // Ingredients whose gram amount is better expressed as a count of pieces.
 // Order matters: more specific patterns first (contramuslo before muslo).
@@ -144,7 +181,18 @@ function closestPieceFraction(ratio) {
   return best;
 }
 
-function pieceHint(normalized, qty) {
+function pieceHint(normalized, qty, name = normalized) {
+  const cat = catalogPiece(name);
+  if (cat) {
+    const ratio = qty / cat.g;
+    if (ratio >= WHOLE_PIECE_THRESHOLD) {
+      const n = Math.round(ratio);
+      if (n > 30) return null;
+      return `≈ ${n} ${plural(n, cat.nombre, pluralDePieza(cat))}`;
+    }
+    const fraction = closestPieceFraction(ratio);
+    return fraction ? `≈ ${fraction} ${cat.nombre}` : null;
+  }
   if (SKIP_PIECE_RE.test(normalized)) return null;
   for (const [regex, grams, singular, pluralForm] of PIECE_WEIGHTS) {
     if (!regex.test(normalized)) continue;
@@ -196,7 +244,7 @@ export function kitchenHint(name, qty, unit) {
   if (unit === "g") {
     if (SALT_RE.test(normalized)) return "al gusto";
     if (SPICE_RE.test(normalized)) return qty <= 2 ? "pizca" : "al gusto";
-    return pieceHint(normalized, qty) ?? dryVolumeHint(normalized, qty);
+    return pieceHint(normalized, qty, name) ?? dryVolumeHint(normalized, qty);
   }
 
   if (unit === "ml") return liquidVolumeHint(qty);
@@ -212,7 +260,13 @@ export function kitchenHint(name, qty, unit) {
 // amount to put in the basket, not a cooking approximation.
 
 // Absolute whole count of buyable pieces ("3 cebollas", "1 calabacín").
-function pieceUnits(normalized, qty) {
+function pieceUnits(normalized, qty, name = normalized) {
+  const cat = catalogPiece(name);
+  if (cat) {
+    const n = Math.max(1, Math.round(qty / cat.g));
+    if (n > 40) return null;
+    return `${n} ${plural(n, cat.nombre, pluralDePieza(cat))}`;
+  }
   if (SKIP_PIECE_RE.test(normalized)) return null;
   for (const [regex, grams, singular, pluralForm] of PIECE_WEIGHTS) {
     if (!regex.test(normalized)) continue;
@@ -301,6 +355,8 @@ export function toCanonicalStockQty(qty, entryUnit) {
  * converted to the same piece count under the "Unidades" lens.
  */
 export function gramsPerPiece(name) {
+  const cat = catalogPiece(name);
+  if (cat) return cat.g;
   const normalized = normalizeName(name);
   if (SKIP_PIECE_RE.test(normalized)) return null;
   for (const [regex, grams] of PIECE_WEIGHTS) {
@@ -414,7 +470,7 @@ export function shoppingUnitsLabel(name, qty, unit) {
   if (unit === "g") {
     if (SALT_RE.test(normalized)) return "al gusto";
     if (SPICE_RE.test(normalized)) return qty <= 2 ? "pizca" : "al gusto";
-    return pieceUnits(normalized, qty) ?? dryVolumeUnits(normalized, qty);
+    return pieceUnits(normalized, qty, name) ?? dryVolumeUnits(normalized, qty);
   }
 
   if (unit === "ml") return liquidUnits(qty);
@@ -441,6 +497,11 @@ export function pantryPieceCountLabel(name, qty, unit) {
   const normalized = normalizeName(name);
   if (SALT_RE.test(normalized)) return "al gusto";
   if (SPICE_RE.test(normalized)) return qty <= 2 ? "pizca" : "al gusto";
+  const cat = catalogPiece(name);
+  if (cat) {
+    const n = Math.max(1, Math.round(qty / cat.g));
+    return n > 40 ? null : `${n} ud`;
+  }
   if (!SKIP_PIECE_RE.test(normalized)) {
     for (const [regex, grams] of PIECE_WEIGHTS) {
       if (!regex.test(normalized)) continue;

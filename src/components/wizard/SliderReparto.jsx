@@ -1,4 +1,4 @@
-import { FAMILIAS } from "../../lib/notepadFields.js";
+import { FAMILIAS, FAMILIA_LABELS } from "../../lib/notepadFields.js";
 import { mover, normalizar, repartoAFreqs } from "../../lib/reparto.js";
 import { SliderEjes } from "./SliderEjes.jsx";
 
@@ -40,14 +40,8 @@ const ARTE = {
   verdura: "/categories/cut/verduras.png",
 };
 
-const ETIQUETA = {
-  carne: "Carne",
-  pescado: "Pescado",
-  legumbres: "Legumbres",
-  pasta_arroz: "Pasta y arroz",
-  huevos: "Huevos",
-  verdura: "Verdura",
-};
+// La etiqueta de cada familia vive con FAMILIAS (lib/notepadFields.js).
+const ETIQUETA = FAMILIA_LABELS;
 
 /** Los mismos colores que FOOD_META en Onboarding: es la misma lista. */
 const COLOR = {

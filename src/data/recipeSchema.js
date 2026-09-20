@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { STEP_KINDS, STEP_PARTS } from "../lib/recipeSteps.js";
+import { UNITS } from "./ingredientSchema.js";
 
 // Canonical taxonomy for the recipe catalog. Adding a new category/protein/etc
 // requires updating this file — that's the point: it forces a conscious
@@ -42,6 +43,23 @@ const MAIN_PROTEINS = [
   "cerdo", "huevo", "legumbre", "marisco", "none", "pavo",
   "pescado_azul", "pescado_blanco", "pollo", "ternera",
 ];
+
+/**
+ * mainProtein → familia de proteína, que es el grano al que trabajan las reglas
+ * de variedad (regla 3 de validateMenu, el planner, los platos fijos del menú
+ * escolar): pollo y pavo son "carne" para no repetir, aunque sean enums
+ * distintos para el filtro.
+ *
+ * Vive AQUÍ, junto al enum que indexa, porque estuvo copiada tres veces
+ * (aiPlanner.js, fixedDishes.js, validateMenu.js) y una tabla copiada es un
+ * bug esperando: añadir un valor al enum obligaba a acordarse de tres sitios.
+ * `none` no está a propósito: no es una proteína y no agrupa con nada.
+ */
+const PROTEIN_GROUP_BY_MAIN_PROTEIN = {
+  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
+  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
+  legumbre: "legumbres", huevo: "huevos",
+};
 
 // Los dos ejes de estilo, con nombre y exportados (11 sep 2026). Hasta ahora
 // eran arrays inline dentro del schema, y por eso vivían TRES veces: aquí, como
@@ -206,7 +224,8 @@ const ALLERGENS = [
   "cacahuetes", "soja", "apio", "mostaza", "sulfitos", "altramuces",
 ];
 
-const UNITS = ["g", "ml", "ud"];
+// Las tres unidades del catálogo se definen en ingredientSchema.js (el
+// ingrediente es lo que se mide); aquí solo se importan.
 
 // Coarse dietary signals for the "menú más cuidado" profiles. Optional and
 // usually derived at load time (lib/healthFlags.js), but a recipe may declare
@@ -863,7 +882,7 @@ export function effectiveRecipeTime(recipe, eaters) {
   return recipe.time * (1 + 0.12 * extra);
 }
 
-export { CARB_TYPE_BY_BASE, COCINAS, DEPRECATED_CATEGORIES, MAIN_BASES, MAIN_INGREDIENTS, SAUCE_COMPAT_TAGS, TECNICAS };
+export { CARB_TYPE_BY_BASE, COCINAS, DEPRECATED_CATEGORIES, MAIN_BASES, MAIN_INGREDIENTS, MAIN_PROTEINS, PROTEIN_GROUP_BY_MAIN_PROTEIN, SAUCE_COMPAT_TAGS, TECNICAS };
 
 /**
  * Validates every recipe in `recipes` against RecipeSchema.

@@ -6,7 +6,7 @@
  */
 
 import { HEALTH_PROFILE_BADGE } from "../lib/healthProfileMatch.js";
-import { CARB_TYPE_BY_BASE, isMontaje } from "../data/recipeSchema.js";
+import { CARB_TYPE_BY_BASE, PROTEIN_GROUP_BY_MAIN_PROTEIN, isMontaje } from "../data/recipeSchema.js";
 import { esCasqueria } from "../lib/casqueria.js";
 import { clavesDeReceta } from "../lib/bases.js";
 
@@ -115,14 +115,8 @@ const WEEKDAY_SLUGS = new Set(["lun", "mar", "mie", "jue", "vie"]);
 // same-day clash rule (3c) and applyFallback, so "no repetir carne/pescado el
 // mismo día" means the same thing everywhere. Anything not mapped (e.g.
 // "none") falls through to its raw value.
-const PROTEIN_GROUP_MAP = {
-  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
-  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
-  legumbre: "legumbres", huevo: "huevos",
-};
-
 function proteinGroup(mainProtein) {
-  return PROTEIN_GROUP_MAP[mainProtein] ?? mainProtein;
+  return PROTEIN_GROUP_BY_MAIN_PROTEIN[mainProtein] ?? mainProtein;
 }
 
 // All protein GROUPS a dish carries — its mainProtein PLUS any secondary

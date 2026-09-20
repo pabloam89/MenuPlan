@@ -66,6 +66,20 @@ export const SERVICIOS = ["ambos", "comida", "cena"];
  */
 export const FAMILIAS = ["carne", "pescado", "legumbres", "pasta_arroz", "huevos", "verdura"];
 
+/**
+ * Etiqueta visible de cada familia. Vive junto a FAMILIAS porque es SU
+ * etiqueta: estuvo copiada en menuInsights.js y profileSummary.js, y una
+ * familia nueva habría salido sin nombre en una pantalla y con él en otra.
+ */
+export const FAMILIA_LABELS = {
+  carne: "Carne",
+  pescado: "Pescado",
+  legumbres: "Legumbres",
+  pasta_arroz: "Pasta y arroz",
+  huevos: "Huevos",
+  verdura: "Verdura",
+};
+
 export const CAMPOS = [
   {
     id: "freqs",

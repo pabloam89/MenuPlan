@@ -24,11 +24,10 @@
  * que se queda desincronizada.
  */
 
-import { BASES, claveDeBase, clavesDeReceta } from "./bases.js";
+import { BASE_POR_CLAVE, clavesDeReceta } from "./bases.js";
 import { ingredientCategoryFor } from "./ingredients.js";
 import { findIngredientForMarker, markerIngredientNames } from "./recipeSteps.js";
 
-const BASE_POR_CLAVE = new Map(BASES.map((b) => [claveDeBase(b), b]));
 
 /**
  * Lo que NUNCA se da por resuelto aunque solo aparezca en un paso de la base.

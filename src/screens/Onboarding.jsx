@@ -89,6 +89,7 @@ import {
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS, weekEntry } from "../lib/menuArchive.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
+import { FAMILIA_LABELS } from "../lib/notepadFields.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset } from "../lib/weekCalendar.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
@@ -7313,11 +7314,8 @@ function combinedGoalProfile(goalIds, goalDefs) {
   return { kcal: Math.max(1200, Math.min(3000, kcal)), freqs };
 }
 
-const FREQ_LABELS = {
-  legumbres: "Legumbres",
-  verdura: "Verdura",
-  pescado: "Pescado",
-};
+// La etiqueta de cada familia vive con FAMILIAS (lib/notepadFields.js).
+const FREQ_LABELS = FAMILIA_LABELS;
 
 function goalGridCellStyle(selected) {
   return {
