@@ -493,16 +493,45 @@ for (const r of crudoMal) {
 }
 
 // ── 5 · PARTES ─────────────────────────────────────────────────────────────
+// Ya no se recalcula aquí: se lee de src/data/derived/recipeParts.json, que
+// es la tabla intermedia que produce scripts/build-derived.mjs. Es el mismo
+// principio que el resto del fichero — una sola verdad por dato — y además
+// hace que este bloque hable del vector real (masa y macros por componente) y
+// no solo de si el campo está o no está.
 say("");
-say("═══ 5 · PARTES: el campo que dice qué es principal y qué guarnición ═══");
-const conSteps = estrella.filter((r) => (r.stepsRich ?? []).length);
-const conPart = conSteps.filter((r) => (r.stepsRich ?? []).some((s) => s?.part));
-const conMarcado = conSteps.filter((r) => (r.stepsRich ?? []).some((s) => /\{\{/.test(s?.text ?? "")));
-say(`  Estrella con stepsRich:        ${conSteps.length} (${(conSteps.length / estrella.length * 100).toFixed(1)} %)`);
-say(`  con marcado {{ingrediente}}:   ${conMarcado.length} (${(conMarcado.length / estrella.length * 100).toFixed(1)} %)`);
-say(`  con stepsRich[].part:          ${conPart.length} (${(conPart.length / estrella.length * 100).toFixed(1)} %)  ← el hueco`);
-say(`  derivables sin curar (tienen marcado y part): ${conPart.length}`);
-say(`  pendientes de curar:           ${conSteps.length - conPart.length}`);
+say("═══ 5 · PARTES: qué componente del plato es cada cosa ═══");
+const PARTES = JSON.parse(readFileSync(join(ROOT, "src", "data", "derived", "recipeParts.json"), "utf8"));
+const META = JSON.parse(readFileSync(join(ROOT, "src", "data", "derived", "_meta.json"), "utf8"));
+const porOrigen = { curado: [], monocomponente: [], sin_curar: [] };
+for (const r of estrella) {
+  const fila = PARTES[r.id];
+  if (fila) porOrigen[fila.origen]?.push(r);
+}
+const pcE = (n) => `${String(n).padStart(3)} (${(n / estrella.length * 100).toFixed(1)} %)`;
+say(`  Estrella con vector de partes curado:  ${pcE(porOrigen.curado.length)}`);
+say(`  monocomponente (no aplica, no es hueco): ${pcE(porOrigen.monocomponente.length)}`);
+say(`  sin curar:                             ${pcE(porOrigen.sin_curar.length)}  ← el hueco`);
+say("");
+say("  El hueco NO se puede tapar derivando. El operador determinista");
+say(`  (src/lib/derive/stepParts.js) concuerda con lo curado un ${(META.recipeParts.operador_determinista.concordancia_con_curado * 100).toFixed(1)} %,`);
+say("  y el techo es conceptual: la parte es propiedad del PLATO, no del");
+say("  ingrediente — la misma cebolla es sofrito del principal en una receta y");
+say("  la guarnición en otra. Rellenarlo exige el pipeline curado");
+say("  (scripts/enrich-recipe-steps.mjs --parts) sobre los objetivos que marca");
+say("  scripts/select-recipes-for-parts.mjs.");
+for (const r of porOrigen.sin_curar) {
+  add("partes", "media", r.id, r.name, "sin `part` en sus pasos y no es monocomponente");
+}
+// Lo que el vector ya permite decir, que era la pregunta original: ¿manda el
+// principal en el plato, o lo hace su guarnición?
+const conVector = porOrigen.curado.filter((r) => PARTES[r.id].partes?.principal);
+const dominaGuarnicion = conVector.filter((r) => {
+  const p = PARTES[r.id].partes;
+  return p.guarnicion && p.guarnicion.masa_g > p.principal.masa_g;
+});
+say("");
+say(`  de las ${conVector.length} con principal identificado, en ${dominaGuarnicion.length} pesa más la guarnición que el`);
+say("  principal. No es un error: es por qué el rol no se puede leer del peso.");
 
 // ── 6 · PIEZAS ─────────────────────────────────────────────────────────────
 say("");

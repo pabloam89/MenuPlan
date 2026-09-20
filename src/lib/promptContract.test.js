@@ -11,7 +11,7 @@ import {
   ExtensionReglaSchema,
 } from "./reglas.js";
 import { APPLIANCE_LABELS } from "./applianceMethods.js";
-import { CARB_TYPE_BY_BASE, MAIN_BASES } from "../data/recipeSchema.js";
+import { CARB_TYPE_BY_BASE, MAIN_BASES, PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 
 // The system prompts live server-side (api/_prompts.js) so /api/generate can't
 // be driven as a general-purpose LLM — see the header there. Two things can
@@ -121,6 +121,32 @@ describe("server-owned system prompts", () => {
     expect(veces, `esperaba ${literal} dos veces en el prompt del planificador`).toBe(2);
     // Y la base sin hidrato no se cuela en ninguna de las dos.
     expect(SYSTEM_PROMPTS.planner).not.toMatch(/\([a-z/]*legumbre[a-z/]*\)/);
+  });
+
+  it("el mapeo de freqs a proteína es el mismo que PROTEIN_GROUP_BY_MAIN_PROTEIN", () => {
+    // El planificador enumera en prosa qué mainProtein cuenta para cada tope
+    // semanal ("carne: ... o mainProtein pollo/pavo/cerdo/ternera"). Eso es
+    // exactamente la tabla PROTEIN_GROUP_BY_MAIN_PROTEIN (recipeSchema.js),
+    // escrita a mano por tercera vez: la tabla estuvo copiada en aiPlanner,
+    // fixedDishes y validateMenu, se unificó, y esta es la copia que queda
+    // porque el prompt vive en el servidor y no puede importarla.
+    //
+    // Añadir un valor al enum (p. ej. `pato`) sin tocar el prompt haría que
+    // el modelo no lo contara para el tope de carne: el menú se saltaría el
+    // máximo sin que nada avisara. Esto lo convierte en un test en rojo.
+    const porGrupo = {};
+    for (const [proteina, grupo] of Object.entries(PROTEIN_GROUP_BY_MAIN_PROTEIN)) {
+      (porGrupo[grupo] ??= []).push(proteina);
+    }
+    // Solo la parte de proteína: el grupo del tope ("carne") y la categoría
+    // del catálogo ("carnes") no se escriben igual, y ese mapeo no sale de
+    // esta tabla.
+    for (const [grupo, proteinas] of Object.entries(porGrupo)) {
+      const literal = `o mainProtein ${proteinas.join("/")}`;
+      const linea = SYSTEM_PROMPTS.planner.split("\n").find((l) => l.trim().startsWith(`- ${grupo}:`));
+      expect(linea, `el planificador no tiene línea para el tope "${grupo}"`).toBeDefined();
+      expect(linea, `la línea de "${grupo}" no enumera "${literal}"`).toContain(literal);
+    }
   });
 
   it("structure-recipe nombra los electrodomésticos por su id, el que manda el cliente", () => {
