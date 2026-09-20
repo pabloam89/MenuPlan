@@ -181,6 +181,7 @@ import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry } from "./lib/pantry.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
+import { useStatusBarSobreFondo } from "./lib/statusBar.js";
 import {
   normalizeDeltaBucketMap,
   makeDeltaBucket,
@@ -5993,6 +5994,10 @@ function FlipCaseLetter({ upper, lower, active, activeColor, inactiveColor, dela
 
 function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
+
+  // El vídeo de bienvenida ocupa la pantalla entera sobre negro verdoso, y el
+  // reloj cae encima: en oscuro desapareceria.
+  useStatusBarSobreFondo("oscuro");
 
   // El wordmark alterna entre las dos lecturas de las mismas 6 letras
   // (H-o-m-e-n-u): "HoMenu" (Tu menú) y "HomeNu" (como en casa). El verde

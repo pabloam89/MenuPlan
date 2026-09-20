@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { BookOpen, Plus, SlidersHorizontal, Sparkles } from "../components/icons.jsx";
-import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
+import { BottomNav, bottomNavSpacer, safeTop } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { filterMyLibraryRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
@@ -57,6 +57,7 @@ export function RecipesScreen({
         <div
           style={{
             padding: "20px 18px 14px",
+            paddingTop: safeTop(20),
             maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
             display: "flex", alignItems: "center", justifyContent: "space-between",
           }}

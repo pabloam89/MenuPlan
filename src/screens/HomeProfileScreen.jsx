@@ -9,7 +9,7 @@ import {
   Info,
   ShieldCheck,
 } from "../components/icons.jsx";
-import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
+import { Avatar, BottomNav, bottomNavSpacer, safeTop, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember,
   resolveAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
@@ -290,6 +290,7 @@ export function HomeProfileScreen({
 
       <div style={{
         padding: `20px 18px calc(${bottomNavSpacer()} + 18px)`,
+        paddingTop: safeTop(20),
         maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
       }}>
 

@@ -86,6 +86,7 @@ import {
   groupAvatarFaces,
   ToggleSwitch,
   WeekChips,
+  safeTop,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
@@ -258,6 +259,11 @@ export function OnboardingShell({
     <div
       style={{
         padding: "12px 20px 0",
+        // La fila de Atrás / puntos / cerrar va pegada arriba, asi que hay que
+        // bajarla del reloj. Salvo en demo: ahi esto no ocupa la pantalla, va
+        // dentro de un marco pequeño, y sumarle el hueco del reloj lo
+        // descuadraria contra el borde del marco.
+        paddingTop: heightOverride ? 12 : safeTop(12),
         // En demo (carrusel) fijamos la altura al frame para que el scroll ocurra
         // DENTRO del body (como una pantalla real) y no haya saltos raros.
         height: heightOverride ?? "100dvh",

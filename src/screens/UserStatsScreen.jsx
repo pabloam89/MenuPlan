@@ -18,6 +18,7 @@ import {
   Avatar,
   BottomNav,
   bottomNavSpacer,
+  safeTop,
   GoogleButton,
   SegmentedTabBar,
   SegmentedTabButton,
@@ -482,6 +483,7 @@ export function UserStatsScreen({
         <div
           style={{
             padding: "20px 18px 14px",
+            paddingTop: safeTop(20),
             maxWidth: 420,
             margin: "0 auto",
             width: "100%",

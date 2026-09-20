@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Users, Compass, Search, Bell, Plus, Check, CalendarDays, X, Lock, FolderPlus, Heart, Meh, Ban, Ban as BlockIcon, Share2, Flag, MoreVertical, ChefHat, Layers2, ChevronDown, ChevronLeft, Info } from "../components/icons.jsx";
-import { BottomNav, bottomNavSpacer, Avatar, EmptyIllustration, GroupAvatarStack } from "../components/ui.jsx";
+import { BottomNav, bottomNavSpacer, safeTop, Avatar, EmptyIllustration, GroupAvatarStack } from "../components/ui.jsx";
 import { RecipePoster, PosterCorners, ActionButton } from "../components/SwipeCard.jsx";
 import { ProfileDrawer } from "../components/ProfileDrawer.jsx";
 import { PersonSheet } from "../components/PersonSheet.jsx";
@@ -575,6 +575,10 @@ export function FeedScreen({
         <div
           style={{
             padding: "20px 18px 14px",
+            // La campana y el avatar viven en la esquina de arriba, que es justo
+            // donde el iPhone pone el reloj: sin esto quedan debajo y no se
+            // pueden pulsar. Ver safeTop() en ui.jsx.
+            paddingTop: safeTop(20),
             maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
             display: "flex", alignItems: "center", justifyContent: "space-between",
           }}
@@ -2336,7 +2340,7 @@ const peekBar = {
   // se le pusiera.
   flexShrink: 0,
   padding: "20px 16px 14px",
-  paddingTop: "calc(20px + env(safe-area-inset-top, 0px))",
+  paddingTop: safeTop(20),
   background: HEADER_BAND,
   borderBottom: "1px solid #dfeae3",
 };

@@ -41,7 +41,7 @@ import {
   ChevronLeft,
   ChevronUp,
 } from "../components/icons.jsx";
-import { ProgressDots, SegmentedControl } from "../components/ui.jsx";
+import { ProgressDots, SegmentedControl, safeTop } from "../components/ui.jsx";
 import { RestrictionTabCard, APPLIANCES, CARD_ACCENT_TEAL } from "./Onboarding.jsx";
 import { DishDetail } from "./Menu.jsx";
 import { RecipePoster } from "../components/SwipeCard.jsx";
@@ -2062,7 +2062,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   return (
     <div style={{ height: "100dvh", overflow: "hidden", background: BG, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
       {/* Header: back / progress dots / close — same language as onboarding */}
-      <div style={{ minHeight: 38, padding: "16px 20px 0", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+      <div style={{ minHeight: 38, padding: "16px 20px 0", paddingTop: safeTop(16), display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <div style={{ flex: "0 0 auto" }}>
           <button type="button" onClick={goBack} style={headerBtnStyle}>
             Atrás

@@ -9,7 +9,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="HoMenu" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- `viewport-fit=cover` va aqui, fijo, y no se toca en tiempo de ejecucion:
+         es lo unico que hace que los `env(safe-area-inset-*)` dejen de valer 0.
+         Con el, la app se dibuja de borde a borde y es el CSS el que aparta el
+         contenido del reloj y del indicador de inicio, usando el hueco REAL que
+         reporta cada iPhone. Asi vale igual para un SE sin notch, para un mini y
+         para uno con Dynamic Island, sin medir nada por modelo.
+         Tambien hace falta en la PWA: con `black-translucent` (arriba) el
+         contenido ya cae bajo la barra de estado, y sin esto no habia forma de
+         apartarlo. En un navegador normal los insets valen 0 y no cambia nada. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />

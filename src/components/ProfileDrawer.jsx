@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X, Users, UserPlus, Check, MessageCircle, Camera, ThumbsUp, ThumbsDown, CookingPot, ArrowUpRight, ChevronDown, Pencil, ShieldOff } from "./icons.jsx";
 import { countOwnerCookings } from "../lib/cookingsSync.js";
-import { Avatar } from "./ui.jsx";
+import { Avatar, safeTop } from "./ui.jsx";
 import { FollowListSheet } from "./FollowListSheet.jsx";
 import { relativeTime, personColor } from "../lib/socialUi.js";
 import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
@@ -692,10 +692,16 @@ const drawer = {
   overflowY: "auto", boxShadow: "-14px 0 40px rgba(20,47,29,.28)",
 };
 
-const head = { padding: "20px 20px 16px", background: "linear-gradient(180deg, #e9f4ed 0%, #fff 100%)" };
+// El cajon va a altura completa pegado arriba, asi que su cabecera y su aspa de
+// cerrar caen donde el iPhone pinta el reloj si no se apartan.
+const head = {
+  padding: "20px 20px 16px",
+  paddingTop: safeTop(20),
+  background: "linear-gradient(180deg, #e9f4ed 0%, #fff 100%)",
+};
 
 const closeBtn = {
-  position: "absolute", top: 12, right: 12, zIndex: 2,
+  position: "absolute", top: safeTop(12), right: 12, zIndex: 2,
   display: "flex", alignItems: "center", justifyContent: "center",
   width: 30, height: 30, borderRadius: 10,
   border: "1.5px solid #d5e6da", background: "#fff", color: GREEN, cursor: "pointer",

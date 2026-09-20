@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, Heart, History, Loader2, RotateCw, Sparkles, Trash2, X } from "../components/icons.jsx";
-import { BottomNav, EmptyIllustration, GoogleButton, APP_SHELL_MAX_WIDTH, bottomNavSpacer } from "../components/ui.jsx";
+import { BottomNav, EmptyIllustration, GoogleButton, APP_SHELL_MAX_WIDTH, bottomNavSpacer, safeTop } from "../components/ui.jsx";
 import { sortMenusDesc, orderedWeeks, formatMenuRangeLabel, clampWeekCount, MAX_MENU_WEEKS, menuHasContent } from "../lib/menuArchive.js";
 
 const cardStyle = {
@@ -479,7 +479,7 @@ export function MenusScreen({
   return (
     <div style={{ background: "#f7f9f7", minHeight: "100dvh", paddingBottom: bottomNavSpacer() }}>
       {/* Title band — mismo tratamiento que Recetas/Compra/Menú (2026-08-24). */}
-      <div style={{ background: HEADER_BAND, padding: "20px 20px 14px" }}>
+      <div style={{ background: HEADER_BAND, padding: "20px 20px 14px", paddingTop: safeTop(20) }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
           {onBack && (
             <button

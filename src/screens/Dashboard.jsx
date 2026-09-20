@@ -6,7 +6,7 @@ import {
   Settings,
   Sparkles,
 } from "../components/icons.jsx";
-import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
+import { Avatar, BottomNav, bottomNavSpacer, safeTop } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { planHasDishes } from "../lib/menuArchive.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
@@ -379,6 +379,7 @@ export function DashboardScreen({
         style={{
           flex: 1,
           padding: `18px 18px calc(${bottomNavSpacer()} + 12px)`,
+          paddingTop: safeTop(18),
           maxWidth: 420,
           margin: "0 auto",
           width: "100%",

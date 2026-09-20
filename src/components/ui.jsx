@@ -456,6 +456,32 @@ export function bottomNavSpacer() {
   return `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom, 0px))`;
 }
 
+/**
+ * El padding de arriba de una cabecera de pantalla, ya con el hueco de la barra
+ * de estado sumado.
+ *
+ * La app se dibuja de borde a borde (`viewport-fit=cover` en index.html, y la
+ * barra de estado en modo overlay en capacitor.config.json), asi que la primera
+ * franja de cada pantalla queda DEBAJO del reloj. Eso es lo que queremos
+ * visualmente — la banda de color sube hasta el borde en vez de dejar una tira
+ * blanca — pero obliga a apartar el contenido, o los botones de la esquina
+ * acaban bajo el reloj y no se pueden pulsar.
+ *
+ * Se hace con `env()` y no con un numero por dispositivo a proposito: el hueco
+ * no es el mismo en un SE (sin notch), en un mini (pantalla pequeña pero notch
+ * igual de grande) o en uno con Dynamic Island, y es iOS quien sabe cuanto mide
+ * en cada uno. Asi no hay lista de modelos que mantener, y un iPhone que salga
+ * mañana tambien sale bien.
+ *
+ * En la web de escritorio y en Safari con su barra de direcciones el inset vale
+ * 0, y queda exactamente el padding que se pide.
+ *
+ * @param {number} px El padding de diseño, el que tendria sin barra de estado.
+ */
+export function safeTop(px) {
+  return `calc(${px}px + env(safe-area-inset-top, 0px))`;
+}
+
 // One single bar everywhere in the app — it used to swap its 4-5 items
 // depending on a "home"/"menu" context prop, which meant the tabs under your
 // thumb silently changed screen to screen (a real source of "me pierdo" —

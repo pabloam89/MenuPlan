@@ -32,7 +32,7 @@ import {
 } from "../components/icons.jsx";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
-import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";
+import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, safeTop, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";
 import {
   SwipePurchaseShell,
   // Aliased: Pantry.jsx already has its own local AisleIcon (a small item-
@@ -2176,7 +2176,7 @@ export function PantryScreen({
 
   return (
     <div style={{ background: "#fff", minHeight: "100dvh" }}>
-      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px" }}>
+      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px", paddingTop: safeTop(20) }}>
         {header}
       </div>
       <div style={{ padding: `16px 16px calc(${bottomNavSpacer()} + 28px)` }}>
@@ -2238,7 +2238,7 @@ export function PantryScreen({
                 animation: "pantrySidebarIn .3s cubic-bezier(.4,0,.2,1) both",
               }}
             >
-              <div style={{ background: "#e9f4ed", padding: "18px 16px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ background: "#e9f4ed", padding: "18px 16px 14px", paddingTop: safeTop(18), display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                   <span
                     style={{

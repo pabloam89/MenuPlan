@@ -20,6 +20,7 @@ import {
   GroupScopePicker,
   WeekRangeBadge,
   bottomNavSpacer,
+  safeTop,
 } from "../components/ui.jsx";
 import { groupsFromModel } from "../lib/groups.js";
 import { getConsumptionInsights, mergeConsumptionGroups, filterConsumptionByMeal } from "../lib/consumptionInsights.js";
@@ -81,7 +82,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
 
   return (
     <div style={{ background: "#f7f9f7", minHeight: "100dvh" }}>
-      <div style={{ padding: "20px 16px 0" }}>
+      <div style={{ padding: "20px 16px 0", paddingTop: safeTop(20) }}>
         <div
           style={{
             display: "flex",

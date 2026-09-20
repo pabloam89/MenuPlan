@@ -18,6 +18,7 @@ import {
   BottomNav,
   GroupAvatarStack,
   bottomNavSpacer,
+  safeTop,
   GoogleButton,
   groupAvatarFaces,
 } from "../components/ui.jsx";
@@ -1437,6 +1438,7 @@ export function HouseholdsScreen({
         <div
           style={{
             padding: "20px 16px 14px",
+            paddingTop: safeTop(20),
             maxWidth: 440,
             margin: "0 auto",
             width: "100%",

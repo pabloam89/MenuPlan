@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeftRight, CalendarOff, Check, Clock3, CopyPlus, Fish, History, RotateCw, Search, Shuffle, Sparkles, ThumbsDown, Trash2 } from "../components/icons.jsx";
+import { safeTop } from "../components/ui.jsx";
 import { OnboardingMembers, OnboardingRestrictions, OnboardingSchoolMenu, OnboardingSchedule, OnboardingMealStyle } from "./Onboarding.jsx";
 import { DishDetail, MenuScreen, RoscoMenu } from "./Menu.jsx";
 import { DashboardScreen } from "./Dashboard.jsx";
@@ -1058,6 +1059,7 @@ export function ValuePropsCarousel({ onFinish }) {
             position: "relative", zIndex: 3, flexShrink: 0,
             minHeight: 30,
             padding: "12px 22px 0",
+            paddingTop: safeTop(12),
             display: "flex", alignItems: "center", gap: 8,
           }}
         >

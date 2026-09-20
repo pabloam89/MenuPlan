@@ -23,6 +23,7 @@ import {
   Avatar,
   GoogleButton,
   bottomNavSpacer,
+  safeTop,
 } from "../components/ui.jsx";
 import { memberAvatarColor, memberAvatarThumbSrc, stageLabel, migrateHomeRole } from "../lib/stages.js";
 import { computeStreak } from "../lib/menuStats.js";
@@ -209,6 +210,7 @@ export function SettingsScreen({
       <div
         style={{
           padding: "20px 16px 0",
+          paddingTop: safeTop(20),
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
@@ -471,6 +473,7 @@ export function AccountScreen({
       <div
         style={{
           padding: "16px 16px 0",
+          paddingTop: safeTop(16),
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
