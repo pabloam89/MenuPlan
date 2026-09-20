@@ -149,6 +149,31 @@ const YA_LIMPIO = /pelad|limpi|sin cascara|sin concha|carne de|desvainad/;
  * tienen id propio (`anchoa-en-aceite`, `atun`, `ventresca`) — y es además el
  * criterio que este script dice seguir en todas partes.
  */
+/**
+ * Los dos vocabularios de alérgeno NO coinciden: el ingrediente habla en ids
+ * de la UE (`crustaceos`, `huevos`, `leche`, `frutos_cascara`) y la receta en
+ * los suyos (`marisco`, `huevo`, `lactosa`, `frutos_secos`). Compararlos en
+ * crudo daría falsos positivos en masa.
+ *
+ * Esto es una COPIA de `ALLERGEN_ALIASES` (src/lib/allergens.js) y se copia a
+ * regañadientes: ese módulo importa iconos `.jsx` y no se puede cargar desde
+ * node pelado. Para que la copia no se desincronice en silencio —que es
+ * exactamente lo que pasó con la tabla de pesos por pieza— hay un test que
+ * compara las dos: src/lib/auditAllergenAliases.test.js.
+ */
+const ALIAS_ALERGENO = {
+  gluten: "gluten", crustaceos: "crustaceos", crustaceo: "crustaceos",
+  marisco: "crustaceos", mariscos: "crustaceos", huevo: "huevos",
+  huevos: "huevos", pescado: "pescado", cacahuete: "cacahuetes",
+  cacahuetes: "cacahuetes", soja: "soja", lactosa: "leche", leche: "leche",
+  frutos_secos: "frutos_cascara", frutos_de_cascara: "frutos_cascara",
+  frutos_cascara: "frutos_cascara", apio: "apio", mostaza: "mostaza",
+  sesamo: "sesamo", "sésamo": "sesamo", sulfito: "sulfitos",
+  sulfitos: "sulfitos", dioxido_de_azufre: "sulfitos", altramuz: "altramuces",
+  altramuces: "altramuces", molusco: "moluscos", moluscos: "moluscos",
+};
+const normalizeAllergenId = (raw) => ALIAS_ALERGENO[norm(raw).replace(/\s+/g, "_")] ?? null;
+
 const ACEITES = new Set([
   "aceite-oliva", "aceite-oliva-virgen", "aceite-girasol", "aceite-de-sesamo",
 ]);
@@ -437,13 +462,20 @@ const sinTecnica = recipes.filter((r) => (r.mealRole ?? []).includes("guarnicion
 say(`  guarniciones sin tecnica: ${sinTecnica.length}`);
 for (const r of sinTecnica) add("tecnica", "media", r.id, r.name, "guarnición sin `tecnica`");
 
-const FRITURA = /frit[ao]s?\b|rebozad|empanad|buñuelo|croqueta|tempura/;
-const frituraMal = estrella.filter((r) => FRITURA.test(norm(r.name)) && r.tecnica && r.tecnica !== "fritura");
-say(`  nombre de fritura con tecnica ≠ fritura: ${frituraMal.length}  (el valor 'fritura' no existe en el enum)`);
-for (const r of frituraMal) add("tecnica", "media", r.id, r.name, `nombre de fritura pero tecnica: ${r.tecnica}`);
+// El check de "nombre de fritura con tecnica ≠ fritura" ESTUVO aquí y se
+// quitó: eran 48 hallazgos y ninguno era un hallazgo.
+//
+//   · `tecnica` no es "qué técnica" sino la DOMINANTE resuelta por prioridad,
+//     y `scripts/mark-catalog-axes.mjs:119` mapea a propósito todo lo frito a
+//     `sarten`. Los 48 eran la salida deliberada del generador, no una
+//     desviación de él.
+//   · el concepto "frito" ya vive en otro eje y ese sí tiene consumidor:
+//     `healthFlags.frito` (lib/healthFlags.js) alimenta la regla
+//     `dos_fritos_seguidos` de validateMenu, y marca 51 de las 52.
+//   · y el check tenía dos bugs propios: `/frit[ao]s?\b/` casaba con
+//     "sofrito", y casaba con la GUARNICIÓN — "Chuletón a la parrilla con
+//     patatas fritas" es plancha y está bien, lo frito es el acompañamiento.
 
-// Una técnica declarada puede ser directamente falsa, no solo incompleta: un
-// curado en frío de 24 h etiquetado `sarten` engaña más que un campo vacío.
 // `escabeche` NO va aquí: se cuece y luego se marina, así que una técnica de
 // calor es correcta. `curado` solo cuenta sobre la proteína — "cheddar curado"
 // y "queso curado" son el queso de un plato que sí se cocina.
@@ -490,10 +522,19 @@ const huerfanos = [...porIngrediente.entries()].filter(([, e]) => piezaEnGramos(
 const nHuerfanas = huerfanos.reduce((a, [, e]) => a + e.c, 0);
 say(`  líneas en 'ud': ${lineasUd} sobre ${porIngrediente.size} ingredientes distintos`);
 say(`  que el catálogo o PIECE_WEIGHTS saben pesar: ${lineasUd - nHuerfanas} (${((lineasUd - nHuerfanas) / lineasUd * 100).toFixed(0)} %)`);
-say(`  huérfanas: ${nHuerfanas} sobre ${huerfanos.length} ingredientes. No pesan nada, así que`);
-say("  bajan la cobertura de su receta y la sacan del bloque 1. Cada una necesita");
-say("  un `pieza: { nombre, g }` en ingredients.json — que además arregla la");
-say("  lente 'Unidades' de la compra, no solo esta auditoría.");
+say(`  huérfanas: ${nHuerfanas} sobre ${huerfanos.length} ingredientes. No pesan nada.`);
+say("");
+say("  OJO con el arreglo evidente. Añadirles `pieza` NO es gratis y no arregla");
+say("  la compra: la empeora. `aggregationUnit` (lib/shoppingBuilder.js) saca la");
+say("  línea de `ud` en cuanto existe un peso, y la lente 'Unidades' vuelve a");
+say("  piezas con `gramsPerPiece`, que no mira el catálogo. Sin entrada en");
+say("  PIECE_WEIGHTS el viaje es de ida: '16 uds' pasa a '128 g' para siempre, y");
+say("  la línea deja de redondear a pieza entera. Se probó y se revirtió; el");
+say("  candado está en src/lib/piezaRoundTrip.test.js.");
+say("");
+say("  El defecto de fondo es que `aggregationUnit` convierte cuando SABE pesar,");
+say("  en vez de cuando el ingrediente aparece de verdad en las dos unidades.");
+say("  Eso ya afecta a 23 ingredientes desde antes, huevo y pan entre ellos.");
 say("");
 for (const [n, e] of huerfanos.sort((a, b) => b[1].c - a[1].c).slice(0, 15)) {
   const c = e.c;
@@ -503,12 +544,58 @@ for (const [n, e] of huerfanos.sort((a, b) => b[1].c - a[1].c).slice(0, 15)) {
 if (huerfanos.length > 15) say(`     … y ${huerfanos.length - 15} ingredientes más`);
 
 // ── 7 · ALÉRGENOS ──────────────────────────────────────────────────────────
+// El único eje donde un falso negativo no es calidad sino riesgo, así que la
+// sospecha no basta: hay que cruzarlo. Se cruza con `normalizeAllergenId`
+// porque los dos vocabularios NO coinciden — el ingrediente habla en ids de la
+// UE (`crustaceos`, `huevos`, `leche`, `frutos_cascara`) y la receta en los
+// suyos (`marisco`, `huevo`, `lactosa`, `frutos_secos`). Comparar en crudo
+// daría falsos positivos en masa.
+//
+// `cookingAllergens` NO entra en la unión, a propósito: ingredientSchema lo
+// define como segundo nivel (el vino de un sofrito no excluye la receta, la
+// adapta) y prohíbe que un alérgeno esté en los dos niveles.
 say("");
 say("═══ 7 · ALÉRGENOS: el único fallo que es riesgo, no calidad ═══");
 const sinAlergenos = estrella.filter((r) => Array.isArray(r.allergens) && r.allergens.length === 0);
-say(`  Estrella con allergens: [] (vacío explícito): ${sinAlergenos.length}`);
-say("  puede ser correcto, pero es el único eje donde un falso negativo no es calidad.");
-for (const r of sinAlergenos) add("alergenos", "revisar", r.id, r.name, "allergens: [] — verificar contra lib/allergens.js");
+const alergenosDeIngredientes = (r) => {
+  const u = new Set();
+  for (const l of r.ingredients ?? []) {
+    for (const a of BY_ID.get(l.ingredientId)?.allergens ?? []) u.add(normalizeAllergenId(a));
+  }
+  return [...u].filter(Boolean);
+};
+const falsosVacios = sinAlergenos
+  .map((r) => ({ r, faltan: alergenosDeIngredientes(r) }))
+  .filter((x) => x.faltan.length);
+say(`  Estrella con allergens: [] — ${sinAlergenos.length}`);
+say(`  de esas, con algún ingrediente que SÍ declara alérgeno: ${falsosVacios.length}`);
+for (const x of falsosVacios) {
+  add("alergenos", "alta", x.r.id, x.r.name, `allergens: [] pero sus ingredientes declaran ${x.faltan.join(", ")}`);
+}
+// Contraste: si el oráculo tuviera margen, encontraría algo en las que SÍ
+// declaran. Encuentra casi nada, o sea que las dos fuentes ya concuerdan.
+const conAlergenos = estrella.filter((r) => (r.allergens ?? []).length);
+const ampliables = conAlergenos.filter((r) => {
+  const dec = new Set((r.allergens ?? []).map(normalizeAllergenId));
+  return alergenosDeIngredientes(r).some((a) => !dec.has(a));
+});
+say(`  contraste — de las ${conAlergenos.length} que sí declaran, la unión añadiría algo en ${ampliables.length}.`);
+say("  El cruce no encuentra falsos vacíos, y tampoco es un detector romo: las");
+say("  dos fuentes ya están de acuerdo. Un `[]` aquí significa 'sin alérgeno'.");
+
+// Lo que sí está descuadrado es el segundo nivel, y es convención, no riesgo.
+const conCocinado = estrella.filter((r) =>
+  (r.ingredients ?? []).some((l) => (BY_ID.get(l.ingredientId)?.cookingAllergens ?? []).length));
+const sinDeclararCocinado = conCocinado.filter((r) =>
+  !(r.allergens ?? []).map(normalizeAllergenId).includes("sulfitos"));
+say("");
+say(`  el desajuste real: de ${conCocinado.length} recetas con un ingrediente de alérgeno`);
+say(`  de cocinado (vino, vinagre, brandy), ${conCocinado.length - sinDeclararCocinado.length} declaran sulfitos y ${sinDeclararCocinado.length} no.`);
+say("  Es una convención sin fijar, no un riesgo: `sulfitos` es uno de los seis");
+say("  que la red por nombre de lib/allergens.js ya caza por su cuenta.");
+for (const r of sinDeclararCocinado) {
+  add("alergenos", "baja", r.id, r.name, "lleva alérgeno de cocinado y no declara sulfitos");
+}
 
 // ── 8 · ALIAS ──────────────────────────────────────────────────────────────
 // Un alias no es un sinónimo: es una promesa de que las dos cosas se compran

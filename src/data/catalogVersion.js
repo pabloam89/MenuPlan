@@ -96,4 +96,9 @@
 // Supabase sigue en 27, así que el bundle ya ganaba con 28. Se sube igual para
 // que el margen no se cierre: si alguien sincroniza la nube a 28, el empate se
 // lo llevaría ella — y su espejo no tiene estos pasos marcados.
-export const BUNDLED_CATALOG_VERSION = 29;
+//
+// v30 — saneamiento de datos de la auditoría de veracidad: 7 recetas pasan de
+// `mainBase: patatas` a `boniato` (no llevaban ni un gramo de patata) y el
+// gravlax pasa de `tecnica: sarten` a `crudo`. La nube no tiene ninguno de los
+// dos, así que el bundle tiene que ganar.
+export const BUNDLED_CATALOG_VERSION = 30;

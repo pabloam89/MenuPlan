@@ -1693,10 +1693,6 @@
       "sugar100g": null,
       "saturatedFat100g": 4,
       "sodium100g": 272
-    },
-    "pieza": {
-      "nombre": "placa",
-      "g": 8
     }
   },
   {
@@ -2210,10 +2206,6 @@
       "sugar100g": null,
       "saturatedFat100g": 0.2,
       "sodium100g": 400
-    },
-    "pieza": {
-      "nombre": "cigala",
-      "g": 40
     }
   },
   {
@@ -2334,11 +2326,7 @@
     "isVegan": false,
     "defaultUnit": "ud",
     "medianAmount": 8,
-    "nutrition": null,
-    "pieza": {
-      "nombre": "codorniz",
-      "g": 200
-    }
+    "nutrition": null
   },
   {
     "id": "cointreau",
@@ -3413,10 +3401,6 @@
       "sugar100g": null,
       "saturatedFat100g": null,
       "sodium100g": 4
-    },
-    "pieza": {
-      "nombre": "granada",
-      "g": 280
     }
   },
   {
@@ -3565,11 +3549,7 @@
     "isVegan": false,
     "defaultUnit": "ud",
     "medianAmount": 2,
-    "nutrition": null,
-    "pieza": {
-      "nombre": "pan",
-      "g": 60
-    }
+    "nutrition": null
   },
   {
     "id": "harina",
@@ -5280,11 +5260,7 @@
     "isVegan": true,
     "defaultUnit": "ud",
     "medianAmount": 2,
-    "nutrition": null,
-    "pieza": {
-      "nombre": "muffin",
-      "g": 60
-    }
+    "nutrition": null
   },
   {
     "id": "muslo-de-pollo",
@@ -5496,11 +5472,7 @@
     "isVegan": true,
     "defaultUnit": "ud",
     "medianAmount": 16,
-    "nutrition": null,
-    "pieza": {
-      "nombre": "oblea",
-      "g": 12
-    }
+    "nutrition": null
   },
   {
     "id": "orecchiette",
@@ -6153,11 +6125,7 @@
     "isVegan": false,
     "defaultUnit": "ud",
     "medianAmount": 2,
-    "nutrition": null,
-    "pieza": {
-      "nombre": "perdiz",
-      "g": 350
-    }
+    "nutrition": null
   },
   {
     "id": "perejil",
@@ -6633,10 +6601,6 @@
       "sugar100g": null,
       "saturatedFat100g": null,
       "sodium100g": 1
-    },
-    "pieza": {
-      "nombre": "pomelo",
-      "g": 300
     }
   },
   {
@@ -8221,11 +8185,7 @@
     "isVegan": true,
     "defaultUnit": "ud",
     "medianAmount": 4,
-    "nutrition": null,
-    "pieza": {
-      "nombre": "tortilla",
-      "g": 30
-    }
+    "nutrition": null
   },
   {
     "id": "tortilla-de-trigo",
@@ -8656,10 +8616,6 @@
       "sugar100g": null,
       "saturatedFat100g": 5.5,
       "sodium100g": 253
-    },
-    "pieza": {
-      "nombre": "vol-au-vent",
-      "g": 20
     }
   },
   {

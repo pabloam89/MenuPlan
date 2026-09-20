@@ -49,7 +49,12 @@ const norm = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/\p{M
 const BASES = [
   ["arroz", /\b(arroz|risotto)/, 40],
   ["pasta", /\b(espagueti|macarron|pasta|tallarin|fideo|penne|rigatoni|tagliatelle|lasan|canelon|ravioli|tortellini|fettuccine|linguine|noodle)/, 40],
-  ["patatas", /\b(patata|boniato)/, 80],
+  // `boniato` ANTES que `patatas` y con entrada propia: el enum lo tiene como
+  // valor y bases.json le da su propia tanda (una bandeja de boniato asado no
+  // es una olla de patatas cocidas). Metido dentro de `patatas`, el generador
+  // no podia emitirlo nunca y cada receta de boniato nacia mal etiquetada.
+  ["boniato", /\b(boniato|batata)/, 80],
+  ["patatas", /\bpatata/, 80],
   ["quinoa", /\bquinoa/, 40],
   ["cuscus", /\b(cuscus|bulgur)/, 40],
   // `pan` con frontera por los DOS lados: sin la de la derecha se comía la
