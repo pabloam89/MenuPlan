@@ -82,7 +82,7 @@ export default async function handler(req, res) {
         lineas.join("\n") +
         (enlace ? `\nRetirar: ${enlace}` : "\nRetirar: falta MODERATION_SECRET"),
     );
-    return res.status(200).json({ ok: true, delivered: "log" });
+    return res.status(200).json({ ok: true, delivered: "log", causa: "sin_api_key" });
   }
 
   const html =
@@ -113,12 +113,17 @@ export default async function handler(req, res) {
         (await envio.text()).slice(0, 300),
         "\n" + lineas.join("\n"),
       );
-      return res.status(200).json({ ok: true, delivered: "log" });
+      // El codigo de Resend viaja en la respuesta a proposito: quien dispara
+      // esto es un trigger de Postgres, y pg_net guarda lo que devolvemos en
+      // net._http_response. Sin este dato, "delivered: log" tapa dos causas muy
+      // distintas —falta la clave, o Resend rechaza— y distinguirlas obligaba a
+      // tener acceso a los logs de Vercel. Es un numero de estado, no filtra nada.
+      return res.status(200).json({ ok: true, delivered: "log", causa: "resend", upstream: envio.status });
     }
     return res.status(200).json({ ok: true, delivered: "email" });
   } catch (err) {
     console.error("[report-alert] Resend lanzó", err?.name, err?.message, "\n" + lineas.join("\n"));
-    return res.status(200).json({ ok: true, delivered: "log" });
+    return res.status(200).json({ ok: true, delivered: "log", causa: "excepcion" });
   }
 }
 
