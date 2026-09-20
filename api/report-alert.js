@@ -98,7 +98,13 @@ export default async function handler(req, res) {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        from: process.env.MODERATION_FROM || "HoMenu <moderacion@menuplanai.com>",
+        // El remitente por defecto es el de pruebas de Resend, no un correo de
+        // nuestro dominio: menuplanai.com no esta verificado en Resend, y enviar
+        // desde un dominio sin verificar devuelve 403. Un valor por defecto tiene
+        // que ser el que FUNCIONA sin configurar nada — esto costo una tarde de
+        // diagnostico el 2026-09-20. Cuando el dominio se verifique, se pone
+        // MODERATION_FROM y esta linea deja de aplicar.
+        from: process.env.MODERATION_FROM || "HoMenu <onboarding@resend.dev>",
         to: [DESTINATARIO],
         subject: `HoMenu — contenido reportado (${motivo})`,
         html,
