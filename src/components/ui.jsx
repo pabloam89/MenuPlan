@@ -881,10 +881,32 @@ export function AppleButton({ onClick, label = "Continuar con Apple", variant = 
  * `GoogleButton` suelto en ninguna pantalla.
  */
 export function SignInOptions({ onGoogle, onApple, variant = "light" }) {
+  const dark = variant === "dark";
   return (
     <div style={{ display: "grid", gap: 10 }}>
       <AppleButton onClick={onApple} variant={variant} />
       <GoogleButton onClick={onGoogle} variant={variant} />
+      {/* La aceptación de los términos vive aquí y no en cada pantalla porque
+          aquí es donde nace la cuenta, y porque App Store exige, en apps con
+          contenido de usuarios, que el usuario acepte unas condiciones con
+          tolerancia cero antes de poder publicar. Al estar dentro de este
+          componente aparece sola en las siete pantallas que ofrecen entrar. */}
+      <p style={{
+        margin: "2px 4px 0",
+        fontSize: 11.5,
+        lineHeight: 1.45,
+        textAlign: "center",
+        fontWeight: 600,
+        color: dark ? "rgba(255,255,255,.85)" : "#7a9485",
+        ...(dark ? { textShadow: "0 1px 6px rgba(0,0,0,.6)" } : null),
+      }}>
+        Al continuar aceptas los{" "}
+        <a href="/terminos.html" target="_blank" rel="noopener noreferrer"
+           style={{ color: "inherit", fontWeight: 800 }}>términos de uso</a>
+        {" "}y la{" "}
+        <a href="/privacidad.html" target="_blank" rel="noopener noreferrer"
+           style={{ color: "inherit", fontWeight: 800 }}>política de privacidad</a>.
+      </p>
     </div>
   );
 }

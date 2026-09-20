@@ -496,6 +496,21 @@ export function HomeProfileScreen({
           <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Política de privacidad</span>
         </a>
 
+        {/* Términos de uso — App Store los exige en apps con contenido de
+            usuarios, y tienen que poder leerse sin tener cuenta. */}
+        <a
+          href="/terminos.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            marginTop: 2, padding: "10px 0", textDecoration: "none",
+          }}
+        >
+          <ShieldCheck size={13} color="#7a9485" />
+          <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Términos de uso</span>
+        </a>
+
         {/* Version */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "0 0 0", opacity: 0.5 }}>
           <Info size={12} color="#7a9485" />
