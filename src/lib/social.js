@@ -1,6 +1,7 @@
 import { supabase } from "./supabase.js";
 import { isoLocalDate } from "./weekCalendar.js";
 import { FIXTURES_ENABLED, FIXTURE_PROFILES, FIXTURE_MENUS, FIXTURE_SUGGESTED, fixtureFeed } from "./socialFixtures.js";
+import { reviewText } from "./moderation.js";
 
 /**
  * Capa de datos de Gente social (ver supabase/migrations/0027_social_feed.sql).
@@ -502,6 +503,13 @@ export async function toggleCommentLike(userId, commentId, on) {
 export async function postComment(userId, { targetType, targetId, targetOwnerId = null, body, parentId = null }) {
   const text = (body ?? "").trim();
   if (!ok() || !userId || !targetId || !text) return null;
+
+  // El filtro va ANTES del insert, no despues: un comentario que llega a la
+  // tabla ya se lo ha llevado la notificacion a quien iba dirigido, y
+  // retirarlo luego no le quita a nadie el mal rato. Ver src/lib/moderation.js
+  // — falla abierto, asi que una caida del filtro no cierra los comentarios.
+  const veredicto = await reviewText(text);
+  if (!veredicto.ok) return { error: "moderation", message: veredicto.message };
   const { data, error } = await supabase
     .from("social_comments")
     .insert({
