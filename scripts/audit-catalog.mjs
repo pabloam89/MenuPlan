@@ -49,7 +49,7 @@
  * Usage:
  *   node scripts/audit-catalog.mjs              informe legible
  *   node scripts/audit-catalog.mjs --json       findings en JSON, para CI
- *   node scripts/audit-catalog.mjs --check      sale 1 si algo empeora
+ *   node scripts/audit-catalog.mjs --check      cuenta los de severidad alta
  */
 
 import { readFileSync, readdirSync } from "fs";
@@ -444,7 +444,9 @@ if (AS_JSON) {
   console.log(out.join("\n"));
 }
 
-// --check no falla todavía: primero hay que fijar la línea base con el equipo.
+// --check cuenta pero NO falla, a propósito: sin una línea base acordada, un
+// exit 1 aquí solo enseñaría al equipo a ignorar el check. Cuando el equipo
+// fije el número, esto pasa a comparar contra él y entonces sí puede fallar.
 if (AS_CHECK) {
   const graves = findings.filter((f) => f.severidad === "alta").length;
   console.error(`\n[--check] hallazgos de severidad alta: ${graves}`);
