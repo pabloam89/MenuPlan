@@ -8,28 +8,37 @@
  * ── Por qué hace falta ────────────────────────────────────────────────────
  * Las macros de receta están al 100 % y pasan la comprobación de Atwater
  * (kcal ≈ 4P+4C+9F) con un error mediano de −0,6 %. Eso parecía una señal de
- * salud y no lo es: Atwater fija el TOTAL, no el REPARTO. Cualquier terna
- * (P, C, F) que sume bien la satisface, incluida una inventada.
+ * salud y no lo es: Atwater fija el TOTAL, no el REPARTO. Es una restricción
+ * sobre cuatro grados de libertad, así que deja dos sueltos — y el bloque 1
+ * enseña un caso donde el total cuadra mientras la grasa está muy por debajo.
  *
- * ── Y por qué el propio informe desconfía de sí mismo ─────────────────────
- * Comparar lo declarado con la suma de ingredientes exige tres supuestos que
- * son MÍOS, no del catálogo: cuánto pesa una pieza, cuánto aceite se come de
- * verdad y si `baseServings` es correcto. Los tres mueven el resultado más
- * que el defecto que buscan, así que el bloque 1 los apaga uno a uno y solo
- * afirma lo que sobrevive a los tres:
+ * ── Y por qué el bloque 1 no da una cifra ─────────────────────────────────
+ * Porque no la aguanta, y eso es el hallazgo. Comparar lo declarado con la
+ * suma de ingredientes obliga a filtrar (qué recetas tienen bastante masa
+ * cubierta, qué masa por ración es plausible), y cada filtro mueve el
+ * resultado más que el defecto que busca:
  *
- *   sobre las 95 recetas sin líneas en `ud` y con una masa por ración
- *   plausible, la proteína sumada supera a la declarada en un 19,6 % mediano,
- *   pero con una dispersión enorme (p10 −11 %, p90 +67 %) y 71 de 95 por
- *   encima. No es un sesgo limpio que se arregle con un factor.
+ *   · el umbral de COBERTURA es una rampa monótona: de −69 % a +26 % según
+ *     dónde se corte. No es un control de calidad, es elegir el resultado.
+ *   · la banda de MASA/RACIÓN es circular: la masa sale de los mismos pesos
+ *     que el numerador y se divide por el mismo `baseServings`.
+ *   · el ACEITE no da una banda de tres puntos sino binaria: el tope de
+ *     absorción del 6 % casi nunca muerde, así que "absorbido" ≈ "entero".
  *
- * Las kcal ni siquiera dan un número: según se cuente el aceite salen entre
- * −1,5 % y +18,4 %, y decidir eso exige `stepsRich[].part` (bloque 5) para
- * saber qué aceite se sirve y cuál se queda en la sartén.
+ * Lo que sobrevive a moverlos todos es el SIGNO, no la magnitud: la proteína
+ * sumada supera a la declarada en 24 de 24 especificaciones probadas, con
+ * magnitudes de +12 % a +27 % e IC95 bootstrap de unos 14 puntos de ancho.
+ * Y el desacuerdo no es uniforme entre macros: la grasa se va en dirección
+ * contraria según cómo se cuente el aceite.
  *
- * La conclusión honesta es que las dos fuentes discrepan y NINGUNA está
- * validada. Importa porque el número declarado es el que ve el usuario:
- * `Menu.jsx` construye `macros` desde `protein_g`.
+ * Hay que decir además que el subconjunto medible NO representa al catálogo:
+ * `huevos`, `postres`, `desayunos`, `meriendas` y `cenas_rapidas` quedan con
+ * cero recetas, el 17 % del corpus, porque los ingredientes sin `nutrition`
+ * se concentran en fruta, panadería y huevos. Para esas categorías este
+ * informe no dice nada.
+ *
+ * Importa porque el número declarado es el que ve el usuario: `Menu.jsx`
+ * construye `macros` desde `protein_g`.
  *
  * ── Qué mira ──────────────────────────────────────────────────────────────
  *   1. macros      Σ ingredientes vs declarado, en kcal y en proteína
@@ -101,7 +110,6 @@ const norm = (s) => (s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,
  * que es como debe ser. Un default de 80 g para todo convertía 28 hojas de
  * laurel en 2,2 kg y se colaba en las macros como si fuera un dato.
  */
-const PIEZA_POR_DEFECTO = 80;
 // El catálogo manda (resuelve por id, nunca confunde "pimiento del piquillo"
 // con "pimiento"); el regex queda de red. Lo que no cubra ninguna de las dos
 // pesa 0 y baja la cobertura de su receta: no se inventa.
@@ -132,9 +140,18 @@ const COMESTIBLE = [
   [/gamba|langostino|cigala|bogavante|carabinero/, 0.50],
 ];
 const YA_LIMPIO = /pelad|limpi|sin cascara|sin concha|carne de|desvainad/;
-// Platos donde el aceite NO es medio de cocción sino parte del plato servido:
-// se come entero, no se absorbe.
-const SE_COME_CRUDO = /alioli|mayonesa|vinagreta|aliñ|gazpacho|salmorejo|hummus|pesto|escabech|marinad|ensalada|tostada|pan con|carpaccio|tartar|crudo/;
+
+/**
+ * Los aceites, por `ingredientId`. Antes esto era `/aceite/` sobre el nombre
+ * de la línea y se tragaba "Anchoas en aceite", "Atún en aceite" y "Ventresca
+ * de atún en aceite": conservas de pescado que el modo "aceite fuera" borraba
+ * del sumatorio junto con su proteína. El FK las distingue sin ambigüedad —
+ * tienen id propio (`anchoa-en-aceite`, `atun`, `ventresca`) — y es además el
+ * criterio que este script dice seguir en todas partes.
+ */
+const ACEITES = new Set([
+  "aceite-oliva", "aceite-oliva-virgen", "aceite-girasol", "aceite-de-sesamo",
+]);
 
 function sumaDesdeIngredientes(receta, modoAceite = "absorbido") {
   const total = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
@@ -157,10 +174,7 @@ function sumaDesdeIngredientes(receta, modoAceite = "absorbido") {
     const n = norm(l.name);
     if (/^sal\b|sal gruesa|sal marina/.test(n) && g >= 50) continue;          // curado
     if (/^azucar/.test(n) && g >= 50 && hayCurado) continue;                  // curado
-    if (/aceite/.test(n) && !SE_COME_CRUDO.test(norm(receta.name))) {          // medio de cocción
-      aceites.push({ g, nu });
-      continue;
-    }
+    if (ACEITES.has(l.ingredientId)) { aceites.push({ g, nu }); continue; }
 
     let efectivo = g;
     if (!YA_LIMPIO.test(n)) {
@@ -212,55 +226,151 @@ const tieneUd = (r) => (r.ingredients ?? []).some((l) => l.unit === "ud");
 const dentro = (x, min, max) => x.masa / x.s >= min && x.masa / x.s <= max;
 
 say("═══ 1 · MACROS: la suma de ingredientes contra lo declarado ═══");
-say(`  recetas Estrella con ≥95 % de su masa con macros de ingrediente: ${medibles.length} de ${estrella.length}`);
 say("");
-say("  Medir esto exige tres supuestos MÍOS, no del catálogo: cuánto pesa una");
-say("  pieza, cuánto aceite se absorbe y si baseServings es correcto. Cada fila");
-say("  apaga uno. La última no depende de ninguno: es el número defendible.");
+say("  Este bloque NO da una cifra, y el motivo es el hallazgo. Cada filtro que");
+say("  hace la medición posible mueve el resultado más que el defecto buscado,");
+say("  así que lo que se publica es el rango y la sensibilidad, no un titular.");
+
+// ── 1a · el filtro de cobertura es una rampa, no un control de calidad ─────
+// Cuanta más masa de la receta tiene macros de ingrediente, más proteína se
+// cuenta: el error es función monótona de la cobertura POR CONSTRUCCIÓN.
+// Elegir un umbral es elegir el resultado, así que se enseña la rampa entera.
 say("");
-say("  subconjunto                      n     error kcal    error proteína");
-for (const [label, filtro] of [
-  ["todas", () => true],
-  ["sin líneas en `ud`", (x) => !tieneUd(x.r)],
-  ["+ masa/ración 150–700 g", (x) => !tieneUd(x.r) && dentro(x, 150, 700)],
-]) {
-  const sub = medibles.filter(filtro);
+say("  a) el umbral de cobertura ES el número:");
+say("");
+say("     cobertura      n    error proteína");
+const TRAMOS = [[0, 0.7], [0.7, 0.8], [0.8, 0.9], [0.9, 0.95], [0.95, 0.99], [0.99, 1.01]];
+for (const [lo, hi] of TRAMOS) {
+  const sub = conCobertura.filter((x) => x.r.kcal && x.r.protein_g && x.cobertura >= lo && x.cobertura < hi);
   if (!sub.length) continue;
-  const ek = mediana(sub.map((x) => (x.total.kcal / x.s - x.r.kcal) / x.r.kcal));
   const ep = mediana(sub.map((x) => (x.total.protein / x.s - x.r.protein_g) / x.r.protein_g));
-  say(`  ${label.padEnd(32)}${String(sub.length).padStart(3)}      ${pct(ek).padStart(8)}      ${pct(ep).padStart(8)}`);
+  say(`     ${(lo * 100).toFixed(0).padStart(3)}–${(hi * 100).toFixed(0).padStart(3)} %  ${String(sub.length).padStart(5)}        ${pct(ep).padStart(8)}`);
 }
-// La banda del aceite. Es el supuesto que más mueve las kcal y el que menos
-// evidencia tiene: con el aceite fuera las kcal salen BAJAS, con el aceite
-// entero salen ALTAS. Mientras no haya `part` para saber qué aceite se sirve
-// y cuál se queda en la sartén, las kcal derivadas son una banda, no un dato.
+say("");
+say("  Las recetas de cobertura baja no están 'mal medidas': les falta la mitad");
+say("  de la despensa. Y lo que falta no falta al azar — los ingredientes sin");
+say("  `nutrition` se concentran en fruta, panadería y huevos.");
+
+// ── 1b · los CUATRO macros, no dos ────────────────────────────────────────
+// Publicar solo kcal y proteína permitía leer "-1,5 % en kcal" como acuerdo.
+// No lo es: con el aceite fuera el total cuadra porque la grasa cae un 28 %
+// y la proteína sube un 18 %. Es cancelación, y solo se ve con los cuatro.
 const limpio = medibles.filter((x) => !tieneUd(x.r) && dentro(x, 150, 700));
 say("");
-say(`  banda del aceite sobre esas ${limpio.length} recetas (solo mueve las kcal):`);
+say(`  b) los cuatro macros sobre las ${limpio.length} recetas del corte más estricto:`);
+say("");
+say(`     ${"aceite".padEnd(11)}${"kcal".padStart(8)}${"prot".padStart(9)}${"carbs".padStart(9)}${"grasa".padStart(9)}`);
 for (const modo of ["fuera", "absorbido", "entero"]) {
-  const ek = mediana(limpio.map((x) => {
-    const k = sumaDesdeIngredientes(x.r, modo).total.kcal;
-    return (k / x.s - x.r.kcal) / x.r.kcal;
+  const err = (sel, dec) => mediana(limpio.map((x) => {
+    const t = sumaDesdeIngredientes(x.r, modo).total;
+    return (sel(t) / x.s - x.r[dec]) / x.r[dec];
   }));
-  say(`    aceite ${modo.padEnd(12)} kcal ${pct(ek).padStart(8)}`);
+  const f = (v) => pct(v).padStart(8);
+  const c = (v) => pct(v).padStart(9);
+  say(`     ${modo.padEnd(11)}${f(err((t) => t.kcal, "kcal"))}${c(err((t) => t.protein, "protein_g"))}${c(err((t) => t.carbs, "carbs_g"))}${c(err((t) => t.fat, "fat_g"))}`);
 }
-// El reparto de la proteína, que es lo que no es una banda sino una dispersión.
+say("");
+say("  Mirar SOLO la columna de kcal en la fila 'fuera' invita a leer acuerdo");
+say("  donde hay cancelación: ese total sale de una grasa muy baja sumada a una");
+say("  proteína y unos carbos altos. Los cuatro macros a la vez lo desmienten.");
+say("  Y 'absorbido' ≈ 'entero' porque el tope del 6 % casi nunca muerde: la");
+say("  banda real es binaria, el aceite se cuenta o no se cuenta.");
+
+// ── 1c · qué sobrevive a mover los filtros ────────────────────────────────
+// Curva de especificación: todas las combinaciones defendibles de umbral de
+// cobertura y banda de masa. Si el signo aguanta en todas, el signo es el
+// hallazgo; la magnitud no lo es.
+say("");
+say("  c) curva de especificación — todas estas combinaciones son defendibles:");
+const espec = [];
+for (const cob of [0.90, 0.95, 0.99]) {
+  for (const [lo, hi] of [[120, 900], [150, 700], [200, 600], [150, 500]]) {
+    for (const soloSinUd of [true, false]) {
+      const sub = conCobertura.filter((x) => x.r.kcal && x.r.protein_g && x.cobertura >= cob
+        && (!soloSinUd || !tieneUd(x.r)) && dentro(x, lo, hi));
+      if (sub.length < 15) continue;
+      espec.push(mediana(sub.map((x) => (x.total.protein / x.s - x.r.protein_g) / x.r.protein_g)));
+    }
+  }
+}
+espec.sort((a, b) => a - b);
+const positivas = espec.filter((e) => e > 0).length;
+say(`     ${espec.length} especificaciones, de ${pct(espec[0])} a ${pct(espec[espec.length - 1])}, mediana ${pct(mediana(espec))}`);
+say(`     positivas: ${positivas} de ${espec.length}`);
+
+// Bootstrap de la mediana: la precisión que el dato aguanta de verdad.
 const eps = limpio
   .map((x) => (x.total.protein / x.s - x.r.protein_g) / x.r.protein_g)
   .sort((a, b) => a - b);
-const q = (f) => pct(eps[Math.floor(f * eps.length)]);
+let semilla = 12345;
+const aleatorio = () => (semilla = (semilla * 1103515245 + 12345) % 2147483648) / 2147483648;
+const medianas = [];
+for (let i = 0; i < 4000; i++) {
+  const m = [];
+  for (let j = 0; j < eps.length; j++) m.push(eps[Math.floor(aleatorio() * eps.length)]);
+  medianas.push(mediana(m));
+}
+medianas.sort((a, b) => a - b);
+const q = (f, xs = eps) => pct(xs[Math.floor(f * xs.length)]);
 say("");
-say(`  proteína p10/p25/p50/p75/p90: ${q(0.1)} / ${q(0.25)} / ${q(0.5)} / ${q(0.75)} / ${q(0.9)}`);
-say(`  ${eps.filter((e) => e > 0).length} de ${eps.length} recetas suman MÁS proteína de la que declaran.`);
-say("  No es un sesgo limpio que se corrija con un factor: es dispersión. Ninguna");
-say("  de las dos fuentes está validada, y la derivada tampoco puede arbitrar.");
-// Atwater sobre lo DECLARADO: la comprobación que parece validar y no valida.
+say(`     bootstrap de la mediana (4 000 remuestreos): IC95 ${q(0.025, medianas)} … ${q(0.975, medianas)}`);
+say(`     dispersión p10/p25/p50/p75/p90: ${q(0.1)} / ${q(0.25)} / ${q(0.5)} / ${q(0.75)} / ${q(0.9)}`);
+say(`     ${eps.filter((e) => e > 0).length} de ${eps.length} recetas suman MÁS proteína de la que declaran.`);
+
+// ── 1d · a qué catálogo se parece el subconjunto medible ──────────────────
+// Lo que no se puede medir importa tanto como lo medido: si una categoría
+// entera cae fuera, el número no habla de ella aunque se presente global.
+say("");
+say("  d) el subconjunto medible NO representa al catálogo:");
+const porCat = (xs) => xs.reduce((a, r) => ((a[r.category ?? "?"] = (a[r.category ?? "?"] ?? 0) + 1), a), {});
+const catTodas = porCat(estrella);
+const catLimpio = porCat(limpio.map((x) => x.r));
+say("");
+say("     categoría              corpus   medibles   error proteína");
+for (const [c, n] of Object.entries(catTodas).sort((a, b) => b[1] - a[1])) {
+  const sub = limpio.filter((x) => (x.r.category ?? "?") === c);
+  const err = sub.length >= 3
+    ? pct(mediana(sub.map((x) => (x.total.protein / x.s - x.r.protein_g) / x.r.protein_g)))
+    : "—";
+  say(`     ${c.padEnd(22)}${String(n).padStart(5)}${String(catLimpio[c] ?? 0).padStart(10)}       ${err.padStart(8)}`);
+}
+const ausentes = Object.entries(catTodas).filter(([c]) => !catLimpio[c]);
+const nAusentes = ausentes.reduce((a, [, n]) => a + n, 0);
+say("");
+say(`  ${nAusentes} recetas (${(nAusentes / estrella.length * 100).toFixed(1)} % del corpus) están en categorías con CERO`);
+say(`  representación: ${ausentes.map(([c]) => c).join(", ")}.`);
+say("  Para ellas este bloque no dice nada, ni a favor ni en contra.");
+// Post-estratificado a la mezcla del corpus, sobre las categorías que sí salen.
+let num = 0, den = 0;
+for (const [c, n] of Object.entries(catTodas)) {
+  const sub = limpio.filter((x) => (x.r.category ?? "?") === c);
+  if (sub.length < 3) continue;
+  num += n * mediana(sub.map((x) => (x.total.protein / x.s - x.r.protein_g) / x.r.protein_g));
+  den += n;
+}
+say(`  Reponderado a la mezcla real del catálogo: ${pct(num / den)}.`);
+
+// ── 1e · Atwater, con la misma vara que se le exige a lo demás ────────────
 const atwater = estrella
   .filter((r) => r.kcal && r.protein_g != null && r.carbs_g != null && r.fat_g != null)
-  .map((r) => (4 * r.protein_g + 4 * r.carbs_g + 9 * r.fat_g - r.kcal) / r.kcal);
+  .map((r) => (4 * r.protein_g + 4 * r.carbs_g + 9 * r.fat_g - r.kcal) / r.kcal)
+  .sort((a, b) => a - b);
 say("");
-say(`  Atwater sobre lo declarado: error mediano ${pct(mediana(atwater))} — los cuatro números`);
-say("  concuerdan entre sí. Eso NO valida el reparto, y la columna de proteína lo demuestra.");
+say(`  e) Atwater sobre lo declarado, p10/p50/p90: ${q(0.1, atwater)} / ${q(0.5, atwater)} / ${q(0.9, atwater)}`);
+say("  Atwater fija el TOTAL, no el REPARTO: es 1 restricción sobre 4 grados de");
+say("  libertad, así que deja 2 libres. No es vacía (una terna al azar no la");
+say("  pasa), pero tampoco valida el reparto, y el apartado (b) enseña por qué:");
+say("  el total puede cuadrar con la grasa muy por debajo de lo declarado.");
+
+say("");
+say("  ── LO PUBLICABLE ──");
+say("  La proteína sumada supera a la declarada en la mayoría de las recetas");
+say("  medibles, y el SIGNO aguanta las " + espec.length + " especificaciones probadas. La");
+say("  MAGNITUD no: depende del umbral de cobertura y de la banda de masa tanto");
+say("  como del defecto. No hay evidencia para un factor de corrección, y el");
+say("  desacuerdo no es uniforme entre macros. Importa porque el número");
+say("  declarado es el que ve el usuario: `Menu.jsx` construye `macros` desde");
+say("  `protein_g`.");
 
 for (const x of limpio) {
   const ep = (x.total.protein / x.s - x.r.protein_g) / x.r.protein_g;
