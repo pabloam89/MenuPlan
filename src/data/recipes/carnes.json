@@ -10859,7 +10859,7 @@
     ],
     "occasion": "especial",
     "tecnica": "olla",
-    "mainBase": "patatas",
+    "mainBase": "boniato",
     "baseMode": "dentro"
   },
   {
@@ -16198,7 +16198,7 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "patatas",
+    "mainBase": "boniato",
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito",
@@ -21928,7 +21928,7 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "mainBase": "patatas",
+    "mainBase": "boniato",
     "baseMode": "dentro",
     "llevaSalsa": true,
     "cocina": "americana"
@@ -22372,7 +22372,7 @@
     ],
     "occasion": "especial",
     "tecnica": "olla",
-    "mainBase": "patatas",
+    "mainBase": "boniato",
     "baseMode": "dentro",
     "cocina": "francesa"
   },
@@ -23826,7 +23826,7 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "mainBase": "patatas",
+    "mainBase": "boniato",
     "baseMode": "dentro",
     "llevaSalsa": true
   },

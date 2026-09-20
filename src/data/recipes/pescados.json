@@ -7621,7 +7621,7 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "sarten"
+    "tecnica": "crudo"
   },
   {
     "id": "pescados_046",
@@ -19314,7 +19314,7 @@
     ],
     "tecnica": "plancha",
     "cocina": "asiatica",
-    "mainBase": "patatas",
+    "mainBase": "boniato",
     "baseMode": "dentro",
     "llevaSalsa": true
   },
