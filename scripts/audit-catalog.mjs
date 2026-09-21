@@ -663,6 +663,57 @@ for (const c of choques.slice(0, 12)) {
 }
 if (choques.length > 12) say(`     … y ${choques.length - 12} más`);
 
+// ── 9 ──────────────────────────────────────────────────────────────────────
+// El libro de cuentas de `alimentos`. Es el bloque que contesta la pregunta
+// que hasta ahora no se podía hacer: "de esta familia, ¿cuántas filas y
+// cuántas rellenas?". Y contesta también la que importa más — cuánto de lo que
+// falta es trabajo pendiente (`ausente_resoluble`) y cuánto es trabajo que hay
+// que ir a buscar fuera (`ausente_sin_fuente`). Sin esa distinción, una tabla
+// terminada parece a medias para siempre.
+say("");
+say("═══ 9 · ALIMENTOS: el libro de cuentas de la tabla de referencia ═══");
+let alimentos = null;
+try {
+  alimentos = JSON.parse(readFileSync(join(ROOT, "src", "data", "alimentos.json"), "utf8"));
+} catch { /* la tabla aún no existe: no es un fallo del catálogo */ }
+
+if (!alimentos) {
+  say("  no hay src/data/alimentos.json — `node scripts/build-alimentos.mjs`");
+} else {
+  const porFuente = {};
+  for (const a of alimentos) porFuente[a.fuente] = (porFuente[a.fuente] ?? 0) + 1;
+  say(`  ${alimentos.length} filas · ${Object.entries(porFuente).map(([k, v]) => `${k} ${v}`).join(" · ")}`);
+  say("");
+  say("     campo                 relleno  no_aplica  resoluble  sin_fuente");
+  const campos = Object.keys(alimentos[0].huecos);
+  for (const campo of campos) {
+    const c = { relleno: 0, no_aplica: 0, ausente_resoluble: 0, ausente_sin_fuente: 0 };
+    for (const a of alimentos) c[a.huecos[campo]]++;
+    say(`     ${campo.padEnd(20)} ${String(c.relleno).padStart(7)}  ${String(c.no_aplica).padStart(9)}  ${String(c.ausente_resoluble).padStart(9)}  ${String(c.ausente_sin_fuente).padStart(10)}`);
+  }
+  // Lo resoluble es la única columna que es una lista de tareas. Se saca como
+  // total para que se vea si el trabajo pendiente encoge entre ejecuciones.
+  const resoluble = alimentos.reduce(
+    (n, a) => n + Object.values(a.huecos).filter((e) => e === "ausente_resoluble").length, 0,
+  );
+  const sinFuente = alimentos.reduce(
+    (n, a) => n + Object.values(a.huecos).filter((e) => e === "ausente_sin_fuente").length, 0,
+  );
+  say("");
+  say(`  huecos resolubles (hay dónde ir a buscarlos): ${resoluble}`);
+  say(`  huecos sin fuente (BEDCA nombró el alimento y no lo dijo): ${sinFuente}`);
+
+  const heredados = alimentos.filter((a) => a.fuente === "heredado");
+  if (heredados.length > 0) {
+    say("");
+    say(`  ⚠️  ${heredados.length} filas con número y sin ficha — se usan hoy y nadie sabe de dónde salen:`);
+    say(`      ${heredados.map((a) => a.id).join(", ")}`);
+    for (const a of heredados) {
+      add("alimentos", "media", a.id, a.nombre, "nutrición heredada sin procedencia: no se puede auditar el número");
+    }
+  }
+}
+
 // ── RESUMEN ────────────────────────────────────────────────────────────────
 say("");
 say("═══ RESUMEN ═══");
