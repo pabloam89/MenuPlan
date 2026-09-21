@@ -13,6 +13,16 @@
       "sugar_g": 0.486,
       "saturated_fat_g": 0.862,
       "sodium_mg": 0.961
+    },
+    "estrella": {
+      "filas": 747,
+      "cobertura_media": 0.971,
+      "cobertura_media_por_campo": {
+        "fiber_g": 0.965,
+        "sugar_g": 0.494,
+        "saturated_fat_g": 0.866,
+        "sodium_mg": 0.958
+      }
     }
   },
   "recipeParts": {

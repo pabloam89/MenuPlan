@@ -43,6 +43,18 @@ const CHECK = process.argv.includes("--check");
 // hash, haciendo saltar derived.test.js en un árbol perfectamente fresco.
 const hash = (s) => createHash("sha256").update(s.replace(/\r\n/g, "\n")).digest("hex").slice(0, 16);
 
+/** Media de la cobertura de cada campo secundario sobre un conjunto de filas. */
+const CAMPOS_SECUNDARIOS = ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg"];
+const mediasPorCampo = (filas) =>
+  Object.fromEntries(
+    CAMPOS_SECUNDARIOS.map((c) => [
+      c,
+      filas.length
+        ? +(filas.reduce((a, v) => a + (v.coberturaPorCampo?.[c] ?? 0), 0) / filas.length).toFixed(3)
+        : 0,
+    ]),
+  );
+
 const ficheros = readdirSync(RECIPES_DIR).filter((f) => f.endsWith(".json")).sort();
 const recetas = ficheros.flatMap((f) => JSON.parse(readFileSync(join(RECIPES_DIR, f), "utf8")));
 const ingredientesRaw = readFileSync(join(ROOT, "src", "data", "ingredients.json"), "utf8");
@@ -165,15 +177,21 @@ const meta = {
     // campos secundarios: una ficha de BEDCA puede traer las kcal y no el
     // azúcar. Estas cuatro son lo que de verdad sostiene cada número, y la
     // del azúcar es hoy la que duele.
-    cobertura_media_por_campo: (() => {
-      const filas = Object.values(recipeNutrition);
-      const campos = ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg"];
-      return Object.fromEntries(
-        campos.map((c) => [
-          c,
-          +(filas.reduce((a, v) => a + (v.coberturaPorCampo?.[c] ?? 0), 0) / filas.length).toFixed(3),
-        ]),
-      );
+    //
+    // Y van separadas por `estrella` porque una media sobre las 1033 mide una
+    // población que no es la que se sirve: 286 de esas recetas no se ofrecen
+    // nunca —las bases, las salsas sueltas, los platos únicos y el pool que
+    // espera foto—. Hoy las dos medias se parecen, pero la de todas significa
+    // algo distinto de lo que aparenta, y se separará en cuanto crezca el pool.
+    cobertura_media_por_campo: mediasPorCampo(Object.values(recipeNutrition)),
+    estrella: (() => {
+      const ids = new Set(recetas.filter((r) => r.estrella === true).map((r) => r.id));
+      const filas = Object.entries(recipeNutrition).filter(([id]) => ids.has(id)).map(([, v]) => v);
+      return {
+        filas: filas.length,
+        cobertura_media: +(filas.reduce((a, v) => a + v.coverage, 0) / filas.length).toFixed(3),
+        cobertura_media_por_campo: mediasPorCampo(filas),
+      };
     })(),
   },
   recipeParts: {
