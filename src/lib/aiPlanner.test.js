@@ -223,7 +223,13 @@ describe("pickCatalogReplacement respects school-menu avoidance", () => {
     }
   });
 
-  it("never proposes a cena dish whose carb base matches what the school already served that day", () => {
+  // Timeout explícito: este test hace 150 sorteos reales del planificador y
+  // tarda ~1,9 s él solo. Con los 5 s por defecto de vitest pasa aislado y
+  // falla intermitentemente en la suite completa, donde la contención dobla
+  // los tiempos — y falla sin mensaje de aserción, que es lo que lo hace
+  // difícil de diagnosticar. Las 150 iteraciones se quedan: lo que sobraba era
+  // el margen, no la prueba.
+  it("never proposes a cena dish whose carb base matches what the school already served that day", { timeout: 20000 }, () => {
     const data = dataWithSchoolMenu(
       { "Lun-Primero": "Arroz con verduras", "Lun-Segundo": "Merluza al horno" },
       { timeWeekday: 60 }, // widen the pool so real arroz-base cena candidates are in range

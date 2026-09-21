@@ -497,18 +497,16 @@ export function validateAlimentos(alimentos) {
     vistos.add(a.id);
   }
 
-  // Dos alimentos con la MISMA ficha de BEDCA y las MISMAS dimensiones son la
-  // misma fila escrita dos veces: la que se lleve el `alimentoId` de un
-  // ingrediente decidiría el número por orden de array.
-  const porFicha = new Map();
-  for (const a of alimentos) {
-    if (!a.fuenteId) continue;
-    const clave = `${a.fuenteId}|${Object.values(a.dimensiones).join("|")}`;
-    if (porFicha.has(clave)) {
-      errors.push(`Misma ficha y mismas dimensiones en dos filas: ${porFicha.get(clave)} y ${a.id}`);
-    }
-    porFicha.set(clave, a.id);
-  }
+  // Compartir ficha de BEDCA NO es ser duplicado, y darlo por tal fue un error
+  // real: la primera versión de esta tabla fusionaba las filas que caían en la
+  // misma ficha y así juntó «Azúcar» con «Azúcar moreno», «Judías blancas» con
+  // «Judías negras» y «Requesón» con «Ricotta». BEDCA es más grueso que este
+  // catálogo en unos sitios y más fino en otros; que la fuente no distinga dos
+  // alimentos no los convierte en uno.
+  //
+  // Hoy hay una fila por ingrediente, la unicidad la garantiza el id, y varias
+  // filas apuntando a la misma `fuenteId` son la forma correcta de decir "para
+  // estos, la nutrición que tenemos es prestada y aproximada".
 
   return errors;
 }

@@ -83,7 +83,7 @@
     }
   },
   {
-    "id": "aceite-de-oliva",
+    "id": "aceite-oliva",
     "nombre": "Aceite de oliva",
     "fuente": "bedca",
     "fuenteId": "2543",
@@ -175,7 +175,7 @@
     }
   },
   {
-    "id": "aceituna",
+    "id": "aceitunas",
     "nombre": "Aceituna",
     "fuente": "bedca",
     "fuenteId": "2214",
@@ -221,7 +221,7 @@
     }
   },
   {
-    "id": "aceituna-negra-con-hueso",
+    "id": "aceitunas-negras",
     "nombre": "Aceituna negra, con hueso",
     "fuente": "bedca",
     "fuenteId": "2215",
@@ -304,7 +304,7 @@
     }
   },
   {
-    "id": "agua-de-la-red",
+    "id": "agua",
     "nombre": "Agua de la red",
     "fuente": "bedca",
     "fuenteId": "2425",
@@ -710,7 +710,7 @@
     }
   },
   {
-    "id": "alcaparra",
+    "id": "alcaparras",
     "nombre": "Alcaparra",
     "fuente": "bedca",
     "fuenteId": "2364",
@@ -1061,7 +1061,7 @@
     }
   },
   {
-    "id": "alubia-blanca-crudo-seco",
+    "id": "alubias-rojas",
     "nombre": "Alubia blanca, seca, cruda",
     "fuente": "bedca",
     "fuenteId": "899",
@@ -1107,7 +1107,7 @@
     }
   },
   {
-    "id": "anchoas-en-aceite-vegetal",
+    "id": "anchoa-en-aceite",
     "nombre": "Anchoas en aceite vegetal",
     "fuente": "bedca",
     "fuenteId": "2129",
@@ -1227,7 +1227,7 @@
     }
   },
   {
-    "id": "arandano",
+    "id": "arandanos",
     "nombre": "Arandano",
     "fuente": "bedca",
     "fuenteId": "2368",
@@ -1393,7 +1393,7 @@
     }
   },
   {
-    "id": "atun-en-aceite-vegetal",
+    "id": "atun",
     "nombre": "Atun en aceite vegetal",
     "fuente": "bedca",
     "fuenteId": "2131",
@@ -1559,7 +1559,7 @@
     }
   },
   {
-    "id": "avena-crudo",
+    "id": "avena",
     "nombre": "Avena, cruda",
     "fuente": "bedca",
     "fuenteId": "1010",
@@ -1651,6 +1651,98 @@
     }
   },
   {
+    "id": "azucar",
+    "nombre": "Azúcar, moreno",
+    "fuente": "bedca",
+    "fuenteId": "780",
+    "fuenteNombre": "Azúcar, moreno",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "endulzante",
+    "rol": "endulzante",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "no_aplica",
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 396.6,
+      "protein100g": 0,
+      "carbs100g": 97.6,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": 97.6,
+      "saturatedFat100g": 0,
+      "sodium100g": 40
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "no_aplica",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
+    }
+  },
+  {
+    "id": "azucar-glas",
+    "nombre": "Azúcar, moreno",
+    "fuente": "bedca",
+    "fuenteId": "780",
+    "fuenteNombre": "Azúcar, moreno",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "endulzante",
+    "rol": "endulzante",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "no_aplica",
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 396.6,
+      "protein100g": 0,
+      "carbs100g": 97.6,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": 97.6,
+      "saturatedFat100g": 0,
+      "sodium100g": 40
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "no_aplica",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
+    }
+  },
+  {
     "id": "azucar-moreno",
     "nombre": "Azúcar, moreno",
     "fuente": "bedca",
@@ -1734,7 +1826,7 @@
     }
   },
   {
-    "id": "bacon-con-grasa-crudo",
+    "id": "bacon",
     "nombre": "Bacon, crudo, con grasa separable",
     "fuente": "bedca",
     "fuenteId": "682",
@@ -2168,7 +2260,7 @@
     }
   },
   {
-    "id": "boqueron",
+    "id": "boquerones",
     "nombre": "Boquerón",
     "fuente": "bedca",
     "fuenteId": "2316",
@@ -2334,7 +2426,7 @@
     }
   },
   {
-    "id": "queso-mozzarella",
+    "id": "burrata",
     "nombre": "Queso mozzarella",
     "fuente": "bedca",
     "fuenteId": "2510",
@@ -2463,7 +2555,7 @@
     }
   },
   {
-    "id": "cabracho-o-rascacio-crudo",
+    "id": "cabracho",
     "nombre": "Cabracho o rascacio, crudo",
     "fuente": "bedca",
     "fuenteId": "806",
@@ -2583,7 +2675,7 @@
     }
   },
   {
-    "id": "cafe-infusion",
+    "id": "cafe-espresso",
     "nombre": "Café, infusión",
     "fuente": "bedca",
     "fuenteId": "2433",
@@ -2952,7 +3044,7 @@
     }
   },
   {
-    "id": "callos-de-ternera",
+    "id": "callo-de-ternera-limpio",
     "nombre": "Callos de ternera",
     "fuente": "bedca",
     "fuenteId": "687",
@@ -2998,7 +3090,7 @@
     }
   },
   {
-    "id": "canela-polvo",
+    "id": "canela",
     "nombre": "Canela, en polvo",
     "fuente": "bedca",
     "fuenteId": "2477",
@@ -3090,7 +3182,7 @@
     }
   },
   {
-    "id": "cerdo-con-grasa-crudo-pierna",
+    "id": "carne-de-cerdo-en-dado-aguja-o-secreto",
     "nombre": "Cerdo, pierna, cruda, con grasa separable",
     "fuente": "bedca",
     "fuenteId": "689",
@@ -3210,7 +3302,7 @@
     }
   },
   {
-    "id": "ternera-costilla-crudo",
+    "id": "carne-de-ternera-para-guisar",
     "nombre": "Ternera, costilla, cruda",
     "fuente": "bedca",
     "fuenteId": "1030",
@@ -3847,7 +3939,7 @@
     }
   },
   {
-    "id": "chocolate-negro",
+    "id": "chocolate",
     "nombre": "Chocolate, negro",
     "fuente": "bedca",
     "fuenteId": "788",
@@ -3939,7 +4031,7 @@
     }
   },
   {
-    "id": "cerdo-chuleta-crudo",
+    "id": "chuletas-de-cerdo",
     "nombre": "Cerdo, chuleta, crudo",
     "fuente": "bedca",
     "fuenteId": "2257",
@@ -4105,7 +4197,7 @@
     }
   },
   {
-    "id": "cerdo-crudo-lomo",
+    "id": "cinta-de-lomo",
     "nombre": "Cerdo, lomo, crudo",
     "fuente": "bedca",
     "fuenteId": "2259",
@@ -4373,7 +4465,7 @@
     }
   },
   {
-    "id": "col-de-bruselas-crudo",
+    "id": "coles-de-bruselas",
     "nombre": "Col de bruselas, cruda",
     "fuente": "bedca",
     "fuenteId": "1180",
@@ -4548,7 +4640,7 @@
     }
   },
   {
-    "id": "conejo-de-granja-carne-crudo",
+    "id": "conejo",
     "nombre": "Conejo de granja, carne, cruda",
     "fuente": "bedca",
     "fuenteId": "1162",
@@ -4751,7 +4843,7 @@
     }
   },
   {
-    "id": "cerdo-costilla-crudo",
+    "id": "costilla",
     "nombre": "Cerdo, costilla, crudo",
     "fuente": "bedca",
     "fuenteId": "2258",
@@ -4880,7 +4972,7 @@
     }
   },
   {
-    "id": "semola-de-trigo-crudo",
+    "id": "cuscus",
     "nombre": "Sémola de trigo, cruda",
     "fuente": "bedca",
     "fuenteId": "1084",
@@ -4926,7 +5018,7 @@
     }
   },
   {
-    "id": "dorada-crudo",
+    "id": "dorada",
     "nombre": "Dorada, cruda",
     "fuente": "bedca",
     "fuenteId": "815",
@@ -4963,7 +5055,7 @@
     }
   },
   {
-    "id": "soja-fresco",
+    "id": "edamame",
     "nombre": "Soja, fresca",
     "fuente": "bedca",
     "fuenteId": "1124",
@@ -5194,7 +5286,7 @@
     }
   },
   {
-    "id": "pasta-alimenticia-crudo",
+    "id": "espaguetis",
     "nombre": "Pasta alimenticia, cruda",
     "fuente": "bedca",
     "fuenteId": "1117",
@@ -5277,7 +5369,7 @@
     }
   },
   {
-    "id": "esparragos-blancos-en-conserva",
+    "id": "esparragos-blancos",
     "nombre": "Esparragos blancos en conserva",
     "fuente": "bedca",
     "fuenteId": "2393",
@@ -5443,7 +5535,7 @@
     }
   },
   {
-    "id": "judia-blanca",
+    "id": "fabes",
     "nombre": "Judía blanca",
     "fuente": "bedca",
     "fuenteId": "2196",
@@ -5526,7 +5618,237 @@
     }
   },
   {
-    "id": "pez-espada-crudo",
+    "id": "farfalle",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "fettuccine",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "fideo-mediano",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "fideos",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "filete-de-cerdo",
+    "nombre": "Cerdo, lomo, crudo",
+    "fuente": "bedca",
+    "fuenteId": "2259",
+    "fuenteNombre": "Cerdo, lomo, crudo",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "carne_cerdo",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "lomo",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 151.8,
+      "protein100g": 18,
+      "carbs100g": 0,
+      "fat100g": 8.9,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 3.28,
+      "sodium100g": 63
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "relleno",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
+    }
+  },
+  {
+    "id": "filete-de-pez-espada",
     "nombre": "Pez espada, crudo",
     "fuente": "bedca",
     "fuenteId": "835",
@@ -5646,7 +5968,7 @@
     }
   },
   {
-    "id": "foie-gras",
+    "id": "foie",
     "nombre": "Foie gras",
     "fuente": "bedca",
     "fuenteId": "2269",
@@ -5812,6 +6134,52 @@
     }
   },
   {
+    "id": "fusilli",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
     "id": "galletas-maria",
     "nombre": "Galletas María",
     "fuente": "sin_fuente",
@@ -5886,7 +6254,7 @@
     }
   },
   {
-    "id": "garbanzo-hervido",
+    "id": "garbanzos",
     "nombre": "Garbanzo, hervido",
     "fuente": "bedca",
     "fuenteId": "2192",
@@ -5923,7 +6291,53 @@
     }
   },
   {
-    "id": "gazpacho",
+    "id": "garrofon",
+    "nombre": "Judía blanca",
+    "fuente": "bedca",
+    "fuenteId": "2196",
+    "fuenteNombre": "Judía blanca",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "legumbre",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": null,
+      "procesado": null,
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 240.9,
+      "protein100g": 21.1,
+      "carbs100g": 34.7,
+      "fat100g": 1.6,
+      "fiber100g": 23.2,
+      "sugar100g": null,
+      "saturatedFat100g": 0.53,
+      "sodium100g": 15
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "ausente_sin_fuente",
+      "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "gazpacho-de-bote",
     "nombre": "Gazpacho",
     "fuente": "bedca",
     "fuenteId": "2614",
@@ -6052,7 +6466,7 @@
     }
   },
   {
-    "id": "muesli",
+    "id": "granola",
     "nombre": "Muesli",
     "fuente": "bedca",
     "fuenteId": "2158",
@@ -6504,7 +6918,7 @@
     }
   },
   {
-    "id": "gelatina",
+    "id": "hoja-de-gelatina",
     "nombre": "Gelatina",
     "fuente": "bedca",
     "fuenteId": "2613",
@@ -6716,7 +7130,7 @@
     }
   },
   {
-    "id": "jamon-serrano",
+    "id": "jamon",
     "nombre": "Jamón serrano",
     "fuente": "bedca",
     "fuenteId": "2273",
@@ -6910,7 +7324,53 @@
     }
   },
   {
-    "id": "judias-blancas-cocido",
+    "id": "judia-blanca",
+    "nombre": "Judías blancas, cocidas",
+    "fuente": "bedca",
+    "fuenteId": "2199",
+    "fuenteNombre": "Judías blancas, cocidas",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "legumbre",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": null,
+      "procesado": "cocido",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 322.9,
+      "protein100g": 21.4,
+      "carbs100g": 54.8,
+      "fat100g": 1.5,
+      "fiber100g": 21.3,
+      "sugar100g": null,
+      "saturatedFat100g": 0.21,
+      "sodium100g": 40
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "ausente_sin_fuente",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "judia-negra",
     "nombre": "Judías blancas, cocidas",
     "fuente": "bedca",
     "fuenteId": "2199",
@@ -7177,7 +7637,7 @@
     }
   },
   {
-    "id": "langostino",
+    "id": "langostinos",
     "nombre": "Langostino",
     "fuente": "bedca",
     "fuenteId": "2340",
@@ -7260,7 +7720,7 @@
     }
   },
   {
-    "id": "laurel-hoja",
+    "id": "laurel",
     "nombre": "Laurel, hoja",
     "fuente": "bedca",
     "fuenteId": "2603",
@@ -7352,7 +7812,7 @@
     }
   },
   {
-    "id": "leche-de-coco",
+    "id": "leche-coco",
     "nombre": "Leche de coco",
     "fuente": "bedca",
     "fuenteId": "911",
@@ -7536,7 +7996,53 @@
     }
   },
   {
-    "id": "lenteja-crudo-seco",
+    "id": "lentejas",
+    "nombre": "Lenteja, seca, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1065",
+    "fuenteNombre": "Lenteja, seca, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "legumbre",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": "seco",
+      "medio": null,
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 308.9,
+      "protein100g": 24.7674,
+      "carbs100g": 48.6954,
+      "fat100g": 1.17286,
+      "fiber100g": 9.6975,
+      "sugar100g": 1.27,
+      "saturatedFat100g": 0.172121,
+      "sodium100g": 226.78
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "relleno",
+      "medio": "ausente_sin_fuente",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "lentejas-rojas",
     "nombre": "Lenteja, seca, cruda",
     "fuente": "bedca",
     "fuenteId": "1065",
@@ -7702,7 +8208,7 @@
     }
   },
   {
-    "id": "lima-crudo",
+    "id": "lima",
     "nombre": "Lima, cruda",
     "fuente": "bedca",
     "fuenteId": "1001",
@@ -7794,6 +8300,52 @@
     }
   },
   {
+    "id": "linguine",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
     "id": "lombarda",
     "nombre": "Lombarda",
     "fuente": "bedca",
@@ -7835,6 +8387,52 @@
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
       "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
+    }
+  },
+  {
+    "id": "lomo-de-cerdo-en-filetes",
+    "nombre": "Cerdo, lomo, crudo",
+    "fuente": "bedca",
+    "fuenteId": "2259",
+    "fuenteNombre": "Cerdo, lomo, crudo",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "carne_cerdo",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "lomo",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 151.8,
+      "protein100g": 18,
+      "carbs100g": 0,
+      "fat100g": 8.9,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 3.28,
+      "sodium100g": 63
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "relleno",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
       "presentacion": "ausente_sin_fuente",
       "origen": "ausente_sin_fuente"
     }
@@ -7886,7 +8484,53 @@
     }
   },
   {
-    "id": "cerdo-crudo-solomillo",
+    "id": "macarrones",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "magro-de-cerdo",
     "nombre": "Cerdo, solomillo, crudo",
     "fuente": "bedca",
     "fuenteId": "1021",
@@ -7932,7 +8576,7 @@
     }
   },
   {
-    "id": "almidon-de-maiz",
+    "id": "maicena",
     "nombre": "Almidón de maíz",
     "fuente": "bedca",
     "fuenteId": "1012",
@@ -8089,7 +8733,7 @@
     }
   },
   {
-    "id": "manteca",
+    "id": "manteca-de-cerdo",
     "nombre": "Manteca",
     "fuente": "bedca",
     "fuenteId": "2549",
@@ -8135,7 +8779,7 @@
     }
   },
   {
-    "id": "mantequilla-salada",
+    "id": "mantequilla",
     "nombre": "Mantequilla salada",
     "fuente": "bedca",
     "fuenteId": "756",
@@ -8366,7 +9010,7 @@
     }
   },
   {
-    "id": "mayonesa-aceite-soja",
+    "id": "mayonesa",
     "nombre": "Mayonesa, aceite de soja",
     "fuente": "bedca",
     "fuenteId": "873",
@@ -8449,7 +9093,7 @@
     }
   },
   {
-    "id": "mejillon",
+    "id": "mejillones",
     "nombre": "Mejillon",
     "fuente": "bedca",
     "fuenteId": "2345",
@@ -8569,7 +9213,7 @@
     }
   },
   {
-    "id": "menta-fresco",
+    "id": "menta",
     "nombre": "Menta, fresca",
     "fuente": "bedca",
     "fuenteId": "872",
@@ -8652,7 +9296,7 @@
     }
   },
   {
-    "id": "merluza-fresca",
+    "id": "merluza-lomos",
     "nombre": "Merluza fresca",
     "fuente": "bedca",
     "fuenteId": "2347",
@@ -8698,7 +9342,7 @@
     }
   },
   {
-    "id": "mermelada-de-ciruela",
+    "id": "mermelada",
     "nombre": "Mermelada de ciruela",
     "fuente": "bedca",
     "fuenteId": "772",
@@ -9076,6 +9720,52 @@
     }
   },
   {
+    "id": "mozzarella",
+    "nombre": "Queso mozzarella",
+    "fuente": "bedca",
+    "fuenteId": "2510",
+    "fuenteNombre": "Queso mozzarella",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "queso",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": null,
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 221.6,
+      "protein100g": 19.5,
+      "carbs100g": 0,
+      "fat100g": 16.1,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 8.67,
+      "sodium100g": 373
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
+    }
+  },
+  {
     "id": "muffin-ingle",
     "nombre": "Muffin inglés",
     "fuente": "sin_fuente",
@@ -9150,7 +9840,7 @@
     }
   },
   {
-    "id": "nabo-crudo-pelado",
+    "id": "nabo",
     "nombre": "Nabo, pelado, crudo",
     "fuente": "bedca",
     "fuenteId": "880",
@@ -9510,7 +10200,53 @@
     }
   },
   {
-    "id": "oregano-seco",
+    "id": "orecchiette",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "oregano",
     "nombre": "Orégano, seco",
     "fuente": "bedca",
     "fuenteId": "2598",
@@ -9589,6 +10325,52 @@
       "medio": "no_aplica",
       "procesado": "ausente_resoluble",
       "presentacion": "ausente_resoluble",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "orzo",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
       "origen": "no_aplica"
     }
   },
@@ -9750,7 +10532,7 @@
     }
   },
   {
-    "id": "cerdo-crudo-panceta",
+    "id": "panceta",
     "nombre": "Cerdo, panceta, cruda",
     "fuente": "bedca",
     "fuenteId": "2260",
@@ -10018,7 +10800,7 @@
     }
   },
   {
-    "id": "patata-crudo",
+    "id": "patata",
     "nombre": "Patata, cruda",
     "fuente": "bedca",
     "fuenteId": "2403",
@@ -10064,7 +10846,7 @@
     }
   },
   {
-    "id": "pate-de-higado-de-cerdo",
+    "id": "pate",
     "nombre": "Pate de higado de cerdo, 30% de grasa",
     "fuente": "bedca",
     "fuenteId": "2284",
@@ -10110,7 +10892,7 @@
     }
   },
   {
-    "id": "pato-crudo-entero",
+    "id": "pato",
     "nombre": "Pato, entero, crudo",
     "fuente": "bedca",
     "fuenteId": "976",
@@ -10156,7 +10938,7 @@
     }
   },
   {
-    "id": "pavo-crudo",
+    "id": "pavo",
     "nombre": "Pavo, crudo",
     "fuente": "bedca",
     "fuenteId": "2285",
@@ -10202,7 +10984,53 @@
     }
   },
   {
-    "id": "pollo-pechuga-plancha",
+    "id": "pechuga-de-pavo",
+    "nombre": "Pavo, crudo",
+    "fuente": "bedca",
+    "fuenteId": "2285",
+    "fuenteNombre": "Pavo, crudo",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "carne_ave",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": null,
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 157.2,
+      "protein100g": 20.18,
+      "carbs100g": 0,
+      "fat100g": 8.5,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 2.173,
+      "sodium100g": 63
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "ausente_sin_fuente",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
+    }
+  },
+  {
+    "id": "pechuga-de-pollo",
     "nombre": "Pollo, pechuga, plancha",
     "fuente": "bedca",
     "fuenteId": "2297",
@@ -10248,7 +11076,7 @@
     }
   },
   {
-    "id": "vino-dulce-tipo-oporto",
+    "id": "pedro-ximenez",
     "nombre": "Vino dulce, tipo oporto",
     "fuente": "bedca",
     "fuenteId": "2463",
@@ -10294,7 +11122,53 @@
     }
   },
   {
-    "id": "pepinillos-en-vinagre",
+    "id": "penne",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "pepinillos",
     "nombre": "Pepinillos en vinagre",
     "fuente": "bedca",
     "fuenteId": "2406",
@@ -10460,7 +11334,7 @@
     }
   },
   {
-    "id": "perejil-fresco",
+    "id": "perejil",
     "nombre": "Perejil, fresco",
     "fuente": "bedca",
     "fuenteId": "2593",
@@ -10506,7 +11380,7 @@
     }
   },
   {
-    "id": "pescadilla-congelado-crudo",
+    "id": "pescadilla",
     "nombre": "Pescadilla, congelada, cruda",
     "fuente": "bedca",
     "fuenteId": "1174",
@@ -10589,7 +11463,7 @@
     }
   },
   {
-    "id": "pimenton-polvo",
+    "id": "pimenton",
     "nombre": "Pimentón, en polvo",
     "fuente": "bedca",
     "fuenteId": "2592",
@@ -10755,7 +11629,7 @@
     }
   },
   {
-    "id": "pimiento-rojo-crudo",
+    "id": "pimiento-rojo",
     "nombre": "Pimiento rojo, crudo",
     "fuente": "bedca",
     "fuenteId": "2409",
@@ -10847,7 +11721,7 @@
     }
   },
   {
-    "id": "pimiento-morron-conserva",
+    "id": "pimientos-del-piquillo",
     "nombre": "Pimiento morrón, en conserva",
     "fuente": "bedca",
     "fuenteId": "2408",
@@ -10930,7 +11804,7 @@
     }
   },
   {
-    "id": "pinon",
+    "id": "pinones",
     "nombre": "Piñon",
     "fuente": "bedca",
     "fuenteId": "2244",
@@ -11022,6 +11896,52 @@
     }
   },
   {
+    "id": "placas-de-cannelones",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
     "id": "platano",
     "nombre": "Plátano",
     "fuente": "bedca",
@@ -11102,6 +12022,52 @@
       "procesado": "ausente_resoluble",
       "presentacion": "ausente_resoluble",
       "origen": "ausente_resoluble"
+    }
+  },
+  {
+    "id": "pluma-iberica",
+    "nombre": "Cerdo, solomillo, crudo",
+    "fuente": "bedca",
+    "fuenteId": "1021",
+    "fuenteNombre": "Cerdo, solomillo, crudo",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "carne_cerdo",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "solomillo",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 130.4,
+      "protein100g": 21,
+      "carbs100g": 0,
+      "fat100g": 5.1,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 2.05142,
+      "sodium100g": 53
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "relleno",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
     }
   },
   {
@@ -11225,7 +12191,7 @@
     }
   },
   {
-    "id": "puerro-congelado-crudo",
+    "id": "puerro",
     "nombre": "Puerro, crudo y congelado",
     "fuente": "bedca",
     "fuenteId": "2411",
@@ -11308,7 +12274,7 @@
     }
   },
   {
-    "id": "pulpo-hervido",
+    "id": "pulpo",
     "nombre": "Pulpo, hervido",
     "fuente": "bedca",
     "fuenteId": "2374",
@@ -11354,7 +12320,7 @@
     }
   },
   {
-    "id": "queso-en-porciones",
+    "id": "quesito",
     "nombre": "Queso en porciones",
     "fuente": "bedca",
     "fuenteId": "2506",
@@ -11594,7 +12560,7 @@
     }
   },
   {
-    "id": "queso-semicurado",
+    "id": "queso-en-lonchas",
     "nombre": "Queso semicurado, genérico",
     "fuente": "bedca",
     "fuenteId": "2515",
@@ -11677,7 +12643,7 @@
     }
   },
   {
-    "id": "queso-fresco-de-burgos",
+    "id": "queso-fresco",
     "nombre": "Queso fresco de burgos",
     "fuente": "bedca",
     "fuenteId": "2507",
@@ -12037,6 +13003,98 @@
     }
   },
   {
+    "id": "ricotta",
+    "nombre": "Requesón",
+    "fuente": "bedca",
+    "fuenteId": "2517",
+    "fuenteNombre": "Requesón",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "queso",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": null,
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 101.5,
+      "protein100g": 12.31,
+      "carbs100g": 3.3,
+      "fat100g": 4.3,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 2.045,
+      "sodium100g": 230
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
+    }
+  },
+  {
+    "id": "rigatoni",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
     "id": "rodaballo",
     "nombre": "Rodaballo",
     "fuente": "bedca",
@@ -12286,7 +13344,7 @@
     }
   },
   {
-    "id": "sal-yodada",
+    "id": "sal",
     "nombre": "Sal yodada",
     "fuente": "bedca",
     "fuenteId": "2585",
@@ -12312,6 +13370,98 @@
       "sugar100g": 0,
       "saturatedFat100g": 0,
       "sodium100g": 38.7
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "no_aplica",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "sal-escamas",
+    "nombre": "Sal yodada",
+    "fuente": "bedca",
+    "fuenteId": "2585",
+    "fuenteNombre": "Sal yodada",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "mineral",
+    "rol": "condimento",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "no_aplica",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 0,
+      "protein100g": 0,
+      "carbs100g": 0,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0,
+      "sodium100g": 38850
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "no_aplica",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "sal-gruesa",
+    "nombre": "Sal yodada",
+    "fuente": "bedca",
+    "fuenteId": "2585",
+    "fuenteNombre": "Sal yodada",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "mineral",
+    "rol": "condimento",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "no_aplica",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 0,
+      "protein100g": 0,
+      "carbs100g": 0,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0,
+      "sodium100g": 38850
     },
     "densidad": null,
     "fraccionComestible": null,
@@ -12627,7 +13777,7 @@
     }
   },
   {
-    "id": "salsa-de-soja",
+    "id": "salsa-soja",
     "nombre": "Salsa de soja",
     "fuente": "bedca",
     "fuenteId": "2575",
@@ -12784,7 +13934,7 @@
     }
   },
   {
-    "id": "sardina",
+    "id": "sardinas",
     "nombre": "Sardina",
     "fuente": "bedca",
     "fuenteId": "2630",
@@ -12978,7 +14128,7 @@
     }
   },
   {
-    "id": "seta",
+    "id": "setas",
     "nombre": "Seta",
     "fuente": "bedca",
     "fuenteId": "2419",
@@ -13144,7 +14294,7 @@
     }
   },
   {
-    "id": "ternera-crudo-sin-grasa-solomillo",
+    "id": "solomillo",
     "nombre": "Ternera, solomillo, sin grasa, crudo",
     "fuente": "bedca",
     "fuenteId": "1029",
@@ -13310,7 +14460,7 @@
     }
   },
   {
-    "id": "pasta-de-sesamo",
+    "id": "tahini",
     "nombre": "Pasta de sésamo",
     "fuente": "bedca",
     "fuenteId": "2567",
@@ -13351,6 +14501,52 @@
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
       "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "tallarines",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
       "presentacion": "ausente_sin_fuente",
       "origen": "no_aplica"
     }
@@ -13568,6 +14764,52 @@
     }
   },
   {
+    "id": "tomate-cherry",
+    "nombre": "Tomate",
+    "fuente": "bedca",
+    "fuenteId": "2421",
+    "fuenteNombre": "Tomate",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "verdura_fruto",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": null,
+      "procesado": null,
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 18.8,
+      "protein100g": 0.9,
+      "carbs100g": 3.5,
+      "fat100g": 0.1,
+      "fiber100g": 1.1,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 18
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "ausente_sin_fuente",
+      "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
+    }
+  },
+  {
     "id": "tomate-concentrado",
     "nombre": "Tomate concentrado",
     "fuente": "sin_fuente",
@@ -13679,7 +14921,53 @@
     }
   },
   {
-    "id": "tomillo-seco",
+    "id": "tomate-triturado",
+    "nombre": "Tomate",
+    "fuente": "bedca",
+    "fuenteId": "2421",
+    "fuenteNombre": "Tomate",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "verdura_fruto",
+    "rol": "salsa",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": null,
+      "procesado": null,
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": {
+      "kcal100g": 18.8,
+      "protein100g": 0.9,
+      "carbs100g": 3.5,
+      "fat100g": 0.1,
+      "fiber100g": 1.2,
+      "sugar100g": 3,
+      "saturatedFat100g": 0.03,
+      "sodium100g": 0.011
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "ausente_sin_fuente",
+      "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
+    }
+  },
+  {
+    "id": "tomillo",
     "nombre": "Tomillo, seco",
     "fuente": "bedca",
     "fuenteId": "2559",
@@ -13799,7 +15087,53 @@
     }
   },
   {
-    "id": "trucha",
+    "id": "trofie",
+    "nombre": "Pasta alimenticia, cruda",
+    "fuente": "bedca",
+    "fuenteId": "1117",
+    "fuenteNombre": "Pasta alimenticia, cruda",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pasta",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": "crudo",
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 351.7,
+      "protein100g": 12.5,
+      "carbs100g": 70.9,
+      "fat100g": 1.44776,
+      "fiber100g": 5,
+      "sugar100g": 2.6,
+      "saturatedFat100g": 0.19,
+      "sodium100g": 5
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "relleno",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
+    "id": "truchas-enteras",
     "nombre": "Trucha",
     "fuente": "bedca",
     "fuenteId": "2636",
@@ -13845,7 +15179,7 @@
     }
   },
   {
-    "id": "trufa-crudo",
+    "id": "trufa-negra",
     "nombre": "Trufa, cruda",
     "fuente": "bedca",
     "fuenteId": "894",
@@ -13965,7 +15299,7 @@
     }
   },
   {
-    "id": "atun-en-aceite-de-oliva-isabel",
+    "id": "ventresca",
     "nombre": "Atún en aceite de oliva isabel",
     "fuente": "bedca",
     "fuenteId": "2130",
@@ -14149,7 +15483,7 @@
     }
   },
   {
-    "id": "vinagre-de-vino",
+    "id": "vinagre-de-jerez",
     "nombre": "Vinagre de vino",
     "fuente": "bedca",
     "fuenteId": "2124",
@@ -14370,6 +15704,52 @@
     }
   },
   {
+    "id": "vol-au-vent",
+    "nombre": "Hojaldre",
+    "fuente": "bedca",
+    "fuenteId": "2607",
+    "fuenteNombre": "Hojaldre",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
+    "familia": "pan",
+    "rol": "basico",
+    "taxonomia": null,
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": null,
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": {
+      "kcal100g": 550.1,
+      "protein100g": 7.4,
+      "carbs100g": 44.2,
+      "fat100g": 38.5,
+      "fiber100g": 1.5,
+      "sugar100g": null,
+      "saturatedFat100g": 5.5,
+      "sodium100g": 253
+    },
+    "densidad": null,
+    "fraccionComestible": null,
+    "huecos": {
+      "nutricion": "relleno",
+      "procedencia": "relleno",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "ausente_resoluble",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "ausente_resoluble",
+      "corte": "no_aplica",
+      "estado": "ausente_sin_fuente",
+      "medio": "no_aplica",
+      "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "no_aplica"
+    }
+  },
+  {
     "id": "whisky",
     "nombre": "Whisky",
     "fuente": "bedca",
@@ -14527,7 +15907,7 @@
     }
   },
   {
-    "id": "zanahoria-crudo",
+    "id": "zanahoria",
     "nombre": "Zanahoria, cruda",
     "fuente": "bedca",
     "fuenteId": "2424",

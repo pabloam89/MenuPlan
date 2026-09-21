@@ -111,11 +111,9 @@ const slug = (s) =>
     .replace(/^-+|-+$/g, "");
 
 const filas = [];
-const porId = new Map();
-const divergencias = [];
 const dimensionesImposibles = [];
 const porViaFamilia = new Map();
-const informe = { conDecision: 0, porMacros: 0, heredados: 0, vacios: 0, compartidos: 0 };
+const informe = { conDecision: 0, porMacros: 0, heredados: 0, vacios: 0 };
 const mapaIngredienteAlimento = {};
 
 for (const ing of ingredientes) {
@@ -123,34 +121,27 @@ for (const ing of ingredientes) {
   const nombreFuente = proc?.foodName ?? null;
   const parsed = nombreFuente ? parseDimensiones(nombreFuente) : null;
 
-  // El id sale del núcleo del nombre de BEDCA más las dimensiones que lo
-  // distinguen — así "Atún, en aceite, enlatado" y "Atún, fresco, crudo" son
-  // dos filas y se ve por qué. Sin ficha, el id cae al del ingrediente: es
-  // trazable y no colisiona, porque los ids de ingrediente ya son únicos.
-  const sufijos = parsed ? Object.values(parsed.dimensiones).sort() : [];
-  const nucleoSlug = parsed ? slug([parsed.nucleo, ...parsed.nucleoExtra].join(" ")) : null;
-  const id = nucleoSlug ? [nucleoSlug, ...sufijos.map(slug)].join("-") : slug(ing.id);
-
-  // Varios ingredientes pueden apuntar al MISMO alimento, y eso es correcto,
-  // no un duplicado: "Aceite de oliva" y "Aceite de oliva virgen extra" son un
-  // ingrediente distinto cada uno pero pueden compartir ficha. La fila se crea
-  // una vez; los dos ingredientes la apuntan.
-  if (porId.has(id)) {
-    // Compartir ficha es correcto, pero solo si los números coinciden. Dos
-    // ingredientes apuntando a la misma ficha de BEDCA con macros distintas
-    // significa que alguien editó una a mano, y entonces el deduplicado
-    // estaría eligiendo una de las dos por orden del array — en silencio.
-    const yaEsta = porId.get(id);
-    if (ing.nutrition && yaEsta.nutricion && !mismasMacros(ing.nutrition, yaEsta.nutricion)) {
-      divergencias.push(`${ing.id} y ${yaEsta.origen} comparten la ficha ${id} con macros distintas`);
-    }
-    if (ing.nutrition && !yaEsta.nutricion) {
-      divergencias.push(`${ing.id} trae nutrición y ${yaEsta.origen}, que comparte ficha ${id}, no`);
-    }
-    mapaIngredienteAlimento[ing.id] = id;
-    informe.compartidos++;
-    continue;
-  }
+  // UN ALIMENTO POR INGREDIENTE. El id es el del ingrediente, y no se fusiona
+  // nada.
+  //
+  // La primera versión construía el id desde el núcleo de la ficha de BEDCA
+  // más sus dimensiones, y fusionaba los ingredientes que caían en el mismo.
+  // Parecía normalizar y lo que hacía era mentir: BEDCA no tiene ficha para la
+  // judía negra ni para el azúcar blanco, así que
+  //
+  //     "Azúcar" + "Azúcar glas" + "Azúcar moreno"  → una fila «Azúcar, moreno»
+  //     "Judías blancas" + "Judías negras cocidas"  → una fila «Judía blanca»
+  //     "Requesón" + "Ricotta"                      → una fila «Requesón»
+  //
+  // El azúcar blanco no es moreno. Compartir la ficha de origen NO es ser el
+  // mismo alimento: es que la fuente no distingue, que es otra cosa y hay que
+  // poder verla. Ahora cada ingrediente tiene su fila, varias filas pueden
+  // apuntar a la misma `fuenteId`, y eso queda a la vista en vez de fundido.
+  //
+  // Fusionar dos alimentos es una decisión de identidad, y las decisiones de
+  // identidad se registran, no se deducen de que una tabla externa sea más
+  // gruesa que la nuestra.
+  const id = ing.id;
 
   const { familia, via: viaFamilia } = deriveFamilia(ing, juiciosFamilia);
   const { rol } = deriveRol(ing, juiciosFamilia);
@@ -208,7 +199,6 @@ for (const ing of ingredientes) {
     fraccionComestible: null,
     huecos,
   });
-  porId.set(id, { origen: ing.id, nutricion: ing.nutrition ?? null });
   mapaIngredienteAlimento[ing.id] = id;
 
   // Los cuatro estados son excluyentes y suman el total: así el informe no
@@ -243,7 +233,17 @@ const dimsNoAplica = filas.reduce(
   (n, f) => n + Object.values(f.dimensiones).filter((v) => v === "no_aplica").length, 0,
 );
 
-console.log(`\n📋  alimentos: ${filas.length} filas (de ${ingredientes.length} ingredientes; ${informe.compartidos} comparten ficha con otro)`);
+// Cuántas filas se apoyan en una ficha que también usa otra. NO es un
+// duplicado: es el aviso de que para esos alimentos BEDCA no distingue, y que
+// su nutrición es una aproximación prestada. Se cuenta para que se vea.
+const fichasCompartidas = new Map();
+for (const f of filas) {
+  if (!f.fuenteId) continue;
+  fichasCompartidas.set(f.fuenteId, (fichasCompartidas.get(f.fuenteId) ?? 0) + 1);
+}
+const conFichaPrestada = filas.filter((f) => f.fuenteId && fichasCompartidas.get(f.fuenteId) > 1).length;
+
+console.log(`\n📋  alimentos: ${filas.length} filas, una por ingrediente`);
 console.log(`    las ${filas.length} filas, por procedencia — suman el total:`);
 console.log(`      ficha por decisión humana  ${informe.conDecision}`);
 console.log(`      ficha recuperada por macros ${informe.porMacros}`);
@@ -268,9 +268,8 @@ if (dimensionesImposibles.length > 0) {
   for (const d of dimensionesImposibles) console.log("      " + d);
 }
 
-if (divergencias.length > 0) {
-  console.log(`\n⚠️   ${divergencias.length} ingredientes comparten ficha con números que no coinciden:`);
-  for (const d of divergencias) console.log("      " + d);
+if (conFichaPrestada > 0) {
+  console.log(`    ${conFichaPrestada} filas con la ficha prestada: BEDCA no distingue entre ellas y su nutrición es aproximada`);
 }
 console.log();
 

@@ -28,6 +28,38 @@ describe("la tabla de alimentos", () => {
     expect(validateAlimentos(alimentos)).toEqual([]);
   });
 
+  it("hay exactamente un alimento por ingrediente", () => {
+    // La primera versión fusionaba las filas que caían en la misma ficha de
+    // BEDCA, y así juntó «Azúcar» con «Azúcar moreno», «Judías blancas» con
+    // «Judías negras» y «Requesón» con «Ricotta». Que la fuente no distinga
+    // dos alimentos no los convierte en uno.
+    expect(alimentos).toHaveLength(ingredientes.length);
+    expect(new Set(Object.values(alimentoPorIngrediente)).size).toBe(ingredientes.length);
+  });
+
+  it("la nutrición del alimento es la del ingrediente, campo por campo", () => {
+    // TODOS los campos, no solo los cuatro macros duros. El detector de la
+    // primera versión solo miraba kcal/proteína/carbos/grasa y por eso dijo
+    // "cero divergencias" mientras la fusión cambiaba la fibra del tomate
+    // triturado (1,2 → 1,1) y convertía el azúcar de la sal en escamas de
+    // `null` a `0` — que no es una diferencia de número, es romper el
+    // invariante de que un dato ausente nunca es un cero.
+    const porId = new Map(alimentos.map((a) => [a.id, a]));
+    const malos = [];
+    for (const ing of ingredientes) {
+      const fila = porId.get(alimentoPorIngrediente[ing.id]);
+      const x = ing.nutrition ?? null;
+      const y = fila?.nutricion ?? null;
+      if (x === null && y === null) continue;
+      if (x === null || y === null) { malos.push(`${ing.id}: uno tiene nutrición y el otro no`); continue; }
+      for (const k of Object.keys(x)) {
+        // Object.is distingue null de 0, que es justo lo que hay que vigilar.
+        if (!Object.is(x[k], y[k])) malos.push(`${ing.id}.${k}: ${x[k]} contra ${y[k]}`);
+      }
+    }
+    expect(malos).toEqual([]);
+  });
+
   it("la FK cierra por los dos lados", () => {
     const ids = new Set(alimentos.map((a) => a.id));
     const sinMapa = ingredientes.filter((i) => !alimentoPorIngrediente[i.id]).map((i) => i.id);
