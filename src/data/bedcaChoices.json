@@ -6,147 +6,126 @@
     "motivo": "«Judías blancas, cocidas» (2199) declara 322,9 kcal con 21,4 g de proteína y 54,8 de carbohidratos. Eso es composición de alubia SECA, no cocida: unas alubias cocidas rondan 120-140 kcal, y esta ficha sale incluso POR ENCIMA de «Alubia blanca, seca, cruda» (899, 271,3 kcal), lo cual es imposible porque cocer solo añade agua. La ficha está mal etiquetada, y lo peligroso es que pasa Atwater —318 contra 322,9— porque sus macros son coherentes entre sí: la fórmula detecta números corruptos, no etiquetas mentirosas. Sin ficha buena hasta que haya otra fuente.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "apio": {
     "foodId": 2366,
     "confianza": 0.95,
     "motivo": "«Apio, crudo», 10,6 kcal, Atwater 10,5. Nombre y estado exactos.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "cebollino": {
     "foodId": 850,
     "confianza": 0.95,
     "motivo": "«Cebollino, crudo», 24,6 kcal, Atwater 24,3. Nombre y estado exactos.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "calamar": {
     "foodId": 807,
     "confianza": 0.95,
     "motivo": "«Calamar, crudo», 71,5 kcal, Atwater 73,6. Nombre y estado exactos; las recetas pesan el calamar crudo.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "merluza": {
     "foodId": 825,
     "confianza": 0.85,
     "motivo": "«Merluza, congelada, cruda», 84,5 kcal con 16,7 g de proteína (Atwater 83,7). Se descarta «Merluza fresca» (2347) pese a llamarse igual que el ingrediente: sus 11,93 g de proteína son atípicamente bajos para una merluza, que ronda 17. Congelada y fresca son el mismo pescado en distinto almacenamiento; lo que no puede variar un tercio es la proteína.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "aji-amarillo": {
     "foodId": 2610,
     "confianza": 0.7,
     "motivo": "«Guindilla, picante», 44,5 kcal, Atwater 44,2. No es la misma variedad —el ají amarillo es peruano y la guindilla española— pero sí el mismo alimento en familia y estado: chile fresco. Se usa a 15 g de mediana, así que la diferencia de variedad no mueve nada apreciable. Se descarta «Guindilla, en polvo» (303,8 kcal), que es el mismo chile deshidratado.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "boletus": {
     "foodId": 2419,
     "confianza": 0.75,
     "motivo": "«Seta», 26,2 kcal, Atwater 25,9. Ficha genérica de seta en estado neutro, que es compatible con el boletus crudo (referencia 22-26). Se descarta «Seta, plancha» (13,1): las recetas pesan la seta cruda.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "tomate-frito": {
     "foodId": 2560,
     "confianza": 0.95,
     "motivo": "«Tomate frito», 83,8 kcal, Atwater 84,4. Coincidencia literal de nombre y de producto.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "quinoa": {
     "foodId": 1083,
     "confianza": 0.95,
     "motivo": "«Quinoa, cruda», 305,1 kcal, Atwater 302. Nombre y estado exactos.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "salmon-fresco": {
     "foodId": 2626,
     "confianza": 0.9,
     "motivo": "«Salmón», 180,9 kcal con 18,4 de proteína y 12 de grasa (Atwater 181,6). Estado neutro, compatible con el fresco. Se descarta «Salmón ahumado» (2627), que es otro producto: el ahumado concentra proteína (25,4) y pierde grasa.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "mango": {
     "foodId": 1186,
     "confianza": 0.95,
     "motivo": "«Mango, crudo», 58,7 kcal, Atwater 57,8. Nombre y estado exactos. Se descarta el zumo, que es otro alimento.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "remolacha": {
     "foodId": 2416,
     "confianza": 0.8,
     "motivo": "«Remolacha, en conserva», 29,4 kcal, Atwater 29. El ingrediente es «Remolacha cocida», que en España se vende casi siempre cocida y envasada al vacío: mismo producto que la conserva en composición, distinto envase.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "jengibre": {
     "foodId": 2606,
     "confianza": 0.8,
     "motivo": "«Jengibre», 51,7 kcal, coherente con Atwater (51,1). Es el único candidato y su perfil es de rizoma fresco, no de jengibre molido (que rondaría 335). Se usa a 10 g de mediana, así que el margen que quede apenas mueve nada.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "yogur": {
     "foodId": 1143,
     "confianza": 0.9,
     "motivo": "«Yogur, enriquecido, natural»: 63,3 kcal y Atwater 63,5. Es el valor de libro de un yogur natural; «enriquecido» es un matiz de producto que no mueve los macros.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "sesamo": {
     "foodId": 1127,
     "confianza": 0.95,
     "motivo": "«Sésamo, semilla», 560 kcal, Atwater 566. Coincidencia directa. El otro candidato era el ACEITE de sésamo (884 kcal, 100 % grasa), que es otro alimento.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "calabaza": {
     "foodId": 2378,
     "confianza": 0.95,
     "motivo": "«Calabaza, cruda», 32,1 kcal, Atwater 31,7. El otro candidato era «Pipa de calabaza» (600 kcal): misma planta, otro alimento.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "boniato": {
     "foodId": 731,
     "confianza": 0.95,
     "motivo": "«Boniato, crudo», 101 kcal, Atwater 99,5. Coincidencia directa y en el estado correcto: las recetas pesan el boniato crudo.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "queso-cabra": {
     "foodId": 934,
     "confianza": 0.85,
     "motivo": "«Queso fresco, cabra», 296,6 kcal, Atwater 299. El catálogo dice «Queso de cabra» sin precisar curación; el fresco es el formato que usan las recetas (ensaladas, rulo).",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "jamon-york": {
     "foodId": 2272,
     "confianza": 0.85,
     "motivo": "«Jamón cocido, enlatado», 125,1 kcal, Atwater 124,7. El formato enlatado y el loncheado comparten composición: lo que cambia es el envase, no el jamón.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "clara-de-huevo": {
     "foodId": 1173,
     "confianza": 0.95,
     "motivo": "«Huevo de gallina, clara, cruda»: 44,8 kcal con 10,5 g de proteína y 0,1 de grasa, que es exactamente el perfil de una clara. El otro candidato con el mismo score era «Flan de huevo», que no es lo mismo ni de lejos.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "yema-de-huevo": {
     "foodId": 2125,
     "confianza": 0.95,
     "motivo": "«Huevo de gallina, yema, CRUDA» (354,9 kcal). El mejor por score era la yema DESECADA (661,7 kcal): casi el doble, porque le han quitado el agua. Es el error que el filtro de estado existe para evitar, y aquí habría metido un factor 1,9 en la grasa de cualquier receta con yema.",
     "modelo": "decision-humana-2026-09-21"
   },
-
   "aceitunas-negras": {
     "foodId": 2215,
     "confianza": 0.9,
@@ -460,10 +439,11 @@
     "modelo": "claude-sonnet-5"
   },
   "dorada": {
-    "foodId": 815,
+    "foodId": null,
     "confianza": 0.9,
-    "motivo": "Dorada cruda coincide con pescado entero limpio",
-    "modelo": "claude-sonnet-5"
+    "motivo": "Se anula a favor de CIQUAL. La ficha «Dorada, cruda» (815) de BEDCA falla Atwater por -55, o sea que sus kcal no cuadran con sus propios macros, y por eso el aplicador la rechazaba desde el principio. CIQUAL publica «Black seabream, raw» (26099) coherente. Un ingrediente, una fuente: dos fichas decididas son dos numeros esperando a que alguien elija por orden de lectura.",
+    "modelo": "decision-humana-2026-09-21",
+    "_reemplaza": 815
   },
   "edamame": {
     "foodId": 1124,
@@ -600,12 +580,9 @@
   "garbanzos": {
     "foodId": null,
     "confianza": 0.9,
-    "motivo": "Revisadas las NUEVE filas de garbanzo de BEDCA (21 sep 2026). Solo tres traen macros y dos están corruptas: «Garbanzo, hervido» (2192) declara 358,7 kcal cuando sus macros dan 133, y «Garbanzo, en conserva» (2191) declara 31,8 cuando dan 111. La única consistente es «Garbanzo, seco, crudo» (1020, +1 %), que es otro alimento: entre seco y cocido hay un factor 2,5 de agua. Y el 358,7 del hervido es casi exactamente el kcal del seco (334,2), o sea que a esa fila le pegaron el número de la otra. No se recalcula el kcal desde sus macros: una fila con un error de copia demostrado no es una fila con un campo malo, es una fila en la que no se puede confiar — si alguien pegó mal el kcal, tampoco hay motivo para fiarse de sus carbos (18,7 cuando la referencia ronda 27). Se queda sin nutrición hasta que haya otra fuente. Afecta a 55 recetas y es el hueco individual más caro del catálogo.",
-    "modelo": "decision-humana-2026-09-21",
-    "_reemplaza": 2192,
-    "confianza": 0.9,
     "motivo": "Garbanzo hervido coincide con garbanzos cocidos",
-    "modelo": "claude-sonnet-5"
+    "modelo": "claude-sonnet-5",
+    "_reemplaza": 2192
   },
   "garrofon": {
     "foodId": 2196,
@@ -1010,10 +987,11 @@
     "modelo": "claude-sonnet-5"
   },
   "pimienta-blanca": {
-    "foodId": 2591,
-    "confianza": 0.98,
-    "motivo": "Coincidencia exacta de nombre y estado",
-    "modelo": "claude-sonnet-5"
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Se anula a favor de CIQUAL. La ficha «Pimienta, blanca» (2591) de BEDCA falla Atwater por -175 y nunca llego a aplicarse. CIQUAL publica «White pepper, powder» (11019) coherente.",
+    "modelo": "decision-humana-2026-09-21",
+    "_reemplaza": 2591
   },
   "pimiento-choricero": {
     "foodId": null,

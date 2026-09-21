@@ -136,17 +136,41 @@ export function energiaEsperada(n) {
  * Cuando falta el kcal pero está el kJ, se convierte. No es estimar: son la
  * misma magnitud en otra unidad, y CIQUAL publica muchas fichas con uno y sin
  * el otro (los espárragos crudos, la levadura de panadería).
+ *
+ * Y cuando faltan LOS DOS pero los macros están completos, se calcula con la
+ * fórmula del propio reglamento que CIQUAL dice usar. Pasa en los frutos
+ * secos: «Walnut, dried, husked» publica proteína, carbohidratos, grasa y
+ * fibra, y deja los cuatro códigos de energía a «-».
+ *
+ * ESTO NO ES LO MISMO QUE LO QUE SE RECHAZÓ CON EL GARBANZO DE BEDCA, y la
+ * diferencia es el motivo de que aquí sí y allí no:
+ *
+ *   garbanzo   la fuente PUBLICA un kcal y es demostrablemente falso (le
+ *              pegaron el del garbanzo seco). Un error probado en un campo
+ *              es motivo para desconfiar de toda la fila, así que no se
+ *              recalcula: se descarta entera.
+ *   fruto seco la fuente OMITE el kcal y no hay nada que contradiga a sus
+ *              macros. Rellenar una omisión con la aritmética que la propia
+ *              fuente declara no es corregirla, es terminarla.
+ *
+ * Aun así queda marcado con `kcalCalculado`, porque un número calculado y uno
+ * medido no valen lo mismo y quien lo lea tiene derecho a saberlo.
  */
 export function fichasUtiles(alimentos) {
   const duros = ["protein100g", "carbs100g", "fat100g"];
   const out = [];
   for (const a of alimentos.values()) {
     if (!duros.every((k) => a.nutricion[k] != null)) continue;
-    if (a.nutricion.kcal100g == null) {
-      if (a.nutricion.kj100g == null) continue;
+    if (a.nutricion.kcal100g == null && a.nutricion.kj100g != null) {
       a.nutricion.kcal100g = Math.round((a.nutricion.kj100g / 4.184) * 10) / 10;
       a.confianza.kcal100g = a.confianza.kj100g;
       a.kcalDesdeKj = true;
+    } else if (a.nutricion.kcal100g == null) {
+      // Sin fibra no se calcula: la fórmula la necesita y suponerla cero
+      // subestimaría la energía justo en los alimentos donde más pesa.
+      if (a.nutricion.fiber100g == null) continue;
+      a.nutricion.kcal100g = Math.round(energiaEsperada(a.nutricion) * 10) / 10;
+      a.kcalCalculado = true;
     }
     out.push(a);
   }

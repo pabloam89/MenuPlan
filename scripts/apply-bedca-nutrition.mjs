@@ -59,7 +59,17 @@ const REVIEW_PATHS = argValue("review", "output/bedca-nutrition-review.json").sp
 const CHOICES_PATH = argValue("choices", null);
 // Los umbrales y el porqué viven en scripts/lib/bedcaAtwater.mjs, compartidos
 // con el triaje para que no se bifurquen.
-function atwaterDeviation(nutrition, foodName, ingredientName) {
+function atwaterDeviation(nutrition, foodName, ingredientName, candidato) {
+  // Un candidato que llega con `atwaterVerificado` ya pasó el filtro en su
+  // origen, y con la convención de energía de SU fuente. No se vuelve a
+  // comprobar aquí, y no es una excepción de conveniencia: las tablas no
+  // cuentan la energía igual. CIQUAL declara la suya según el Reglamento UE
+  // 1169/2011, que suma la fibra a 2 kcal/g; BEDCA no la suma —medido: sus
+  // fichas con más de 5 g de fibra dan +1 % con 4/4/9, o sea que ya está
+  // descontada—. Aplicar aquí la fórmula de BEDCA a una ficha de CIQUAL
+  // rechazaba ocho fichas correctas, entre ellas «Basil, fresh» y «Chick pea,
+  // boiled», solo por la fibra que una tabla cuenta y la otra no.
+  if (candidato?.atwaterVerificado) return { diff: 0, ok: true };
   const { diff, ok } = atwaterCheck(nutrition, foodName, ingredientName);
   return { diff, ok };
 }
@@ -84,7 +94,7 @@ function hardFilter(ingredientName, candidate) {
 
 function bestValidCandidate(candidates, ingredientName) {
   const scored = candidates.map((c) => {
-    const { diff, ok } = atwaterDeviation(c.nutrition, c.foodName, ingredientName);
+    const { diff, ok } = atwaterDeviation(c.nutrition, c.foodName, ingredientName, c);
     return { ...c, diff, deviation: Math.abs(diff), atwaterOk: ok, veto: hardFilter(ingredientName, c) };
   });
   const eligible = scored.filter((c) => c.score >= MIN_SCORE && c.atwaterOk && !c.veto);
@@ -160,7 +170,7 @@ for (const entry of review) {
       skippedFiltered++;
       continue;
     }
-    const { ok, diff } = atwaterDeviation(chosen.nutrition, chosen.foodName, ing.name);
+    const { ok, diff } = atwaterDeviation(chosen.nutrition, chosen.foodName, ing.name, chosen);
     if (!ok) {
       rejectedLog.push(`${entry.ingredientId.padEnd(28)} decidido "${chosen.foodName}" pero sus kcal no cuadran con sus macros (Atwater ${diff >= 0 ? "+" : ""}${diff.toFixed(0)})`);
       skippedFiltered++;

@@ -170,7 +170,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 275,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 16.4,
+      "protein100g": 1,
+      "carbs100g": 1.63,
+      "fat100g": 0.25,
+      "fiber100g": 1.8,
+      "sugar100g": 1.2,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 53.2
+    }
   },
   {
     "id": "agua",
@@ -356,7 +365,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 10,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 34.8,
+      "protein100g": 3.35,
+      "carbs100g": 2.55,
+      "fat100g": 0.47,
+      "fiber100g": 3.47,
+      "sugar100g": 0.37,
+      "saturatedFat100g": 0.13,
+      "sodium100g": 12
+    }
   },
   {
     "id": "alcachofa",
@@ -377,7 +395,16 @@
       "nombre": "alcachofa",
       "g": 100
     },
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 44.9,
+      "protein100g": 3.2,
+      "carbs100g": 4.92,
+      "fat100g": 0.18,
+      "fiber100g": 5.4,
+      "sugar100g": 0.99,
+      "saturatedFat100g": 0.036,
+      "sodium100g": 60.5
+    }
   },
   {
     "id": "alcachofa-conserva",
@@ -394,7 +421,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 350,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 26,
+      "protein100g": 1.8,
+      "carbs100g": 2.31,
+      "fat100g": 0.25,
+      "fiber100g": 3.2,
+      "sugar100g": 1.2,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 310
+    }
   },
   {
     "id": "alcaparras",
@@ -542,7 +578,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 30,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 612.9,
+      "protein100g": 21.4,
+      "carbs100g": 8.76,
+      "fat100g": 52.5,
+      "fiber100g": 9.9,
+      "sugar100g": 4.63,
+      "saturatedFat100g": 3.95,
+      "sodium100g": 19
+    }
   },
   {
     "id": "alubia-grande",
@@ -581,7 +626,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 300,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 112,
+      "protein100g": 6.75,
+      "carbs100g": 12,
+      "fat100g": 1.1,
+      "fiber100g": 13.8,
+      "sugar100g": 0.3,
+      "saturatedFat100g": 0.25,
+      "sodium100g": 9.3
+    }
   },
   {
     "id": "alubias-rojas",
@@ -681,7 +735,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 475,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 29.3,
+      "protein100g": 1.38,
+      "carbs100g": 3.98,
+      "fat100g": 0.25,
+      "fiber100g": 4.5,
+      "sugar100g": 1.6,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 34
+    }
   },
   {
     "id": "arandanos",
@@ -893,7 +956,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 20,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 691.2,
+      "protein100g": 14.4,
+      "carbs100g": 5.21,
+      "fat100g": 66,
+      "fiber100g": 9.4,
+      "sugar100g": 4.26,
+      "saturatedFat100g": 4.51,
+      "sodium100g": null
+    }
   },
   {
     "id": "avena",
@@ -1122,7 +1194,16 @@
     "isVegan": false,
     "defaultUnit": "ml",
     "medianAmount": 200,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 147,
+      "protein100g": 3.84,
+      "carbs100g": 8.97,
+      "fat100g": 10.6,
+      "fiber100g": 0.2,
+      "sugar100g": 4.38,
+      "saturatedFat100g": 2.85,
+      "sodium100g": 354
+    }
   },
   {
     "id": "berberecho",
@@ -1199,7 +1280,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 200,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 388.2,
+      "protein100g": 7.98,
+      "carbs100g": 79.9,
+      "fat100g": 3.77,
+      "fiber100g": 1.37,
+      "sugar100g": 47.9,
+      "saturatedFat100g": 0.99,
+      "sodium100g": 161
+    }
   },
   {
     "id": "bogavante",
@@ -1294,7 +1384,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 300,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 111,
+      "protein100g": 26.8,
+      "carbs100g": 0,
+      "fat100g": 0.4,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 0.086,
+      "sodium100g": 251
+    }
   },
   {
     "id": "boquerones",
@@ -1341,7 +1440,16 @@
     "isVegan": true,
     "defaultUnit": "ml",
     "medianAmount": 30,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 228,
+      "protein100g": 0,
+      "carbs100g": 1,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": null,
+      "sodium100g": null
+    }
   },
   {
     "id": "brocoli",
@@ -1380,7 +1488,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 160,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 29.5,
+      "protein100g": 2.57,
+      "carbs100g": 3.4,
+      "fat100g": 0.25,
+      "fiber100g": 1.7,
+      "sugar100g": 3.4,
+      "saturatedFat100g": 0.0001,
+      "sodium100g": 17.1
+    }
   },
   {
     "id": "burrata",
@@ -1447,7 +1564,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 350,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 194,
+      "protein100g": 18.1,
+      "carbs100g": 0,
+      "fat100g": 13.5,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 3.22,
+      "sodium100g": 64
+    }
   },
   {
     "id": "cabracho",
@@ -1492,7 +1618,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 30,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 617.7,
+      "protein100g": 22.9,
+      "carbs100g": 15,
+      "fat100g": 50,
+      "fiber100g": 8.04,
+      "sugar100g": 4.22,
+      "saturatedFat100g": 8.64,
+      "sodium100g": 531
+    }
   },
   {
     "id": "cacao",
@@ -1880,7 +2015,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 500,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 147,
+      "protein100g": 20.7,
+      "carbs100g": 0,
+      "fat100g": 7.13,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 2.47,
+      "sodium100g": 80
+    }
   },
   {
     "id": "carne-de-ternera-para-guisar",
@@ -1966,7 +2110,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 750,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 136,
+      "protein100g": 22.3,
+      "carbs100g": 0.4,
+      "fat100g": 5.02,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 1.81,
+      "sodium100g": 71
+    }
   },
   {
     "id": "carrillera",
@@ -1983,7 +2136,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 650,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 136,
+      "protein100g": 22.3,
+      "carbs100g": 0.4,
+      "fat100g": 5.02,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 1.81,
+      "sodium100g": 71
+    }
   },
   {
     "id": "castanas",
@@ -2000,7 +2162,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 150,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 121.4,
+      "protein100g": 2,
+      "carbs100g": 23,
+      "fat100g": 1.38,
+      "fiber100g": 4.5,
+      "sugar100g": null,
+      "saturatedFat100g": 0.26,
+      "sodium100g": 27
+    }
   },
   {
     "id": "cava",
@@ -2045,7 +2216,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 10,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 44.5,
+      "protein100g": 1.87,
+      "carbs100g": 7.7,
+      "fat100g": 0.32,
+      "fiber100g": 1.65,
+      "sugar100g": 5.3,
+      "saturatedFat100g": 0.031,
+      "sodium100g": 8
+    }
   },
   {
     "id": "cebolla",
@@ -2168,7 +2348,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 80,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 398,
+      "protein100g": 7.78,
+      "carbs100g": 75.3,
+      "fat100g": 6.08,
+      "fiber100g": 5.16,
+      "sugar100g": 24.6,
+      "saturatedFat100g": 2.19,
+      "sodium100g": 316
+    }
   },
   {
     "id": "cerveza",
@@ -2346,7 +2535,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 800,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 251,
+      "protein100g": 18.7,
+      "carbs100g": 0,
+      "fat100g": 19.6,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 65
+    }
   },
   {
     "id": "cigala",
@@ -2394,7 +2592,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 5,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 22.3,
+      "protein100g": 2.13,
+      "carbs100g": 0.87,
+      "fat100g": 0.52,
+      "fiber100g": 2.8,
+      "sugar100g": 0.87,
+      "saturatedFat100g": 0.014,
+      "sodium100g": 46
+    }
   },
   {
     "id": "cinta-de-lomo",
@@ -2488,7 +2695,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 15,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 685.4,
+      "protein100g": 6.62,
+      "carbs100g": 8.55,
+      "fat100g": 66.3,
+      "fiber100g": 14,
+      "sugar100g": 6.64,
+      "saturatedFat100g": 57.7,
+      "sodium100g": 26.6
+    }
   },
   {
     "id": "codorniz",
@@ -2736,7 +2952,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 600,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 276,
+      "protein100g": 16.9,
+      "carbs100g": 0,
+      "fat100g": 23.1,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 10,
+      "sodium100g": 81.2
+    }
   },
   {
     "id": "corvina",
@@ -2756,7 +2981,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 300,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 87.2,
+      "protein100g": 20,
+      "carbs100g": 0,
+      "fat100g": 0.8,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": null,
+      "sodium100g": null
+    }
   },
   {
     "id": "costilla",
@@ -2880,7 +3114,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 700,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 130,
+      "protein100g": 20.5,
+      "carbs100g": 0,
+      "fat100g": 5.27,
+      "fiber100g": 0.5,
+      "sugar100g": 0,
+      "saturatedFat100g": 1.41,
+      "sodium100g": 60.6
+    }
   },
   {
     "id": "edamame",
@@ -2925,7 +3168,16 @@
     "isVegan": true,
     "defaultUnit": "ud",
     "medianAmount": 4,
-    "nutrition": null,
+    "nutrition": {
+      "kcal100g": 20.2,
+      "protein100g": 1.19,
+      "carbs100g": 2.83,
+      "fat100g": 0.25,
+      "fiber100g": 1.1,
+      "sugar100g": 2.4,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 2.5
+    },
     "pieza": {
       "nombre": "endivia",
       "g": 80
@@ -2985,7 +3237,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 400,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 152,
+      "protein100g": 22.3,
+      "carbs100g": 0.6,
+      "fat100g": 6.74,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": null,
+      "sodium100g": 32.2
+    }
   },
   {
     "id": "escalopines-de-ternera",
@@ -3000,7 +3261,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 325,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 148,
+      "protein100g": 21.3,
+      "carbs100g": 0,
+      "fat100g": 7.05,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 2.72,
+      "sodium100g": 54.3
+    }
   },
   {
     "id": "espaguetis",
@@ -3043,7 +3313,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 300,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 26.6,
+      "protein100g": 2.69,
+      "carbs100g": 1.73,
+      "fat100g": 0.3,
+      "fiber100g": 2.2,
+      "sugar100g": 1.3,
+      "saturatedFat100g": 0.07,
+      "sodium100g": 2.5
+    }
   },
   {
     "id": "esparragos-blancos",
@@ -3082,7 +3361,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 8,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 348,
+      "protein100g": 6.09,
+      "carbs100g": 50.5,
+      "fat100g": 8.69,
+      "fiber100g": 21.6,
+      "sugar100g": null,
+      "saturatedFat100g": 2.55,
+      "sodium100g": 77
+    }
   },
   {
     "id": "espinacas",
@@ -3166,7 +3454,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 200,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 252,
+      "protein100g": 8.25,
+      "carbs100g": 18.7,
+      "fat100g": 14.4,
+      "fiber100g": 7.7,
+      "sugar100g": 1.4,
+      "saturatedFat100g": 1.5,
+      "sodium100g": 640
+    }
   },
   {
     "id": "farfalle",
@@ -3367,7 +3664,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 300,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 148,
+      "protein100g": 21.3,
+      "carbs100g": 0,
+      "fat100g": 7.05,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 2.72,
+      "sodium100g": 54.3
+    }
   },
   {
     "id": "foie",
@@ -3410,7 +3716,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 150,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 38.6,
+      "protein100g": 0.63,
+      "carbs100g": 6.03,
+      "fat100g": 0.25,
+      "fiber100g": 3.8,
+      "sugar100g": 5.6,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 2.5
+    }
   },
   {
     "id": "frutos-rojos",
@@ -3428,7 +3743,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 150,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 63.4,
+      "protein100g": 1.33,
+      "carbs100g": 9.68,
+      "fat100g": 0.86,
+      "fiber100g": 5.8,
+      "sugar100g": 9.68,
+      "saturatedFat100g": 0.14,
+      "sodium100g": 2.5
+    }
   },
   {
     "id": "fuet",
@@ -3495,7 +3819,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 190,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 448.6,
+      "protein100g": 6.77,
+      "carbs100g": 70,
+      "fat100g": 15.1,
+      "fiber100g": 2.81,
+      "sugar100g": 23.6,
+      "saturatedFat100g": 6.81,
+      "sodium100g": 334
+    }
   },
   {
     "id": "gambas",
@@ -3889,7 +4222,16 @@
       "nombre": "higo",
       "g": 60
     },
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 69.4,
+      "protein100g": 1.19,
+      "carbs100g": 13.5,
+      "fat100g": 0.25,
+      "fiber100g": 4.1,
+      "sugar100g": 12.2,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 5
+    }
   },
   {
     "id": "hinojo",
@@ -3904,7 +4246,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 150,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 21.8,
+      "protein100g": 1,
+      "carbs100g": 2.63,
+      "fat100g": 0.25,
+      "fiber100g": 2.6,
+      "sugar100g": 2.2,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 22
+    }
   },
   {
     "id": "hoja-de-gelatina",
@@ -4636,7 +4987,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 7,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 353.5,
+      "protein100g": 44.5,
+      "carbs100g": 17.9,
+      "fat100g": 6.37,
+      "fiber100g": 23.3,
+      "sugar100g": 0,
+      "saturatedFat100g": 1.5,
+      "sodium100g": 226
+    }
   },
   {
     "id": "levadura-quimica",
@@ -4651,7 +5011,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 6,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 146.2,
+      "protein100g": 1.96,
+      "carbs100g": 33.2,
+      "fat100g": 0.2,
+      "fiber100g": 1.9,
+      "sugar100g": 0.1,
+      "saturatedFat100g": 0.05,
+      "sodium100g": 14200
+    }
   },
   {
     "id": "licor-de-cafe",
@@ -4984,7 +5353,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 1200,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 137,
+      "protein100g": 11.6,
+      "carbs100g": 0.01,
+      "fat100g": 10,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 2.95,
+      "sodium100g": 946
+    }
   },
   {
     "id": "manteca-de-cerdo",
@@ -5051,7 +5429,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 40,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 635.7,
+      "protein100g": 22.2,
+      "carbs100g": 16.1,
+      "fat100g": 52.5,
+      "fiber100g": 5,
+      "sugar100g": 10.5,
+      "saturatedFat100g": 10.4,
+      "sodium100g": 388
+    }
   },
   {
     "id": "manzana",
@@ -5150,7 +5537,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 500,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 384.5,
+      "protein100g": 4.38,
+      "carbs100g": 4,
+      "fat100g": 39,
+      "fiber100g": 0,
+      "sugar100g": 4,
+      "saturatedFat100g": 25.7,
+      "sodium100g": 32.2
+    }
   },
   {
     "id": "mayonesa",
@@ -5236,7 +5632,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 200,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 46.5,
+      "protein100g": 1.08,
+      "carbs100g": 9,
+      "fat100g": 0.33,
+      "fiber100g": 1.6,
+      "sugar100g": 8.16,
+      "saturatedFat100g": 0.027,
+      "sodium100g": 0.555
+    }
   },
   {
     "id": "melon",
@@ -5600,7 +6005,16 @@
     "isVegan": true,
     "defaultUnit": "ud",
     "medianAmount": 2,
-    "nutrition": null,
+    "nutrition": {
+      "kcal100g": 228,
+      "protein100g": 10.6,
+      "carbs100g": 39.6,
+      "fat100g": 1.88,
+      "fiber100g": 3.18,
+      "sugar100g": 4.25,
+      "saturatedFat100g": 0.42,
+      "sodium100g": 418
+    },
     "pieza": {
       "nombre": "muffin",
       "g": 60,
@@ -5671,7 +6085,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 135,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 495,
+      "protein100g": 6.56,
+      "carbs100g": 59.5,
+      "fat100g": 24.7,
+      "fiber100g": 4.19,
+      "sugar100g": 2.62,
+      "saturatedFat100g": 9.98,
+      "sodium100g": 565
+    }
   },
   {
     "id": "naranja",
@@ -5778,7 +6201,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 500,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 80.5,
+      "protein100g": 11.5,
+      "carbs100g": 2.66,
+      "fat100g": 2.65,
+      "fiber100g": 0,
+      "sugar100g": 0.16,
+      "saturatedFat100g": 0.21,
+      "sodium100g": 329
+    }
   },
   {
     "id": "nueces",
@@ -5797,7 +6229,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 40,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 699.8,
+      "protein100g": 13.3,
+      "carbs100g": 6.88,
+      "fat100g": 67.3,
+      "fiber100g": 6.7,
+      "sugar100g": 3,
+      "saturatedFat100g": 6.45,
+      "sodium100g": 2.5
+    }
   },
   {
     "id": "nuez-moscada",
@@ -6181,7 +6622,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 60,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 336,
+      "protein100g": 11.5,
+      "carbs100g": 65.8,
+      "fat100g": 1.79,
+      "fiber100g": 3,
+      "sugar100g": 2.12,
+      "saturatedFat100g": 0.37,
+      "sodium100g": 9.2
+    }
   },
   {
     "id": "pasta-corta",
@@ -6641,7 +7091,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 35,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 370,
+      "protein100g": 3.94,
+      "carbs100g": 6.6,
+      "fat100g": 35.4,
+      "fiber100g": 2.5,
+      "sugar100g": 3.2,
+      "saturatedFat100g": 4.39,
+      "sodium100g": 1060
+    }
   },
   {
     "id": "pimenton",
@@ -6714,7 +7173,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 1,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 310,
+      "protein100g": 11.4,
+      "carbs100g": 48.3,
+      "fat100g": 2.11,
+      "fiber100g": 26.2,
+      "sugar100g": null,
+      "saturatedFat100g": 0.63,
+      "sodium100g": 5
+    }
   },
   {
     "id": "pimiento-choricero",
@@ -6740,7 +7208,16 @@
       "nombre": "pimiento choricero",
       "g": 7
     },
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 319,
+      "protein100g": 14.1,
+      "carbs100g": 19.1,
+      "fat100g": 12.9,
+      "fiber100g": 34.9,
+      "sugar100g": 10.3,
+      "saturatedFat100g": 2.14,
+      "sodium100g": 68
+    }
   },
   {
     "id": "pimiento-rojo",
@@ -6853,7 +7330,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 250,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 54.4,
+      "protein100g": 0.25,
+      "carbs100g": 11.7,
+      "fat100g": 0.25,
+      "fiber100g": 1.2,
+      "sugar100g": 10.5,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 2.5
+    }
   },
   {
     "id": "pinones",
@@ -6973,7 +7459,16 @@
     "isVegan": true,
     "defaultUnit": "ud",
     "medianAmount": 1,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 131.6,
+      "protein100g": 1.28,
+      "carbs100g": 29.6,
+      "fat100g": 0.39,
+      "fiber100g": 2.3,
+      "sugar100g": null,
+      "saturatedFat100g": 0.14,
+      "sodium100g": 4
+    }
   },
   {
     "id": "pluma-iberica",
@@ -7070,7 +7565,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 375,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 208,
+      "protein100g": 24.8,
+      "carbs100g": 0,
+      "fat100g": 12.1,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 4.57,
+      "sodium100g": 73.2
+    }
   },
   {
     "id": "puerro",
@@ -7272,7 +7776,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 60,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 297,
+      "protein100g": 17.3,
+      "carbs100g": 0,
+      "fat100g": 25.5,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 16.3,
+      "sodium100g": 599
+    }
   },
   {
     "id": "queso-cabra",
@@ -7414,7 +7927,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 80,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 384,
+      "protein100g": 23.9,
+      "carbs100g": 0,
+      "fat100g": 32.3,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 21.3,
+      "sodium100g": 738
+    }
   },
   {
     "id": "quinoa",
@@ -7453,7 +7975,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 800,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 203,
+      "protein100g": 21.5,
+      "carbs100g": 0.23,
+      "fat100g": 12.9,
+      "fiber100g": 0,
+      "sugar100g": 0.25,
+      "saturatedFat100g": 4.41,
+      "sodium100g": 111
+    }
   },
   {
     "id": "ravioli",
@@ -7486,7 +8017,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 425,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 111,
+      "protein100g": 22.9,
+      "carbs100g": 0.38,
+      "fat100g": 2.02,
+      "fiber100g": 0,
+      "sugar100g": 0.25,
+      "saturatedFat100g": 0.73,
+      "sodium100g": 60.2
+    }
   },
   {
     "id": "remolacha",
@@ -7669,7 +8209,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 320,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 130,
+      "protein100g": 18.9,
+      "carbs100g": 0,
+      "fat100g": 5.97,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": null,
+      "sodium100g": 112
+    }
   },
   {
     "id": "romero",
@@ -7729,7 +8278,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 60,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 384,
+      "protein100g": 19.5,
+      "carbs100g": 0,
+      "fat100g": 33.9,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 24.9,
+      "sodium100g": 1290
+    }
   },
   {
     "id": "rucula",
@@ -8080,7 +8638,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 6,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 36.7,
+      "protein100g": 4,
+      "carbs100g": 0.97,
+      "fat100g": 0.25,
+      "fiber100g": 7,
+      "sugar100g": 0.3,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 11.1
+    }
   },
   {
     "id": "sandia",
@@ -8095,7 +8662,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 300,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 38.9,
+      "protein100g": 0.69,
+      "carbs100g": 8.33,
+      "fat100g": 0.25,
+      "fiber100g": 0.5,
+      "sugar100g": 7.9,
+      "saturatedFat100g": 0.005,
+      "sodium100g": 2.5
+    }
   },
   {
     "id": "sardinas",
@@ -8139,7 +8715,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 350,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 208,
+      "protein100g": 24.8,
+      "carbs100g": 0,
+      "fat100g": 12.1,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 4.57,
+      "sodium100g": 73.2
+    }
   },
   {
     "id": "semola-de-trigo",
@@ -8156,7 +8741,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 15,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 352,
+      "protein100g": 10.9,
+      "carbs100g": 71.6,
+      "fat100g": 1.25,
+      "fiber100g": 3.37,
+      "sugar100g": 1,
+      "saturatedFat100g": 0.21,
+      "sodium100g": 1.2
+    }
   },
   {
     "id": "sepia",
@@ -8276,7 +8870,16 @@
     "isVegan": true,
     "defaultUnit": "ml",
     "medianAmount": 30,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 269.1,
+      "protein100g": 0.04,
+      "carbs100g": 67.1,
+      "fat100g": 0.06,
+      "fiber100g": 0,
+      "sugar100g": 62.6,
+      "saturatedFat100g": 0.007,
+      "sodium100g": 6.57
+    }
   },
   {
     "id": "sobrasada",
@@ -8461,7 +9064,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 30,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 111,
+      "protein100g": 22.9,
+      "carbs100g": 0.38,
+      "fat100g": 2.02,
+      "fiber100g": 0,
+      "sugar100g": 0.25,
+      "saturatedFat100g": 0.73,
+      "sodium100g": 60.2
+    }
   },
   {
     "id": "tinta-de-calamar",
@@ -8660,7 +9272,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 50,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 281.5,
+      "protein100g": 14.2,
+      "carbs100g": 43.3,
+      "fat100g": 2.99,
+      "fiber100g": 12.3,
+      "sugar100g": 37.6,
+      "saturatedFat100g": 0.46,
+      "sodium100g": 247
+    }
   },
   {
     "id": "tomate-triturado",
@@ -8892,7 +9513,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 60,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 68.9,
+      "protein100g": 0.72,
+      "carbs100g": 15.7,
+      "fat100g": 0.16,
+      "fiber100g": 0.9,
+      "sugar100g": 15.5,
+      "saturatedFat100g": 0.054,
+      "sodium100g": 2
+    }
   },
   {
     "id": "ventresca",
@@ -9144,7 +9774,16 @@
     "isVegan": true,
     "defaultUnit": "ml",
     "medianAmount": 50,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 242,
+      "protein100g": 0,
+      "carbs100g": 0,
+      "fat100g": 0,
+      "fiber100g": 0,
+      "sugar100g": 0,
+      "saturatedFat100g": 0,
+      "sodium100g": 1
+    }
   },
   {
     "id": "vol-au-vent",

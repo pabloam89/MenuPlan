@@ -124,6 +124,11 @@ for (const ing of objetivo) {
       score: Math.round(x.score * 1000) / 1000,
       nutrition: x.f.nutricion8,
       confianza: x.f.confianza,
+      // Ya filtrado arriba con la fórmula de energía de CIQUAL (Reglamento UE
+      // 1169/2011, con la fibra a 2 kcal/g). Se marca para que el aplicador no
+      // lo vuelva a comprobar con la de BEDCA, que no cuenta la fibra y
+      // rechazaría fichas correctas.
+      atwaterVerificado: true,
     })),
   });
 }
