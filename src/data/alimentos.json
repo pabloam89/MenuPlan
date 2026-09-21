@@ -1603,11 +1603,11 @@
   },
   {
     "id": "atun-lata",
-    "nombre": "Atún en conserva",
-    "fuente": "heredado",
-    "fuenteId": null,
-    "fuenteNombre": null,
-    "fuenteFecha": null,
+    "nombre": "Tuna, plain, canned, drained",
+    "fuente": "ciqual",
+    "fuenteId": "26039",
+    "fuenteNombre": "Tuna, plain, canned, drained",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
     "familia": "pescado_azul",
     "rol": "basico",
     "taxonomia": null,
@@ -1620,31 +1620,31 @@
       "origen": null
     },
     "nutricion": {
-      "kcal100g": 116,
-      "protein100g": 25.5,
+      "kcal100g": 111,
+      "protein100g": 26.8,
       "carbs100g": 0,
-      "fat100g": 1,
+      "fat100g": 0.4,
       "fiber100g": 0,
       "sugar100g": 0,
-      "saturatedFat100g": 0.3,
-      "sodium100g": 0.377
+      "saturatedFat100g": 0.086,
+      "sodium100g": 251
     },
     "densidad": null,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
-      "procedencia": "ausente_resoluble",
+      "procedencia": "relleno",
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_resoluble",
-      "estado": "ausente_resoluble",
-      "medio": "ausente_resoluble",
-      "procesado": "ausente_resoluble",
-      "presentacion": "ausente_resoluble",
-      "origen": "ausente_resoluble"
+      "corte": "ausente_sin_fuente",
+      "estado": "ausente_sin_fuente",
+      "medio": "ausente_sin_fuente",
+      "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
     }
   },
   {
@@ -13285,11 +13285,11 @@
   },
   {
     "id": "queso",
-    "nombre": "Queso rallado",
-    "fuente": "heredado",
-    "fuenteId": null,
-    "fuenteNombre": null,
-    "fuenteFecha": null,
+    "nombre": "Emmental cheese, grated, from cow's milk",
+    "fuente": "ciqual",
+    "fuenteId": "12118",
+    "fuenteNombre": "Emmental cheese, grated, from cow's milk",
+    "fuenteFecha": "2026-09-11T16:27:42.436Z",
     "familia": "queso",
     "rol": "basico",
     "taxonomia": null,
@@ -13302,31 +13302,31 @@
       "origen": null
     },
     "nutricion": {
-      "kcal100g": 431,
-      "protein100g": 28.4,
-      "carbs100g": 2.4,
-      "fat100g": 34,
+      "kcal100g": 367,
+      "protein100g": 28.1,
+      "carbs100g": 0,
+      "fat100g": 28.6,
       "fiber100g": 0,
-      "sugar100g": 0.5,
-      "saturatedFat100g": 21.3,
-      "sodium100g": 0.621
+      "sugar100g": 0.125,
+      "saturatedFat100g": 18.1,
+      "sodium100g": 297
     },
     "densidad": null,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
-      "procedencia": "ausente_resoluble",
+      "procedencia": "relleno",
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
-      "estado": "ausente_resoluble",
+      "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
-      "procesado": "ausente_resoluble",
-      "presentacion": "ausente_resoluble",
-      "origen": "ausente_resoluble"
+      "procesado": "ausente_sin_fuente",
+      "presentacion": "ausente_sin_fuente",
+      "origen": "ausente_sin_fuente"
     }
   },
   {

@@ -839,5 +839,17 @@
     "confianza": 0.85,
     "motivo": "El candidato es el extracto ACUOSO (57,7 kcal) y el del catálogo es alcohólico, que ronda 240.",
     "modelo": "decision-humana-2026-09-21"
+  },
+  "queso": {
+    "foodId": "12118",
+    "confianza": 0.85,
+    "motivo": "«Emmental cheese, grated, from cow's milk», 367 kcal. El ingrediente es «Queso rallado» y el valor que traía (431) era HEREDADO, sin ficha, y con el sodio en GRAMOS en vez de miligramos: decía 0,621 donde debía decir 621. Un queso rallado sin sodio es justo el dato que un perfil bajo_sodio necesita bien. El emmental rallado es el formato que se vende para gratinar.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "atun-lata": {
+    "foodId": "26039",
+    "confianza": 0.9,
+    "motivo": "«Tuna, plain, canned, drained», 111 kcal. El valor anterior era heredado y traía el sodio en gramos: 0,377 donde debía decir 377. Un atún en conserva es uno de los alimentos más salados del catálogo y estaba contando como si no tuviera sal.",
+    "modelo": "decision-humana-2026-09-21"
   }
 }

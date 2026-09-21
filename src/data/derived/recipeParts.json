@@ -2083,10 +2083,10 @@
         "minutos": 10,
         "masa_g": 510,
         "cobertura": 1,
-        "kcal": 1688,
-        "protein_g": 84,
-        "carbs_g": 130,
-        "fat_g": 89,
+        "kcal": 1585,
+        "protein_g": 83,
+        "carbs_g": 126,
+        "fat_g": 81,
         "fraccion": 0.634
       },
       "salsa": {
@@ -2201,10 +2201,10 @@
         "minutos": 6,
         "masa_g": 360,
         "cobertura": 1,
-        "kcal": 641,
+        "kcal": 616,
         "protein_g": 58,
-        "carbs_g": 3,
-        "fat_g": 43,
+        "carbs_g": 2,
+        "fat_g": 41,
         "fraccion": 0.479
       },
       "guarnicion": {
@@ -3157,10 +3157,10 @@
         "minutos": 18,
         "masa_g": 370,
         "cobertura": 1,
-        "kcal": 1059,
-        "protein_g": 38,
-        "carbs_g": 80,
-        "fat_g": 64,
+        "kcal": 995,
+        "protein_g": 37,
+        "carbs_g": 78,
+        "fat_g": 58,
         "fraccion": 0.62
       },
       "salsa": {
@@ -4475,10 +4475,10 @@
         "minutos": 9,
         "masa_g": 350,
         "cobertura": 1,
-        "kcal": 573,
+        "kcal": 553,
         "protein_g": 53,
         "carbs_g": 3,
-        "fat_g": 37,
+        "fat_g": 35,
         "fraccion": 0.511
       },
       "guarnicion": {
@@ -5025,10 +5025,10 @@
         "minutos": 13,
         "masa_g": 50,
         "cobertura": 1,
-        "kcal": 216,
+        "kcal": 184,
         "protein_g": 14,
-        "carbs_g": 1,
-        "fat_g": 17,
+        "carbs_g": 0,
+        "fat_g": 14,
         "fraccion": 0.059
       }
     }
@@ -6893,10 +6893,10 @@
         "minutos": 2,
         "masa_g": 50,
         "cobertura": 1,
-        "kcal": 216,
+        "kcal": 184,
         "protein_g": 14,
-        "carbs_g": 1,
-        "fat_g": 17,
+        "carbs_g": 0,
+        "fat_g": 14,
         "fraccion": 0.081
       }
     }
@@ -9387,10 +9387,10 @@
         "minutos": 11,
         "masa_g": 240,
         "cobertura": 0.417,
-        "kcal": 491,
+        "kcal": 440,
         "protein_g": 23,
-        "carbs_g": 2,
-        "fat_g": 44,
+        "carbs_g": 0,
+        "fat_g": 39,
         "fraccion": 0.219
       }
     }

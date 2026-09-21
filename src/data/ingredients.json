@@ -928,14 +928,14 @@
     "defaultUnit": "g",
     "medianAmount": 160,
     "nutrition": {
-      "kcal100g": 116,
-      "protein100g": 25.5,
+      "kcal100g": 111,
+      "protein100g": 26.8,
       "carbs100g": 0,
-      "fat100g": 1,
+      "fat100g": 0.4,
       "fiber100g": 0,
       "sugar100g": 0,
-      "saturatedFat100g": 0.3,
-      "sodium100g": 0.377
+      "saturatedFat100g": 0.086,
+      "sodium100g": 251
     }
   },
   {
@@ -7703,14 +7703,14 @@
     "defaultUnit": "g",
     "medianAmount": 50,
     "nutrition": {
-      "kcal100g": 431,
-      "protein100g": 28.4,
-      "carbs100g": 2.4,
-      "fat100g": 34,
+      "kcal100g": 367,
+      "protein100g": 28.1,
+      "carbs100g": 0,
+      "fat100g": 28.6,
       "fiber100g": 0,
-      "sugar100g": 0.5,
-      "saturatedFat100g": 21.3,
-      "sodium100g": 0.621
+      "sugar100g": 0.125,
+      "saturatedFat100g": 18.1,
+      "sodium100g": 297
     },
     "piezaPorAlias": {
       "Queso cheddar (lonchas)": {
