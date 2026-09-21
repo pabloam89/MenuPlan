@@ -755,6 +755,75 @@ if (!alimentos) {
   }
 }
 
+// ── 10 ─────────────────────────────────────────────────────────────────────
+// Genéricos mal calibrados. Un ingrediente es GENÉRICO cuando otros del
+// catálogo son especializaciones suyas: «Tomate» lo es porque existe «Tomate
+// cherry», «Huevo» porque existen la clara y la yema. El riesgo es que el
+// genérico se lleve el valor de un miembro cualquiera en vez de uno
+// representativo, y entonces las recetas que no precisan —que son muchas—
+// cuentan el caso extremo.
+//
+// Este bloque salió de una sospecha que resultó FALSA: se creía que «Queso»
+// llevaba el valor del queso más graso, y al mirarlo resultó que ese
+// ingrediente es «Queso rallado», un producto concreto para el que 431 kcal
+// es correcto. El detector se queda porque la pregunta sigue siendo buena
+// aunque hoy la respuesta sea que no hay problema: comprueba de una pasada
+// algo que a mano no se ve.
+say("");
+say("═══ 10 · GENÉRICOS: ¿lleva el genérico un valor representativo? ═══");
+{
+  const porIdAl = new Map((alimentos ?? []).map((a) => [a.id, a]));
+  const mapa = (() => {
+    try { return JSON.parse(readFileSync(join(ROOT, "src", "data", "alimentoPorIngrediente.json"), "utf8")); } catch { return null; }
+  })();
+
+  if (!alimentos || !mapa) {
+    say("  falta src/data/alimentos.json — `node scripts/build-alimentos.mjs`");
+  } else {
+    const pal = (s) => new Set(norm(s).split(/[^a-z0-9]+/).filter((w) => w.length > 2));
+    const nutriDe = (id) => porIdAl.get(mapa[id])?.nutricion?.kcal100g ?? null;
+    const famDe = (id) => porIdAl.get(mapa[id])?.familia ?? null;
+    const rolDe = (id) => porIdAl.get(mapa[id])?.rol ?? null;
+
+    const filas = [];
+    for (const g of ingredients) {
+      const mio = nutriDe(g.id);
+      if (mio == null) continue;
+      const pg = pal(g.name);
+      if (!pg.size) continue;
+      // Las especializaciones tienen que compartir familia Y ROL: «Tomate
+      // seco» contiene la palabra tomate pero es un encurtido deshidratado a
+      // 281 kcal, y compararlo con el tomate fresco no dice nada.
+      const hijos = ingredients.filter((h) => {
+        if (h.id === g.id) return false;
+        if (famDe(h.id) !== famDe(g.id) || rolDe(h.id) !== rolDe(g.id)) return false;
+        if (nutriDe(h.id) == null) return false;
+        const ph = pal(h.name);
+        return ph.size > pg.size && [...pg].every((w) => ph.has(w));
+      });
+      if (hijos.length < 2) continue;
+      const ks = hijos.map((h) => nutriDe(h.id)).sort((a, b) => a - b);
+      if (ks[0] === ks[ks.length - 1]) continue; // todos iguales: nada que decir
+      const pct = ks.filter((k) => k < mio).length / ks.length;
+      filas.push({ id: g.id, mio, min: ks[0], max: ks[ks.length - 1], n: ks.length, pct });
+    }
+
+    if (filas.length === 0) {
+      say("  ningún genérico con especializaciones que discrepen entre sí.");
+    } else {
+      say("     genérico              suyo   rango de sus especializaciones   percentil");
+      for (const f of filas.sort((a, b) => Math.abs(b.pct - 0.5) - Math.abs(a.pct - 0.5))) {
+        const extremo = f.pct >= 0.85 || f.pct <= 0.15;
+        say(`     ${f.id.padEnd(20)} ${String(f.mio).padStart(6)}   ${`${f.min}–${f.max} (${f.n})`.padEnd(24)} ${(f.pct * 100).toFixed(0).padStart(3)} %${extremo ? "   <-- en el extremo" : ""}`);
+        if (extremo) {
+          add("genericos", "media", f.id, f.id,
+            `genérico con valor extremo (${f.mio}) frente a sus especializaciones (${f.min}–${f.max})`);
+        }
+      }
+    }
+  }
+}
+
 // ── RESUMEN ────────────────────────────────────────────────────────────────
 say("");
 say("═══ RESUMEN ═══");
