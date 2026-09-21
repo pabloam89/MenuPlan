@@ -28,7 +28,8 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 import { parseDimensiones } from "./lib/bedcaDimensiones.mjs";
-import { deriveFamilia, deriveRol } from "./lib/familia.mjs";
+import { deriveFamilia, deriveRol, LEXICO, stems } from "./lib/familia.mjs";
+import { deriveTaxonomia } from "./lib/taxonomia.mjs";
 import {
   validateAlimentos, CAMPOS_CONTABLES, FAMILIA_DIMENSIONES,
 } from "../src/data/alimentoSchema.js";
@@ -193,8 +194,10 @@ for (const ing of ingredientes) {
   // gruesa que la nuestra.
   const id = ing.id;
 
-  const { familia, via: viaFamilia } = deriveFamilia(ing, juiciosFamilia);
+  const derivadoFam = deriveFamilia(ing, juiciosFamilia);
+  const { familia, via: viaFamilia } = derivadoFam;
   const { rol } = deriveRol(ing, juiciosFamilia);
+  const taxonomia = deriveTaxonomia(derivadoFam, stems(ing.name), LEXICO);
   if (familia) porViaFamilia.set(viaFamilia, (porViaFamilia.get(viaFamilia) ?? 0) + 1);
 
   // La familia decide qué dimensiones tienen sentido, así que en cuanto está
@@ -225,6 +228,7 @@ for (const ing of ingredientes) {
   huecos.rol = rol ? "relleno" : "ausente_resoluble";
   if (fraccionComestible[ing.id]) huecos.fraccionComestible = "relleno";
   if (densidad[ing.id]) huecos.densidad = "relleno";
+  if (taxonomia) huecos.taxonomia = "relleno";
   for (const dim of Object.keys(dimensiones)) {
     if (dimensiones[dim] === "no_aplica") { huecos[dim] = "no_aplica"; continue; }
     if (dimensiones[dim] != null) { huecos[dim] = "relleno"; continue; }
@@ -245,7 +249,7 @@ for (const ing of ingredientes) {
     fuenteFecha: proc ? FECHA_INGESTA : null,
     familia,
     rol,
-    taxonomia: null,
+    taxonomia,
     dimensiones,
     nutricion: ing.nutrition ?? null,
     densidad: densidad[ing.id]?.valor ?? null,

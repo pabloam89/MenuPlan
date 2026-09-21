@@ -824,6 +824,68 @@ say("═══ 10 · GENÉRICOS: ¿lleva el genérico un valor representativo? �
   }
 }
 
+// ── 11 ─────────────────────────────────────────────────────────────────────
+// ¿Lo que la receta DECLARA coincide con lo que sus ingredientes SON?
+//
+// Esta pregunta no se podía hacer hasta ahora, y el motivo es que los dos ejes
+// de identidad no encajaban: `familia` mete pollo y pavo en `carne_ave`,
+// mientras `mainProtein` los separa; y al revés, `mainProtein` mete atún y
+// sardina en `pescado_azul`, que la familia también. Sin un peldaño común no
+// hay forma de comparar, y una receta que declare pollo y lleve solo pavo pasa
+// desapercibida. `taxonomia.especie` es ese peldaño.
+//
+// Solo se mira lo declarado contra lo presente. No se corrige nada: que la
+// receta y sus ingredientes discrepen puede significar que está mal la
+// etiqueta O que falta un ingrediente, y eso lo decide una persona.
+say("");
+say("═══ 11 · EJE DE PROTEÍNA: lo declarado contra lo que hay en la olla ═══");
+{
+  const mapa = (() => {
+    try { return JSON.parse(readFileSync(join(ROOT, "src", "data", "alimentoPorIngrediente.json"), "utf8")); } catch { return null; }
+  })();
+  const porIdAl = new Map((alimentos ?? []).map((a) => [a.id, a]));
+
+  if (!alimentos || !mapa) {
+    say("  falta src/data/alimentos.json — `node scripts/build-alimentos.mjs`");
+  } else {
+    // Por especie las cuatro que el eje de receta distingue; por subclase las
+    // que agrupa. Es la traducción entre los dos vocabularios, y va explícita
+    // justamente porque no es una correspondencia uno a uno.
+    const PORESPECIE = { pollo: "pollo", pavo: "pavo", cerdo: "cerdo", ternera: "ternera" };
+    const PORSUBCLASE = {
+      pescado_blanco: ["pescado_blanco"], pescado_azul: ["pescado_azul"],
+      marisco: ["marisco", "cefalopodo"], legumbre: ["legumbre"], huevo: ["huevo"],
+    };
+
+    const discrepan = [];
+    let comprobadas = 0;
+    for (const r of estrella) {
+      const mp = r.mainProtein;
+      if (!mp || mp === "none") continue;
+      const taxs = (r.ingredients ?? [])
+        .map((l) => porIdAl.get(mapa[l.ingredientId])?.taxonomia)
+        .filter(Boolean);
+      if (!taxs.length) continue;
+      comprobadas++;
+      const ok = PORESPECIE[mp]
+        ? taxs.some((t) => t.especie === PORESPECIE[mp])
+        : (PORSUBCLASE[mp] ?? []).some((sc) => taxs.some((t) => t.subclase === sc));
+      if (!ok) {
+        const presentes = [...new Set(taxs.map((t) => t.especie).filter(Boolean))].slice(0, 4);
+        discrepan.push({ r, mp, presentes });
+      }
+    }
+
+    say(`  recetas Estrella con proteína declarada y resoluble: ${comprobadas}`);
+    say(`  la especie declarada NO aparece entre sus ingredientes: ${discrepan.length} (${(100 * discrepan.length / Math.max(comprobadas, 1)).toFixed(0)} %)`);
+    for (const d of discrepan.slice(0, 14)) {
+      say(`     ${d.r.name.slice(0, 40).padEnd(42)} declara ${d.mp.padEnd(15)} lleva: ${d.presentes.join(", ") || "(sin especie)"}`);
+      add("proteina", "media", d.r.id, d.r.name, `declara mainProtein "${d.mp}" y ninguno de sus ingredientes es de esa especie`);
+    }
+    if (discrepan.length > 14) say(`     … y ${discrepan.length - 14} más`);
+  }
+}
+
 // ── RESUMEN ────────────────────────────────────────────────────────────────
 say("");
 say("═══ RESUMEN ═══");

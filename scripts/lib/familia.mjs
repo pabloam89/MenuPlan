@@ -316,7 +316,8 @@ export function deriveFamilia(ing, juicios = {}) {
 
   const ws = stems(ing.name);
   for (const [familia, claves] of LEXICO) {
-    if (claves.some((c) => ws.has(norm(c)))) return { familia, via: "palabra" };
+    const clave = claves.find((c) => ws.has(norm(c)));
+    if (clave) return { familia, via: "palabra", clave };
   }
 
   return { familia: null, via: null };
