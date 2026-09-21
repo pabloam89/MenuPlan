@@ -26,6 +26,7 @@ import {
   splitAchievableFreqs,
   slotAcceptsRole,
 } from "../utils/validateMenu.js";
+import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import salsasData from "../data/recipes/salsas.json";
 import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
@@ -42,6 +43,17 @@ import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
 import { normalizeKidDinnerConfig, schoolAvoidCategories, householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 import { lowerFirst } from "./dishNaming.js";
+
+/**
+ * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
+ * secundarios (fibra, azúcar, grasa saturada, sodio) van aparte porque esos SÍ
+ * los declara la receta y no se pisan: aquí solo pasan los que no tienen valor
+ * declarado con el que competir.
+ */
+const MICRONUTRIENTES_RACION = CAMPOS_SECUNDARIOS.filter(
+  (c) => !["fiber100g", "sugar100g", "saturatedFat100g", "sodium100g"].includes(c),
+).map((c) => NUTRIENTES[c].porRacion);
+
 
 // School-menu avoidance categories for the kids' cena. Historically the kids'
 // dinner ALWAYS avoided the school's protein + carb base (that's the "cena
@@ -1931,10 +1943,13 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
       ...(r.sugar_g != null ? { sugar: r.sugar_g } : {}),
       ...(r.saturated_fat_g != null ? { saturatedFat: r.saturated_fat_g } : {}),
       ...(r.sodium_mg != null ? { sodium: r.sodium_mg } : {}),
-      // Micronutrientes. `iron` lo lee ademas deriveHealthFlags para decidir
-      // «rico en hierro» con el dato y no solo con una lista de palabras.
-      ...(r.iron_mg != null ? { iron_mg: r.iron_mg } : {}),
-      ...(r.cholesterol_mg != null ? { cholesterol_mg: r.cholesterol_mg } : {}),
+      // Los 24 micronutrientes, que recipeCatalog hidrata desde la tabla
+      // derivada. Van con su cobertura: un hierro sostenido por el 30 % del
+      // plato no es un hierro, y quien lo pinte tiene derecho a saberlo.
+      ...Object.fromEntries(
+        MICRONUTRIENTES_RACION.filter((c) => r[c] != null).map((c) => [c, r[c]]),
+      ),
+      ...(r.micronutrientesCobertura ? { cobertura: r.micronutrientesCobertura } : {}),
     },
     // Heuristic flags (see lib/healthFlags.js) carried through so the menu/
     // dish detail can show a "menú más cuidado" badge (lib/healthProfileMatch.js).

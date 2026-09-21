@@ -19,11 +19,64 @@ import { deriveHealthFlags } from "../lib/healthFlags.js";
 import { supabase } from "../lib/supabase.js";
 import { BUNDLED_CATALOG_VERSION } from "./catalogVersion.js";
 import { rowToRecipe } from "./recipeRow.js";
+import recipeNutrition from "./derived/recipeNutrition.json";
+import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "./nutrientes.js";
 
 // Attach heuristic health flags once, so filterRecipes/decisionCatalog get them
 // for free regardless of whether the recipe came from JSON or Supabase.
 function withHealthFlags(recipes) {
   return recipes.map((r) => ({ ...r, healthFlags: deriveHealthFlags(r) }));
+}
+
+/**
+ * Los MICRONUTRIENTES, desde la tabla derivada a la receta.
+ *
+ * QUÉ PROBLEMA RESUELVE. El catálogo de ingredientes tiene 32 nutrientes con
+ * procedencia por fila, y `derived/recipeNutrition.json` los suma por receta
+ * desde hace tiempo. No los leía NADIE: la receta lleva ocho macros escritos a
+ * mano y la app enseña esos, así que hierro, calcio y las trece vitaminas
+ * morían en un fichero. `deriveHealthFlags` ya sabe leer `macros.iron_mg` para
+ * decidir «rico en hierro» con el dato en vez de con una lista de quince
+ * palabras, y ese lector nunca llegaba a dispararse.
+ *
+ * TRES REGLAS, Y LAS TRES SON DELIBERADAS.
+ *
+ * 1. SOLO LOS MICROS. Los ocho declarados —kcal, proteína, hidratos, grasa,
+ *    fibra, azúcar, grasa saturada, sodio— NO se tocan, aunque sepamos que el
+ *    calculado es mejor (ver el veredicto en el commit de las fracciones
+ *    comestibles: el declarado se comprime de 1,03 a 0,64 según el tamaño del
+ *    plato). Cambiar lo que el usuario lee es una decisión de producto y esta
+ *    no lo es: los micros no tienen valor declarado con el que competir, así
+ *    que no hay conflicto que resolver.
+ *
+ * 2. CADA UNO VIAJA CON SU COBERTURA. Un hierro sostenido por el 30 % del
+ *    plato no es un hierro, y quien lo pinte tiene derecho a saberlo. Va en
+ *    `micronutrientesCobertura`, con la misma forma.
+ *
+ * 3. LO QUE LA RECETA YA TRAE, MANDA. Una receta de Supabase o del usuario con
+ *    su propio hierro no se pisa. Y una receta que no está en la tabla
+ *    derivada —las de usuario no lo están— simplemente no gana campos, que es
+ *    lo correcto: el hueco se ve.
+ */
+const MICRONUTRIENTES = CAMPOS_SECUNDARIOS.filter(
+  (c) => !["fiber100g", "sugar100g", "saturatedFat100g", "sodium100g"].includes(c),
+).map((c) => NUTRIENTES[c].porRacion);
+
+function withMicronutrientes(recipes) {
+  return recipes.map((r) => {
+    const n = recipeNutrition[r.id];
+    if (!n) return r;
+    const extra = {};
+    const cobertura = {};
+    for (const campo of MICRONUTRIENTES) {
+      if (r[campo] != null) continue;
+      if (n[campo] == null) continue;
+      extra[campo] = n[campo];
+      cobertura[campo] = n.coberturaPorCampo?.[campo] ?? 0;
+    }
+    if (!Object.keys(extra).length) return r;
+    return { ...r, ...extra, micronutrientesCobertura: cobertura };
+  });
 }
 
 const JSON_RECIPES = [
@@ -257,7 +310,9 @@ async function loadRecipes() {
   }
 }
 
-export const recipeCatalog = withHealthFlags(await loadRecipes());
+// El orden importa: los micros ANTES de las banderas, porque
+// `deriveHealthFlags` lee `iron_mg` para decidir «rico en hierro».
+export const recipeCatalog = withHealthFlags(withMicronutrientes(await loadRecipes()));
 
 export const recipeCatalogById = Object.fromEntries(
   recipeCatalog.map((r) => [r.id, r]),
