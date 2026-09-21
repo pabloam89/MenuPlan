@@ -121,8 +121,8 @@
       "protein100g": 0,
       "carbs100g": 0,
       "fat100g": 99.9,
-      "betaCarotene100g": null,
-      "retinol100g": null,
+      "betaCarotene100g": 0,
+      "retinol100g": 0,
       "vitaminD100g": 0,
       "vitaminE100g": 12,
       "saturatedFat100g": 17.06,
@@ -135,19 +135,34 @@
       "phosphorus100g": 0,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0,
       "iodine100g": 0,
-      "manganese100g": null,
+      "manganese100g": 0,
       "selenium100g": 0,
       "zinc100g": 0,
       "folate100g": 0,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0,
+      "pantothenicAcid100g": 0,
       "riboflavin100g": 0,
       "thiamin100g": 0,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0,
-      "vitaminC100g": 0
+      "vitaminC100g": 0,
+      "vitaminK100g": 60.2
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "171413",
+      "nombre": "Oil, olive, salad or cooking",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "retinol100g",
+        "betaCarotene100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -366,33 +381,53 @@
       "protein100g": 0,
       "carbs100g": 0,
       "fat100g": 0,
-      "betaCarotene100g": null,
+      "betaCarotene100g": 0,
       "retinol100g": 0,
       "vitaminD100g": 0,
       "vitaminE100g": 0,
       "saturatedFat100g": 0,
       "fiber100g": 0,
-      "calcium100g": null,
-      "iron100g": null,
-      "potassium100g": null,
+      "calcium100g": 3,
+      "iron100g": 0,
+      "potassium100g": 1,
       "magnesium100g": 0,
       "sodium100g": null,
-      "phosphorus100g": null,
+      "phosphorus100g": 0,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.009,
       "iodine100g": null,
-      "manganese100g": null,
-      "selenium100g": null,
-      "zinc100g": null,
+      "manganese100g": 0,
+      "selenium100g": 0,
+      "zinc100g": 0,
       "folate100g": 0,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0,
+      "pantothenicAcid100g": 0,
       "riboflavin100g": 0,
       "thiamin100g": 0,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0,
-      "vitaminC100g": 0
+      "vitaminC100g": 0,
+      "vitaminK100g": 0
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "175103",
+      "nombre": "Beverages, water, tap, municipal",
+      "campos": [
+        "calcium100g",
+        "iron100g",
+        "phosphorus100g",
+        "potassium100g",
+        "zinc100g",
+        "copper100g",
+        "manganese100g",
+        "selenium100g",
+        "betaCarotene100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -1578,8 +1613,8 @@
       "protein100g": 7,
       "carbs100g": 86,
       "fat100g": 0.9,
-      "betaCarotene100g": null,
-      "retinol100g": null,
+      "betaCarotene100g": 0,
+      "retinol100g": 0,
       "vitaminD100g": 0,
       "vitaminE100g": 0.3,
       "saturatedFat100g": 0.21,
@@ -1592,19 +1627,34 @@
       "phosphorus100g": 100,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.22,
       "iodine100g": 2,
-      "manganese100g": null,
+      "manganese100g": 1.088,
       "selenium100g": 10,
       "zinc100g": 0.2,
       "folate100g": 20,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 1.6,
+      "pantothenicAcid100g": 1.014,
       "riboflavin100g": 0.03,
       "thiamin100g": 0.05,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.3,
-      "vitaminC100g": 0
+      "vitaminC100g": 0,
+      "vitaminK100g": 0.1
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "169756",
+      "nombre": "Rice, white, long-grain, regular, raw, unenriched",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "retinol100g",
+        "betaCarotene100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -2708,13 +2758,23 @@
       "selenium100g": 1,
       "zinc100g": 0.3,
       "folate100g": 52,
-      "niacin100g": null,
+      "niacin100g": 0.557,
       "pantothenicAcid100g": 0.19,
       "riboflavin100g": 0.06,
       "thiamin100g": 0.1,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.13,
-      "vitaminC100g": 25
+      "vitaminC100g": 25,
+      "vitaminK100g": 1.8
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "168482",
+      "nombre": "Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)",
+      "campos": [
+        "vitaminK100g",
+        "niacin100g"
+      ]
     }
   },
   {
@@ -3539,7 +3599,7 @@
       "protein100g": 0.6,
       "carbs100g": 0.5,
       "fat100g": 0.13,
-      "fiber100g": 5e-05,
+      "fiber100g": 0.00005,
       "sugar100g": 0.18,
       "saturatedFat100g": 0.083,
       "sodium100g": 312,
@@ -3591,7 +3651,7 @@
       "protein100g": 0.6,
       "carbs100g": 0.5,
       "fat100g": 0.13,
-      "fiber100g": 5e-05,
+      "fiber100g": 0.00005,
       "sugar100g": 0.18,
       "saturatedFat100g": 0.083,
       "sodium100g": 312,
@@ -3639,7 +3699,7 @@
       "protein100g": 0.6,
       "carbs100g": 0.5,
       "fat100g": 0.13,
-      "fiber100g": 5e-05,
+      "fiber100g": 0.00005,
       "sugar100g": 0.18,
       "saturatedFat100g": 0.083,
       "sodium100g": 312,
@@ -4000,9 +4060,9 @@
       "protein100g": 20,
       "carbs100g": 0,
       "fat100g": 6.6107,
-      "betaCarotene100g": null,
-      "retinol100g": null,
-      "vitaminD100g": null,
+      "betaCarotene100g": 0,
+      "retinol100g": 0,
+      "vitaminD100g": 0.1,
       "vitaminE100g": 0.08,
       "saturatedFat100g": 2.6,
       "fiber100g": 0,
@@ -4016,17 +4076,32 @@
       "sugar100g": 0,
       "copper100g": 0.03,
       "iodine100g": 10,
-      "manganese100g": null,
+      "manganese100g": 0.015,
       "selenium100g": 7,
       "zinc100g": 2.1,
       "folate100g": 9,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 5.221,
+      "pantothenicAcid100g": 0.654,
       "riboflavin100g": 0.26,
       "thiamin100g": 0.11,
       "vitaminB12100g": 1.4,
       "vitaminB6100g": 0.43,
-      "vitaminC100g": 0
+      "vitaminC100g": 0,
+      "vitaminK100g": 1.2
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "174056",
+      "nombre": "Beef, chuck, arm pot roast, separable lean only, trimmed to 1/8\" fat, choice, raw",
+      "campos": [
+        "manganese100g",
+        "retinol100g",
+        "betaCarotene100g",
+        "vitaminD100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -4437,7 +4512,7 @@
       "phosphorus100g": 37,
       "potassium100g": 190,
       "zinc100g": 0.23,
-      "copper100g": 5e-05,
+      "copper100g": 0.00005,
       "manganese100g": 0.1,
       "selenium100g": 2.3,
       "iodine100g": 5,
@@ -6437,7 +6512,7 @@
       "betaCarotene100g": null,
       "retinol100g": 0,
       "vitaminD100g": 0,
-      "vitaminE100g": null,
+      "vitaminE100g": 0.11,
       "saturatedFat100g": 0.19,
       "fiber100g": 5,
       "calcium100g": 24,
@@ -6448,19 +6523,32 @@
       "phosphorus100g": 167,
       "cholesterol100g": 0,
       "sugar100g": 2.6,
-      "copper100g": null,
+      "copper100g": 0.289,
       "iodine100g": 10,
-      "manganese100g": null,
+      "manganese100g": 0.917,
       "selenium100g": 62.2,
       "zinc100g": 1.5,
       "folate100g": 28,
       "niacin100g": 2.5,
-      "pantothenicAcid100g": null,
+      "pantothenicAcid100g": 0.431,
       "riboflavin100g": 0.04,
       "thiamin100g": 0.15,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.08,
-      "vitaminC100g": 0
+      "vitaminC100g": 0,
+      "vitaminK100g": 0.1
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "168927",
+      "nombre": "Pasta, dry, unenriched",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "vitaminE100g",
+        "vitaminK100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -9552,7 +9640,7 @@
       "protein100g": 24.7674,
       "carbs100g": 48.6954,
       "fat100g": 1.17286,
-      "betaCarotene100g": null,
+      "betaCarotene100g": 23,
       "retinol100g": 0,
       "vitaminD100g": 0,
       "vitaminE100g": 0.9,
@@ -9578,7 +9666,17 @@
       "thiamin100g": 0.62,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.65,
-      "vitaminC100g": 1.7
+      "vitaminC100g": 1.7,
+      "vitaminK100g": 5
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "172420",
+      "nombre": "Lentils, raw",
+      "campos": [
+        "betaCarotene100g",
+        "vitaminK100g"
+      ]
     }
   },
   {
@@ -12893,19 +12991,20 @@
       "phosphorus100g": 46,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.11,
       "iodine100g": 2.6,
-      "manganese100g": null,
+      "manganese100g": 0.153,
       "selenium100g": 1.5,
       "zinc100g": 0.3,
       "folate100g": 16,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 1.061,
+      "pantothenicAcid100g": 0.295,
       "riboflavin100g": 0.04,
       "thiamin100g": 0.1,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.3,
-      "vitaminC100g": 19
+      "vitaminC100g": 19,
+      "vitaminK100g": 2
     },
     "piezaPorAlias": {
       "Patata grande": {
@@ -12916,6 +13015,18 @@
         "nombre": "patata baby",
         "g": 30
       }
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "170026",
+      "nombre": "Potatoes, flesh and skin, raw",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -13873,19 +13984,32 @@
       "phosphorus100g": 15,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.017,
       "iodine100g": 0.78,
-      "manganese100g": null,
+      "manganese100g": 0.112,
       "selenium100g": 0.1,
       "zinc100g": 0.1,
       "folate100g": 23,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0.979,
+      "pantothenicAcid100g": 0.317,
       "riboflavin100g": 0.01,
       "thiamin100g": 0.04,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.3,
-      "vitaminC100g": 152
+      "vitaminC100g": 152,
+      "vitaminK100g": 4.9
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "170108",
+      "nombre": "Peppers, sweet, red, raw",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -14232,19 +14356,32 @@
       "phosphorus100g": 28,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.078,
       "iodine100g": 2,
-      "manganese100g": null,
+      "manganese100g": 0.27,
       "selenium100g": 1,
       "zinc100g": 0.23,
       "folate100g": 22,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0.665,
+      "pantothenicAcid100g": 0.334,
       "riboflavin100g": 0.07,
       "thiamin100g": 0.06,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.51,
-      "vitaminC100g": 10
+      "vitaminC100g": 10,
+      "vitaminK100g": 0.5
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "173944",
+      "nombre": "Bananas, raw",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -15362,10 +15499,10 @@
       "protein100g": 1.2,
       "carbs100g": 5.6,
       "fat100g": 0.2,
-      "betaCarotene100g": null,
+      "betaCarotene100g": 15,
       "retinol100g": 0,
       "vitaminD100g": 0,
-      "vitaminE100g": null,
+      "vitaminE100g": 0.03,
       "saturatedFat100g": null,
       "fiber100g": 2.5,
       "calcium100g": 19,
@@ -15376,19 +15513,35 @@
       "phosphorus100g": 17,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.059,
       "iodine100g": 0.1,
-      "manganese100g": null,
-      "selenium100g": null,
+      "manganese100g": 0.287,
+      "selenium100g": 0.5,
       "zinc100g": 0.3,
       "folate100g": 2,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0.157,
+      "pantothenicAcid100g": 0.156,
       "riboflavin100g": 0.03,
       "thiamin100g": 0.02,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.04,
-      "vitaminC100g": 2.8
+      "vitaminC100g": 2.8,
+      "vitaminK100g": 0.2
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "169966",
+      "nombre": "Beets, canned, drained solids",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "selenium100g",
+        "betaCarotene100g",
+        "vitaminE100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -16006,7 +16159,7 @@
       "protein100g": 0,
       "carbs100g": 0,
       "fat100g": 0,
-      "betaCarotene100g": null,
+      "betaCarotene100g": 0,
       "retinol100g": 0,
       "vitaminD100g": 0,
       "vitaminE100g": 0,
@@ -16014,25 +16167,41 @@
       "fiber100g": 0,
       "calcium100g": 29,
       "iron100g": 0.2,
-      "potassium100g": null,
+      "potassium100g": 8,
       "magnesium100g": 290,
       "sodium100g": 38850,
       "phosphorus100g": 8,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.03,
       "iodine100g": 600,
-      "manganese100g": null,
+      "manganese100g": 0.1,
       "selenium100g": 0.1,
-      "zinc100g": null,
+      "zinc100g": 0.1,
       "folate100g": 0,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0,
+      "pantothenicAcid100g": 0,
       "riboflavin100g": 0,
       "thiamin100g": 0,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0,
-      "vitaminC100g": 0
+      "vitaminC100g": 0,
+      "vitaminK100g": 0
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "173468",
+      "nombre": "Salt, table",
+      "campos": [
+        "potassium100g",
+        "zinc100g",
+        "copper100g",
+        "manganese100g",
+        "betaCarotene100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -16113,7 +16282,7 @@
       "protein100g": 18.4,
       "carbs100g": 0,
       "fat100g": 12,
-      "betaCarotene100g": null,
+      "betaCarotene100g": 0,
       "retinol100g": 13,
       "vitaminD100g": 8,
       "vitaminE100g": 2,
@@ -16127,19 +16296,33 @@
       "phosphorus100g": 250,
       "cholesterol100g": 50,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.045,
       "iodine100g": 28.3,
-      "manganese100g": null,
+      "manganese100g": 0.011,
       "selenium100g": 20,
       "zinc100g": 0.8,
       "folate100g": 26,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 8.672,
+      "pantothenicAcid100g": 1.547,
       "riboflavin100g": 0.15,
       "thiamin100g": 0.2,
       "vitaminB12100g": 5,
       "vitaminB6100g": 0.75,
-      "vitaminC100g": 0
+      "vitaminC100g": 0,
+      "vitaminK100g": 0.5
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "175167",
+      "nombre": "Fish, salmon, Atlantic, farmed, raw",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "betaCarotene100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -17565,25 +17748,38 @@
       "phosphorus100g": 22,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.059,
       "iodine100g": 2.2,
-      "manganese100g": null,
+      "manganese100g": 0.114,
       "selenium100g": 0.99,
       "zinc100g": 0.2,
       "folate100g": 29,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0.594,
+      "pantothenicAcid100g": 0.089,
       "riboflavin100g": 0.04,
       "thiamin100g": 0.06,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.1,
-      "vitaminC100g": 19
+      "vitaminC100g": 19,
+      "vitaminK100g": 7.9
     },
     "piezaPorAlias": {
       "Tomates grandes": {
         "nombre": "tomate grande",
         "g": 220
       }
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "170457",
+      "nombre": "Tomatoes, red, ripe, raw, year round average",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -17620,19 +17816,32 @@
       "phosphorus100g": 22,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.059,
       "iodine100g": 2.2,
-      "manganese100g": null,
+      "manganese100g": 0.114,
       "selenium100g": 0.99,
       "zinc100g": 0.2,
       "folate100g": 29,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0.594,
+      "pantothenicAcid100g": 0.089,
       "riboflavin100g": 0.04,
       "thiamin100g": 0.06,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.1,
-      "vitaminC100g": 19
+      "vitaminC100g": 19,
+      "vitaminK100g": 7.9
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "170457",
+      "nombre": "Tomatoes, red, ripe, raw, year round average",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -17816,19 +18025,32 @@
       "phosphorus100g": 22,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.052,
       "iodine100g": 2.2,
-      "manganese100g": null,
+      "manganese100g": 0.068,
       "selenium100g": 0.99,
       "zinc100g": 0.2,
       "folate100g": 29,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0.712,
+      "pantothenicAcid100g": 0.117,
       "riboflavin100g": 0.04,
       "thiamin100g": 0.06,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.1,
-      "vitaminC100g": 19
+      "vitaminC100g": 19,
+      "vitaminK100g": 2.6
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "170051",
+      "nombre": "Tomatoes, red, ripe, canned, packed in tomato juice",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -18910,10 +19132,10 @@
       "protein100g": 3.2,
       "carbs100g": 3.9,
       "fat100g": 3.9,
-      "betaCarotene100g": null,
-      "retinol100g": null,
+      "betaCarotene100g": 5,
+      "retinol100g": 27,
       "vitaminD100g": 0.2,
-      "vitaminE100g": null,
+      "vitaminE100g": 0.06,
       "saturatedFat100g": 2.2,
       "fiber100g": 0,
       "calcium100g": 131,
@@ -18924,19 +19146,35 @@
       "phosphorus100g": 95,
       "cholesterol100g": 11.2,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.009,
       "iodine100g": 21,
-      "manganese100g": null,
+      "manganese100g": 0.004,
       "selenium100g": 3.2,
       "zinc100g": 0.32,
       "folate100g": 5,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0.075,
+      "pantothenicAcid100g": 0.389,
       "riboflavin100g": 0.16,
       "thiamin100g": 0.04,
       "vitaminB12100g": 0.3,
       "vitaminB6100g": 0.08,
-      "vitaminC100g": 1.1
+      "vitaminC100g": 1.1,
+      "vitaminK100g": 0.2
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "171284",
+      "nombre": "Yogurt, plain, whole milk",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "retinol100g",
+        "betaCarotene100g",
+        "vitaminE100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   },
   {
@@ -19025,19 +19263,32 @@
       "phosphorus100g": 16,
       "cholesterol100g": 0,
       "sugar100g": null,
-      "copper100g": null,
+      "copper100g": 0.045,
       "iodine100g": 6.5,
-      "manganese100g": null,
+      "manganese100g": 0.143,
       "selenium100g": 1.3,
       "zinc100g": 0.2,
       "folate100g": 30,
-      "niacin100g": null,
-      "pantothenicAcid100g": null,
+      "niacin100g": 0.983,
+      "pantothenicAcid100g": 0.273,
       "riboflavin100g": 0.05,
       "thiamin100g": 0.1,
       "vitaminB12100g": 0,
       "vitaminB6100g": 0.2,
-      "vitaminC100g": 7
+      "vitaminC100g": 7,
+      "vitaminK100g": 13.2
+    },
+    "fuenteComplemento": {
+      "tabla": "usda",
+      "foodId": "170393",
+      "nombre": "Carrots, raw",
+      "campos": [
+        "copper100g",
+        "manganese100g",
+        "vitaminK100g",
+        "niacin100g",
+        "pantothenicAcid100g"
+      ]
     }
   }
 ]

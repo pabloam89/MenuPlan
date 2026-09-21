@@ -83,6 +83,8 @@ try {
 
 // Y la tercera, USDA SR Legacy, con el mismo trato y por la misma razón: va
 // aparte para que se pueda ver qué fila viene de dónde.
+const complementos = leerJson(join(ROOT, "src", "data", "complementoChoices.json")) ?? {};
+delete complementos._;
 const choicesUsda = leerJson(join(ROOT, "src", "data", "usdaChoices.json")) ?? {};
 delete choicesUsda._;
 const nombresUsda = new Map();
@@ -269,6 +271,12 @@ for (const ing of ingredientes) {
     // Cuatro estados: con ficha de BEDCA, con ficha de CIQUAL, con número pero
     // sin ficha, y vacío.
     fuente: proc ? (proc.fuente ?? "bedca") : (ing.nutrition ? "heredado" : "sin_fuente"),
+    // La segunda ficha, si la hay: de dónde salen los campos que la propia
+    // dejaba vacíos. Se copia tal cual del catálogo, donde la escribió
+    // scripts/apply-complemento.mjs con la lista exacta de campos prestados.
+    ...(ing.fuenteComplemento
+      ? { fuenteComplemento: { ...ing.fuenteComplemento, discrepancia: complementos[ing.id]?.discrepancia ?? null } }
+      : {}),
     fuenteId: proc ? String(proc.foodId) : null,
     fuenteNombre: nombreFuente,
     fuenteFecha: proc ? FECHA_INGESTA : null,

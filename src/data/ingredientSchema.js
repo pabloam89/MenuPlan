@@ -138,6 +138,23 @@ export const IngredientSchema = z
         ),
       )
       .nullable(),
+
+    /**
+     * La SEGUNDA ficha, cuando la propia deja huecos que otra tabla sí
+     * publica. El invariante deja de ser «una fila, una ficha» y pasa a ser
+     * «un CAMPO, una ficha»: `campos` dice exactamente cuáles vienen
+     * prestados y el resto sigue siendo de la fuente principal. Lo escribe
+     * scripts/apply-complemento.mjs. Ver src/data/complementoChoices.json.
+     */
+    fuenteComplemento: z
+      .object({
+        tabla: z.enum(["bedca", "ciqual", "usda"]),
+        foodId: z.string(),
+        nombre: z.string().nullable().optional(),
+        campos: z.array(z.string()).min(1),
+      })
+      .nullable()
+      .optional(),
   })
   .strict()
   .superRefine((ing, ctx) => {

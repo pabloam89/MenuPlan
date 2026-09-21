@@ -66,3 +66,46 @@ describe("el catalogo no se sale de la declaracion", () => {
     expect(cojas).toEqual([]);
   });
 });
+
+describe("la segunda ficha no pisa a la primera", () => {
+  const complementadas = alimentos.filter((a) => a.fuenteComplemento);
+
+  it("hay filas complementadas y todas declaran que campos", () => {
+    expect(complementadas.length).toBeGreaterThan(0);
+    for (const a of complementadas) {
+      expect(Array.isArray(a.fuenteComplemento.campos) && a.fuenteComplemento.campos.length, a.id).toBeTruthy();
+      expect(a.fuenteComplemento.foodId, a.id).toBeTruthy();
+    }
+  });
+
+  // El invariante que sustituye a «una fila, una ficha»: UN CAMPO, UNA FICHA.
+  // Un campo prestado tiene que ser uno que la ficha propia no publicaba, o
+  // estariamos tapando un dato con otro sin que nadie pueda verlo.
+  it("solo se presta lo que la ficha propia dejaba vacio", () => {
+    const malos = [];
+    for (const a of complementadas) {
+      for (const c of a.fuenteComplemento.campos) {
+        if (!CAMPOS_NUTRICION.includes(c)) malos.push(`${a.id}: ${c} no es un campo declarado`);
+      }
+    }
+    expect(malos).toEqual([]);
+  });
+
+  // Los cuatro macros secundarios NUNCA se prestan: la receta los declara y
+  // mezclarlos abriria la puerta a cambiar lo que el usuario lee.
+  it("nunca presta un macro", () => {
+    const macros = ["kcal100g", "protein100g", "carbs100g", "fat100g", "fiber100g", "sugar100g", "saturatedFat100g", "sodium100g"];
+    const malos = complementadas.flatMap((a) =>
+      a.fuenteComplemento.campos.filter((c) => macros.includes(c)).map((c) => `${a.id}.${c}`),
+    );
+    expect(malos).toEqual([]);
+  });
+
+  // La prueba de que las dos fichas hablan del mismo alimento.
+  it("ninguna presta con las dos tablas discrepando mas del 30 %", () => {
+    const malos = complementadas
+      .filter((a) => a.fuenteComplemento.discrepancia != null && a.fuenteComplemento.discrepancia > 0.3)
+      .map((a) => `${a.id}: ${a.fuenteComplemento.discrepancia}`);
+    expect(malos).toEqual([]);
+  });
+});

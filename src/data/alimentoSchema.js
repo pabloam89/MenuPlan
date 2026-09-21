@@ -354,6 +354,33 @@ export const AlimentoSchema = z
     fuenteNombre: z.string().nullable(),
     fuenteFecha: z.string().nullable(),
 
+/**
+ * La SEGUNDA ficha, cuando la propia deja huecos que otra tabla sí publica.
+ *
+ * Hasta aquí el invariante era «una fila, una ficha», y protegía la
+ * procedencia al precio de heredar los huecos de esa tabla: BEDCA no publica
+ * vitamina K en absoluto y son 198 de las 371 filas, así que el techo de ese
+ * campo era el 47 % por aritmética.
+ *
+ * El invariante pasa a ser «un CAMPO, una ficha», que es más fino y no más
+ * laxo: `campos` dice exactamente cuáles vienen prestados, y todo lo demás
+ * sigue siendo de `fuente`. Una fila puede citar dos fichas; lo que no puede
+ * es citar dos en el mismo campo.
+ *
+ * `discrepancia` es la prueba de que las dos hablan del mismo alimento: el
+ * peor desacuerdo entre sus cuatro macros. Por encima de 0,30 no se presta.
+ */
+    fuenteComplemento: z
+      .object({
+        tabla: z.enum(["bedca", "ciqual", "usda"]),
+        foodId: z.string(),
+        nombre: z.string().nullable(),
+        campos: z.array(z.string()).min(1),
+        discrepancia: z.number().min(0).nullable().optional(),
+      })
+      .nullable()
+      .optional(),
+
     // ── Plano A: identidad — QUÉ ES ─────────────────────────────────────────
     familia: z.enum(FAMILIAS_ALIMENTO).nullable(),
 
