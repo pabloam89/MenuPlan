@@ -11700,7 +11700,7 @@
     "protein_g": 32,
     "carbs_g": 46,
     "fat_g": 28,
-    "baseServings": 4,
+    "baseServings": 8,
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
@@ -20398,7 +20398,7 @@
     "protein_g": 38,
     "carbs_g": 66,
     "fat_g": 22,
-    "baseServings": 2,
+    "baseServings": 4,
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [

@@ -273,5 +273,17 @@
     "valor": 0.6,
     "confianza": 0.5,
     "motivo": "Igual que la codorniz. BEDCA da 1 porque su ficha, «Perdiz, cruda», ya es la carne."
+  },
+
+  "pato": {
+    "valor": 0.89,
+    "confianza": 0.7,
+    "motivo": "Porción comestible de BEDCA (ficha «Pato, entero, crudo», f_id 2287). Se le pasó a la tanda anterior por un despiste de clave —se escribió «magret-de-pato» y el id del ingrediente es «pato»—, y el hueco lo destapó el ragú de pato: 500 g de muslos con hueso daban 68 g de proteína por ración. Los 0,89 son del pato entero desplumado y eviscerado, así que para un muslo con hueso todavía se quedan largos; se toma el dato de la fuente antes que una estimación propia."
+  },
+
+  "pimiento-verde": {
+    "valor": 0.83,
+    "confianza": 0.6,
+    "motivo": "Pedúnculo, semillas y nervaduras. El valor NO es suyo: es el del pimiento rojo, cuya ficha sí está en BEDCA (0,83). Misma especie y mismo descarte, así que se hereda en vez de estimarlo a ojo, y por eso la confianza baja. Lo destapó una revisión de raciones: al tomate de la misma receta se le aplicaba 0,95 y a 720 g de pimiento verde no se le aplicaba nada."
   }
 }

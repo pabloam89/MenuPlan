@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import alimentos from "./alimentos.json";
 import alimentoPorIngrediente from "./alimentoPorIngrediente.json";
 import ingredientes from "./ingredients.json";
+const ingredients = ingredientes;
 import familiaLabels from "./familiaLabels.json";
 import bedcaChoices from "./bedcaChoices.json";
 import ciqualChoices from "./ciqualChoices.json";
@@ -398,5 +399,35 @@ describe("ningun numero en uso se queda sin ficha", () => {
       })
       .map((a) => `${a.nombre}: ${a.nutricion.sodium100g}`);
     expect(sospechosos).toEqual([]);
+  });
+});
+
+describe("fraccionComestible no pierde decisiones por el camino", () => {
+  // Una clave que no casa ningun ingrediente es una decision escrita que NO SE
+  // APLICA A NADA, y no falla: simplemente no hace nada. Asi se perdio el pato
+  // —se escribio «magret-de-pato» y el id es «pato»— y solo se vio cuando un
+  // ragu de pato dio 68 g de proteina por racion.
+  it("todas sus claves son ingredientes reales", () => {
+    const ids = new Set(ingredients.map((i) => i.id));
+    const huerfanas = Object.keys(fraccionComestible).filter((k) => !k.startsWith("_") && !ids.has(k));
+    expect(huerfanas).toEqual([]);
+  });
+
+  it("los valores estan entre 0 y 1", () => {
+    const malos = Object.entries(fraccionComestible)
+      .filter(([k]) => !k.startsWith("_"))
+      .filter(([, v]) => !(v.valor >= 0 && v.valor <= 1))
+      .map(([k]) => k);
+    expect(malos).toEqual([]);
+  });
+
+  // Cada una es un juicio sobre cuanta comida se tira. Sin motivo, nadie sabe
+  // si el 0,55 de la dorada sale de una tabla o de una tarde floja.
+  it("cada decision trae su motivo y su confianza", () => {
+    for (const [k, v] of Object.entries(fraccionComestible)) {
+      if (k.startsWith("_")) continue;
+      expect(typeof v.motivo === "string" && v.motivo.length > 20, k).toBe(true);
+      expect(typeof v.confianza === "number", k).toBe(true);
+    }
   });
 });
