@@ -1,0 +1,276 @@
+{
+  "_": "Qué ficha de USDA SR Legacy corresponde a cada ingrediente, para los huecos que ni BEDCA ni CIQUAL cierran. Mismo contrato que las otras dos: motivo obligatorio, `foodId: null` es la decisión explícita de que ninguna ficha sirve, y las claves son ids de ingrediente reales. — POR QUÉ UNA TERCERA TABLA. Dos huecos que las otras no cubren. EL DESPIECE: CIQUAL es francesa y no corta donde corta una carnicería española, así que no tiene morcillo, ni jarrete, ni entraña, ni oreja de cerdo; el despiece americano sí coincide. Y EL AZÚCAR: BEDCA lo publica en 42 de sus 198 fichas (21 %) y por eso el azúcar de las recetas se sostiene hoy sobre la mitad del plato; USDA lo trae en el 77 %. — EL COSTE, que el fichero de CIQUAL ya nombra: mezclar tablas de composición tiene un precio pequeño pero real, y con tres es mayor. Lo que lo hace asumible es que cada fila diga de dónde viene: una fila, una ficha, nunca campos de dos sitios.",
+
+  "alga-nori": {
+    "foodId": "168458",
+    "confianza": 0.9,
+    "motivo": "«Seaweed, laver, raw», 35 kcal. El nori ES el laver: misma alga, nombre japonés y nombre inglés. Estaba cerrado porque «CIQUAL no publica el alga nori con macros», cierto y no era la pregunta.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alga-wakame": {
+    "foodId": "170496",
+    "confianza": 0.95,
+    "motivo": "«Seaweed, wakame, raw», 45 kcal. La ficha exacta, por su nombre.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alubia-grande": {
+    "foodId": "175202",
+    "confianza": 0.85,
+    "motivo": "«Beans, white, mature seeds, raw», 333 kcal. Las fabes son alubia blanca grande SECA, y «mature seeds, raw» es exactamente ese estado. Se descarta «small white» (336) por el tamaño, aunque la diferencia sean 3 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "baguette": {
+    "foodId": "172675",
+    "confianza": 0.8,
+    "motivo": "«Bread, french or vienna (includes sourdough)», 272 kcal. El ingrediente se llama «Pan chapata» pese al id. La chapata es pan blanco rústico de corteza, que es lo que describe esta ficha. Antes casaba pan de avena y pan de cebada, que son variedades y no el genérico.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "bicarbonato": {
+    "foodId": "175040",
+    "confianza": 0.95,
+    "motivo": "«Leavening agents, baking soda», 0 kcal. Un mineral sin energía. Lleva 27.360 mg de sodio por 100 g, que es el dato que de verdad importa de él y que nadie tenía.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "carne-de-txangurro": {
+    "foodId": "174205",
+    "confianza": 0.8,
+    "motivo": "«Crustaceans, crab, blue, cooked, moist heat», 83 kcal. El txangurro es centollo y el blue crab no, pero la carne de cangrejo cocida varía poco entre especies: las tres fichas de cangrejo del catálogo están entre 83 y 110. Antes el candidato era «Empanada de carne».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cerveza": {
+    "foodId": "168746",
+    "confianza": 0.9,
+    "motivo": "«Alcoholic beverage, beer, regular, all», 43 kcal. Confirma la decisión anterior en vez de contradecirla: aquel motivo rechazó la ficha de CIQUAL diciendo «Beer, dark declara 18,1 kcal y una cerveza ronda 43». Rondaba 43.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "ciruelas-pasas": {
+    "foodId": "168162",
+    "confianza": 0.95,
+    "motivo": "«Plums, dried (prunes), uncooked», 240 kcal. Se coge la cruda y NO la «stewed» (107), que es la ciruela ya rehidratada en su compota: la receta pesa la pasa seca.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "codorniz": {
+    "foodId": "172418",
+    "confianza": 0.95,
+    "motivo": "«Quail, meat and skin, raw», 192 kcal. Con piel, que es como se escabecha. Estaba cerrada porque el candidato de CIQUAL era «Quail EGG», el huevo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "entrania-de-ternera": {
+    "foodId": "168744",
+    "confianza": 0.9,
+    "motivo": "«Beef, plate, inside skirt steak, separable lean only», 205 kcal. La entraña ES el skirt steak. El motivo anterior lo decía —«la entraña es skirt y CIQUAL no la publica»— y tenía razón en las dos mitades. Desbloquea «Entraña a la brasa con chimichurri», que estaba al 23 %.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "guanciale": {
+    "foodId": "168269",
+    "confianza": 0.85,
+    "motivo": "«Pork, fresh, variety meats and by-products, jowl, raw», 655 kcal. El guanciale ES papada de cerdo. La ficha es la fresca y el guanciale va curado, lo que concentra algo más, pero el orden de magnitud es el suyo: 655 frente a los 464 de la panceta, que era el candidato anterior y es otra pieza.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "higado-de-ternera": {
+    "foodId": "169451",
+    "confianza": 0.95,
+    "motivo": "«Beef, variety meats and by-products, liver, raw», 135 kcal. Antes el candidato era «Cod liver», hígado de BACALAO a 619 kcal: cuatro veces y otro animal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "jarrete-de-ternera": {
+    "foodId": "169441",
+    "confianza": 0.9,
+    "motivo": "«Beef, shank crosscuts, separable lean only», 128 kcal. El jarrete es el shank. Se coge el «trimmed to 1/4\" fat» magro (128) y no el graso (201), porque en un guiso el jarrete va limpio.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "jerez-seco": {
+    "foodId": "175112",
+    "confianza": 0.8,
+    "motivo": "«Alcoholic beverage, wine, dessert, dry», 152 kcal. Un jerez seco es vino generoso seco, que es lo que describe «dessert, dry» en la nomenclatura de USDA —«dessert» ahí significa fortificado, no dulce—. Se descarta el «sweet» (160) por eso mismo. El motivo anterior rechazaba la ficha de CIQUAL porque declaraba 6 kcal, y tenía razón.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "lasana": {
+    "foodId": "169736",
+    "confianza": 0.85,
+    "motivo": "«Pasta, dry, enriched», 371 kcal. Las láminas de lasaña son pasta seca de sémola, sin más. El candidato anterior era «Lasaña», el plato terminado, a 137.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "maiz": {
+    "foodId": "169214",
+    "confianza": 0.9,
+    "motivo": "«Corn, sweet, yellow, canned, whole kernel, drained solids», 67 kcal. El de lata escurrido, que es el que va en las ensaladas. Estaba cerrado porque el único candidato era «Corn or maize grain, raw» a 346, que es el grano seco de pienso. Nueve recetas Estrella dependían de esto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "morcillo": {
+    "foodId": "169441",
+    "confianza": 0.9,
+    "motivo": "Mismo corte que el jarrete en la nomenclatura de USDA: los dos son shank. Aquí la lista de la compra ya apuntaba a «Trozo de vacuno para cocido», que es el mismo animal y el mismo uso.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "morcillo-de-ternera": {
+    "foodId": "169441",
+    "confianza": 0.9,
+    "motivo": "«Beef, shank crosscuts, separable lean only», 128 kcal. El morcillo es el shank, y esto cierra el hueco que abrió el motivo anterior: «CIQUAL no lo publica». No lo publica porque el despiece francés no corta ahí; el americano sí.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "oreja-de-cerdo": {
+    "foodId": "167857",
+    "confianza": 0.9,
+    "motivo": "«Pork, fresh, variety meats and by-products, ears, frozen, raw», 234 kcal. La pieza exacta. El candidato anterior era «Heart, pork», el corazón.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pan-molde": {
+    "foodId": "174924",
+    "confianza": 0.9,
+    "motivo": "«Bread, white, commercially prepared», 266 kcal. Se coge el normal y NO el «low sodium, no salt» (267), que sale antes en la lista por parecido de palabras y tiene 15 mg de sodio en vez de 490: para un sándwich eso es toda la sal del plato.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pastrami-de-ternera-en-loncha": {
+    "foodId": "170204",
+    "confianza": 0.95,
+    "motivo": "«Beef, cured, pastrami», 147 kcal. La ficha exacta, curada y todo. El motivo anterior decía «pastrami es curado/ahumado y los candidatos son crudo o callos», y era cierto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "queso-crema": {
+    "foodId": "173418",
+    "confianza": 0.95,
+    "motivo": "«Cheese, cream», 350 kcal. El normal. Sale el QUINTO de su lista de candidatos, detrás de «low fat» (208), «cheese spread», un frosting de repostería y el «fat free» (105): leyendo solo el primero se habría cogido un queso desgrasado y perdido 142 kcal por cada 100 g.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "ron": {
+    "foodId": "171919",
+    "confianza": 0.85,
+    "motivo": "«Alcoholic beverage, distilled, all (gin, rum, vodka, whisky), 80 proof», 250 kcal. USDA no separa los destilados a la misma graduación porque su energía es la del etanol y poco más. Antes el candidato era «Rum baba», un bizcocho borracho.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "salsa-cesar": {
+    "foodId": "169055",
+    "confianza": 0.9,
+    "motivo": "«Salad dressing, caesar dressing, regular», 542 kcal. Se coge la «regular» y no la «low calorie» (110): una César de verdad es aceite, huevo y parmesano. Antes no había ningún candidato que fuera salsa César.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "salsa-worcestershire": {
+    "foodId": "171610",
+    "confianza": 0.95,
+    "motivo": "«Sauce, worcestershire», 77 kcal. La ficha exacta, por su nombre. Ninguna tabla europea la tenía.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "sriracha": {
+    "foodId": "171186",
+    "confianza": 0.95,
+    "motivo": "«Sauce, hot chile, sriracha», 93 kcal. La genérica y no las dos de marca (108 y 79). Es el caso que mejor justifica la tercera tabla: una salsa asiática que ni BEDCA ni CIQUAL iban a publicar nunca.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tomate-concentrado": {
+    "foodId": "170459",
+    "confianza": 0.9,
+    "motivo": "«Tomato products, canned, paste, without salt added», 82 kcal. Concentrado de verdad. El motivo anterior rechazaba «Tomato puree» diciendo «es tomate triturado, no concentrado», y tenía razón: el triturado son 24.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "unto": {
+    "foodId": "171401",
+    "confianza": 0.85,
+    "motivo": "«Lard», 902 kcal. El unto gallego es manteca de cerdo curada, y una manteca es grasa pura. La ficha se encontró solo después de arreglar el buscador: con coincidencia por subcadena, «Lard» devolvía «Col-LARD-s» —berza— con puntuación perfecta.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "ajete": {
+    "foodId": "170005",
+    "confianza": 0.65,
+    "motivo": "«Onions, spring or scallions (includes tops and bulb), raw», 32 kcal, como PROXY declarado. El ajete es ajo tierno y por especie le tocaría «Garlic, raw», pero eso son 149 kcal: el ajo bulbo es una despensa seca y el ajete es un tallo verde con el agua de una cebolleta. Para nutrición manda la forma y el agua, no la especie. La taxonomía del alimento sigue diciendo ajo, que es lo correcto ahí.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "ajetes-tiernos": {
+    "foodId": "170005",
+    "confianza": 0.65,
+    "motivo": "Mismo proxy y mismo razonamiento que «Ajetes».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "sidra": {
+    "foodId": "168746",
+    "confianza": 0.6,
+    "motivo": "«Alcoholic beverage, beer, regular, all», 43 kcal, como PROXY declarado. USDA no tiene sidra natural. La decisión anterior rechazó la ficha de CIQUAL calculando que «Cider declara 7,5 kcal y una sidra ronda 42»; la cerveza declara 43. Son dos fermentados de graduación parecida y el número cae donde aquella estimación decía. Confianza baja porque es otra bebida, no otra marca.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cointreau": {
+    "foodId": "173665",
+    "confianza": 0.6,
+    "motivo": "«Alcoholic beverage, liqueur, coffee, 63 proof», 308 kcal, como PROXY declarado. USDA no tiene licor de naranja. Un licor dulce a graduación parecida ronda lo mismo, porque su energía es etanol más azúcar, y el Cointreau está en 40 grados igual que este. Confianza baja: el sabor es otro y el azúcar puede variar.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "ravioli": {
+    "foodId": "169727",
+    "confianza": 0.6,
+    "motivo": "«Pasta, fresh-refrigerated, plain, as purchased», 288 kcal, como PROXY declarado. El ingrediente son tortellini RELLENOS de carne y esta ficha es pasta fresca sin relleno. Se acepta porque la masa es la mayor parte del peso, y se deja la confianza baja porque el relleno sube la grasa y la proteína.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "carne-de-cocido": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "USDA tampoco tiene «stew meat»: sus candidatos son papilla infantil de ternera y SESOS de vacuno. Sigue siendo lo que ya decía el motivo anterior, una mezcla de cortes y no un corte.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "colorante": {
+    "foodId": null,
+    "confianza": 0.95,
+    "motivo": "No es un alimento. Ninguna tabla de composición lo publica y no aporta nada medible en las cantidades de una receta. Ni siquiera tiene término de búsqueda escrito.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "extracto-de-vainilla": {
+    "foodId": null,
+    "confianza": 0.7,
+    "motivo": "USDA sí lo tiene —«Vanilla extract», 288 kcal— y aun así se deja fuera: las tres fichas son el extracto alcohólico, el de imitación con alcohol y el de imitación sin él (56), y son tres alimentos distintos con siete veces de diferencia entre el primero y el último. Sin saber cuál compra la gente, elegir sería inventar. Va en cucharaditas, así que el hueco no mueve ninguna receta.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "gochujang": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Los candidatos son salsas de chile de 20 a 92 kcal. El gochujang es una pasta fermentada con arroz glutinoso y ronda 230: es un alimento denso, no una salsa líquida. Equivocarse por tres veces.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "harissa": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Mismo caso que el gochujang: el mejor candidato es «Sauce, peppers, hot, chili, canned» a 21 kcal, y la harissa lleva aceite y ronda 200. Diez veces.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "hueso-de-ternera": {
+    "foodId": null,
+    "confianza": 0.95,
+    "motivo": "Un hueso no se come. Ninguna tabla lo publica y no debería publicarlo: lo que aporta al guiso es gelatina y sabor, no masa. Su sitio es `fraccionComestible`, no una ficha de composición.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "masa-de-pizza": {
+    "foodId": null,
+    "confianza": 0.8,
+    "motivo": "Los candidatos son masas refrigeradas de bollería americana —bizcochos de mantequilla, rollos de canela— entre 293 y 330 kcal. USDA no publica masa de pizza cruda.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "medio-cochinillo": {
+    "foodId": null,
+    "confianza": 0.75,
+    "motivo": "USDA no tiene cochinillo. El mejor candidato es «Pork, fresh, loin, whole, separable lean and fat, raw» a 198, y un cochinillo asado con la piel ronda 380: es el corte más graso del animal en su edad más grasa. Equivocarse por la mitad en el ingrediente que ES el plato. Se deja el hueco y con él la receta al 16 %, que es honesto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "mirin": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es sake, igual que en CIQUAL y con la misma objeción: el mirin es vino de arroz DULCE y ronda 250; el sake es seco y declara 134. El azúcar es justo lo que lo define.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pata-de-ternera": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Los candidatos son manos de CERDO y sesos de vacuno. USDA no publica la pata de ternera, que además se usa por la gelatina y no por la carne.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pulpa-de-acai-congelada": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Los dos candidatos son BEBIDAS de açaí —una fortificada y un zumo V8— de 45 y 62 kcal. La pulpa congelada sin azúcar ronda 70 con mucha más grasa: el açaí es una fruta grasa, cosa rara, y un zumo rebajado no lo refleja.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tinta-de-calamar": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Ninguna de las tres tablas publica la tinta. Se usa en sobres de 4 g y su aporte es color, no comida.",
+    "modelo": "decision-humana-2026-09-21"
+  }
+}

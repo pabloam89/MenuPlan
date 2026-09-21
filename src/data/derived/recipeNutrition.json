@@ -1368,20 +1368,20 @@
     "operador": "computeRecipeNutrition"
   },
   "bebes_046": {
-    "kcal": 315,
-    "protein_g": 25.1,
-    "carbs_g": 13.4,
-    "fat_g": 17.8,
-    "fiber_g": 2.1,
-    "sugar_g": 0.2,
-    "saturated_fat_g": 4,
-    "sodium_mg": 119,
-    "coverage": 0.756,
+    "kcal": 349,
+    "protein_g": 26.3,
+    "carbs_g": 20.6,
+    "fat_g": 18.4,
+    "fiber_g": 3.1,
+    "sugar_g": 2.4,
+    "saturated_fat_g": 4.2,
+    "sodium_mg": 222,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.756,
-      "sugar_g": 0.316,
-      "saturated_fat_g": 0.756,
-      "sodium_mg": 0.756
+      "fiber_g": 1,
+      "sugar_g": 0.56,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 205,
@@ -2568,20 +2568,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_034": {
-    "kcal": 389,
-    "protein_g": 50.8,
-    "carbs_g": 4.5,
+    "kcal": 432,
+    "protein_g": 51.2,
+    "carbs_g": 8,
     "fat_g": 18.8,
     "fiber_g": 1,
     "sugar_g": 2.4,
     "saturated_fat_g": 3.8,
-    "sodium_mg": 223,
-    "coverage": 0.759,
+    "sodium_mg": 227,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.759,
-      "sugar_g": 0.724,
-      "saturated_fat_g": 0.759,
-      "sodium_mg": 0.759
+      "fiber_g": 1,
+      "sugar_g": 0.965,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 408,
@@ -2688,20 +2688,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_040": {
-    "kcal": 562,
+    "kcal": 639,
     "protein_g": 42,
-    "carbs_g": 42.6,
-    "fat_g": 22,
+    "carbs_g": 50.6,
+    "fat_g": 22.1,
     "fiber_g": 7.8,
-    "sugar_g": 40.7,
+    "sugar_g": 48.8,
     "saturated_fat_g": 9.6,
-    "sodium_mg": 1196,
-    "coverage": 0.958,
+    "sodium_mg": 1198,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.958,
-      "sugar_g": 0.601,
-      "saturated_fat_g": 0.958,
-      "sodium_mg": 0.958
+      "fiber_g": 1,
+      "sugar_g": 0.643,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 520,
@@ -2808,20 +2808,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_045": {
-    "kcal": 268,
-    "protein_g": 0.9,
+    "kcal": 678,
+    "protein_g": 54.2,
     "carbs_g": 3.6,
-    "fat_g": 27.9,
+    "fat_g": 48,
     "fiber_g": 1.5,
     "sugar_g": 0,
-    "saturated_fat_g": 4.8,
-    "sodium_mg": 1172,
-    "coverage": 0.234,
+    "saturated_fat_g": 12.5,
+    "sodium_mg": 1324,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.234,
-      "sugar_g": 0.042,
-      "saturated_fat_g": 0.196,
-      "sodium_mg": 0.234
+      "fiber_g": 1,
+      "sugar_g": 0.808,
+      "saturated_fat_g": 0.962,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 480,
@@ -2832,20 +2832,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_046": {
-    "kcal": 465,
+    "kcal": 469,
     "protein_g": 38.4,
-    "carbs_g": 28.6,
+    "carbs_g": 29.6,
     "fat_g": 21.4,
     "fiber_g": 2.4,
-    "sugar_g": 0.8,
+    "sugar_g": 1.3,
     "saturated_fat_g": 5.6,
-    "sodium_mg": 1789,
-    "coverage": 0.982,
+    "sodium_mg": 1854,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.982,
-      "sugar_g": 0.585,
-      "saturated_fat_g": 0.982,
-      "sodium_mg": 0.982
+      "fiber_g": 1,
+      "sugar_g": 0.603,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 380,
@@ -2880,20 +2880,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_048": {
-    "kcal": 333,
-    "protein_g": 6.5,
+    "kcal": 717,
+    "protein_g": 71.7,
     "carbs_g": 35.8,
-    "fat_g": 14.9,
+    "fat_g": 26.4,
     "fiber_g": 5.8,
     "sugar_g": 3.1,
-    "saturated_fat_g": 4.9,
-    "sodium_mg": 1149,
-    "coverage": 0.62,
+    "saturated_fat_g": 8.7,
+    "sodium_mg": 1338,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.62,
+      "fiber_g": 1,
       "sugar_g": 0.211,
-      "saturated_fat_g": 0.488,
-      "sodium_mg": 0.62
+      "saturated_fat_g": 0.868,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 560,
@@ -2928,20 +2928,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_050": {
-    "kcal": 519,
-    "protein_g": 2.2,
+    "kcal": 1287,
+    "protein_g": 80.7,
     "carbs_g": 15.4,
-    "fat_g": 46.7,
+    "fat_g": 94.9,
     "fiber_g": 3.1,
     "sugar_g": 2.5,
-    "saturated_fat_g": 8.1,
-    "sodium_mg": 841,
-    "coverage": 0.387,
+    "saturated_fat_g": 21.6,
+    "sodium_mg": 1053,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.387,
+      "fiber_g": 1,
       "sugar_g": 0.166,
-      "saturated_fat_g": 0.387,
-      "sodium_mg": 0.387
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 520,
@@ -3408,20 +3408,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_070": {
-    "kcal": 331,
+    "kcal": 335,
     "protein_g": 34.3,
-    "carbs_g": 2.2,
+    "carbs_g": 3.2,
     "fat_g": 20.4,
     "fiber_g": 0.9,
-    "sugar_g": 0,
+    "sugar_g": 0.5,
     "saturated_fat_g": 5.2,
-    "sodium_mg": 1029,
-    "coverage": 0.977,
+    "sodium_mg": 1094,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.977,
-      "sugar_g": 0.773,
-      "saturated_fat_g": 0.977,
-      "sodium_mg": 0.977
+      "fiber_g": 1,
+      "sugar_g": 0.796,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 360,
@@ -3576,20 +3576,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_077": {
-    "kcal": 323,
-    "protein_g": 6.3,
+    "kcal": 579,
+    "protein_g": 49.8,
     "carbs_g": 33.9,
-    "fat_g": 15,
+    "fat_g": 22.7,
     "fiber_g": 5,
     "sugar_g": 3.8,
-    "saturated_fat_g": 6.2,
-    "sodium_mg": 1415,
-    "coverage": 0.693,
+    "saturated_fat_g": 8.7,
+    "sodium_mg": 1541,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.693,
+      "fiber_g": 1,
       "sugar_g": 0.271,
-      "saturated_fat_g": 0.654,
-      "sodium_mg": 0.693
+      "saturated_fat_g": 0.962,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 500,
@@ -3768,20 +3768,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_085": {
-    "kcal": 666,
-    "protein_g": 49,
-    "carbs_g": 1.3,
-    "fat_g": 49.9,
-    "fiber_g": 0.4,
-    "sugar_g": 0.1,
+    "kcal": 726,
+    "protein_g": 49.5,
+    "carbs_g": 17.3,
+    "fat_g": 50,
+    "fiber_g": 2.2,
+    "sugar_g": 9.7,
     "saturated_fat_g": 15.7,
     "sodium_mg": 1214,
-    "coverage": 0.935,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.935,
-      "sugar_g": 0.101,
-      "saturated_fat_g": 0.935,
-      "sodium_mg": 0.935
+      "fiber_g": 1,
+      "sugar_g": 0.166,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 445,
@@ -4032,20 +4032,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_096": {
-    "kcal": 761,
+    "kcal": 763,
     "protein_g": 35.6,
-    "carbs_g": 39.4,
+    "carbs_g": 39.9,
     "fat_g": 51.5,
     "fiber_g": 5.4,
-    "sugar_g": 3.5,
+    "sugar_g": 3.8,
     "saturated_fat_g": 23.3,
-    "sodium_mg": 1208,
-    "coverage": 0.996,
+    "sodium_mg": 1240,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.996,
-      "sugar_g": 0.479,
-      "saturated_fat_g": 0.906,
-      "sodium_mg": 0.996
+      "fiber_g": 1,
+      "sugar_g": 0.483,
+      "saturated_fat_g": 0.911,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 500,
@@ -4080,20 +4080,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_098": {
-    "kcal": 406,
-    "protein_g": 8,
+    "kcal": 854,
+    "protein_g": 84.1,
     "carbs_g": 46.6,
-    "fat_g": 15.5,
+    "fat_g": 29,
     "fiber_g": 8.5,
     "sugar_g": 4.2,
-    "saturated_fat_g": 2.8,
-    "sodium_mg": 558,
-    "coverage": 0.652,
+    "saturated_fat_g": 7.3,
+    "sodium_mg": 779,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.652,
+      "fiber_g": 1,
       "sugar_g": 0.231,
-      "saturated_fat_g": 0.552,
-      "sodium_mg": 0.652
+      "saturated_fat_g": 0.901,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 480,
@@ -4128,20 +4128,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_100": {
-    "kcal": 1698,
+    "kcal": 1702,
     "protein_g": 39.1,
-    "carbs_g": 32.7,
+    "carbs_g": 33.7,
     "fat_g": 156.5,
     "fiber_g": 4.3,
-    "sugar_g": 0.8,
+    "sugar_g": 1.3,
     "saturated_fat_g": 20.3,
-    "sodium_mg": 810,
-    "coverage": 0.991,
+    "sodium_mg": 875,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.991,
-      "sugar_g": 0.532,
-      "saturated_fat_g": 0.987,
-      "sodium_mg": 0.991
+      "fiber_g": 1,
+      "sugar_g": 0.541,
+      "saturated_fat_g": 0.996,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 620,
@@ -4536,20 +4536,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_117": {
-    "kcal": 268,
-    "protein_g": 2.8,
-    "carbs_g": 17.6,
-    "fat_g": 19.4,
+    "kcal": 504,
+    "protein_g": 38.4,
+    "carbs_g": 24.4,
+    "fat_g": 25.8,
     "fiber_g": 3,
     "sugar_g": 7.4,
-    "saturated_fat_g": 3.5,
-    "sodium_mg": 60,
-    "coverage": 0.532,
+    "saturated_fat_g": 5.6,
+    "sodium_mg": 181,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.532,
-      "sugar_g": 0.428,
-      "saturated_fat_g": 0.525,
-      "sodium_mg": 0.532
+      "fiber_g": 1,
+      "sugar_g": 0.896,
+      "saturated_fat_g": 0.993,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 420,
@@ -4656,20 +4656,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_122": {
-    "kcal": 612,
-    "protein_g": 33.7,
-    "carbs_g": 2,
-    "fat_g": 52.8,
-    "fiber_g": 0.7,
-    "sugar_g": 0.3,
-    "saturated_fat_g": 14.1,
-    "sodium_mg": 455,
-    "coverage": 0.727,
+    "kcal": 891,
+    "protein_g": 43,
+    "carbs_g": 53.9,
+    "fat_g": 56.3,
+    "fiber_g": 3.6,
+    "sugar_g": 6.2,
+    "saturated_fat_g": 14.8,
+    "sodium_mg": 970,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.727,
-      "sugar_g": 0.208,
-      "saturated_fat_g": 0.623,
-      "sodium_mg": 0.727
+      "fiber_g": 1,
+      "sugar_g": 0.481,
+      "saturated_fat_g": 0.896,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 650,
@@ -4680,20 +4680,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_123": {
-    "kcal": 240,
-    "protein_g": 27.2,
-    "carbs_g": 1.4,
-    "fat_g": 14.1,
-    "fiber_g": 1.5,
-    "sugar_g": 0,
-    "saturated_fat_g": 5,
-    "sodium_mg": 362,
-    "coverage": 0.789,
+    "kcal": 483,
+    "protein_g": 30.5,
+    "carbs_g": 17.2,
+    "fat_g": 32.4,
+    "fiber_g": 2.5,
+    "sugar_g": 2.5,
+    "saturated_fat_g": 7.8,
+    "sodium_mg": 871,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.789,
-      "sugar_g": 0.404,
-      "saturated_fat_g": 0.789,
-      "sodium_mg": 0.789
+      "fiber_g": 1,
+      "sugar_g": 0.615,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 480,
@@ -4752,20 +4752,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_126": {
-    "kcal": 264,
-    "protein_g": 6.7,
-    "carbs_g": 37.7,
-    "fat_g": 9.1,
+    "kcal": 411,
+    "protein_g": 28.5,
+    "carbs_g": 38.1,
+    "fat_g": 14.9,
     "fiber_g": 2.3,
-    "sugar_g": null,
-    "saturated_fat_g": 4.6,
-    "sodium_mg": 943,
-    "coverage": 0.529,
+    "sugar_g": 0.1,
+    "saturated_fat_g": 7.3,
+    "sodium_mg": 2021,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.529,
-      "sugar_g": 0,
-      "saturated_fat_g": 0.529,
-      "sodium_mg": 0.529
+      "fiber_g": 1,
+      "sugar_g": 0.471,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 560,
@@ -4824,20 +4824,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_129": {
-    "kcal": 374,
-    "protein_g": 25.6,
-    "carbs_g": 10.4,
-    "fat_g": 25.8,
-    "fiber_g": 0.3,
-    "sugar_g": 3.4,
-    "saturated_fat_g": 15.9,
-    "sodium_mg": 990,
-    "coverage": 0.736,
+    "kcal": 560,
+    "protein_g": 31.8,
+    "carbs_g": 44.9,
+    "fat_g": 28.1,
+    "fiber_g": 2.2,
+    "sugar_g": 7.4,
+    "saturated_fat_g": 16.4,
+    "sodium_mg": 1333,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.736,
-      "sugar_g": 0.47,
-      "saturated_fat_g": 0.736,
-      "sodium_mg": 0.736
+      "fiber_g": 1,
+      "sugar_g": 0.734,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 540,
@@ -4872,20 +4872,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_131": {
-    "kcal": 476,
-    "protein_g": 40.7,
-    "carbs_g": 1,
-    "fat_g": 32.1,
-    "fiber_g": 7.5,
-    "sugar_g": 0.4,
-    "saturated_fat_g": 6.3,
-    "sodium_mg": 679,
-    "coverage": 0.866,
+    "kcal": 510,
+    "protein_g": 41.8,
+    "carbs_g": 8.1,
+    "fat_g": 32.8,
+    "fiber_g": 8.5,
+    "sugar_g": 2.6,
+    "saturated_fat_g": 6.5,
+    "sodium_mg": 782,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.866,
-      "sugar_g": 0.102,
-      "saturated_fat_g": 0.773,
-      "sodium_mg": 0.866
+      "fiber_g": 1,
+      "sugar_g": 0.235,
+      "saturated_fat_g": 0.906,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 480,
@@ -4920,20 +4920,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_133": {
-    "kcal": 488,
-    "protein_g": 40.9,
-    "carbs_g": 2.8,
-    "fat_g": 32.5,
-    "fiber_g": 8.2,
-    "sugar_g": 0.4,
-    "saturated_fat_g": 6.4,
-    "sodium_mg": 488,
-    "coverage": 0.867,
+    "kcal": 522,
+    "protein_g": 42,
+    "carbs_g": 10,
+    "fat_g": 33.1,
+    "fiber_g": 9.2,
+    "sugar_g": 2.6,
+    "saturated_fat_g": 6.5,
+    "sodium_mg": 591,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.867,
-      "sugar_g": 0.1,
-      "saturated_fat_g": 0.774,
-      "sodium_mg": 0.867
+      "fiber_g": 1,
+      "sugar_g": 0.232,
+      "saturated_fat_g": 0.907,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 470,
@@ -4968,20 +4968,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_135": {
-    "kcal": 714,
-    "protein_g": 49.6,
-    "carbs_g": 81.3,
-    "fat_g": 18.1,
-    "fiber_g": 14.2,
-    "sugar_g": 1.9,
-    "saturated_fat_g": 4.4,
-    "sodium_mg": 688,
-    "coverage": 0.917,
+    "kcal": 741,
+    "protein_g": 50.5,
+    "carbs_g": 87,
+    "fat_g": 18.6,
+    "fiber_g": 15,
+    "sugar_g": 3.7,
+    "saturated_fat_g": 4.5,
+    "sodium_mg": 770,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.917,
-      "sugar_g": 0.322,
-      "saturated_fat_g": 0.737,
-      "sodium_mg": 0.917
+      "fiber_g": 1,
+      "sugar_g": 0.405,
+      "saturated_fat_g": 0.82,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 620,
@@ -5112,20 +5112,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_141": {
-    "kcal": 553,
-    "protein_g": 22.3,
-    "carbs_g": 37.1,
+    "kcal": 557,
+    "protein_g": 22.5,
+    "carbs_g": 38.1,
     "fat_g": 34.8,
-    "fiber_g": 5.8,
-    "sugar_g": 3,
+    "fiber_g": 6,
+    "sugar_g": 3.6,
     "saturated_fat_g": 15.2,
-    "sodium_mg": 1255,
-    "coverage": 0.989,
+    "sodium_mg": 1258,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.989,
-      "sugar_g": 0.453,
-      "saturated_fat_g": 0.989,
-      "sodium_mg": 0.989
+      "fiber_g": 1,
+      "sugar_g": 0.464,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 520,
@@ -5232,20 +5232,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_146": {
-    "kcal": 832,
-    "protein_g": 54,
-    "carbs_g": 24.1,
-    "fat_g": 55.6,
-    "fiber_g": 9.5,
-    "sugar_g": 0.4,
-    "saturated_fat_g": 10.9,
-    "sodium_mg": 375,
-    "coverage": 0.927,
+    "kcal": 858,
+    "protein_g": 54.9,
+    "carbs_g": 29.8,
+    "fat_g": 56.1,
+    "fiber_g": 10.3,
+    "sugar_g": 2.2,
+    "saturated_fat_g": 11,
+    "sodium_mg": 457,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.927,
-      "sugar_g": 0.119,
-      "saturated_fat_g": 0.726,
-      "sodium_mg": 0.927
+      "fiber_g": 1,
+      "sugar_g": 0.192,
+      "saturated_fat_g": 0.799,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 520,
@@ -5616,20 +5616,20 @@
     "operador": "computeRecipeNutrition"
   },
   "carnes_162": {
-    "kcal": 1225,
-    "protein_g": 73.7,
-    "carbs_g": 102.8,
-    "fat_g": 56.6,
-    "fiber_g": 5.8,
-    "sugar_g": 9.8,
-    "saturated_fat_g": 15.6,
-    "sodium_mg": 391,
-    "coverage": 0.963,
+    "kcal": 1305,
+    "protein_g": 76.4,
+    "carbs_g": 117.6,
+    "fat_g": 57.6,
+    "fiber_g": 6.6,
+    "sugar_g": 11.5,
+    "saturated_fat_g": 15.8,
+    "sodium_mg": 538,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.963,
-      "sugar_g": 0.373,
-      "saturated_fat_g": 0.963,
-      "sodium_mg": 0.963
+      "fiber_g": 1,
+      "sugar_g": 0.41,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 560,
@@ -5856,20 +5856,20 @@
     "operador": "computeRecipeNutrition"
   },
   "cenas_rapidas_001": {
-    "kcal": 203,
-    "protein_g": 16.1,
-    "carbs_g": 0.7,
-    "fat_g": 15.3,
-    "fiber_g": 0,
-    "sugar_g": null,
-    "saturated_fat_g": 9.2,
-    "sodium_mg": 745,
-    "coverage": 0.517,
+    "kcal": 389,
+    "protein_g": 22.3,
+    "carbs_g": 35.3,
+    "fat_g": 17.6,
+    "fiber_g": 1.9,
+    "sugar_g": 4,
+    "saturated_fat_g": 9.7,
+    "sodium_mg": 1088,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.517,
-      "sugar_g": 0,
-      "saturated_fat_g": 0.517,
-      "sodium_mg": 0.517
+      "fiber_g": 1,
+      "sugar_g": 0.483,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 348,
@@ -6024,20 +6024,20 @@
     "operador": "computeRecipeNutrition"
   },
   "cenas_rapidas_008": {
-    "kcal": 125,
-    "protein_g": 1.1,
-    "carbs_g": 4.3,
-    "fat_g": 11.6,
-    "fiber_g": 1.2,
-    "sugar_g": 0,
-    "saturated_fat_g": 2,
-    "sodium_mg": 19,
-    "coverage": 0.609,
+    "kcal": 329,
+    "protein_g": 9.2,
+    "carbs_g": 43.2,
+    "fat_g": 13.4,
+    "fiber_g": 2.9,
+    "sugar_g": 3.5,
+    "saturated_fat_g": 2.4,
+    "sodium_mg": 470,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.609,
-      "sugar_g": 0.013,
-      "saturated_fat_g": 0.088,
-      "sodium_mg": 0.609
+      "fiber_g": 1,
+      "sugar_g": 0.404,
+      "saturated_fat_g": 0.479,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 268,
@@ -6144,20 +6144,20 @@
     "operador": "computeRecipeNutrition"
   },
   "cenas_rapidas_014": {
-    "kcal": 296,
-    "protein_g": 20.6,
-    "carbs_g": 25.3,
-    "fat_g": 12,
-    "fiber_g": 2.5,
-    "sugar_g": 0.7,
+    "kcal": 309,
+    "protein_g": 21.1,
+    "carbs_g": 28.1,
+    "fat_g": 12.3,
+    "fiber_g": 2.9,
+    "sugar_g": 1.6,
     "saturated_fat_g": 3,
-    "sodium_mg": 492,
-    "coverage": 0.9,
+    "sodium_mg": 533,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.9,
-      "sugar_g": 0.575,
-      "saturated_fat_g": 0.7,
-      "sodium_mg": 0.9
+      "fiber_g": 1,
+      "sugar_g": 0.675,
+      "saturated_fat_g": 0.8,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 368,
@@ -7728,20 +7728,20 @@
     "operador": "computeRecipeNutrition"
   },
   "ensaladas_verduras_052": {
-    "kcal": 351,
+    "kcal": 355,
     "protein_g": 33.9,
-    "carbs_g": 12.2,
+    "carbs_g": 13.2,
     "fat_g": 17.9,
     "fiber_g": 3.9,
-    "sugar_g": 6,
+    "sugar_g": 6.5,
     "saturated_fat_g": 4,
-    "sodium_mg": 677,
-    "coverage": 0.985,
+    "sodium_mg": 742,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.985,
-      "sugar_g": 0.348,
-      "saturated_fat_g": 0.829,
-      "sodium_mg": 0.985
+      "fiber_g": 1,
+      "sugar_g": 0.363,
+      "saturated_fat_g": 0.845,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 380,
@@ -8088,20 +8088,20 @@
     "operador": "computeRecipeNutrition"
   },
   "ensaladas_verduras_067": {
-    "kcal": 726,
-    "protein_g": 45.5,
-    "carbs_g": 26.4,
-    "fat_g": 48.7,
-    "fiber_g": 2.9,
-    "sugar_g": 0.5,
-    "saturated_fat_g": 12.5,
-    "sodium_mg": 692,
-    "coverage": 0.925,
+    "kcal": 806,
+    "protein_g": 48.1,
+    "carbs_g": 41.2,
+    "fat_g": 49.7,
+    "fiber_g": 3.7,
+    "sugar_g": 2.2,
+    "saturated_fat_g": 12.7,
+    "sodium_mg": 839,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.925,
-      "sugar_g": 0.231,
-      "saturated_fat_g": 0.925,
-      "sodium_mg": 0.925
+      "fiber_g": 1,
+      "sugar_g": 0.306,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 540,
@@ -8304,20 +8304,20 @@
     "operador": "computeRecipeNutrition"
   },
   "ensaladas_verduras_076": {
-    "kcal": 246,
-    "protein_g": 2.9,
-    "carbs_g": 5.2,
-    "fat_g": 21.4,
-    "fiber_g": 8.5,
-    "sugar_g": 1.2,
-    "saturated_fat_g": 3,
-    "sodium_mg": 23,
-    "coverage": 0.757,
+    "kcal": 299,
+    "protein_g": 4.7,
+    "carbs_g": 16.7,
+    "fat_g": 22.4,
+    "fiber_g": 10.1,
+    "sugar_g": 4.8,
+    "saturated_fat_g": 3.2,
+    "sodium_mg": 187,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.757,
-      "sugar_g": 0.123,
-      "saturated_fat_g": 0.407,
-      "sodium_mg": 0.757
+      "fiber_g": 1,
+      "sugar_g": 0.365,
+      "saturated_fat_g": 0.65,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 344,
@@ -8712,20 +8712,20 @@
     "operador": "computeRecipeNutrition"
   },
   "ensaladas_verduras_093": {
-    "kcal": 359,
-    "protein_g": 18.7,
-    "carbs_g": 29.1,
-    "fat_g": 18.5,
-    "fiber_g": 6.9,
-    "sugar_g": 3.6,
+    "kcal": 372,
+    "protein_g": 19.2,
+    "carbs_g": 31.9,
+    "fat_g": 18.8,
+    "fiber_g": 7.3,
+    "sugar_g": 4.5,
     "saturated_fat_g": 7,
-    "sodium_mg": 721,
-    "coverage": 0.949,
+    "sodium_mg": 762,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.949,
-      "sugar_g": 0.242,
-      "saturated_fat_g": 0.847,
-      "sodium_mg": 0.949
+      "fiber_g": 1,
+      "sugar_g": 0.293,
+      "saturated_fat_g": 0.898,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 390,
@@ -9456,20 +9456,20 @@
     "operador": "computeRecipeNutrition"
   },
   "ensaladas_verduras_124": {
-    "kcal": 244,
-    "protein_g": 2.8,
-    "carbs_g": 4.8,
-    "fat_g": 21.4,
-    "fiber_g": 8.9,
-    "sugar_g": 1.7,
-    "saturated_fat_g": 3,
-    "sodium_mg": 408,
-    "coverage": 0.667,
+    "kcal": 328,
+    "protein_g": 5.7,
+    "carbs_g": 22.8,
+    "fat_g": 23,
+    "fiber_g": 11.4,
+    "sugar_g": 7.2,
+    "saturated_fat_g": 3.3,
+    "sodium_mg": 664,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.667,
-      "sugar_g": 0.173,
-      "saturated_fat_g": 0.374,
-      "sodium_mg": 0.667
+      "fiber_g": 1,
+      "sugar_g": 0.506,
+      "saturated_fat_g": 0.707,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 260,
@@ -9552,20 +9552,20 @@
     "operador": "computeRecipeNutrition"
   },
   "ensaladas_verduras_128": {
-    "kcal": 454,
-    "protein_g": 17.2,
-    "carbs_g": 17.4,
-    "fat_g": 33.6,
-    "fiber_g": 9.6,
-    "sugar_g": 6,
-    "saturated_fat_g": 10.7,
-    "sodium_mg": 258,
-    "coverage": 0.825,
+    "kcal": 504,
+    "protein_g": 18.9,
+    "carbs_g": 28.1,
+    "fat_g": 34.5,
+    "fiber_g": 11.1,
+    "sugar_g": 9.3,
+    "saturated_fat_g": 10.9,
+    "sodium_mg": 411,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.825,
-      "sugar_g": 0.35,
-      "saturated_fat_g": 0.639,
-      "sodium_mg": 0.825
+      "fiber_g": 1,
+      "sugar_g": 0.525,
+      "saturated_fat_g": 0.813,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 280,
@@ -10872,20 +10872,20 @@
     "operador": "computeRecipeNutrition"
   },
   "huevos_005": {
-    "kcal": 289,
-    "protein_g": 23.1,
-    "carbs_g": 1.6,
-    "fat_g": 21.3,
-    "fiber_g": 0,
-    "sugar_g": 0.3,
+    "kcal": 305,
+    "protein_g": 24,
+    "carbs_g": 5.3,
+    "fat_g": 21.4,
+    "fiber_g": 1.3,
+    "sugar_g": 1.5,
     "saturated_fat_g": 4.8,
-    "sodium_mg": 222,
-    "coverage": 0.772,
+    "sodium_mg": 230,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.772,
-      "sugar_g": 0.73,
-      "saturated_fat_g": 0.772,
-      "sodium_mg": 0.772
+      "fiber_g": 1,
+      "sugar_g": 0.958,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 248,
@@ -11616,20 +11616,20 @@
     "operador": "computeRecipeNutrition"
   },
   "huevos_037": {
-    "kcal": 338,
-    "protein_g": 33,
-    "carbs_g": 3.2,
-    "fat_g": 21.7,
-    "fiber_g": 0,
-    "sugar_g": 0.3,
+    "kcal": 362,
+    "protein_g": 34.3,
+    "carbs_g": 8.7,
+    "fat_g": 21.9,
+    "fiber_g": 2,
+    "sugar_g": 2.1,
     "saturated_fat_g": 4.9,
-    "sodium_mg": 313,
-    "coverage": 0.745,
+    "sodium_mg": 325,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.745,
-      "sugar_g": 0.714,
-      "saturated_fat_g": 0.745,
-      "sodium_mg": 0.745
+      "fiber_g": 1,
+      "sugar_g": 0.969,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 330,
@@ -12384,20 +12384,20 @@
     "operador": "computeRecipeNutrition"
   },
   "huevos_069": {
-    "kcal": 483,
-    "protein_g": 28.7,
+    "kcal": 545,
+    "protein_g": 42.1,
     "carbs_g": 11.1,
-    "fat_g": 35,
+    "fat_g": 35.5,
     "fiber_g": 1,
     "sugar_g": 3.7,
-    "saturated_fat_g": 12.9,
-    "sodium_mg": 434,
-    "coverage": 0.806,
+    "saturated_fat_g": 13.1,
+    "sodium_mg": 730,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.806,
-      "sugar_g": 0.709,
-      "saturated_fat_g": 0.793,
-      "sodium_mg": 0.793
+      "fiber_g": 1,
+      "sugar_g": 0.904,
+      "saturated_fat_g": 0.988,
+      "sodium_mg": 0.988
     },
     "declarado": {
       "kcal": 510,
@@ -13032,20 +13032,20 @@
     "operador": "computeRecipeNutrition"
   },
   "legumbres_004": {
-    "kcal": 605,
-    "protein_g": 36,
+    "kcal": 701,
+    "protein_g": 52.3,
     "carbs_g": 40.4,
-    "fat_g": 31.3,
+    "fat_g": 34.2,
     "fiber_g": 15.2,
     "sugar_g": 0.4,
-    "saturated_fat_g": 11.4,
-    "sodium_mg": 578,
-    "coverage": 0.854,
+    "saturated_fat_g": 12.4,
+    "sodium_mg": 626,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.854,
+      "fiber_g": 1,
       "sugar_g": 0.359,
-      "saturated_fat_g": 0.854,
-      "sodium_mg": 0.854
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 618,
@@ -13200,20 +13200,20 @@
     "operador": "computeRecipeNutrition"
   },
   "legumbres_011": {
-    "kcal": 277,
-    "protein_g": 12.2,
-    "carbs_g": 5.1,
-    "fat_g": 23.3,
-    "fiber_g": 1,
-    "sugar_g": 1.4,
-    "saturated_fat_g": 7.7,
-    "sodium_mg": 541,
-    "coverage": 0.384,
+    "kcal": 787,
+    "protein_g": 50.4,
+    "carbs_g": 80.7,
+    "fat_g": 30.4,
+    "fiber_g": 20,
+    "sugar_g": 4.1,
+    "saturated_fat_g": 10.1,
+    "sodium_mg": 638,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.272,
-      "sugar_g": 0.112,
-      "saturated_fat_g": 0.384,
-      "sodium_mg": 0.384
+      "fiber_g": 0.888,
+      "sugar_g": 0.579,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 524,
@@ -13632,20 +13632,20 @@
     "operador": "computeRecipeNutrition"
   },
   "legumbres_029": {
-    "kcal": 135,
-    "protein_g": 5.4,
-    "carbs_g": 6.5,
-    "fat_g": 8.3,
-    "fiber_g": 1.3,
-    "sugar_g": 2.5,
-    "saturated_fat_g": 1.4,
-    "sodium_mg": 730,
-    "coverage": 0.564,
+    "kcal": 468,
+    "protein_g": 28.8,
+    "carbs_g": 66.8,
+    "fat_g": 9.2,
+    "fiber_g": 16.5,
+    "sugar_g": 4.6,
+    "saturated_fat_g": 1.6,
+    "sodium_mg": 746,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.564,
-      "sugar_g": 0.382,
-      "saturated_fat_g": 0.542,
-      "sodium_mg": 0.564
+      "fiber_g": 1,
+      "sugar_g": 0.818,
+      "saturated_fat_g": 0.978,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 480,
@@ -13800,20 +13800,20 @@
     "operador": "computeRecipeNutrition"
   },
   "legumbres_036": {
-    "kcal": 170,
-    "protein_g": 6.4,
-    "carbs_g": 7.3,
-    "fat_g": 11.1,
-    "fiber_g": 1.8,
-    "sugar_g": 2.5,
-    "saturated_fat_g": 1.8,
-    "sodium_mg": 751,
-    "coverage": 0.536,
+    "kcal": 586,
+    "protein_g": 35.6,
+    "carbs_g": 82.7,
+    "fat_g": 12.1,
+    "fiber_g": 20.8,
+    "sugar_g": 5.1,
+    "saturated_fat_g": 2.1,
+    "sodium_mg": 771,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.536,
-      "sugar_g": 0.348,
-      "saturated_fat_g": 0.518,
-      "sodium_mg": 0.536
+      "fiber_g": 1,
+      "sugar_g": 0.811,
+      "saturated_fat_g": 0.981,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 470,
@@ -13896,20 +13896,20 @@
     "operador": "computeRecipeNutrition"
   },
   "legumbres_040": {
-    "kcal": 408,
-    "protein_g": 18,
-    "carbs_g": 5.3,
-    "fat_g": 35.4,
-    "fiber_g": 0.8,
-    "sugar_g": 1.2,
-    "saturated_fat_g": 13.5,
-    "sodium_mg": 1330,
-    "coverage": 0.574,
+    "kcal": 741,
+    "protein_g": 41.4,
+    "carbs_g": 65.5,
+    "fat_g": 36.2,
+    "fiber_g": 16,
+    "sugar_g": 3.3,
+    "saturated_fat_g": 13.7,
+    "sodium_mg": 1346,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.414,
-      "sugar_g": 0.107,
-      "saturated_fat_g": 0.574,
-      "sodium_mg": 0.574
+      "fiber_g": 0.84,
+      "sugar_g": 0.533,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 610,
@@ -14448,20 +14448,20 @@
     "operador": "computeRecipeNutrition"
   },
   "legumbres_063": {
-    "kcal": 835,
-    "protein_g": 48.4,
+    "kcal": 931,
+    "protein_g": 64.8,
     "carbs_g": 55.4,
-    "fat_g": 44.7,
+    "fat_g": 47.6,
     "fiber_g": 16.2,
     "sugar_g": 0.9,
-    "saturated_fat_g": 16.4,
-    "sodium_mg": 1287,
-    "coverage": 0.872,
+    "saturated_fat_g": 17.3,
+    "sodium_mg": 1334,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.829,
+      "fiber_g": 0.957,
       "sugar_g": 0.35,
-      "saturated_fat_g": 0.872,
-      "sodium_mg": 0.872
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 610,
@@ -15504,20 +15504,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pasta_arroces_017": {
-    "kcal": 629,
-    "protein_g": 30.2,
-    "carbs_g": 15.9,
-    "fat_g": 49.7,
-    "fiber_g": 2.2,
-    "sugar_g": 6.1,
-    "saturated_fat_g": 18.1,
-    "sodium_mg": 1216,
-    "coverage": 0.875,
+    "kcal": 851,
+    "protein_g": 38,
+    "carbs_g": 60.7,
+    "fat_g": 50.6,
+    "fiber_g": 4.1,
+    "sugar_g": 7.7,
+    "saturated_fat_g": 18.3,
+    "sodium_mg": 1220,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.875,
-      "sugar_g": 0.586,
-      "saturated_fat_g": 0.6,
-      "sodium_mg": 0.875
+      "fiber_g": 1,
+      "sugar_g": 0.711,
+      "saturated_fat_g": 0.725,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 562,
@@ -16224,20 +16224,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pasta_arroces_047": {
-    "kcal": 607,
-    "protein_g": 29.6,
+    "kcal": 1000,
+    "protein_g": 33.5,
     "carbs_g": 65.4,
-    "fat_g": 24.7,
+    "fat_g": 66.5,
     "fiber_g": 4.9,
     "sugar_g": 2.4,
-    "saturated_fat_g": 9.9,
-    "sodium_mg": 607,
-    "coverage": 0.758,
+    "saturated_fat_g": 25.1,
+    "sodium_mg": 622,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.758,
-      "sugar_g": 0.592,
-      "saturated_fat_g": 0.758,
-      "sodium_mg": 0.758
+      "fiber_g": 1,
+      "sugar_g": 0.834,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 610,
@@ -16392,20 +16392,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pasta_arroces_054": {
-    "kcal": 78,
-    "protein_g": 5.6,
-    "carbs_g": 5.4,
-    "fat_g": 3.7,
+    "kcal": 510,
+    "protein_g": 22.5,
+    "carbs_g": 87.5,
+    "fat_g": 7.2,
     "fiber_g": 0.1,
     "sugar_g": 1.3,
-    "saturated_fat_g": 2.3,
-    "sodium_mg": 1612,
-    "coverage": 0.734,
+    "saturated_fat_g": 2.8,
+    "sodium_mg": 1651,
+    "coverage": 1,
     "coberturaPorCampo": {
       "fiber_g": 0.734,
       "sugar_g": 0.728,
-      "saturated_fat_g": 0.729,
-      "sodium_mg": 0.734
+      "saturated_fat_g": 0.996,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 380,
@@ -16440,20 +16440,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pasta_arroces_056": {
-    "kcal": 520,
-    "protein_g": 21.3,
-    "carbs_g": 29.2,
-    "fat_g": 35.4,
-    "fiber_g": 5.2,
-    "sugar_g": 9.2,
-    "saturated_fat_g": 19.4,
-    "sodium_mg": 819,
-    "coverage": 0.882,
+    "kcal": 798,
+    "protein_g": 31.1,
+    "carbs_g": 85.3,
+    "fat_g": 36.5,
+    "fiber_g": 7.6,
+    "sugar_g": 11.2,
+    "saturated_fat_g": 19.6,
+    "sodium_mg": 824,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.882,
-      "sugar_g": 0.41,
-      "saturated_fat_g": 0.64,
-      "sodium_mg": 0.882
+      "fiber_g": 1,
+      "sugar_g": 0.528,
+      "saturated_fat_g": 0.758,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 440,
@@ -16512,20 +16512,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pasta_arroces_059": {
-    "kcal": 960,
-    "protein_g": 46.2,
-    "carbs_g": 31.9,
-    "fat_g": 70.9,
-    "fiber_g": 4.1,
-    "sugar_g": 10.7,
-    "saturated_fat_g": 34.9,
-    "sodium_mg": 1921,
-    "coverage": 0.906,
+    "kcal": 1238,
+    "protein_g": 56,
+    "carbs_g": 87.9,
+    "fat_g": 72.1,
+    "fiber_g": 6.5,
+    "sugar_g": 12.7,
+    "saturated_fat_g": 35.2,
+    "sodium_mg": 1925,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.906,
-      "sugar_g": 0.57,
-      "saturated_fat_g": 0.656,
-      "sodium_mg": 0.906
+      "fiber_g": 1,
+      "sugar_g": 0.664,
+      "saturated_fat_g": 0.75,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 580,
@@ -18337,19 +18337,19 @@
   },
   "pescados_027": {
     "kcal": 757,
-    "protein_g": 34.2,
+    "protein_g": 34.3,
     "carbs_g": 79.1,
     "fat_g": 31.4,
     "fiber_g": 8.7,
     "sugar_g": 0.2,
     "saturated_fat_g": 4.7,
     "sodium_mg": 1123,
-    "coverage": 0.998,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.998,
-      "sugar_g": 0.037,
-      "saturated_fat_g": 0.9,
-      "sodium_mg": 0.998
+      "fiber_g": 1,
+      "sugar_g": 0.039,
+      "saturated_fat_g": 0.902,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 640,
@@ -18360,20 +18360,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pescados_028": {
-    "kcal": 300,
-    "protein_g": 21.1,
-    "carbs_g": 36.9,
-    "fat_g": 6.8,
+    "kcal": 475,
+    "protein_g": 24.2,
+    "carbs_g": 39.7,
+    "fat_g": 24,
     "fiber_g": 2.2,
-    "sugar_g": 0.1,
-    "saturated_fat_g": 1.1,
-    "sodium_mg": 1700,
-    "coverage": 0.741,
+    "sugar_g": 1.9,
+    "saturated_fat_g": 11.3,
+    "sodium_mg": 1857,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.741,
-      "sugar_g": 0.029,
-      "saturated_fat_g": 0.741,
-      "sodium_mg": 0.741
+      "fiber_g": 1,
+      "sugar_g": 0.288,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 410,
@@ -18408,20 +18408,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pescados_030": {
-    "kcal": 395,
-    "protein_g": 26.3,
-    "carbs_g": 26.5,
-    "fat_g": 20,
-    "fiber_g": 3,
-    "sugar_g": 1.6,
-    "saturated_fat_g": 4.2,
-    "sodium_mg": 585,
-    "coverage": 0.852,
+    "kcal": 422,
+    "protein_g": 27.2,
+    "carbs_g": 32.2,
+    "fat_g": 20.5,
+    "fiber_g": 3.8,
+    "sugar_g": 3.4,
+    "saturated_fat_g": 4.3,
+    "sodium_mg": 667,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.852,
-      "sugar_g": 0.593,
-      "saturated_fat_g": 0.667,
-      "sodium_mg": 0.852
+      "fiber_g": 1,
+      "sugar_g": 0.741,
+      "saturated_fat_g": 0.815,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 470,
@@ -18624,20 +18624,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pescados_039": {
-    "kcal": 158,
-    "protein_g": 31.5,
-    "carbs_g": 3.7,
-    "fat_g": 1.7,
-    "fiber_g": 5,
-    "sugar_g": 3,
-    "saturated_fat_g": 0,
-    "sodium_mg": 602,
-    "coverage": 0.945,
+    "kcal": 171,
+    "protein_g": 32,
+    "carbs_g": 6.6,
+    "fat_g": 1.9,
+    "fiber_g": 5.4,
+    "sugar_g": 3.9,
+    "saturated_fat_g": 0.1,
+    "sodium_mg": 643,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.938,
-      "sugar_g": 0.899,
-      "saturated_fat_g": 0.108,
-      "sodium_mg": 0.53
+      "fiber_g": 0.993,
+      "sugar_g": 0.954,
+      "saturated_fat_g": 0.163,
+      "sodium_mg": 0.585
     },
     "declarado": {
       "kcal": 220,
@@ -19536,20 +19536,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pescados_077": {
-    "kcal": 303,
-    "protein_g": 24.5,
-    "carbs_g": 15.3,
+    "kcal": 335,
+    "protein_g": 24.8,
+    "carbs_g": 18,
     "fat_g": 15.6,
     "fiber_g": 2.3,
     "sugar_g": 7.5,
     "saturated_fat_g": 2.7,
-    "sodium_mg": 255,
-    "coverage": 0.803,
+    "sodium_mg": 258,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.803,
-      "sugar_g": 0.293,
-      "saturated_fat_g": 0.796,
-      "sodium_mg": 0.803
+      "fiber_g": 1,
+      "sugar_g": 0.49,
+      "saturated_fat_g": 0.993,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 320,
@@ -20016,20 +20016,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pescados_097": {
-    "kcal": 1901,
-    "protein_g": 40,
-    "carbs_g": 72.5,
+    "kcal": 1922,
+    "protein_g": 40.3,
+    "carbs_g": 74.3,
     "fat_g": 159.8,
     "fiber_g": 7.2,
     "sugar_g": 2.3,
     "saturated_fat_g": 21.4,
-    "sodium_mg": 782,
-    "coverage": 0.915,
+    "sodium_mg": 784,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.915,
-      "sugar_g": 0.78,
-      "saturated_fat_g": 0.856,
-      "sodium_mg": 0.915
+      "fiber_g": 1,
+      "sugar_g": 0.865,
+      "saturated_fat_g": 0.941,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 420,
@@ -20040,20 +20040,20 @@
     "operador": "computeRecipeNutrition"
   },
   "pescados_098": {
-    "kcal": 803,
-    "protein_g": 36.9,
-    "carbs_g": 65.4,
+    "kcal": 810,
+    "protein_g": 37,
+    "carbs_g": 66.8,
     "fat_g": 42.6,
-    "fiber_g": 5.3,
-    "sugar_g": 0.3,
+    "fiber_g": 5.5,
+    "sugar_g": 1.4,
     "saturated_fat_g": 6.6,
-    "sodium_mg": 560,
-    "coverage": 0.98,
+    "sodium_mg": 719,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.98,
-      "sugar_g": 0.068,
+      "fiber_g": 1,
+      "sugar_g": 0.088,
       "saturated_fat_g": 0.871,
-      "sodium_mg": 0.98
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 780,
@@ -21504,20 +21504,20 @@
     "operador": "computeRecipeNutrition"
   },
   "postres_019": {
-    "kcal": 321,
-    "protein_g": 6.3,
-    "carbs_g": 30.2,
-    "fat_g": 19.1,
+    "kcal": 584,
+    "protein_g": 10.9,
+    "carbs_g": 34.4,
+    "fat_g": 44.9,
     "fiber_g": 0.9,
-    "sugar_g": 28,
-    "saturated_fat_g": 11.7,
-    "sodium_mg": 169,
-    "coverage": 0.612,
+    "sugar_g": 30.8,
+    "saturated_fat_g": 26.9,
+    "sodium_mg": 405,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.612,
-      "sugar_g": 0.611,
-      "saturated_fat_g": 0.612,
-      "sodium_mg": 0.612
+      "fiber_g": 1,
+      "sugar_g": 0.999,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 580,
@@ -21703,13 +21703,13 @@
     "fiber_g": 1.3,
     "sugar_g": 29.9,
     "saturated_fat_g": 18.4,
-    "sodium_mg": 376,
-    "coverage": 0.988,
+    "sodium_mg": 604,
+    "coverage": 0.994,
     "coberturaPorCampo": {
-      "fiber_g": 0.8,
-      "sugar_g": 0.611,
-      "saturated_fat_g": 0.988,
-      "sodium_mg": 0.988
+      "fiber_g": 0.807,
+      "sugar_g": 0.617,
+      "saturated_fat_g": 0.994,
+      "sodium_mg": 0.994
     },
     "declarado": {
       "kcal": 590,
@@ -21720,20 +21720,20 @@
     "operador": "computeRecipeNutrition"
   },
   "postres_028": {
-    "kcal": 626,
-    "protein_g": 6.7,
-    "carbs_g": 94.8,
-    "fat_g": 23.8,
+    "kcal": 736,
+    "protein_g": 8.6,
+    "carbs_g": 96.5,
+    "fat_g": 34.6,
     "fiber_g": 1.7,
-    "sugar_g": 69,
-    "saturated_fat_g": 15.2,
-    "sodium_mg": 425,
-    "coverage": 0.841,
+    "sugar_g": 70.2,
+    "saturated_fat_g": 21.5,
+    "sodium_mg": 694,
+    "coverage": 0.991,
     "coberturaPorCampo": {
-      "fiber_g": 0.841,
-      "sugar_g": 0.721,
-      "saturated_fat_g": 0.841,
-      "sodium_mg": 0.841
+      "fiber_g": 0.991,
+      "sugar_g": 0.871,
+      "saturated_fat_g": 0.991,
+      "sodium_mg": 0.991
     },
     "declarado": {
       "kcal": 720,
@@ -21744,20 +21744,20 @@
     "operador": "computeRecipeNutrition"
   },
   "postres_029": {
-    "kcal": 624,
-    "protein_g": 8.4,
-    "carbs_g": 76.3,
-    "fat_g": 30.9,
+    "kcal": 703,
+    "protein_g": 9.8,
+    "carbs_g": 77.5,
+    "fat_g": 38.7,
     "fiber_g": 3,
-    "sugar_g": 47.2,
-    "saturated_fat_g": 6.8,
-    "sodium_mg": 392,
-    "coverage": 0.887,
+    "sugar_g": 48,
+    "saturated_fat_g": 11.3,
+    "sodium_mg": 668,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.887,
-      "sugar_g": 0.669,
-      "saturated_fat_g": 0.887,
-      "sodium_mg": 0.887
+      "fiber_g": 1,
+      "sugar_g": 0.782,
+      "saturated_fat_g": 1,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 560,
@@ -21864,20 +21864,20 @@
     "operador": "computeRecipeNutrition"
   },
   "postres_034": {
-    "kcal": 401,
+    "kcal": 425,
     "protein_g": 7.2,
-    "carbs_g": 60.7,
+    "carbs_g": 60.8,
     "fat_g": 14,
     "fiber_g": 1,
     "sugar_g": 37.7,
     "saturated_fat_g": 8.1,
-    "sodium_mg": 309,
-    "coverage": 0.941,
+    "sodium_mg": 310,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.941,
-      "sugar_g": 0.707,
-      "saturated_fat_g": 0.941,
-      "sodium_mg": 0.785
+      "fiber_g": 1,
+      "sugar_g": 0.766,
+      "saturated_fat_g": 1,
+      "sodium_mg": 0.844
     },
     "declarado": {
       "kcal": 400,
@@ -23544,20 +23544,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_039": {
-    "kcal": 628,
+    "kcal": 696,
     "protein_g": 43.7,
     "carbs_g": 79.2,
-    "fat_g": 14.7,
+    "fat_g": 22.2,
     "fiber_g": 26.5,
-    "sugar_g": null,
-    "saturated_fat_g": 5.2,
+    "sugar_g": 0,
+    "saturated_fat_g": 8.2,
     "sodium_mg": 824,
-    "coverage": 0.99,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.99,
-      "sugar_g": 0,
-      "saturated_fat_g": 0.99,
-      "sodium_mg": 0.497
+      "fiber_g": 1,
+      "sugar_g": 0.01,
+      "saturated_fat_g": 1,
+      "sodium_mg": 0.507
     },
     "declarado": {
       "kcal": 320,
@@ -23640,20 +23640,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_043": {
-    "kcal": 377,
-    "protein_g": 16.5,
-    "carbs_g": 21,
-    "fat_g": 25.2,
+    "kcal": 447,
+    "protein_g": 17.8,
+    "carbs_g": 22.1,
+    "fat_g": 32.1,
     "fiber_g": 3.3,
-    "sugar_g": 2.5,
-    "saturated_fat_g": 16.5,
-    "sodium_mg": 1104,
-    "coverage": 0.957,
+    "sugar_g": 3.3,
+    "saturated_fat_g": 20.6,
+    "sodium_mg": 1167,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.957,
-      "sugar_g": 0.619,
-      "saturated_fat_g": 0.851,
-      "sodium_mg": 0.957
+      "fiber_g": 1,
+      "sugar_g": 0.661,
+      "saturated_fat_g": 0.894,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 485,
@@ -23760,20 +23760,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_048": {
-    "kcal": 140,
-    "protein_g": 9.7,
-    "carbs_g": 9,
-    "fat_g": 6.9,
+    "kcal": 141,
+    "protein_g": 9.8,
+    "carbs_g": 9.3,
+    "fat_g": 7,
     "fiber_g": 2.4,
     "sugar_g": 1.4,
     "saturated_fat_g": 1,
-    "sodium_mg": 1080,
-    "coverage": 0.994,
+    "sodium_mg": 1102,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.994,
-      "sugar_g": 0.246,
-      "saturated_fat_g": 0.994,
-      "sodium_mg": 0.305
+      "fiber_g": 1,
+      "sugar_g": 0.252,
+      "saturated_fat_g": 1,
+      "sodium_mg": 0.311
     },
     "declarado": {
       "kcal": 123,
@@ -24000,20 +24000,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_058": {
-    "kcal": 71,
-    "protein_g": 6,
-    "carbs_g": 2.7,
-    "fat_g": 4,
+    "kcal": 123,
+    "protein_g": 13.2,
+    "carbs_g": 3.4,
+    "fat_g": 5.2,
     "fiber_g": 1.2,
     "sugar_g": 0.7,
-    "saturated_fat_g": 1.4,
-    "sodium_mg": 586,
-    "coverage": 0.911,
+    "saturated_fat_g": 1.8,
+    "sodium_mg": 608,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.911,
-      "sugar_g": 0.043,
-      "saturated_fat_g": 0.849,
-      "sodium_mg": 0.167
+      "fiber_g": 1,
+      "sugar_g": 0.058,
+      "saturated_fat_g": 0.939,
+      "sodium_mg": 0.256
     },
     "declarado": {
       "kcal": 55,
@@ -24072,20 +24072,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_061": {
-    "kcal": 426,
-    "protein_g": 15.3,
-    "carbs_g": 16.3,
-    "fat_g": 33.5,
-    "fiber_g": 3.3,
-    "sugar_g": 5.4,
-    "saturated_fat_g": 17.3,
-    "sodium_mg": 1105,
-    "coverage": 0.872,
+    "kcal": 612,
+    "protein_g": 21.5,
+    "carbs_g": 50.9,
+    "fat_g": 35.8,
+    "fiber_g": 5.2,
+    "sugar_g": 9.3,
+    "saturated_fat_g": 17.8,
+    "sodium_mg": 1448,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.872,
-      "sugar_g": 0.369,
-      "saturated_fat_g": 0.416,
-      "sodium_mg": 0.872
+      "fiber_g": 1,
+      "sugar_g": 0.497,
+      "saturated_fat_g": 0.544,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 517,
@@ -24264,20 +24264,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_069": {
-    "kcal": 355,
-    "protein_g": 23.5,
-    "carbs_g": 16,
+    "kcal": 361,
+    "protein_g": 23.9,
+    "carbs_g": 17.4,
     "fat_g": 18.4,
-    "fiber_g": 2.2,
-    "sugar_g": 3.2,
+    "fiber_g": 2.5,
+    "sugar_g": 4.1,
     "saturated_fat_g": 9.6,
-    "sodium_mg": 944,
-    "coverage": 0.984,
+    "sodium_mg": 948,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.984,
-      "sugar_g": 0.832,
-      "saturated_fat_g": 0.887,
-      "sodium_mg": 0.953
+      "fiber_g": 1,
+      "sugar_g": 0.848,
+      "saturated_fat_g": 0.904,
+      "sodium_mg": 0.969
     },
     "declarado": {
       "kcal": 270,
@@ -24312,20 +24312,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_071": {
-    "kcal": 375,
-    "protein_g": 20.6,
-    "carbs_g": 16.9,
-    "fat_g": 22.9,
-    "fiber_g": 3.6,
-    "sugar_g": 10.5,
-    "saturated_fat_g": 13.9,
-    "sodium_mg": 1385,
-    "coverage": 0.949,
+    "kcal": 457,
+    "protein_g": 23.9,
+    "carbs_g": 32.4,
+    "fat_g": 23.6,
+    "fiber_g": 4.2,
+    "sugar_g": 11.9,
+    "saturated_fat_g": 14,
+    "sodium_mg": 1565,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.949,
-      "sugar_g": 0.836,
-      "saturated_fat_g": 0.947,
-      "sodium_mg": 0.949
+      "fiber_g": 1,
+      "sugar_g": 0.887,
+      "saturated_fat_g": 0.998,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 340,
@@ -24576,20 +24576,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_082": {
-    "kcal": 153,
-    "protein_g": 3.8,
-    "carbs_g": 17.8,
-    "fat_g": 7.4,
-    "fiber_g": 4.5,
-    "sugar_g": null,
-    "saturated_fat_g": 1.2,
-    "sodium_mg": 54,
-    "coverage": 0.921,
+    "kcal": 206,
+    "protein_g": 5.5,
+    "carbs_g": 27.6,
+    "fat_g": 8.1,
+    "fiber_g": 5,
+    "sugar_g": 1.1,
+    "saturated_fat_g": 1.4,
+    "sodium_mg": 152,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.921,
-      "sugar_g": 0,
-      "saturated_fat_g": 0.722,
-      "sodium_mg": 0.921
+      "fiber_g": 1,
+      "sugar_g": 0.079,
+      "saturated_fat_g": 0.801,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 220,
@@ -24648,20 +24648,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_085": {
-    "kcal": 268,
-    "protein_g": 22,
-    "carbs_g": 22.4,
-    "fat_g": 9.7,
-    "fiber_g": 2.2,
-    "sugar_g": 2.9,
-    "saturated_fat_g": 1.9,
-    "sodium_mg": 902,
-    "coverage": 0.968,
+    "kcal": 307,
+    "protein_g": 23.4,
+    "carbs_g": 29.8,
+    "fat_g": 10.2,
+    "fiber_g": 2.6,
+    "sugar_g": 3.8,
+    "saturated_fat_g": 2,
+    "sodium_mg": 975,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.968,
-      "sugar_g": 0.671,
-      "saturated_fat_g": 0.9,
-      "sodium_mg": 0.968
+      "fiber_g": 1,
+      "sugar_g": 0.703,
+      "saturated_fat_g": 0.932,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 260,
@@ -24696,20 +24696,20 @@
     "operador": "computeRecipeNutrition"
   },
   "sopas_cremas_087": {
-    "kcal": 522,
-    "protein_g": 11.3,
-    "carbs_g": 45.5,
-    "fat_g": 30.1,
+    "kcal": 627,
+    "protein_g": 13.1,
+    "carbs_g": 47.1,
+    "fat_g": 40.4,
     "fiber_g": 11.1,
-    "sugar_g": 4.1,
-    "saturated_fat_g": 4.6,
-    "sodium_mg": 1834,
-    "coverage": 0.96,
+    "sugar_g": 5.2,
+    "saturated_fat_g": 10.6,
+    "sodium_mg": 1928,
+    "coverage": 1,
     "coberturaPorCampo": {
-      "fiber_g": 0.96,
-      "sugar_g": 0.536,
-      "saturated_fat_g": 0.695,
-      "sodium_mg": 0.96
+      "fiber_g": 1,
+      "sugar_g": 0.576,
+      "saturated_fat_g": 0.735,
+      "sodium_mg": 1
     },
     "declarado": {
       "kcal": 310,

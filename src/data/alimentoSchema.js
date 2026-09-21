@@ -330,7 +330,13 @@ export const AlimentoSchema = z
     // es de dónde salió. Llamarlo `sin_fuente` diría que no hay dato, que es
     // falso; callarlo diría que está trazado, que también. `heredado` lo deja
     // contado y, con BEDCA respondiendo, resoluble.
-    fuente: z.enum(["bedca", "ciqual", "etiqueta", "manual", "heredado", "sin_fuente"]),
+    // `usda` es SR Legacy, no FoodData Central entero: 7.793 alimentos
+    // analizados en laboratorio, que es una tabla de composición como las
+    // otras dos. `Branded Foods`, las 300.000 etiquetas declaradas por los
+    // fabricantes, se queda fuera a propósito — sería dato de marca en un
+    // catálogo que hoy es todo tablas oficiales, y eso es una decisión de
+    // calidad y no un detalle de descarga.
+    fuente: z.enum(["bedca", "ciqual", "usda", "etiqueta", "manual", "heredado", "sin_fuente"]),
     fuenteId: z.string().nullable(),
     fuenteNombre: z.string().nullable(),
     fuenteFecha: z.string().nullable(),

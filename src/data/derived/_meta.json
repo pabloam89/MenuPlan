@@ -1,27 +1,27 @@
 {
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
-    "ingredientes": "f378582f95758e27",
+    "ingredientes": "8065ccdde3defd22",
     "recetas": "593c4e0da7c471c2"
   },
   "recetas": 1033,
   "recipeNutrition": {
     "filas": 1033,
-    "cobertura_media": 0.985,
+    "cobertura_media": 0.997,
     "cobertura_media_por_campo": {
-      "fiber_g": 0.98,
-      "sugar_g": 0.496,
-      "saturated_fat_g": 0.873,
-      "sodium_mg": 0.971
+      "fiber_g": 0.993,
+      "sugar_g": 0.506,
+      "saturated_fat_g": 0.885,
+      "sodium_mg": 0.984
     },
     "estrella": {
       "filas": 747,
-      "cobertura_media": 0.983,
+      "cobertura_media": 0.997,
       "cobertura_media_por_campo": {
-        "fiber_g": 0.978,
-        "sugar_g": 0.507,
-        "saturated_fat_g": 0.878,
-        "sodium_mg": 0.971
+        "fiber_g": 0.991,
+        "sugar_g": 0.517,
+        "saturated_fat_g": 0.892,
+        "sodium_mg": 0.984
       }
     }
   },

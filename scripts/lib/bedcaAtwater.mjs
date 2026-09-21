@@ -35,6 +35,20 @@ const ALCOHOL_WORDS = [
   "cointreau", "amaretto", "kirsch", "calvados", "pacharan", "pacharán",
   "bebida alcoholica", "bebida alcohólica", "destilado", "destilada",
   "vinagre",
+  // En inglés, desde que entró USDA: sus fichas se llaman «Alcoholic beverage,
+  // beer, regular» y no casaban ni una palabra de las de arriba, así que la
+  // cerveza, la sidra y el vino se caían por Atwater antes de que nadie los
+  // viera. El ron colaba de rebote porque su ficha se llama «distilled, all
+  // (gin, rum, vodka, whisky)» y «vodka» sí estaba.
+  //
+  // La comparación es por SUBCADENA, así que aquí no entra ninguna palabra
+  // corta: «rum» está dentro de «crumb», «drumstick» y «rump», y «ale» dentro
+  // de «kale». Solo palabras largas y sin dobles.
+  // «alcohol» y no «alcoholic»: al ser subcadena cubre las dos, y además pilla
+  // «Vanilla extract, imitation, alcohol», que es casi todo etanol y cuya
+  // energía tampoco sale de sus macros.
+  "alcohol", "beer", "wine", "cider", "liqueur", "champagne", "sherry",
+  "bourbon", "vinegar",
 ];
 
 // El vinagre va en la misma lista por la misma razón física: su energía es

@@ -81,6 +81,19 @@ try {
   // conservan su id y pierden solo el nombre legible.
 }
 
+// Y la tercera, USDA SR Legacy, con el mismo trato y por la misma razón: va
+// aparte para que se pueda ver qué fila viene de dónde.
+const choicesUsda = leerJson(join(ROOT, "src", "data", "usdaChoices.json")) ?? {};
+delete choicesUsda._;
+const nombresUsda = new Map();
+try {
+  const { cargarUsda } = await import("./lib/usdaParse.mjs");
+  const dir = join(ROOT, "output", "usda", "FoodData_Central_sr_legacy_food_csv_2018-04");
+  for (const [code, a] of cargarUsda(dir)) nombresUsda.set(code, a.nombre);
+} catch {
+  // Igual que arriba: sin la descarga se construye con el id y sin el nombre.
+}
+
 // Índice de candidatos de TODOS los artefactos del pipeline: el triaje, el
 // informe original y la repesca. Se unen porque los tres se generaron en
 // momentos distintos y ninguno los tiene todos.
@@ -117,8 +130,20 @@ const mismasMacros = (a, b) =>
 function procedenciaDe(ing) {
   const cands = candidatosPorIngrediente.get(ing.id) ?? [];
 
-  // CIQUAL primero: si hay decisión ahí es porque BEDCA no pudo, y se tomó
-  // después. La decisión más reciente sobre el mismo ingrediente es la buena.
+  // El orden es el inverso al de llegada, y por eso: si hay decisión en USDA
+  // es porque ni BEDCA ni CIQUAL pudieron, y se tomó después de mirar las dos.
+  // La decisión más reciente sobre el mismo ingrediente es la buena.
+  const usda = choicesUsda[ing.id];
+  if (usda?.foodId != null && ing.nutrition) {
+    return {
+      via: "usda",
+      fuente: "usda",
+      foodId: usda.foodId,
+      foodName: nombresUsda.get(String(usda.foodId)) ?? null,
+      motivo: usda.motivo ?? null,
+    };
+  }
+
   const ciqual = choicesCiqual[ing.id];
   if (ciqual?.foodId != null && ing.nutrition) {
     return {
@@ -164,7 +189,7 @@ const slug = (s) =>
 const filas = [];
 const dimensionesImposibles = [];
 const porViaFamilia = new Map();
-const informe = { conDecision: 0, porMacros: 0, ciqual: 0, heredados: 0, vacios: 0 };
+const informe = { conDecision: 0, porMacros: 0, ciqual: 0, usda: 0, heredados: 0, vacios: 0 };
 const mapaIngredienteAlimento = {};
 
 for (const ing of ingredientes) {
@@ -258,9 +283,13 @@ for (const ing of ingredientes) {
   });
   mapaIngredienteAlimento[ing.id] = id;
 
-  // Los cuatro estados son excluyentes y suman el total: así el informe no
-  // puede descuadrar, que es justo lo que hacía la primera versión.
-  if (proc?.via === "ciqual") informe.ciqual++;
+  // Los CINCO estados son excluyentes y suman el total: así el informe no
+  // puede descuadrar, que es justo lo que hacía la primera versión. Al entrar
+  // USDA faltó su rama y sus 33 filas salieron contadas como «heredado»,
+  // que es el cajón de «tiene número y no tiene ficha»: el dato estaba bien
+  // —`fuente: "usda"` en las 33— y el informe mentía. Contar es cablear.
+  if (proc?.via === "usda") informe.usda++;
+  else if (proc?.via === "ciqual") informe.ciqual++;
   else if (proc?.via === "decision") informe.conDecision++;
   else if (proc?.via === "macros") informe.porMacros++;
   else if (ing.nutrition) informe.heredados++;
@@ -306,6 +335,7 @@ console.log(`    las ${filas.length} filas, por procedencia — suman el total:`
 console.log(`      ficha por decisión humana  ${informe.conDecision}`);
 console.log(`      ficha recuperada por macros ${informe.porMacros}`);
 console.log(`      ficha de CIQUAL             ${informe.ciqual}`);
+console.log(`      ficha de USDA SR Legacy     ${informe.usda}`);
 console.log(`      heredado (número sin ficha) ${informe.heredados}`);
 console.log(`      vacío (ni número ni ficha)  ${informe.vacios}`);
 console.log(`    con nutrición ${conNutricion} · con procedencia ${conProcedencia} · dimensiones rellenas ${dimsRellenas} (y ${dimsNoAplica} retiradas por la familia)`);

@@ -332,8 +332,10 @@ describe("la segunda fuente (CIQUAL)", () => {
     // El coste de mezclar dos tablas de composición es pequeño pero real, y
     // solo es discutible si se puede ver. Una fila con nutrición y sin fuente
     // declarada es un número sin apellido.
+    // `heredado` ya no está en la lista: significaba «hay número y no hay
+    // ficha», y el trinquete de arriba prohíbe que vuelva a haberlo.
     const sinDecir = alimentos.filter(
-      (a) => a.nutricion && !["bedca", "ciqual", "etiqueta", "manual", "heredado"].includes(a.fuente),
+      (a) => a.nutricion && !["bedca", "ciqual", "usda", "etiqueta", "manual"].includes(a.fuente),
     );
     expect(sinDecir.map((a) => a.id)).toEqual([]);
   });
