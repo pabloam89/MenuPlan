@@ -8,7 +8,9 @@ import bedcaChoices from "./bedcaChoices.json";
 import ciqualChoices from "./ciqualChoices.json";
 import ciqualQueries from "./ciqualQueries.json";
 import fraccionComestible from "./fraccionComestible.json";
+import densidad from "./densidad.json";
 import { computeRecipeNutrition } from "../lib/ingredients.js";
+import { gramsForRecipeQuantity } from "../lib/kitchenUnits.js";
 import { FAMILIAS } from "../lib/notepadFields.js";
 import { FRAGMENTOS } from "../../scripts/lib/bedcaDimensiones.mjs";
 import { deriveFamilia } from "../../scripts/lib/familia.mjs";
@@ -268,6 +270,38 @@ describe("la fracción comestible", () => {
     // 55 % de 1 kg de dorada son 550 g de pescado; la merluza en lomos va
     // entera. Con energías parecidas, la dorada tiene que quedar por debajo.
     expect(entera.kcal).toBeLessThan(fileteada.kcal * 1.2);
+  });
+});
+
+describe("la densidad", () => {
+  const claves = Object.keys(densidad).filter((k) => k !== "_");
+
+  it("apunta a ingredientes que existen y explica cada valor", () => {
+    const ids = new Set(ingredientes.map((i) => i.id));
+    expect(claves.filter((k) => !ids.has(k))).toEqual([]);
+    expect(claves.filter((k) => !densidad[k].motivo?.trim())).toEqual([]);
+  });
+
+  it("solo lista lo que NO pesa como el agua", () => {
+    // Declarar una densidad de 1 sería ruido: la ausencia ya significa eso, y
+    // listarla daría a entender que las demás están sin verificar. El umbral
+    // es el 2 %, por debajo del cual la diferencia no mueve ningún número que
+    // el usuario vea.
+    const inutiles = claves.filter((k) => Math.abs(densidad[k].valor - 1) < 0.02);
+    expect(inutiles).toEqual([]);
+    // Y ninguna fuera de lo físicamente razonable para un ingrediente de cocina.
+    const absurdas = claves.filter((k) => !(densidad[k].valor > 0.5 && densidad[k].valor < 2));
+    expect(absurdas).toEqual([]);
+  });
+
+  it("un litro de aceite pesa 918 g, no 1.000", () => {
+    // La prueba de que está CABLEADO. El aceite es 28.120 ml del catálogo —el
+    // mayor volumen con diferencia— y es el primer aportador de grasa, que es
+    // el macro que peor cuadra en la auditoría de macros.
+    expect(gramsForRecipeQuantity("Aceite de oliva", 1000, "ml")).toBeCloseTo(918, 0);
+    expect(gramsForRecipeQuantity("Aceite de oliva", 1, "l")).toBeCloseTo(918, 0);
+    // Y lo que no declara densidad sigue pesando como el agua, que es correcto.
+    expect(gramsForRecipeQuantity("Caldo de verduras", 1000, "ml")).toBe(1000);
   });
 });
 

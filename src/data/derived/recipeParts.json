@@ -443,13 +443,13 @@
         "ingredientes": 11,
         "pasos": 14,
         "minutos": 191,
-        "masa_g": 2229,
+        "masa_g": 2225,
         "cobertura": 1,
-        "kcal": 2207,
+        "kcal": 2178,
         "protein_g": 213,
         "carbs_g": 59,
-        "fat_g": 87,
-        "fraccion": 0.762
+        "fat_g": 84,
+        "fraccion": 0.761
       },
       "guarnicion": {
         "ingredientes": 5,
@@ -461,7 +461,7 @@
         "protein_g": 10,
         "carbs_g": 27,
         "fat_g": 38,
-        "fraccion": 0.238
+        "fraccion": 0.239
       }
     }
   },
@@ -487,19 +487,19 @@
         "protein_g": 82,
         "carbs_g": 33,
         "fat_g": 27,
-        "fraccion": 0.682
+        "fraccion": 0.679
       },
       "salsa": {
         "ingredientes": 6,
         "pasos": 7,
         "minutos": 14,
-        "masa_g": 375,
-        "cobertura": 0.867,
-        "kcal": 381,
+        "masa_g": 381,
+        "cobertura": 0.869,
+        "kcal": 384,
         "protein_g": 2,
         "carbs_g": 52,
         "fat_g": 17,
-        "fraccion": 0.318
+        "fraccion": 0.321
       }
     }
   },
@@ -541,21 +541,21 @@
         "ingredientes": 12,
         "pasos": 18,
         "minutos": 213,
-        "masa_g": 2934,
+        "masa_g": 2931,
         "cobertura": 1,
-        "kcal": 3742,
+        "kcal": 3713,
         "protein_g": 316,
         "carbs_g": 75,
-        "fat_g": 223,
+        "fat_g": 220,
         "fraccion": 0.828
       },
       "guarnicion": {
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 31,
-        "masa_g": 608,
+        "masa_g": 610,
         "cobertura": 1,
-        "kcal": 560,
+        "kcal": 561,
         "protein_g": 14,
         "carbs_g": 80,
         "fat_g": 20,
@@ -575,9 +575,9 @@
         "ingredientes": 8,
         "pasos": 11,
         "minutos": 19,
-        "masa_g": 604,
+        "masa_g": 601,
         "cobertura": 1,
-        "kcal": 951,
+        "kcal": 943,
         "protein_g": 84,
         "carbs_g": 8,
         "fat_g": 49,
@@ -587,12 +587,12 @@
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 30,
-        "masa_g": 700,
+        "masa_g": 696,
         "cobertura": 1,
-        "kcal": 864,
+        "kcal": 828,
         "protein_g": 13,
         "carbs_g": 90,
-        "fat_g": 51,
+        "fat_g": 47,
         "fraccion": 0.537
       }
     }
@@ -611,19 +611,19 @@
         "protein_g": 0,
         "carbs_g": 1,
         "fat_g": 0,
-        "fraccion": 0.774
+        "fraccion": 0.782
       },
       "salsa": {
         "ingredientes": 6,
         "pasos": 4,
         "minutos": 15,
-        "masa_g": 119,
+        "masa_g": 114,
         "cobertura": 1,
-        "kcal": 571,
+        "kcal": 528,
         "protein_g": 2,
         "carbs_g": 6,
-        "fat_g": 61,
-        "fraccion": 0.226
+        "fat_g": 56,
+        "fraccion": 0.218
       }
     }
   },
@@ -645,19 +645,19 @@
         "protein_g": 99,
         "carbs_g": 0,
         "fat_g": 48,
-        "fraccion": 0.641
+        "fraccion": 0.646
       },
       "salsa": {
         "ingredientes": 9,
         "pasos": 5,
         "minutos": 25,
-        "masa_g": 224,
+        "masa_g": 219,
         "cobertura": 1,
-        "kcal": 660,
+        "kcal": 617,
         "protein_g": 5,
         "carbs_g": 22,
-        "fat_g": 62,
-        "fraccion": 0.359
+        "fat_g": 57,
+        "fraccion": 0.354
       }
     }
   },
@@ -669,12 +669,12 @@
         "ingredientes": 11,
         "pasos": 9,
         "minutos": 127,
-        "masa_g": 2431,
+        "masa_g": 2428,
         "cobertura": 0.506,
-        "kcal": 758,
+        "kcal": 730,
         "protein_g": 13,
         "carbs_g": 62,
-        "fat_g": 42,
+        "fat_g": 39,
         "fraccion": 0.77
       },
       "salsa": {
@@ -693,9 +693,9 @@
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 33,
-        "masa_g": 580,
+        "masa_g": 582,
         "cobertura": 1,
-        "kcal": 547,
+        "kcal": 548,
         "protein_g": 13,
         "carbs_g": 79,
         "fat_g": 20,
@@ -711,12 +711,12 @@
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 14,
-        "masa_g": 422,
+        "masa_g": 421,
         "cobertura": 1,
-        "kcal": 659,
+        "kcal": 648,
         "protein_g": 84,
         "carbs_g": 1,
-        "fat_g": 35,
+        "fat_g": 34,
         "fraccion": 0.401
       },
       "guarnicion": {
@@ -729,7 +729,7 @@
         "protein_g": 1,
         "carbs_g": 39,
         "fat_g": 17,
-        "fraccion": 0.342
+        "fraccion": 0.343
       },
       "salsa": {
         "ingredientes": 3,
@@ -765,12 +765,12 @@
         "ingredientes": 4,
         "pasos": 7,
         "minutos": 22,
-        "masa_g": 418,
+        "masa_g": 417,
         "cobertura": 1,
-        "kcal": 643,
+        "kcal": 636,
         "protein_g": 79,
         "carbs_g": 1,
-        "fat_g": 36,
+        "fat_g": 35,
         "fraccion": 0.303
       },
       "guarnicion": {
@@ -803,25 +803,25 @@
         "ingredientes": 4,
         "pasos": 8,
         "minutos": 27,
-        "masa_g": 345,
+        "masa_g": 344,
         "cobertura": 1,
-        "kcal": 601,
+        "kcal": 590,
         "protein_g": 65,
         "carbs_g": 3,
-        "fat_g": 37,
-        "fraccion": 0.784
+        "fat_g": 35,
+        "fraccion": 0.775
       },
       "salsa": {
         "ingredientes": 5,
         "pasos": 2,
         "minutos": 3,
-        "masa_g": 95,
-        "cobertura": 0.789,
-        "kcal": 122,
+        "masa_g": 100,
+        "cobertura": 0.8,
+        "kcal": 118,
         "protein_g": 4,
         "carbs_g": 4,
-        "fat_g": 10,
-        "fraccion": 0.216
+        "fat_g": 9,
+        "fraccion": 0.225
       }
     }
   },
@@ -837,13 +837,13 @@
         "ingredientes": 2,
         "pasos": 6,
         "minutos": 16,
-        "masa_g": 370,
+        "masa_g": 368,
         "cobertura": 1,
-        "kcal": 684,
+        "kcal": 670,
         "protein_g": 78,
         "carbs_g": 0,
-        "fat_g": 42,
-        "fraccion": 0.565
+        "fat_g": 40,
+        "fraccion": 0.564
       },
       "salsa": {
         "ingredientes": 6,
@@ -855,7 +855,7 @@
         "protein_g": 7,
         "carbs_g": 20,
         "fat_g": 6,
-        "fraccion": 0.435
+        "fraccion": 0.436
       }
     }
   },
@@ -873,19 +873,19 @@
         "protein_g": 63,
         "carbs_g": 1,
         "fat_g": 31,
-        "fraccion": 0.451
+        "fraccion": 0.452
       },
       "guarnicion": {
         "ingredientes": 6,
         "pasos": 4,
         "minutos": 13,
-        "masa_g": 428,
+        "masa_g": 426,
         "cobertura": 1,
-        "kcal": 364,
+        "kcal": 342,
         "protein_g": 4,
         "carbs_g": 19,
-        "fat_g": 31,
-        "fraccion": 0.549
+        "fat_g": 28,
+        "fraccion": 0.548
       }
     }
   },
@@ -897,12 +897,12 @@
         "ingredientes": 4,
         "pasos": 3,
         "minutos": 10,
-        "masa_g": 377,
+        "masa_g": 375,
         "cobertura": 1,
-        "kcal": 732,
+        "kcal": 717,
         "protein_g": 71,
         "carbs_g": 1,
-        "fat_g": 50,
+        "fat_g": 48,
         "fraccion": 0.904
       },
       "salsa": {
@@ -933,19 +933,19 @@
         "protein_g": 81,
         "carbs_g": 1,
         "fat_g": 12,
-        "fraccion": 0.831
+        "fraccion": 0.836
       },
       "salsa": {
         "ingredientes": 6,
         "pasos": 2,
         "minutos": 5,
-        "masa_g": 83,
+        "masa_g": 80,
         "cobertura": 1,
-        "kcal": 382,
+        "kcal": 353,
         "protein_g": 1,
         "carbs_g": 4,
-        "fat_g": 40,
-        "fraccion": 0.169
+        "fat_g": 37,
+        "fraccion": 0.164
       }
     }
   },
@@ -963,19 +963,19 @@
         "protein_g": 112,
         "carbs_g": 5,
         "fat_g": 34,
-        "fraccion": 0.315
+        "fraccion": 0.321
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 7,
         "minutos": 22,
-        "masa_g": 906,
+        "masa_g": 874,
         "cobertura": 1,
-        "kcal": 3967,
+        "kcal": 3678,
         "protein_g": 12,
         "carbs_g": 76,
-        "fat_g": 401,
-        "fraccion": 0.567
+        "fat_g": 369,
+        "fraccion": 0.558
       },
       "salsa": {
         "ingredientes": 3,
@@ -987,7 +987,7 @@
         "protein_g": 19,
         "carbs_g": 3,
         "fat_g": 51,
-        "fraccion": 0.119
+        "fraccion": 0.121
       }
     }
   },
@@ -1005,19 +1005,19 @@
         "protein_g": 90,
         "carbs_g": 4,
         "fat_g": 27,
-        "fraccion": 0.294
+        "fraccion": 0.301
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 8,
         "minutos": 24,
-        "masa_g": 900,
+        "masa_g": 868,
         "cobertura": 1,
-        "kcal": 3967,
+        "kcal": 3678,
         "protein_g": 12,
         "carbs_g": 76,
-        "fat_g": 401,
-        "fraccion": 0.648
+        "fat_g": 369,
+        "fraccion": 0.64
       },
       "salsa": {
         "ingredientes": 3,
@@ -1029,7 +1029,7 @@
         "protein_g": 1,
         "carbs_g": 2,
         "fat_g": 49,
-        "fraccion": 0.058
+        "fraccion": 0.059
       }
     }
   },
@@ -1055,19 +1055,19 @@
         "protein_g": 104,
         "carbs_g": 20,
         "fat_g": 142,
-        "fraccion": 0.802
+        "fraccion": 0.8
       },
       "salsa": {
         "ingredientes": 5,
         "pasos": 3,
         "minutos": 11,
-        "masa_g": 155,
+        "masa_g": 157,
         "cobertura": 1,
-        "kcal": 167,
+        "kcal": 168,
         "protein_g": 3,
         "carbs_g": 22,
         "fat_g": 7,
-        "fraccion": 0.198
+        "fraccion": 0.2
       }
     }
   },
@@ -1085,19 +1085,19 @@
         "protein_g": 103,
         "carbs_g": 83,
         "fat_g": 38,
-        "fraccion": 0.406
+        "fraccion": 0.415
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 6,
         "minutos": 21,
-        "masa_g": 905,
+        "masa_g": 872,
         "cobertura": 1,
-        "kcal": 3896,
+        "kcal": 3606,
         "protein_g": 11,
         "carbs_g": 76,
-        "fat_g": 401,
-        "fraccion": 0.594
+        "fat_g": 368,
+        "fraccion": 0.585
       }
     }
   },
@@ -1109,25 +1109,25 @@
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 23,
-        "masa_g": 388,
+        "masa_g": 387,
         "cobertura": 1,
-        "kcal": 660,
+        "kcal": 649,
         "protein_g": 71,
         "carbs_g": 0,
-        "fat_g": 42,
-        "fraccion": 0.599
+        "fat_g": 41,
+        "fraccion": 0.6
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 7,
         "minutos": 10,
-        "masa_g": 260,
+        "masa_g": 258,
         "cobertura": 1,
-        "kcal": 447,
+        "kcal": 442,
         "protein_g": 6,
         "carbs_g": 19,
         "fat_g": 31,
-        "fraccion": 0.401
+        "fraccion": 0.4
       }
     }
   },
@@ -1165,31 +1165,31 @@
         "protein_g": 99,
         "carbs_g": 0,
         "fat_g": 48,
-        "fraccion": 0.27
+        "fraccion": 0.276
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 21,
-        "masa_g": 900,
+        "masa_g": 867,
         "cobertura": 1,
-        "kcal": 3896,
+        "kcal": 3606,
         "protein_g": 11,
         "carbs_g": 76,
-        "fat_g": 401,
-        "fraccion": 0.607
+        "fat_g": 368,
+        "fraccion": 0.599
       },
       "salsa": {
         "ingredientes": 7,
         "pasos": 3,
         "minutos": 6,
-        "masa_g": 183,
+        "masa_g": 180,
         "cobertura": 1,
-        "kcal": 427,
+        "kcal": 398,
         "protein_g": 3,
         "carbs_g": 11,
-        "fat_g": 42,
-        "fraccion": 0.123
+        "fat_g": 38,
+        "fraccion": 0.124
       }
     }
   },
@@ -1207,31 +1207,31 @@
         "protein_g": 72,
         "carbs_g": 10,
         "fat_g": 28,
-        "fraccion": 0.273
+        "fraccion": 0.28
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 16,
-        "masa_g": 805,
+        "masa_g": 772,
         "cobertura": 1,
-        "kcal": 3824,
+        "kcal": 3534,
         "protein_g": 9,
         "carbs_g": 61,
-        "fat_g": 400,
-        "fraccion": 0.571
+        "fat_g": 368,
+        "fraccion": 0.561
       },
       "salsa": {
         "ingredientes": 3,
         "pasos": 4,
         "minutos": 6,
-        "masa_g": 220,
+        "masa_g": 219,
         "cobertura": 1,
-        "kcal": 373,
+        "kcal": 369,
         "protein_g": 4,
         "carbs_g": 6,
         "fat_g": 30,
-        "fraccion": 0.156
+        "fraccion": 0.159
       }
     }
   },
@@ -1247,25 +1247,25 @@
         "ingredientes": 10,
         "pasos": 13,
         "minutos": 126,
-        "masa_g": 937,
+        "masa_g": 936,
         "cobertura": 0.573,
-        "kcal": 295,
+        "kcal": 284,
         "protein_g": 5,
         "carbs_g": 22,
-        "fat_g": 16,
-        "fraccion": 0.72
+        "fat_g": 15,
+        "fraccion": 0.718
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 30,
-        "masa_g": 365,
+        "masa_g": 367,
         "cobertura": 1,
-        "kcal": 359,
+        "kcal": 360,
         "protein_g": 8,
         "carbs_g": 48,
         "fat_g": 15,
-        "fraccion": 0.28
+        "fraccion": 0.282
       }
     }
   },
@@ -1293,13 +1293,13 @@
         "ingredientes": 9,
         "pasos": 7,
         "minutos": 46,
-        "masa_g": 854,
+        "masa_g": 820,
         "cobertura": 1,
-        "kcal": 4607,
+        "kcal": 4303,
         "protein_g": 78,
         "carbs_g": 8,
-        "fat_g": 482,
-        "fraccion": 0.6
+        "fat_g": 447,
+        "fraccion": 0.59
       },
       "guarnicion": {
         "ingredientes": 1,
@@ -1311,7 +1311,7 @@
         "protein_g": 11,
         "carbs_g": 76,
         "fat_g": 1,
-        "fraccion": 0.351
+        "fraccion": 0.36
       },
       "salsa": {
         "ingredientes": 2,
@@ -1323,7 +1323,7 @@
         "protein_g": 8,
         "carbs_g": 3,
         "fat_g": 6,
-        "fraccion": 0.049
+        "fraccion": 0.05
       }
     }
   },
@@ -1351,13 +1351,13 @@
         "ingredientes": 7,
         "pasos": 8,
         "minutos": 15,
-        "masa_g": 1007,
+        "masa_g": 974,
         "cobertura": 1,
-        "kcal": 4604,
+        "kcal": 4314,
         "protein_g": 90,
         "carbs_g": 75,
-        "fat_g": 444,
-        "fraccion": 0.668
+        "fat_g": 411,
+        "fraccion": 0.661
       },
       "guarnicion": {
         "ingredientes": 1,
@@ -1369,7 +1369,7 @@
         "protein_g": 11,
         "carbs_g": 76,
         "fat_g": 1,
-        "fraccion": 0.332
+        "fraccion": 0.339
       }
     }
   },
@@ -1385,12 +1385,12 @@
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 22,
-        "masa_g": 371,
+        "masa_g": 370,
         "cobertura": 1,
-        "kcal": 519,
+        "kcal": 509,
         "protein_g": 71,
         "carbs_g": 1,
-        "fat_g": 26,
+        "fat_g": 25,
         "fraccion": 0.617
       },
       "salsa": {
@@ -1427,25 +1427,25 @@
         "ingredientes": 5,
         "pasos": 8,
         "minutos": 17,
-        "masa_g": 670,
+        "masa_g": 654,
         "cobertura": 1,
-        "kcal": 2614,
+        "kcal": 2470,
         "protein_g": 88,
         "carbs_g": 51,
-        "fat_g": 228,
-        "fraccion": 0.724
+        "fat_g": 212,
+        "fraccion": 0.712
       },
       "salsa": {
         "ingredientes": 7,
         "pasos": 5,
         "minutos": 12,
-        "masa_g": 240,
+        "masa_g": 249,
         "cobertura": 1,
-        "kcal": 222,
-        "protein_g": 3,
+        "kcal": 226,
+        "protein_g": 4,
         "carbs_g": 47,
         "fat_g": 1,
-        "fraccion": 0.259
+        "fraccion": 0.271
       },
       "combinado": {
         "ingredientes": 2,
@@ -1473,25 +1473,25 @@
         "ingredientes": 10,
         "pasos": 13,
         "minutos": 175,
-        "masa_g": 1391,
+        "masa_g": 1388,
         "cobertura": 1,
-        "kcal": 1294,
+        "kcal": 1273,
         "protein_g": 121,
         "carbs_g": 43,
-        "fat_g": 57,
-        "fraccion": 0.728
+        "fat_g": 54,
+        "fraccion": 0.726
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 33,
-        "masa_g": 520,
+        "masa_g": 523,
         "cobertura": 1,
-        "kcal": 500,
+        "kcal": 502,
         "protein_g": 12,
         "carbs_g": 66,
         "fat_g": 21,
-        "fraccion": 0.272
+        "fraccion": 0.274
       }
     }
   },
@@ -1519,13 +1519,13 @@
         "ingredientes": 9,
         "pasos": 9,
         "minutos": 18,
-        "masa_g": 428,
+        "masa_g": 427,
         "cobertura": 0.977,
-        "kcal": 503,
+        "kcal": 492,
         "protein_g": 63,
         "carbs_g": 4,
-        "fat_g": 26,
-        "fraccion": 0.368
+        "fat_g": 25,
+        "fraccion": 0.375
       },
       "combinado": {
         "ingredientes": 1,
@@ -1537,19 +1537,19 @@
         "protein_g": 6,
         "carbs_g": 1,
         "fat_g": 11,
-        "fraccion": 0.031
+        "fraccion": 0.032
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 7,
         "minutos": 28,
-        "masa_g": 700,
+        "masa_g": 676,
         "cobertura": 1,
-        "kcal": 2993,
-        "protein_g": 10,
+        "kcal": 2777,
+        "protein_g": 9,
         "carbs_g": 61,
-        "fat_g": 301,
-        "fraccion": 0.601
+        "fat_g": 277,
+        "fraccion": 0.594
       }
     }
   },
@@ -1567,19 +1567,19 @@
         "protein_g": 71,
         "carbs_g": 0,
         "fat_g": 11,
-        "fraccion": 0.277
+        "fraccion": 0.278
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 39,
-        "masa_g": 550,
+        "masa_g": 546,
         "cobertura": 1,
-        "kcal": 772,
+        "kcal": 735,
         "protein_g": 10,
         "carbs_g": 70,
-        "fat_g": 51,
-        "fraccion": 0.435
+        "fat_g": 47,
+        "fraccion": 0.433
       },
       "salsa": {
         "ingredientes": 5,
@@ -1615,25 +1615,25 @@
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 32,
-        "masa_g": 415,
+        "masa_g": 414,
         "cobertura": 1,
-        "kcal": 741,
+        "kcal": 730,
         "protein_g": 89,
         "carbs_g": 2,
-        "fat_g": 42,
-        "fraccion": 0.339
+        "fat_g": 41,
+        "fraccion": 0.345
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 16,
-        "masa_g": 700,
+        "masa_g": 676,
         "cobertura": 1,
-        "kcal": 2993,
-        "protein_g": 10,
+        "kcal": 2777,
+        "protein_g": 9,
         "carbs_g": 61,
-        "fat_g": 301,
-        "fraccion": 0.572
+        "fat_g": 277,
+        "fraccion": 0.564
       },
       "salsa": {
         "ingredientes": 8,
@@ -1645,7 +1645,7 @@
         "protein_g": 2,
         "carbs_g": 6,
         "fat_g": 50,
-        "fraccion": 0.089
+        "fraccion": 0.091
       }
     }
   },
@@ -1663,19 +1663,19 @@
         "protein_g": 103,
         "carbs_g": 0,
         "fat_g": 142,
-        "fraccion": 0.481
+        "fraccion": 0.48
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 32,
-        "masa_g": 500,
+        "masa_g": 502,
         "cobertura": 1,
-        "kcal": 601,
-        "protein_g": 7,
+        "kcal": 603,
+        "protein_g": 8,
         "carbs_g": 96,
-        "fat_g": 20,
-        "fraccion": 0.401
+        "fat_g": 21,
+        "fraccion": 0.402
       },
       "salsa": {
         "ingredientes": 6,
@@ -1687,7 +1687,7 @@
         "protein_g": 5,
         "carbs_g": 45,
         "fat_g": 2,
-        "fraccion": 0.119
+        "fraccion": 0.118
       }
     }
   },
@@ -1705,19 +1705,19 @@
         "protein_g": 87,
         "carbs_g": 0,
         "fat_g": 42,
-        "fraccion": 0.329
+        "fraccion": 0.33
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 67,
-        "masa_g": 460,
+        "masa_g": 455,
         "cobertura": 1,
-        "kcal": 820,
+        "kcal": 777,
         "protein_g": 9,
         "carbs_g": 61,
-        "fat_g": 61,
-        "fraccion": 0.432
+        "fat_g": 56,
+        "fraccion": 0.429
       },
       "salsa": {
         "ingredientes": 7,
@@ -1729,7 +1729,7 @@
         "protein_g": 15,
         "carbs_g": 25,
         "fat_g": 31,
-        "fraccion": 0.239
+        "fraccion": 0.241
       }
     }
   },
@@ -1753,13 +1753,13 @@
         "ingredientes": 3,
         "pasos": 3,
         "minutos": 24,
-        "masa_g": 450,
+        "masa_g": 452,
         "cobertura": 1,
-        "kcal": 551,
+        "kcal": 552,
         "protein_g": 7,
         "carbs_g": 84,
         "fat_g": 20,
-        "fraccion": 0.413
+        "fraccion": 0.414
       },
       "salsa": {
         "ingredientes": 4,
@@ -1789,31 +1789,31 @@
         "protein_g": 131,
         "carbs_g": 0,
         "fat_g": 137,
-        "fraccion": 0.42
+        "fraccion": 0.43
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 17,
-        "masa_g": 700,
+        "masa_g": 676,
         "cobertura": 1,
-        "kcal": 2993,
-        "protein_g": 10,
+        "kcal": 2777,
+        "protein_g": 9,
         "carbs_g": 61,
-        "fat_g": 301,
-        "fraccion": 0.42
+        "fat_g": 277,
+        "fraccion": 0.415
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 7,
         "minutos": 63,
-        "masa_g": 265,
+        "masa_g": 253,
         "cobertura": 1,
-        "kcal": 1471,
+        "kcal": 1362,
         "protein_g": 10,
         "carbs_g": 13,
-        "fat_g": 156,
-        "fraccion": 0.159
+        "fat_g": 143,
+        "fraccion": 0.155
       }
     }
   },
@@ -1831,19 +1831,19 @@
         "protein_g": 103,
         "carbs_g": 0,
         "fat_g": 142,
-        "fraccion": 0.467
+        "fraccion": 0.466
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 32,
-        "masa_g": 540,
+        "masa_g": 543,
         "cobertura": 1,
-        "kcal": 646,
+        "kcal": 648,
         "protein_g": 12,
         "carbs_g": 66,
         "fat_g": 37,
-        "fraccion": 0.421
+        "fraccion": 0.422
       },
       "salsa": {
         "ingredientes": 6,
@@ -1867,13 +1867,13 @@
         "ingredientes": 6,
         "pasos": 12,
         "minutos": 70,
-        "masa_g": 1108,
+        "masa_g": 1105,
         "cobertura": 1,
-        "kcal": 1301,
+        "kcal": 1272,
         "protein_g": 108,
         "carbs_g": 80,
-        "fat_g": 61,
-        "fraccion": 0.841
+        "fat_g": 58,
+        "fraccion": 0.84
       },
       "salsa": {
         "ingredientes": 3,
@@ -1885,7 +1885,7 @@
         "protein_g": 2,
         "carbs_g": 8,
         "fat_g": 0,
-        "fraccion": 0.159
+        "fraccion": 0.16
       }
     }
   },
@@ -1897,37 +1897,37 @@
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 14,
-        "masa_g": 365,
+        "masa_g": 364,
         "cobertura": 1,
-        "kcal": 861,
+        "kcal": 850,
         "protein_g": 87,
         "carbs_g": 0,
-        "fat_g": 57,
-        "fraccion": 0.269
+        "fat_g": 56,
+        "fraccion": 0.274
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 19,
-        "masa_g": 700,
+        "masa_g": 676,
         "cobertura": 1,
-        "kcal": 2993,
-        "protein_g": 10,
+        "kcal": 2777,
+        "protein_g": 9,
         "carbs_g": 61,
-        "fat_g": 301,
-        "fraccion": 0.517
+        "fat_g": 277,
+        "fraccion": 0.509
       },
       "salsa": {
         "ingredientes": 5,
         "pasos": 6,
         "minutos": 13,
-        "masa_g": 290,
+        "masa_g": 289,
         "cobertura": 1,
-        "kcal": 416,
+        "kcal": 414,
         "protein_g": 7,
         "carbs_g": 21,
         "fat_g": 31,
-        "fraccion": 0.214
+        "fraccion": 0.217
       }
     }
   },
@@ -1939,13 +1939,13 @@
         "ingredientes": 6,
         "pasos": 6,
         "minutos": 22,
-        "masa_g": 655,
+        "masa_g": 654,
         "cobertura": 1,
-        "kcal": 957,
+        "kcal": 946,
         "protein_g": 85,
         "carbs_g": 75,
-        "fat_g": 34,
-        "fraccion": 0.438
+        "fat_g": 32,
+        "fraccion": 0.445
       },
       "salsa": {
         "ingredientes": 2,
@@ -1957,19 +1957,19 @@
         "protein_g": 14,
         "carbs_g": 3,
         "fat_g": 33,
-        "fraccion": 0.094
+        "fraccion": 0.095
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 17,
-        "masa_g": 700,
+        "masa_g": 676,
         "cobertura": 1,
-        "kcal": 2993,
-        "protein_g": 10,
+        "kcal": 2777,
+        "protein_g": 9,
         "carbs_g": 61,
-        "fat_g": 301,
-        "fraccion": 0.468
+        "fat_g": 277,
+        "fraccion": 0.46
       }
     }
   },
@@ -1981,25 +1981,25 @@
         "ingredientes": 3,
         "pasos": 6,
         "minutos": 11,
-        "masa_g": 426,
+        "masa_g": 424,
         "cobertura": 1,
-        "kcal": 1296,
+        "kcal": 1282,
         "protein_g": 69,
         "carbs_g": 1,
-        "fat_g": 114,
-        "fraccion": 0.46
+        "fat_g": 113,
+        "fraccion": 0.458
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 6,
         "minutos": 24,
-        "masa_g": 450,
+        "masa_g": 452,
         "cobertura": 1,
-        "kcal": 551,
+        "kcal": 552,
         "protein_g": 7,
         "carbs_g": 84,
         "fat_g": 20,
-        "fraccion": 0.486
+        "fraccion": 0.488
       },
       "salsa": {
         "ingredientes": 3,
@@ -2051,13 +2051,13 @@
         "ingredientes": 9,
         "pasos": 8,
         "minutos": 18,
-        "masa_g": 1080,
+        "masa_g": 1064,
         "cobertura": 1,
-        "kcal": 3233,
+        "kcal": 3089,
         "protein_g": 96,
         "carbs_g": 112,
-        "fat_g": 260,
-        "fraccion": 0.929
+        "fat_g": 244,
+        "fraccion": 0.928
       },
       "salsa": {
         "ingredientes": 6,
@@ -2069,7 +2069,7 @@
         "protein_g": 9,
         "carbs_g": 4,
         "fat_g": 8,
-        "fraccion": 0.071
+        "fraccion": 0.072
       }
     }
   },
@@ -2081,13 +2081,13 @@
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 10,
-        "masa_g": 510,
+        "masa_g": 509,
         "cobertura": 1,
-        "kcal": 1585,
+        "kcal": 1578,
         "protein_g": 83,
         "carbs_g": 126,
-        "fat_g": 81,
-        "fraccion": 0.634
+        "fat_g": 80,
+        "fraccion": 0.633
       },
       "salsa": {
         "ingredientes": 5,
@@ -2099,7 +2099,7 @@
         "protein_g": 4,
         "carbs_g": 4,
         "fat_g": 24,
-        "fraccion": 0.366
+        "fraccion": 0.367
       }
     }
   },
@@ -2111,13 +2111,13 @@
         "ingredientes": 4,
         "pasos": 9,
         "minutos": 32,
-        "masa_g": 443,
+        "masa_g": 441,
         "cobertura": 1,
-        "kcal": 978,
+        "kcal": 963,
         "protein_g": 83,
         "carbs_g": 59,
-        "fat_g": 45,
-        "fraccion": 0.417
+        "fat_g": 44,
+        "fraccion": 0.416
       },
       "guarnicion": {
         "ingredientes": 5,
@@ -2129,7 +2129,7 @@
         "protein_g": 7,
         "carbs_g": 24,
         "fat_g": 25,
-        "fraccion": 0.583
+        "fraccion": 0.584
       }
     }
   },
@@ -2149,13 +2149,13 @@
         "ingredientes": 6,
         "pasos": 5,
         "minutos": 12,
-        "masa_g": 594,
+        "masa_g": 593,
         "cobertura": 1,
-        "kcal": 1473,
+        "kcal": 1462,
         "protein_g": 90,
         "carbs_g": 143,
-        "fat_g": 57,
-        "fraccion": 0.68
+        "fat_g": 55,
+        "fraccion": 0.679
       },
       "salsa": {
         "ingredientes": 4,
@@ -2167,7 +2167,7 @@
         "protein_g": 3,
         "carbs_g": 9,
         "fat_g": 1,
-        "fraccion": 0.32
+        "fraccion": 0.321
       }
     }
   },
@@ -2205,19 +2205,19 @@
         "protein_g": 58,
         "carbs_g": 2,
         "fat_g": 41,
-        "fraccion": 0.479
+        "fraccion": 0.48
       },
       "guarnicion": {
         "ingredientes": 6,
         "pasos": 3,
         "minutos": 4,
-        "masa_g": 392,
+        "masa_g": 390,
         "cobertura": 1,
-        "kcal": 646,
+        "kcal": 632,
         "protein_g": 16,
         "carbs_g": 5,
-        "fat_g": 58,
-        "fraccion": 0.521
+        "fat_g": 57,
+        "fraccion": 0.52
       }
     }
   },
@@ -2229,13 +2229,13 @@
         "ingredientes": 4,
         "pasos": 6,
         "minutos": 18,
-        "masa_g": 374,
+        "masa_g": 372,
         "cobertura": 1,
-        "kcal": 687,
+        "kcal": 672,
         "protein_g": 78,
         "carbs_g": 1,
-        "fat_g": 42,
-        "fraccion": 0.499
+        "fat_g": 40,
+        "fraccion": 0.498
       },
       "guarnicion": {
         "ingredientes": 4,
@@ -2247,7 +2247,7 @@
         "protein_g": 4,
         "carbs_g": 2,
         "fat_g": 24,
-        "fraccion": 0.501
+        "fraccion": 0.502
       }
     }
   },
@@ -2265,19 +2265,19 @@
         "protein_g": 63,
         "carbs_g": 0,
         "fat_g": 31,
-        "fraccion": 0.464
+        "fraccion": 0.465
       },
       "guarnicion": {
         "ingredientes": 6,
         "pasos": 3,
         "minutos": 5,
-        "masa_g": 405,
+        "masa_g": 403,
         "cobertura": 1,
-        "kcal": 651,
+        "kcal": 636,
         "protein_g": 13,
         "carbs_g": 7,
-        "fat_g": 59,
-        "fraccion": 0.536
+        "fat_g": 57,
+        "fraccion": 0.535
       }
     }
   },
@@ -2289,13 +2289,13 @@
         "ingredientes": 4,
         "pasos": 7,
         "minutos": 19,
-        "masa_g": 380,
+        "masa_g": 378,
         "cobertura": 1,
-        "kcal": 712,
+        "kcal": 698,
         "protein_g": 78,
         "carbs_g": 4,
-        "fat_g": 42,
-        "fraccion": 0.503
+        "fat_g": 41,
+        "fraccion": 0.502
       },
       "guarnicion": {
         "ingredientes": 4,
@@ -2307,7 +2307,7 @@
         "protein_g": 4,
         "carbs_g": 2,
         "fat_g": 24,
-        "fraccion": 0.497
+        "fraccion": 0.498
       }
     }
   },
@@ -2325,7 +2325,7 @@
         "protein_g": 71,
         "carbs_g": 0,
         "fat_g": 30,
-        "fraccion": 0.465
+        "fraccion": 0.467
       },
       "guarnicion": {
         "ingredientes": 2,
@@ -2337,19 +2337,19 @@
         "protein_g": 4,
         "carbs_g": 6,
         "fat_g": 24,
-        "fraccion": 0.465
+        "fraccion": 0.467
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 1,
         "minutos": 1,
-        "masa_g": 52,
+        "masa_g": 50,
         "cobertura": 1,
-        "kcal": 205,
+        "kcal": 191,
         "protein_g": 1,
         "carbs_g": 1,
-        "fat_g": 22,
-        "fraccion": 0.069
+        "fat_g": 20,
+        "fraccion": 0.067
       }
     }
   },
@@ -2361,13 +2361,13 @@
         "ingredientes": 5,
         "pasos": 4,
         "minutos": 12,
-        "masa_g": 324,
+        "masa_g": 323,
         "cobertura": 1,
-        "kcal": 590,
+        "kcal": 579,
         "protein_g": 68,
         "carbs_g": 3,
-        "fat_g": 35,
-        "fraccion": 0.336
+        "fat_g": 33,
+        "fraccion": 0.335
       },
       "guarnicion": {
         "ingredientes": 4,
@@ -2379,7 +2379,7 @@
         "protein_g": 31,
         "carbs_g": 159,
         "fat_g": 3,
-        "fraccion": 0.508
+        "fraccion": 0.509
       },
       "combinado": {
         "ingredientes": 2,
@@ -2439,12 +2439,12 @@
         "ingredientes": 9,
         "pasos": 14,
         "minutos": 33,
-        "masa_g": 641,
-        "cobertura": 0.803,
-        "kcal": 909,
-        "protein_g": 45,
+        "masa_g": 645,
+        "cobertura": 0.805,
+        "kcal": 895,
+        "protein_g": 46,
         "carbs_g": 11,
-        "fat_g": 77,
+        "fat_g": 75,
         "fraccion": 0.97
       },
       "salsa": {
@@ -2469,13 +2469,13 @@
         "ingredientes": 4,
         "pasos": 8,
         "minutos": 16,
-        "masa_g": 600,
+        "masa_g": 595,
         "cobertura": 1,
-        "kcal": 1402,
+        "kcal": 1359,
         "protein_g": 103,
         "carbs_g": 42,
-        "fat_g": 92,
-        "fraccion": 0.545
+        "fat_g": 87,
+        "fraccion": 0.543
       },
       "guarnicion": {
         "ingredientes": 4,
@@ -2487,7 +2487,7 @@
         "protein_g": 5,
         "carbs_g": 7,
         "fat_g": 24,
-        "fraccion": 0.455
+        "fraccion": 0.457
       }
     }
   },
@@ -2505,19 +2505,19 @@
         "protein_g": 85,
         "carbs_g": 0,
         "fat_g": 28,
-        "fraccion": 0.421
+        "fraccion": 0.422
       },
       "guarnicion": {
         "ingredientes": 5,
         "pasos": 5,
         "minutos": 22,
-        "masa_g": 550,
+        "masa_g": 548,
         "cobertura": 1,
-        "kcal": 425,
+        "kcal": 403,
         "protein_g": 6,
         "carbs_g": 33,
-        "fat_g": 32,
-        "fraccion": 0.579
+        "fat_g": 29,
+        "fraccion": 0.578
       }
     }
   },
@@ -2539,19 +2539,19 @@
         "protein_g": 72,
         "carbs_g": 0,
         "fat_g": 36,
-        "fraccion": 0.516
+        "fraccion": 0.517
       },
       "guarnicion": {
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 32,
-        "masa_g": 375,
+        "masa_g": 373,
         "cobertura": 1,
-        "kcal": 405,
+        "kcal": 387,
         "protein_g": 3,
         "carbs_g": 38,
-        "fat_g": 25,
-        "fraccion": 0.484
+        "fat_g": 23,
+        "fraccion": 0.483
       }
     }
   },
@@ -2563,13 +2563,13 @@
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 12,
-        "masa_g": 425,
+        "masa_g": 423,
         "cobertura": 1,
-        "kcal": 801,
+        "kcal": 783,
         "protein_g": 89,
         "carbs_g": 0,
-        "fat_g": 50,
-        "fraccion": 0.57
+        "fat_g": 48,
+        "fraccion": 0.569
       },
       "guarnicion": {
         "ingredientes": 3,
@@ -2581,7 +2581,7 @@
         "protein_g": 10,
         "carbs_g": 14,
         "fat_g": 1,
-        "fraccion": 0.43
+        "fraccion": 0.431
       }
     }
   },
@@ -2593,25 +2593,25 @@
         "ingredientes": 2,
         "pasos": 3,
         "minutos": 9,
-        "masa_g": 415,
+        "masa_g": 414,
         "cobertura": 1,
-        "kcal": 740,
+        "kcal": 729,
         "protein_g": 72,
         "carbs_g": 0,
-        "fat_g": 51,
-        "fraccion": 0.451
+        "fat_g": 49,
+        "fraccion": 0.45
       },
       "guarnicion": {
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 27,
-        "masa_g": 505,
+        "masa_g": 507,
         "cobertura": 1,
-        "kcal": 488,
+        "kcal": 490,
         "protein_g": 12,
         "carbs_g": 65,
         "fat_g": 20,
-        "fraccion": 0.549
+        "fraccion": 0.55
       }
     }
   },
@@ -2633,19 +2633,19 @@
         "protein_g": 76,
         "carbs_g": 0,
         "fat_g": 60,
-        "fraccion": 0.702
+        "fraccion": 0.704
       },
       "guarnicion": {
         "ingredientes": 5,
         "pasos": 4,
         "minutos": 6,
-        "masa_g": 170,
+        "masa_g": 168,
         "cobertura": 1,
-        "kcal": 374,
+        "kcal": 360,
         "protein_g": 13,
         "carbs_g": 3,
-        "fat_g": 35,
-        "fraccion": 0.298
+        "fat_g": 33,
+        "fraccion": 0.296
       }
     }
   },
@@ -2661,13 +2661,13 @@
         "ingredientes": 6,
         "pasos": 10,
         "minutos": 25,
-        "masa_g": 770,
+        "masa_g": 768,
         "cobertura": 1,
-        "kcal": 1582,
+        "kcal": 1561,
         "protein_g": 147,
         "carbs_g": 33,
-        "fat_g": 96,
-        "fraccion": 0.688
+        "fat_g": 93,
+        "fraccion": 0.687
       },
       "guarnicion": {
         "ingredientes": 2,
@@ -2697,19 +2697,19 @@
         "protein_g": 85,
         "carbs_g": 0,
         "fat_g": 28,
-        "fraccion": 0.405
+        "fraccion": 0.406
       },
       "guarnicion": {
         "ingredientes": 6,
         "pasos": 5,
         "minutos": 11,
-        "masa_g": 587,
+        "masa_g": 585,
         "cobertura": 1,
-        "kcal": 484,
+        "kcal": 466,
         "protein_g": 11,
         "carbs_g": 49,
-        "fat_g": 27,
-        "fraccion": 0.595
+        "fat_g": 25,
+        "fraccion": 0.594
       }
     }
   },
@@ -2721,12 +2721,12 @@
         "ingredientes": 8,
         "pasos": 10,
         "minutos": 210,
-        "masa_g": 1123,
+        "masa_g": 1121,
         "cobertura": 1,
-        "kcal": 1338,
+        "kcal": 1324,
         "protein_g": 114,
         "carbs_g": 42,
-        "fat_g": 76,
+        "fat_g": 75,
         "fraccion": 0.842
       },
       "guarnicion": {
@@ -2751,12 +2751,12 @@
         "ingredientes": 8,
         "pasos": 9,
         "minutos": 19,
-        "masa_g": 1094,
+        "masa_g": 1092,
         "cobertura": 1,
-        "kcal": 1554,
+        "kcal": 1536,
         "protein_g": 106,
         "carbs_g": 123,
-        "fat_g": 70,
+        "fat_g": 68,
         "fraccion": 0.802
       },
       "salsa": {
@@ -2829,13 +2829,13 @@
         "ingredientes": 5,
         "pasos": 4,
         "minutos": 43,
-        "masa_g": 528,
+        "masa_g": 526,
         "cobertura": 1,
-        "kcal": 557,
+        "kcal": 543,
         "protein_g": 12,
         "carbs_g": 78,
-        "fat_g": 22,
-        "fraccion": 0.46
+        "fat_g": 20,
+        "fraccion": 0.459
       },
       "principal": {
         "ingredientes": 2,
@@ -2859,7 +2859,7 @@
         "protein_g": 4,
         "carbs_g": 8,
         "fat_g": 5,
-        "fraccion": 0.139
+        "fraccion": 0.14
       }
     }
   },
@@ -2891,25 +2891,25 @@
         "ingredientes": 2,
         "pasos": 2,
         "minutos": 9,
-        "masa_g": 260,
+        "masa_g": 259,
         "cobertura": 1,
-        "kcal": 852,
+        "kcal": 845,
         "protein_g": 33,
         "carbs_g": 2,
-        "fat_g": 80,
-        "fraccion": 0.409
+        "fat_g": 79,
+        "fraccion": 0.407
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 4,
         "minutos": 26,
-        "masa_g": 375,
+        "masa_g": 377,
         "cobertura": 1,
-        "kcal": 365,
+        "kcal": 367,
         "protein_g": 9,
-        "carbs_g": 48,
+        "carbs_g": 49,
         "fat_g": 15,
-        "fraccion": 0.591
+        "fraccion": 0.593
       }
     }
   },
@@ -3161,19 +3161,19 @@
         "protein_g": 37,
         "carbs_g": 78,
         "fat_g": 58,
-        "fraccion": 0.62
+        "fraccion": 0.619
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 5,
-        "masa_g": 227,
+        "masa_g": 228,
         "cobertura": 1,
         "kcal": 275,
         "protein_g": 3,
         "carbs_g": 1,
         "fat_g": 24,
-        "fraccion": 0.38
+        "fraccion": 0.381
       }
     }
   },
@@ -3185,13 +3185,13 @@
         "ingredientes": 7,
         "pasos": 12,
         "minutos": 27,
-        "masa_g": 513,
+        "masa_g": 511,
         "cobertura": 1,
-        "kcal": 640,
+        "kcal": 626,
         "protein_g": 32,
         "carbs_g": 37,
-        "fat_g": 40,
-        "fraccion": 0.888
+        "fat_g": 38,
+        "fraccion": 0.887
       },
       "salsa": {
         "ingredientes": 2,
@@ -3203,7 +3203,7 @@
         "protein_g": 2,
         "carbs_g": 3,
         "fat_g": 2,
-        "fraccion": 0.112
+        "fraccion": 0.113
       }
     }
   },
@@ -3215,13 +3215,13 @@
         "ingredientes": 6,
         "pasos": 6,
         "minutos": 7,
-        "masa_g": 475,
+        "masa_g": 473,
         "cobertura": 1,
-        "kcal": 779,
+        "kcal": 765,
         "protein_g": 51,
         "carbs_g": 9,
-        "fat_g": 61,
-        "fraccion": 0.856
+        "fat_g": 59,
+        "fraccion": 0.855
       },
       "combinado": {
         "ingredientes": 1,
@@ -3233,7 +3233,7 @@
         "protein_g": 6,
         "carbs_g": 42,
         "fat_g": 2,
-        "fraccion": 0.144
+        "fraccion": 0.145
       }
     }
   },
@@ -3323,7 +3323,7 @@
         "protein_g": 110,
         "carbs_g": 0,
         "fat_g": 12,
-        "fraccion": 0.559
+        "fraccion": 0.563
       },
       "guarnicion": {
         "ingredientes": 3,
@@ -3335,19 +3335,19 @@
         "protein_g": 4,
         "carbs_g": 5,
         "fat_g": 18,
-        "fraccion": 0.288
+        "fraccion": 0.29
       },
       "salsa": {
         "ingredientes": 3,
         "pasos": 3,
         "minutos": 5,
-        "masa_g": 165,
+        "masa_g": 157,
         "cobertura": 1,
-        "kcal": 959,
+        "kcal": 887,
         "protein_g": 6,
         "carbs_g": 2,
-        "fat_g": 105,
-        "fraccion": 0.153
+        "fat_g": 97,
+        "fraccion": 0.147
       }
     }
   },
@@ -3411,19 +3411,19 @@
         "protein_g": 19,
         "carbs_g": 22,
         "fat_g": 45,
-        "fraccion": 0.886
+        "fraccion": 0.891
       },
       "salsa": {
         "ingredientes": 3,
         "pasos": 1,
         "minutos": 1,
-        "masa_g": 45,
+        "masa_g": 43,
         "cobertura": 1,
-        "kcal": 219,
+        "kcal": 204,
         "protein_g": 0,
         "carbs_g": 10,
-        "fat_g": 20,
-        "fraccion": 0.114
+        "fat_g": 18,
+        "fraccion": 0.109
       }
     }
   },
@@ -3475,13 +3475,13 @@
         "ingredientes": 6,
         "pasos": 7,
         "minutos": 21,
-        "masa_g": 630,
+        "masa_g": 628,
         "cobertura": 1,
-        "kcal": 993,
+        "kcal": 971,
         "protein_g": 75,
         "carbs_g": 51,
-        "fat_g": 54,
-        "fraccion": 0.783
+        "fat_g": 52,
+        "fraccion": 0.782
       },
       "guarnicion": {
         "ingredientes": 1,
@@ -3527,19 +3527,19 @@
         "protein_g": 5,
         "carbs_g": 10,
         "fat_g": 1,
-        "fraccion": 0.789
+        "fraccion": 0.793
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 1,
         "minutos": 2,
-        "masa_g": 75,
+        "masa_g": 73,
         "cobertura": 1,
-        "kcal": 350,
+        "kcal": 328,
         "protein_g": 1,
         "carbs_g": 16,
-        "fat_g": 31,
-        "fraccion": 0.211
+        "fat_g": 29,
+        "fraccion": 0.207
       }
     }
   },
@@ -3579,12 +3579,12 @@
         "ingredientes": 7,
         "pasos": 7,
         "minutos": 14,
-        "masa_g": 397,
+        "masa_g": 396,
         "cobertura": 1,
-        "kcal": 627,
+        "kcal": 609,
         "protein_g": 13,
         "carbs_g": 24,
-        "fat_g": 52,
+        "fat_g": 50,
         "fraccion": 0.975
       },
       "salsa": {
@@ -3613,25 +3613,25 @@
         "ingredientes": 5,
         "pasos": 5,
         "minutos": 43,
-        "masa_g": 529,
+        "masa_g": 527,
         "cobertura": 1,
-        "kcal": 324,
+        "kcal": 310,
         "protein_g": 10,
         "carbs_g": 28,
-        "fat_g": 22,
-        "fraccion": 0.855
+        "fat_g": 21,
+        "fraccion": 0.853
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 2,
         "minutos": 5,
-        "masa_g": 85,
+        "masa_g": 86,
         "cobertura": 1,
         "kcal": 248,
         "protein_g": 8,
         "carbs_g": 3,
         "fat_g": 23,
-        "fraccion": 0.137
+        "fraccion": 0.139
       },
       "combinado": {
         "ingredientes": 1,
@@ -3671,12 +3671,12 @@
         "ingredientes": 5,
         "pasos": 6,
         "minutos": 9,
-        "masa_g": 472,
+        "masa_g": 471,
         "cobertura": 1,
-        "kcal": 596,
+        "kcal": 589,
         "protein_g": 52,
         "carbs_g": 6,
-        "fat_g": 36,
+        "fat_g": 35,
         "fraccion": 0.797
       },
       "salsa": {
@@ -3689,7 +3689,7 @@
         "protein_g": 1,
         "carbs_g": 5,
         "fat_g": 32,
-        "fraccion": 0.101
+        "fraccion": 0.102
       },
       "combinado": {
         "ingredientes": 1,
@@ -3701,7 +3701,7 @@
         "protein_g": 1,
         "carbs_g": 1,
         "fat_g": 0,
-        "fraccion": 0.101
+        "fraccion": 0.102
       }
     }
   },
@@ -3719,7 +3719,7 @@
         "protein_g": 6,
         "carbs_g": 40,
         "fat_g": 1,
-        "fraccion": 0.838
+        "fraccion": 0.841
       },
       "combinado": {
         "ingredientes": 2,
@@ -3737,13 +3737,13 @@
         "ingredientes": 3,
         "pasos": 1,
         "minutos": 1,
-        "masa_g": 32,
+        "masa_g": 30,
         "cobertura": 1,
-        "kcal": 177,
+        "kcal": 163,
         "protein_g": 0,
         "carbs_g": 0,
-        "fat_g": 20,
-        "fraccion": 0.046
+        "fat_g": 18,
+        "fraccion": 0.043
       }
     }
   },
@@ -3775,12 +3775,12 @@
         "ingredientes": 8,
         "pasos": 12,
         "minutos": 48,
-        "masa_g": 721,
+        "masa_g": 719,
         "cobertura": 1,
-        "kcal": 427,
+        "kcal": 406,
         "protein_g": 9,
         "carbs_g": 29,
-        "fat_g": 31,
+        "fat_g": 29,
         "fraccion": 0.878
       },
       "guarnicion": {
@@ -3823,19 +3823,19 @@
         "protein_g": 8,
         "carbs_g": 5,
         "fat_g": 1,
-        "fraccion": 0.529
+        "fraccion": 0.534
       },
       "salsa": {
         "ingredientes": 9,
         "pasos": 12,
         "minutos": 27,
-        "masa_g": 267,
+        "masa_g": 262,
         "cobertura": 1,
-        "kcal": 956,
+        "kcal": 916,
         "protein_g": 15,
         "carbs_g": 24,
-        "fat_g": 87,
-        "fraccion": 0.471
+        "fat_g": 82,
+        "fraccion": 0.466
       }
     }
   },
@@ -3855,13 +3855,13 @@
         "ingredientes": 2,
         "pasos": 7,
         "minutos": 51,
-        "masa_g": 480,
+        "masa_g": 473,
         "cobertura": 1,
-        "kcal": 804,
+        "kcal": 746,
         "protein_g": 6,
         "carbs_g": 15,
-        "fat_g": 81,
-        "fraccion": 0.927
+        "fat_g": 75,
+        "fraccion": 0.926
       },
       "salsa": {
         "ingredientes": 4,
@@ -3873,7 +3873,7 @@
         "protein_g": 1,
         "carbs_g": 1,
         "fat_g": 2,
-        "fraccion": 0.073
+        "fraccion": 0.074
       }
     }
   },
@@ -3885,13 +3885,13 @@
         "ingredientes": 5,
         "pasos": 6,
         "minutos": 49,
-        "masa_g": 427,
+        "masa_g": 425,
         "cobertura": 1,
-        "kcal": 321,
+        "kcal": 307,
         "protein_g": 5,
         "carbs_g": 25,
-        "fat_g": 23,
-        "fraccion": 0.788
+        "fat_g": 21,
+        "fraccion": 0.787
       },
       "salsa": {
         "ingredientes": 3,
@@ -3915,7 +3915,7 @@
         "protein_g": 1,
         "carbs_g": 7,
         "fat_g": 0,
-        "fraccion": 0.092
+        "fraccion": 0.093
       },
       "guarnicion": {
         "ingredientes": 1,
@@ -3959,13 +3959,13 @@
         "ingredientes": 4,
         "pasos": 6,
         "minutos": 38,
-        "masa_g": 443,
+        "masa_g": 441,
         "cobertura": 1,
-        "kcal": 413,
+        "kcal": 391,
         "protein_g": 12,
         "carbs_g": 29,
-        "fat_g": 32,
-        "fraccion": 0.899
+        "fat_g": 29,
+        "fraccion": 0.898
       },
       "salsa": {
         "ingredientes": 2,
@@ -4027,19 +4027,19 @@
         "protein_g": 10,
         "carbs_g": 30,
         "fat_g": 1,
-        "fraccion": 0.821
+        "fraccion": 0.82
       },
       "salsa": {
         "ingredientes": 5,
         "pasos": 2,
         "minutos": 3,
-        "masa_g": 120,
+        "masa_g": 121,
         "cobertura": 1,
-        "kcal": 320,
+        "kcal": 300,
         "protein_g": 1,
         "carbs_g": 11,
-        "fat_g": 31,
-        "fraccion": 0.179
+        "fat_g": 28,
+        "fraccion": 0.18
       }
     }
   },
@@ -4193,19 +4193,19 @@
         "protein_g": 13,
         "carbs_g": 30,
         "fat_g": 2,
-        "fraccion": 0.838
+        "fraccion": 0.84
       },
       "salsa": {
         "ingredientes": 8,
         "pasos": 3,
         "minutos": 5,
-        "masa_g": 155,
+        "masa_g": 153,
         "cobertura": 1,
-        "kcal": 550,
+        "kcal": 528,
         "protein_g": 9,
         "carbs_g": 16,
-        "fat_g": 49,
-        "fraccion": 0.162
+        "fat_g": 46,
+        "fraccion": 0.16
       }
     }
   },
@@ -4403,19 +4403,19 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 23,
-        "fraccion": 0.397
+        "fraccion": 0.398
       },
       "guarnicion": {
         "ingredientes": 6,
         "pasos": 5,
         "minutos": 6,
-        "masa_g": 365,
+        "masa_g": 363,
         "cobertura": 1,
-        "kcal": 306,
+        "kcal": 288,
         "protein_g": 3,
         "carbs_g": 8,
-        "fat_g": 30,
-        "fraccion": 0.603
+        "fat_g": 27,
+        "fraccion": 0.602
       }
     }
   },
@@ -4437,19 +4437,19 @@
         "protein_g": 38,
         "carbs_g": 29,
         "fat_g": 24,
-        "fraccion": 0.715
+        "fraccion": 0.717
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 16,
-        "masa_g": 350,
+        "masa_g": 346,
         "cobertura": 1,
-        "kcal": 659,
+        "kcal": 623,
         "protein_g": 7,
         "carbs_g": 46,
-        "fat_g": 51,
-        "fraccion": 0.285
+        "fat_g": 46,
+        "fraccion": 0.283
       }
     }
   },
@@ -4479,19 +4479,19 @@
         "protein_g": 53,
         "carbs_g": 3,
         "fat_g": 35,
-        "fraccion": 0.511
+        "fraccion": 0.512
       },
       "guarnicion": {
         "ingredientes": 5,
         "pasos": 5,
         "minutos": 6,
-        "masa_g": 335,
+        "masa_g": 333,
         "cobertura": 1,
-        "kcal": 412,
+        "kcal": 398,
         "protein_g": 4,
         "carbs_g": 6,
-        "fat_g": 38,
-        "fraccion": 0.489
+        "fat_g": 37,
+        "fraccion": 0.488
       }
     }
   },
@@ -4503,13 +4503,13 @@
         "ingredientes": 4,
         "pasos": 8,
         "minutos": 11,
-        "masa_g": 385,
+        "masa_g": 383,
         "cobertura": 1,
-        "kcal": 756,
+        "kcal": 738,
         "protein_g": 44,
         "carbs_g": 5,
-        "fat_g": 62,
-        "fraccion": 0.636
+        "fat_g": 60,
+        "fraccion": 0.635
       },
       "guarnicion": {
         "ingredientes": 3,
@@ -4521,7 +4521,7 @@
         "protein_g": 2,
         "carbs_g": 7,
         "fat_g": 0,
-        "fraccion": 0.364
+        "fraccion": 0.365
       }
     }
   },
@@ -4539,7 +4539,7 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 23,
-        "fraccion": 0.37
+        "fraccion": 0.372
       },
       "combinado": {
         "ingredientes": 1,
@@ -4557,13 +4557,13 @@
         "ingredientes": 5,
         "pasos": 5,
         "minutos": 6,
-        "masa_g": 348,
+        "masa_g": 346,
         "cobertura": 1,
-        "kcal": 502,
+        "kcal": 480,
         "protein_g": 4,
         "carbs_g": 6,
-        "fat_g": 48,
-        "fraccion": 0.537
+        "fat_g": 46,
+        "fraccion": 0.536
       }
     }
   },
@@ -4575,13 +4575,13 @@
         "ingredientes": 3,
         "pasos": 6,
         "minutos": 8,
-        "masa_g": 465,
+        "masa_g": 463,
         "cobertura": 1,
-        "kcal": 762,
+        "kcal": 744,
         "protein_g": 70,
         "carbs_g": 8,
-        "fat_g": 49,
-        "fraccion": 0.55
+        "fat_g": 47,
+        "fraccion": 0.549
       },
       "guarnicion": {
         "ingredientes": 4,
@@ -4593,7 +4593,7 @@
         "protein_g": 4,
         "carbs_g": 21,
         "fat_g": 18,
-        "fraccion": 0.45
+        "fraccion": 0.451
       }
     }
   },
@@ -4611,19 +4611,19 @@
         "protein_g": 45,
         "carbs_g": 4,
         "fat_g": 58,
-        "fraccion": 0.579
+        "fraccion": 0.581
       },
       "guarnicion": {
         "ingredientes": 4,
         "pasos": 3,
         "minutos": 4,
-        "masa_g": 240,
+        "masa_g": 238,
         "cobertura": 1,
-        "kcal": 267,
+        "kcal": 253,
         "protein_g": 1,
         "carbs_g": 18,
-        "fat_g": 21,
-        "fraccion": 0.421
+        "fat_g": 19,
+        "fraccion": 0.419
       }
     }
   },
@@ -4641,19 +4641,19 @@
         "protein_g": 35,
         "carbs_g": 2,
         "fat_g": 57,
-        "fraccion": 0.566
+        "fraccion": 0.568
       },
       "guarnicion": {
         "ingredientes": 4,
         "pasos": 2,
         "minutos": 3,
-        "masa_g": 230,
+        "masa_g": 228,
         "cobertura": 1,
-        "kcal": 398,
+        "kcal": 384,
         "protein_g": 4,
         "carbs_g": 2,
-        "fat_g": 38,
-        "fraccion": 0.434
+        "fat_g": 37,
+        "fraccion": 0.432
       }
     }
   },
@@ -4665,13 +4665,13 @@
         "ingredientes": 4,
         "pasos": 8,
         "minutos": 18,
-        "masa_g": 525,
+        "masa_g": 523,
         "cobertura": 1,
-        "kcal": 769,
+        "kcal": 751,
         "protein_g": 43,
         "carbs_g": 6,
-        "fat_g": 63,
-        "fraccion": 0.76
+        "fat_g": 61,
+        "fraccion": 0.759
       },
       "guarnicion": {
         "ingredientes": 3,
@@ -4683,7 +4683,7 @@
         "protein_g": 2,
         "carbs_g": 6,
         "fat_g": 0,
-        "fraccion": 0.24
+        "fraccion": 0.241
       }
     }
   },
@@ -4695,13 +4695,13 @@
         "ingredientes": 3,
         "pasos": 6,
         "minutos": 12,
-        "masa_g": 415,
+        "masa_g": 413,
         "cobertura": 1,
-        "kcal": 597,
+        "kcal": 579,
         "protein_g": 35,
         "carbs_g": 7,
-        "fat_g": 48,
-        "fraccion": 0.786
+        "fat_g": 46,
+        "fraccion": 0.785
       },
       "guarnicion": {
         "ingredientes": 4,
@@ -4713,7 +4713,7 @@
         "protein_g": 13,
         "carbs_g": 3,
         "fat_g": 19,
-        "fraccion": 0.214
+        "fraccion": 0.215
       }
     }
   },
@@ -4731,7 +4731,7 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 31,
-        "fraccion": 0.465
+        "fraccion": 0.466
       },
       "combinado": {
         "ingredientes": 1,
@@ -4749,13 +4749,13 @@
         "ingredientes": 4,
         "pasos": 4,
         "minutos": 5,
-        "masa_g": 188,
+        "masa_g": 187,
         "cobertura": 1,
-        "kcal": 388,
+        "kcal": 373,
         "protein_g": 3,
         "carbs_g": 2,
-        "fat_g": 38,
-        "fraccion": 0.349
+        "fat_g": 36,
+        "fraccion": 0.348
       }
     }
   },
@@ -4797,13 +4797,13 @@
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 16,
-        "masa_g": 430,
+        "masa_g": 423,
         "cobertura": 1,
-        "kcal": 960,
+        "kcal": 903,
         "protein_g": 8,
         "carbs_g": 53,
-        "fat_g": 81,
-        "fraccion": 0.581
+        "fat_g": 74,
+        "fraccion": 0.577
       },
       "principal": {
         "ingredientes": 1,
@@ -4815,7 +4815,7 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 23,
-        "fraccion": 0.324
+        "fraccion": 0.327
       },
       "combinado": {
         "ingredientes": 1,
@@ -4839,13 +4839,13 @@
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 18,
-        "masa_g": 390,
+        "masa_g": 387,
         "cobertura": 1,
-        "kcal": 607,
+        "kcal": 578,
         "protein_g": 8,
         "carbs_g": 53,
-        "fat_g": 41,
-        "fraccion": 0.5
+        "fat_g": 37,
+        "fraccion": 0.498
       },
       "principal": {
         "ingredientes": 2,
@@ -4857,7 +4857,7 @@
         "protein_g": 38,
         "carbs_g": 4,
         "fat_g": 58,
-        "fraccion": 0.41
+        "fraccion": 0.412
       },
       "combinado": {
         "ingredientes": 1,
@@ -5005,19 +5005,19 @@
         "protein_g": 64,
         "carbs_g": 4,
         "fat_g": 39,
-        "fraccion": 0.541
+        "fraccion": 0.536
       },
       "salsa": {
         "ingredientes": 3,
         "pasos": 4,
         "minutos": 8,
-        "masa_g": 340,
+        "masa_g": 349,
         "cobertura": 1,
-        "kcal": 408,
+        "kcal": 414,
         "protein_g": 12,
         "carbs_g": 29,
-        "fat_g": 27,
-        "fraccion": 0.4
+        "fat_g": 28,
+        "fraccion": 0.406
       },
       "combinado": {
         "ingredientes": 1,
@@ -5029,7 +5029,7 @@
         "protein_g": 14,
         "carbs_g": 0,
         "fat_g": 14,
-        "fraccion": 0.059
+        "fraccion": 0.058
       }
     }
   },
@@ -5101,19 +5101,19 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 23,
-        "fraccion": 0.385
+        "fraccion": 0.39
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 7,
         "minutos": 17,
-        "masa_g": 380,
+        "masa_g": 373,
         "cobertura": 1,
-        "kcal": 924,
+        "kcal": 866,
         "protein_g": 7,
         "carbs_g": 46,
-        "fat_g": 81,
-        "fraccion": 0.61
+        "fat_g": 74,
+        "fraccion": 0.606
       },
       "combinado": {
         "ingredientes": 1,
@@ -5151,19 +5151,19 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 23,
-        "fraccion": 0.333
+        "fraccion": 0.332
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 6,
         "minutos": 28,
-        "masa_g": 510,
+        "masa_g": 512,
         "cobertura": 1,
-        "kcal": 560,
+        "kcal": 562,
         "protein_g": 12,
         "carbs_g": 65,
         "fat_g": 28,
-        "fraccion": 0.667
+        "fraccion": 0.668
       }
     }
   },
@@ -5195,12 +5195,12 @@
         "ingredientes": 8,
         "pasos": 12,
         "minutos": 35,
-        "masa_g": 876,
+        "masa_g": 874,
         "cobertura": 1,
-        "kcal": 698,
+        "kcal": 684,
         "protein_g": 38,
         "carbs_g": 34,
-        "fat_g": 45,
+        "fat_g": 43,
         "fraccion": 0.916
       },
       "combinado": {
@@ -5303,12 +5303,12 @@
         "ingredientes": 7,
         "pasos": 7,
         "minutos": 20,
-        "masa_g": 610,
+        "masa_g": 609,
         "cobertura": 1,
-        "kcal": 567,
+        "kcal": 560,
         "protein_g": 19,
         "carbs_g": 49,
-        "fat_g": 34,
+        "fat_g": 33,
         "fraccion": 0.709
       }
     }
@@ -5321,13 +5321,13 @@
         "ingredientes": 7,
         "pasos": 11,
         "minutos": 34,
-        "masa_g": 590,
+        "masa_g": 589,
         "cobertura": 1,
-        "kcal": 853,
+        "kcal": 842,
         "protein_g": 53,
         "carbs_g": 14,
-        "fat_g": 64,
-        "fraccion": 0.881
+        "fat_g": 63,
+        "fraccion": 0.88
       },
       "combinado": {
         "ingredientes": 1,
@@ -5339,7 +5339,7 @@
         "protein_g": 6,
         "carbs_g": 42,
         "fat_g": 2,
-        "fraccion": 0.119
+        "fraccion": 0.12
       }
     }
   },
@@ -5371,13 +5371,13 @@
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 17,
-        "masa_g": 700,
+        "masa_g": 667,
         "cobertura": 1,
-        "kcal": 3751,
+        "kcal": 3461,
         "protein_g": 7,
         "carbs_g": 46,
-        "fat_g": 400,
-        "fraccion": 0.574
+        "fat_g": 367,
+        "fraccion": 0.562
       },
       "principal": {
         "ingredientes": 1,
@@ -5389,7 +5389,7 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 23,
-        "fraccion": 0.197
+        "fraccion": 0.202
       },
       "combinado": {
         "ingredientes": 1,
@@ -5401,19 +5401,19 @@
         "protein_g": 23,
         "carbs_g": 0,
         "fat_g": 18,
-        "fraccion": 0.066
+        "fraccion": 0.067
       },
       "salsa": {
         "ingredientes": 5,
         "pasos": 7,
         "minutos": 13,
-        "masa_g": 200,
+        "masa_g": 199,
         "cobertura": 1,
-        "kcal": 259,
+        "kcal": 252,
         "protein_g": 4,
         "carbs_g": 8,
-        "fat_g": 22,
-        "fraccion": 0.164
+        "fat_g": 21,
+        "fraccion": 0.168
       }
     }
   },
@@ -5425,25 +5425,25 @@
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 14,
-        "masa_g": 700,
+        "masa_g": 667,
         "cobertura": 1,
-        "kcal": 3751,
+        "kcal": 3461,
         "protein_g": 7,
         "carbs_g": 46,
-        "fat_g": 400,
-        "fraccion": 0.676
+        "fat_g": 367,
+        "fraccion": 0.666
       },
       "principal": {
         "ingredientes": 2,
         "pasos": 2,
         "minutos": 3,
-        "masa_g": 255,
+        "masa_g": 254,
         "cobertura": 1,
-        "kcal": 476,
+        "kcal": 465,
         "protein_g": 30,
         "carbs_g": 2,
-        "fat_g": 38,
-        "fraccion": 0.246
+        "fat_g": 37,
+        "fraccion": 0.254
       },
       "combinado": {
         "ingredientes": 1,
@@ -5455,7 +5455,7 @@
         "protein_g": 23,
         "carbs_g": 0,
         "fat_g": 18,
-        "fraccion": 0.077
+        "fraccion": 0.08
       }
     }
   },
@@ -5489,19 +5489,19 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 23,
-        "fraccion": 0.304
+        "fraccion": 0.307
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 7,
         "minutos": 26,
-        "masa_g": 550,
+        "masa_g": 543,
         "cobertura": 1,
-        "kcal": 1347,
+        "kcal": 1289,
         "protein_g": 40,
         "carbs_g": 55,
-        "fat_g": 108,
-        "fraccion": 0.696
+        "fat_g": 102,
+        "fraccion": 0.693
       }
     }
   },
@@ -5523,19 +5523,19 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 23,
-        "fraccion": 0.316
+        "fraccion": 0.317
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 6,
         "minutos": 16,
-        "masa_g": 520,
+        "masa_g": 517,
         "cobertura": 1,
-        "kcal": 811,
+        "kcal": 782,
         "protein_g": 36,
         "carbs_g": 19,
-        "fat_g": 68,
-        "fraccion": 0.684
+        "fat_g": 65,
+        "fraccion": 0.683
       }
     }
   },
@@ -5557,19 +5557,19 @@
         "protein_g": 30,
         "carbs_g": 2,
         "fat_g": 23,
-        "fraccion": 0.27
+        "fraccion": 0.272
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 7,
         "minutos": 27,
-        "masa_g": 650,
+        "masa_g": 643,
         "cobertura": 1,
-        "kcal": 1633,
+        "kcal": 1575,
         "protein_g": 37,
         "carbs_g": 55,
-        "fat_g": 142,
-        "fraccion": 0.73
+        "fat_g": 136,
+        "fraccion": 0.728
       }
     }
   },
@@ -5587,19 +5587,19 @@
         "protein_g": 60,
         "carbs_g": 83,
         "fat_g": 50,
-        "fraccion": 0.669
+        "fraccion": 0.672
       },
       "salsa": {
         "ingredientes": 5,
         "pasos": 4,
         "minutos": 23,
-        "masa_g": 573,
+        "masa_g": 566,
         "cobertura": 1,
-        "kcal": 826,
+        "kcal": 768,
         "protein_g": 5,
         "carbs_g": 24,
-        "fat_g": 80,
-        "fraccion": 0.331
+        "fat_g": 74,
+        "fraccion": 0.328
       }
     }
   },
@@ -5701,7 +5701,7 @@
         "protein_g": 77,
         "carbs_g": 152,
         "fat_g": 4,
-        "fraccion": 0.842
+        "fraccion": 0.845
       },
       "guarnicion": {
         "ingredientes": 1,
@@ -5719,13 +5719,13 @@
         "ingredientes": 3,
         "pasos": 1,
         "minutos": 2,
-        "masa_g": 40,
+        "masa_g": 38,
         "cobertura": 1,
-        "kcal": 235,
+        "kcal": 216,
         "protein_g": 0,
         "carbs_g": 2,
-        "fat_g": 25,
-        "fraccion": 0.07
+        "fat_g": 23,
+        "fraccion": 0.067
       }
     }
   },
@@ -5761,13 +5761,13 @@
         "ingredientes": 5,
         "pasos": 1,
         "minutos": 3,
-        "masa_g": 160,
+        "masa_g": 159,
         "cobertura": 1,
-        "kcal": 406,
+        "kcal": 393,
         "protein_g": 12,
         "carbs_g": 23,
-        "fat_g": 28,
-        "fraccion": 0.245
+        "fat_g": 26,
+        "fraccion": 0.244
       },
       "combinado": {
         "ingredientes": 2,
@@ -5791,7 +5791,7 @@
         "protein_g": 2,
         "carbs_g": 7,
         "fat_g": 0,
-        "fraccion": 0.322
+        "fraccion": 0.323
       }
     }
   },
@@ -5815,13 +5815,13 @@
         "ingredientes": 11,
         "pasos": 10,
         "minutos": 35,
-        "masa_g": 628,
+        "masa_g": 604,
         "cobertura": 1,
-        "kcal": 3134,
+        "kcal": 2918,
         "protein_g": 22,
         "carbs_g": 61,
-        "fat_g": 307,
-        "fraccion": 0.754
+        "fat_g": 283,
+        "fraccion": 0.747
       },
       "salsa": {
         "ingredientes": 4,
@@ -5829,11 +5829,11 @@
         "minutos": 2,
         "masa_g": 205,
         "cobertura": 1,
-        "kcal": 217,
+        "kcal": 218,
         "protein_g": 9,
         "carbs_g": 7,
         "fat_g": 17,
-        "fraccion": 0.246
+        "fraccion": 0.253
       }
     }
   },
@@ -5855,19 +5855,19 @@
         "protein_g": 72,
         "carbs_g": 119,
         "fat_g": 21,
-        "fraccion": 0.901
+        "fraccion": 0.904
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 1,
         "minutos": 2,
-        "masa_g": 52,
+        "masa_g": 50,
         "cobertura": 1,
-        "kcal": 235,
+        "kcal": 217,
         "protein_g": 1,
         "carbs_g": 1,
-        "fat_g": 26,
-        "fraccion": 0.099
+        "fat_g": 24,
+        "fraccion": 0.096
       }
     }
   },
@@ -5891,13 +5891,13 @@
         "ingredientes": 10,
         "pasos": 11,
         "minutos": 29,
-        "masa_g": 813,
+        "masa_g": 789,
         "cobertura": 1,
-        "kcal": 3497,
+        "kcal": 3280,
         "protein_g": 44,
         "carbs_g": 98,
-        "fat_g": 318,
-        "fraccion": 0.883
+        "fat_g": 294,
+        "fraccion": 0.88
       },
       "salsa": {
         "ingredientes": 3,
@@ -5909,7 +5909,7 @@
         "protein_g": 4,
         "carbs_g": 5,
         "fat_g": 4,
-        "fraccion": 0.117
+        "fraccion": 0.12
       }
     }
   },
@@ -6009,13 +6009,13 @@
         "ingredientes": 7,
         "pasos": 10,
         "minutos": 26,
-        "masa_g": 464,
+        "masa_g": 462,
         "cobertura": 1,
-        "kcal": 578,
+        "kcal": 564,
         "protein_g": 23,
         "carbs_g": 49,
-        "fat_g": 24,
-        "fraccion": 0.744
+        "fat_g": 22,
+        "fraccion": 0.743
       },
       "guarnicion": {
         "ingredientes": 1,
@@ -6027,7 +6027,7 @@
         "protein_g": 11,
         "carbs_g": 138,
         "fat_g": 1,
-        "fraccion": 0.256
+        "fraccion": 0.257
       }
     }
   },
@@ -6055,12 +6055,12 @@
         "ingredientes": 7,
         "pasos": 8,
         "minutos": 24,
-        "masa_g": 612,
+        "masa_g": 613,
         "cobertura": 1,
-        "kcal": 1159,
+        "kcal": 1138,
         "protein_g": 58,
         "carbs_g": 75,
-        "fat_g": 64,
+        "fat_g": 62,
         "fraccion": 0.836
       },
       "guarnicion": {
@@ -6151,12 +6151,12 @@
         "ingredientes": 5,
         "pasos": 7,
         "minutos": 16,
-        "masa_g": 660,
+        "masa_g": 658,
         "cobertura": 1,
-        "kcal": 704,
+        "kcal": 689,
         "protein_g": 30,
         "carbs_g": 68,
-        "fat_g": 30,
+        "fat_g": 28,
         "fraccion": 0.868
       },
       "guarnicion": {
@@ -6329,12 +6329,12 @@
         "ingredientes": 6,
         "pasos": 12,
         "minutos": 39,
-        "masa_g": 672,
-        "cobertura": 0.405,
-        "kcal": 905,
+        "masa_g": 673,
+        "cobertura": 0.406,
+        "kcal": 891,
         "protein_g": 14,
         "carbs_g": 160,
-        "fat_g": 22,
+        "fat_g": 21,
         "fraccion": 0.789
       },
       "guarnicion": {
@@ -6441,13 +6441,13 @@
         "ingredientes": 9,
         "pasos": 11,
         "minutos": 154,
-        "masa_g": 1324,
+        "masa_g": 1342,
         "cobertura": 1,
-        "kcal": 1265,
+        "kcal": 1247,
         "protein_g": 110,
         "carbs_g": 33,
-        "fat_g": 66,
-        "fraccion": 0.791
+        "fat_g": 64,
+        "fraccion": 0.793
       },
       "principal": {
         "ingredientes": 1,
@@ -6459,7 +6459,7 @@
         "protein_g": 40,
         "carbs_g": 227,
         "fat_g": 5,
-        "fraccion": 0.191
+        "fraccion": 0.189
       },
       "guarnicion": {
         "ingredientes": 1,
@@ -6495,25 +6495,25 @@
         "ingredientes": 10,
         "pasos": 19,
         "minutos": 282,
-        "masa_g": 1898,
+        "masa_g": 1896,
         "cobertura": 1,
-        "kcal": 2349,
+        "kcal": 2334,
         "protein_g": 195,
         "carbs_g": 44,
-        "fat_g": 140,
-        "fraccion": 0.717
+        "fat_g": 138,
+        "fraccion": 0.712
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 15,
-        "masa_g": 750,
+        "masa_g": 768,
         "cobertura": 1,
-        "kcal": 1127,
-        "protein_g": 40,
-        "carbs_g": 64,
+        "kcal": 1138,
+        "protein_g": 41,
+        "carbs_g": 65,
         "fat_g": 79,
-        "fraccion": 0.283
+        "fraccion": 0.288
       }
     }
   },
@@ -6615,19 +6615,19 @@
         "protein_g": 28,
         "carbs_g": 161,
         "fat_g": 3,
-        "fraccion": 0.661
+        "fraccion": 0.667
       },
       "salsa": {
         "ingredientes": 5,
         "pasos": 2,
         "minutos": 3,
-        "masa_g": 186,
+        "masa_g": 181,
         "cobertura": 1,
-        "kcal": 856,
+        "kcal": 813,
         "protein_g": 17,
         "carbs_g": 4,
-        "fat_g": 85,
-        "fraccion": 0.339
+        "fat_g": 80,
+        "fraccion": 0.333
       }
     }
   },
@@ -6781,19 +6781,19 @@
         "protein_g": 25,
         "carbs_g": 142,
         "fat_g": 3,
-        "fraccion": 0.563
+        "fraccion": 0.567
       },
       "salsa": {
         "ingredientes": 6,
         "pasos": 5,
         "minutos": 8,
-        "masa_g": 155,
+        "masa_g": 153,
         "cobertura": 1,
-        "kcal": 687,
+        "kcal": 665,
         "protein_g": 20,
         "carbs_g": 29,
-        "fat_g": 52,
-        "fraccion": 0.437
+        "fat_g": 50,
+        "fraccion": 0.433
       }
     }
   },
@@ -6831,19 +6831,19 @@
         "protein_g": 25,
         "carbs_g": 142,
         "fat_g": 3,
-        "fraccion": 0.266
+        "fraccion": 0.268
       },
       "salsa": {
         "ingredientes": 5,
         "pasos": 7,
         "minutos": 42,
-        "masa_g": 573,
+        "masa_g": 568,
         "cobertura": 1,
-        "kcal": 1181,
+        "kcal": 1137,
         "protein_g": 34,
         "carbs_g": 16,
-        "fat_g": 109,
-        "fraccion": 0.734
+        "fat_g": 104,
+        "fraccion": 0.732
       }
     }
   },
@@ -6873,19 +6873,19 @@
         "protein_g": 23,
         "carbs_g": 128,
         "fat_g": 3,
-        "fraccion": 0.298
+        "fraccion": 0.291
       },
       "salsa": {
         "ingredientes": 5,
         "pasos": 5,
         "minutos": 18,
-        "masa_g": 382,
+        "masa_g": 396,
         "cobertura": 1,
-        "kcal": 227,
+        "kcal": 219,
         "protein_g": 4,
         "carbs_g": 19,
-        "fat_g": 16,
-        "fraccion": 0.621
+        "fat_g": 14,
+        "fraccion": 0.63
       },
       "combinado": {
         "ingredientes": 1,
@@ -6897,7 +6897,7 @@
         "protein_g": 14,
         "carbs_g": 0,
         "fat_g": 14,
-        "fraccion": 0.081
+        "fraccion": 0.079
       }
     }
   },
@@ -6919,7 +6919,7 @@
         "protein_g": 13,
         "carbs_g": 155,
         "fat_g": 2,
-        "fraccion": 0.25
+        "fraccion": 0.251
       },
       "salsa": {
         "ingredientes": 1,
@@ -6931,19 +6931,19 @@
         "protein_g": 2,
         "carbs_g": 8,
         "fat_g": 10,
-        "fraccion": 0.208
+        "fraccion": 0.209
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 7,
         "minutos": 11,
-        "masa_g": 390,
+        "masa_g": 388,
         "cobertura": 1,
-        "kcal": 650,
+        "kcal": 628,
         "protein_g": 18,
         "carbs_g": 49,
-        "fat_g": 42,
-        "fraccion": 0.542
+        "fat_g": 40,
+        "fraccion": 0.54
       }
     }
   },
@@ -6965,19 +6965,19 @@
         "protein_g": 23,
         "carbs_g": 128,
         "fat_g": 3,
-        "fraccion": 0.353
+        "fraccion": 0.345
       },
       "salsa": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 18,
-        "masa_g": 280,
+        "masa_g": 291,
         "cobertura": 1,
-        "kcal": 235,
+        "kcal": 223,
         "protein_g": 3,
-        "carbs_g": 11,
-        "fat_g": 20,
-        "fraccion": 0.549
+        "carbs_g": 12,
+        "fat_g": 19,
+        "fraccion": 0.559
       },
       "guarnicion": {
         "ingredientes": 2,
@@ -6989,7 +6989,7 @@
         "protein_g": 13,
         "carbs_g": 0,
         "fat_g": 12,
-        "fraccion": 0.098
+        "fraccion": 0.096
       }
     }
   },
@@ -7005,13 +7005,13 @@
         "ingredientes": 6,
         "pasos": 12,
         "minutos": 57,
-        "masa_g": 890,
+        "masa_g": 888,
         "cobertura": 1,
-        "kcal": 931,
+        "kcal": 913,
         "protein_g": 94,
         "carbs_g": 27,
-        "fat_g": 50,
-        "fraccion": 0.71
+        "fat_g": 48,
+        "fraccion": 0.709
       },
       "guarnicion": {
         "ingredientes": 3,
@@ -7023,7 +7023,7 @@
         "protein_g": 14,
         "carbs_g": 138,
         "fat_g": 25,
-        "fraccion": 0.29
+        "fraccion": 0.291
       }
     }
   },
@@ -7035,12 +7035,12 @@
         "ingredientes": 9,
         "pasos": 10,
         "minutos": 28,
-        "masa_g": 905,
+        "masa_g": 910,
         "cobertura": 1,
-        "kcal": 1223,
+        "kcal": 1197,
         "protein_g": 95,
-        "carbs_g": 60,
-        "fat_g": 66,
+        "carbs_g": 61,
+        "fat_g": 63,
         "fraccion": 0.85
       },
       "guarnicion": {
@@ -7169,13 +7169,13 @@
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 9,
-        "masa_g": 315,
+        "masa_g": 314,
         "cobertura": 1,
-        "kcal": 523,
+        "kcal": 512,
         "protein_g": 57,
         "carbs_g": 0,
-        "fat_g": 33,
-        "fraccion": 0.703
+        "fat_g": 32,
+        "fraccion": 0.702
       },
       "salsa": {
         "ingredientes": 3,
@@ -7187,7 +7187,7 @@
         "protein_g": 2,
         "carbs_g": 13,
         "fat_g": 0,
-        "fraccion": 0.297
+        "fraccion": 0.298
       }
     }
   },
@@ -7249,19 +7249,19 @@
         "protein_g": 55,
         "carbs_g": 1,
         "fat_g": 36,
-        "fraccion": 0.46
+        "fraccion": 0.461
       },
       "guarnicion": {
         "ingredientes": 6,
         "pasos": 4,
         "minutos": 6,
-        "masa_g": 353,
+        "masa_g": 352,
         "cobertura": 1,
-        "kcal": 409,
+        "kcal": 395,
         "protein_g": 4,
         "carbs_g": 6,
-        "fat_g": 38,
-        "fraccion": 0.54
+        "fat_g": 37,
+        "fraccion": 0.539
       }
     }
   },
@@ -7279,19 +7279,19 @@
         "protein_g": 72,
         "carbs_g": 1,
         "fat_g": 16,
-        "fraccion": 0.41
+        "fraccion": 0.411
       },
       "guarnicion": {
         "ingredientes": 6,
         "pasos": 5,
         "minutos": 6,
-        "masa_g": 433,
+        "masa_g": 431,
         "cobertura": 1,
-        "kcal": 478,
+        "kcal": 460,
         "protein_g": 5,
         "carbs_g": 10,
-        "fat_g": 43,
-        "fraccion": 0.59
+        "fat_g": 41,
+        "fraccion": 0.589
       }
     }
   },
@@ -7309,19 +7309,19 @@
         "protein_g": 60,
         "carbs_g": 13,
         "fat_g": 3,
-        "fraccion": 0.485
+        "fraccion": 0.486
       },
       "guarnicion": {
         "ingredientes": 5,
         "pasos": 4,
         "minutos": 5,
-        "masa_g": 343,
+        "masa_g": 341,
         "cobertura": 1,
-        "kcal": 458,
+        "kcal": 440,
         "protein_g": 4,
         "carbs_g": 7,
-        "fat_g": 43,
-        "fraccion": 0.515
+        "fat_g": 41,
+        "fraccion": 0.514
       }
     }
   },
@@ -7345,12 +7345,12 @@
         "ingredientes": 6,
         "pasos": 6,
         "minutos": 9,
-        "masa_g": 396,
+        "masa_g": 395,
         "cobertura": 1,
-        "kcal": 437,
+        "kcal": 423,
         "protein_g": 4,
         "carbs_g": 12,
-        "fat_g": 38,
+        "fat_g": 37,
         "fraccion": 0.568
       }
     }
@@ -7367,13 +7367,13 @@
         "ingredientes": 5,
         "pasos": 5,
         "minutos": 12,
-        "masa_g": 409,
+        "masa_g": 408,
         "cobertura": 1,
-        "kcal": 501,
+        "kcal": 490,
         "protein_g": 57,
         "carbs_g": 6,
-        "fat_g": 28,
-        "fraccion": 0.522
+        "fat_g": 26,
+        "fraccion": 0.521
       },
       "salsa": {
         "ingredientes": 5,
@@ -7385,7 +7385,7 @@
         "protein_g": 22,
         "carbs_g": 7,
         "fat_g": 33,
-        "fraccion": 0.478
+        "fraccion": 0.479
       }
     }
   },
@@ -7405,13 +7405,13 @@
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 7,
-        "masa_g": 190,
+        "masa_g": 189,
         "cobertura": 1,
-        "kcal": 242,
+        "kcal": 234,
         "protein_g": 34,
         "carbs_g": 0,
-        "fat_g": 12,
-        "fraccion": 0.313
+        "fat_g": 11,
+        "fraccion": 0.311
       },
       "guarnicion": {
         "ingredientes": 7,
@@ -7423,7 +7423,7 @@
         "protein_g": 22,
         "carbs_g": 38,
         "fat_g": 45,
-        "fraccion": 0.688
+        "fraccion": 0.689
       }
     }
   },
@@ -7449,19 +7449,19 @@
         "protein_g": 57,
         "carbs_g": 2,
         "fat_g": 4,
-        "fraccion": 0.578
+        "fraccion": 0.59
       },
       "salsa": {
         "ingredientes": 6,
         "pasos": 5,
         "minutos": 7,
-        "masa_g": 234,
+        "masa_g": 222,
         "cobertura": 1,
-        "kcal": 1429,
+        "kcal": 1320,
         "protein_g": 8,
         "carbs_g": 4,
-        "fat_g": 156,
-        "fraccion": 0.422
+        "fat_g": 143,
+        "fraccion": 0.41
       }
     }
   },
@@ -7483,19 +7483,19 @@
         "protein_g": 113,
         "carbs_g": 83,
         "fat_g": 73,
-        "fraccion": 0.893
+        "fraccion": 0.895
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 2,
         "minutos": 5,
-        "masa_g": 100,
+        "masa_g": 98,
         "cobertura": 1,
-        "kcal": 388,
+        "kcal": 366,
         "protein_g": 3,
         "carbs_g": 17,
-        "fat_g": 34,
-        "fraccion": 0.107
+        "fat_g": 32,
+        "fraccion": 0.105
       }
     }
   },
@@ -7539,13 +7539,13 @@
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 7,
-        "masa_g": 345,
+        "masa_g": 343,
         "cobertura": 1,
-        "kcal": 427,
+        "kcal": 409,
         "protein_g": 38,
         "carbs_g": 0,
-        "fat_g": 31,
-        "fraccion": 0.714
+        "fat_g": 29,
+        "fraccion": 0.713
       },
       "salsa": {
         "ingredientes": 3,
@@ -7557,7 +7557,7 @@
         "protein_g": 2,
         "carbs_g": 13,
         "fat_g": 1,
-        "fraccion": 0.286
+        "fraccion": 0.287
       }
     }
   },
@@ -7575,19 +7575,19 @@
         "protein_g": 65,
         "carbs_g": 21,
         "fat_g": 42,
-        "fraccion": 0.982
+        "fraccion": 0.983
       },
       "principal": {
         "ingredientes": 1,
         "pasos": 4,
         "minutos": 8,
-        "masa_g": 15,
+        "masa_g": 14,
         "cobertura": 1,
-        "kcal": 133,
+        "kcal": 122,
         "protein_g": 0,
         "carbs_g": 0,
-        "fat_g": 15,
-        "fraccion": 0.018
+        "fat_g": 14,
+        "fraccion": 0.017
       }
     }
   },
@@ -7599,13 +7599,13 @@
         "ingredientes": 4,
         "pasos": 6,
         "minutos": 7,
-        "masa_g": 390,
+        "masa_g": 389,
         "cobertura": 1,
-        "kcal": 701,
+        "kcal": 694,
         "protein_g": 55,
         "carbs_g": 15,
-        "fat_g": 47,
-        "fraccion": 0.753
+        "fat_g": 46,
+        "fraccion": 0.752
       },
       "salsa": {
         "ingredientes": 2,
@@ -7617,7 +7617,7 @@
         "protein_g": 2,
         "carbs_g": 11,
         "fat_g": 0,
-        "fraccion": 0.247
+        "fraccion": 0.248
       }
     }
   },
@@ -7635,19 +7635,19 @@
         "protein_g": 60,
         "carbs_g": 0,
         "fat_g": 19,
-        "fraccion": 0.504
+        "fraccion": 0.506
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 7,
         "minutos": 16,
-        "masa_g": 195,
+        "masa_g": 193,
         "cobertura": 1,
-        "kcal": 264,
+        "kcal": 246,
         "protein_g": 2,
         "carbs_g": 8,
-        "fat_g": 25,
-        "fraccion": 0.307
+        "fat_g": 23,
+        "fraccion": 0.305
       },
       "combinado": {
         "ingredientes": 1,
@@ -7659,7 +7659,7 @@
         "protein_g": 1,
         "carbs_g": 11,
         "fat_g": 0,
-        "fraccion": 0.189
+        "fraccion": 0.19
       }
     }
   },
@@ -7683,12 +7683,12 @@
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 9,
-        "masa_g": 335,
+        "masa_g": 334,
         "cobertura": 1,
-        "kcal": 711,
+        "kcal": 701,
         "protein_g": 59,
         "carbs_g": 0,
-        "fat_g": 53,
+        "fat_g": 52,
         "fraccion": 0.801
       },
       "salsa": {
@@ -7719,19 +7719,19 @@
         "protein_g": 49,
         "carbs_g": 22,
         "fat_g": 12,
-        "fraccion": 0.407
+        "fraccion": 0.408
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 22,
-        "masa_g": 430,
+        "masa_g": 428,
         "cobertura": 1,
-        "kcal": 555,
+        "kcal": 533,
         "protein_g": 9,
         "carbs_g": 61,
-        "fat_g": 31,
-        "fraccion": 0.427
+        "fat_g": 28,
+        "fraccion": 0.426
       },
       "salsa": {
         "ingredientes": 3,
@@ -7761,19 +7761,19 @@
         "protein_g": 60,
         "carbs_g": 11,
         "fat_g": 2,
-        "fraccion": 0.411
+        "fraccion": 0.413
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 20,
-        "masa_g": 435,
+        "masa_g": 432,
         "cobertura": 1,
-        "kcal": 599,
+        "kcal": 574,
         "protein_g": 9,
         "carbs_g": 61,
-        "fat_g": 36,
-        "fraccion": 0.526
+        "fat_g": 33,
+        "fraccion": 0.524
       },
       "salsa": {
         "ingredientes": 2,
@@ -7825,12 +7825,12 @@
         "ingredientes": 7,
         "pasos": 5,
         "minutos": 6,
-        "masa_g": 210,
+        "masa_g": 208,
         "cobertura": 1,
-        "kcal": 552,
+        "kcal": 530,
         "protein_g": 10,
         "carbs_g": 21,
-        "fat_g": 46,
+        "fat_g": 43,
         "fraccion": 0.08
       }
     }
@@ -7843,12 +7843,12 @@
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 9,
-        "masa_g": 335,
+        "masa_g": 334,
         "cobertura": 1,
-        "kcal": 549,
+        "kcal": 538,
         "protein_g": 60,
         "carbs_g": 0,
-        "fat_g": 34,
+        "fat_g": 33,
         "fraccion": 0.611
       },
       "salsa": {
@@ -7909,25 +7909,25 @@
         "ingredientes": 9,
         "pasos": 19,
         "minutos": 242,
-        "masa_g": 1541,
+        "masa_g": 1523,
         "cobertura": 1,
-        "kcal": 5081,
-        "protein_g": 92,
-        "carbs_g": 125,
-        "fat_g": 474,
-        "fraccion": 0.906
+        "kcal": 4801,
+        "protein_g": 93,
+        "carbs_g": 126,
+        "fat_g": 442,
+        "fraccion": 0.911
       },
       "salsa": {
         "ingredientes": 2,
         "pasos": 4,
         "minutos": 11,
-        "masa_g": 160,
+        "masa_g": 148,
         "cobertura": 1,
-        "kcal": 1363,
+        "kcal": 1255,
         "protein_g": 1,
         "carbs_g": 2,
-        "fat_g": 150,
-        "fraccion": 0.094
+        "fat_g": 138,
+        "fraccion": 0.089
       }
     }
   },
@@ -7949,19 +7949,19 @@
         "protein_g": 54,
         "carbs_g": 0,
         "fat_g": 2,
-        "fraccion": 0.24
+        "fraccion": 0.241
       },
       "guarnicion": {
         "ingredientes": 9,
         "pasos": 12,
         "minutos": 49,
-        "masa_g": 950,
+        "masa_g": 947,
         "cobertura": 1,
-        "kcal": 715,
+        "kcal": 686,
         "protein_g": 24,
         "carbs_g": 36,
-        "fat_g": 53,
-        "fraccion": 0.76
+        "fat_g": 50,
+        "fraccion": 0.759
       }
     }
   },
@@ -7993,13 +7993,13 @@
         "ingredientes": 2,
         "pasos": 5,
         "minutos": 9,
-        "masa_g": 370,
+        "masa_g": 368,
         "cobertura": 1,
-        "kcal": 563,
+        "kcal": 548,
         "protein_g": 63,
         "carbs_g": 0,
-        "fat_g": 35,
-        "fraccion": 0.588
+        "fat_g": 33,
+        "fraccion": 0.587
       },
       "salsa": {
         "ingredientes": 5,
@@ -8011,7 +8011,7 @@
         "protein_g": 2,
         "carbs_g": 23,
         "fat_g": 1,
-        "fraccion": 0.412
+        "fraccion": 0.413
       }
     }
   },
@@ -8057,12 +8057,12 @@
         "ingredientes": 9,
         "pasos": 10,
         "minutos": 77,
-        "masa_g": 1601,
+        "masa_g": 1598,
         "cobertura": 0.865,
-        "kcal": 1117,
+        "kcal": 1088,
         "protein_g": 117,
         "carbs_g": 37,
-        "fat_g": 52,
+        "fat_g": 49,
         "fraccion": 0.833
       },
       "guarnicion": {
@@ -8093,19 +8093,19 @@
         "protein_g": 97,
         "carbs_g": 6,
         "fat_g": 3,
-        "fraccion": 0.537
+        "fraccion": 0.546
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 4,
         "minutos": 7,
-        "masa_g": 225,
+        "masa_g": 213,
         "cobertura": 1,
-        "kcal": 1449,
+        "kcal": 1341,
         "protein_g": 8,
         "carbs_g": 3,
-        "fat_g": 156,
-        "fraccion": 0.302
+        "fat_g": 144,
+        "fraccion": 0.291
       },
       "guarnicion": {
         "ingredientes": 1,
@@ -8117,7 +8117,7 @@
         "protein_g": 1,
         "carbs_g": 11,
         "fat_g": 0,
-        "fraccion": 0.161
+        "fraccion": 0.164
       }
     }
   },
@@ -8163,19 +8163,19 @@
         "protein_g": 74,
         "carbs_g": 0,
         "fat_g": 48,
-        "fraccion": 0.591
+        "fraccion": 0.593
       },
       "salsa": {
         "ingredientes": 7,
         "pasos": 8,
         "minutos": 45,
-        "masa_g": 277,
+        "masa_g": 274,
         "cobertura": 1,
-        "kcal": 668,
+        "kcal": 639,
         "protein_g": 12,
         "carbs_g": 25,
-        "fat_g": 56,
-        "fraccion": 0.409
+        "fat_g": 53,
+        "fraccion": 0.407
       }
     }
   },
@@ -8201,19 +8201,19 @@
         "protein_g": 52,
         "carbs_g": 0,
         "fat_g": 12,
-        "fraccion": 0.306
+        "fraccion": 0.307
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 4,
         "minutos": 23,
-        "masa_g": 390,
+        "masa_g": 388,
         "cobertura": 1,
-        "kcal": 507,
+        "kcal": 485,
         "protein_g": 7,
         "carbs_g": 51,
-        "fat_g": 31,
-        "fraccion": 0.373
+        "fat_g": 28,
+        "fraccion": 0.372
       },
       "salsa": {
         "ingredientes": 5,
@@ -8237,13 +8237,13 @@
         "ingredientes": 4,
         "pasos": 10,
         "minutos": 29,
-        "masa_g": 410,
+        "masa_g": 404,
         "cobertura": 1,
-        "kcal": 886,
+        "kcal": 835,
         "protein_g": 59,
         "carbs_g": 4,
-        "fat_g": 72,
-        "fraccion": 0.469
+        "fat_g": 66,
+        "fraccion": 0.465
       },
       "guarnicion": {
         "ingredientes": 3,
@@ -8255,7 +8255,7 @@
         "protein_g": 9,
         "carbs_g": 22,
         "fat_g": 23,
-        "fraccion": 0.531
+        "fraccion": 0.535
       }
     }
   },
@@ -8279,13 +8279,13 @@
         "ingredientes": 3,
         "pasos": 6,
         "minutos": 25,
-        "masa_g": 380,
+        "masa_g": 378,
         "cobertura": 1,
-        "kcal": 503,
+        "kcal": 481,
         "protein_g": 7,
         "carbs_g": 50,
-        "fat_g": 31,
-        "fraccion": 0.432
+        "fat_g": 28,
+        "fraccion": 0.431
       },
       "salsa": {
         "ingredientes": 5,
@@ -8315,19 +8315,19 @@
         "protein_g": 43,
         "carbs_g": 36,
         "fat_g": 3,
-        "fraccion": 0.306
+        "fraccion": 0.313
       },
       "guarnicion": {
         "ingredientes": 2,
         "pasos": 6,
         "minutos": 24,
-        "masa_g": 650,
+        "masa_g": 625,
         "cobertura": 1,
-        "kcal": 2904,
+        "kcal": 2687,
         "protein_g": 8,
         "carbs_g": 53,
-        "fat_g": 300,
-        "fraccion": 0.538
+        "fat_g": 276,
+        "fraccion": 0.528
       },
       "salsa": {
         "ingredientes": 3,
@@ -8339,7 +8339,7 @@
         "protein_g": 2,
         "carbs_g": 14,
         "fat_g": 48,
-        "fraccion": 0.156
+        "fraccion": 0.159
       }
     }
   },
@@ -8357,31 +8357,31 @@
         "protein_g": 59,
         "carbs_g": 0,
         "fat_g": 38,
-        "fraccion": 0.373
+        "fraccion": 0.371
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 6,
         "minutos": 26,
-        "masa_g": 455,
+        "masa_g": 456,
         "cobertura": 1,
-        "kcal": 539,
+        "kcal": 540,
         "protein_g": 6,
         "carbs_g": 94,
         "fat_g": 15,
-        "fraccion": 0.53
+        "fraccion": 0.528
       },
       "salsa": {
         "ingredientes": 6,
         "pasos": 5,
         "minutos": 8,
-        "masa_g": 78,
+        "masa_g": 82,
         "cobertura": 1,
         "kcal": 159,
-        "protein_g": 3,
+        "protein_g": 4,
         "carbs_g": 25,
         "fat_g": 5,
-        "fraccion": 0.091
+        "fraccion": 0.095
       },
       "combinado": {
         "ingredientes": 1,
@@ -8411,7 +8411,7 @@
         "protein_g": 53,
         "carbs_g": 0,
         "fat_g": 3,
-        "fraccion": 0.338
+        "fraccion": 0.339
       },
       "salsa": {
         "ingredientes": 5,
@@ -8423,19 +8423,19 @@
         "protein_g": 25,
         "carbs_g": 16,
         "fat_g": 6,
-        "fraccion": 0.285
+        "fraccion": 0.286
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 26,
-        "masa_g": 390,
+        "masa_g": 387,
         "cobertura": 1,
-        "kcal": 591,
+        "kcal": 562,
         "protein_g": 7,
         "carbs_g": 50,
-        "fat_g": 41,
-        "fraccion": 0.377
+        "fat_g": 37,
+        "fraccion": 0.375
       }
     }
   },
@@ -8453,19 +8453,19 @@
         "protein_g": 144,
         "carbs_g": 0,
         "fat_g": 37,
-        "fraccion": 0.543
+        "fraccion": 0.544
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 29,
-        "masa_g": 400,
+        "masa_g": 396,
         "cobertura": 1,
-        "kcal": 679,
+        "kcal": 643,
         "protein_g": 7,
         "carbs_g": 50,
-        "fat_g": 51,
-        "fraccion": 0.31
+        "fat_g": 47,
+        "fraccion": 0.308
       },
       "salsa": {
         "ingredientes": 6,
@@ -8477,7 +8477,7 @@
         "protein_g": 12,
         "carbs_g": 23,
         "fat_g": 18,
-        "fraccion": 0.147
+        "fraccion": 0.148
       }
     }
   },
@@ -8495,19 +8495,19 @@
         "protein_g": 76,
         "carbs_g": 0,
         "fat_g": 39,
-        "fraccion": 0.397
+        "fraccion": 0.394
       },
       "guarnicion": {
         "ingredientes": 4,
         "pasos": 6,
         "minutos": 27,
-        "masa_g": 435,
+        "masa_g": 441,
         "cobertura": 1,
-        "kcal": 408,
+        "kcal": 412,
         "protein_g": 12,
-        "carbs_g": 57,
-        "fat_g": 14,
-        "fraccion": 0.54
+        "carbs_g": 58,
+        "fat_g": 15,
+        "fraccion": 0.543
       },
       "salsa": {
         "ingredientes": 5,
@@ -8515,7 +8515,7 @@
         "minutos": 8,
         "masa_g": 46,
         "cobertura": 1,
-        "kcal": 139,
+        "kcal": 136,
         "protein_g": 1,
         "carbs_g": 23,
         "fat_g": 5,
@@ -8559,13 +8559,13 @@
         "ingredientes": 8,
         "pasos": 11,
         "minutos": 35,
-        "masa_g": 871,
+        "masa_g": 849,
         "cobertura": 1,
-        "kcal": 3489,
+        "kcal": 3274,
         "protein_g": 68,
         "carbs_g": 98,
-        "fat_g": 317,
-        "fraccion": 0.936
+        "fat_g": 293,
+        "fraccion": 0.934
       },
       "salsa": {
         "ingredientes": 1,
@@ -8577,7 +8577,7 @@
         "protein_g": 1,
         "carbs_g": 0,
         "fat_g": 47,
-        "fraccion": 0.064
+        "fraccion": 0.066
       }
     }
   },
@@ -8617,25 +8617,25 @@
         "ingredientes": 5,
         "pasos": 8,
         "minutos": 29,
-        "masa_g": 355,
+        "masa_g": 360,
         "cobertura": 1,
-        "kcal": 617,
-        "protein_g": 58,
-        "carbs_g": 15,
+        "kcal": 620,
+        "protein_g": 59,
+        "carbs_g": 16,
         "fat_g": 36,
-        "fraccion": 0.481
+        "fraccion": 0.486
       },
       "guarnicion": {
         "ingredientes": 3,
         "pasos": 5,
         "minutos": 27,
-        "masa_g": 380,
+        "masa_g": 378,
         "cobertura": 1,
-        "kcal": 418,
+        "kcal": 404,
         "protein_g": 7,
         "carbs_g": 51,
-        "fat_g": 21,
-        "fraccion": 0.515
+        "fat_g": 19,
+        "fraccion": 0.51
       },
       "combinado": {
         "ingredientes": 1,
@@ -8659,13 +8659,13 @@
         "ingredientes": 4,
         "pasos": 8,
         "minutos": 13,
-        "masa_g": 580,
+        "masa_g": 575,
         "cobertura": 1,
-        "kcal": 1083,
+        "kcal": 1039,
         "protein_g": 62,
         "carbs_g": 44,
-        "fat_g": 74,
-        "fraccion": 0.598
+        "fat_g": 69,
+        "fraccion": 0.596
       },
       "guarnicion": {
         "ingredientes": 3,
@@ -8677,7 +8677,7 @@
         "protein_g": 4,
         "carbs_g": 22,
         "fat_g": 13,
-        "fraccion": 0.402
+        "fraccion": 0.404
       }
     }
   },
@@ -8697,13 +8697,13 @@
         "ingredientes": 3,
         "pasos": 4,
         "minutos": 8,
-        "masa_g": 560,
+        "masa_g": 553,
         "cobertura": 1,
-        "kcal": 1495,
+        "kcal": 1437,
         "protein_g": 79,
         "carbs_g": 58,
-        "fat_g": 106,
-        "fraccion": 0.629
+        "fat_g": 100,
+        "fraccion": 0.626
       },
       "guarnicion": {
         "ingredientes": 3,
@@ -8715,7 +8715,7 @@
         "protein_g": 6,
         "carbs_g": 9,
         "fat_g": 5,
-        "fraccion": 0.371
+        "fraccion": 0.374
       }
     }
   },
@@ -8733,19 +8733,19 @@
         "protein_g": 67,
         "carbs_g": 0,
         "fat_g": 8,
-        "fraccion": 0.842
+        "fraccion": 0.847
       },
       "salsa": {
         "ingredientes": 4,
         "pasos": 5,
         "minutos": 7,
-        "masa_g": 75,
+        "masa_g": 72,
         "cobertura": 1,
-        "kcal": 395,
+        "kcal": 366,
         "protein_g": 2,
         "carbs_g": 7,
-        "fat_g": 41,
-        "fraccion": 0.158
+        "fat_g": 37,
+        "fraccion": 0.153
       }
     }
   },
@@ -8821,13 +8821,13 @@
         "ingredientes": 6,
         "pasos": 11,
         "minutos": 27,
-        "masa_g": 377,
+        "masa_g": 374,
         "cobertura": 1,
-        "kcal": 1388,
+        "kcal": 1359,
         "protein_g": 41,
         "carbs_g": 110,
-        "fat_g": 86,
-        "fraccion": 0.863
+        "fat_g": 83,
+        "fraccion": 0.862
       },
       "guarnicion": {
         "ingredientes": 1,
@@ -8839,7 +8839,7 @@
         "protein_g": 0,
         "carbs_g": 9,
         "fat_g": 0,
-        "fraccion": 0.137
+        "fraccion": 0.138
       }
     }
   },
@@ -8963,13 +8963,13 @@
         "ingredientes": 5,
         "pasos": 6,
         "minutos": 254,
-        "masa_g": 601,
+        "masa_g": 604,
         "cobertura": 0.992,
-        "kcal": 1630,
+        "kcal": 1631,
         "protein_g": 18,
         "carbs_g": 100,
-        "fat_g": 126,
-        "fraccion": 0.723
+        "fat_g": 127,
+        "fraccion": 0.724
       },
       "salsa": {
         "ingredientes": 2,
@@ -8981,7 +8981,7 @@
         "protein_g": 3,
         "carbs_g": 19,
         "fat_g": 2,
-        "fraccion": 0.277
+        "fraccion": 0.276
       }
     }
   },
@@ -9373,12 +9373,12 @@
         "ingredientes": 8,
         "pasos": 11,
         "minutos": 36,
-        "masa_g": 858,
+        "masa_g": 856,
         "cobertura": 1,
-        "kcal": 459,
+        "kcal": 444,
         "protein_g": 8,
         "carbs_g": 34,
-        "fat_g": 33,
+        "fat_g": 31,
         "fraccion": 0.781
       },
       "guarnicion": {
@@ -9419,12 +9419,12 @@
         "ingredientes": 7,
         "pasos": 8,
         "minutos": 29,
-        "masa_g": 850,
+        "masa_g": 849,
         "cobertura": 1,
-        "kcal": 497,
+        "kcal": 486,
         "protein_g": 22,
         "carbs_g": 66,
-        "fat_g": 17,
+        "fat_g": 16,
         "fraccion": 0.944
       },
       "guarnicion": {
@@ -9485,12 +9485,12 @@
         "ingredientes": 5,
         "pasos": 10,
         "minutos": 32,
-        "masa_g": 795,
+        "masa_g": 794,
         "cobertura": 1,
-        "kcal": 322,
+        "kcal": 311,
         "protein_g": 13,
         "carbs_g": 26,
-        "fat_g": 16,
+        "fat_g": 15,
         "fraccion": 0.964
       },
       "combinado": {
@@ -9515,12 +9515,12 @@
         "ingredientes": 5,
         "pasos": 10,
         "minutos": 155,
-        "masa_g": 565,
+        "masa_g": 564,
         "cobertura": 1,
-        "kcal": 442,
+        "kcal": 431,
         "protein_g": 10,
         "carbs_g": 47,
-        "fat_g": 24,
+        "fat_g": 23,
         "fraccion": 0.919
       },
       "guarnicion": {
@@ -9581,13 +9581,13 @@
         "ingredientes": 7,
         "pasos": 12,
         "minutos": 43,
-        "masa_g": 1243,
+        "masa_g": 1241,
         "cobertura": 0.903,
-        "kcal": 417,
+        "kcal": 396,
         "protein_g": 8,
         "carbs_g": 27,
-        "fat_g": 31,
-        "fraccion": 0.822
+        "fat_g": 29,
+        "fraccion": 0.821
       },
       "guarnicion": {
         "ingredientes": 2,

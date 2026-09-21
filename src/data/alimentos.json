@@ -27,7 +27,7 @@
       "saturatedFat100g": 14.2,
       "sodium100g": 0
     },
-    "densidad": null,
+    "densidad": 0.92,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -35,7 +35,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "ausente_resoluble",
       "estado": "ausente_resoluble",
@@ -73,7 +73,7 @@
       "saturatedFat100g": 11.1,
       "sodium100g": 10
     },
-    "densidad": null,
+    "densidad": 0.92,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -81,7 +81,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
@@ -119,7 +119,7 @@
       "saturatedFat100g": 17.06,
       "sodium100g": 0
     },
-    "densidad": null,
+    "densidad": 0.918,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -127,7 +127,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -165,7 +165,7 @@
       "saturatedFat100g": 17.06,
       "sodium100g": 0
     },
-    "densidad": null,
+    "densidad": 0.918,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -173,7 +173,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_resoluble",
@@ -2080,7 +2080,7 @@
       "saturatedFat100g": 2.85,
       "sodium100g": 354
     },
-    "densidad": null,
+    "densidad": 1.05,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -2088,7 +2088,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -2522,7 +2522,7 @@
       "saturatedFat100g": null,
       "sodium100g": null
     },
-    "densidad": null,
+    "densidad": 0.95,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -2530,7 +2530,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -8156,7 +8156,7 @@
       "saturatedFat100g": 2.3,
       "sodium100g": 46
     },
-    "densidad": null,
+    "densidad": 1.03,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -8164,7 +8164,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -8423,7 +8423,7 @@
       "saturatedFat100g": 2.3,
       "sodium100g": 0.044
     },
-    "densidad": null,
+    "densidad": 1.03,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -8431,7 +8431,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_resoluble",
@@ -8515,7 +8515,7 @@
       "saturatedFat100g": 6.0907,
       "sodium100g": 124.5
     },
-    "densidad": null,
+    "densidad": 1.29,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -8523,7 +8523,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -8883,7 +8883,7 @@
       "saturatedFat100g": null,
       "sodium100g": 3
     },
-    "densidad": null,
+    "densidad": 1.03,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -8891,7 +8891,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -8929,7 +8929,7 @@
       "saturatedFat100g": 0.04,
       "sodium100g": 0.002
     },
-    "densidad": null,
+    "densidad": 1.03,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -8937,7 +8937,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_resoluble",
@@ -10135,7 +10135,7 @@
       "saturatedFat100g": 0,
       "sodium100g": 23
     },
-    "densidad": null,
+    "densidad": 1.42,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -10143,7 +10143,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -10706,7 +10706,7 @@
       "saturatedFat100g": 0.005,
       "sodium100g": 2.5
     },
-    "densidad": null,
+    "densidad": 1.04,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -10714,7 +10714,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -14250,7 +14250,7 @@
       "origen": "no_aplica"
     },
     "nutricion": null,
-    "densidad": null,
+    "densidad": 0.95,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "ausente_resoluble",
@@ -14258,7 +14258,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_resoluble",
@@ -14839,7 +14839,7 @@
       "saturatedFat100g": 0.011,
       "sodium100g": 5720
     },
-    "densidad": null,
+    "densidad": 1.15,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -14847,7 +14847,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -15327,7 +15327,7 @@
       "saturatedFat100g": 0.007,
       "sodium100g": 6.57
     },
-    "densidad": null,
+    "densidad": 1.32,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -15335,7 +15335,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -16073,7 +16073,7 @@
       "saturatedFat100g": 0.03,
       "sodium100g": 0.011
     },
-    "densidad": null,
+    "densidad": 1.05,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -16081,7 +16081,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -16837,7 +16837,7 @@
       "saturatedFat100g": 0,
       "sodium100g": 1
     },
-    "densidad": null,
+    "densidad": 0.94,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -16845,7 +16845,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
@@ -16929,7 +16929,7 @@
       "saturatedFat100g": 0,
       "sodium100g": null
     },
-    "densidad": null,
+    "densidad": 0.95,
     "fraccionComestible": null,
     "huecos": {
       "nutricion": "relleno",
@@ -16937,7 +16937,7 @@
       "familia": "relleno",
       "rol": "relleno",
       "taxonomia": "ausente_resoluble",
-      "densidad": "ausente_resoluble",
+      "densidad": "relleno",
       "fraccionComestible": "ausente_resoluble",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",

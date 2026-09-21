@@ -22,10 +22,11 @@
 import ingredientsJson from "../data/ingredients.json";
 import substitutionsJson from "../data/ingredientSubstitutions.json";
 import fraccionComestibleJson from "../data/fraccionComestible.json";
+import densidadJson from "../data/densidad.json";
 import { validateIngredients } from "../data/ingredientSchema.js";
 import { createIngredientResolver } from "./ingredientResolver.js";
 import { guessShoppingAisle, guessIngredientCategory, normalizeName } from "./ingredientCategories.js";
-import { gramsForRecipeQuantity, gramsPerPiece, registerPieceCatalog } from "./kitchenUnits.js";
+import { gramsForRecipeQuantity, gramsPerPiece, registerPieceCatalog, registerDensityCatalog } from "./kitchenUnits.js";
 
 // Mismo criterio que recipeCatalog.js, y por el mismo motivo: solo en
 // desarrollo y en tests. `scripts/validate-catalog.mjs` valida este fichero en
@@ -137,6 +138,22 @@ export function pieceGramsFor(name) {
 // que cierra el viaje de ida de la lista de la compra — ver el comentario de
 // registerPieceCatalog en kitchenUnits.js.
 registerPieceCatalog(pieceFor);
+
+/**
+ * Gramos por mililitro de un ingrediente, o null si el catálogo no lo declara
+ * (y entonces kitchenUnits asume 1, que es lo correcto para el agua y los
+ * caldos). Resuelve por id, no por texto: la densidad es del alimento, no de
+ * cómo lo escriba la receta.
+ *
+ * @param {string} name
+ * @returns {number|null}
+ */
+export function densityFor(name) {
+  const id = resolveIngredientId(name);
+  return id ? (densidadJson[id]?.valor ?? null) : null;
+}
+
+registerDensityCatalog(densityFor);
 
 /**
  * Las líneas de ingrediente de una receta, resueltas contra el catálogo — el

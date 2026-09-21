@@ -54,6 +54,21 @@ export function registerPieceCatalog(fn) {
   catalogPiece = typeof fn === "function" ? fn : () => null;
 }
 
+// Cuántos gramos pesa un mililitro de este ingrediente. Se inyecta por el
+// mismo motivo que el catálogo de piezas: ingredients.js importa este módulo
+// y volver a importarlo sería un ciclo.
+//
+// Sin registro devuelve null y el módulo se comporta como siempre, asumiendo
+// 1 g/ml. Eso no es un fallback perezoso: para el agua, los caldos, el vino y
+// el vinagre —que son la mayoría de los mililitros del catálogo— es la
+// densidad correcta. Lo que estaba mal era aplicarlo TAMBIÉN al aceite (0,918)
+// y a la miel (1,42).
+/** @type {(name: string) => number|null} */
+let catalogDensity = () => null;
+export function registerDensityCatalog(fn) {
+  catalogDensity = typeof fn === "function" ? fn : () => null;
+}
+
 // Plural por defecto de una pieza del catálogo cuando no declara el suyo,
 // palabra a palabra: vocal → +s; consonante → +es, y al alargarse la palabra
 // la tilde de la última sílaba se cae ("limón" → "limones", "champiñón" →
@@ -396,10 +411,15 @@ export function gramsPerPiece(name) {
  *   - `cucharada`/`cucharadita`/`taza` on an ingredient `DRY_VOLUME` doesn't
  *     cover AND that isn't a plain liquid either (density unknown either way).
  *
- * Liquids (`ml`/`l`, and a spoon/cup measure of something NOT in `DRY_VOLUME`)
- * assume ~1 g/ml — true for water/stock/most sauces, off for pure oil/fat by
- * a small, accepted margin (same simplification `estimateRecipeCost` already
- * makes for the shopping-price conversion).
+ * Los líquidos (`ml`/`l`) se convierten con la densidad del ingrediente cuando
+ * el catálogo la declara (src/data/densidad.json, inyectada por
+ * ingredients.js), y con 1 g/ml cuando no.
+ *
+ * Ese 1 g/ml ya no es «una simplificación aceptada»: es el valor correcto para
+ * lo que queda sin declarar —agua, caldos, vino, vinagre— que son la mayor
+ * parte de los mililitros del catálogo. Lo que sí era un error era aplicárselo
+ * también al aceite (0,918 g/ml, y son 28.120 ml del catálogo, el mayor
+ * volumen con diferencia) y a la miel (1,42).
  *
  * @param {string} name
  * @param {number} qty
@@ -415,9 +435,9 @@ export function gramsForRecipeQuantity(name, qty, unit) {
     case "kg":
       return qty * 1000;
     case "ml":
-      return qty;
+      return qty * (catalogDensity(name) ?? 1);
     case "l":
-      return qty * 1000;
+      return qty * 1000 * (catalogDensity(name) ?? 1);
     case "ud":
     case "diente": {
       const gpp = gramsPerPiece(normalized);

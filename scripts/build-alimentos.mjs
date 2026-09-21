@@ -57,6 +57,11 @@ const juiciosFamilia = leerJson(join(ROOT, "src", "data", "familiaLabels.json"))
 const fraccionComestible = leerJson(join(ROOT, "src", "data", "fraccionComestible.json")) ?? {};
 delete fraccionComestible._;
 
+// Gramos por mililitro. Misma convención que la fracción comestible: solo
+// están los que se apartan de 1, y ausente significa «pesa como el agua».
+const densidad = leerJson(join(ROOT, "src", "data", "densidad.json")) ?? {};
+delete densidad._;
+
 // Las decisiones de CIQUAL, la segunda tabla de composición. Van aparte de las
 // de BEDCA y no mezcladas en un mismo fichero porque la FUENTE importa: dos
 // tablas nacionales distintas usan laboratorios y métodos distintos, y mezclar
@@ -219,6 +224,7 @@ for (const ing of ingredientes) {
   huecos.familia = familia ? "relleno" : "ausente_resoluble";
   huecos.rol = rol ? "relleno" : "ausente_resoluble";
   if (fraccionComestible[ing.id]) huecos.fraccionComestible = "relleno";
+  if (densidad[ing.id]) huecos.densidad = "relleno";
   for (const dim of Object.keys(dimensiones)) {
     if (dimensiones[dim] === "no_aplica") { huecos[dim] = "no_aplica"; continue; }
     if (dimensiones[dim] != null) { huecos[dim] = "relleno"; continue; }
@@ -242,7 +248,7 @@ for (const ing of ingredientes) {
     taxonomia: null,
     dimensiones,
     nutricion: ing.nutrition ?? null,
-    densidad: null,
+    densidad: densidad[ing.id]?.valor ?? null,
     fraccionComestible: fraccionComestible[ing.id]?.valor ?? null,
     huecos,
   });
