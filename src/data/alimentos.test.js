@@ -4,6 +4,7 @@ import alimentos from "./alimentos.json";
 import alimentoPorIngrediente from "./alimentoPorIngrediente.json";
 import ingredientes from "./ingredients.json";
 import familiaLabels from "./familiaLabels.json";
+import bedcaChoices from "./bedcaChoices.json";
 import { FAMILIAS } from "../lib/notepadFields.js";
 import { FRAGMENTOS } from "../../scripts/lib/bedcaDimensiones.mjs";
 import { deriveFamilia } from "../../scripts/lib/familia.mjs";
@@ -203,6 +204,29 @@ describe("los juicios de familia", () => {
       if (sinJuicio.familia === familiaLabels[k].familia) redundantes.push(k);
     }
     expect(redundantes).toEqual([]);
+  });
+});
+
+describe("las decisiones de ficha de BEDCA", () => {
+  const claves = Object.keys(bedcaChoices).filter((k) => k !== "_");
+
+  it("apuntan a ingredientes que existen", () => {
+    const ids = new Set(ingredientes.map((i) => i.id));
+    expect(claves.filter((k) => !ids.has(k))).toEqual([]);
+  });
+
+  it("explican por qué, incluidas las que dicen que ninguna ficha vale", () => {
+    // `foodId: null` es una decisión, no un hueco: alguien miró los
+    // candidatos y dijo que ninguno servía. Sin motivo, esa decisión no se
+    // puede revisar ni revertir con criterio.
+    expect(claves.filter((k) => !bedcaChoices[k].motivo?.trim())).toEqual([]);
+  });
+
+  it("están en el repo y no solo en la máquina donde se corrió el pipeline", () => {
+    // El test es el fichero: si este import funciona, las 219 decisiones
+    // viajan con el código. Vivían en output/, que está en .gitignore, y son
+    // la parte cara de la ingesta — el emparejamiento, no los números.
+    expect(claves.length).toBeGreaterThanOrEqual(219);
   });
 });
 

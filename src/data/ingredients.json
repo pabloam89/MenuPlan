@@ -2298,7 +2298,16 @@
     "isVegan": false,
     "defaultUnit": "ud",
     "medianAmount": 2,
-    "nutrition": null,
+    "nutrition": {
+      "kcal100g": 44.8,
+      "protein100g": 10.5,
+      "carbs100g": 0.3,
+      "fat100g": 0.1,
+      "fiber100g": 0,
+      "sugar100g": 0.3,
+      "saturatedFat100g": null,
+      "sodium100g": 160
+    },
     "pieza": {
       "nombre": "clara",
       "g": 35
@@ -7496,7 +7505,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 310,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 90,
+      "protein100g": 14.1,
+      "carbs100g": 0,
+      "fat100g": 3.7,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 1.07,
+      "sodium100g": 91
+    }
   },
   {
     "id": "salsa-barbacoa",
@@ -8710,7 +8728,16 @@
     "isVegan": false,
     "defaultUnit": "ud",
     "medianAmount": 2,
-    "nutrition": null,
+    "nutrition": {
+      "kcal100g": 354.9,
+      "protein100g": 16.5,
+      "carbs100g": 2.3,
+      "fat100g": 31.5,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 9.4,
+      "sodium100g": 50
+    },
     "pieza": {
       "nombre": "yema",
       "g": 18

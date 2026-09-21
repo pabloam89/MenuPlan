@@ -40,7 +40,15 @@ const DRY = process.argv.includes("--dry");
 const leerJson = (p) => (existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null);
 
 const ingredientes = leerJson(join(ROOT, "src", "data", "ingredients.json"));
-const choices = leerJson(join(ROOT, "output", "bedca-choices.json")) ?? {};
+// Las decisiones viven en el repo. La copia de output/ se sigue leyendo como
+// respaldo para no romper una máquina a medio migrar, pero la del repo manda:
+// output/ está en .gitignore y estas 219 decisiones son la parte cara de la
+// ingesta — el emparejamiento, no los números.
+const choices = {
+  ...(leerJson(join(ROOT, "output", "bedca-choices.json")) ?? {}),
+  ...(leerJson(join(ROOT, "src", "data", "bedcaChoices.json")) ?? {}),
+};
+delete choices._;
 const juiciosFamilia = leerJson(join(ROOT, "src", "data", "familiaLabels.json")) ?? {};
 
 // Índice de candidatos de TODOS los artefactos del pipeline: el triaje, el

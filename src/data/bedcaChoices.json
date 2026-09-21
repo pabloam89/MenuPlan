@@ -1,0 +1,1331 @@
+{
+  "_": "Qué ficha de BEDCA corresponde a cada ingrediente. 192 decisiones las propuso claude-sonnet-5 y 27 se tomaron a mano el 14 sep 2026; todas traen motivo. VIVE AQUÍ Y NO EN output/ a propósito: output/ está en .gitignore, así que estas 219 decisiones existían solo en el portátil donde se corrió el pipeline. Son la parte cara de la ingesta —el emparejamiento, no los números— y perderlas obligaría a rehacer la pasada entera. \foodId: null no es un hueco: es la decisión explícita de que ninguna ficha de BEDCA sirve para ese ingrediente.",
+  "clara-de-huevo": {
+    "foodId": 1173,
+    "confianza": 0.95,
+    "motivo": "«Huevo de gallina, clara, cruda»: 44,8 kcal con 10,5 g de proteína y 0,1 de grasa, que es exactamente el perfil de una clara. El otro candidato con el mismo score era «Flan de huevo», que no es lo mismo ni de lejos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "yema-de-huevo": {
+    "foodId": 2125,
+    "confianza": 0.95,
+    "motivo": "«Huevo de gallina, yema, CRUDA» (354,9 kcal). El mejor por score era la yema DESECADA (661,7 kcal): casi el doble, porque le han quitado el agua. Es el error que el filtro de estado existe para evitar, y aquí habría metido un factor 1,9 en la grasa de cualquier receta con yema.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "aceitunas-negras": {
+    "foodId": 2215,
+    "confianza": 0.9,
+    "motivo": "Aceituna negra con hueso coincide directamente",
+    "modelo": "claude-sonnet-5"
+  },
+  "agua": {
+    "foodId": 2425,
+    "confianza": 0.9,
+    "motivo": "Agua de la red es agua genérica",
+    "modelo": "claude-sonnet-5"
+  },
+  "alcachofa-conserva": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Conserva vs cruda, estado distinto",
+    "modelo": "claude-sonnet-5"
+  },
+  "alitas-de-pollo": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Grasa de pollo no es alitas de pollo",
+    "modelo": "claude-sonnet-5"
+  },
+  "alubia-grande": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Conejo no corresponde a fabes secas",
+    "modelo": "claude-sonnet-5"
+  },
+  "alubias-rojas": {
+    "foodId": 899,
+    "confianza": 0.4,
+    "motivo": "Alubia blanca seca como genérico de alubia",
+    "modelo": "claude-sonnet-5"
+  },
+  "anchoa-en-aceite": {
+    "foodId": 2129,
+    "confianza": 0.9,
+    "motivo": "Anchoas en aceite vegetal coincide directamente",
+    "modelo": "claude-sonnet-5"
+  },
+  "arroz-arborio": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Candidatos no son arroz crudo, no coincide",
+    "modelo": "claude-sonnet-5"
+  },
+  "arroz-bomba": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Candidatos no son arroz crudo, no coincide",
+    "modelo": "claude-sonnet-5"
+  },
+  "atun": {
+    "foodId": 2131,
+    "confianza": 0.6,
+    "motivo": "Atún en aceite vegetal, coincide con atún en aceite genérico",
+    "modelo": "claude-sonnet-5"
+  },
+  "avena": {
+    "foodId": 1010,
+    "confianza": 0.6,
+    "motivo": "Avena cruda es lo más cercano a copos de avena",
+    "modelo": "claude-sonnet-5"
+  },
+  "azucar": {
+    "foodId": 780,
+    "confianza": 0.4,
+    "motivo": "Sólo hay azúcar moreno, variante distinta del azúcar blanco",
+    "modelo": "claude-sonnet-5"
+  },
+  "azucar-glas": {
+    "foodId": 780,
+    "confianza": 0.3,
+    "motivo": "Azúcar glas es azúcar molido, moreno es variante distinta",
+    "modelo": "claude-sonnet-5"
+  },
+  "bacalao": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Candidatos son bacalao ahumado o frito, no desalado crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "bacon": {
+    "foodId": 682,
+    "confianza": 0.6,
+    "motivo": "Bacon crudo con grasa, coincide con bacon en lonchas sin cocinar",
+    "modelo": "claude-sonnet-5"
+  },
+  "baguette": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ni avena ni cebada corresponden a chapata",
+    "modelo": "claude-sonnet-5"
+  },
+  "bonito-del-norte": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Candidatos son vegetales en conserva, no pescado",
+    "modelo": "claude-sonnet-5"
+  },
+  "boquerones": {
+    "foodId": 2316,
+    "confianza": 0.8,
+    "motivo": "Boquerón crudo coincide con boquerones limpios sin cocinar",
+    "modelo": "claude-sonnet-5"
+  },
+  "burrata": {
+    "foodId": 2510,
+    "confianza": 0.5,
+    "motivo": "Mozzarella es genérico similar a burrata, no exacto",
+    "modelo": "claude-sonnet-5"
+  },
+  "cabracho": {
+    "foodId": 806,
+    "confianza": 0.9,
+    "motivo": "Cabracho crudo coincide exactamente",
+    "modelo": "claude-sonnet-5"
+  },
+  "cacao": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Candidato es cacao azucarado, distinto del cacao puro",
+    "modelo": "claude-sonnet-5"
+  },
+  "cafe-espresso": {
+    "foodId": 2433,
+    "confianza": 0.5,
+    "motivo": "Café infusión es lo más cercano a espresso puro",
+    "modelo": "claude-sonnet-5"
+  },
+  "caldo-de-marisco": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "No hay caldo de marisco entre los candidatos",
+    "modelo": "claude-sonnet-5"
+  },
+  "caldo-de-pescado": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ningún candidato es caldo de pescado real",
+    "modelo": "claude-sonnet-5"
+  },
+  "caldo-de-pollo": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ningún candidato es caldo de pollo específico",
+    "modelo": "claude-sonnet-5"
+  },
+  "callo-de-ternera-limpio": {
+    "foodId": 687,
+    "confianza": 0.9,
+    "motivo": "Coincide directamente con callos de ternera",
+    "modelo": "claude-sonnet-5"
+  },
+  "canela": {
+    "foodId": 2477,
+    "confianza": 0.95,
+    "motivo": "Canela en polvo coincide exactamente",
+    "modelo": "claude-sonnet-5"
+  },
+  "canelones": {
+    "foodId": 2478,
+    "confianza": 0.7,
+    "motivo": "Genérico de canelones, mismo alimento crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "carne-de-cerdo-en-dado-aguja-o-secreto": {
+    "foodId": 689,
+    "confianza": 0.5,
+    "motivo": "Cerdo crudo, corte distinto pero mismo animal",
+    "modelo": "claude-sonnet-5"
+  },
+  "carne-de-jabali-picada": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ningún candidato es carne de jabalí",
+    "modelo": "claude-sonnet-5"
+  },
+  "carne-de-ternera-para-guisar": {
+    "foodId": 1030,
+    "confianza": 0.6,
+    "motivo": "Corte de ternera crudo similar para guisar",
+    "modelo": "claude-sonnet-5"
+  },
+  "carne-de-txangurro": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Carne de cangrejo, ningún candidato coincide",
+    "modelo": "claude-sonnet-5"
+  },
+  "carne-picada": {
+    "foodId": 2680,
+    "confianza": 0.85,
+    "motivo": "Carne picada coincide directamente",
+    "modelo": "claude-sonnet-5"
+  },
+  "carrillera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Callos no es carrillera, corte distinto",
+    "modelo": "claude-sonnet-5"
+  },
+  "cereales": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Candidatos son productos elaborados, no cereales genéricos",
+    "modelo": "claude-sonnet-5"
+  },
+  "cerveza": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Sin alcohol vs cerveza normal, nutrición distinta",
+    "modelo": "claude-sonnet-5"
+  },
+  "chuleton-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Callos no corresponde a chuletón",
+    "modelo": "claude-sonnet-5"
+  },
+  "cinta-de-lomo": {
+    "foodId": 2259,
+    "confianza": 0.8,
+    "motivo": "Lomo de cerdo crudo coincide con filetes crudos",
+    "modelo": "claude-sonnet-5"
+  },
+  "ciruelas-pasas": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Pudding es preparado, no ciruela pasa simple",
+    "modelo": "claude-sonnet-5"
+  },
+  "coco": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ni pan rallado ni leche de coco son coco rallado",
+    "modelo": "claude-sonnet-5"
+  },
+  "codorniz": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Candidato es huevo, no carne de codorniz",
+    "modelo": "claude-sonnet-5"
+  },
+  "col": {
+    "foodId": null,
+    "confianza": 0.2,
+    "motivo": "Col china es especie distinta a col blanca",
+    "modelo": "claude-sonnet-5"
+  },
+  "colorante": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ningún candidato es colorante alimentario",
+    "modelo": "claude-sonnet-5"
+  },
+  "comino": {
+    "foodId": 2571,
+    "confianza": 0.9,
+    "motivo": "Comino coincide directamente con comino molido",
+    "modelo": "claude-sonnet-5"
+  },
+  "conejo": {
+    "foodId": 1162,
+    "confianza": 0.85,
+    "motivo": "Conejo crudo coincide con conejo troceado crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "congrio": {
+    "foodId": 2332,
+    "confianza": 0.7,
+    "motivo": "Congrio genérico, asumido crudo como el ingrediente",
+    "modelo": "claude-sonnet-5"
+  },
+  "contramuslos-de-pollo": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Grasa de pollo no es contramuslo de pollo",
+    "modelo": "claude-sonnet-5"
+  },
+  "cordero": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Molleja no es la misma pieza que chuletillas",
+    "modelo": "claude-sonnet-5"
+  },
+  "corvina": {
+    "foodId": null,
+    "confianza": 0.2,
+    "motivo": "Especie distinta a lubina, no equivalente",
+    "modelo": "claude-sonnet-5"
+  },
+  "curcuma": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Curry y salsa no son cúrcuma pura",
+    "modelo": "claude-sonnet-5"
+  },
+  "curry": {
+    "foodId": 2621,
+    "confianza": 0.7,
+    "motivo": "Curry en polvo coincide con 'Curry' genérico",
+    "modelo": "claude-sonnet-5"
+  },
+  "cuscus": {
+    "foodId": 1084,
+    "confianza": 0.5,
+    "motivo": "Cuscús crudo similar a sémola de trigo cruda",
+    "modelo": "claude-sonnet-5"
+  },
+  "dorada": {
+    "foodId": 815,
+    "confianza": 0.9,
+    "motivo": "Dorada cruda coincide con pescado entero limpio",
+    "modelo": "claude-sonnet-5"
+  },
+  "edamame": {
+    "foodId": 1124,
+    "confianza": 0.7,
+    "motivo": "Edamame es soja fresca en vaina",
+    "modelo": "claude-sonnet-5"
+  },
+  "eneldo": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Eneldo fresco no es eneldo seco",
+    "modelo": "claude-sonnet-5"
+  },
+  "entrania-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Callos no es lo mismo que entraña",
+    "modelo": "claude-sonnet-5"
+  },
+  "entrecot": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Callos no es lo mismo que entrecot",
+    "modelo": "claude-sonnet-5"
+  },
+  "escalopines-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Callos no es lo mismo que escalopines",
+    "modelo": "claude-sonnet-5"
+  },
+  "espaguetis": {
+    "foodId": 1117,
+    "confianza": 0.9,
+    "motivo": "Pasta cruda genérica coincide con espaguetis crudos",
+    "modelo": "claude-sonnet-5"
+  },
+  "extracto-de-vainilla": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Extracto diluido muy distinto de la vaina entera",
+    "modelo": "claude-sonnet-5"
+  },
+  "fabes": {
+    "foodId": 2196,
+    "confianza": 0.75,
+    "motivo": "Fabes son variedad de judía blanca seca",
+    "modelo": "claude-sonnet-5"
+  },
+  "falafel-congelado": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ningún candidato coincide con falafel",
+    "modelo": "claude-sonnet-5"
+  },
+  "farfalle": {
+    "foodId": 1117,
+    "confianza": 0.85,
+    "motivo": "Pasta cruda genérica coincide con farfalle crudos",
+    "modelo": "claude-sonnet-5"
+  },
+  "fettuccine": {
+    "foodId": 1117,
+    "confianza": 0.5,
+    "motivo": "Pasta cruda genérica, no se especifica huevo",
+    "modelo": "claude-sonnet-5"
+  },
+  "fideo-mediano": {
+    "foodId": 1117,
+    "confianza": 0.6,
+    "motivo": "Fideos crudos, tipo pasta genérica",
+    "modelo": "claude-sonnet-5"
+  },
+  "fideos": {
+    "foodId": 1117,
+    "confianza": 0.6,
+    "motivo": "Fideos finos crudos, pasta genérica",
+    "modelo": "claude-sonnet-5"
+  },
+  "filete-de-cerdo": {
+    "foodId": 2259,
+    "confianza": 0.5,
+    "motivo": "Filete de cerdo crudo, lomo es corte habitual",
+    "modelo": "claude-sonnet-5"
+  },
+  "filete-de-pez-espada": {
+    "foodId": 835,
+    "confianza": 0.7,
+    "motivo": "Pez espada crudo, mismo estado",
+    "modelo": "claude-sonnet-5"
+  },
+  "filete-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Callos no es filete de ternera",
+    "modelo": "claude-sonnet-5"
+  },
+  "filetes-finos-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Corte distinto (costilla) no coincide con filete",
+    "modelo": "claude-sonnet-5"
+  },
+  "foie": {
+    "foodId": 2269,
+    "confianza": 0.5,
+    "motivo": "Foie gras genérico, no especifica mi-cuit",
+    "modelo": "claude-sonnet-5"
+  },
+  "fresa": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Candidatos son yogur con fresas, no la fruta",
+    "modelo": "claude-sonnet-5"
+  },
+  "frutos-rojos": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Frutos secos no es frutos rojos",
+    "modelo": "claude-sonnet-5"
+  },
+  "fusilli": {
+    "foodId": 1117,
+    "confianza": 0.7,
+    "motivo": "Pasta cruda genérica, coincide con fusilli crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "gambas": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Pipas de girasol no es gamba",
+    "modelo": "claude-sonnet-5"
+  },
+  "garbanzos": {
+    "foodId": 2192,
+    "confianza": 0.9,
+    "motivo": "Garbanzo hervido coincide con garbanzos cocidos",
+    "modelo": "claude-sonnet-5"
+  },
+  "garrofon": {
+    "foodId": 2196,
+    "confianza": 0.4,
+    "motivo": "Judía blanca genérica, especie distinta al garrofón",
+    "modelo": "claude-sonnet-5"
+  },
+  "gazpacho-de-bote": {
+    "foodId": 2614,
+    "confianza": 0.8,
+    "motivo": "Gazpacho coincide con gazpacho envasado",
+    "modelo": "claude-sonnet-5"
+  },
+  "granola": {
+    "foodId": 2158,
+    "confianza": 0.5,
+    "motivo": "Muesli es lo más cercano a granola disponible",
+    "modelo": "claude-sonnet-5"
+  },
+  "guanciale": {
+    "foodId": null,
+    "confianza": 0.3,
+    "motivo": "Guanciale es curado, panceta cruda no lo es",
+    "modelo": "claude-sonnet-5"
+  },
+  "guindilla": {
+    "foodId": 2610,
+    "confianza": 0.7,
+    "motivo": "Guindilla fresca coincide con 'picante', no en polvo",
+    "modelo": "claude-sonnet-5"
+  },
+  "higado-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Callos no es hígado, órgano distinto",
+    "modelo": "claude-sonnet-5"
+  },
+  "hoja-de-gelatina": {
+    "foodId": 2613,
+    "confianza": 0.5,
+    "motivo": "Gelatina genérica, aunque concentración distinta a hoja",
+    "modelo": "claude-sonnet-5"
+  },
+  "hueso-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Hueso no es callos, parte distinta",
+    "modelo": "claude-sonnet-5"
+  },
+  "jarrete-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Jarrete es corte distinto a callos",
+    "modelo": "claude-sonnet-5"
+  },
+  "jerez-seco": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Orégano no es vino de jerez",
+    "modelo": "claude-sonnet-5"
+  },
+  "judia-negra": {
+    "foodId": 2199,
+    "confianza": 0.5,
+    "motivo": "Judía blanca cocida como genérico de judía negra cocida",
+    "modelo": "claude-sonnet-5"
+  },
+  "langostinos": {
+    "foodId": 2340,
+    "confianza": 0.7,
+    "motivo": "Langostino genérico, coincide con producto pelado crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "lasana": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Láminas crudas vs plato preparado de lasaña, no coincide",
+    "modelo": "claude-sonnet-5"
+  },
+  "leche-condensada": {
+    "foodId": 907,
+    "confianza": 0.95,
+    "motivo": "Leche condensada entera con azúcar coincide exactamente",
+    "modelo": "claude-sonnet-5"
+  },
+  "lentejas": {
+    "foodId": 1065,
+    "confianza": 0.9,
+    "motivo": "Lenteja seca cruda, mismo estado que ingrediente crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "lentejas-rojas": {
+    "foodId": 1065,
+    "confianza": 0.6,
+    "motivo": "Genérico lenteja seca cruda, no especifica variedad roja",
+    "modelo": "claude-sonnet-5"
+  },
+  "levadura": {
+    "foodId": null,
+    "confianza": 0.95,
+    "motivo": "Ningún candidato corresponde a levadura de panadería",
+    "modelo": "claude-sonnet-5"
+  },
+  "linguine": {
+    "foodId": 1117,
+    "confianza": 0.7,
+    "motivo": "Pasta alimenticia cruda genérica, sin huevo, coincide con linguine crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "lomo-de-cerdo-en-filetes": {
+    "foodId": 2259,
+    "confianza": 0.9,
+    "motivo": "Cerdo lomo crudo, mismo estado que filetes crudos",
+    "modelo": "claude-sonnet-5"
+  },
+  "lubina": {
+    "foodId": 2344,
+    "confianza": 0.95,
+    "motivo": "Coincidencia directa de pescado crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "macarrones": {
+    "foodId": 1117,
+    "confianza": 0.8,
+    "motivo": "Macarrones son pasta alimenticia cruda genérica",
+    "modelo": "claude-sonnet-5"
+  },
+  "magro-de-cerdo": {
+    "foodId": 1021,
+    "confianza": 0.5,
+    "motivo": "Carne magra de cerdo cruda, aproximación genérica",
+    "modelo": "claude-sonnet-5"
+  },
+  "maicena": {
+    "foodId": 1012,
+    "confianza": 0.9,
+    "motivo": "Maicena es almidón de maíz",
+    "modelo": "claude-sonnet-5"
+  },
+  "maiz": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Maíz entero no es almidón de maíz",
+    "modelo": "claude-sonnet-5"
+  },
+  "manitas-de-cerdo": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Corte distinto, no hay candidato de manitas",
+    "modelo": "claude-sonnet-5"
+  },
+  "manteca-de-cerdo": {
+    "foodId": 2549,
+    "confianza": 0.7,
+    "motivo": "Manteca genérica coincide con manteca de cerdo",
+    "modelo": "claude-sonnet-5"
+  },
+  "mantequilla-de-cacahuete": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "No hay candidato de mantequilla de cacahuete",
+    "modelo": "claude-sonnet-5"
+  },
+  "masa-de-pizza": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ni hojaldre ni pizza precocinada coinciden con masa cruda de pizza",
+    "modelo": "claude-sonnet-5"
+  },
+  "masa-quebrada": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Masa de hojaldre no es lo mismo que masa quebrada",
+    "modelo": "claude-sonnet-5"
+  },
+  "mayonesa": {
+    "foodId": 873,
+    "confianza": 0.4,
+    "motivo": "Mayonesa genérica, se aproxima con aceite de soja",
+    "modelo": "claude-sonnet-5"
+  },
+  "medio-cochinillo": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Cochinillo entero no equivale a cortes de solomillo o lomo",
+    "modelo": "claude-sonnet-5"
+  },
+  "mejillones": {
+    "foodId": 2345,
+    "confianza": 0.7,
+    "motivo": "Mejillón crudo/fresco coincide con el ingrediente crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "melocoton": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Solo hay melocotón desecado, distinto estado al fresco",
+    "modelo": "claude-sonnet-5"
+  },
+  "merluza-lomos": {
+    "foodId": 2347,
+    "confianza": 0.8,
+    "motivo": "Merluza fresca coincide con lomos crudos de merluza",
+    "modelo": "claude-sonnet-5"
+  },
+  "mermelada": {
+    "foodId": 772,
+    "confianza": 0.5,
+    "motivo": "Única mermelada disponible, variedad de ciruela genérica",
+    "modelo": "claude-sonnet-5"
+  },
+  "mirin": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Mirin es vino de arroz dulce japonés, distinto a vinos de uva",
+    "modelo": "claude-sonnet-5"
+  },
+  "morcillo": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Morcillo es pieza distinta a costilla de ternera",
+    "modelo": "claude-sonnet-5"
+  },
+  "morcillo-de-ternera": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Callos no es la misma pieza que morcillo",
+    "modelo": "claude-sonnet-5"
+  },
+  "mostaza": {
+    "foodId": 2600,
+    "confianza": 0.7,
+    "motivo": "Genérico de mostaza, variedad Dijon no especificada",
+    "modelo": "claude-sonnet-5"
+  },
+  "mozzarella": {
+    "foodId": 2510,
+    "confianza": 0.9,
+    "motivo": "Mismo alimento, queso mozzarella",
+    "modelo": "claude-sonnet-5"
+  },
+  "muslo-de-pollo": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Grasa de pollo no es el muslo entero",
+    "modelo": "claude-sonnet-5"
+  },
+  "nabo": {
+    "foodId": 880,
+    "confianza": 0.95,
+    "motivo": "Coincide exactamente, nabo crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "nachos": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Almidón de maíz no es nacho frito",
+    "modelo": "claude-sonnet-5"
+  },
+  "nata-para-montar": {
+    "foodId": null,
+    "confianza": 0.3,
+    "motivo": "Nata para cocinar (18% grasa) distinta a nata para montar (35%)",
+    "modelo": "claude-sonnet-5"
+  },
+  "navaja": {
+    "foodId": null,
+    "confianza": 0.2,
+    "motivo": "Navaja es molusco distinto de almeja, no equivalente",
+    "modelo": "claude-sonnet-5"
+  },
+  "nueces": {
+    "foodId": null,
+    "confianza": 0.1,
+    "motivo": "Candidatos son productos elaborados con nueces, no nueces solas",
+    "modelo": "claude-sonnet-5"
+  },
+  "obleas": {
+    "foodId": null,
+    "confianza": 0.1,
+    "motivo": "Hojaldre no es lo mismo que obleas finas",
+    "modelo": "claude-sonnet-5"
+  },
+  "orecchiette": {
+    "foodId": 1117,
+    "confianza": 0.6,
+    "motivo": "Genérico pasta cruda razonable para orecchiette",
+    "modelo": "claude-sonnet-5"
+  },
+  "oregano": {
+    "foodId": 2598,
+    "confianza": 0.95,
+    "motivo": "Coincidencia exacta orégano seco",
+    "modelo": "claude-sonnet-5"
+  },
+  "oreja-de-cerdo": {
+    "foodId": null,
+    "confianza": 0.1,
+    "motivo": "Ningún candidato corresponde al corte oreja de cerdo",
+    "modelo": "claude-sonnet-5"
+  },
+  "orzo": {
+    "foodId": 1117,
+    "confianza": 0.6,
+    "motivo": "Genérico pasta cruda razonable para orzo",
+    "modelo": "claude-sonnet-5"
+  },
+  "pan": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Pan genérico no coincide con avena/cebada, variedades específicas distintas",
+    "modelo": "claude-sonnet-5"
+  },
+  "pan-de-payes": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Pan de payés es variedad rústica distinta, no avena ni cebada",
+    "modelo": "claude-sonnet-5"
+  },
+  "panceta": {
+    "foodId": 2260,
+    "confianza": 0.9,
+    "motivo": "Panceta de cerdo cruda coincide directamente con el ingrediente",
+    "modelo": "claude-sonnet-5"
+  },
+  "pasas": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Pudding de pasas es plato preparado, no la pasa cruda",
+    "modelo": "claude-sonnet-5"
+  },
+  "pasta": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Pasta de fruta/sésamo no son pasta alimentaria de trigo",
+    "modelo": "claude-sonnet-5"
+  },
+  "pasta-corta": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Pasta de fruta/sésamo no son pasta alimentaria de trigo",
+    "modelo": "claude-sonnet-5"
+  },
+  "pastrami-de-ternera-en-loncha": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Pastrami es curado/ahumado, candidatos son crudo o callos",
+    "modelo": "claude-sonnet-5"
+  },
+  "pata-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Callos son vísceras, no la pata/corte de ternera",
+    "modelo": "claude-sonnet-5"
+  },
+  "pate": {
+    "foodId": 2284,
+    "confianza": 0.75,
+    "motivo": "Paté de cerdo genérico equivalente",
+    "modelo": "claude-sonnet-5"
+  },
+  "pato": {
+    "foodId": 976,
+    "confianza": 0.5,
+    "motivo": "Genérico pato crudo, no específico magret",
+    "modelo": "claude-sonnet-5"
+  },
+  "pavo": {
+    "foodId": 2285,
+    "confianza": 0.7,
+    "motivo": "Pavo crudo, más cercano a filete fresco",
+    "modelo": "claude-sonnet-5"
+  },
+  "pechuga-de-pavo": {
+    "foodId": 2285,
+    "confianza": 0.6,
+    "motivo": "Pavo crudo genérico, la otra opción está cocinada",
+    "modelo": "claude-sonnet-5"
+  },
+  "pedro-ximenez": {
+    "foodId": 2463,
+    "confianza": 0.5,
+    "motivo": "Vino dulce similar al Pedro Ximénez",
+    "modelo": "claude-sonnet-5"
+  },
+  "penne": {
+    "foodId": 1117,
+    "confianza": 0.8,
+    "motivo": "Pasta cruda genérica equivale a penne",
+    "modelo": "claude-sonnet-5"
+  },
+  "pepinillos": {
+    "foodId": 2406,
+    "confianza": 0.9,
+    "motivo": "Pepinillos en vinagre, mismo alimento",
+    "modelo": "claude-sonnet-5"
+  },
+  "pescadilla": {
+    "foodId": 1174,
+    "confianza": 0.8,
+    "motivo": "Pescadilla congelada cruda, mismo estado",
+    "modelo": "claude-sonnet-5"
+  },
+  "pimienta-blanca": {
+    "foodId": 2591,
+    "confianza": 0.98,
+    "motivo": "Coincidencia exacta de nombre y estado",
+    "modelo": "claude-sonnet-5"
+  },
+  "pimiento-choricero": {
+    "foodId": null,
+    "confianza": 0.5,
+    "motivo": "Choricero es variedad seca distinta, candidatos son fresco/frito/conserva",
+    "modelo": "claude-sonnet-5"
+  },
+  "pimientos-del-piquillo": {
+    "foodId": 2408,
+    "confianza": 0.55,
+    "motivo": "Piquillo suele venderse asado en conserva, más cercano",
+    "modelo": "claude-sonnet-5"
+  },
+  "pistacho": {
+    "foodId": 2207,
+    "confianza": 0.95,
+    "motivo": "Coincidencia directa de alimento",
+    "modelo": "claude-sonnet-5"
+  },
+  "placas-de-cannelones": {
+    "foodId": 1117,
+    "confianza": 0.6,
+    "motivo": "Pasta cruda genérica, sin huevo, similar a cannelones",
+    "modelo": "claude-sonnet-5"
+  },
+  "platano-macho": {
+    "foodId": null,
+    "confianza": 0.4,
+    "motivo": "Plátano macho difiere nutricionalmente del plátano común",
+    "modelo": "claude-sonnet-5"
+  },
+  "pluma-iberica": {
+    "foodId": 1021,
+    "confianza": 0.4,
+    "motivo": "Corte de cerdo crudo genérico, no coincide raza ni pieza exacta",
+    "modelo": "claude-sonnet-5"
+  },
+  "pollo": {
+    "foodId": null,
+    "confianza": 0.1,
+    "motivo": "Solo hay grasa de pollo, no pollo troceado",
+    "modelo": "claude-sonnet-5"
+  },
+  "presa-iberica": {
+    "foodId": null,
+    "confianza": 0.3,
+    "motivo": "Corte ibérico específico, no coincide con solomillo ni lomo genérico",
+    "modelo": "claude-sonnet-5"
+  },
+  "pulpa-de-acai-congelada": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Açaí no está en la lista de candidatos",
+    "modelo": "claude-sonnet-5"
+  },
+  "pulpo": {
+    "foodId": 2374,
+    "confianza": 0.85,
+    "motivo": "Pulpo cocido coincide con pulpo hervido, mismo estado",
+    "modelo": "claude-sonnet-5"
+  },
+  "quesito": {
+    "foodId": 2506,
+    "confianza": 0.9,
+    "motivo": "Coincidencia directa: queso en porciones",
+    "modelo": "claude-sonnet-5"
+  },
+  "queso-azul": {
+    "foodId": null,
+    "confianza": 0.6,
+    "motivo": "Queso azul es tipo distinto al semicurado genérico",
+    "modelo": "claude-sonnet-5"
+  },
+  "queso-brie": {
+    "foodId": null,
+    "confianza": 0.6,
+    "motivo": "Brie es queso blando, no equivalente a semicurado",
+    "modelo": "claude-sonnet-5"
+  },
+  "queso-crema": {
+    "foodId": null,
+    "confianza": 0.6,
+    "motivo": "Queso crema difiere de quesos frescos de cabra o Burgos",
+    "modelo": "claude-sonnet-5"
+  },
+  "queso-en-lonchas": {
+    "foodId": 2515,
+    "confianza": 0.5,
+    "motivo": "Genérico razonable para queso en lonchas semicurado",
+    "modelo": "claude-sonnet-5"
+  },
+  "queso-feta": {
+    "foodId": null,
+    "confianza": 0.3,
+    "motivo": "Queso semicurado no equivale a feta, textura y curación distintas",
+    "modelo": "claude-sonnet-5"
+  },
+  "queso-fresco": {
+    "foodId": 2507,
+    "confianza": 0.75,
+    "motivo": "Queso fresco de Burgos es el equivalente genérico más cercano",
+    "modelo": "claude-sonnet-5"
+  },
+  "redondo-de-ternera": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Callos es otra parte del animal, no redondo",
+    "modelo": "claude-sonnet-5"
+  },
+  "ricotta": {
+    "foodId": 2517,
+    "confianza": 0.6,
+    "motivo": "Requesón es el análogo español más cercano a ricotta",
+    "modelo": "claude-sonnet-5"
+  },
+  "rigatoni": {
+    "foodId": 1117,
+    "confianza": 0.7,
+    "motivo": "Pasta alimenticia cruda genérica coincide con rigatoni crudo",
+    "modelo": "claude-sonnet-5"
+  },
+  "sal-escamas": {
+    "foodId": 2585,
+    "confianza": 0.4,
+    "motivo": "Sal yodada como genérico de sal, aunque no en escamas",
+    "modelo": "claude-sonnet-5"
+  },
+  "sal-gruesa": {
+    "foodId": 2585,
+    "confianza": 0.4,
+    "motivo": "Sal yodada como genérico de sal gorda",
+    "modelo": "claude-sonnet-5"
+  },
+  "salmon": {
+    "foodId": 2626,
+    "confianza": 0.85,
+    "motivo": "Salmón crudo genérico coincide con lomos de salmón",
+    "modelo": "claude-sonnet-5"
+  },
+  "salsa-cesar": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "No hay salsa César entre los candidatos",
+    "modelo": "claude-sonnet-5"
+  },
+  "salsa-worcestershire": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ningún candidato es salsa Worcestershire",
+    "modelo": "claude-sonnet-5"
+  },
+  "secreto-iberico": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Jamón ibérico no es el mismo corte que secreto",
+    "modelo": "claude-sonnet-5"
+  },
+  "setas": {
+    "foodId": 2419,
+    "confianza": 0.7,
+    "motivo": "Seta genérica cruda, coincide con setas variadas",
+    "modelo": "claude-sonnet-5"
+  },
+  "sidra": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Ningún candidato corresponde a sidra",
+    "modelo": "claude-sonnet-5"
+  },
+  "sirope-de-arce": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "Miel no es sirope de arce, alimentos distintos",
+    "modelo": "claude-sonnet-5"
+  },
+  "solomillo": {
+    "foodId": 1029,
+    "confianza": 0.8,
+    "motivo": "Solomillo de ternera crudo sin grasa coincide",
+    "modelo": "claude-sonnet-5"
+  },
+  "tahini": {
+    "foodId": 2567,
+    "confianza": 0.8,
+    "motivo": "Pasta de sésamo es el término genérico para tahini",
+    "modelo": "claude-sonnet-5"
+  },
+  "tallarines": {
+    "foodId": 1117,
+    "confianza": 0.6,
+    "motivo": "Pasta cruda genérica, tagliatelle es variedad de pasta",
+    "modelo": "claude-sonnet-5"
+  },
+  "ternera-magra": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Callos no es carne magra de ternera",
+    "modelo": "claude-sonnet-5"
+  },
+  "tinta-de-calamar": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Tinta no es la carne del calamar, ingrediente distinto",
+    "modelo": "claude-sonnet-5"
+  },
+  "tofu": {
+    "foodId": 1121,
+    "confianza": 0.85,
+    "motivo": "Tofu coincide directamente",
+    "modelo": "claude-sonnet-5"
+  },
+  "tomate-cherry": {
+    "foodId": 2421,
+    "confianza": 0.6,
+    "motivo": "Variedad de tomate, genérico razonable",
+    "modelo": "claude-sonnet-5"
+  },
+  "tomate-concentrado": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Concentrado es procesado, difiere de tomate fresco",
+    "modelo": "claude-sonnet-5"
+  },
+  "tomillo": {
+    "foodId": 2559,
+    "confianza": 0.6,
+    "motivo": "Tomillo seco, especia habitual aunque no fresco",
+    "modelo": "claude-sonnet-5"
+  },
+  "tortilla-de-maiz": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Almidón de maíz no es tortilla de maíz",
+    "modelo": "claude-sonnet-5"
+  },
+  "tortilla-de-trigo": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Almidón de trigo no es tortilla/wrap de trigo",
+    "modelo": "claude-sonnet-5"
+  },
+  "trofie": {
+    "foodId": 1117,
+    "confianza": 0.5,
+    "motivo": "Pasta seca genérica como aproximación a trofie",
+    "modelo": "claude-sonnet-5"
+  },
+  "truchas-enteras": {
+    "foodId": 2636,
+    "confianza": 0.7,
+    "motivo": "Trucha genérica cruda coincide con trucha limpia",
+    "modelo": "claude-sonnet-5"
+  },
+  "trufa-negra": {
+    "foodId": 894,
+    "confianza": 0.8,
+    "motivo": "Trufa cruda coincide con trufa negra",
+    "modelo": "claude-sonnet-5"
+  },
+  "ventresca": {
+    "foodId": 2130,
+    "confianza": 0.5,
+    "motivo": "Atún en aceite de oliva, similar a ventresca en aceite",
+    "modelo": "claude-sonnet-5"
+  },
+  "vieira": {
+    "foodId": 2637,
+    "confianza": 0.8,
+    "motivo": "Vieira genérica coincide con vieiras sin concha",
+    "modelo": "claude-sonnet-5"
+  },
+  "vinagre-de-jerez": {
+    "foodId": 2124,
+    "confianza": 0.4,
+    "motivo": "Vinagre de vino como aproximación genérica al de Jerez",
+    "modelo": "claude-sonnet-5"
+  },
+  "vol-au-vent": {
+    "foodId": 2607,
+    "confianza": 0.5,
+    "motivo": "Hojaldre horneado similar a vol-au-vent cocido",
+    "modelo": "claude-sonnet-5"
+  },
+  "zamburina": {
+    "foodId": null,
+    "confianza": 0,
+    "motivo": "No hay marisco/zamburiña en candidatos, solo carnes no relacionadas",
+    "modelo": "claude-sonnet-5"
+  },
+  "ajete": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "ajetes-tiernos": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "alga-nori": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "alga-wakame": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "bicarbonato": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "brandy": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "brote-tierno": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "carrillada": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "cilantro": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "especia-cajun": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "gochujang": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "harissa": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "higo": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "hinojo": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "levadura-quimica": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "mascarpone": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "melon": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "muffin-ingle": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "parmesano": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "pesto": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "ron": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "sandia": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "sepia": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "sriracha": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "unto": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "uvas": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  },
+  "vodka": {
+    "foodId": null,
+    "confianza": 1,
+    "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
+    "modelo": "decision-humana-2026-09-14"
+  }
+}
