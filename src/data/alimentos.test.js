@@ -5,6 +5,8 @@ import alimentoPorIngrediente from "./alimentoPorIngrediente.json";
 import ingredientes from "./ingredients.json";
 import familiaLabels from "./familiaLabels.json";
 import bedcaChoices from "./bedcaChoices.json";
+import ciqualChoices from "./ciqualChoices.json";
+import ciqualQueries from "./ciqualQueries.json";
 import { FAMILIAS } from "../lib/notepadFields.js";
 import { FRAGMENTOS } from "../../scripts/lib/bedcaDimensiones.mjs";
 import { deriveFamilia } from "../../scripts/lib/familia.mjs";
@@ -227,6 +229,40 @@ describe("las decisiones de ficha de BEDCA", () => {
     // viajan con el código. Vivían en output/, que está en .gitignore, y son
     // la parte cara de la ingesta — el emparejamiento, no los números.
     expect(claves.length).toBeGreaterThanOrEqual(219);
+  });
+});
+
+describe("la segunda fuente (CIQUAL)", () => {
+  const ids = new Set(ingredientes.map((i) => i.id));
+  const claves = (o) => Object.keys(o).filter((k) => k !== "_");
+
+  it("sus decisiones y sus términos apuntan a ingredientes que existen", () => {
+    expect(claves(ciqualChoices).filter((k) => !ids.has(k))).toEqual([]);
+    expect(claves(ciqualQueries).filter((k) => !ids.has(k))).toEqual([]);
+  });
+
+  it("cada decisión explica por qué", () => {
+    expect(claves(ciqualChoices).filter((k) => !ciqualChoices[k].motivo?.trim())).toEqual([]);
+  });
+
+  it("ningún ingrediente tiene ficha en las dos tablas a la vez", () => {
+    // Dos fichas para el mismo alimento son dos números distintos esperando a
+    // que alguien elija por orden de lectura. CIQUAL solo se usa donde BEDCA
+    // no llegaba, y esto lo mantiene así.
+    const enLasDos = claves(ciqualChoices).filter(
+      (k) => ciqualChoices[k].foodId != null && bedcaChoices[k]?.foodId != null,
+    );
+    expect(enLasDos).toEqual([]);
+  });
+
+  it("la tabla dice de qué fuente viene cada número", () => {
+    // El coste de mezclar dos tablas de composición es pequeño pero real, y
+    // solo es discutible si se puede ver. Una fila con nutrición y sin fuente
+    // declarada es un número sin apellido.
+    const sinDecir = alimentos.filter(
+      (a) => a.nutricion && !["bedca", "ciqual", "etiqueta", "manual", "heredado"].includes(a.fuente),
+    );
+    expect(sinDecir.map((a) => a.id)).toEqual([]);
   });
 });
 

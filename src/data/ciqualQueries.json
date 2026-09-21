@@ -1,0 +1,154 @@
+{
+  "_": "Con qué término buscar cada ingrediente en CIQUAL. Nuestro catálogo está en español y CIQUAL publica en inglés, y eso no se adivina con similitud de cadenas: «Garbanzos» y «Chick pea» no comparten una letra en el sitio correcto. La traducción es un juicio, así que se registra aquí en vez de esconderse dentro del operador — mismo criterio que familiaLabels.json y stepPartsLabels.json. Los términos siguen la forma en que CIQUAL nombra: «alimento, matiz, estado» (Basil, fresh · Beef, rib, raw · Shrimp or prawn, raw). Un array significa «prueba con estos» y gana el de mejor parecido. Que un ingrediente esté aquí NO implica que vaya a tener ficha: solo que se ha buscado.",
+  "pan": [
+    "Bread, white",
+    "Bread, French"
+  ],
+  "parmesano": "Parmesan cheese",
+  "garbanzos": [
+    "Chick pea, cooked",
+    "Chickpea, cooked"
+  ],
+  "cebolla-morada": "Onion, raw",
+  "albahaca": "Basil, fresh",
+  "cilantro": "Coriander, fresh",
+  "gambas": [
+    "Shrimp or prawn, raw",
+    "Shrimp, raw"
+  ],
+  "cebolleta": [
+    "Spring onion",
+    "Onion, raw"
+  ],
+  "caldo-de-pescado": [
+    "Fish stock",
+    "Stock, fish"
+  ],
+  "aceite-girasol": "Sunflower oil",
+  "bacalao": [
+    "Cod, salted",
+    "Cod, raw"
+  ],
+  "eneldo": "Dill, fresh",
+  "nueces": "Walnut, dried, husked",
+  "manzana": "Apple, pulp, raw",
+  "almendras": [
+    "Almond, (with peel)",
+    "Almond, peeled"
+  ],
+  "naranja": "Orange, pulp, raw",
+  "caldo-de-pollo": [
+    "Chicken stock",
+    "Poultry stock",
+    "Stock, poultry"
+  ],
+  "queso-feta": "Feta cheese",
+  "pollo": [
+    "Chicken, meat, raw",
+    "Chicken, raw"
+  ],
+  "alubias": [
+    "Haricot bean, white, cooked",
+    "Bean, dried, cooked",
+    "White bean, cooked"
+  ],
+  "almejas": "Clam, raw",
+  "esparragos": [
+    "Asparagus, peeled, raw",
+    "Asparagus, boiled"
+  ],
+  "maiz": [
+    "Corn or maize grain",
+    "Sweetcorn, canned"
+  ],
+  "tortilla-de-trigo": [
+    "Wheat tortilla",
+    "Tortilla, wheat"
+  ],
+  "levadura-quimica": "Baking powder or raising agent",
+  "contramuslos-de-pollo": [
+    "Chicken, thigh, raw",
+    "Chicken, leg, raw"
+  ],
+  "curcuma": "Turmeric",
+  "pimiento-choricero": [
+    "Pepper, sweet, dried",
+    "Paprika"
+  ],
+  "pan-molde": [
+    "Sandwich bread",
+    "Bread, sandwich"
+  ],
+  "monkfish": "Anglerfish, raw",
+  "chalota": "Shallot, raw",
+  "frutos-rojos": [
+    "Red currant, raw",
+    "Black currant, raw"
+  ],
+  "avellanas": [
+    "Hazelnut, grilled",
+    "Hazelnut"
+  ],
+  "fresa": "Strawberry, raw",
+  "levadura": "Baker's yeast, dehydrated",
+  "arroz-arborio": "Rice, white, raw",
+  "salvia": "Sage, fresh",
+  "pera": "Pear, pulp, raw",
+  "queso-azul": [
+    "Blue cheese",
+    "Blue-veined cheese"
+  ],
+  "hojas-verdes": [
+    "Mixed salad leaves",
+    "Lettuce, raw"
+  ],
+  "masa-quebrada": [
+    "Pastry, shortcrust",
+    "Pastry, average food"
+  ],
+  "pasas": "Raisin",
+  "sepia": "Cuttlefish, raw",
+  "arroz-bomba": "Rice, white, raw",
+  "atun-fresco": "Tuna, raw",
+  "queso-crema": "Cream cheese",
+  "muslo-de-pollo": [
+    "Chicken, thigh, raw",
+    "Chicken, leg, raw"
+  ],
+  "salsa-worcestershire": "Worcestershire sauce",
+  "filete-de-ternera": [
+    "Beef, steak, raw",
+    "Beef, raw"
+  ],
+  "pan-de-payes": [
+    "Bread, country",
+    "Bread, white"
+  ],
+  "cacao": "Cocoa powder, without sugar",
+  "nata-para-montar": [
+    "Cream, whipping",
+    "Cream, 30% fat"
+  ],
+  "pasta-corta": [
+    "Pasta, raw",
+    "Pasta, dry"
+  ],
+  "hamburguesa": [
+    "Hamburger bun",
+    "Bun, hamburger"
+  ],
+  "judias-pintas": [
+    "Black bean, cooked",
+    "Kidney bean, cooked"
+  ],
+  "obleas": [
+    "Wafer",
+    "Ice cream cone"
+  ],
+  "col": [
+    "Chinese cabbage, raw",
+    "Cabbage, raw"
+  ],
+  "alcachofa": "Artichoke, globe, raw",
+  "alcachofa-conserva": "Artichoke, canned, drained"
+}

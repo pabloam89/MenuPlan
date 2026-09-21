@@ -51,6 +51,24 @@ const choices = {
 delete choices._;
 const juiciosFamilia = leerJson(join(ROOT, "src", "data", "familiaLabels.json")) ?? {};
 
+// Las decisiones de CIQUAL, la segunda tabla de composición. Van aparte de las
+// de BEDCA y no mezcladas en un mismo fichero porque la FUENTE importa: dos
+// tablas nacionales distintas usan laboratorios y métodos distintos, y mezclar
+// composiciones tiene un coste pequeño pero real. Para poder discutirlo hay
+// que poder verlo, así que cada número dice de dónde viene.
+const choicesCiqual = leerJson(join(ROOT, "src", "data", "ciqualChoices.json")) ?? {};
+delete choicesCiqual._;
+const nombresCiqual = new Map();
+try {
+  const { cargarCiqual } = await import("./lib/ciqualParse.mjs");
+  for (const [code, a] of cargarCiqual(join(ROOT, "output", "ciqual"))) {
+    nombresCiqual.set(code, a.nombre);
+  }
+} catch {
+  // Sin la tabla descargada se sigue construyendo: las filas de CIQUAL
+  // conservan su id y pierden solo el nombre legible.
+}
+
 // Índice de candidatos de TODOS los artefactos del pipeline: el triaje, el
 // informe original y la repesca. Se unen porque los tres se generaron en
 // momentos distintos y ninguno los tiene todos.
@@ -87,6 +105,19 @@ const mismasMacros = (a, b) =>
 function procedenciaDe(ing) {
   const cands = candidatosPorIngrediente.get(ing.id) ?? [];
 
+  // CIQUAL primero: si hay decisión ahí es porque BEDCA no pudo, y se tomó
+  // después. La decisión más reciente sobre el mismo ingrediente es la buena.
+  const ciqual = choicesCiqual[ing.id];
+  if (ciqual?.foodId != null && ing.nutrition) {
+    return {
+      via: "ciqual",
+      fuente: "ciqual",
+      foodId: ciqual.foodId,
+      foodName: nombresCiqual.get(String(ciqual.foodId)) ?? null,
+      motivo: ciqual.motivo ?? null,
+    };
+  }
+
   const elegido = choices[ing.id];
   if (elegido?.foodId != null) {
     const ficha = cands.find((c) => c.foodId === elegido.foodId);
@@ -121,7 +152,7 @@ const slug = (s) =>
 const filas = [];
 const dimensionesImposibles = [];
 const porViaFamilia = new Map();
-const informe = { conDecision: 0, porMacros: 0, heredados: 0, vacios: 0 };
+const informe = { conDecision: 0, porMacros: 0, ciqual: 0, heredados: 0, vacios: 0 };
 const mapaIngredienteAlimento = {};
 
 for (const ing of ingredientes) {
@@ -193,8 +224,9 @@ for (const ing of ingredientes) {
   filas.push({
     id,
     nombre: nombreFuente ?? ing.name,
-    // Tres estados, no dos: con ficha, con número pero sin ficha, y vacío.
-    fuente: proc ? "bedca" : (ing.nutrition ? "heredado" : "sin_fuente"),
+    // Cuatro estados: con ficha de BEDCA, con ficha de CIQUAL, con número pero
+    // sin ficha, y vacío.
+    fuente: proc ? (proc.fuente ?? "bedca") : (ing.nutrition ? "heredado" : "sin_fuente"),
     fuenteId: proc ? String(proc.foodId) : null,
     fuenteNombre: nombreFuente,
     fuenteFecha: proc ? FECHA_INGESTA : null,
@@ -211,7 +243,8 @@ for (const ing of ingredientes) {
 
   // Los cuatro estados son excluyentes y suman el total: así el informe no
   // puede descuadrar, que es justo lo que hacía la primera versión.
-  if (proc?.via === "decision") informe.conDecision++;
+  if (proc?.via === "ciqual") informe.ciqual++;
+  else if (proc?.via === "decision") informe.conDecision++;
   else if (proc?.via === "macros") informe.porMacros++;
   else if (ing.nutrition) informe.heredados++;
   else informe.vacios++;
@@ -255,6 +288,7 @@ console.log(`\n📋  alimentos: ${filas.length} filas, una por ingrediente`);
 console.log(`    las ${filas.length} filas, por procedencia — suman el total:`);
 console.log(`      ficha por decisión humana  ${informe.conDecision}`);
 console.log(`      ficha recuperada por macros ${informe.porMacros}`);
+console.log(`      ficha de CIQUAL             ${informe.ciqual}`);
 console.log(`      heredado (número sin ficha) ${informe.heredados}`);
 console.log(`      vacío (ni número ni ficha)  ${informe.vacios}`);
 console.log(`    con nutrición ${conNutricion} · con procedencia ${conProcedencia} · dimensiones rellenas ${dimsRellenas} (y ${dimsNoAplica} retiradas por la familia)`);

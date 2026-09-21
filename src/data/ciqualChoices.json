@@ -1,0 +1,285 @@
+{
+  "_": "Qué ficha de CIQUAL corresponde a cada ingrediente, para los huecos que BEDCA no puede cubrir. Mismo contrato que bedcaChoices.json: cada entrada trae motivo, `foodId: null` es la decisión explícita de que ninguna ficha sirve, y las claves son ids de ingrediente reales. La procedencia se guarda aparte porque la fuente importa: mezclar dos tablas de composición tiene un coste pequeño pero real, y para poder discutirlo hay que poder verlo.",
+  "garbanzos": {
+    "foodId": "20507",
+    "confianza": 0.9,
+    "motivo": "«Chick pea, boiled/cooked in water», 147 kcal. Cierra el hueco individual más caro del catálogo (55 recetas) y el que BEDCA no podía dar: sus tres fichas de garbanzo tenían dos corruptas y la sana era del garbanzo SECO.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alubias": {
+    "foodId": "20502",
+    "confianza": 0.9,
+    "motivo": "«Haricot bean, boiled/cooked in water», 112 kcal. La ficha de BEDCA decía 322,9 bajo etiqueta de «cocidas» y era composición de alubia seca — más energía que la seca, lo cual es imposible. 112 es lo que pesa una alubia cocida de verdad.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "albahaca": {
+    "foodId": "11033",
+    "confianza": 0.9,
+    "motivo": "«Basil, fresh», 34,8 kcal. El candidato de BEDCA era «Albahaca» a 177 kcal, que es albahaca SECA: un error de 7x sobre la fresca, que es la que usan las recetas.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "parmesano": {
+    "foodId": "12120",
+    "confianza": 0.9,
+    "motivo": "«Parmesan cheese, from cow's milk», 406 kcal. BEDCA tenía 169 filas de parmesano y ninguna con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pan": {
+    "foodId": "7012",
+    "confianza": 0.9,
+    "motivo": "«Bread, French bread, ball, 400g», 266 kcal. Es el pan blanco de barra, que es lo que el catálogo llama «Pan» a secas. Los candidatos de BEDCA eran pan de avena y pan de cebada, variedades concretas que no representan al genérico.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cebolla-morada": {
+    "foodId": "20238",
+    "confianza": 0.9,
+    "motivo": "«Red onion, raw», 36,3 kcal. Variedad y estado exactos. BEDCA solo ofrecía cebolla hervida o asada, y las recetas pesan la cebolla cruda.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cilantro": {
+    "foodId": "11094",
+    "confianza": 0.9,
+    "motivo": "«Coriander, fresh», 22,3 kcal. BEDCA no tenía ninguna ficha de cilantro con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "gambas": {
+    "foodId": "10021",
+    "confianza": 0.9,
+    "motivo": "«Shrimp or prawn, raw», 99 kcal. El mejor candidato de BEDCA por parecido de nombre era «Pipas de girasol».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cebolleta": {
+    "foodId": "20239",
+    "confianza": 0.9,
+    "motivo": "«Yellow onion, raw», 37,8 kcal. CIQUAL no tiene cebolleta como tal; se toma la cebolla cruda, misma especie y mismo estado. La diferencia entre cebolleta y cebolla está por debajo del ruido de medida.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "aceite-girasol": {
+    "foodId": "17440",
+    "confianza": 0.9,
+    "motivo": "«Sunflower oil», 901 kcal, 100 % grasa. El único candidato de BEDCA era «Mayonesa con aceite de girasol».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "bacalao": {
+    "foodId": "26043",
+    "confianza": 0.9,
+    "motivo": "«Cod, raw», 77,6 kcal. El ingrediente es bacalao DESALADO, que tras el desalado recupera agua y se acerca al fresco. Se descarta «Cod, salted, dried» (206 kcal, 47,6 de proteína), que es el bacalao aún seco y salado: eso sería contar el triple de proteína.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "eneldo": {
+    "foodId": "11093",
+    "confianza": 0.9,
+    "motivo": "«Dill, fresh», 48,2 kcal. BEDCA solo tenía eneldo seco (291 kcal).",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "manzana": {
+    "foodId": "13086",
+    "confianza": 0.9,
+    "motivo": "«Apple, var. Golden, pulp, raw», 54,9 kcal. El único candidato de BEDCA era «Pastel de manzana».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "naranja": {
+    "foodId": "13034",
+    "confianza": 0.9,
+    "motivo": "«Orange, pulp, raw», 45,5 kcal. El único candidato de BEDCA era «Zumo de naranja», que es otro alimento.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "caldo-de-pollo": {
+    "foodId": "25947",
+    "confianza": 0.9,
+    "motivo": "«Broth, stock or bouillon, poultry, dehydrated and rehydrated», 5,58 kcal. Es el caldo LISTO PARA TOMAR, no la pastilla. Se descartan las fichas del concentrado (233 y 341 kcal): un caldo real ronda los 5-10, y el candidato de BEDCA era precisamente un cubito a 249.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "queso-feta": {
+    "foodId": "12066",
+    "confianza": 0.9,
+    "motivo": "«Feta cheese, PDO», 285 kcal. BEDCA ofrecía «Queso semicurado genérico», que no es feta ni en textura ni en curación.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pollo": {
+    "foodId": "36003",
+    "confianza": 0.9,
+    "motivo": "«Chicken, meat, raw», 113 kcal. BEDCA solo ofrecía «Grasa de pollo» (882 kcal). Este es el caso que mejor resume por qué hacía falta otra fuente.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "almejas": {
+    "foodId": "10017",
+    "confianza": 0.9,
+    "motivo": "«Clam, raw», 80,5 kcal. Estado crudo, que es como las pesan las recetas; BEDCA solo tenía almejas en conserva.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "esparragos": {
+    "foodId": "20299",
+    "confianza": 0.9,
+    "motivo": "«Asparagus, green, boiled/cooked in water», 26,6 kcal. Verde, que es el triguero. CIQUAL publica el crudo sin kcal, y entre crudo y hervido el espárrago apenas cambia (20 contra 22 de referencia). BEDCA ofrecía espárragos BLANCOS en conserva, que es otra cosa.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tortilla-de-trigo": {
+    "foodId": "7815",
+    "confianza": 0.9,
+    "motivo": "«Wheat tortilla wrap, to be filled», 327 kcal. El candidato de BEDCA era «Almidón de trigo».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "contramuslos-de-pollo": {
+    "foodId": "36024",
+    "confianza": 0.9,
+    "motivo": "«Chicken, leg, meat, raw», 114 kcal. El corte exacto, que es justo lo que BEDCA no tiene: allí este ingrediente se rechazó a mano por no existir ficha de contramuslo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "muslo-de-pollo": {
+    "foodId": "36024",
+    "confianza": 0.9,
+    "motivo": "«Chicken, leg, meat, raw», 114 kcal. Mismo corte que el contramuslo en la nomenclatura de CIQUAL, que no los separa.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "curcuma": {
+    "foodId": "11089",
+    "confianza": 0.9,
+    "motivo": "«Turmeric, powder», 291 kcal. BEDCA ofrecía «Curry», que es una mezcla de especias distinta.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pimiento-choricero": {
+    "foodId": "11049",
+    "confianza": 0.9,
+    "motivo": "«Paprika», 319 kcal. El choricero es pimiento rojo seco, y el pimentón es ese mismo pimiento molido: comparten composición porque solo cambia el triturado. Los candidatos de BEDCA eran pimiento FRESCO (20-30 kcal), diez veces menos, porque el fresco es casi todo agua.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "monkfish": {
+    "foodId": "26018",
+    "confianza": 0.9,
+    "motivo": "«Anglerfish, raw», 67,2 kcal. «Anglerfish» es el nombre inglés del rape; BEDCA solo lo tenía ya cocinado a la parrilla o plancha.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "chalota": {
+    "foodId": "20097",
+    "confianza": 0.9,
+    "motivo": "«Shallot, raw», 63,6 kcal. Nombre y estado exactos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "avellanas": {
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Sin ficha utilizable: CIQUAL solo devuelve aceite de avellana y productos con avellanas (turrón, barritas), no la avellana suelta con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "fresa": {
+    "foodId": "13014",
+    "confianza": 0.9,
+    "motivo": "«Strawberry, raw», 38,6 kcal. BEDCA solo ofrecía mermelada y yogur de fresa.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "arroz-arborio": {
+    "foodId": "9100",
+    "confianza": 0.9,
+    "motivo": "«Rice, raw», 352 kcal. El arbóreo es arroz blanco de grano corto; su composición en crudo no se distingue del arroz blanco genérico. Se descarta la ficha «mix of species», que promedia variedades integrales y salvajes.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "arroz-bomba": {
+    "foodId": "9100",
+    "confianza": 0.9,
+    "motivo": "«Rice, raw», 352 kcal. Mismo criterio que el arbóreo: en crudo, un arroz blanco es un arroz blanco.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "salvia": {
+    "foodId": "11069",
+    "confianza": 0.9,
+    "motivo": "«Sage, fresh», 36,7 kcal. Los candidatos de BEDCA eran haba, soja y salchicha frescas: coincidían en «fresca» y en nada más.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pera": {
+    "foodId": "13188",
+    "confianza": 0.9,
+    "motivo": "«Pear, var. Conférence, pulp, raw», 53,1 kcal. BEDCA solo tenía pera enlatada en almíbar, que lleva azúcar añadido.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "queso-azul": {
+    "foodId": "12520",
+    "confianza": 0.9,
+    "motivo": "«Blue cheese, from cow's milk», 333 kcal. BEDCA ofrecía queso semicurado genérico.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "hojas-verdes": {
+    "foodId": "20288",
+    "confianza": 0.9,
+    "motivo": "«Lettuce, sucrine, raw», 17,9 kcal. «Hojas verdes variadas» es mezcla de lechugas; las tres candidatas (sucrine, canónigo, hoja de roble) están entre 14 y 18 kcal, así que la elección concreta no mueve nada.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "masa-quebrada": {
+    "foodId": "7600",
+    "confianza": 0.9,
+    "motivo": "«Pastry, average food», 380 kcal. CIQUAL no separa la quebrada de la hojaldrada y publica el promedio de masas. BEDCA ofrecía hojaldre (408), que es la otra masa: el promedio es más honesto que elegir la que no es.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pasas": {
+    "foodId": "13046",
+    "confianza": 0.9,
+    "motivo": "«Raisin», 321 kcal. El único candidato de BEDCA era «Pudding de pasas».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "sepia": {
+    "foodId": "10016",
+    "confianza": 0.9,
+    "motivo": "«Cuttlefish, raw», 76,3 kcal. BEDCA no tenía sepia con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "atun-fresco": {
+    "foodId": "26053",
+    "confianza": 0.9,
+    "motivo": "«Tuna, raw», 144 kcal. El mejor candidato de BEDCA por nombre era «Perejil, fresco».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "filete-de-ternera": {
+    "foodId": "6102",
+    "confianza": 0.9,
+    "motivo": "«Beef, round, raw», 148 kcal. El filete de ternera sale de la babilla o la tapa, que es lo que CIQUAL llama «round». Se descartan «rib» (251 kcal) y «neck» (198), cortes bastante más grasos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "nata-para-montar": {
+    "foodId": "19415",
+    "confianza": 0.9,
+    "motivo": "«Liquid cream 30% fat, UHT», 297 kcal. La nata de montar española ronda el 35 %; la de 30 es la más cercana que publica CIQUAL.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pan-de-payes": {
+    "foodId": "7100",
+    "confianza": 0.9,
+    "motivo": "«Country-style bread, French bread», 253 kcal. Pan rústico de hogaza, que es lo que es el payés.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cacao": {
+    "foodId": "18100",
+    "confianza": 0.9,
+    "motivo": "«Cocoa powder, without sugar, powder, instant», 387 kcal. Sin azúcar, que es el cacao de repostería. BEDCA ofrecía cacao para bebida infantil, ya azucarado.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "hamburguesa": {
+    "foodId": "7259",
+    "confianza": 0.9,
+    "motivo": "«Rolls for hamburger/hotdog (buns), prepacked», 293 kcal. Producto exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "judias-pintas": {
+    "foodId": "20503",
+    "confianza": 0.9,
+    "motivo": "«Red kidney bean, boiled/cooked in water», 116 kcal. El ingrediente es frijol negro cocido y CIQUAL no lo tiene; la alubia roja cocida es la legumbre cocida más próxima en composición. Se descartan por completo los candidatos «Kidney, beef/pork» que salieron por parecido de nombre: son riñón de vaca y de cerdo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alcachofa-conserva": {
+    "foodId": "20155",
+    "confianza": 0.9,
+    "motivo": "«Artichoke, heart, canned, drained», 26 kcal. Corazones en conserva escurridos: producto exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "col": {
+    "foodId": "20296",
+    "confianza": 0.9,
+    "motivo": "«Chinese cabbage or bok choï», 17,7 kcal. Nombre y estado exactos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pasta-corta": {
+    "foodId": "9810",
+    "confianza": 0.9,
+    "motivo": "«Dried pasta, raw», 336 kcal. Pasta seca en crudo, que es como la pesan las recetas. Se descarta la fresca al huevo (283), que es otro producto.",
+    "modelo": "decision-humana-2026-09-21"
+  }
+}

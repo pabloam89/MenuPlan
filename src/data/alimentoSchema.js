@@ -330,7 +330,7 @@ export const AlimentoSchema = z
     // es de dónde salió. Llamarlo `sin_fuente` diría que no hay dato, que es
     // falso; callarlo diría que está trazado, que también. `heredado` lo deja
     // contado y, con BEDCA respondiendo, resoluble.
-    fuente: z.enum(["bedca", "etiqueta", "manual", "heredado", "sin_fuente"]),
+    fuente: z.enum(["bedca", "ciqual", "etiqueta", "manual", "heredado", "sin_fuente"]),
     fuenteId: z.string().nullable(),
     fuenteNombre: z.string().nullable(),
     fuenteFecha: z.string().nullable(),
@@ -449,10 +449,10 @@ export const AlimentoSchema = z
     // Procedencia coherente: si hay fuente hay id, y si no la hay no puede
     // haber nutrición. Un número sin de dónde viene es justo el defecto que
     // esta tabla existe para cerrar.
-    if (a.fuente === "bedca" && !a.fuenteId) {
+    if ((a.fuente === "bedca" || a.fuente === "ciqual") && !a.fuenteId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "fuente bedca sin fuenteId: es el dato que esta tabla existe para no perder",
+        message: `fuente ${a.fuente} sin fuenteId: es el dato que esta tabla existe para no perder`,
         path: ["fuenteId"],
       });
     }

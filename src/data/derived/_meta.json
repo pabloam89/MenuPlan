@@ -1,13 +1,13 @@
 {
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
-    "ingredientes": "5dd11c4f0f125223",
+    "ingredientes": "4bcfa1db887cbec6",
     "recetas": "593c4e0da7c471c2"
   },
   "recetas": 1033,
   "recipeNutrition": {
-    "filas": 1031,
-    "cobertura_media": 0.791
+    "filas": 1033,
+    "cobertura_media": 0.913
   },
   "recipeParts": {
     "filas": 1033,
