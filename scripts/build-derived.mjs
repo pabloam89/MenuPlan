@@ -44,7 +44,7 @@ const CHECK = process.argv.includes("--check");
 const hash = (s) => createHash("sha256").update(s.replace(/\r\n/g, "\n")).digest("hex").slice(0, 16);
 
 /** Media de la cobertura de cada campo secundario sobre un conjunto de filas. */
-const CAMPOS_SECUNDARIOS = ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg"];
+const CAMPOS_SECUNDARIOS = ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg", "iron_mg", "cholesterol_mg"];
 const mediasPorCampo = (filas) =>
   Object.fromEntries(
     CAMPOS_SECUNDARIOS.map((c) => [

@@ -189,6 +189,12 @@ const sinFuente = new Set(alimentos.filter((a) => a.fuente === "heredado").map((
 const CAMPOS_NUTRICION = [
   "kcal100g", "protein100g", "carbs100g", "fat100g",
   "fiber100g", "sugar100g", "saturatedFat100g", "sodium100g",
+  // Al añadir los micronutrientes esta lista se quedó corta y la reparación no
+  // saltaba: las filas citaban una ficha que ya traía hierro y colesterol y
+  // ellas no los tenían, pero la comparación no miraba esos dos campos. Un
+  // campo nuevo en la nutrición hay que añadirlo AQUÍ o la fila se queda a
+  // medias sin que nada lo diga.
+  "iron100g", "cholesterol100g",
 ];
 const fichaCitada = new Map(
   alimentos.filter((a) => a.fuenteId != null && a.nutricion).map((a) => [a.id, String(a.fuenteId)]),

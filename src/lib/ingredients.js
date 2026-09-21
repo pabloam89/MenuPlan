@@ -251,7 +251,7 @@ export function deriveRecipeAllergens(recipe) {
 export function computeRecipeNutrition(recipe, servings) {
   if (!(servings > 0)) return null;
 
-  const totals = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 };
+  const totals = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0, iron_mg: 0, cholesterol_mg: 0 };
   // Gramos que de verdad aportaron CADA campo secundario, no un sí/no.
   //
   // Aquí había un booleano por campo, y bastaba que UN ingrediente trajera
@@ -264,8 +264,8 @@ export function computeRecipeNutrition(recipe, servings) {
   // El número se queda: un parcial es mejor proxy que un hueco. Lo que no
   // puede seguir es publicarlo como si estuviera completo, así que cada campo
   // secundario viaja con la fracción de masa que lo sostiene.
-  const secundarios = ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg"];
-  const gramosDelCampo = { fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 };
+  const secundarios = ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg", "iron_mg", "cholesterol_mg"];
+  const gramosDelCampo = { fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0, iron_mg: 0, cholesterol_mg: 0 };
   let totalGrams = 0;
   let coveredGrams = 0;
 
@@ -299,6 +299,8 @@ export function computeRecipeNutrition(recipe, servings) {
     if (nutrition.sugar100g != null) { totals.sugar_g += nutrition.sugar100g * factor; gramosDelCampo.sugar_g += grams; }
     if (nutrition.saturatedFat100g != null) { totals.saturated_fat_g += nutrition.saturatedFat100g * factor; gramosDelCampo.saturated_fat_g += grams; }
     if (nutrition.sodium100g != null) { totals.sodium_mg += nutrition.sodium100g * factor; gramosDelCampo.sodium_mg += grams; }
+    if (nutrition.iron100g != null) { totals.iron_mg += nutrition.iron100g * factor; gramosDelCampo.iron_mg += grams; }
+    if (nutrition.cholesterol100g != null) { totals.cholesterol_mg += nutrition.cholesterol100g * factor; gramosDelCampo.cholesterol_mg += grams; }
   }
 
   if (coveredGrams === 0) return null;
@@ -326,6 +328,10 @@ export function computeRecipeNutrition(recipe, servings) {
     sugar_g: cobertura.sugar_g > 0 ? perServing(totals.sugar_g) : null,
     saturated_fat_g: cobertura.saturated_fat_g > 0 ? perServing(totals.saturated_fat_g) : null,
     sodium_mg: cobertura.sodium_mg > 0 ? perServing(totals.sodium_mg, 0) : null,
+    // Los dos micronutrientes. Llegan a media tabla: CIQUAL y USDA los
+    // publican, y las 198 fichas de BEDCA no los traen en el cache local.
+    iron_mg: cobertura.iron_mg > 0 ? perServing(totals.iron_mg) : null,
+    cholesterol_mg: cobertura.cholesterol_mg > 0 ? perServing(totals.cholesterol_mg, 0) : null,
     coverage: totalGrams > 0 ? Math.round((coveredGrams / totalGrams) * 1000) / 1000 : 0,
     // Qué parte de la receta sostiene cada uno de los cuatro de arriba. Un
     // 0,31 en `sugar_g` dice que ese azúcar es el de un tercio del plato.

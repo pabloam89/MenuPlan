@@ -40,6 +40,13 @@ export const CONST_CODES = {
   32000: "sugar100g",       // Sugars (g/100g)
   40302: "saturatedFat100g", // FA saturated (g/100g)
   10110: "sodium100g",      // Sodium (mg/100g) — misma unidad que BEDCA
+  // Los dos primeros micronutrientes, y entran porque YA tienen lector: la app
+  // enseña los perfiles «anemia — rico en hierro» y «corazón y colesterol», y
+  // hoy los dos se deciden con una lista de quince palabras en healthFlags.js.
+  // Los dos vienen en mg/100 g en las tres tablas, así que no hay conversión
+  // donde perder un factor de mil, que es como se coló el sodio en gramos.
+  10260: "iron100g",        // Iron (mg/100g)
+  75100: "cholesterol100g", // Cholesterol (mg/100g)
 };
 
 /**
@@ -189,5 +196,7 @@ export function aNutricion(alim) {
     sugar100g: n.sugar100g ?? null,
     saturatedFat100g: n.saturatedFat100g ?? null,
     sodium100g: n.sodium100g ?? null,
+    iron100g: n.iron100g ?? null,
+    cholesterol100g: n.cholesterol100g ?? null,
   };
 }

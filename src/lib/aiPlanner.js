@@ -1931,6 +1931,10 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
       ...(r.sugar_g != null ? { sugar: r.sugar_g } : {}),
       ...(r.saturated_fat_g != null ? { saturatedFat: r.saturated_fat_g } : {}),
       ...(r.sodium_mg != null ? { sodium: r.sodium_mg } : {}),
+      // Micronutrientes. `iron` lo lee ademas deriveHealthFlags para decidir
+      // «rico en hierro» con el dato y no solo con una lista de palabras.
+      ...(r.iron_mg != null ? { iron_mg: r.iron_mg } : {}),
+      ...(r.cholesterol_mg != null ? { cholesterol_mg: r.cholesterol_mg } : {}),
     },
     // Heuristic flags (see lib/healthFlags.js) carried through so the menu/
     // dish detail can show a "menú más cuidado" badge (lib/healthProfileMatch.js).

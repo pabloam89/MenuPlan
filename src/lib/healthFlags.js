@@ -48,10 +48,26 @@ export function deriveHealthFlags(recipe) {
   if (flags.has("embutido") || HIGH_SODIUM_RE.test(hay)) flags.add("alto_sodio");
 
   // Iron: red meat / legumes / leafy greens / iron-rich shellfish.
+  //
+  // El HIERRO MEDIDO se suma a la lista de palabras, no la sustituye, y eso es
+  // deliberado: el hierro solo llega a 166 de los 371 ingredientes con ficha
+  // —CIQUAL y USDA lo publican, y las 198 fichas de BEDCA no lo traen—, así que
+  // sustituir la heurística por el dato DEJARÍA DE MARCAR platos que hoy sí se
+  // marcan. Sumándolo, la bandera solo puede mejorar: nunca se quita una que ya
+  // estaba, y aparece en platos con hierro de verdad que ninguna de las quince
+  // palabras nombra. Cuando el hierro esté en toda la tabla, esta función podrá
+  // invertirse y la lista pasará a ser el respaldo.
+  //
+  // El umbral son 3,5 mg por ración: el 25 % de la ingesta diaria recomendada
+  // para una mujer adulta (14 mg), que es el corte que usa el Reglamento UE
+  // 1169/2011 para poder decir «alto contenido en» en una etiqueta. No es un
+  // número elegido a ojo.
+  const hierroPorRacion = recipe?.macros?.iron_mg ?? recipe?.iron_mg ?? null;
   if (
     IRON_RE.test(hay) ||
     recipe?.mainProtein === "ternera" ||
-    recipe?.category === "legumbres"
+    recipe?.category === "legumbres" ||
+    (hierroPorRacion != null && hierroPorRacion >= 3.5)
   ) {
     flags.add("rico_hierro");
   }

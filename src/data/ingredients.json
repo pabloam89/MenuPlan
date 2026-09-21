@@ -22,7 +22,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 14.9,
-      "sodium100g": 0
+      "sodium100g": 0,
+      "iron100g": 0,
+      "cholesterol100g": 0
     }
   },
   {
@@ -46,7 +48,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 11.1,
-      "sodium100g": 10
+      "sodium100g": 10,
+      "iron100g": 0.025,
+      "cholesterol100g": 0
     }
   },
   {
@@ -100,7 +104,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 15.2,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.025,
+      "cholesterol100g": 0
     }
   },
   {
@@ -178,7 +184,9 @@
       "fiber100g": 1.8,
       "sugar100g": 1.2,
       "saturatedFat100g": 0.005,
-      "sodium100g": 53.2
+      "sodium100g": 53.2,
+      "iron100g": 0.85,
+      "cholesterol100g": 0
     }
   },
   {
@@ -256,7 +264,9 @@
       "fiber100g": 2.6,
       "sugar100g": 2.33,
       "saturatedFat100g": 0.032,
-      "sodium100g": 16
+      "sodium100g": 16,
+      "iron100g": 1.48,
+      "cholesterol100g": 0
     }
   },
   {
@@ -280,7 +290,9 @@
       "fiber100g": 2.6,
       "sugar100g": 2.33,
       "saturatedFat100g": 0.032,
-      "sodium100g": 16
+      "sodium100g": 16,
+      "iron100g": 1.48,
+      "cholesterol100g": 0
     }
   },
   {
@@ -391,7 +403,9 @@
       "fiber100g": 3.47,
       "sugar100g": 0.37,
       "saturatedFat100g": 0.13,
-      "sodium100g": 12
+      "sodium100g": 12,
+      "iron100g": 5.24,
+      "cholesterol100g": 0
     }
   },
   {
@@ -421,7 +435,9 @@
       "fiber100g": 5.4,
       "sugar100g": 0.99,
       "saturatedFat100g": 0.036,
-      "sodium100g": 60.5
+      "sodium100g": 60.5,
+      "iron100g": 1.19,
+      "cholesterol100g": 0
     }
   },
   {
@@ -447,7 +463,9 @@
       "fiber100g": 3.2,
       "sugar100g": 1.2,
       "saturatedFat100g": 0.005,
-      "sodium100g": 310
+      "sodium100g": 310,
+      "iron100g": 0.4,
+      "cholesterol100g": null
     }
   },
   {
@@ -497,7 +515,9 @@
       "fiber100g": 0.3,
       "sugar100g": 0.49,
       "saturatedFat100g": 0.061,
-      "sodium100g": 48
+      "sodium100g": 48,
+      "iron100g": 1.8,
+      "cholesterol100g": 0
     }
   },
   {
@@ -521,7 +541,9 @@
       "fiber100g": 0.5,
       "sugar100g": 0.65,
       "saturatedFat100g": 0.13,
-      "sodium100g": 872
+      "sodium100g": 872,
+      "iron100g": 2.18,
+      "cholesterol100g": 0
     }
   },
   {
@@ -571,7 +593,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 3.04,
-      "sodium100g": 86.1
+      "sodium100g": 86.1,
+      "iron100g": 0.54,
+      "cholesterol100g": 114
     }
   },
   {
@@ -599,7 +623,9 @@
       "fiber100g": 0,
       "sugar100g": 0.16,
       "saturatedFat100g": 0.21,
-      "sodium100g": 329
+      "sodium100g": 329,
+      "iron100g": 7.81,
+      "cholesterol100g": 40
     }
   },
   {
@@ -631,7 +657,9 @@
       "fiber100g": 9.9,
       "sugar100g": 4.63,
       "saturatedFat100g": 3.95,
-      "sodium100g": 19
+      "sodium100g": 19,
+      "iron100g": 3.28,
+      "cholesterol100g": 0
     }
   },
   {
@@ -658,7 +686,9 @@
       "fiber100g": 15.2,
       "sugar100g": 2.11,
       "saturatedFat100g": 0.219,
-      "sodium100g": 16
+      "sodium100g": 16,
+      "iron100g": 10.44,
+      "cholesterol100g": 0
     }
   },
   {
@@ -688,7 +718,9 @@
       "fiber100g": 13.8,
       "sugar100g": 0.3,
       "saturatedFat100g": 0.25,
-      "sodium100g": 9.3
+      "sodium100g": 9.3,
+      "iron100g": 1.7,
+      "cholesterol100g": 0
     }
   },
   {
@@ -797,7 +829,9 @@
       "fiber100g": 4.5,
       "sugar100g": 1.6,
       "saturatedFat100g": 0.005,
-      "sodium100g": 34
+      "sodium100g": 34,
+      "iron100g": 0.28,
+      "cholesterol100g": 0
     }
   },
   {
@@ -875,7 +909,9 @@
       "fiber100g": 1.05,
       "sugar100g": 0.16,
       "saturatedFat100g": 0.2,
-      "sodium100g": 2.28
+      "sodium100g": 2.28,
+      "iron100g": 1.57,
+      "cholesterol100g": 0
     }
   },
   {
@@ -899,7 +935,9 @@
       "fiber100g": 1.05,
       "sugar100g": 0.16,
       "saturatedFat100g": 0.2,
-      "sodium100g": 2.28
+      "sodium100g": 2.28,
+      "iron100g": 1.57,
+      "cholesterol100g": 0
     }
   },
   {
@@ -960,7 +998,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 1.19,
-      "sodium100g": 49
+      "sodium100g": 49,
+      "iron100g": 1.77,
+      "cholesterol100g": 34
     }
   },
   {
@@ -989,7 +1029,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0.086,
-      "sodium100g": 251
+      "sodium100g": 251,
+      "iron100g": 0.76,
+      "cholesterol100g": 50
     }
   },
   {
@@ -1018,7 +1060,9 @@
       "fiber100g": 9.4,
       "sugar100g": 4.26,
       "saturatedFat100g": 4.51,
-      "sodium100g": null
+      "sodium100g": null,
+      "iron100g": 4.38,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1178,7 +1222,9 @@
       "fiber100g": 0.1,
       "sugar100g": 0,
       "saturatedFat100g": 0.1,
-      "sodium100g": 65.2
+      "sodium100g": 65.2,
+      "iron100g": 0.49,
+      "cholesterol100g": 43.9
     }
   },
   {
@@ -1236,7 +1282,9 @@
       "fiber100g": 2.2,
       "sugar100g": 4.62,
       "saturatedFat100g": 0.529,
-      "sodium100g": 602
+      "sodium100g": 602,
+      "iron100g": 3.91,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1265,7 +1313,9 @@
       "fiber100g": 0.2,
       "sugar100g": 4.38,
       "saturatedFat100g": 2.85,
-      "sodium100g": 354
+      "sodium100g": 354,
+      "iron100g": 0.33,
+      "cholesterol100g": 7
     }
   },
   {
@@ -1343,7 +1393,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0,
-      "sodium100g": 27360
+      "sodium100g": 27360,
+      "iron100g": 0,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1369,7 +1421,9 @@
       "fiber100g": 1.37,
       "sugar100g": 47.9,
       "saturatedFat100g": 0.99,
-      "sodium100g": 161
+      "sodium100g": 161,
+      "iron100g": 1.1,
+      "cholesterol100g": 109
     }
   },
   {
@@ -1473,7 +1527,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0.086,
-      "sodium100g": 251
+      "sodium100g": 251,
+      "iron100g": 0.76,
+      "cholesterol100g": 50
     }
   },
   {
@@ -1529,7 +1585,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": null,
-      "sodium100g": null
+      "sodium100g": null,
+      "iron100g": null,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1553,7 +1611,9 @@
       "fiber100g": 2.9,
       "sugar100g": 1.7,
       "saturatedFat100g": 0.061,
-      "sodium100g": 19
+      "sodium100g": 19,
+      "iron100g": 0.76,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1577,7 +1637,9 @@
       "fiber100g": 1.7,
       "sugar100g": 3.4,
       "saturatedFat100g": 0.0001,
-      "sodium100g": 17.1
+      "sodium100g": 17.1,
+      "iron100g": 0.44,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1653,7 +1715,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 3.22,
-      "sodium100g": 64
+      "sodium100g": 64,
+      "iron100g": 0.48,
+      "cholesterol100g": 49.7
     }
   },
   {
@@ -1707,7 +1771,9 @@
       "fiber100g": 8.04,
       "sugar100g": 4.22,
       "saturatedFat100g": 8.64,
-      "sodium100g": 531
+      "sodium100g": 531,
+      "iron100g": 1.2,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1731,7 +1797,9 @@
       "fiber100g": 29.5,
       "sugar100g": 0.9,
       "saturatedFat100g": 12.4,
-      "sodium100g": 45
+      "sodium100g": 45,
+      "iron100g": 48.5,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1866,7 +1934,9 @@
       "fiber100g": 0,
       "sugar100g": 0.33,
       "saturatedFat100g": 0.057,
-      "sodium100g": 290
+      "sodium100g": 290,
+      "iron100g": 0.15,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1897,7 +1967,9 @@
       "fiber100g": 0.00005,
       "sugar100g": 0.18,
       "saturatedFat100g": 0.083,
-      "sodium100g": 312
+      "sodium100g": 312,
+      "iron100g": 0.05,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1925,7 +1997,9 @@
       "fiber100g": 0.00005,
       "sugar100g": 0.18,
       "saturatedFat100g": 0.083,
-      "sodium100g": 312
+      "sodium100g": 312,
+      "iron100g": 0.05,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1949,7 +2023,9 @@
       "fiber100g": 0.00005,
       "sugar100g": 0.18,
       "saturatedFat100g": 0.083,
-      "sodium100g": 312
+      "sodium100g": 312,
+      "iron100g": 0.05,
+      "cholesterol100g": 0
     }
   },
   {
@@ -1975,7 +2051,9 @@
       "fiber100g": 0,
       "sugar100g": 0.19,
       "saturatedFat100g": 0.14,
-      "sodium100g": 240
+      "sodium100g": 240,
+      "iron100g": 0.1,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2122,7 +2200,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 2.47,
-      "sodium100g": 80
+      "sodium100g": 80,
+      "iron100g": 1.23,
+      "cholesterol100g": 63
     }
   },
   {
@@ -2172,7 +2252,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0.201,
-      "sodium100g": 395
+      "sodium100g": 395,
+      "iron100g": 0.5,
+      "cholesterol100g": 97
     }
   },
   {
@@ -2226,7 +2308,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 1.81,
-      "sodium100g": 71
+      "sodium100g": 71,
+      "iron100g": 3.18,
+      "cholesterol100g": null
     }
   },
   {
@@ -2252,7 +2336,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 1.81,
-      "sodium100g": 71
+      "sodium100g": 71,
+      "iron100g": 3.18,
+      "cholesterol100g": null
     }
   },
   {
@@ -2278,7 +2364,9 @@
       "fiber100g": 4.5,
       "sugar100g": null,
       "saturatedFat100g": 0.26,
-      "sodium100g": 27
+      "sodium100g": 27,
+      "iron100g": 1.73,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2332,7 +2420,9 @@
       "fiber100g": 1.65,
       "sugar100g": 5.3,
       "saturatedFat100g": 0.031,
-      "sodium100g": 8
+      "sodium100g": 8,
+      "iron100g": 1.12,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2362,7 +2452,9 @@
       "fiber100g": 1.7,
       "sugar100g": 4.8,
       "saturatedFat100g": 0.2,
-      "sodium100g": 39
+      "sodium100g": 39,
+      "iron100g": 0.00019,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2388,7 +2480,9 @@
       "fiber100g": 2.5,
       "sugar100g": 5.2,
       "saturatedFat100g": 0.14,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.19,
+      "cholesterol100g": null
     }
   },
   {
@@ -2412,7 +2506,9 @@
       "fiber100g": 2.6,
       "sugar100g": 0.2,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.1,
+      "cholesterol100g": null
     }
   },
   {
@@ -2464,7 +2560,9 @@
       "fiber100g": 5.16,
       "sugar100g": 24.6,
       "saturatedFat100g": 2.19,
-      "sodium100g": 316
+      "sodium100g": 316,
+      "iron100g": 7.05,
+      "cholesterol100g": 0.87
     }
   },
   {
@@ -2494,7 +2592,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0,
-      "sodium100g": 4
+      "sodium100g": 4,
+      "iron100g": 0.02,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2518,7 +2618,9 @@
       "fiber100g": 2.6,
       "sugar100g": 3.3,
       "saturatedFat100g": 0.005,
-      "sodium100g": 5
+      "sodium100g": 5,
+      "iron100g": 0.12,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2546,7 +2648,9 @@
       "fiber100g": 1.72,
       "sugar100g": 1.43,
       "saturatedFat100g": 0.055,
-      "sodium100g": 4.76
+      "sodium100g": 4.76,
+      "iron100g": 0.69,
+      "cholesterol100g": 0
     },
     "pieza": {
       "nombre": "champiñón",
@@ -2660,7 +2764,9 @@
       "fiber100g": 0,
       "sugar100g": null,
       "saturatedFat100g": null,
-      "sodium100g": 65
+      "sodium100g": 65,
+      "iron100g": 2.8,
+      "cholesterol100g": null
     }
   },
   {
@@ -2717,7 +2823,9 @@
       "fiber100g": 2.8,
       "sugar100g": 0.87,
       "saturatedFat100g": 0.014,
-      "sodium100g": 46
+      "sodium100g": 46,
+      "iron100g": 1.77,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2773,7 +2881,9 @@
       "fiber100g": 7.1,
       "sugar100g": 38.13,
       "saturatedFat100g": 0.088,
-      "sodium100g": 2
+      "sodium100g": 2,
+      "iron100g": 0.93,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2829,7 +2939,9 @@
       "fiber100g": 14,
       "sugar100g": 6.64,
       "saturatedFat100g": 57.7,
-      "sodium100g": 26.6
+      "sodium100g": 26.6,
+      "iron100g": 3.46,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2855,7 +2967,9 @@
       "fiber100g": 0,
       "sugar100g": null,
       "saturatedFat100g": 3.38,
-      "sodium100g": 53
+      "sodium100g": 53,
+      "iron100g": 3.97,
+      "cholesterol100g": 76
     },
     "pieza": {
       "nombre": "codorniz",
@@ -2883,7 +2997,9 @@
       "fiber100g": 0,
       "sugar100g": 32.2,
       "saturatedFat100g": 0.106,
-      "sodium100g": 8
+      "sodium100g": 8,
+      "iron100g": 0.06,
+      "cholesterol100g": 0
     }
   },
   {
@@ -2959,7 +3075,9 @@
       "fiber100g": 2.2,
       "sugar100g": 1.7,
       "saturatedFat100g": 0.24,
-      "sodium100g": 6
+      "sodium100g": 6,
+      "iron100g": 0.27,
+      "cholesterol100g": 0
     }
   },
   {
@@ -3078,7 +3196,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 1.03,
-      "sodium100g": 92
+      "sodium100g": 92,
+      "iron100g": 0.99,
+      "cholesterol100g": 81
     }
   },
   {
@@ -3104,7 +3224,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 10,
-      "sodium100g": 81.2
+      "sodium100g": 81.2,
+      "iron100g": 1.12,
+      "cholesterol100g": null
     }
   },
   {
@@ -3187,7 +3309,9 @@
       "fiber100g": 22.7,
       "sugar100g": 3.21,
       "saturatedFat100g": 1.84,
-      "sodium100g": 27
+      "sodium100g": 27,
+      "iron100g": 55,
+      "cholesterol100g": 0
     }
   },
   {
@@ -3266,7 +3390,9 @@
       "fiber100g": 0.5,
       "sugar100g": 0,
       "saturatedFat100g": 1.41,
-      "sodium100g": 60.6
+      "sodium100g": 60.6,
+      "iron100g": 0.39,
+      "cholesterol100g": 68.8
     }
   },
   {
@@ -3320,7 +3446,9 @@
       "fiber100g": 1.1,
       "sugar100g": 2.4,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.12,
+      "cholesterol100g": 0
     },
     "pieza": {
       "nombre": "endivia",
@@ -3350,7 +3478,9 @@
       "fiber100g": 3.5,
       "sugar100g": 1.2,
       "saturatedFat100g": 0.27,
-      "sodium100g": 27
+      "sodium100g": 27,
+      "iron100g": 5.5,
+      "cholesterol100g": 0
     }
   },
   {
@@ -3374,7 +3504,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 3.85,
-      "sodium100g": 76
+      "sodium100g": 76,
+      "iron100g": 2.83,
+      "cholesterol100g": 85
     }
   },
   {
@@ -3398,7 +3530,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": null,
-      "sodium100g": 32.2
+      "sodium100g": 32.2,
+      "iron100g": 2.26,
+      "cholesterol100g": 67.3
     }
   },
   {
@@ -3422,7 +3556,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 2.72,
-      "sodium100g": 54.3
+      "sodium100g": 54.3,
+      "iron100g": 1.85,
+      "cholesterol100g": 68
     }
   },
   {
@@ -3474,7 +3610,9 @@
       "fiber100g": 2.2,
       "sugar100g": 1.3,
       "saturatedFat100g": 0.07,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.64,
+      "cholesterol100g": null
     }
   },
   {
@@ -3522,7 +3660,9 @@
       "fiber100g": 21.6,
       "sugar100g": null,
       "saturatedFat100g": 2.55,
-      "sodium100g": 77
+      "sodium100g": 77,
+      "iron100g": 7.06,
+      "cholesterol100g": 0
     }
   },
   {
@@ -3550,7 +3690,9 @@
       "fiber100g": 2.37,
       "sugar100g": 0.32,
       "saturatedFat100g": 0.064,
-      "sodium100g": 66.7
+      "sodium100g": 66.7,
+      "iron100g": 3.61,
+      "cholesterol100g": 0
     }
   },
   {
@@ -3615,7 +3757,9 @@
       "fiber100g": 7.7,
       "sugar100g": 1.4,
       "saturatedFat100g": 1.5,
-      "sodium100g": 640
+      "sodium100g": 640,
+      "iron100g": 2.1,
+      "cholesterol100g": 1.95
     }
   },
   {
@@ -3801,7 +3945,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 2.72,
-      "sodium100g": 54.3
+      "sodium100g": 54.3,
+      "iron100g": 1.85,
+      "cholesterol100g": 68
     }
   },
   {
@@ -3825,7 +3971,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 2.72,
-      "sodium100g": 54.3
+      "sodium100g": 54.3,
+      "iron100g": 1.85,
+      "cholesterol100g": 68
     }
   },
   {
@@ -3877,7 +4025,9 @@
       "fiber100g": 3.8,
       "sugar100g": 5.6,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.19,
+      "cholesterol100g": 0
     }
   },
   {
@@ -3904,7 +4054,9 @@
       "fiber100g": 5.8,
       "sugar100g": 9.68,
       "saturatedFat100g": 0.14,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 1.17,
+      "cholesterol100g": 0
     }
   },
   {
@@ -3980,7 +4132,9 @@
       "fiber100g": 2.81,
       "sugar100g": 23.6,
       "saturatedFat100g": 6.81,
-      "sodium100g": 334
+      "sodium100g": 334,
+      "iron100g": 2.12,
+      "cholesterol100g": 3
     }
   },
   {
@@ -4012,7 +4166,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0.19,
-      "sodium100g": 182
+      "sodium100g": 182,
+      "iron100g": 3.21,
+      "cholesterol100g": 150
     }
   },
   {
@@ -4041,7 +4197,9 @@
       "fiber100g": 8.2,
       "sugar100g": 0.3,
       "saturatedFat100g": 0.46,
-      "sodium100g": 10.9
+      "sodium100g": 10.9,
+      "iron100g": 1.3,
+      "cholesterol100g": null
     }
   },
   {
@@ -4206,7 +4364,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 25.26,
-      "sodium100g": 25
+      "sodium100g": 25,
+      "iron100g": 0.42,
+      "cholesterol100g": 90
     }
   },
   {
@@ -4270,7 +4430,9 @@
       "fiber100g": 6.45,
       "sugar100g": 3.87,
       "saturatedFat100g": 0.11,
-      "sodium100g": 21.7
+      "sodium100g": 21.7,
+      "iron100g": 1.53,
+      "cholesterol100g": 0
     }
   },
   {
@@ -4298,7 +4460,9 @@
       "fiber100g": 3.3,
       "sugar100g": 5.88,
       "saturatedFat100g": 0.88,
-      "sodium100g": 453
+      "sodium100g": 453,
+      "iron100g": 0.85,
+      "cholesterol100g": 0
     },
     "pieza": {
       "nombre": "pan",
@@ -4332,7 +4496,9 @@
       "fiber100g": 3.2,
       "sugar100g": 1.5,
       "saturatedFat100g": 0.19,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 1,
+      "cholesterol100g": 0
     }
   },
   {
@@ -4371,7 +4537,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 1.233,
-      "sodium100g": 69
+      "sodium100g": 69,
+      "iron100g": 4.9,
+      "cholesterol100g": 275
     }
   },
   {
@@ -4401,7 +4569,9 @@
       "fiber100g": 4.1,
       "sugar100g": 12.2,
       "saturatedFat100g": 0.005,
-      "sodium100g": 5
+      "sodium100g": 5,
+      "iron100g": 0.27,
+      "cholesterol100g": 0
     }
   },
   {
@@ -4425,7 +4595,9 @@
       "fiber100g": 2.6,
       "sugar100g": 2.2,
       "saturatedFat100g": 0.005,
-      "sodium100g": 22
+      "sodium100g": 22,
+      "iron100g": 0.2,
+      "cholesterol100g": 0
     }
   },
   {
@@ -4507,7 +4679,9 @@
       "fiber100g": 0.8,
       "sugar100g": 1.78,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.27,
+      "cholesterol100g": null
     }
   },
   {
@@ -4550,7 +4724,9 @@
       "fiber100g": 0,
       "sugar100g": 0.27,
       "saturatedFat100g": 2.64,
-      "sodium100g": 124
+      "sodium100g": 124,
+      "iron100g": 1.88,
+      "cholesterol100g": 398
     },
     "pieza": {
       "nombre": "huevo",
@@ -4648,7 +4824,9 @@
       "fiber100g": 0,
       "sugar100g": null,
       "saturatedFat100g": 1.28,
-      "sodium100g": 63
+      "sodium100g": 63,
+      "iron100g": 2.32,
+      "cholesterol100g": 39
     }
   },
   {
@@ -4701,7 +4879,9 @@
       "fiber100g": 0,
       "sugar100g": 1.09,
       "saturatedFat100g": 0,
-      "sodium100g": 9
+      "sodium100g": 9,
+      "iron100g": 0.24,
+      "cholesterol100g": 0
     }
   },
   {
@@ -4778,7 +4958,9 @@
       "fiber100g": 2.85,
       "sugar100g": 3.26,
       "saturatedFat100g": 0.06,
-      "sodium100g": 3.85
+      "sodium100g": 3.85,
+      "iron100g": 1.02,
+      "cholesterol100g": 0
     }
   },
   {
@@ -4804,7 +4986,9 @@
       "fiber100g": 11.6,
       "sugar100g": 0.5,
       "saturatedFat100g": 0.19,
-      "sodium100g": 8.4
+      "sodium100g": 8.4,
+      "iron100g": 2.3,
+      "cholesterol100g": 0
     }
   },
   {
@@ -4938,7 +5122,9 @@
       "fiber100g": 3.2,
       "sugar100g": 2.67,
       "saturatedFat100g": 0.277,
-      "sodium100g": 6
+      "sodium100g": 6,
+      "iron100g": 3.3,
+      "cholesterol100g": 0
     }
   },
   {
@@ -4999,7 +5185,9 @@
       "fiber100g": 0,
       "sugar100g": 4.2,
       "saturatedFat100g": 2.4,
-      "sodium100g": 44.2
+      "sodium100g": 44.2,
+      "iron100g": 0.01,
+      "cholesterol100g": 12.5
     }
   },
   {
@@ -5193,7 +5381,9 @@
       "fiber100g": 23.3,
       "sugar100g": 0,
       "saturatedFat100g": 1.5,
-      "sodium100g": 226
+      "sodium100g": 226,
+      "iron100g": 2.17,
+      "cholesterol100g": 0
     }
   },
   {
@@ -5217,7 +5407,9 @@
       "fiber100g": 1.9,
       "sugar100g": 0.1,
       "saturatedFat100g": 0.05,
-      "sodium100g": 14200
+      "sodium100g": 14200,
+      "iron100g": 11.1,
+      "cholesterol100g": 0
     }
   },
   {
@@ -5307,7 +5499,9 @@
       "fiber100g": 0.25,
       "sugar100g": 0.8,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.15,
+      "cholesterol100g": 0
     }
   },
   {
@@ -5515,7 +5709,9 @@
       "fiber100g": 2,
       "sugar100g": 4.44,
       "saturatedFat100g": 0.245,
-      "sodium100g": 205
+      "sodium100g": 205,
+      "iron100g": 0.27,
+      "cholesterol100g": 0
     }
   },
   {
@@ -5568,7 +5764,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 2.95,
-      "sodium100g": 946
+      "sodium100g": 946,
+      "iron100g": 0.31,
+      "cholesterol100g": 83
     }
   },
   {
@@ -5644,7 +5842,9 @@
       "fiber100g": 5,
       "sugar100g": 10.5,
       "saturatedFat100g": 10.4,
-      "sodium100g": 388
+      "sodium100g": 388,
+      "iron100g": 1.92,
+      "cholesterol100g": 0
     }
   },
   {
@@ -5677,7 +5877,9 @@
       "fiber100g": 2.5,
       "sugar100g": 11.3,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.06,
+      "cholesterol100g": null
     }
   },
   {
@@ -5724,7 +5926,9 @@
       "fiber100g": 2.43,
       "sugar100g": 12.8,
       "saturatedFat100g": 8.6,
-      "sodium100g": 417
+      "sodium100g": 417,
+      "iron100g": 1.52,
+      "cholesterol100g": 62.1
     }
   },
   {
@@ -5752,7 +5956,9 @@
       "fiber100g": 0,
       "sugar100g": 4,
       "saturatedFat100g": 25.7,
-      "sodium100g": 32.2
+      "sodium100g": 32.2,
+      "iron100g": 0.06,
+      "cholesterol100g": 123
     }
   },
   {
@@ -5847,7 +6053,9 @@
       "fiber100g": 1.6,
       "sugar100g": 8.16,
       "saturatedFat100g": 0.027,
-      "sodium100g": 0.555
+      "sodium100g": 0.555,
+      "iron100g": 0.15,
+      "cholesterol100g": 0
     }
   },
   {
@@ -5871,7 +6079,9 @@
       "fiber100g": 1.3,
       "sugar100g": 10.6,
       "saturatedFat100g": 0.005,
-      "sodium100g": 24
+      "sodium100g": 24,
+      "iron100g": 0.21,
+      "cholesterol100g": 0
     }
   },
   {
@@ -6082,7 +6292,9 @@
       "fiber100g": 0.1,
       "sugar100g": 0,
       "saturatedFat100g": 0.2,
-      "sodium100g": 77.8
+      "sodium100g": 77.8,
+      "iron100g": 0.3,
+      "cholesterol100g": 25
     }
   },
   {
@@ -6133,7 +6345,9 @@
       "fiber100g": 0,
       "sugar100g": null,
       "saturatedFat100g": 1.28,
-      "sodium100g": 63
+      "sodium100g": 63,
+      "iron100g": 2.32,
+      "cholesterol100g": 39
     }
   },
   {
@@ -6157,7 +6371,9 @@
       "fiber100g": 0,
       "sugar100g": null,
       "saturatedFat100g": 1.28,
-      "sodium100g": 63
+      "sodium100g": 63,
+      "iron100g": 2.32,
+      "cholesterol100g": 39
     }
   },
   {
@@ -6279,7 +6495,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 1.03,
-      "sodium100g": 92
+      "sodium100g": 92,
+      "iron100g": 0.99,
+      "cholesterol100g": 81
     }
   },
   {
@@ -6327,7 +6545,9 @@
       "fiber100g": 4.19,
       "sugar100g": 2.62,
       "saturatedFat100g": 9.98,
-      "sodium100g": 565
+      "sodium100g": 565,
+      "iron100g": 1.17,
+      "cholesterol100g": 0
     }
   },
   {
@@ -6358,7 +6578,9 @@
       "fiber100g": 2.7,
       "sugar100g": 7.6,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.57,
+      "cholesterol100g": 0
     }
   },
   {
@@ -6417,7 +6639,9 @@
       "fiber100g": 1.5,
       "sugar100g": 1.94,
       "saturatedFat100g": 21.4,
-      "sodium100g": 29
+      "sodium100g": 29,
+      "iron100g": 0.041,
+      "cholesterol100g": 125
     }
   },
   {
@@ -6443,7 +6667,9 @@
       "fiber100g": 0,
       "sugar100g": 0.16,
       "saturatedFat100g": 0.21,
-      "sodium100g": 329
+      "sodium100g": 329,
+      "iron100g": 7.81,
+      "cholesterol100g": 40
     }
   },
   {
@@ -6471,7 +6697,9 @@
       "fiber100g": 6.7,
       "sugar100g": 3,
       "saturatedFat100g": 6.45,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 2.2,
+      "cholesterol100g": 0
     }
   },
   {
@@ -6613,7 +6841,9 @@
       "fiber100g": 0,
       "sugar100g": null,
       "saturatedFat100g": 5.39,
-      "sodium100g": 191
+      "sodium100g": 191,
+      "iron100g": 2.4,
+      "cholesterol100g": 82
     }
   },
   {
@@ -6676,7 +6906,9 @@
       "fiber100g": 2.6,
       "sugar100g": null,
       "saturatedFat100g": 0.42,
-      "sodium100g": 499
+      "sodium100g": 499,
+      "iron100g": 1,
+      "cholesterol100g": 0
     },
     "pieza": {
       "nombre": "rebanada",
@@ -6718,7 +6950,9 @@
       "fiber100g": 4.3,
       "sugar100g": 2.5,
       "saturatedFat100g": 0.42,
-      "sodium100g": 539
+      "sodium100g": 539,
+      "iron100g": 1.5,
+      "cholesterol100g": 0.37
     }
   },
   {
@@ -6750,7 +6984,9 @@
       "fiber100g": 2.7,
       "sugar100g": 5.67,
       "saturatedFat100g": 0.698,
-      "sodium100g": 490
+      "sodium100g": 490,
+      "iron100g": 3.61,
+      "cholesterol100g": 0
     }
   },
   {
@@ -6837,7 +7073,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 20.6,
-      "sodium100g": 628
+      "sodium100g": 628,
+      "iron100g": 0.1,
+      "cholesterol100g": 95.3
     }
   },
   {
@@ -6865,7 +7103,9 @@
       "fiber100g": 4.2,
       "sugar100g": 70.3,
       "saturatedFat100g": 0.31,
-      "sodium100g": 5
+      "sodium100g": 5,
+      "iron100g": 1.7,
+      "cholesterol100g": 0
     }
   },
   {
@@ -6891,7 +7131,9 @@
       "fiber100g": 3,
       "sugar100g": 2.12,
       "saturatedFat100g": 0.37,
-      "sodium100g": 9.2
+      "sodium100g": 9.2,
+      "iron100g": 1.5,
+      "cholesterol100g": 0
     }
   },
   {
@@ -6917,7 +7159,9 @@
       "fiber100g": 3,
       "sugar100g": 2.12,
       "saturatedFat100g": 0.37,
-      "sodium100g": 9.2
+      "sodium100g": 9.2,
+      "iron100g": 1.5,
+      "cholesterol100g": 0
     }
   },
   {
@@ -6941,7 +7185,9 @@
       "fiber100g": 0,
       "sugar100g": 0.1,
       "saturatedFat100g": 2.681,
-      "sodium100g": 1078
+      "sodium100g": 1078,
+      "iron100g": 2.22,
+      "cholesterol100g": 68
     }
   },
   {
@@ -7265,7 +7511,9 @@
       "fiber100g": 3.1,
       "sugar100g": 9.4,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.09,
+      "cholesterol100g": null
     }
   },
   {
@@ -7378,7 +7626,9 @@
       "fiber100g": 2.5,
       "sugar100g": 3.2,
       "saturatedFat100g": 4.39,
-      "sodium100g": 1060
+      "sodium100g": 1060,
+      "iron100g": 0.59,
+      "cholesterol100g": 18.2
     }
   },
   {
@@ -7436,7 +7686,9 @@
       "fiber100g": 25.7,
       "sugar100g": 0.64,
       "saturatedFat100g": 2.9,
-      "sodium100g": 14.2
+      "sodium100g": 14.2,
+      "iron100g": 17,
+      "cholesterol100g": 0
     }
   },
   {
@@ -7460,7 +7712,9 @@
       "fiber100g": 26.2,
       "sugar100g": null,
       "saturatedFat100g": 0.63,
-      "sodium100g": 5
+      "sodium100g": 5,
+      "iron100g": 14.3,
+      "cholesterol100g": 0
     }
   },
   {
@@ -7495,7 +7749,9 @@
       "fiber100g": 34.9,
       "sugar100g": 10.3,
       "saturatedFat100g": 2.14,
-      "sodium100g": 68
+      "sodium100g": 68,
+      "iron100g": 21.1,
+      "cholesterol100g": 0
     }
   },
   {
@@ -7555,7 +7811,9 @@
       "fiber100g": 3.2,
       "sugar100g": 3,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.22,
+      "cholesterol100g": 0
     },
     "pieza": {
       "nombre": "pimiento",
@@ -7617,7 +7875,9 @@
       "fiber100g": 1.2,
       "sugar100g": 10.5,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.17,
+      "cholesterol100g": 0
     }
   },
   {
@@ -7746,7 +8006,9 @@
       "fiber100g": 2.3,
       "sugar100g": null,
       "saturatedFat100g": 0.14,
-      "sodium100g": 4
+      "sodium100g": 4,
+      "iron100g": 0.6,
+      "cholesterol100g": 0
     }
   },
   {
@@ -7800,7 +8062,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0.85,
-      "sodium100g": 81
+      "sodium100g": 81,
+      "iron100g": 0.77,
+      "cholesterol100g": 68.8
     }
   },
   {
@@ -7852,7 +8116,9 @@
       "fiber100g": 0,
       "sugar100g": null,
       "saturatedFat100g": 4.57,
-      "sodium100g": 73.2
+      "sodium100g": 73.2,
+      "iron100g": 1.2,
+      "cholesterol100g": 71.1
     }
   },
   {
@@ -7989,7 +8255,9 @@
       "fiber100g": 0,
       "sugar100g": 0.125,
       "saturatedFat100g": 18.1,
-      "sodium100g": 297
+      "sodium100g": 297,
+      "iron100g": 1.5,
+      "cholesterol100g": 107
     },
     "piezaPorAlias": {
       "Queso cheddar (lonchas)": {
@@ -8037,7 +8305,9 @@
       "fiber100g": 0,
       "sugar100g": 0.125,
       "saturatedFat100g": 17.7,
-      "sodium100g": 850
+      "sodium100g": 850,
+      "iron100g": 0.23,
+      "cholesterol100g": 97.8
     }
   },
   {
@@ -8063,7 +8333,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 16.3,
-      "sodium100g": 599
+      "sodium100g": 599,
+      "iron100g": 0.36,
+      "cholesterol100g": 95.8
     }
   },
   {
@@ -8117,7 +8389,9 @@
       "fiber100g": 0,
       "sugar100g": 3.76,
       "saturatedFat100g": 20.213,
-      "sodium100g": 314
+      "sodium100g": 314,
+      "iron100g": 0.11,
+      "cholesterol100g": 101
     }
   },
   {
@@ -8169,7 +8443,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 16.8,
-      "sodium100g": 908
+      "sodium100g": 908,
+      "iron100g": 0.08,
+      "cholesterol100g": 65.2
     }
   },
   {
@@ -8223,7 +8499,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 21.3,
-      "sodium100g": 738
+      "sodium100g": 738,
+      "iron100g": null,
+      "cholesterol100g": 83
     }
   },
   {
@@ -8271,7 +8549,9 @@
       "fiber100g": 0,
       "sugar100g": 0.25,
       "saturatedFat100g": 4.41,
-      "sodium100g": 111
+      "sodium100g": 111,
+      "iron100g": 2.55,
+      "cholesterol100g": null
     }
   },
   {
@@ -8298,7 +8578,9 @@
       "fiber100g": null,
       "sugar100g": null,
       "saturatedFat100g": 0.328,
-      "sodium100g": 26
+      "sodium100g": 26,
+      "iron100g": 3.35,
+      "cholesterol100g": 73
     }
   },
   {
@@ -8322,7 +8604,9 @@
       "fiber100g": 0,
       "sugar100g": 0.25,
       "saturatedFat100g": 0.73,
-      "sodium100g": 60.2
+      "sodium100g": 60.2,
+      "iron100g": 2.08,
+      "cholesterol100g": null
     }
   },
   {
@@ -8514,7 +8798,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": null,
-      "sodium100g": 112
+      "sodium100g": 112,
+      "iron100g": 0.65,
+      "cholesterol100g": 51.4
     }
   },
   {
@@ -8566,7 +8852,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0,
-      "sodium100g": 1
+      "sodium100g": 1,
+      "iron100g": 0.04,
+      "cholesterol100g": 0
     }
   },
   {
@@ -8592,7 +8880,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 24.9,
-      "sodium100g": 1290
+      "sodium100g": 1290,
+      "iron100g": 0.1,
+      "cholesterol100g": 74.7
     }
   },
   {
@@ -8720,7 +9010,9 @@
       "fiber100g": 0.4,
       "sugar100g": 0.32,
       "saturatedFat100g": 7.61,
-      "sodium100g": 722
+      "sodium100g": 722,
+      "iron100g": 0.48,
+      "cholesterol100g": 55.5
     }
   },
   {
@@ -8888,7 +9180,9 @@
       "fiber100g": 0.5,
       "sugar100g": 2.81,
       "saturatedFat100g": 8.789,
-      "sodium100g": 1209
+      "sodium100g": 1209,
+      "iron100g": 1.08,
+      "cholesterol100g": 39
     }
   },
   {
@@ -8944,7 +9238,9 @@
       "fiber100g": 0,
       "sugar100g": 10.03,
       "saturatedFat100g": 0,
-      "sodium100g": 1300
+      "sodium100g": 1300,
+      "iron100g": 5.3,
+      "cholesterol100g": 0
     }
   },
   {
@@ -8970,7 +9266,9 @@
       "fiber100g": 7,
       "sugar100g": 0.3,
       "saturatedFat100g": 0.005,
-      "sodium100g": 11.1
+      "sodium100g": 11.1,
+      "iron100g": 4.6,
+      "cholesterol100g": 0
     }
   },
   {
@@ -8994,7 +9292,9 @@
       "fiber100g": 0.5,
       "sugar100g": 7.9,
       "saturatedFat100g": 0.005,
-      "sodium100g": 2.5
+      "sodium100g": 2.5,
+      "iron100g": 0.16,
+      "cholesterol100g": 0
     }
   },
   {
@@ -9047,7 +9347,9 @@
       "fiber100g": 0,
       "sugar100g": null,
       "saturatedFat100g": 4.57,
-      "sodium100g": 73.2
+      "sodium100g": 73.2,
+      "iron100g": 1.2,
+      "cholesterol100g": 71.1
     }
   },
   {
@@ -9073,7 +9375,9 @@
       "fiber100g": 3.37,
       "sugar100g": 1,
       "saturatedFat100g": 0.21,
-      "sodium100g": 1.2
+      "sodium100g": 1.2,
+      "iron100g": 0.92,
+      "cholesterol100g": 0
     }
   },
   {
@@ -9101,7 +9405,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0.35,
-      "sodium100g": 372
+      "sodium100g": 372,
+      "iron100g": 2.74,
+      "cholesterol100g": 111
     }
   },
   {
@@ -9187,7 +9493,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0,
-      "sodium100g": 4
+      "sodium100g": 4,
+      "iron100g": 0.02,
+      "cholesterol100g": 0
     }
   },
   {
@@ -9211,7 +9519,9 @@
       "fiber100g": 0,
       "sugar100g": 62.6,
       "saturatedFat100g": 0.007,
-      "sodium100g": 6.57
+      "sodium100g": 6.57,
+      "iron100g": 0.11,
+      "cholesterol100g": 0
     }
   },
   {
@@ -9290,7 +9600,9 @@
       "fiber100g": 2.2,
       "sugar100g": 15.11,
       "saturatedFat100g": null,
-      "sodium100g": 2124
+      "sodium100g": 2124,
+      "iron100g": 1.64,
+      "cholesterol100g": null
     }
   },
   {
@@ -9318,7 +9630,9 @@
       "fiber100g": 0.165,
       "sugar100g": 2.1,
       "saturatedFat100g": 0.46,
-      "sodium100g": 632
+      "sodium100g": 632,
+      "iron100g": 0.4,
+      "cholesterol100g": 10.8
     }
   },
   {
@@ -9423,7 +9737,9 @@
       "fiber100g": 0,
       "sugar100g": 0.25,
       "saturatedFat100g": 0.73,
-      "sodium100g": 60.2
+      "sodium100g": 60.2,
+      "iron100g": 2.08,
+      "cholesterol100g": null
     }
   },
   {
@@ -9588,7 +9904,9 @@
       "fiber100g": 4.1,
       "sugar100g": 12.18,
       "saturatedFat100g": 0.1,
-      "sodium100g": 59
+      "sodium100g": 59,
+      "iron100g": 2.98,
+      "cholesterol100g": 0
     }
   },
   {
@@ -9640,7 +9958,9 @@
       "fiber100g": 12.3,
       "sugar100g": 37.6,
       "saturatedFat100g": 0.46,
-      "sodium100g": 247
+      "sodium100g": 247,
+      "iron100g": 9.09,
+      "cholesterol100g": 0
     }
   },
   {
@@ -9718,7 +10038,9 @@
       "fiber100g": 2.8,
       "sugar100g": 2.6,
       "saturatedFat100g": 0.78,
-      "sodium100g": 430
+      "sodium100g": 430,
+      "iron100g": 0.81,
+      "cholesterol100g": null
     },
     "pieza": {
       "nombre": "tortilla",
@@ -9756,7 +10078,9 @@
       "fiber100g": 3.85,
       "sugar100g": 1.55,
       "saturatedFat100g": 3.85,
-      "sodium100g": 650
+      "sodium100g": 650,
+      "iron100g": 0.76,
+      "cholesterol100g": 0.79
     },
     "piezaPorAlias": {
       "Tortillas de trigo grandes": {
@@ -9875,7 +10199,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 39.2,
-      "sodium100g": 0
+      "sodium100g": 0,
+      "iron100g": 0,
+      "cholesterol100g": 95
     }
   },
   {
@@ -9899,7 +10225,9 @@
       "fiber100g": 0.9,
       "sugar100g": 15.5,
       "saturatedFat100g": 0.054,
-      "sodium100g": 2
+      "sodium100g": 2,
+      "iron100g": 0.36,
+      "cholesterol100g": 0
     }
   },
   {
@@ -9990,7 +10318,9 @@
       "fiber100g": 0,
       "sugar100g": 0.04,
       "saturatedFat100g": 0,
-      "sodium100g": 13.1
+      "sodium100g": 13.1,
+      "iron100g": 0.37,
+      "cholesterol100g": 0
     }
   },
   {
@@ -10072,7 +10402,9 @@
       "fiber100g": 0,
       "sugar100g": 0.4,
       "saturatedFat100g": 0,
-      "sodium100g": 5
+      "sodium100g": 5,
+      "iron100g": 0.2,
+      "cholesterol100g": 0
     }
   },
   {
@@ -10160,7 +10492,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0,
-      "sodium100g": 1
+      "sodium100g": 1,
+      "iron100g": 0.025,
+      "cholesterol100g": 0
     }
   },
   {
@@ -10310,7 +10644,9 @@
       "fiber100g": 0,
       "sugar100g": 0,
       "saturatedFat100g": 0.094,
-      "sodium100g": 137
+      "sodium100g": 137,
+      "iron100g": 0.58,
+      "cholesterol100g": 38
     }
   },
   {

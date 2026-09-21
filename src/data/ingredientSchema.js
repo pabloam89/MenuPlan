@@ -132,6 +132,12 @@ export const IngredientSchema = z
         sugar100g: z.number().nonnegative().nullable(),
         saturatedFat100g: z.number().nonnegative().nullable(),
         sodium100g: z.number().nonnegative().nullable(),
+        // Los dos primeros micronutrientes, en mg/100 g igual que el sodio.
+        // Entran porque ya tienen lector: los perfiles «anemia — rico en
+        // hierro» y «corazón y colesterol» se decidían con una lista de
+        // palabras en healthFlags.js, sin medir nada.
+        iron100g: z.number().nonnegative().nullable().optional(),
+        cholesterol100g: z.number().nonnegative().nullable().optional(),
       })
       .nullable(),
   })

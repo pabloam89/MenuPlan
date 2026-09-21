@@ -303,6 +303,11 @@ const NutricionSchema = z.object({
   sugar100g: z.number().nonnegative().nullable(),
   saturatedFat100g: z.number().nonnegative().nullable(),
   sodium100g: z.number().nonnegative().nullable(),
+  // Micronutrientes, en mg/100 g. La lista es corta a propósito: solo entra el
+  // que tiene consumidor. CIQUAL y USDA publican también calcio, potasio,
+  // magnesio, zinc y ocho vitaminas, y se quedan fuera hasta que algo las lea.
+  iron100g: z.number().nonnegative().nullable().optional(),
+  cholesterol100g: z.number().nonnegative().nullable().optional(),
 });
 
 // Una dimensión tiene tres lecturas posibles y las tres son información:

@@ -1,7 +1,7 @@
 {
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
-    "ingredientes": "8065ccdde3defd22",
+    "ingredientes": "2dfa981ed9fdc448",
     "recetas": "593c4e0da7c471c2"
   },
   "recetas": 1033,
@@ -12,7 +12,9 @@
       "fiber_g": 0.993,
       "sugar_g": 0.506,
       "saturated_fat_g": 0.885,
-      "sodium_mg": 0.984
+      "sodium_mg": 0.984,
+      "iron_mg": 0.434,
+      "cholesterol_mg": 0.386
     },
     "estrella": {
       "filas": 747,
@@ -21,7 +23,9 @@
         "fiber_g": 0.991,
         "sugar_g": 0.517,
         "saturated_fat_g": 0.892,
-        "sodium_mg": 0.984
+        "sodium_mg": 0.984,
+        "iron_mg": 0.443,
+        "cholesterol_mg": 0.388
       }
     }
   },

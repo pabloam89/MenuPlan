@@ -129,8 +129,28 @@ const sinFuente = new Set(
     .filter((a) => a.fuente === "heredado")
     .map((a) => a.id),
 );
+/**
+ * A quién se le busca ficha. Tres grupos:
+ *
+ *   1. Los que NO TIENEN nutrición. El hueco se ve solo.
+ *   2. Los que la tienen SIN FUENTE (`heredado`). Números que nadie puede
+ *      atribuir, y que por eso tampoco tienen la unidad de ninguna ficha.
+ *   3. Los que YA CITAN una ficha de ESTA tabla. Parece redundante y no lo es:
+ *      cuando la tabla gana un campo —los micronutrientes— sus filas se quedan
+ *      con la nutrición vieja y siguen citando una ficha que ahora trae más.
+ *      Sin este grupo, ampliar el modelo no rellenaba nada y el aplicador
+ *      informaba de cero sin que nada estuviera roto.
+ */
+const choicesCiqual = existsSync(join(ROOT, "src", "data", "ciqualChoices.json"))
+  ? JSON.parse(readFileSync(join(ROOT, "src", "data", "ciqualChoices.json"), "utf8"))
+  : {};
+const yaCitan = new Set(
+  Object.entries(choicesCiqual)
+    .filter(([clave, v]) => !clave.startsWith("_") && v?.foodId != null)
+    .map(([clave]) => clave),
+);
 const objetivo = ingredientes.filter(
-  (i) => (!i.nutrition || sinFuente.has(i.id)) && (!ONLY || ONLY.has(i.id)),
+  (i) => (!i.nutrition || sinFuente.has(i.id) || yaCitan.has(i.id)) && (!ONLY || ONLY.has(i.id)),
 );
 const sinQuery = objetivo.filter((i) => !queries[i.id]);
 

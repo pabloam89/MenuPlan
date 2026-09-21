@@ -47,6 +47,10 @@ export const NUTRIENT_IDS = {
   2000: "sugar100g",
   1258: "saturatedFat100g",
   1093: "sodium100g", // mg/100 g
+  // Los dos micronutrientes con lector en la app: «anemia — rico en hierro» y
+  // «corazón y colesterol». Los dos en mg/100 g, igual que en CIQUAL.
+  1089: "iron100g",
+  1253: "cholesterol100g",
 };
 
 /** Lee un CSV de FDC quedándose con los primeros campos, que son los numéricos
@@ -162,5 +166,7 @@ export function aNutricionUsda(alim) {
     sugar100g: n.sugar100g ?? null,
     saturatedFat100g: n.saturatedFat100g ?? null,
     sodium100g: n.sodium100g ?? null,
+    iron100g: n.iron100g ?? null,
+    cholesterol100g: n.cholesterol100g ?? null,
   };
 }
