@@ -1185,7 +1185,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 350,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 101,
+      "protein100g": 1.2,
+      "carbs100g": 23,
+      "fat100g": 0.3,
+      "fiber100g": 2.9,
+      "sugar100g": 10.7,
+      "saturatedFat100g": null,
+      "sodium100g": 19
+    }
   },
   {
     "id": "bonito-del-norte",
@@ -1484,7 +1493,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 400,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 32.1,
+      "protein100g": 1.2,
+      "carbs100g": 5.6,
+      "fat100g": 0.5,
+      "fiber100g": 2.4,
+      "sugar100g": null,
+      "saturatedFat100g": 0.26,
+      "sodium100g": 1
+    }
   },
   {
     "id": "calamar",
@@ -3849,7 +3867,16 @@
       "nombre": "loncha",
       "g": 20
     },
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 125.1,
+      "protein100g": 18.4,
+      "carbs100g": 1.3,
+      "fat100g": 5.1,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 1.9,
+      "sodium100g": 1250
+    }
   },
   {
     "id": "jarrete-de-ternera",
@@ -3884,7 +3911,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 10,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 51.7,
+      "protein100g": 1.7,
+      "carbs100g": 9.5,
+      "fat100g": 0.7,
+      "fiber100g": null,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 11
+    }
   },
   {
     "id": "jerez-seco",
@@ -6877,7 +6913,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 80,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 296.6,
+      "protein100g": 19.8,
+      "carbs100g": 1.1,
+      "fat100g": 23.9333,
+      "fiber100g": 0,
+      "sugar100g": 1.1,
+      "saturatedFat100g": 15.3569,
+      "sodium100g": 480
+    }
   },
   {
     "id": "queso-crema",
@@ -7737,7 +7782,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 6,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 560,
+      "protein100g": 19,
+      "carbs100g": 10,
+      "fat100g": 50,
+      "fiber100g": 11,
+      "sugar100g": 5,
+      "saturatedFat100g": 7,
+      "sodium100g": 40
+    }
   },
   {
     "id": "setas",
@@ -8764,7 +8818,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 125,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 63.3,
+      "protein100g": 3.2,
+      "carbs100g": 3.9,
+      "fat100g": 3.9,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 2.2,
+      "sodium100g": 43
+    }
   },
   {
     "id": "zamburina",

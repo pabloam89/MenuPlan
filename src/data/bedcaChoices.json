@@ -1,5 +1,54 @@
 {
   "_": "Qué ficha de BEDCA corresponde a cada ingrediente. 192 decisiones las propuso claude-sonnet-5 y 27 se tomaron a mano el 14 sep 2026; todas traen motivo. VIVE AQUÍ Y NO EN output/ a propósito: output/ está en .gitignore, así que estas 219 decisiones existían solo en el portátil donde se corrió el pipeline. Son la parte cara de la ingesta —el emparejamiento, no los números— y perderlas obligaría a rehacer la pasada entera. \foodId: null no es un hueco: es la decisión explícita de que ninguna ficha de BEDCA sirve para ese ingrediente.",
+  "jengibre": {
+    "foodId": 2606,
+    "confianza": 0.8,
+    "motivo": "«Jengibre», 51,7 kcal, coherente con Atwater (51,1). Es el único candidato y su perfil es de rizoma fresco, no de jengibre molido (que rondaría 335). Se usa a 10 g de mediana, así que el margen que quede apenas mueve nada.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "yogur": {
+    "foodId": 1143,
+    "confianza": 0.9,
+    "motivo": "«Yogur, enriquecido, natural»: 63,3 kcal y Atwater 63,5. Es el valor de libro de un yogur natural; «enriquecido» es un matiz de producto que no mueve los macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "sesamo": {
+    "foodId": 1127,
+    "confianza": 0.95,
+    "motivo": "«Sésamo, semilla», 560 kcal, Atwater 566. Coincidencia directa. El otro candidato era el ACEITE de sésamo (884 kcal, 100 % grasa), que es otro alimento.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "calabaza": {
+    "foodId": 2378,
+    "confianza": 0.95,
+    "motivo": "«Calabaza, cruda», 32,1 kcal, Atwater 31,7. El otro candidato era «Pipa de calabaza» (600 kcal): misma planta, otro alimento.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "boniato": {
+    "foodId": 731,
+    "confianza": 0.95,
+    "motivo": "«Boniato, crudo», 101 kcal, Atwater 99,5. Coincidencia directa y en el estado correcto: las recetas pesan el boniato crudo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "queso-cabra": {
+    "foodId": 934,
+    "confianza": 0.85,
+    "motivo": "«Queso fresco, cabra», 296,6 kcal, Atwater 299. El catálogo dice «Queso de cabra» sin precisar curación; el fresco es el formato que usan las recetas (ensaladas, rulo).",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "jamon-york": {
+    "foodId": 2272,
+    "confianza": 0.85,
+    "motivo": "«Jamón cocido, enlatado», 125,1 kcal, Atwater 124,7. El formato enlatado y el loncheado comparten composición: lo que cambia es el envase, no el jamón.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
   "clara-de-huevo": {
     "foodId": 1173,
     "confianza": 0.95,

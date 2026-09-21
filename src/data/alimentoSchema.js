@@ -244,7 +244,9 @@ export const FAMILIA_DIMENSIONES = {
   alga: ["estado", "presentacion"],
   legumbre: ["estado", "medio", "procesado", "presentacion"],
   fruta: ["estado", "medio", "procesado", "presentacion", "origen"],
-  fruto_seco: ["estado", "procesado", "presentacion"],
+  // `corte` porque el sésamo es la semilla y la castaña el fruto entero: de
+  // qué parte de la planta viene también distingue aquí.
+  fruto_seco: ["corte", "estado", "procesado", "presentacion"],
   cereal: ["estado", "procesado", "presentacion"],
   pasta: ["estado", "procesado", "presentacion"],
   arroz: ["estado", "procesado", "presentacion"],

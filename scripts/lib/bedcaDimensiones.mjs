@@ -247,8 +247,13 @@ export function parseDimensiones(foodName) {
       continue;
     }
     for (const item of Array.isArray(encontrado) ? encontrado : [encontrado]) {
-      // "Yogur, entero" es la grasa, no la pieza.
-      if (item.tipo === "dimension" && item.valor === "entero" && esLacteo) {
+      // Dos palabras cambian de significado en un lácteo, y las dos salieron
+      // de pasar el parser por nombres reales:
+      //   "Yogur, entero"  → la grasa, no la pieza
+      //   "Yogur, natural" → sin azucarar ni aromatizar, no "conservado al
+      //                      natural" como el atún en su jugo
+      if (item.tipo === "dimension" && esLacteo
+          && (item.valor === "entero" || item.valor === "natural")) {
         atributos.push(parte);
         continue;
       }
