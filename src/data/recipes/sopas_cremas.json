@@ -3920,7 +3920,7 @@
     "ingredients": [
       {
         "name": "Cáscaras y cabezas de langostinos",
-        "ingredientId": "langostinos",
+        "ingredientId": "cascara-de-marisco",
         "amount": 300,
         "unit": "g"
       },
@@ -10592,7 +10592,7 @@
       },
       {
         "name": "Hueso de jamón",
-        "ingredientId": "jamon",
+        "ingredientId": "hueso-de-jamon",
         "amount": 100,
         "unit": "g"
       },

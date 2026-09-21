@@ -6086,11 +6086,11 @@
         "pasos": 12,
         "minutos": 839,
         "masa_g": 2260,
-        "cobertura": 1,
-        "kcal": 3443,
-        "protein_g": 249,
+        "cobertura": 0.956,
+        "kcal": 3125,
+        "protein_g": 220,
         "carbs_g": 165,
-        "fat_g": 189,
+        "fat_g": 167,
         "fraccion": 0.966
       },
       "guarnicion": {

@@ -285,5 +285,16 @@
     "valor": 0.83,
     "confianza": 0.6,
     "motivo": "Pedúnculo, semillas y nervaduras. El valor NO es suyo: es el del pimiento rojo, cuya ficha sí está en BEDCA (0,83). Misma especie y mismo descarte, así que se hereda en vez de estimarlo a ojo, y por eso la confianza baja. Lo destapó una revisión de raciones: al tomate de la misma receta se le aplicaba 0,95 y a 720 g de pimiento verde no se le aplicaba nada."
+  },
+
+  "hueso-de-jamon": {
+    "valor": 0,
+    "confianza": 0.95,
+    "motivo": "No se come. Da sabor al cocido y al consomé y se retira, igual que el hueso de ternera. Antes esta línea resolvía al ingrediente `jamon` —jamón serrano, 317,7 kcal y 28,8 g de proteína por 100 g— así que 100 g de hueso entraban como 100 g de jamón."
+  },
+  "cascara-de-marisco": {
+    "valor": 0,
+    "confianza": 0.95,
+    "motivo": "Se sofríen, se cuelan y se tiran; lo que queda en el plato es el sabor. Antes resolvían al langostino o a la gamba PELADOS, así que 300 g de cáscaras contaban como 300 g de carne: en el bisque metían 44 g de proteína fantasma por ración."
   }
 }

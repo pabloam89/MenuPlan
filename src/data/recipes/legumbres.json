@@ -13282,7 +13282,7 @@
       },
       {
         "name": "Hueso de jamón",
-        "ingredientId": "jamon",
+        "ingredientId": "hueso-de-jamon",
         "amount": 100,
         "unit": "g"
       },

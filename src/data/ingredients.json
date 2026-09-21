@@ -3539,7 +3539,7 @@
       "protein100g": 0.6,
       "carbs100g": 0.5,
       "fat100g": 0.13,
-      "fiber100g": 0.00005,
+      "fiber100g": 5e-05,
       "sugar100g": 0.18,
       "saturatedFat100g": 0.083,
       "sodium100g": 312,
@@ -3591,7 +3591,7 @@
       "protein100g": 0.6,
       "carbs100g": 0.5,
       "fat100g": 0.13,
-      "fiber100g": 0.00005,
+      "fiber100g": 5e-05,
       "sugar100g": 0.18,
       "saturatedFat100g": 0.083,
       "sodium100g": 312,
@@ -3639,7 +3639,7 @@
       "protein100g": 0.6,
       "carbs100g": 0.5,
       "fat100g": 0.13,
-      "fiber100g": 0.00005,
+      "fiber100g": 5e-05,
       "sugar100g": 0.18,
       "saturatedFat100g": 0.083,
       "sodium100g": 312,
@@ -4231,6 +4231,28 @@
     }
   },
   {
+    "id": "cascara-de-marisco",
+    "name": "Cáscaras y cabezas de marisco",
+    "aliases": [
+      "Cáscaras y cabezas de langostinos",
+      "Cabezas y cáscaras de gamba",
+      "Cáscaras de gamba",
+      "Cabezas de langostino"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "crustaceos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300,
+    "nutrition": null
+  },
+  {
     "id": "castanas",
     "name": "Castañas cocidas",
     "aliases": [
@@ -4415,7 +4437,7 @@
       "phosphorus100g": 37,
       "potassium100g": 190,
       "zinc100g": 0.23,
-      "copper100g": 0.00005,
+      "copper100g": 5e-05,
       "manganese100g": 0.1,
       "selenium100g": 2.3,
       "iodine100g": 5,
@@ -7447,7 +7469,6 @@
     "name": "Gambas peladas",
     "aliases": [
       "Gambas",
-      "Cabezas y cáscaras de gamba",
       "Gambas cocidas peladas",
       "Gambas frescas o congeladas",
       "Gambas peladas congeladas"
@@ -8394,6 +8415,28 @@
     }
   },
   {
+    "id": "hueso-de-jamon",
+    "name": "Hueso de jamón",
+    "aliases": [
+      "Punta de jamón",
+      "Hueso de jamón serrano"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 100,
+    "nutrition": null,
+    "pieza": {
+      "nombre": "hueso",
+      "g": 150
+    }
+  },
+  {
     "id": "hueso-de-ternera",
     "name": "Hueso de ternera",
     "aliases": [],
@@ -8470,7 +8513,6 @@
     "aliases": [
       "Jamón serrano en lonchas finas",
       "Jamón serrano en tacos",
-      "Hueso de jamón",
       "Jamón serrano en lonchas",
       "Jamón serrano en taquitos",
       "Jamón serrano en virutas",
@@ -9073,7 +9115,6 @@
     "name": "Langostinos pelados",
     "aliases": [
       "Langostinos",
-      "Cáscaras y cabezas de langostinos",
       "Langostinos cocidos pelados",
       "Langostinos frescos con cáscara"
     ],

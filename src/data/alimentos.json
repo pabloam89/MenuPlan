@@ -6386,6 +6386,49 @@
     }
   },
   {
+    "id": "cascara-de-marisco",
+    "nombre": "Cáscaras y cabezas de marisco",
+    "fuente": "sin_fuente",
+    "fuenteId": null,
+    "fuenteNombre": null,
+    "fuenteFecha": null,
+    "familia": "marisco",
+    "rol": "basico",
+    "taxonomia": {
+      "reino": "animal",
+      "clase": "marisco",
+      "subclase": "marisco",
+      "especie": null,
+      "variedad": null
+    },
+    "dimensiones": {
+      "corte": "no_aplica",
+      "estado": null,
+      "medio": null,
+      "procesado": null,
+      "presentacion": null,
+      "origen": null
+    },
+    "nutricion": null,
+    "densidad": null,
+    "fraccionComestible": 0,
+    "huecos": {
+      "nutricion": "ausente_resoluble",
+      "procedencia": "ausente_resoluble",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "relleno",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "relleno",
+      "corte": "no_aplica",
+      "estado": "ausente_resoluble",
+      "medio": "ausente_resoluble",
+      "procesado": "ausente_resoluble",
+      "presentacion": "ausente_resoluble",
+      "origen": "ausente_resoluble"
+    }
+  },
+  {
     "id": "castanas",
     "nombre": "Chestnut, boiled/cooked in water",
     "fuente": "ciqual",
@@ -12727,6 +12770,49 @@
       "procesado": "ausente_sin_fuente",
       "presentacion": "ausente_sin_fuente",
       "origen": "ausente_sin_fuente"
+    }
+  },
+  {
+    "id": "hueso-de-jamon",
+    "nombre": "Hueso de jamón",
+    "fuente": "sin_fuente",
+    "fuenteId": null,
+    "fuenteNombre": null,
+    "fuenteFecha": null,
+    "familia": "casqueria",
+    "rol": "basico",
+    "taxonomia": {
+      "reino": "animal",
+      "clase": "viscera",
+      "subclase": "casqueria",
+      "especie": null,
+      "variedad": null
+    },
+    "dimensiones": {
+      "corte": null,
+      "estado": null,
+      "medio": "no_aplica",
+      "procesado": null,
+      "presentacion": null,
+      "origen": "no_aplica"
+    },
+    "nutricion": null,
+    "densidad": null,
+    "fraccionComestible": 0,
+    "huecos": {
+      "nutricion": "ausente_resoluble",
+      "procedencia": "ausente_resoluble",
+      "familia": "relleno",
+      "rol": "relleno",
+      "taxonomia": "relleno",
+      "densidad": "ausente_resoluble",
+      "fraccionComestible": "relleno",
+      "corte": "ausente_resoluble",
+      "estado": "ausente_resoluble",
+      "medio": "no_aplica",
+      "procesado": "ausente_resoluble",
+      "presentacion": "ausente_resoluble",
+      "origen": "no_aplica"
     }
   },
   {
@@ -19542,7 +19628,7 @@
       "vitaminC100g": 3
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.89,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -19550,7 +19636,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -20898,7 +20984,7 @@
       "cholesterol100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.83,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -20906,7 +20992,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",

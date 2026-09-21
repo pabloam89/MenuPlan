@@ -1,8 +1,8 @@
 {
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
-    "ingredientes": "4013ae5e978c318a",
-    "recetas": "e511ca474d7aa7e8"
+    "ingredientes": "a19dfa54bb22fc86",
+    "recetas": "2b06340a3c4bff7b"
   },
   "recetas": 1033,
   "recipeNutrition": {
@@ -18,12 +18,12 @@
       "magnesium_mg": 0.989,
       "phosphorus_mg": 0.977,
       "potassium_mg": 0.975,
-      "zinc_mg": 0.948,
+      "zinc_mg": 0.947,
       "copper_mg": 0.496,
       "manganese_mg": 0.49,
       "selenium_ug": 0.92,
       "iodine_ug": 0.878,
-      "retinol_ug": 0.779,
+      "retinol_ug": 0.78,
       "beta_carotene_ug": 0.623,
       "vitamin_d_ug": 0.818,
       "vitamin_e_mg": 0.874,
@@ -68,7 +68,7 @@
         "pantothenic_acid_mg": 0.49,
         "vitamin_b6_mg": 0.977,
         "folate_ug": 0.957,
-        "vitamin_b12_ug": 0.9,
+        "vitamin_b12_ug": 0.899,
         "cholesterol_mg": 0.921
       }
     }
