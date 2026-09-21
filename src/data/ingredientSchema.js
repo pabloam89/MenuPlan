@@ -162,6 +162,43 @@ export const IngredientSchema = z
         path: ["aliases"],
       });
     }
+
+    // Las banderas de dieta contra los campos que ya las contradicen.
+    //
+    // POR QUÉ ESTÁ AQUÍ Y NO EN UN TEST: sin esta comprobación, `allergens`,
+    // `aisle` e `isVegetarian`/`isVegan` se rellenan por separado y nadie
+    // cruza los tres. Así entraron doce contradicciones, cuatro de ellas de
+    // seguridad alimentaria — pez espada, rabo de toro, navajas y salsa César
+    // marcados aptos para vegetarianos. En el schema es imposible volver a
+    // escribirlas; en un test, solo es posible enterarse.
+    //
+    // La dirección de la regla es deliberada: un alérgeno declarado es una
+    // afirmación positiva y explícita, mientras que un booleano pudo quedarse
+    // en su valor por defecto sin que nadie lo mirase. Gana el alérgeno.
+    const ANIMAL = ["pescado", "crustaceos", "moluscos"];
+    const animales = ing.allergens.filter((a) => ANIMAL.includes(a));
+    if (animales.length > 0 && ing.isVegetarian) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `declara el alérgeno ${animales.join("/")} y a la vez isVegetarian`,
+        path: ["isVegetarian"],
+      });
+    }
+    if (["Carne", "Pescado"].includes(ing.aisle) && ing.isVegetarian) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `está en el pasillo ${ing.aisle} y a la vez isVegetarian`,
+        path: ["isVegetarian"],
+      });
+    }
+    const lacteoHuevo = ing.allergens.filter((a) => a === "leche" || a === "huevos");
+    if (lacteoHuevo.length > 0 && ing.isVegan) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `declara el alérgeno ${lacteoHuevo.join("/")} y a la vez isVegan`,
+        path: ["isVegan"],
+      });
+    }
   });
 
 /**
