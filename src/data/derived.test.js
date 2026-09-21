@@ -9,7 +9,9 @@ import { readFileSync, readdirSync } from "node:fs";
  *
  * Si falla: `node scripts/build-derived.mjs` y commitea lo que cambie.
  */
-const hash = (s) => createHash("sha256").update(s).digest("hex").slice(0, 16);
+// Misma normalización que scripts/build-derived.mjs: se hashea el contenido,
+// no el CRLF que mete git en Windows con core.autocrlf.
+const hash = (s) => createHash("sha256").update(s.replace(/\r\n/g, "\n")).digest("hex").slice(0, 16);
 const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), "utf8");
 const meta = JSON.parse(leer("./derived/_meta.json"));
 

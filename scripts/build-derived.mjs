@@ -38,7 +38,10 @@ const RECIPES_DIR = join(ROOT, "src", "data", "recipes");
 const OUT_DIR = join(ROOT, "src", "data", "derived");
 const CHECK = process.argv.includes("--check");
 
-const hash = (s) => createHash("sha256").update(s).digest("hex").slice(0, 16);
+// El hash es del CONTENIDO, no del convenio de fin de línea del checkout: con
+// core.autocrlf=true (Windows) git entrega CRLF y el mismo fichero daría otro
+// hash, haciendo saltar derived.test.js en un árbol perfectamente fresco.
+const hash = (s) => createHash("sha256").update(s.replace(/\r\n/g, "\n")).digest("hex").slice(0, 16);
 
 const ficheros = readdirSync(RECIPES_DIR).filter((f) => f.endsWith(".json")).sort();
 const recetas = ficheros.flatMap((f) => JSON.parse(readFileSync(join(RECIPES_DIR, f), "utf8")));
