@@ -7,6 +7,8 @@ import familiaLabels from "./familiaLabels.json";
 import bedcaChoices from "./bedcaChoices.json";
 import ciqualChoices from "./ciqualChoices.json";
 import ciqualQueries from "./ciqualQueries.json";
+import fraccionComestible from "./fraccionComestible.json";
+import { computeRecipeNutrition } from "../lib/ingredients.js";
 import { FAMILIAS } from "../lib/notepadFields.js";
 import { FRAGMENTOS } from "../../scripts/lib/bedcaDimensiones.mjs";
 import { deriveFamilia } from "../../scripts/lib/familia.mjs";
@@ -229,6 +231,43 @@ describe("las decisiones de ficha de BEDCA", () => {
     // viajan con el código. Vivían en output/, que está en .gitignore, y son
     // la parte cara de la ingesta — el emparejamiento, no los números.
     expect(claves.length).toBeGreaterThanOrEqual(219);
+  });
+});
+
+describe("la fracción comestible", () => {
+  const claves = Object.keys(fraccionComestible).filter((k) => k !== "_");
+
+  it("apunta a ingredientes que existen y explica cada valor", () => {
+    const ids = new Set(ingredientes.map((i) => i.id));
+    expect(claves.filter((k) => !ids.has(k))).toEqual([]);
+    expect(claves.filter((k) => !fraccionComestible[k].motivo?.trim())).toEqual([]);
+  });
+
+  it("solo lista lo que descarta algo", () => {
+    // Un ingrediente con fracción 1 no pinta nada aquí: la ausencia YA
+    // significa «no se tira nada». Listarlo sería ruido y daría a entender
+    // que los demás están sin verificar.
+    const inutiles = claves.filter((k) => fraccionComestible[k].valor >= 1);
+    expect(inutiles).toEqual([]);
+    const fuera = claves.filter((k) => !(fraccionComestible[k].valor >= 0 && fraccionComestible[k].valor < 1));
+    expect(fuera).toEqual([]);
+  });
+
+  it("lo que no se come no suma nutrición", () => {
+    // La prueba de que el campo está CABLEADO y no solo declarado. El hueso
+    // de ternera entra a 400 g en un consomé y no alimenta a nadie: antes de
+    // esto contaba como 400 g de comida en un plato de cuatro raciones.
+    const conHueso = { ingredients: [{ name: "Hueso de ternera", amount: 400, unit: "g" }] };
+    expect(computeRecipeNutrition(conHueso, 4)).toBeNull();
+
+    // Y la dorada entera aporta, pero solo su parte comestible.
+    const entera = computeRecipeNutrition({ ingredients: [{ name: "Dorada", amount: 1000, unit: "g" }] }, 1);
+    const fileteada = computeRecipeNutrition({ ingredients: [{ name: "Merluza en lomos", amount: 1000, unit: "g" }] }, 1);
+    expect(entera).not.toBeNull();
+    expect(fileteada).not.toBeNull();
+    // 55 % de 1 kg de dorada son 550 g de pescado; la merluza en lomos va
+    // entera. Con energías parecidas, la dorada tiene que quedar por debajo.
+    expect(entera.kcal).toBeLessThan(fileteada.kcal * 1.2);
   });
 });
 

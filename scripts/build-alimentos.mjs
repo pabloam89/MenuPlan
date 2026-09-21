@@ -51,6 +51,12 @@ const choices = {
 delete choices._;
 const juiciosFamilia = leerJson(join(ROOT, "src", "data", "familiaLabels.json")) ?? {};
 
+// Qué fracción de lo comprado se come. Solo están los que descartan algo; el
+// resto se queda a null, que aquí significa «no se tira nada» y no «no se
+// sabe» — el consumidor asume 1.
+const fraccionComestible = leerJson(join(ROOT, "src", "data", "fraccionComestible.json")) ?? {};
+delete fraccionComestible._;
+
 // Las decisiones de CIQUAL, la segunda tabla de composición. Van aparte de las
 // de BEDCA y no mezcladas en un mismo fichero porque la FUENTE importa: dos
 // tablas nacionales distintas usan laboratorios y métodos distintos, y mezclar
@@ -212,6 +218,7 @@ for (const ing of ingredientes) {
   huecos.procedencia = proc ? "relleno" : "ausente_resoluble";
   huecos.familia = familia ? "relleno" : "ausente_resoluble";
   huecos.rol = rol ? "relleno" : "ausente_resoluble";
+  if (fraccionComestible[ing.id]) huecos.fraccionComestible = "relleno";
   for (const dim of Object.keys(dimensiones)) {
     if (dimensiones[dim] === "no_aplica") { huecos[dim] = "no_aplica"; continue; }
     if (dimensiones[dim] != null) { huecos[dim] = "relleno"; continue; }
@@ -236,7 +243,7 @@ for (const ing of ingredientes) {
     dimensiones,
     nutricion: ing.nutrition ?? null,
     densidad: null,
-    fraccionComestible: null,
+    fraccionComestible: fraccionComestible[ing.id]?.valor ?? null,
     huecos,
   });
   mapaIngredienteAlimento[ing.id] = id;

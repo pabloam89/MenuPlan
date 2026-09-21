@@ -205,6 +205,28 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    test: {
+      // Tope de workers, y no es una manía de rendimiento: sin él la suite
+      // PIERDE TESTS. Medido el 21 sep 2026 en un portátil de 8 hilos, tres
+      // ejecuciones seguidas de `vitest run`:
+      //
+      //   1742 tests ejecutados, 3 "fallos"
+      //   1721 tests ejecutados, los mismos 3 "fallos"
+      //   1751 tests ejecutados, 0 fallos   ← con --no-file-parallelism
+      //
+      // Que el TOTAL cambie entre ejecuciones es el síntoma: no son
+      // aserciones fallando, son workers muriéndose y llevándose por delante
+      // los ficheros que tenían asignados. Los tres que "fallaban" pasan
+      // aislados, y eran distintos cada día según cómo repartiera vitest.
+      //
+      // La causa es memoria: cada worker carga el catálogo entero (recetas,
+      // ingredientes, alimentos, las tablas derivadas), y esos ficheros han
+      // crecido bastante al cerrar la nutrición. Con la mitad de workers cabe.
+      //
+      // Un porcentaje y no un número fijo para que una máquina de CI con más
+      // núcleos siga aprovechándolos.
+      maxWorkers: "50%",
+    },
     server: {
       port: 5176,
       // Falla en vez de saltar a otro puerto: así la URL local es siempre

@@ -21,6 +21,7 @@
 
 import ingredientsJson from "../data/ingredients.json";
 import substitutionsJson from "../data/ingredientSubstitutions.json";
+import fraccionComestibleJson from "../data/fraccionComestible.json";
 import { validateIngredients } from "../data/ingredientSchema.js";
 import { createIngredientResolver } from "./ingredientResolver.js";
 import { guessShoppingAisle, guessIngredientCategory, normalizeName } from "./ingredientCategories.js";
@@ -235,8 +236,20 @@ export function computeRecipeNutrition(recipe, servings) {
   let coveredGrams = 0;
 
   for (const line of resolveRecipeIngredients(recipe)) {
-    const grams = gramsForRecipeQuantity(line.rawName, line.amount, line.unit);
-    if (grams == null || grams <= 0) continue;
+    const comprados = gramsForRecipeQuantity(line.rawName, line.amount, line.unit);
+    if (comprados == null || comprados <= 0) continue;
+
+    // De lo que se COMPRA a lo que se COME. La receta pesa la dorada entera y
+    // el hueso del consomé; la concha, la espina y el hueso no alimentan a
+    // nadie. Sin esto, 400 g de hueso de ternera entraban como 400 g de
+    // comida en un plato de cuatro raciones.
+    //
+    // Ausente = 1: no es un hueco, es que de ese ingrediente no se tira nada,
+    // que es el caso de casi todos (la harina, el aceite, la leche). Solo
+    // están listados los que descartan algo. Ver src/data/fraccionComestible.json.
+    const fraccion = fraccionComestibleJson[line.ingredient?.id]?.valor ?? 1;
+    const grams = comprados * fraccion;
+    if (grams <= 0) continue;
     totalGrams += grams;
 
     const nutrition = line.ingredient?.nutrition;

@@ -1,0 +1,61 @@
+{
+  "_": "Qué fracción de lo que se COMPRA se acaba COMIENDO. 1 = todo; 0,25 = tres cuartas partes van a la basura. Solo aparecen aquí los ingredientes que descartan algo: un ingrediente ausente de este fichero no es un hueco, es que no se tira nada de él (la harina, el aceite, la leche). Por eso `alimentos.fraccionComestible` se queda a null en esos y el consumidor asume 1: null es «no verificado, se supone entero», no cero. POR QUÉ IMPORTA: estas líneas se pesan en crudo y con su descarte. Un consomé con 400 g de hueso de ternera contaba 400 g de comida en un plato de cuatro raciones, y el hueso va a la basura. No es un ingrediente sin nutrición — es un ingrediente que no se come, y darle nutrición habría sido peor que dejarlo vacío.",
+
+  "hueso-de-ternera": {
+    "valor": 0,
+    "confianza": 0.95,
+    "motivo": "No se come. Da sabor al caldo y se retira. Aparece a 400 g en «Consomé con jerez»: sin esto, el plato contaba 400 g de comida que nadie se lleva a la boca."
+  },
+  "pata-de-ternera": {
+    "valor": 0.4,
+    "confianza": 0.6,
+    "motivo": "En los callos se aprovechan la piel y el tendón gelatinoso; el hueso, que es la mayor parte del peso, no. 0,4 es una estimación conservadora y por eso la confianza es baja: si alguien tiene el dato mejor, que lo cambie."
+  },
+  "manitas-de-cerdo": {
+    "valor": 0.5,
+    "confianza": 0.6,
+    "motivo": "Mismo caso que la pata de ternera: se come la piel y la gelatina, no el hueso."
+  },
+
+  "almejas": {
+    "valor": 0.25,
+    "confianza": 0.85,
+    "motivo": "La concha es la mayor parte del peso que se compra y se paga. Las recetas piden los gramos con concha porque es como se venden."
+  },
+  "berberecho": {
+    "valor": 0.25,
+    "confianza": 0.85,
+    "motivo": "Como la almeja: se compra con concha."
+  },
+  "mejillones": {
+    "valor": 0.3,
+    "confianza": 0.85,
+    "motivo": "Se compran con concha. Un kilo de mejillones son unos 300 g de carne."
+  },
+  "navaja": {
+    "valor": 0.35,
+    "confianza": 0.8,
+    "motivo": "Se compran con concha; la navaja aprovecha algo más que la almeja porque su concha es más fina."
+  },
+  "bogavante": {
+    "valor": 0.35,
+    "confianza": 0.8,
+    "motivo": "Caparazón y pinzas son la mayor parte del peso."
+  },
+  "cigala": {
+    "valor": 0.4,
+    "confianza": 0.8,
+    "motivo": "Se compran enteras, con cabeza y caparazón."
+  },
+
+  "dorada": {
+    "valor": 0.55,
+    "confianza": 0.85,
+    "motivo": "«Dorada (limpia, entera)»: viene eviscerada pero con cabeza, espina y aletas, que son casi la mitad del peso. Aparece a 700 g de mediana, así que el error de no aplicarlo es grande."
+  },
+  "lubina": {
+    "valor": 0.55,
+    "confianza": 0.85,
+    "motivo": "«Lubina entera limpia»: mismo caso que la dorada."
+  }
+}
