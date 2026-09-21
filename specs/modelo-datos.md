@@ -582,6 +582,11 @@ aparte, en la fase G.
 
 Cada fase cierra con su test. Ninguna depende de red ni de clave de API.
 
+Antes que todas ellas existe una **Fase A** —partir `alimentos`/`productos`/
+`ingredientes` y cerrar L0 por ingesta— que está escrita en §14 y §15 y
+**no está arrancada**. Las fases 1–12 no dependen de ella: se puede hacer A
+primero o dejarla para después de la 1.
+
 | # | qué | por qué primero | riesgo |
 |---|---|---|---|
 | **1** | Tabla `precios` por ingrediente + operador `costeDeReceta` | es lo único **roto** de cara al usuario: la cesta dice 0 € | bajo |
@@ -602,3 +607,293 @@ Cada fase cierra con su test. Ninguna depende de red ni de clave de API.
 ingredientes (BEDCA da 403 por política de egress) y `part` de las recetas que
 den señal nueva (el pipeline curado necesita `ANTHROPIC_API_KEY`). Ninguno de los
 dos se puede estimar: el pipeline lo prohíbe por diseño y con razón.
+
+---
+
+## 14 · Fase A — `alimentos`: el esquema, y por qué la ingesta de hoy no vale
+
+> **Esta fase no está arrancada.** Queda escrita aquí para decidirla antes de
+> tocar el pipeline, no para ejecutarla. Las fases 1–12 de arriba no dependen
+> de ella.
+
+### El diagnóstico, en una línea de código
+
+```js
+// scripts/apply-bedca-nutrition.mjs:169
+ing.nutrition = chosen.nutrition;
+```
+
+`chosen` trae `foodId` y `foodName` de BEDCA. Se copian los ocho números y se
+tira todo lo demás. Resultado medido: **198 ingredientes con `nutrition`, 0 con
+procedencia.** No se puede responder "¿de qué ficha salió esta proteína?" ni
+"¿esta ficha es del atún fresco o del de lata?" — y esas dos preguntas son la
+misma pregunta.
+
+El emparejamiento ingrediente↔BEDCA es lo caro de este pipeline (triaje,
+selección, filtro de Atwater). Ingerir ahora contra `ingredients.json` y partir
+las entidades después significa **pagarlo dos veces**. Por eso Fase A no es
+"añadir una tabla": es cambiar el destino de escritura del último script.
+
+### Las tres entidades, y la regla que las separa
+
+La regla es **antes o después de la caja del súper**:
+
+| | `alimentos` | `productos` | `ingredientes` |
+|---|---|---|---|
+| qué es | lo que existe y se puede analizar | lo que tiene código de barras | lo que una receta pide |
+| lo define | BEDCA / composición | el súper | el catálogo |
+| clave | `alimentoId` | `sku` / `ean` | `ingredientId` (ya existe) |
+| cambia | cada años | cada semana (precio) | cuando se edita una receta |
+| ámbito | global, bundle | global, cron | global, bundle |
+| trae | macros, micros, densidad, fracción comestible | precio, formato, marca, alérgenos de etiqueta | alias, pieza, política de compra |
+
+El ingrediente **no desaparece ni se duplica**: se queda como lo que ya es —el
+nombre con el que hablan las recetas— y pasa a ser un puntero:
+
+```
+ingrediente ──apunta a──► alimento   (de dónde salen sus macros)
+            ──apunta a──► producto   (qué se compra por defecto, y a qué precio)
+```
+
+Las 383 filas de hoy sobreviven intactas. Lo que se mueve es `nutrition`, que
+deja de vivir en el ingrediente y pasa a leerse del alimento al que apunta.
+
+### El esquema
+
+```js
+// src/data/alimentoSchema.js  (propuesto)
+export const AlimentoSchema = z.object({
+  id: z.string().regex(SLUG_RE),          // "atun-conserva-aceite-escurrido"
+  nombre: z.string().min(1),
+
+  // ── Procedencia: lo que hoy se tira ──────────────────────────────────
+  fuente: z.enum(["bedca", "etiqueta", "manual"]),
+  fuenteId: z.string().nullable(),        // foodId de BEDCA
+  fuenteNombre: z.string().nullable(),    // "Atún, en aceite, enlatado, escurrido"
+  fuenteFecha: z.string().nullable(),     // cuándo se leyó
+
+  // ── Plano A: identidad ───────────────────────────────────────────────
+  familia: z.enum(FAMILIAS),              // "pescado_azul"
+  taxonomia: z.object({                   // solo proteínas, 5 niveles
+    reino: z.string(), clase: z.string(), subclase: z.string(),
+    especie: z.string().nullable(), variedad: z.string().nullable(),
+  }).nullable(),
+
+  // ── Las siete dimensiones de variedad ────────────────────────────────
+  // Enums condicionados: qué dimensiones aplican a cada familia lo dice
+  // FAMILIA_DIMENSIONES. Una dimensión que no aplica NO es null: es
+  // "no_aplica". Un null aquí significa "aplica y no lo sabemos".
+  dimensiones: z.object({
+    corte:        DimEnum(CORTES),        // lomo / ventresca / migas
+    estado:       DimEnum(ESTADOS),       // fresco / congelado / seco / conserva
+    medio:        DimEnum(MEDIOS),        // aceite / agua / escabeche / natural
+    procesado:    DimEnum(PROCESADOS),    // crudo / cocido / ahumado / curado
+    presentacion: DimEnum(PRESENTACIONES),// entero / fileteado / triturado
+    origen:       DimEnum(ORIGENES),      // salvaje / cultivo / almadraba
+  }),
+
+  // ── Plano B: nutrición, por 100 g de PARTE COMESTIBLE ────────────────
+  nutricion: NutricionSchema.nullable(),  // la de hoy, sin cambios de forma
+
+  // ── Conversión física (§15) ──────────────────────────────────────────
+  densidad: z.number().positive().nullable(),        // g/ml
+  fraccionComestible: z.number().min(0).max(1).nullable(), // 1 = todo se come
+
+  // ── Libro de cuentas: por qué falta lo que falta ─────────────────────
+  huecos: z.record(z.enum([
+    "relleno", "no_aplica", "ausente_resoluble", "ausente_sin_fuente",
+  ])),
+}).strict();
+```
+
+`familia` es enum y no texto libre a propósito, por lo mismo que lo son
+`SHOPPING_AISLES` y `INGREDIENT_CATEGORIES`: **añadir un valor obliga a tocar
+este fichero**, así que es una decisión, no un typo.
+
+### El parseo ya está escrito — y tira su resultado
+
+Esto es lo que hace defendible la fase. `scripts/lib/bedcaState.mjs` ya lee las
+dimensiones de los nombres de BEDCA:
+
+| lo que hay hoy | qué dimensión es en realidad | qué hace con ella |
+|---|---|---|
+| `cookState()` → crudo/cocinado/neutro | `procesado` | **descarta** el candidato |
+| `COOKED_STATE_WORDS` (56 palabras) | `procesado` | filtro |
+| `RAW_STATE_WORDS` (8) | `estado` | filtro |
+| `DISH_FORM_WORDS` (53) | `presentacion` + `procesado` | filtro |
+| `coreWords()` | **el alimento sin dimensiones** | clave de matching, no se guarda |
+
+`coreWords()` es literalmente "quítale las dimensiones al nombre y quédate con
+el alimento". El parser existe, funciona y se usa como criba. Fase A no lo
+escribe: lo **guarda**.
+
+El parseo completo sale de la forma en que BEDCA nombra sus fichas, que es
+regular:
+
+```
+"Atún, en aceite, enlatado, escurrido"
+  └─ núcleo ──┘ └ medio ┘ └ estado ┘ └ presentación ┘
+```
+
+Se corta por comas, cada fragmento se busca en el vocabulario de una dimensión
+y el núcleo va contra la familia. **Un fragmento que no case con ninguna
+dimensión no se adivina**: la fila entra con esa dimensión en
+`ausente_resoluble` y el fragmento se apunta en un informe. Es el mismo
+contrato que ya cumple el pipeline de `part`: sin señal, no se escribe.
+
+### Lo que NO hace Fase A
+
+- No infla el catálogo a 3.000 filas de golpe. Se crea una fila de `alimentos`
+  por cada ficha de BEDCA que el catálogo ya usa (198 hoy) más las variedades
+  que una receta distinga de verdad. Las variedades sin consumidor no se crean.
+- No toca `ingredients.json` salvo para añadirle un `alimentoId`.
+- No cambia ningún número que vea el usuario hasta la fase 10.
+
+---
+
+## 15 · Curación: `familia`, `densidad` y `rendimiento` — para qué son
+
+Las tres son campos **curados**, no ingeridos: BEDCA da los dos últimos solo a
+veces y la familia no la da nunca. Van después de la ingesta y antes de
+cablear. Esta sección es la respuesta a "¿para qué queríamos estos valores?",
+con la medida de lo que cada uno compra.
+
+### 15.1 `familia` — hoy el catálogo agrupa por pasillo, no por alimento
+
+Lo medido en `ingredients.json`:
+
+```
+383 ingredientes, 6 categorías:
+  Verduras y frutas 209 · Carnes y pescados 84 · Despensa 38
+  Lácteos y huevos 24 · Legumbres y pasta 19 · Panadería y cereales 9
+```
+
+`category` **es el pasillo del súper**: 209 filas en un solo valor, y atún y
+pollo en el mismo. Sirve para ordenar la lista de la compra, que es para lo que
+se hizo, y no sirve para nada de lo que el modelo necesita. `familia` es la
+clave de agrupación que falta, y compra cuatro cosas concretas:
+
+1. **La vista de libro de cuentas.** "De la familia `atun`, ¿cuántas variedades
+   y cuántas rellenas?" no se puede preguntar hoy. Es la pregunta que convierte
+   el relleno de tablas en un trabajo con final, en vez de en martillazos.
+2. **El bug vivo de favoritos (§11).** El sesgo casa por subcadena, y `"te"`
+   entra en **972 de 1.033** recetas. Con familia, un favorito es una FK y el
+   bug desaparece por construcción, no por un parche al `includes`.
+3. **`aporteDe` por FK (§6).** Clasifica **1.704 de 5.828 líneas por palabras
+   del nombre** teniendo el `ingredientId` puesto en el 100 % de ellas. Le
+   falta a dónde apuntar: la familia es ese destino.
+4. **Es de donde cuelga la taxonomía de 5 niveles**, y el solver ya la usa sin
+   tenerla: el peso más alto de toda la jerarquía —`déficit de familia que
+   falta`, 10.000 (§10)— decide por familia proteica hoy, derivándola a mano.
+
+Coste: **383 filas × 1 campo**, la mayoría deducible de la taxonomía que ya
+existe en `PROTEIN_GROUP_BY_MAIN_PROTEIN`.
+
+### 15.2 `densidad` — 1 de cada 4 líneas del catálogo se pesa a ojo
+
+Lo medido sobre las 7.586 líneas de ingrediente del catálogo:
+
+```
+unidades:  g 5.248 · ml 1.776 · ud 562
+en ml:     1.776 líneas = 23,4 % del catálogo
+```
+
+Todas esas líneas, al convertirse a gramos, asumen **1 g/ml** — porque no hay
+otro número. Las que más pesan:
+
+| línea | veces | densidad real |
+|---|---|---|
+| Aceite de oliva | 705 | 0,92 |
+| Aceite de oliva virgen extra | 118 | 0,92 |
+| Tomate triturado | 114 | ~1,05 |
+| Vino blanco | 81 | ~0,99 |
+| Leche | 71 | 1,03 |
+| Nata para cocinar | 68 | ~1,01 |
+| Zumo de limón | 56 | ~1,03 |
+| Caldo de verduras | 47 | ~1,00 |
+
+Solo el aceite: **36.054 ml en el catálogo, contados como 36.054 g cuando son
+33.170 g** — un 9 % de error, y no en un ingrediente cualquiera. El aceite es
+el término que más mueve la medición de macros: en el bloque 1 de la auditoría,
+contarlo o no contarlo lleva la grasa de **−39,1 % a +18,9 %**. Es decir, el
+aceite es la palanca dominante del único macro que no cuadra, y su masa se está
+calculando con un 9 % de sesgo sistemático. No explica el hueco entero; es la
+parte del hueco que se arregla con un número.
+
+Qué compra: que los gramos reconcilien también en las líneas de ml —hoy
+reconcilian solo las de `g` y `ud` (§4)—, que la lista de la compra pueda decir
+"1 botella de 1 L" en vez de "920 g", y que la grasa deje de tener un sesgo
+conocido y no corregido.
+
+Coste: **unas 40 filas cubren el 90 % del volumen en ml.** No hacen falta las
+383.
+
+`densidad` va en `alimentos` y no en `ingredientes` porque es una propiedad
+física del alimento, y porque el mismo ingrediente en dos estados tiene dos
+densidades.
+
+### 15.3 `rendimiento` — no es un campo: son dos cosas, y van a dos tablas
+
+Esta es la corrección importante. "Rendimiento" mezcla dos fenómenos que
+ocurren en momentos distintos y que pertenecen a sujetos distintos. La misma
+regla de antes: **antes o después del fuego.**
+
+**(a) Fracción comestible — antes del fuego, propiedad del alimento.**
+
+Lo que se tira: cáscara, hueso, espinas, concha. Medido: **16 líneas** del
+catálogo nombran explícitamente el entero o el no pelado, en 14 nombres:
+
+```
+Pollo entero · Codorniz limpia entera · Jarrete de ternera con hueso (ossobuco)
+Lubina entera · Lubina entera limpia · Dorada entera · Dorada (limpia, entera)
+Dorada entera limpia sin escamar · Rodaballo entero limpio
+Langostinos frescos con cáscara · Vieiras limpias en su concha
+Lomo de salmón fresco con piel · Coliflor entera · Champiñones enteros
+```
+
+Son pocas y son las peores: una dorada entera es ~45 % descarte, así que sus
+macros por 100 g de compra están **casi al doble** de lo que el comensal come.
+Van a `alimentos.fraccionComestible`, y son 14 filas de curación manual.
+
+**(b) Cambio en cocción — después del fuego, propiedad de la técnica.**
+
+Agua que se pierde, grasa que se absorbe. No es del alimento ni del
+ingrediente: es del par **(familia, técnica)**. Va a `transformaciones`, con dos
+coeficientes por par: `factorPeso` y `factorGrasa`.
+
+Y aquí está el bloqueo que hay que decir en voz alta: **no existe campo de
+técnica.** Lo comprobado:
+
+```
+methods: 1.256 entradas, y su forma es
+  { appliance, time, difficulty, prepSummary }   ← electrodoméstico, no técnica
+491 de 1.033 recetas no tienen methods siquiera
+```
+
+La técnica vive en el texto de los pasos. Señal medida por regex sobre
+`stepsRich` (solapan entre sí, no suman 1.033):
+
+```
+plancha/salteado 527 · frito 467 · asado/horno 286 · vapor 109 · hervido 100
+sin ninguna señal: 180 recetas
+```
+
+Es señal, no dato. Declarar la técnica es un campo **juzgado**, no ingerible, y
+por tanto **(b) va detrás del pipeline curado, no dentro de la ingesta de L0**.
+Meterlo en Fase A sería adivinarlo con un regex sobre texto libre, que es
+exactamente lo que esta auditoría ha desmontado tres veces (`getCarbType`,
+`SE_COME_CRUDO`, el `/aceite/` que casaba "Anchoas en aceite").
+
+### 15.4 El orden que sale de esto
+
+| | qué | ingerido o juzgado | coste | desbloquea |
+|---|---|---|---|---|
+| **A1** | `alimentos` con procedencia y dimensiones | ingerido (BEDCA) | reescribir el destino de 1 script | que las macros tengan de dónde |
+| **A2** | `productos` con SKU y precio | ingerido (cron Mercadona) | tabla nueva | la fase 1: la cesta a 0 € |
+| **A3** | `familia` en las 383 filas | juzgado, pero derivable de la taxonomía | 1 campo × 383 | §11 favoritos, §6 `aporteDe`, el libro de cuentas |
+| **A4** | `densidad` en ~40 filas | curado | 40 números | 23,4 % del catálogo deja de pesarse a ojo |
+| **A5** | `fraccionComestible` en 14 filas | curado | 14 números | los enteros dejan de contar el hueso como comida |
+| **—** | `tecnica` por paso + `transformaciones` | **juzgado, sin fuente** | pipeline curado | (b), y queda **fuera** de L0 |
+
+A1–A5 cierran L0 de verdad. A lo que sigue después ya se le puede llamar
+"rellenar tablas" sin que sea un eufemismo de adivinar.
