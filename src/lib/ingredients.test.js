@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, beforeEach } from "vitest";
 
 import {
   ingredientCatalog,
@@ -586,5 +586,46 @@ describe("cobertura por campo, no un si/no", () => {
     const n = computeRecipeNutrition(receta, 1);
     expect(n.coberturaPorCampo.sugar_g).toBeCloseTo(0.25, 2);
     expect(n.coverage).toBeCloseTo(0.25, 2);
+  });
+});
+
+// El aceite de freir se absorbe, no se come entero. Ver ACEITE_ABSORBIDO.
+describe("el aceite de freir se absorbe", () => {
+  afterEach(() => {
+    ingredientById.ajo.nutrition = null;
+    ingredientById["aceite-oliva"].nutrition = null;
+  });
+
+  // En GRAMOS y no en ml a proposito: en ml entraria tambien la densidad del
+  // aceite (0,918) y el test dejaria de aislar lo que quiere medir. Que la
+  // densidad se aplica ya lo comprueba otro.
+  const conAceite = (gAceite) => ({
+    ingredients: [
+      { name: "Ajo", ingredientId: "ajo", amount: 200, unit: "g" },
+      { name: "Aceite de oliva", ingredientId: "aceite-oliva", amount: gAceite, unit: "g" },
+    ],
+  });
+
+  beforeEach(() => {
+    ingredientById.ajo.nutrition = { kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 1 };
+    ingredientById["aceite-oliva"].nutrition = { kcal100g: 900, protein100g: 0, carbs100g: 0, fat100g: 100 };
+  });
+
+  it("un chorro para sofreir pasa entero", () => {
+    // 200 g de solido admiten 12 g (el 6 %). Con 10 ml no muerde el tope.
+    const n = computeRecipeNutrition(conAceite(10), 1);
+    expect(n.kcal).toBe(200 + Math.round((900 * 10) / 100));
+  });
+
+  it("una fritura solo cuenta lo que el solido absorbe", () => {
+    // 300 ml de aceite para 200 g de solido: solo entran 12 g.
+    const n = computeRecipeNutrition(conAceite(300), 1);
+    expect(n.kcal).toBe(200 + Math.round((900 * 12) / 100));
+  });
+
+  // Lo que se descuenta es MASA que no se come, asi que tampoco cuenta para la
+  // cobertura: si contara, una fritura parecerìa peor cubierta de lo que està.
+  it("el aceite descontado no hunde la cobertura", () => {
+    expect(computeRecipeNutrition(conAceite(300), 1).coverage).toBe(1);
   });
 });

@@ -240,6 +240,29 @@ export function deriveRecipeAllergens(recipe) {
 // (generateUserRecipeDraft, userRecipes.js) o dejarla como está.
 
 /**
+ * De todo el aceite que una receta lista, cuánto acaba DENTRO de la comida.
+ *
+ * Una fritura no se come su aceite: se calienta, se fríe y se tira. Contarlo
+ * entero daba números imposibles y no en pocos casos —«Fritura de pescado
+ * variado» listaba 367 g de aceite para dos raciones y salía a 2.062 kcal por
+ * plato, cinco veces lo declarado; con el tope sale a 632—.
+ *
+ * El 6 % no es un número redondo elegido a ojo: sale del propio catálogo, y lo
+ * midió antes scripts/audit-catalog.mjs. En «Patatas fritas caseras», de las
+ * 500 kcal declaradas menos las 288 de la patata quedan 212 kcal de aceite,
+ * que son 24 g, que son el 6 % del peso del sólido.
+ *
+ * Solo los aceites LÍQUIDOS de cocinar. La mantequilla y la manteca no entran:
+ * en este catálogo no se fríe con ellas y su grasa sí se come.
+ *
+ * Y el tope no es un recorte, es un mínimo: un chorro para sofreír ya está por
+ * debajo del 6 % del sólido y pasa entero. Muerde en 88 de las 726 recetas
+ * estrella —la cola de las frituras— y deja las otras 638 intactas.
+ */
+const ACEITE_ABSORBIDO = 0.06;
+const ACEITES_DE_FREIR = /^aceite-/;
+
+/**
  * @param {{ingredients?: Array<{name: string, amount?: number, unit?: string}>}} recipe
  * @param {number} servings
  * @returns {{kcal:number, protein_g:number, carbs_g:number, fat_g:number, fiber_g:number|null, sugar_g:number|null, saturated_fat_g:number|null, sodium_mg:number|null, coverage:number, coberturaPorCampo:{fiber_g:number, sugar_g:number, saturated_fat_g:number, sodium_mg:number}} | null}
@@ -274,21 +297,29 @@ export function computeRecipeNutrition(recipe, servings) {
   let totalGrams = 0;
   let coveredGrams = 0;
 
+  // El aceite de freír se ABSORBE, no se come entero — ver ACEITE_ABSORBIDO.
+  // Hace falta saber la masa sólida antes de contar el aceite, así que las
+  // líneas se resuelven una vez y se recorren dos.
+  const lineas = [];
+  let solidoGramos = 0;
   for (const line of resolveRecipeIngredients(recipe)) {
     const comprados = gramsForRecipeQuantity(line.rawName, line.amount, line.unit);
     if (comprados == null || comprados <= 0) continue;
-
-    // De lo que se COMPRA a lo que se COME. La receta pesa la dorada entera y
-    // el hueso del consomé; la concha, la espina y el hueso no alimentan a
-    // nadie. Sin esto, 400 g de hueso de ternera entraban como 400 g de
-    // comida en un plato de cuatro raciones.
-    //
-    // Ausente = 1: no es un hueco, es que de ese ingrediente no se tira nada,
-    // que es el caso de casi todos (la harina, el aceite, la leche). Solo
-    // están listados los que descartan algo. Ver src/data/fraccionComestible.json.
     const fraccion = fraccionComestibleJson[line.ingredient?.id]?.valor ?? 1;
     const grams = comprados * fraccion;
     if (grams <= 0) continue;
+    const esAceite = ACEITES_DE_FREIR.test(line.ingredient?.id ?? "");
+    if (!esAceite) solidoGramos += grams;
+    lineas.push({ line, grams, esAceite });
+  }
+
+  for (const { line, grams: brutos, esAceite } of lineas) {
+    // El tope: de todo el aceite que la receta lista, solo se come lo que el
+    // sólido absorbe. Muerde en 88 de las 726 recetas estrella y no toca las
+    // demás, porque un chorro para sofreír ya está por debajo del 6 %.
+    const grams = esAceite ? Math.min(brutos, ACEITE_ABSORBIDO * solidoGramos) : brutos;
+    if (grams <= 0) continue;
+
     totalGrams += grams;
 
     const nutrition = line.ingredient?.nutrition;
