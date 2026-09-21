@@ -446,7 +446,7 @@
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
-    "isVegan": true,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 55,
     "nutrition": {
@@ -3000,7 +3000,7 @@
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
-    "isVegan": true,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 200,
     "nutrition": {
@@ -3099,14 +3099,14 @@
     "name": "Filetes de pez espada",
     "aliases": [],
     "aisle": "Pescado",
-    "category": "Verduras y frutas",
+    "category": "Carnes y pescados",
     "allergens": [
       "pescado"
     ],
     "cookingAllergens": [],
     "conflictsWith": [],
-    "isVegetarian": true,
-    "isVegan": true,
+    "isVegetarian": false,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 350,
     "nutrition": {
@@ -3702,7 +3702,7 @@
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
-    "isVegan": true,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 230,
     "nutrition": {
@@ -4108,7 +4108,7 @@
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
-    "isVegan": true,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 300,
     "nutrition": null
@@ -5423,8 +5423,8 @@
     ],
     "cookingAllergens": [],
     "conflictsWith": [],
-    "isVegetarian": true,
-    "isVegan": true,
+    "isVegetarian": false,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 500,
     "nutrition": null
@@ -6233,7 +6233,7 @@
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
-    "isVegan": true,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 35,
     "nutrition": null
@@ -6995,12 +6995,12 @@
     "name": "Rabo de toro troceado",
     "aliases": [],
     "aisle": "Carne",
-    "category": "Verduras y frutas",
+    "category": "Carnes y pescados",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
-    "isVegetarian": true,
-    "isVegan": true,
+    "isVegetarian": false,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 800,
     "nutrition": null
@@ -7061,13 +7061,13 @@
     "aliases": [
       "Repollo morado"
     ],
-    "aisle": "Carne",
-    "category": "Carnes y pescados",
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
     "allergens": [],
     "cookingAllergens": [],
     "conflictsWith": [],
-    "isVegetarian": false,
-    "isVegan": false,
+    "isVegetarian": true,
+    "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 150,
     "nutrition": {
@@ -7535,8 +7535,8 @@
     ],
     "cookingAllergens": [],
     "conflictsWith": [],
-    "isVegetarian": true,
-    "isVegan": true,
+    "isVegetarian": false,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 60,
     "nutrition": null
@@ -7939,7 +7939,7 @@
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
-    "isVegan": true,
+    "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 200,
     "nutrition": {
@@ -8648,7 +8648,7 @@
     "cookingAllergens": [],
     "conflictsWith": [],
     "isVegetarian": true,
-    "isVegan": true,
+    "isVegan": false,
     "defaultUnit": "ud",
     "medianAmount": 5,
     "nutrition": {
