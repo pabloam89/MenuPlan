@@ -7,7 +7,13 @@
   "recetas": 1033,
   "recipeNutrition": {
     "filas": 1033,
-    "cobertura_media": 0.974
+    "cobertura_media": 0.974,
+    "cobertura_media_por_campo": {
+      "fiber_g": 0.97,
+      "sugar_g": 0.486,
+      "saturated_fat_g": 0.862,
+      "sodium_mg": 0.961
+    }
   },
   "recipeParts": {
     "filas": 1033,

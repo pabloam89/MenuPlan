@@ -241,14 +241,31 @@ export function deriveRecipeAllergens(recipe) {
 /**
  * @param {{ingredients?: Array<{name: string, amount?: number, unit?: string}>}} recipe
  * @param {number} servings
- * @returns {{kcal:number, protein_g:number, carbs_g:number, fat_g:number, fiber_g:number|null, sugar_g:number|null, saturated_fat_g:number|null, sodium_mg:number|null, coverage:number} | null}
+ * @returns {{kcal:number, protein_g:number, carbs_g:number, fat_g:number, fiber_g:number|null, sugar_g:number|null, saturated_fat_g:number|null, sodium_mg:number|null, coverage:number, coberturaPorCampo:{fiber_g:number, sugar_g:number, saturated_fat_g:number, sodium_mg:number}} | null}
  *   `null` si no hay servings válidos o ningún ingrediente aportó nutrición.
+ *
+ *   `coverage` es la masa con ficha. `coberturaPorCampo` es la masa que aporta
+ *   CADA campo secundario, que es siempre menor o igual y a veces mucho menor:
+ *   BEDCA publica azúcar en 42 de sus 198 fichas.
  */
 export function computeRecipeNutrition(recipe, servings) {
   if (!(servings > 0)) return null;
 
   const totals = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 };
-  const hasSecondary = { fiber_g: false, sugar_g: false, saturated_fat_g: false, sodium_mg: false };
+  // Gramos que de verdad aportaron CADA campo secundario, no un sí/no.
+  //
+  // Aquí había un booleano por campo, y bastaba que UN ingrediente trajera
+  // azúcar para que la receta publicara un total de azúcar sumando solo ese y
+  // callando los otros siete. Medido: 740 de las 747 recetas estrella (99 %)
+  // publicaban un azúcar incompleto, y 447 (60 %) una grasa saturada
+  // incompleta. Lo que falta suma cero, así que el error siempre va en la
+  // misma dirección — por debajo— y eso es sesgo, no ruido.
+  //
+  // El número se queda: un parcial es mejor proxy que un hueco. Lo que no
+  // puede seguir es publicarlo como si estuviera completo, así que cada campo
+  // secundario viaja con la fracción de masa que lo sostiene.
+  const secundarios = ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg"];
+  const gramosDelCampo = { fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 };
   let totalGrams = 0;
   let coveredGrams = 0;
 
@@ -278,10 +295,10 @@ export function computeRecipeNutrition(recipe, servings) {
     totals.protein_g += nutrition.protein100g * factor;
     totals.carbs_g += nutrition.carbs100g * factor;
     totals.fat_g += nutrition.fat100g * factor;
-    if (nutrition.fiber100g != null) { totals.fiber_g += nutrition.fiber100g * factor; hasSecondary.fiber_g = true; }
-    if (nutrition.sugar100g != null) { totals.sugar_g += nutrition.sugar100g * factor; hasSecondary.sugar_g = true; }
-    if (nutrition.saturatedFat100g != null) { totals.saturated_fat_g += nutrition.saturatedFat100g * factor; hasSecondary.saturated_fat_g = true; }
-    if (nutrition.sodium100g != null) { totals.sodium_mg += nutrition.sodium100g * factor; hasSecondary.sodium_mg = true; }
+    if (nutrition.fiber100g != null) { totals.fiber_g += nutrition.fiber100g * factor; gramosDelCampo.fiber_g += grams; }
+    if (nutrition.sugar100g != null) { totals.sugar_g += nutrition.sugar100g * factor; gramosDelCampo.sugar_g += grams; }
+    if (nutrition.saturatedFat100g != null) { totals.saturated_fat_g += nutrition.saturatedFat100g * factor; gramosDelCampo.saturated_fat_g += grams; }
+    if (nutrition.sodium100g != null) { totals.sodium_mg += nutrition.sodium100g * factor; gramosDelCampo.sodium_mg += grams; }
   }
 
   if (coveredGrams === 0) return null;
@@ -291,16 +308,28 @@ export function computeRecipeNutrition(recipe, servings) {
     return Math.round((v / servings) * factor) / factor;
   };
 
+  // Fracción de la masa TOTAL de la receta que aportó cada campo secundario.
+  // Se mide contra `totalGrams` y no contra `coveredGrams` a propósito: al
+  // comensal le da igual si el hueco viene de que el ingrediente no tiene
+  // ficha o de que su ficha no publica azúcar. El hueco es el mismo.
+  const cobertura = {};
+  for (const c of secundarios) {
+    cobertura[c] = totalGrams > 0 ? Math.round((gramosDelCampo[c] / totalGrams) * 1000) / 1000 : 0;
+  }
+
   return {
     kcal: perServing(totals.kcal, 0),
     protein_g: perServing(totals.protein_g),
     carbs_g: perServing(totals.carbs_g),
     fat_g: perServing(totals.fat_g),
-    fiber_g: hasSecondary.fiber_g ? perServing(totals.fiber_g) : null,
-    sugar_g: hasSecondary.sugar_g ? perServing(totals.sugar_g) : null,
-    saturated_fat_g: hasSecondary.saturated_fat_g ? perServing(totals.saturated_fat_g) : null,
-    sodium_mg: hasSecondary.sodium_mg ? perServing(totals.sodium_mg, 0) : null,
+    fiber_g: cobertura.fiber_g > 0 ? perServing(totals.fiber_g) : null,
+    sugar_g: cobertura.sugar_g > 0 ? perServing(totals.sugar_g) : null,
+    saturated_fat_g: cobertura.saturated_fat_g > 0 ? perServing(totals.saturated_fat_g) : null,
+    sodium_mg: cobertura.sodium_mg > 0 ? perServing(totals.sodium_mg, 0) : null,
     coverage: totalGrams > 0 ? Math.round((coveredGrams / totalGrams) * 1000) / 1000 : 0,
+    // Qué parte de la receta sostiene cada uno de los cuatro de arriba. Un
+    // 0,31 en `sugar_g` dice que ese azúcar es el de un tercio del plato.
+    coberturaPorCampo: cobertura,
   };
 }
 

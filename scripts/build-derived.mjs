@@ -161,6 +161,20 @@ const meta = {
   recipeNutrition: {
     filas: Object.keys(recipeNutrition).length,
     cobertura_media: +(Object.values(recipeNutrition).reduce((a, v) => a + v.coverage, 0) / Object.keys(recipeNutrition).length).toFixed(3),
+    // La media de arriba es la masa con ficha, y dice poco de los cuatro
+    // campos secundarios: una ficha de BEDCA puede traer las kcal y no el
+    // azúcar. Estas cuatro son lo que de verdad sostiene cada número, y la
+    // del azúcar es hoy la que duele.
+    cobertura_media_por_campo: (() => {
+      const filas = Object.values(recipeNutrition);
+      const campos = ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg"];
+      return Object.fromEntries(
+        campos.map((c) => [
+          c,
+          +(filas.reduce((a, v) => a + (v.coberturaPorCampo?.[c] ?? 0), 0) / filas.length).toFixed(3),
+        ]),
+      );
+    })(),
   },
   recipeParts: {
     filas: Object.keys(recipeParts).length,

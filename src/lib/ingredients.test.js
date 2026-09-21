@@ -529,3 +529,62 @@ describe("señales de dieta", () => {
     expect(malos).toEqual([]);
   });
 });
+
+// El campo secundario que se publica a medias. Antes esto era un booleano por
+// campo y bastaba UN ingrediente con azúcar para que la receta publicara un
+// total de azúcar callando los demás: 740 de 747 recetas estrella lo hacían.
+describe("cobertura por campo, no un si/no", () => {
+  afterEach(() => {
+    ingredientById.ajo.nutrition = null;
+    ingredientById.perejil.nutrition = null;
+  });
+
+  const receta = {
+    ingredients: [
+      { name: "Ajo", ingredientId: "ajo", amount: 100, unit: "g" },
+      { name: "Perejil", ingredientId: "perejil", amount: 300, unit: "g" },
+    ],
+  };
+  const conAzucar = { kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 1, fiber100g: 2, sugar100g: 8, saturatedFat100g: 0.5, sodium100g: 30 };
+  const sinAzucar = { ...conAzucar, sugar100g: null };
+
+  it("un solo ingrediente con azucar no cubre la receta entera", () => {
+    ingredientById.ajo.nutrition = conAzucar;
+    ingredientById.perejil.nutrition = sinAzucar;
+    const n = computeRecipeNutrition(receta, 1);
+    // El ajo es 100 g de los 400: el azúcar declarado es el de una cuarta parte.
+    expect(n.coberturaPorCampo.sugar_g).toBeCloseTo(0.25, 2);
+    // Los demás campos sí los traen los dos ingredientes.
+    expect(n.coberturaPorCampo.fiber_g).toBe(1);
+    expect(n.coberturaPorCampo.sodium_mg).toBe(1);
+    // Y el número se PUBLICA igual: un parcial etiquetado vale más que un hueco.
+    expect(n.sugar_g).toBeGreaterThan(0);
+  });
+
+  it("cuando lo traen todos, la cobertura del campo es 1", () => {
+    ingredientById.ajo.nutrition = conAzucar;
+    ingredientById.perejil.nutrition = conAzucar;
+    const n = computeRecipeNutrition(receta, 1);
+    for (const c of ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg"]) {
+      expect(n.coberturaPorCampo[c]).toBe(1);
+    }
+  });
+
+  it("cuando no lo trae nadie, el campo es null y su cobertura 0", () => {
+    ingredientById.ajo.nutrition = sinAzucar;
+    ingredientById.perejil.nutrition = sinAzucar;
+    const n = computeRecipeNutrition(receta, 1);
+    expect(n.sugar_g).toBeNull();
+    expect(n.coberturaPorCampo.sugar_g).toBe(0);
+  });
+
+  // Un ingrediente SIN ficha también es un hueco del campo, aunque el hueco
+  // venga de más arriba: al comensal le da igual de dónde nazca.
+  it("un ingrediente sin ficha cuenta como hueco del campo", () => {
+    ingredientById.ajo.nutrition = conAzucar;
+    ingredientById.perejil.nutrition = null;
+    const n = computeRecipeNutrition(receta, 1);
+    expect(n.coberturaPorCampo.sugar_g).toBeCloseTo(0.25, 2);
+    expect(n.coverage).toBeCloseTo(0.25, 2);
+  });
+});
