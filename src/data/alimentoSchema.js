@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { NUTRIENTES, CAMPOS_NUTRICION } from "./nutrientes.js";
+
 /**
  * `alimentos` — la tabla de referencia que falta, y la primera pieza de la
  * Fase A de specs/modelo-datos.md (§14).
@@ -294,21 +296,27 @@ export const CAMPOS_CONTABLES = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const NutricionSchema = z.object({
-  kcal100g: z.number().nonnegative(),
-  protein100g: z.number().nonnegative(),
-  carbs100g: z.number().nonnegative(),
-  fat100g: z.number().nonnegative(),
-  fiber100g: z.number().nonnegative().nullable(),
-  sugar100g: z.number().nonnegative().nullable(),
-  saturatedFat100g: z.number().nonnegative().nullable(),
-  sodium100g: z.number().nonnegative().nullable(),
-  // Micronutrientes, en mg/100 g. La lista es corta a propósito: solo entra el
-  // que tiene consumidor. CIQUAL y USDA publican también calcio, potasio,
-  // magnesio, zinc y ocho vitaminas, y se quedan fuera hasta que algo las lea.
-  iron100g: z.number().nonnegative().nullable().optional(),
-  cholesterol100g: z.number().nonnegative().nullable().optional(),
-});
+/**
+ * La nutrición, generada desde src/data/nutrientes.js — que es donde se declara
+ * cada campo con su unidad. Antes esta lista estaba escrita a mano aquí y en
+ * otros cinco sitios, y al ampliarla dos de los seis se quedaron atrás sin que
+ * nada lo dijera. Ahora añadir un nutriente es tocar un fichero.
+ *
+ * Los cuatro duros son obligatorios: una ficha sin ellos no se puede calcular
+ * ni comprobar, y es la que mete un cero donde debería haber un hueco. El resto
+ * es `nullable().optional()` — ausente y null significan lo mismo aquí, «no lo
+ * sé», que NO es cero.
+ */
+const NutricionSchema = z.object(
+  Object.fromEntries(
+    CAMPOS_NUTRICION.map((campo) => [
+      campo,
+      NUTRIENTES[campo].duro
+        ? z.number().nonnegative()
+        : z.number().nonnegative().nullable().optional(),
+    ]),
+  ),
+);
 
 // Una dimensión tiene tres lecturas posibles y las tres son información:
 //   "lomo"      → lo sabemos
@@ -523,3 +531,7 @@ export function validateAlimentos(alimentos) {
 
   return errors;
 }
+
+// Re-exportadas para que un consumidor del esquema no tenga que saber que la
+// declaración vive en otro fichero.
+export { NUTRIENTES, CAMPOS_NUTRICION } from "./nutrientes.js";

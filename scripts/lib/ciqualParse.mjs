@@ -29,24 +29,50 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
+import { CAMPOS_NUTRICION } from "../../src/data/nutrientes.js";
+
 /** Constituyente de CIQUAL → nuestro campo. Los códigos salen de const_*.xml. */
 export const CONST_CODES = {
   327: "kj100g",            // Energy (kJ/100g) — respaldo cuando falta el kcal
   328: "kcal100g",          // Energy, Regulation EU No 1169/2011 (kcal/100g)
-  25000: "protein100g",     // Protein (g/100g)
-  31000: "carbs100g",       // Carbohydrate (g/100g)
-  40000: "fat100g",         // Fat (g/100g)
-  34100: "fiber100g",       // Fibres (g/100g)
-  32000: "sugar100g",       // Sugars (g/100g)
-  40302: "saturatedFat100g", // FA saturated (g/100g)
-  10110: "sodium100g",      // Sodium (mg/100g) — misma unidad que BEDCA
-  // Los dos primeros micronutrientes, y entran porque YA tienen lector: la app
-  // enseña los perfiles «anemia — rico en hierro» y «corazón y colesterol», y
-  // hoy los dos se deciden con una lista de quince palabras en healthFlags.js.
-  // Los dos vienen en mg/100 g en las tres tablas, así que no hay conversión
-  // donde perder un factor de mil, que es como se coló el sodio en gramos.
-  10260: "iron100g",        // Iron (mg/100g)
-  75100: "cholesterol100g", // Cholesterol (mg/100g)
+  25000: "protein100g",
+  31000: "carbs100g",
+  40000: "fat100g",
+  34100: "fiber100g",
+  32000: "sugar100g",
+  40302: "saturatedFat100g",
+  // Minerales. CIQUAL los publica todos en mg/100 g salvo selenio y yodo, que
+  // van en µg — y esas son EXACTAMENTE las unidades declaradas en
+  // src/data/nutrientes.js, comprobado id a id contra USDA. No hay ninguna
+  // conversión en este fichero, y eso es a propósito: el sodio acabó en gramos
+  // en 30 filas y la única forma de que eso no vuelva es no convertir nada.
+  10110: "sodium100g",
+  10200: "calcium100g",
+  10260: "iron100g",
+  10120: "magnesium100g",
+  10150: "phosphorus100g",
+  10190: "potassium100g",
+  10300: "zinc100g",
+  10290: "copper100g",
+  10251: "manganese100g",
+  10340: "selenium100g",     // µg
+  10530: "iodine100g",       // µg
+  // Vitaminas
+  51200: "retinol100g",      // µg
+  51330: "betaCarotene100g", // µg
+  52100: "vitaminD100g",     // µg
+  53100: "vitaminE100g",
+  54101: "vitaminK100g",     // µg — K1 (filoquinona); la K2 va aparte y se deja
+  55100: "vitaminC100g",
+  56100: "thiamin100g",
+  56200: "riboflavin100g",
+  56310: "niacin100g",
+  56400: "pantothenicAcid100g",
+  56500: "vitaminB6100g",
+  56700: "folate100g",       // µg
+  56600: "vitaminB12100g",   // µg
+  // Lípidos
+  75100: "cholesterol100g",
 };
 
 /**
@@ -187,16 +213,10 @@ export function fichasUtiles(alimentos) {
 /** La misma forma exacta que `nutrition` en ingredients.json. */
 export function aNutricion(alim) {
   const n = alim.nutricion;
-  return {
-    kcal100g: n.kcal100g,
-    protein100g: n.protein100g,
-    carbs100g: n.carbs100g,
-    fat100g: n.fat100g,
-    fiber100g: n.fiber100g ?? null,
-    sugar100g: n.sugar100g ?? null,
-    saturatedFat100g: n.saturatedFat100g ?? null,
-    sodium100g: n.sodium100g ?? null,
-    iron100g: n.iron100g ?? null,
-    cholesterol100g: n.cholesterol100g ?? null,
-  };
+  // Generada desde la declaración: si mañana entra una vitamina más, aquí no
+  // hay nada que tocar. La versión escrita a mano se quedó corta dos veces.
+  return Object.fromEntries(
+    CAMPOS_NUTRICION.map((c) => [c, n[c] ?? null]),
+  );
 }
+

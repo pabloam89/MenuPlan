@@ -35,6 +35,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { mayContainAlcohol } from "./bedcaAtwater.mjs";
+import { CAMPOS_NUTRICION } from "../../src/data/nutrientes.js";
 
 /** nutrient_id de FDC para los ocho campos. El sodio viene en MG, que es la
  *  unidad del catálogo: no hay conversión y por tanto no hay dónde perderla. */
@@ -46,10 +47,33 @@ export const NUTRIENT_IDS = {
   1079: "fiber100g",
   2000: "sugar100g",
   1258: "saturatedFat100g",
-  1093: "sodium100g", // mg/100 g
-  // Los dos micronutrientes con lector en la app: «anemia — rico en hierro» y
-  // «corazón y colesterol». Los dos en mg/100 g, igual que en CIQUAL.
+  // Los 24 minerales y vitaminas, con los MISMOS id y las MISMAS unidades que
+  // declara CIQUAL: comprobado uno a uno contra nutrient.csv, que publica la
+  // unidad de cada uno. Ni aquí ni en el parser de CIQUAL se convierte nada.
+  1093: "sodium100g",
+  1087: "calcium100g",
   1089: "iron100g",
+  1090: "magnesium100g",
+  1091: "phosphorus100g",
+  1092: "potassium100g",
+  1095: "zinc100g",
+  1098: "copper100g",
+  1101: "manganese100g",
+  1103: "selenium100g",     // UG
+  1100: "iodine100g",       // UG — SR Legacy casi no lo trae; CIQUAL sí
+  1105: "retinol100g",      // UG
+  1107: "betaCarotene100g", // UG
+  1114: "vitaminD100g",     // UG
+  1109: "vitaminE100g",
+  1185: "vitaminK100g",     // UG
+  1162: "vitaminC100g",
+  1165: "thiamin100g",
+  1166: "riboflavin100g",
+  1167: "niacin100g",
+  1170: "pantothenicAcid100g",
+  1175: "vitaminB6100g",
+  1177: "folate100g",       // UG
+  1178: "vitaminB12100g",   // UG
   1253: "cholesterol100g",
 };
 
@@ -157,16 +181,6 @@ export function fichasUtilesUsda(alimentos) {
 /** La misma forma exacta que `nutrition` en ingredients.json. */
 export function aNutricionUsda(alim) {
   const n = alim.nutricion;
-  return {
-    kcal100g: n.kcal100g,
-    protein100g: n.protein100g,
-    carbs100g: n.carbs100g,
-    fat100g: n.fat100g,
-    fiber100g: n.fiber100g ?? null,
-    sugar100g: n.sugar100g ?? null,
-    saturatedFat100g: n.saturatedFat100g ?? null,
-    sodium100g: n.sodium100g ?? null,
-    iron100g: n.iron100g ?? null,
-    cholesterol100g: n.cholesterol100g ?? null,
-  };
+  return Object.fromEntries(CAMPOS_NUTRICION.map((c) => [c, n[c] ?? null]));
 }
+

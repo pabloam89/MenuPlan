@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { NUTRIENTES, CAMPOS_NUTRICION } from "./nutrientes.js";
+
 import { SHOPPING_AISLES, normalizeName } from "../lib/ingredientCategories.js";
 import { INGREDIENT_CATEGORIES } from "./recipes.js";
 
@@ -122,23 +124,19 @@ export const IngredientSchema = z
     // error, mismo criterio que el resto de campos derivados de una fuente
     // externa. `sugar100g` en particular es sparse incluso dentro de BEDCA
     // (el campo existe pero muchos alimentos no lo tienen relleno).
+    // Misma forma exacta que en alimentoSchema, y por el mismo sitio: la lista
+    // de nutrientes se declara UNA vez, en src/data/nutrientes.js.
     nutrition: z
-      .object({
-        kcal100g: z.number().nonnegative(),
-        protein100g: z.number().nonnegative(),
-        carbs100g: z.number().nonnegative(),
-        fat100g: z.number().nonnegative(),
-        fiber100g: z.number().nonnegative().nullable(),
-        sugar100g: z.number().nonnegative().nullable(),
-        saturatedFat100g: z.number().nonnegative().nullable(),
-        sodium100g: z.number().nonnegative().nullable(),
-        // Los dos primeros micronutrientes, en mg/100 g igual que el sodio.
-        // Entran porque ya tienen lector: los perfiles «anemia — rico en
-        // hierro» y «corazón y colesterol» se decidían con una lista de
-        // palabras en healthFlags.js, sin medir nada.
-        iron100g: z.number().nonnegative().nullable().optional(),
-        cholesterol100g: z.number().nonnegative().nullable().optional(),
-      })
+      .object(
+        Object.fromEntries(
+          CAMPOS_NUTRICION.map((campo) => [
+            campo,
+            NUTRIENTES[campo].duro
+              ? z.number().nonnegative()
+              : z.number().nonnegative().nullable().optional(),
+          ]),
+        ),
+      )
       .nullable(),
   })
   .strict()

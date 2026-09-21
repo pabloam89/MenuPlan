@@ -26,6 +26,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import { computeRecipeNutrition } from "../src/lib/ingredients.js";
+import { NUTRIENTES, CAMPOS_SECUNDARIOS as CAMPOS_SEC } from "../src/data/nutrientes.js";
 import { availablePartsOf, ingredientsByPart, stepsByPart } from "../src/lib/recipeSteps.js";
 import { deriveStepParts, medirConcordancia } from "../src/lib/derive/stepParts.js";
 import { selectPartsTargets } from "./select-recipes-for-parts.mjs";
@@ -44,7 +45,8 @@ const CHECK = process.argv.includes("--check");
 const hash = (s) => createHash("sha256").update(s.replace(/\r\n/g, "\n")).digest("hex").slice(0, 16);
 
 /** Media de la cobertura de cada campo secundario sobre un conjunto de filas. */
-const CAMPOS_SECUNDARIOS = ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg", "iron_mg", "cholesterol_mg"];
+// Los nombres POR RACIÓN de los campos secundarios, desde la declaración.
+const CAMPOS_SECUNDARIOS = CAMPOS_SEC.map((c) => NUTRIENTES[c].porRacion);
 const mediasPorCampo = (filas) =>
   Object.fromEntries(
     CAMPOS_SECUNDARIOS.map((c) => [

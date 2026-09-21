@@ -40,6 +40,7 @@ import { join, dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
 import { atwaterCheck } from "./lib/bedcaAtwater.mjs";
+import { CAMPOS_NUTRICION } from "../src/data/nutrientes.js";
 import { statesCompatible, looksLikeOtherFood } from "./lib/bedcaState.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -186,16 +187,9 @@ const sinFuente = new Set(alimentos.filter((a) => a.fuente === "heredado").map((
  * pero no la cites y la contradigas: si la fila ya nombra esa ficha, adoptar
  * sus valores no cambia de fuente, solo deja de mentir sobre la que hay.
  */
-const CAMPOS_NUTRICION = [
-  "kcal100g", "protein100g", "carbs100g", "fat100g",
-  "fiber100g", "sugar100g", "saturatedFat100g", "sodium100g",
-  // Al añadir los micronutrientes esta lista se quedó corta y la reparación no
-  // saltaba: las filas citaban una ficha que ya traía hierro y colesterol y
-  // ellas no los tenían, pero la comparación no miraba esos dos campos. Un
-  // campo nuevo en la nutrición hay que añadirlo AQUÍ o la fila se queda a
-  // medias sin que nada lo diga.
-  "iron100g", "cholesterol100g",
-];
+// La lista viene de la declaración. Tenerla escrita a mano aquí ya costó una
+// reparación que no saltaba: las filas citaban una ficha con dos campos más y
+// la comparación no los miraba.
 const fichaCitada = new Map(
   alimentos.filter((a) => a.fuenteId != null && a.nutricion).map((a) => [a.id, String(a.fuenteId)]),
 );
