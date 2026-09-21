@@ -1442,5 +1442,18 @@
     "confianza": 1,
     "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
     "modelo": "decision-humana-2026-09-14"
+  },
+
+  "perdiz": {
+    "foodId": 2289,
+    "confianza": 0.95,
+    "motivo": "«Perdiz, cruda», 111,4 kcal. El alimento estaba descartado con el motivo «CIQUAL no publica la perdiz», que es cierto y no era la pregunta: BEDCA es la tabla ESPAÑOLA y la perdiz es caza corriente aquí. La ficha llevaba todo este tiempo en el informe local. Un alimento rechazado en una tabla no se estaba reintentando en la otra.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "berberecho": {
+    "foodId": 2306,
+    "confianza": 0.95,
+    "motivo": "«Berberechos», 47,9 kcal. Mismo caso que la perdiz: descartado porque «CIQUAL no publica el berberecho con macros», cierto, y BEDCA sí. Las dos son la misma lección — cuando el motivo de un null nombra UNA tabla, la decisión está a medias.",
+    "modelo": "decision-humana-2026-09-21"
   }
 }

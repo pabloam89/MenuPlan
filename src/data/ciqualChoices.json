@@ -367,9 +367,9 @@
     "modelo": "decision-humana-2026-09-21"
   },
   "melon": {
-    "foodId": null,
+    "foodId": "13026",
     "confianza": 0.85,
-    "motivo": "El único candidato que devuelve el término es la SANDÍA, que es otra fruta. CIQUAL no publica el melón con macros completos.",
+    "motivo": "«Melon, cantaloupe, pulp, raw», 62,7 kcal. RECTIFICA un motivo que era falso: decía «el ÚNICO candidato que devuelve el término es la SANDÍA» y que CIQUAL no publica el melón. Publica dos, cantaloupe y honeydew, y los dos estaban en su lista de candidatos —la sandía era solo el primero—. Se coge el cantaloupe porque es el melón de carne naranja que llevan la sopa fría y la ensalada con jamón.",
     "modelo": "decision-humana-2026-09-21"
   },
   "nueces": {
@@ -541,9 +541,9 @@
     "modelo": "decision-humana-2026-09-21"
   },
   "alitas-de-pollo": {
-    "foodId": null,
+    "foodId": "36023",
     "confianza": 0.85,
-    "motivo": "El candidato es el muslo. El ala lleva mucha más piel en proporción, y entre cortes de pollo la grasa varía x10.",
+    "motivo": "«Chicken, wing, meat and skin, raw», 181 kcal. RECTIFICA una decisión anterior que descartaba el alimento con el motivo «el candidato es el muslo»: el muslo era el candidato NÚMERO UNO y el ala estaba en el número DOS de su propia lista. Desbloquea las dos recetas de alitas, que estaban al 14 % y al 15 %, las peores del recetario.",
     "modelo": "decision-humana-2026-09-21"
   },
   "guanciale": {
@@ -601,9 +601,9 @@
     "modelo": "decision-humana-2026-09-21"
   },
   "surimi": {
-    "foodId": null,
+    "foodId": "26046",
     "confianza": 0.85,
-    "motivo": "El candidato es surimi RELLENO DE QUESO (149 kcal). El palito de surimi liso ronda 95.",
+    "motivo": "«Surimi, on sticks, in slices or grated, crab flavour», 125 kcal. RECTIFICA: el motivo anterior describía «surimi RELLENO DE QUESO» como si fuera el candidato, y era el primero de dos. El palito liso era el segundo.",
     "modelo": "decision-humana-2026-09-21"
   },
   "berberecho": {
@@ -739,9 +739,9 @@
     "modelo": "decision-humana-2026-09-21"
   },
   "tortilla-de-maiz": {
-    "foodId": null,
+    "foodId": "7813",
     "confianza": 0.85,
-    "motivo": "El candidato es «Corn chips or tortilla chips» (495 kcal), que es la tortilla FRITA. La tortilla de maíz blanda ronda 220: sería equivocarse por más del doble.",
+    "motivo": "«Corn tortilla wrap, to be filled», 313 kcal. RECTIFICA: el motivo anterior descartaba el alimento porque «el candidato es Corn chips or tortilla chips», la tortilla frita, y era el primero de dos. El wrap blando era el segundo, y es exactamente el paralelo del que ya usa «tortilla-de-trigo» (7815).",
     "modelo": "decision-humana-2026-09-21"
   },
   "maiz": {
@@ -751,9 +751,9 @@
     "modelo": "decision-humana-2026-09-21"
   },
   "obleas": {
-    "foodId": null,
+    "foodId": "24300",
     "confianza": 0.85,
-    "motivo": "Los candidatos son barquillos rellenos o de vainilla (455-538 kcal). La oblea lisa de turrón ronda 380 y no lleva grasa.",
+    "motivo": "«Wafer biscuit without filling», 419,2 kcal. Aquí el motivo anterior SÍ era correcto —los candidatos eran barquillos rellenos de 455 a 538— pero lo eran porque el término de búsqueda era «Wafer, plain» y no alcanzaba a la ficha sin relleno. Pidiéndosela por su nombre aparece, y queda a 40 kcal de la estimación que hizo aquella decisión a ojo.",
     "modelo": "decision-humana-2026-09-21"
   },
   "tomate-concentrado": {
@@ -971,6 +971,12 @@
     "foodId": "11018",
     "confianza": 0.9,
     "motivo": "«Vinegar», 22,6 kcal frente a 18.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "zamburina": {
+    "foodId": "10045",
+    "confianza": 0.8,
+    "motivo": "«Scallop, without coral, raw», 83,6 kcal. No tenía ni término de búsqueda escrito, así que no había llegado nunca a la puerta: su decisión anterior era un null de BEDCA con el motivo «no hay marisco/zamburiña en candidatos». La zamburiña es un pecten pequeño y la vieira sin coral es su ficha más próxima; la diferencia entre las tres vieiras del catálogo es de 7 kcal, así que la elección entre ellas no mueve nada.",
     "modelo": "decision-humana-2026-09-21"
   },
   "vinagre-de-manzana": {

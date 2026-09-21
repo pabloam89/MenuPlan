@@ -2440,11 +2440,11 @@
         "pasos": 14,
         "minutos": 33,
         "masa_g": 645,
-        "cobertura": 0.805,
-        "kcal": 896,
-        "protein_g": 46,
-        "carbs_g": 11,
-        "fat_g": 75,
+        "cobertura": 1,
+        "kcal": 1424,
+        "protein_g": 57,
+        "carbs_g": 108,
+        "fat_g": 85,
         "fraccion": 0.97
       },
       "salsa": {
@@ -9582,11 +9582,11 @@
         "pasos": 12,
         "minutos": 43,
         "masa_g": 1241,
-        "cobertura": 0.903,
-        "kcal": 394,
-        "protein_g": 8,
-        "carbs_g": 24,
-        "fat_g": 29,
+        "cobertura": 1,
+        "kcal": 770,
+        "protein_g": 19,
+        "carbs_g": 90,
+        "fat_g": 36,
         "fraccion": 0.821
       },
       "guarnicion": {
