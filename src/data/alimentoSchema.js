@@ -155,7 +155,8 @@ export const FAMILIA_DIMENSIONES = {
   carne_cerdo: ["corte", "estado", "procesado", "presentacion", "origen"],
   carne_caza: ["corte", "estado", "procesado", "presentacion", "origen"],
   casqueria: ["corte", "estado", "procesado", "presentacion"],
-  embutido: ["estado", "procesado", "presentacion"],
+  // `corte` porque la panceta y el lacón son cortes, aunque lleguen curados.
+  embutido: ["corte", "estado", "procesado", "presentacion"],
   pescado_blanco: ["corte", "estado", "medio", "procesado", "presentacion", "origen"],
   pescado_azul: ["corte", "estado", "medio", "procesado", "presentacion", "origen"],
   marisco: ["estado", "medio", "procesado", "presentacion", "origen"],
@@ -181,12 +182,18 @@ export const FAMILIA_DIMENSIONES = {
   pan: ["estado", "procesado", "presentacion"],
   tuberculo: ["estado", "procesado", "presentacion", "origen"],
   grasa: ["origen", "presentacion"],
-  especia: ["estado", "procesado", "presentacion"],
+  // `corte` porque el laurel es la hoja, el sésamo la semilla y la pimienta el
+  // grano: en una especia, de qué parte de la planta viene es media identidad.
+  especia: ["corte", "estado", "procesado", "presentacion"],
   endulzante: ["presentacion", "origen"],
   caldo: ["estado", "presentacion"],
-  salsa: ["estado", "presentacion"],
-  encurtido: ["medio", "presentacion"],
-  bebida: ["estado", "presentacion"],
+  // `medio` porque una mayonesa de aceite de soja y una de oliva no tienen la
+  // misma grasa, que es casi todo lo que una mayonesa aporta.
+  salsa: ["estado", "medio", "procesado", "presentacion"],
+  // `estado` porque un encurtido llega en tarro, en lata o a granel.
+  encurtido: ["estado", "medio", "presentacion"],
+  // `procesado` porque el café es una infusión y el té también.
+  bebida: ["estado", "procesado", "presentacion"],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

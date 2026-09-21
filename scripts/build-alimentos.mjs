@@ -28,7 +28,10 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 import { parseDimensiones } from "./lib/bedcaDimensiones.mjs";
-import { validateAlimentos, CAMPOS_CONTABLES } from "../src/data/alimentoSchema.js";
+import { deriveFamilia } from "./lib/familia.mjs";
+import {
+  validateAlimentos, CAMPOS_CONTABLES, FAMILIA_DIMENSIONES,
+} from "../src/data/alimentoSchema.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -38,6 +41,7 @@ const leerJson = (p) => (existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : n
 
 const ingredientes = leerJson(join(ROOT, "src", "data", "ingredients.json"));
 const choices = leerJson(join(ROOT, "output", "bedca-choices.json")) ?? {};
+const juiciosFamilia = leerJson(join(ROOT, "src", "data", "familiaLabels.json")) ?? {};
 
 // Índice de candidatos de TODOS los artefactos del pipeline: el triaje, el
 // informe original y la repesca. Se unen porque los tres se generaron en
@@ -109,6 +113,8 @@ const slug = (s) =>
 const filas = [];
 const porId = new Map();
 const divergencias = [];
+const dimensionesImposibles = [];
+const porViaFamilia = new Map();
 const informe = { conDecision: 0, porMacros: 0, heredados: 0, vacios: 0, compartidos: 0 };
 const mapaIngredienteAlimento = {};
 
@@ -146,21 +152,36 @@ for (const ing of ingredientes) {
     continue;
   }
 
+  const { familia, via: viaFamilia } = deriveFamilia(ing, juiciosFamilia);
+  if (familia) porViaFamilia.set(viaFamilia, (porViaFamilia.get(viaFamilia) ?? 0) + 1);
+
+  // La familia decide qué dimensiones tienen sentido, así que en cuanto está
+  // puesta el resto deja de ser "no lo sabemos" y pasa a ser "no aplica": la
+  // harina no tiene corte. Sin esto, el libro de cuentas contaría como deuda
+  // preguntas que nunca van a tener respuesta y la tabla no "terminaría" nunca.
+  const aplican = familia ? new Set(FAMILIA_DIMENSIONES[familia] ?? []) : null;
   const dims = parsed?.dimensiones ?? {};
-  const dimensiones = {
-    corte: dims.corte ?? null,
-    estado: dims.estado ?? null,
-    medio: dims.medio ?? null,
-    procesado: dims.procesado ?? null,
-    presentacion: dims.presentacion ?? null,
-    origen: dims.origen ?? null,
-  };
+  const dimensiones = {};
+  for (const dim of ["corte", "estado", "medio", "procesado", "presentacion", "origen"]) {
+    if (aplican && !aplican.has(dim)) {
+      // BEDCA dijo algo que la familia declara imposible. No se tira en
+      // silencio: o la tabla de aplicabilidad está mal o la familia lo está.
+      if (dims[dim] != null) {
+        dimensionesImposibles.push(`${id}: ${dim}="${dims[dim]}" pero la familia ${familia} no la admite`);
+      }
+      dimensiones[dim] = "no_aplica";
+      continue;
+    }
+    dimensiones[dim] = dims[dim] ?? null;
+  }
 
   const huecos = {};
   for (const campo of CAMPOS_CONTABLES) huecos[campo] = "ausente_resoluble";
   huecos.nutricion = ing.nutrition ? "relleno" : "ausente_resoluble";
   huecos.procedencia = proc ? "relleno" : "ausente_resoluble";
+  huecos.familia = familia ? "relleno" : "ausente_resoluble";
   for (const dim of Object.keys(dimensiones)) {
+    if (dimensiones[dim] === "no_aplica") { huecos[dim] = "no_aplica"; continue; }
     if (dimensiones[dim] != null) { huecos[dim] = "relleno"; continue; }
     // Distinción que importa: si BEDCA nombró el alimento y NO mencionó esta
     // dimensión, BEDCA no tiene más que dar — hace falta otra fuente. Si ni
@@ -176,7 +197,7 @@ for (const ing of ingredientes) {
     fuenteId: proc ? String(proc.foodId) : null,
     fuenteNombre: nombreFuente,
     fuenteFecha: proc ? FECHA_INGESTA : null,
-    familia: null,
+    familia,
     taxonomia: null,
     dimensiones,
     nutricion: ing.nutrition ?? null,
@@ -209,8 +230,14 @@ if (errores.length > 0) {
 
 const conNutricion = filas.filter((f) => f.nutricion).length;
 const conProcedencia = filas.filter((f) => f.fuenteId).length;
+// Solo valores DE VERDAD: "no_aplica" no es una dimensión rellena, es una
+// pregunta retirada. Contarlo como relleno inflaría la cifra justo cuando la
+// familia empieza a retirar preguntas, que es lo contrario de lo que mide.
 const dimsRellenas = filas.reduce(
-  (n, f) => n + Object.values(f.dimensiones).filter((v) => v != null).length, 0,
+  (n, f) => n + Object.values(f.dimensiones).filter((v) => v != null && v !== "no_aplica").length, 0,
+);
+const dimsNoAplica = filas.reduce(
+  (n, f) => n + Object.values(f.dimensiones).filter((v) => v === "no_aplica").length, 0,
 );
 
 console.log(`\n📋  alimentos: ${filas.length} filas (de ${ingredientes.length} ingredientes; ${informe.compartidos} comparten ficha con otro)`);
@@ -219,7 +246,7 @@ console.log(`      ficha por decisión humana  ${informe.conDecision}`);
 console.log(`      ficha recuperada por macros ${informe.porMacros}`);
 console.log(`      heredado (número sin ficha) ${informe.heredados}`);
 console.log(`      vacío (ni número ni ficha)  ${informe.vacios}`);
-console.log(`    con nutrición ${conNutricion} · con procedencia ${conProcedencia} · dimensiones rellenas ${dimsRellenas}`);
+console.log(`    con nutrición ${conNutricion} · con procedencia ${conProcedencia} · dimensiones rellenas ${dimsRellenas} (y ${dimsNoAplica} retiradas por la familia)`);
 
 // Ficha conocida y número ausente NO es una inconsistencia: es el filtro de
 // Atwater de apply-bedca-nutrition.mjs haciendo su trabajo — la ficha se
@@ -228,6 +255,14 @@ console.log(`    con nutrición ${conNutricion} · con procedencia ${conProceden
 const fichaSinNumero = filas.filter((f) => f.fuenteId && !f.nutricion);
 if (fichaSinNumero.length > 0) {
   console.log(`    ${fichaSinNumero.length} con ficha decidida y sin número (Atwater la rechazó): ${fichaSinNumero.map((f) => f.id).join(", ")}`);
+}
+
+const conFamilia = filas.filter((f) => f.familia).length;
+console.log(`    con familia ${conFamilia} de ${filas.length} — por vía: ${[...porViaFamilia.entries()].map(([k, v]) => `${k} ${v}`).join(" · ")}`);
+
+if (dimensionesImposibles.length > 0) {
+  console.log(`\n⚠️   ${dimensionesImposibles.length} dimensiones que la familia declara imposibles:`);
+  for (const d of dimensionesImposibles) console.log("      " + d);
 }
 
 if (divergencias.length > 0) {

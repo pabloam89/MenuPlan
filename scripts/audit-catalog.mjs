@@ -703,6 +703,30 @@ if (!alimentos) {
   say(`  huecos resolubles (hay dónde ir a buscarlos): ${resoluble}`);
   say(`  huecos sin fuente (BEDCA nombró el alimento y no lo dijo): ${sinFuente}`);
 
+  // La pregunta que §15.1 decía que no se podía hacer: "de la familia atún,
+  // ¿cuántas variedades y cuántas rellenas?". Ahora se puede, y ordenada por
+  // hueco de nutrición sale directamente la lista de por dónde seguir.
+  const porFam = new Map();
+  for (const a of alimentos) {
+    const f = a.familia ?? "(sin familia)";
+    const acc = porFam.get(f) ?? { n: 0, conNutricion: 0, conFicha: 0 };
+    acc.n++;
+    if (a.nutricion) acc.conNutricion++;
+    if (a.fuenteId) acc.conFicha++;
+    porFam.set(f, acc);
+  }
+  say("");
+  say("     familia              filas  nutrición  ficha   falta");
+  const filasFam = [...porFam.entries()]
+    .map(([f, c]) => ({ f, ...c, falta: c.n - c.conNutricion }))
+    .sort((a, b) => b.falta - a.falta || b.n - a.n);
+  for (const r of filasFam) {
+    const barra = r.falta === 0 ? "✓" : `${r.falta}`;
+    say(`     ${r.f.padEnd(20)} ${String(r.n).padStart(5)}  ${String(r.conNutricion).padStart(9)}  ${String(r.conFicha).padStart(5)}  ${barra.padStart(6)}`);
+  }
+  const completas = filasFam.filter((r) => r.falta === 0).length;
+  say(`     ${completas} de ${filasFam.length} familias con la nutrición completa`);
+
   const heredados = alimentos.filter((a) => a.fuente === "heredado");
   if (heredados.length > 0) {
     say("");

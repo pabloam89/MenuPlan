@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import alimentos from "./alimentos.json";
 import alimentoPorIngrediente from "./alimentoPorIngrediente.json";
 import ingredientes from "./ingredients.json";
+import familiaLabels from "./familiaLabels.json";
 import { FAMILIAS } from "../lib/notepadFields.js";
 import { FRAGMENTOS } from "../../scripts/lib/bedcaDimensiones.mjs";
+import { deriveFamilia } from "../../scripts/lib/familia.mjs";
 import {
   CAMPOS_CONTABLES,
   DIMENSIONES,
@@ -90,6 +92,65 @@ describe("los vocabularios no se desincronizan", () => {
     expect(inventadas).toEqual([]);
   });
 
+  it("todo alimento tiene familia, y no puede dejar de tenerla", () => {
+    // Trinquete: una clave de agrupación al 61 % no agrupa nada. Este test
+    // existe para que la cobertura no pueda bajar sin que alguien lo decida.
+    const sin = alimentos.filter((a) => !a.familia).map((a) => a.id);
+    expect(sin).toEqual([]);
+  });
+
+  it("ninguna familia animal se cuela en algo marcado vegetariano", () => {
+    // La comprobación es independiente de la derivación: compara el resultado
+    // contra `isVegetarian`, que se rellenó por otro camino y en otro momento.
+    // Es la que encontró que el pez espada y las navajas estaban marcados
+    // aptos para vegetarianos.
+    const ANIMAL = new Set([
+      "carne_ave", "carne_roja", "carne_cerdo", "carne_caza", "casqueria",
+      "embutido", "pescado_blanco", "pescado_azul", "marisco", "cefalopodo",
+    ]);
+    const malos = [];
+    for (const ing of ingredientes) {
+      const familia = alimentos.find((a) => a.id === alimentoPorIngrediente[ing.id])?.familia;
+      if (familia && ANIMAL.has(familia) && ing.isVegetarian) {
+        malos.push(`${ing.name} → ${familia}`);
+      }
+    }
+    expect(malos).toEqual([]);
+  });
+});
+
+describe("los juicios de familia", () => {
+  const claves = Object.keys(familiaLabels).filter((k) => k !== "_");
+
+  it("apuntan a ingredientes que existen", () => {
+    // La trampa que este test cierra: una clave mal escrita no falla, se
+    // ignora. Pasó al escribirlo — "hojas-de-gelatina" en vez de
+    // "hoja-de-gelatina" — y la gelatina se quedó clasificada como verdura de
+    // hoja sin que nada se quejara.
+    const ids = new Set(ingredientes.map((i) => i.id));
+    expect(claves.filter((k) => !ids.has(k))).toEqual([]);
+  });
+
+  it("explican por qué, y no solo qué", () => {
+    const sinMotivo = claves.filter((k) => !familiaLabels[k].motivo?.trim());
+    expect(sinMotivo).toEqual([]);
+  });
+
+  it("cambian algo: un juicio que repite a la derivación sobra", () => {
+    // Si el léxico mejora y acaba dando la misma respuesta, este test falla y
+    // avisa de que la excepción ya se puede borrar. Fallar aquí es una buena
+    // noticia, no un problema.
+    const redundantes = [];
+    for (const k of claves) {
+      const ing = ingredientes.find((i) => i.id === k);
+      const sinJuicio = deriveFamilia(ing, {});
+      if (sinJuicio.familia === familiaLabels[k].familia) redundantes.push(k);
+    }
+    expect(redundantes).toEqual([]);
+  });
+});
+
+describe("los vocabularios no se desincronizan (2)", () => {
   it("el parser solo produce valores que el schema acepta", () => {
     // Este es el test que de verdad importa de los tres: la tabla de 109
     // fragmentos y los seis enums viven en ficheros distintos, y si alguien
