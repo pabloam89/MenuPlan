@@ -629,3 +629,45 @@ describe("el aceite de freir se absorbe", () => {
     expect(computeRecipeNutrition(conAceite(300), 1).coverage).toBe(1);
   });
 });
+
+// La sal de una costra no se come. Ver SAL_A_GRANEL.
+describe("la costra de sal no se come", () => {
+  afterEach(() => {
+    ingredientById["pechuga-de-pollo"].nutrition = null;
+    ingredientById["sal-gruesa"].nutrition = null;
+    ingredientById.azucar.nutrition = null;
+  });
+  beforeEach(() => {
+    // Pechuga y no dorada: la dorada lleva fraccion comestible 0,55 y el test
+    // dejaria de aislar la regla de la sal.
+    ingredientById["pechuga-de-pollo"].nutrition = { kcal100g: 100, protein100g: 20, carbs100g: 0, fat100g: 2, sodium100g: 60 };
+    ingredientById["sal-gruesa"].nutrition = { kcal100g: 0, protein100g: 0, carbs100g: 0, fat100g: 0, sodium100g: 38850 };
+    ingredientById.azucar.nutrition = { kcal100g: 400, protein100g: 0, carbs100g: 100, fat100g: 0, sodium100g: 0 };
+  });
+
+  const conSal = (gSal, extra = []) => ({
+    ingredients: [
+      { name: "Pechuga de pollo", ingredientId: "pechuga-de-pollo", amount: 500, unit: "g" },
+      { name: "Sal gruesa", ingredientId: "sal-gruesa", amount: gSal, unit: "g" },
+      ...extra,
+    ],
+  });
+
+  it("la sal de sazonar SI cuenta", () => {
+    // 2 g de sal son 777 mg de sodio y se comen.
+    expect(computeRecipeNutrition(conSal(2), 1).sodium_mg).toBeGreaterThan(700);
+  });
+
+  it("1500 g de costra no cuentan", () => {
+    // Solo queda el sodio de la pechuga: 500 g a 60 mg/100 g = 300 mg.
+    expect(computeRecipeNutrition(conSal(1500), 1).sodium_mg).toBe(300);
+  });
+
+  it("el azucar solo se tira si hay curado", () => {
+    const linea = { name: "Azucar", ingredientId: "azucar", amount: 100, unit: "g" };
+    // Con costra: el azucar es parte de la mezcla que se retira.
+    expect(computeRecipeNutrition(conSal(1500, [linea]), 1).kcal).toBe(500);
+    // Sin costra: 100 g de azucar son un postre y se comen.
+    expect(computeRecipeNutrition(conSal(2, [linea]), 1).kcal).toBe(900);
+  });
+});

@@ -240,6 +240,31 @@ export function deriveRecipeAllergens(recipe) {
 // (generateUserRecipeDraft, userRecipes.js) o dejarla como está.
 
 /**
+ * La sal de una COSTRA o de un curado no se come: se apelmaza, se rompe y se
+ * tira. Y la sal no tiene calorías, así que este fallo era invisible mirando
+ * kcal y catastrófico mirando sodio:
+ *
+ *   «Dorada a la sal» lleva 1.500 g de sal gruesa y salía a 291.593 mg de
+ *   sodio por ración. El límite que recomienda la OMS es 2.000 mg AL DÍA.
+ *
+ * El umbral son 50 g. Por debajo es sal de sazonar y sí se come; nadie echa
+ * cincuenta gramos de sal a un guiso de dos raciones. En el catálogo entero
+ * solo lo cruzan tres recetas, y las tres son costra o curado.
+ *
+ * El AZÚCAR se descarta solo si además hay curado, porque entonces forma parte
+ * de la mezcla que se retira —un gravlax lleva sal y azúcar a partes— y no es
+ * el azúcar de un postre.
+ *
+ * LO QUE ESTO NO MODELA, y conviene saberlo: de la costra algo se absorbe. Un
+ * pescado a la sal sale salado. Descartarla entera se queda corto, igual que
+ * contarla entera se pasaba por un factor de 500. La regla viene de
+ * scripts/audit-catalog.mjs, donde lleva tiempo, y aquí se aplica igual.
+ */
+const SAL_A_GRANEL = 50;
+const ES_SAL = /^sal|sal gruesa|sal gorda|sal marina/i;
+const ES_AZUCAR = /^azucar/i;
+
+/**
  * De todo el aceite que una receta lista, cuánto acaba DENTRO de la comida.
  *
  * Una fritura no se come su aceite: se calienta, se fríe y se tira. Contarlo
@@ -310,10 +335,17 @@ export function computeRecipeNutrition(recipe, servings) {
     if (grams <= 0) continue;
     const esAceite = ACEITES_DE_FREIR.test(line.ingredient?.id ?? "");
     if (!esAceite) solidoGramos += grams;
-    lineas.push({ line, grams, esAceite });
+    lineas.push({ line, grams, esAceite, nombre: line.rawName ?? "" });
   }
 
-  for (const { line, grams: brutos, esAceite } of lineas) {
+  // ¿Hay una costra o un curado? Se decide mirando TODA la receta antes de
+  // contar nada, porque el azúcar del gravlax solo se tira si hay sal con él.
+  const hayCurado = lineas.some((x) => ES_SAL.test(x.nombre) && x.grams >= SAL_A_GRANEL);
+
+  for (const { line, grams: brutos, esAceite, nombre } of lineas) {
+    // La costra y el curado, fuera: ni su masa ni su sodio llegan al plato.
+    if (ES_SAL.test(nombre) && brutos >= SAL_A_GRANEL) continue;
+    if (hayCurado && ES_AZUCAR.test(nombre) && brutos >= SAL_A_GRANEL) continue;
     // El tope: de todo el aceite que la receta lista, solo se come lo que el
     // sólido absorbe. Muerde en 88 de las 726 recetas estrella y no toca las
     // demás, porque un chorro para sofreír ya está por debajo del 6 %.
