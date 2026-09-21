@@ -763,15 +763,15 @@
     "modelo": "decision-humana-2026-09-21"
   },
   "caldo-de-pescado": {
-    "foodId": null,
-    "confianza": 0.85,
-    "motivo": "El candidato que sale es caldo de CARNE deshidratado. CIQUAL no publica fumet, y el cubito no es el caldo.",
+    "foodId": "25947",
+    "confianza": 0.6,
+    "motivo": "«Broth, stock or bouillon, poultry, dehydrated and reconstituted», 5,58 kcal, como PROXY declarado. RECTIFICA un motivo cuya premisa era falsa: decía «el cubito no es el caldo», y en esta app el cubito SÍ es el caldo — la lista de la compra manda comprar «Caldo de pescado Hacendado en pastillas», pasillo de aceites y conservas. Nadie hace fumet aquí. CIQUAL no publica el de pescado reconstituido, pero sí los otros tres, y caen todos juntos: vacuno 9,05, ave 5,58, verduras 5,38. Lo que manda es la dilución, no el animal. Sobre medio litro la horquilla entera son 18 kcal en un plato completo. Se coge el de ave y no el de verduras porque un caldo de pescado lleva algo de proteína (0,6 frente a 0,34). Desbloquea 18 recetas Estrella, más que ningún otro alimento del catálogo.",
     "modelo": "decision-humana-2026-09-21"
   },
   "caldo-de-marisco": {
-    "foodId": null,
-    "confianza": 0.85,
-    "motivo": "Mismo caso que el caldo de pescado.",
+    "foodId": "25947",
+    "confianza": 0.6,
+    "motivo": "Mismo proxy y mismo razonamiento que el caldo de pescado: la app manda comprarlo hecho y la dilución domina sobre el origen. Aquí hay además un fleco aparte, que NO es de nutrición: el emparejador de la compra le asigna «Caldo de pollo Hacendado», que no es caldo de marisco. Eso se arregla en productoBuscado.json, no aquí.",
     "modelo": "decision-humana-2026-09-21"
   },
   "alga-nori": {

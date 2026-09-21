@@ -1826,7 +1826,16 @@
     "isVegan": false,
     "defaultUnit": "ml",
     "medianAmount": 500,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 5.58,
+      "protein100g": 0.6,
+      "carbs100g": 0.5,
+      "fat100g": 0.13,
+      "fiber100g": 0.00005,
+      "sugar100g": 0.18,
+      "saturatedFat100g": 0.083,
+      "sodium100g": 312
+    }
   },
   {
     "id": "caldo-de-pescado",
@@ -1845,7 +1854,16 @@
     "isVegan": false,
     "defaultUnit": "ml",
     "medianAmount": 450,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 5.58,
+      "protein100g": 0.6,
+      "carbs100g": 0.5,
+      "fat100g": 0.13,
+      "fiber100g": 0.00005,
+      "sugar100g": 0.18,
+      "saturatedFat100g": 0.083,
+      "sodium100g": 312
+    }
   },
   {
     "id": "caldo-de-pollo",
