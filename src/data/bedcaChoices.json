@@ -514,7 +514,11 @@
     "modelo": "claude-sonnet-5"
   },
   "garbanzos": {
-    "foodId": 2192,
+    "foodId": null,
+    "confianza": 0.9,
+    "motivo": "Revisadas las NUEVE filas de garbanzo de BEDCA (21 sep 2026). Solo tres traen macros y dos están corruptas: «Garbanzo, hervido» (2192) declara 358,7 kcal cuando sus macros dan 133, y «Garbanzo, en conserva» (2191) declara 31,8 cuando dan 111. La única consistente es «Garbanzo, seco, crudo» (1020, +1 %), que es otro alimento: entre seco y cocido hay un factor 2,5 de agua. Y el 358,7 del hervido es casi exactamente el kcal del seco (334,2), o sea que a esa fila le pegaron el número de la otra. No se recalcula el kcal desde sus macros: una fila con un error de copia demostrado no es una fila con un campo malo, es una fila en la que no se puede confiar — si alguien pegó mal el kcal, tampoco hay motivo para fiarse de sus carbos (18,7 cuando la referencia ronda 27). Se queda sin nutrición hasta que haya otra fuente. Afecta a 55 recetas y es el hueco individual más caro del catálogo.",
+    "modelo": "decision-humana-2026-09-21",
+    "_reemplaza": 2192,
     "confianza": 0.9,
     "motivo": "Garbanzo hervido coincide con garbanzos cocidos",
     "modelo": "claude-sonnet-5"
