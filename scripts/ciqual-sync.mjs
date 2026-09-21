@@ -71,8 +71,17 @@ const alimentos = cargarCiqual(CIQUAL_DIR);
 // donde Atwater predice 0. No es una ficha corrupta, es la fórmula que no
 // aplica. Sin esta exención ningún ingrediente alcohólico podría emparejarse
 // nunca — se habrían descartado todas sus fichas antes de mirarlas.
+//
+// Los ÁCIDOS ORGÁNICOS quedan exentos por el mismo motivo y no por uno nuevo.
+// El ácido cítrico del limón y el acético del vinagre aportan energía y no son
+// ni proteína, ni hidrato, ni grasa: «Lemon, pulp, raw» declara 27,6 kcal donde
+// 4/4/9 predice 10, y «Vinegar» declara 22,6 donde predice 2,4. Las dos fichas
+// son correctas y las dos se estaban descartando antes de que nadie las viera,
+// que es cómo el limón y el vinagre seguían siendo los dos últimos alimentos
+// del catálogo con un número que nadie podía firmar.
+const ACIDO_RE = /\b(lemon|lime|vinegar|verjuice|citric|cranberry|rhubarb|tamarind)\b/i;
 const atwaterOk = (n, nombre) => {
-  if (mayContainAlcohol(nombre)) return true;
+  if (mayContainAlcohol(nombre) || ACIDO_RE.test(nombre)) return true;
   const e = energiaEsperada(n);
   return e > 0 && Math.abs(n.kcal100g - e) <= Math.max(e * 0.2, 5);
 };
@@ -101,7 +110,28 @@ function puntua(termino, nombre) {
   return Math.max(0, s);
 }
 
-const objetivo = ingredientes.filter((i) => !i.nutrition && (!ONLY || ONLY.has(i.id)));
+/**
+ * A quién se le busca ficha. Dos grupos, y el segundo no estaba:
+ *
+ *   1. Los que NO TIENEN nutrición. El hueco se ve solo.
+ *   2. Los que la tienen SIN FUENTE, con `fuente: heredado` en alimentos.json.
+ *      Números en uso que nadie puede atribuir a ninguna tabla.
+ *
+ * El segundo grupo parecía el menos urgente y era el peor. Un número sin ficha
+ * tampoco tiene la convención de unidades de esa ficha, y así es como el
+ * catálogo acabó con el sodio en gramos en unas filas y en miligramos en el
+ * resto —cebolla 0,004 junto a cebolla roja 2,5, que son el mismo alimento—.
+ * Mientras el sync solo mirase los huecos vacíos, ese fallo era invisible aquí.
+ */
+const alimentosPath = join(ROOT, "src", "data", "alimentos.json");
+const sinFuente = new Set(
+  (existsSync(alimentosPath) ? JSON.parse(readFileSync(alimentosPath, "utf8")) : [])
+    .filter((a) => a.fuente === "heredado")
+    .map((a) => a.id),
+);
+const objetivo = ingredientes.filter(
+  (i) => (!i.nutrition || sinFuente.has(i.id)) && (!ONLY || ONLY.has(i.id)),
+);
 const sinQuery = objetivo.filter((i) => !queries[i.id]);
 
 const review = [];
@@ -137,7 +167,11 @@ mkdirSync(join(ROOT, "output"), { recursive: true });
 writeFileSync(join(ROOT, "output", "ciqual-review.json"), JSON.stringify(review, null, 2), "utf8");
 
 const con = review.filter((r) => r.candidates.length > 0).length;
-console.log(`\n🎯  ${objetivo.length} ingredientes sin nutrición`);
+const huerfanos = objetivo.filter((i) => i.nutrition).length;
+console.log(
+  `\n🎯  ${objetivo.length} ingredientes a los que buscar ficha` +
+    ` (${objetivo.length - huerfanos} sin nutrición · ${huerfanos} con nutrición pero sin fuente)`,
+);
 console.log(`    ${review.length} con término de búsqueda escrito · ${con} con al menos un candidato`);
 if (sinQuery.length) {
   console.log(`    ${sinQuery.length} SIN término en src/data/ciqualQueries.json:`);

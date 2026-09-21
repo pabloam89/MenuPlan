@@ -359,3 +359,42 @@ describe("los vocabularios no se desincronizan (2)", () => {
     expect(malos).toEqual([]);
   });
 });
+
+describe("ningun numero en uso se queda sin ficha", () => {
+  // El trinquete. `heredado` significa «este número está en uso y nadie puede
+  // decir de dónde sale», y durante mucho tiempo pareció el hueco menos urgente
+  // porque el número estaba puesto y parecía razonable.
+  //
+  // Era el peor. Un número sin ficha tampoco tiene la convención de unidades de
+  // esa ficha, y así el catálogo acabó con el sodio en gramos en unas filas y en
+  // miligramos en el resto: cebolla 0,004 junto a cebolla roja 2,5, que son el
+  // mismo alimento con mil veces de diferencia. El caso caro era el caldo de
+  // carne, 250 mg por 100 ml contando como 0,25, en guisos de medio litro.
+  //
+  // Mientras no haya heredados el fallo no puede volver, porque una ficha real
+  // trae su unidad con ella.
+  it("ningun alimento tiene fuente heredada", () => {
+    const sinFicha = alimentos.filter((a) => a.fuente === "heredado").map((a) => a.nombre);
+    expect(sinFicha).toEqual([]);
+  });
+
+  it("cada fila con nutricion declara de donde sale", () => {
+    const mudas = alimentos
+      .filter((a) => a.nutricion && a.huecos?.procedencia !== "relleno")
+      .map((a) => `${a.nombre} (${a.huecos?.procedencia})`);
+    expect(mudas).toEqual([]);
+  });
+
+  // Las dos tablas dan el sodio en mg/100 g. Un valor por debajo de 1 mg es casi
+  // siempre el mismo número escrito en gramos: el melocotón, con 0,555 mg
+  // medidos, es hoy el único legítimo por debajo de ese umbral.
+  it("el sodio esta en miligramos en todas las filas", () => {
+    const sospechosos = alimentos
+      .filter((a) => {
+        const na = a.nutricion?.sodium100g;
+        return na != null && na > 0 && na < 0.5;
+      })
+      .map((a) => `${a.nombre}: ${a.nutricion.sodium100g}`);
+    expect(sospechosos).toEqual([]);
+  });
+});

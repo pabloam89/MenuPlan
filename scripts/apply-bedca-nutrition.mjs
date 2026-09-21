@@ -152,10 +152,75 @@ if (choices) {
   if (unknown.length > 0) console.warn(`⚠️  ${unknown.length} decisiones apuntan a ingredientes que no están en el informe: ${unknown.join(", ")}`);
 }
 
+/**
+ * Ingredientes cuya nutrición está EN USO pero no la firma nadie: en
+ * alimentos.json salen con `fuente: heredado`. Para ellos sí se pisa el valor,
+ * y no es una excepción de conveniencia sino el trinquete de siempre leído al
+ * derecho: el constructor se niega a sustituir un número por otro con MENOS
+ * procedencia, y aquí la gana. Un valor con ficha manda sobre uno sin ella
+ * aunque el segundo parezca más bonito.
+ *
+ * Importa además por una razón que no es de trazabilidad: un número sin ficha
+ * tampoco tiene la convención de unidades de esa ficha. Así es como el sodio
+ * acabó en gramos en unas filas y en miligramos en el resto.
+ */
+const ALIMENTOS_PATH = join(ROOT, "src", "data", "alimentos.json");
+const alimentos = existsSync(ALIMENTOS_PATH) ? JSON.parse(readFileSync(ALIMENTOS_PATH, "utf8")) : [];
+const sinFuente = new Set(alimentos.filter((a) => a.fuente === "heredado").map((a) => a.id));
+
+/**
+ * Qué ficha CITA cada fila hoy, y con qué números.
+ *
+ * Hace falta porque citar una ficha y contradecirla son cosas distintas y el
+ * catálogo hacía las dos a la vez. La recuperación de procedencia adjudicaba
+ * una ficha a una fila cuando coincidían los CUATRO macros duros —kcal,
+ * proteína, hidratos y grasa— y daba por buenos los otros cuatro sin mirarlos.
+ * Once filas de 196 llevaban así un sodio en gramos y un azúcar inventado
+ * donde su propia ficha dice `null`:
+ *
+ *   Mantequilla salada   sodio 0,011 y la ficha 870      azúcar 0,5 y la ficha null
+ *   Zanahoria, cruda     sodio 0,069 y la ficha 70       azúcar 4,7 y la ficha null
+ *   Pimentón, en polvo   sodio 0,068 y la ficha 34       fibra 34,9 y la ficha 20
+ *
+ * Esos números no salieron nunca de BEDCA. La regla es cítala o no la cites,
+ * pero no la cites y la contradigas: si la fila ya nombra esa ficha, adoptar
+ * sus valores no cambia de fuente, solo deja de mentir sobre la que hay.
+ */
+const CAMPOS_NUTRICION = [
+  "kcal100g", "protein100g", "carbs100g", "fat100g",
+  "fiber100g", "sugar100g", "saturatedFat100g", "sodium100g",
+];
+const fichaCitada = new Map(
+  alimentos.filter((a) => a.fuenteId != null && a.nutricion).map((a) => [a.id, String(a.fuenteId)]),
+);
+const contradiceSuFicha = (ing, candidato) =>
+  fichaCitada.get(ing.id) === String(candidato.foodId) &&
+  CAMPOS_NUTRICION.some((c) => !Object.is(ing.nutrition?.[c] ?? null, candidato.nutrition?.[c] ?? null));
+
 for (const entry of review) {
   const ing = byId.get(entry.ingredientId);
   if (!ing) continue; // catálogo cambió desde que se generó el informe
-  if (ing.nutrition != null) { skippedAlreadySet++; continue; }
+  // Se pisa un valor ya puesto en dos casos, y en ninguno se elige fuente nueva:
+  //   - no tiene ninguna, y hay una decisión escrita a mano que se la da;
+  //   - tiene una y la contradice, y se adoptan los números de la que ya cita.
+  // Sin una de las dos no se toca nada: el camino automático se guía por un
+  // score de nombre y no basta para sobrescribir.
+  const decidida = choices?.[entry.ingredientId]?.foodId;
+  const reparable = entry.candidates.find((c) => contradiceSuFicha(ing, c));
+  const pisable = (sinFuente.has(entry.ingredientId) && decidida != null) || reparable != null;
+  if (ing.nutrition != null && !pisable) { skippedAlreadySet++; continue; }
+
+  if (ing.nutrition != null && reparable && decidida == null) {
+    const malos = CAMPOS_NUTRICION.filter(
+      (c) => !Object.is(ing.nutrition[c] ?? null, reparable.nutrition?.[c] ?? null),
+    );
+    ing.nutrition = reparable.nutrition;
+    applied++;
+    console.log(
+      `🔧  ${entry.ingredientId.padEnd(28)} ← "${reparable.foodName}" (ya la citaba y la contradecía en ${malos.join(", ")})`,
+    );
+    continue;
+  }
 
   // Una decisión explícita gana al score, pero no al filtro de Atwater.
   const choice = choices?.[entry.ingredientId];

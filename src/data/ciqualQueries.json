@@ -227,5 +227,27 @@
   "mirin": "Wine, rice",
   "extracto-de-vainilla": "Vanilla, alcoholic extract",
   "queso": "Emmental cheese, grated",
-  "atun-lata": "Tuna, plain, canned, drained"
+  "atun-lata": "Tuna, plain, canned, drained",
+
+  "aceite-de-sesamo": "Sesame oil",
+  "aceite-oliva-virgen": "Olive oil, extra virgin",
+  "brocoli": "Broccoli, raw",
+  "caldo-de-carne": "Broth, stock or bouillon, beef, dehydrated and reconstituted",
+  "caldo-de-verduras": "Broth, stock or bouillon, vegetables, dehydrated and reconstituted",
+  "cebolla": "Onion, raw",
+  "champinon": "Mushroom, all types, raw",
+  "coliflor": "Cauliflower, raw",
+  "espinacas": "Spinach, raw",
+  "guisantes": "Garden peas, frozen, raw",
+  "harina": "Wheat flour, type 55 (for bread)",
+  "huevos": "Egg, raw",
+  "judia-verde": "French bean, raw",
+  "leche": "Milk, whole, UHT",
+  "limon": "Lemon, pulp, raw",
+  "nata": "Cream, 15-20% fat, fluid, refrigerated",
+  "pimienta": "Black pepper, powder",
+  "pimiento-verde": "Sweet pepper, green, raw",
+  "salchicha": "Chipolata slim sausage, raw",
+  "vinagre": "Vinegar",
+  "vinagre-de-manzana": "Vinegar, cider"
 }
