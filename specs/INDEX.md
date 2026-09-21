@@ -11,7 +11,7 @@ Specs producidas por ingeniería inversa del código real (`src/`, `api/`, esque
 | [recipe-catalog.md](recipe-catalog.md) | Catálogo de recetas, pasos enriquecidos, recetas de usuario |
 | [batch-cooking.md](batch-cooking.md) | Bases: cocinar una vez para varios platos (`type: "base"`, `mainBase`, `baseMode`) |
 | [pagos.md](pagos.md) | No existe — documentado como ausencia, con evidencia |
-| [modelo-datos.md](modelo-datos.md) | Auditoría de normalización del modelo: campos por plano, operadores, calculadoras, magnitudes (tiempo/gramos/macros/raciones/precio) y plan de arreglo |
+| [modelo-datos.md](modelo-datos.md) | Auditoría de normalización del modelo y plan: campos por plano, operadores y calculadoras, magnitudes (tiempo/gramos/macros/raciones/precio), el mapa de tablas por ámbito (global/hogar), sesgos y batch cooking |
 
 ## Mapa de dependencias entre dominios
 

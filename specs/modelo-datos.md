@@ -1,6 +1,9 @@
 # Modelo de datos — auditoría y plan de normalización
 
-Estado medido el 20 sep 2026 contra `src/data/` y los esquemas zod vivos. Todos
+Estado medido el 20-21 sep 2026 contra `src/data/` y los esquemas zod vivos.
+Las secciones 0-7 son la primera pasada (normalización de campos, magnitudes y
+operadores); las 8-12, la segunda (el mapa por ámbito, los bloques que faltaban,
+dos correcciones a la primera y los ejes de sesgos y batch cooking). Todos
 los números de este documento salen de scripts ejecutados sobre el catálogo
 real, no de lectura de código. El registro declarativo que acompaña a esta
 auditoría es [`src/data/model.js`](../src/data/model.js), y `model.test.js` lo
@@ -322,7 +325,260 @@ guarnición, no lo ve nadie.
 
 ---
 
-## 8 · Plan, por orden de retorno
+## 8 · El mapa: una rejilla, no una pila
+
+Las secciones de arriba auditan pieza a pieza. Esta es la vista de conjunto, y
+el eje que la ordena NO es "fijo contra cambiante" sino **de quién es el dato**.
+
+```
+                    ÁMBITO GLOBAL                  ÁMBITO HOGAR
+                    build · versionado · bundle    runtime · por hogar · BD
+   ─────────────────────────────────────────────────────────────────────────
+   REFERENCIA       alimentos · taxonomía          —
+                    transformaciones
+                    ingredientes · productos
+
+   CONTENIDO        recetas · bases · pasos        recetas propias
+                                                   recetas importadas/compartidas
+                          │                              │
+                          └──────── MISMO TUBO ──────────┘
+                                         │
+   L1 · LÍNEAS      precomputado              calculado al guardar
+   L2 · DERIVADO    en el bundle              + coverage + nutritionSource
+
+   PREFERENCIAS     reglas_dominio (28)            reglas_usuario · salud · sesgos
+
+   ESTADO           —                              despensa · existencias
+                                                   historial · feedback · roster
+
+   EXTERNO          bedca · precios                menú escolar · ticket OCR
+   ─────────────────────────────────────────────────────────────────────────
+                                         ↓
+   L3 · SOLVER      lee las dos columnas a la vez
+                                         ↓
+   L4 · SALIDA      pantallas · insights · export · seed
+```
+
+El eje horizontal es el ámbito; el vertical, el papel en el pipeline. Y la
+regla que sale sola: **el pipeline es el mismo código, lo que cambia es cuándo
+corre y dónde vive el resultado.** Nunca se escribe una segunda
+implementación para las recetas de usuario — y de hecho no está escrita:
+`computeRecipeNutrition` es compartida.
+
+### Una receta de otro no es un caso especial
+
+Entra por el mismo tubo, y el código ya lo hace (`userRecipes.js`):
+
+```js
+const NUTRITION_COVERAGE_THRESHOLD = 0.7;
+const computed = computeRecipeNutrition({ ingredients }, baseServings);
+if (computed && computed.coverage >= 0.7) { …usar lo derivado; nutritionSource = "computed"; }
+else { nutritionSource = "ai"; }
+```
+
+Se resuelven sus líneas, se mide la cobertura, y por encima del 70 % se usa lo
+derivado. Y **ya lleva procedencia**: `nutritionSource` es exactamente la
+columna `fuente` de esta auditoría, implementada para este caso.
+
+Donde sí degrada, y hay que saberlo:
+
+1. **Cobertura más baja** — sus ingredientes son texto libre. Por eso
+   `resolveIngredient` por regex es legítimo aquí y no es deuda.
+2. **Le faltan los ejes derivados** — sin `part`, sin `tecnica` curada, sin
+   `mainBase`. Y ese es el riesgo real: *una receta propia se hace invisible a
+   las reglas que leen esos campos*. No falla; deja de ser evaluable, que es
+   peor porque no avisa.
+3. **Las compartidas traen procedencia ajena** — si llega con
+   `nutritionSource: "computed"` de otro hogar, con otra versión del catálogo
+   da otro número. Hay que recalcular siempre y guardar de dónde vino.
+
+### La consecuencia para el modelo de reglas
+
+Hoy una regla tiene dos salidas y le falta la tercera:
+
+| | |
+|---|---|
+| cumple | adelante |
+| no cumple | conflicto, con su coste de relajación |
+| **no evaluable** | adelante, **pero contándolo** |
+
+Un menú lleno de platos no evaluables es un menú sin control aunque no viole
+nada. Es la misma distinción de cuatro estados del ledger de completitud,
+ahora en el solver. Es barato: `reglas_usuario` ya está versionada y tiene
+`EFECTOS`; el tercer estado es una columna más.
+
+---
+
+## 9 · Los siete bloques que la primera versión de esta auditoría se dejó
+
+Cruzando los ~130 módulos de `src/lib` contra el mapa, faltaban:
+
+**1. La casa no es una persona.** `reglas.js` declara
+`SUJETOS = ["casa", "grupo", "miembro", "invitado"]`, y
+`slotEaters.eatersForSlot(group, members, schedule, day, meal)` — **quién come
+cambia por día y por comida**. Es una dimensión que atraviesa todo L3, no un
+campo del perfil. Añade `groups`, `rosters`, `profileMerge`, `babyStage`.
+
+**2. Despensa y congelador como estado que resta.** `pantry`, `pantryDeltas`,
+`cookPantry`, `freezer` (385 líneas), `cookings`. Los tuppers cubren comensales
+y descuentan de la compra. Con su propia entrada: foto → `visionImage` →
+`receiptParser` → items.
+
+**3. El menú escolar.** `schoolMenu`, `schoolMenuImport`, `kidsMenu`,
+`fixedDishes`. Entrada externa que **restringe** el menú.
+
+**4. El historial.** `recientes`, `menuArchive`, `recipeDiversity`. Alimenta el
+`PESO_RECIENTE` del solver. Es input, no output.
+
+**5. El bucle de feedback.** `recipeVotes`, `householdFavoritesSync`,
+`recipeDiscardsSync`, `recipeCollections`.
+
+**6. El calendario de cocina.** `mealTimes`, `weekCalendar`, `schedulePresets`,
+`cookTime`, `cuotaCocinas`. Cuánto tiempo hay **cada día**.
+
+**7. Salidas no listadas.** `menuInsights`, `menuStats`, `consumptionInsights`,
+`menuExport`, `sharedMenu`, y el pipeline de imágenes.
+
+---
+
+## 10 · Dos correcciones a lo que esta auditoría afirmó primero
+
+### Las reglas YA son tabla — la mitad de ellas
+
+`reglas.js` son 1.200 líneas y es un modelo de reglas como datos, versionado:
+
+```js
+REGLAS_VERSION = 1
+SUJETOS  = ["casa", "grupo", "miembro", "invitado"]
+EFECTOS  = ["excluir", "presente", "sesgo"]
+ORIGENES = ["wizard", "panel", "texto", "manual"]
+```
+
+Lo que pasa es que hay **dos sistemas de reglas que no se hablan**: las del
+usuario (arriba, ya modeladas) y las del dominio (las 28 de `validateMenu`,
+en `if`s). El trabajo no es inventar el modelo: es llevar las 28 al que ya
+existe. Mucho más barato de lo que decía la sección 6.
+
+### Los dos "pesos" no son escalas incomparables
+
+Se afirmó que `PESO_SESGO = 12` y `PESO_RECIENTE = 6e3` eran dos funciones
+objetivo que no se pueden sumar. **Es falso, y el diseño real es bueno.**
+
+`sesgos.js` no puntúa el menú: **ordena la cola de platos**. El solver recibe
+el pool ya ordenado y usa la **posición** como último desempate
+(`indice.get(r.id) * 0.5`). Su escala propia está calibrada y documentada:
+
+```
+déficit de familia que falta   10.000   ← si falta pescado, sale pescado
+completitud (plato solo)        4.000
+recientes                       6.000   ← variedad, por debajo del déficit
+coste de tiempo                 1.000
+posición en la cola                0,5 × puesto  (≈ hasta 500)
+ruido                              …    ← los dos últimos no llegan a 700
+```
+
+El 12 nunca se encuentra con el 6.000: se convierte en "eres el puesto 37", y
+eso cuesta 18 puntos, que es ruido.
+
+**Lo que sí es frágil:** es una dependencia implícita. El solver da por hecho
+que alguien llamó a `ordenarPorSesgo` antes. Con el pool sin ordenar, el
+término de posición deja de ser preferencia y pasa a ser azar, y nada lo avisa.
+
+---
+
+## 11 · Sesgos: qué toca y cómo mejorarlo
+
+Lee **cuatro cosas** de la receta y nada más:
+
+| lee | cobertura | consecuencia |
+|---|---|---|
+| `tecnica` | 88 % | bien |
+| `mainBase` + `basesAparte` | 36 % | "más arroz" mueve un tercio del catálogo |
+| `llevaSalsa` | 17 % | "platos con salsa" ve 172 recetas |
+| `ingredients[].name` | por **substring** | bug, ver abajo |
+
+De los 10 campos del wizard solo 4 pasan por aquí; `esfuerzo` **no llega a
+ningún sitio**, y el código lo dice: *"se queda fuera A PROPÓSITO: no hay un
+campo del plato que lo represente sin ambigüedad"*.
+
+### Bug vivo en favoritos
+
+El match es `nombreIngrediente.includes(favorito)`:
+
+```
+"te"    casa con  972 de 1033 recetas   ← tomate, aceite, lentejas…
+"ajo"   casa con  435                   ← ajonjolí, ajoblanco
+"pan"   casa con  130                   ← 8 solo llevan PANceta
+"col"   casa con   40                   ← coliflor
+```
+
+Marcar "te" como favorito sube el 94 % del catálogo: **el sesgo se anula solo**.
+Y el arreglo está escrito 20 líneas más allá, en `kitchenUnits.js`, cuyo
+comentario dice *"`pan` con frontera por los DOS lados: sin la de la derecha se
+comía la PANceta"*. La lección se aprendió en un módulo y no se aplicó aquí.
+
+### Las tres mejoras, y dos son gratis
+
+1. **`favoritos` por FK, no por substring.** El `ingredientId` está al 100 % y
+   no se usa. Arregla el bug y, con la taxonomía, permite "más pescado azul".
+   Cero campos nuevos.
+2. **`esfuerzo` es derivable.** Con el modelo de tiempo de L2
+   (`activo`/`presencia`/`total`) más `difficulty` y el número de pasos, cae
+   solo. No hay que inventar campo.
+3. **Los sesgos son débiles porque los campos están vacíos**, no porque el
+   mecanismo esté mal. Al derivar `carbAxis` el sesgo de base se fortalece sin
+   tocar `sesgos.js`.
+
+---
+
+## 12 · Batch cooking: casi todo existe, y en 15 filas
+
+Bases, semi-elaborados y cocinados son **lo mismo — existencias** — y solo se
+diferencian en el estado. Lo que necesitan y ninguna otra tabla tiene: estado ·
+raciones (no gramos) · ubicación · fecha de hecho · caducidad · coste de
+recalentar.
+
+**La calculadora que haría falta ya está escrita.** `tiempoDeBase(base,
+raciones, metodo)` hace `minutosFijos + raciones × minutosPorRacion`, parte en
+tandas al superar `capacidadMax`, cruza la capacidad del aparato
+(`CAPACIDAD_POR_APARATO`) con lo que ocupa una ración según el `rinde`, y
+calcula el ahorro contra cocinar cada plato aparte.
+
+Y la "activación" tampoco hay que inventarla: `reactivacion` **no es un número,
+son pasos reales** con sus `minutes` y su `kind`. Los pasos que desaparecen
+cuando la base ya está hecha son `stepsRich[].base` (29,3 %), y los calcula
+`recetaConBases.js`.
+
+### El hueco real
+
+No es el modelo: es que está **al 100 % en 15 filas y al 0 % en el resto**.
+
+| coeficiente | dónde está | dónde falta |
+|---|---|---|
+| `minutosFijos`, `minutosPorRacion`, `capacidadMax`, `rinde` | 15/15 bases | las ~300 batcheables |
+| `reactivacion` | 15/15 bases | los cocinados de nevera |
+| `conservacion` `{nevera: 2}` | **15 recetas** | **las 293 con `thawSteps`** |
+
+Ese último es el que importa: **hay 293 recetas que saben cómo descongelarse y
+ninguna sabe cuánto dura**. Y las existencias no tienen fecha — lo único que
+hay sobre caducidad en `freezer.js` es una heurística de orden (*"Nevera va
+antes porque caduca antes"*).
+
+### Lo genuinamente nuevo de todo el batch cooking
+
+Descontando lo que ya existe: **poner fechas al inventario.** Nada más. El
+resto es extender cuatro campos fuera de las 15 bases.
+
+`existencias` es además **la única tabla que está a la vez en L0 y en L3**:
+entrada del solver y salida del menú. Ese es el bucle, y es donde el tiempo
+entra en el modelo — un tupper del domingo vale el martes y no el viernes. Eso
+convierte el problema de "resolver una semana" en "resolver una semana dado un
+inventario con fechas", que es planificación con recursos perecederos. Va
+aparte, en la fase G.
+
+---
+
+## 13 · Plan, por orden de retorno
 
 Cada fase cierra con su test. Ninguna depende de red ni de clave de API.
 
@@ -336,8 +592,11 @@ Cada fase cierra con su test. Ninguna depende de red ni de clave de API.
 | **6** | Ejes derivados `carbAxis` y `proteinAxis`, con procedencia | +229 recetas con eje de hidrato; elimina el regex de `getCarbType` | medio |
 | **7** | Módulo `tiempo`: los cuatro sumandos, `time` pasa a derivada | 55 % de las recetas discrepan hoy y nadie lo sabe | medio |
 | **8** | Unificar forma y vocabulario de nutrición y alérgenos | quita dos traductores | medio |
-| **9** | `validateMenu` a tabla de reglas | el refactor más grande; hacerlo cuando el resto esté ordenado | alto |
+| **9** | `validateMenu` a tabla de reglas, con el tercer estado `no evaluable` | más barato de lo que parecía: `reglas.js` ya tiene el modelo | medio |
 | **10** | Conectar `recipeNutrition` y `recipeParts` a la UI | decide qué número ve el usuario: hace falta cerrar antes la discrepancia | alto |
+| **11** | Coeficientes de tanda fuera de las 15 bases + `conservacion` en las 293 | extender campos existentes, no crear | medio |
+| **12** | La casa como sujeto múltiple en L3 (hoy repartido entre `groups`, `slotEaters`, `profileMerge`) | toca el solver | alto |
+| **G** | **Fechas en `existencias`** y el solver con inventario perecedero | problema distinto y más difícil que las macros: planificación con recursos que caducan | alto |
 
 **Fuera de este plan, y bloqueado por el entorno:** `nutrition` de 185
 ingredientes (BEDCA da 403 por política de egress) y `part` de las recetas que
