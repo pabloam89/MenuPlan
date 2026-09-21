@@ -360,7 +360,7 @@
       "vitaminC100g": 0.07
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.78,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -368,7 +368,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -435,7 +435,7 @@
       "vitaminC100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.8,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -443,7 +443,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -661,7 +661,7 @@
       "vitaminC100g": 17
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.6,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -669,7 +669,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -1341,7 +1341,7 @@
       "vitaminC100g": 4.3
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.8,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -1349,7 +1349,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -1644,7 +1644,7 @@
       "cholesterol100g": 114
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.65,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -1652,7 +1652,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -2173,7 +2173,7 @@
       "vitaminC100g": 8
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.86,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -2181,7 +2181,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -2324,7 +2324,7 @@
       "vitaminC100g": 22
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.99,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -2332,7 +2332,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -3682,7 +3682,7 @@
       "vitaminC100g": 4
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.7,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -3690,7 +3690,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -3984,7 +3984,7 @@
       "vitaminC100g": 4
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.8,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -3992,7 +3992,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -4059,7 +4059,7 @@
       "vitaminC100g": 25
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.79,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -4067,7 +4067,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -5116,7 +5116,7 @@
       "vitaminC100g": 12
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.7,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -5124,7 +5124,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -5191,7 +5191,7 @@
       "vitaminC100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.7,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -5199,7 +5199,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -7352,7 +7352,7 @@
       "vitaminC100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.97,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -7360,7 +7360,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -7427,7 +7427,7 @@
       "vitaminC100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.8,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -7435,7 +7435,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "relleno",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -7503,7 +7503,7 @@
       "cholesterol100g": null
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.75,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -7511,7 +7511,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -8032,7 +8032,7 @@
       "cholesterol100g": 76
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.6,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -8040,7 +8040,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -8579,7 +8579,7 @@
       "vitaminC100g": null
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.75,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -8587,7 +8587,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -8655,7 +8655,7 @@
       "cholesterol100g": 81
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.8,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -8663,7 +8663,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -8731,7 +8731,7 @@
       "cholesterol100g": null
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.65,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -8739,7 +8739,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -8882,7 +8882,7 @@
       "vitaminC100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.73,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -8890,7 +8890,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "relleno",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -11686,7 +11686,7 @@
       "vitaminC100g": 20
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.56,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -11694,7 +11694,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -13057,7 +13057,7 @@
       "cholesterol100g": 39
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.7,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -13065,7 +13065,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -14337,7 +14337,7 @@
       "vitaminC100g": null
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.55,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -14345,7 +14345,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -14789,7 +14789,7 @@
       "vitaminC100g": 42
     },
     "densidad": 1.03,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.74,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -14797,7 +14797,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "relleno",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -15015,7 +15015,7 @@
       "vitaminC100g": 55
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.81,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -15023,7 +15023,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -16609,7 +16609,7 @@
       "vitaminC100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.7,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -16617,7 +16617,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "relleno",
       "medio": "ausente_sin_fuente",
@@ -17533,7 +17533,7 @@
       "cholesterol100g": 81
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.75,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -17541,7 +17541,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -19392,7 +19392,7 @@
       "vitaminC100g": 19
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.81,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -19400,7 +19400,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -20218,7 +20218,7 @@
       "vitaminC100g": 6.1
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.6,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -20226,7 +20226,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -20822,7 +20822,7 @@
       "vitaminC100g": 152
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.83,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -20830,7 +20830,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -21349,7 +21349,7 @@
       "vitaminC100g": 10
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.66,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -21357,7 +21357,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -21576,7 +21576,7 @@
       "cholesterol100g": 68.8
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.7,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -21584,7 +21584,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -21651,7 +21651,7 @@
       "vitaminC100g": 37
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.66,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -21659,7 +21659,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -21802,7 +21802,7 @@
       "vitaminC100g": 18
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.35,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -21810,7 +21810,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "relleno",
       "medio": "no_aplica",
@@ -22827,7 +22827,7 @@
       "cholesterol100g": null
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.55,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -22835,7 +22835,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -23129,7 +23129,7 @@
       "vitaminC100g": 49
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.74,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -23137,7 +23137,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
@@ -23429,7 +23429,7 @@
       "vitaminC100g": null
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.55,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -23437,7 +23437,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -24333,7 +24333,7 @@
       "vitaminC100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.67,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -24341,7 +24341,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -24408,7 +24408,7 @@
       "vitaminC100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.74,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -24416,7 +24416,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -24937,7 +24937,7 @@
       "vitaminC100g": 0
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.52,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -24945,7 +24945,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "ausente_sin_fuente",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -25315,7 +25315,7 @@
       "vitaminC100g": 4
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.8,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -25323,7 +25323,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -26338,7 +26338,7 @@
       "vitaminC100g": 19
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.95,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -26346,7 +26346,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
@@ -26413,7 +26413,7 @@
       "vitaminC100g": 19
     },
     "densidad": null,
-    "fraccionComestible": null,
+    "fraccionComestible": 0.95,
     "huecos": {
       "nutricion": "relleno",
       "procedencia": "relleno",
@@ -26421,7 +26421,7 @@
       "rol": "relleno",
       "taxonomia": "relleno",
       "densidad": "ausente_resoluble",
-      "fraccionComestible": "ausente_resoluble",
+      "fraccionComestible": "relleno",
       "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "ausente_sin_fuente",
