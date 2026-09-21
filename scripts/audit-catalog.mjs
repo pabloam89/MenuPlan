@@ -727,6 +727,23 @@ if (!alimentos) {
   const completas = filasFam.filter((r) => r.falta === 0).length;
   say(`     ${completas} de ${filasFam.length} familias con la nutrición completa`);
 
+  // El otro plano. Se imprime aparte y no cruzado con la familia a propósito:
+  // son dos preguntas distintas sobre la misma fila, y mezclarlas en una tabla
+  // sería repetir el error que separarlos vino a corregir.
+  const porRol = new Map();
+  for (const a of alimentos) {
+    const r = a.rol ?? "(sin rol)";
+    const acc = porRol.get(r) ?? { n: 0, conNutricion: 0 };
+    acc.n++;
+    if (a.nutricion) acc.conNutricion++;
+    porRol.set(r, acc);
+  }
+  say("");
+  say("     rol                  filas  nutrición");
+  for (const [r, c] of [...porRol.entries()].sort((a, b) => b[1].n - a[1].n)) {
+    say(`     ${r.padEnd(20)} ${String(c.n).padStart(5)}  ${String(c.conNutricion).padStart(9)}`);
+  }
+
   const heredados = alimentos.filter((a) => a.fuente === "heredado");
   if (heredados.length > 0) {
     say("");

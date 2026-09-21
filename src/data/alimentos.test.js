@@ -92,11 +92,34 @@ describe("los vocabularios no se desincronizan", () => {
     expect(inventadas).toEqual([]);
   });
 
-  it("todo alimento tiene familia, y no puede dejar de tenerla", () => {
+  it("todo alimento tiene familia y rol, y no pueden dejar de tenerlos", () => {
     // Trinquete: una clave de agrupación al 61 % no agrupa nada. Este test
     // existe para que la cobertura no pueda bajar sin que alguien lo decida.
-    const sin = alimentos.filter((a) => !a.familia).map((a) => a.id);
-    expect(sin).toEqual([]);
+    expect(alimentos.filter((a) => !a.familia).map((a) => a.id)).toEqual([]);
+    expect(alimentos.filter((a) => !a.rol).map((a) => a.id)).toEqual([]);
+  });
+
+  it("ningún ingrediente discrepa de la familia de la fila que apunta", () => {
+    // Esta es la garantía estructural de que los dos planos están bien
+    // separados. Cuando `familia` mezclaba identidad y función, este test
+    // fallaba con un caso: `Tomate triturado` comparte ficha de BEDCA con
+    // `Tomate` —son el mismo alimento— pero su derivación pedía `salsa`
+    // mientras la fila decía `verdura_fruto`. Las dos tenían razón sobre
+    // planos distintos, y por eso el choque no se podía arreglar sin separar
+    // los campos. Si alguien vuelve a meter un valor de uso dentro de
+    // `familia`, este test lo caza: los ingredientes que comparten alimento
+    // comparten identidad por definición, pero no tienen por qué compartir
+    // papel.
+    const porId = new Map(alimentos.map((a) => [a.id, a]));
+    const choca = [];
+    for (const ing of ingredientes) {
+      const fila = porId.get(alimentoPorIngrediente[ing.id]);
+      const propia = deriveFamilia(ing, familiaLabels).familia;
+      if (fila && propia !== fila.familia) {
+        choca.push(`${ing.name}: sería ${propia}, la fila ${fila.id} dice ${fila.familia}`);
+      }
+    }
+    expect(choca).toEqual([]);
   });
 
   it("ninguna familia animal se cuela en algo marcado vegetariano", () => {
@@ -139,7 +162,8 @@ describe("los juicios de familia", () => {
   it("cambian algo: un juicio que repite a la derivación sobra", () => {
     // Si el léxico mejora y acaba dando la misma respuesta, este test falla y
     // avisa de que la excepción ya se puede borrar. Fallar aquí es una buena
-    // noticia, no un problema.
+    // noticia, no un problema — y ya pasó: al separar familia de rol, el
+    // juicio de `salsa-soja` dejó de hacer falta y se borró.
     const redundantes = [];
     for (const k of claves) {
       const ing = ingredientes.find((i) => i.id === k);

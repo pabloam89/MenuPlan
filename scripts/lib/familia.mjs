@@ -87,33 +87,36 @@ export const FAMILIA_POR_PASILLO = {
 // "pez espada" no es un pez llamado espada.
 export const FRASES = [
   ["pez espada", "pescado_azul"],
-  ["leche de coco", "bebida"],
-  // Un aceite de fruto seco es grasa, no fruto seco. Va como frase y no como
-  // palabra porque "aceite" suelto es justo la palabra que no se puede tocar.
-  ["aceite de sesamo", "grasa"],
-  ["aceite de girasol", "grasa"],
-  ["aceite de oliva", "grasa"],
+  ["leche de coco", "fruto_seco"],
+  // Un aceite viene de algo, y ese algo es su identidad: la oliva es un fruto
+  // y el girasol y el sésamo son semillas. Que sean grasa lo dice el ROL.
+  ["aceite de sesamo", "fruto_seco"],
+  ["aceite de girasol", "fruto_seco"],
+  ["aceite de oliva", "fruta"],
+  ["aceituna", "fruta"],
   // Un nacho y una tortilla de maíz son pan, no maíz.
   ["nacho", "pan"],
   ["tortilla de maiz", "pan"],
   ["mantequilla de cacahuete", "fruto_seco"],
-  ["manteca de cerdo", "grasa"],
-  ["tinta de calamar", "salsa"],
+  ["manteca de cerdo", "carne_cerdo"],
+  ["tinta de calamar", "cefalopodo"],
   ["tortilla de maiz", "pan"],
+  ["pesto", "verdura_hoja"],
+  // Todos los vinagres igual. Sin esta frase, "Vinagre de manzana" se iba a
+  // `fruta` por la manzana y "Vinagre balsámico" a `compuesto`: el mismo
+  // producto en dos familias según de qué estuviera hecho. Si el vino ya es
+  // compuesto por fermentado, el vinagre lo es dos veces.
+  ["vinagre", "compuesto"],
   ["carne de txangurro", "marisco"],
   ["carne de zamburina", "marisco"],
   ["palito de cangrejo", "marisco"],
   ["pan rallado", "cereal"],
   ["semola de trigo", "cereal"],
-  ["tomate seco", "encurtido"],
-  ["tomate frito", "salsa"],
-  ["tomate triturado", "salsa"],
-  ["tomate concentrado", "salsa"],
-  ["espárrago blanco", "encurtido"],
-  ["esparrago blanco", "encurtido"],
-  ["pimiento del piquillo", "encurtido"],
-  ["cafe espresso", "bebida"],
-  ["licor de cafe", "bebida"],
+  // El tomate deja de partirse en tres: frito, triturado, concentrado y seco
+  // son todos tomate. Lo que cambia entre ellos es el ROL, no lo que son. Este
+  // bloque es literalmente la corrección que motivó separar los dos planos.
+  ["tomate", "verdura_fruto"],
+  ["pimiento del piquillo", "verdura_fruto"],
   ["hueso de ternera", "casqueria"],
   ["pata de ternera", "casqueria"],
   ["carne de cocido", "carne_roja"],
@@ -125,24 +128,67 @@ export const FRASES = [
 // gana, así que el orden es la regla de desempate y hay que leerlo como tal:
 // `fruto_seco` va antes que `grasa` para que "Aceite de sésamo" no se lleve
 // las almendras, y los pescados van antes que `grasa` por "Anchoas en aceite".
-export const LEXICO = [
-  // ── PREPARACIONES PRIMERO ────────────────────────────────────────────────
-  // La preparación gana al ingrediente que la nombra: un caldo de pollo es
-  // caldo, no pollo, y un vinagre de manzana es vinagre, no fruta. Sin esta
-  // regla salían siete falsos — y no como excepciones sueltas, sino todos por
-  // el mismo motivo, que es la señal de que faltaba el principio y no los
-  // parches.
-  //
-  // `grasa` es la excepción y va al final del fichero: su palabra —"aceite"—
-  // no nombra solo al producto, también al medio de conserva de otro
-  // ("Anchoas en aceite"). Es la misma trampa que ya se coló tres veces en
-  // esta auditoría.
+/**
+ * ── EL ROL: para qué se usa ──────────────────────────────────────────────
+ *
+ * Plano distinto al de la familia, y por eso tabla distinta. La versión
+ * anterior metía estos valores dentro de `familia` y necesitaba un principio
+ * de desempate ("la preparación gana al ingrediente que la nombra") para que
+ * un caldo de pollo no saliera como pollo. Con dos campos ese principio sobra:
+ * el caldo de pollo es `carne_ave` de familia y `caldo` de rol, las dos cosas
+ * a la vez, que es lo que siempre fue.
+ *
+ * Ausencia de match = `basico`: se come tal cual. Es el caso normal.
+ */
+/**
+ * Roles que se deciden por cómo EMPIEZA el nombre, y se miran antes que las
+ * palabras sueltas.
+ *
+ * Existe por el aceite, otra vez. "Aceite de oliva" es grasa; "Anchoas en
+ * aceite" y "Tomate seco en aceite" no lo son — ahí el aceite es el medio de
+ * conserva, no el producto. La diferencia está en la posición: lo que es una
+ * grasa se llama así desde la primera palabra. Es la cuarta vez que esta
+ * palabra engaña a este repositorio y la primera que se le pone una regla que
+ * distingue en vez de una lista de excepciones.
+ */
+export const PREFIJOS_ROL = [
+  ["aceite", "grasa"],
+  ["manteca", "grasa"],
+  ["margarina", "grasa"],
+  ["ghee", "grasa"],
+  ["tomate frito", "salsa"],
+  ["tomate triturado", "salsa"],
+  ["tomate concentrado", "salsa"],
+  ["tomate seco", "encurtido"],
+  // Antes de que "jerez" lo mande a `bebida`: un vinagre de Jerez no se bebe.
+  ["vinagre", "condimento"],
+];
+
+/**
+ * Último recurso antes de `basico`: el pasillo. Si algo está en Especias, su
+ * papel es sazonar aunque su nombre no lleve ninguna palabra de condimento —
+ * "Guindilla", "Hinojo", "Ají amarillo". Va después del léxico para que una
+ * palabra explícita siempre gane (la Sriracha está ahí y es salsa).
+ */
+export const ROL_POR_PASILLO = { "Especias": "condimento" };
+
+export const LEXICO_ROL = [
   ["caldo", ["caldo", "fondo", "fumet"]],
-  ["salsa", ["salsa", "mayonesa", "alioli", "ketchup", "mostaza", "pesto", "sofrito", "vinagre", "worcestershire", "tabasco", "sriracha", "gochujang", "harissa", "miso", "bechamel", "gazpacho", "mirin", "barbacoa"]],
+  ["salsa", ["salsa", "mayonesa", "alioli", "ketchup", "pesto", "sofrito", "worcestershire", "tabasco", "sriracha", "gochujang", "harissa", "miso", "bechamel", "gazpacho", "barbacoa", "tinta"]],
   ["encurtido", ["aceituna", "alcaparra", "pepinillo", "encurtido", "piquillo"]],
   ["endulzante", ["azucar", "miel", "sirope", "panela", "melaza", "stevia", "edulcorante", "mermelada", "chocolate", "cacao"]],
-  ["bebida", ["vino", "cerveza", "agua", "zumo", "brandy", "coñac", "jerez", "ron", "sidra", "cava", "vermut", "licor", "refresco", "infusion", "cafe", "vodka", "whisky", "cointreau", "ximenez"]],
+  ["bebida", ["vino", "cerveza", "agua", "zumo", "brandy", "coñac", "jerez", "ron", "sidra", "cava", "vermut", "licor", "refresco", "infusion", "cafe", "vodka", "whisky", "cointreau", "ximenez", "mirin"]],
+  ["condimento", ["sal", "pimienta", "pimenton", "comino", "oregano", "laurel", "canela", "azafran", "curry", "jengibre", "moscada", "clavo", "cardamomo", "albahaca", "perejil", "cilantro", "tomillo", "romero", "eneldo", "menta", "hierbabuena", "especia", "vainilla", "cayena", "curcuma", "cajun", "hierba", "cebollino", "salvia", "bicarbonato", "colorante", "extracto", "vinagre", "mostaza", "levadura", "gelatina", "tahini"]],
+];
 
+/**
+ * ── LA FAMILIA: qué es ───────────────────────────────────────────────────
+ *
+ * Solo identidad. Ya no lleva valores de uso, así que el orden deja de ser un
+ * desempate entre planos y pasa a ser lo que debía: de lo más específico a lo
+ * más general dentro de la misma pregunta.
+ */
+export const LEXICO = [
   // — casquería y despojos, antes que la carne que los nombra —
   ["casqueria", ["callo", "higado", "molleja", "riñon", "seso", "morro", "manita", "oreja", "unto", "tuetano"]],
   // — embutido y curados, antes que la especie —
@@ -176,9 +222,9 @@ export const LEXICO = [
   ["verdura_bulbo", ["cebolla", "cebolleta", "ajo", "ajete", "puerro", "chalota", "escalonia"]],
   ["verdura_col", ["brocoli", "coliflor", "col", "repollo", "lombarda", "kale", "romanesco", "grelo", "brusela"]],
   ["verdura_hoja", ["espinaca", "acelga", "lechuga", "rucula", "canonigo", "escarola", "endivia", "berro", "brote", "hoja"]],
-  ["verdura_fruto", ["tomate", "pimiento", "berenjena", "calabacin", "calabaza", "pepino", "aguacate", "okra", "alcachofa", "esparrago", "guisante", "haba", "edamame", "apio", "maiz", "judia"]],
+  ["verdura_fruto", ["tomate", "pimiento", "berenjena", "calabacin", "calabaza", "pepino", "pepinillo", "aguacate", "okra", "alcachofa", "esparrago", "guisante", "haba", "edamame", "apio", "maiz", "judia"]],
   // — legumbres —
-  ["legumbre", ["garbanzo", "lenteja", "alubia", "frijol", "fabe", "soja", "tofu", "tempeh", "falafel", "garrofon", "altramuz"]],
+  ["legumbre", ["garbanzo", "lenteja", "alubia", "frijol", "fabe", "soja", "tofu", "tempeh", "falafel", "garrofon", "altramuz", "miso", "gochujang"]],
   // — fruta —
   ["fruta", ["manzana", "pera", "platano", "naranja", "mandarina", "limon", "lima", "fresa", "arandano", "frambuesa", "mora", "uva", "melon", "sandia", "piña", "mango", "kiwi", "melocoton", "albaricoque", "ciruela", "cereza", "higo", "granada", "datil", "pasa", "papaya", "maracuya", "pomelo", "acai", "pulpa"]],
   // — féculas —
@@ -186,17 +232,60 @@ export const LEXICO = [
   ["pasta", ["pasta", "espagueti", "macarron", "fideo", "tallarin", "penne", "fusilli", "farfalle", "linguine", "orecchiette", "lasaña", "canelon", "cannelone", "raviol", "tortellini", "ñoqui", "orzo", "rigatoni", "tagliatelle", "fettuccine", "trofie", "placa", "lamina"]],
   ["pan", ["pan", "chapata", "hogaza", "baguette", "muffin", "pita", "naan", "picos", "biscote", "hojaldre", "oblea", "tortilla", "nacho", "masa", "bizcocho", "galleta"]],
   ["cereal", ["harina", "avena", "quinoa", "trigo", "centeno", "cebada", "espelta", "copo", "cereal", "granola", "bulgur", "semola", "polenta", "levadura", "maicena", "cuscu", "gelatina", "soletilla"]],
-  // — despensa (las preparaciones ya se resolvieron arriba) —
-  ["especia", ["sal", "pimienta", "pimenton", "comino", "oregano", "laurel", "canela", "azafran", "curry", "jengibre", "moscada", "clavo", "cardamomo", "albahaca", "perejil", "cilantro", "tomillo", "romero", "eneldo", "menta", "hierbabuena", "especia", "vainilla", "cayena", "curcuma", "cajun", "hierba", "cebollino", "salvia", "bicarbonato", "colorante", "extracto", "aji", "chile", "guindilla", "choricero", "hinojo"]],
+  // — la especia SÍ es identidad: es una clase de alimento (parte aromática
+  //   seca de una planta), no solo un uso. Por eso se queda aquí y no en el
+  //   rol, aunque su rol sea casi siempre `condimento`.
+  ["especia", ["pimienta", "pimenton", "comino", "oregano", "laurel", "canela", "azafran", "curry", "jengibre", "moscada", "clavo", "cardamomo", "albahaca", "perejil", "cilantro", "tomillo", "romero", "eneldo", "menta", "hierbabuena", "especia", "vainilla", "cayena", "curcuma", "cajun", "hierba", "cebollino", "salvia", "extracto", "aji", "chile", "guindilla", "choricero", "hinojo", "mostaza", "sriracha", "tabasco"]],
+  // La sal no es una planta ni un animal, y el agua tampoco. Fingir que son
+  // "especia" era cómodo y falso; `mineral` lo dice como es.
+  ["mineral", ["sal", "agua", "bicarbonato", "colorante", "hielo"]],
   // — grasa AL FINAL: es la palabra que más falsos positivos produce —
-  ["grasa", ["aceite", "ghee", "margarina", "oliva", "girasol"]],
+  // Lo que queda sin identidad propia porque está hecho de varias cosas: una
+  // mayonesa es huevo y aceite, una salsa barbacoa es media despensa. Va el
+  // último porque solo debe recogerlo lo que de verdad no encaja en nada.
+  ["endulzante", ["azucar", "miel", "sirope", "panela", "melaza", "stevia", "edulcorante", "mermelada", "chocolate", "cacao"]],
+  // El alcohol y el café van aquí y no a su materia prima a propósito: un vino
+  // ya no es uva ni nutricional ni culinariamente, y llamarlo `fruta` sería
+  // tan falso como llamarlo `bebida` en el campo de identidad. Fermentar y
+  // destilar producen otra cosa.
+  ["compuesto", ["mayonesa", "alioli", "bechamel", "ketchup", "barbacoa", "worcestershire", "harissa", "gazpacho", "sofrito", "caldo", "granola", "cereal", "vino", "cava", "cerveza", "brandy", "jerez", "ximenez", "ron", "sidra", "vermut", "licor", "vodka", "whisky", "cointreau", "cafe", "mirin", "gelatina", "levadura", "vinagre", "cesar"]],
 ];
 
 const FRASES_NORM = FRASES.map(([frase, familia]) => [norm(frase), familia]);
 
+/** Texto donde buscar frases: el nombre y el id, que ya viene singularizado. */
+const buscable = (ing) => `${norm(ing.name)} ${norm(ing.id).replace(/-/g, " ")}`;
+
 /**
+ * El rol: para qué se usa. Sin match, `basico` — se come tal cual, que es el
+ * caso normal y no un hueco.
+ *
+ * @returns {{rol:string, via:"juicio"|"palabra"|"defecto"}}
+ */
+export function deriveRol(ing, juicios = {}) {
+  const juicio = juicios[ing.id];
+  if (juicio?.rol) return { rol: juicio.rol, via: "juicio" };
+
+  const n = norm(ing.name);
+  for (const [prefijo, rol] of PREFIJOS_ROL) {
+    if (n.startsWith(prefijo)) return { rol, via: "prefijo" };
+  }
+
+  const ws = stems(ing.name);
+  for (const [rol, claves] of LEXICO_ROL) {
+    if (claves.some((c) => ws.has(norm(c)))) return { rol, via: "palabra" };
+  }
+  const porPasillo = ROL_POR_PASILLO[ing.aisle];
+  if (porPasillo) return { rol: porPasillo, via: "pasillo" };
+
+  return { rol: "basico", via: "defecto" };
+}
+
+/**
+ * La familia: qué es.
+ *
  * @param {{id:string,name:string,aisle:string}} ing
- * @param {Record<string,{familia:string,motivo?:string}>} juicios
+ * @param {Record<string,{familia?:string,rol?:string,motivo?:string}>} juicios
  * @returns {{familia:string|null, via:"juicio"|"pasillo"|"frase"|"palabra"|null}}
  */
 export function deriveFamilia(ing, juicios = {}) {
@@ -206,10 +295,7 @@ export function deriveFamilia(ing, juicios = {}) {
   const porPasillo = FAMILIA_POR_PASILLO[ing.aisle];
   if (porPasillo) return { familia: porPasillo, via: "pasillo" };
 
-  // Se busca la frase en el nombre Y en el id escrito con espacios. El id ya
-  // viene singularizado por el catálogo ("Tortillas de maíz" → tortilla-de-
-  // maiz), así que buscarlo ahí ahorra tener que listar cada plural a mano.
-  const n = `${norm(ing.name)} ${norm(ing.id).replace(/-/g, " ")}`;
+  const n = buscable(ing);
   for (const [frase, familia] of FRASES_NORM) {
     if (n.includes(frase)) return { familia, via: "frase" };
   }

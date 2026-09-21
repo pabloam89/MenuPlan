@@ -114,11 +114,51 @@ export const FAMILIAS_ALIMENTO = [
   "leche", "queso", "lacteo_fermentado", "nata_mantequilla",
   // vegetal
   "verdura_hoja", "verdura_fruto", "verdura_raiz", "verdura_bulbo", "verdura_col",
-  "seta", "alga", "legumbre", "fruta", "fruto_seco",
+  // `especia` y `endulzante` se quedan como IDENTIDAD además de ser roles, y
+  // no es una recaída en la mezcla: son clases de alimento reconocidas —parte
+  // aromática seca de una planta, azúcares— antes que usos. Que un valor
+  // exista en los dos vocabularios no los confunde: son campos distintos y
+  // responden preguntas distintas sobre la misma fila.
+  "seta", "alga", "legumbre", "fruta", "fruto_seco", "especia", "endulzante",
   // fécula
   "cereal", "pasta", "arroz", "pan", "tuberculo",
-  // despensa
-  "grasa", "especia", "endulzante", "caldo", "salsa", "encurtido", "bebida",
+  // lo que no viene de un ser vivo, y lo que viene de varios
+  "mineral", "compuesto",
+];
+
+/**
+ * El papel que juega en la cocina. ES OTRO PLANO, y tenerlo aparte es la
+ * corrección de un error de la primera versión de esta tabla.
+ *
+ * QUÉ PASÓ. `familia` mezclaba dos preguntas: qué es algo y para qué se usa.
+ * Medido: 99 de 383 filas (26 %) llevaban un valor funcional —`salsa`,
+ * `caldo`, `grasa`, `bebida`…— que no dice nada de qué son. Y el precio se vio
+ * en el tomate, que se partía en tres:
+ *
+ *     Tomate · Tomate cherry · Tomate triturado   → verdura_fruto
+ *     Tomate concentrado · Tomate frito           → salsa
+ *     Tomate seco en aceite                       → encurtido
+ *
+ * Eso rompe justo el caso que `familia` venía a arreglar: "no me gusta el
+ * tomate" no casaría con el tomate frito. Y salió también en forma de choque
+ * real: `Tomate triturado` comparte ficha de BEDCA con `Tomate` —son el mismo
+ * alimento— pero su derivación pedía `salsa` mientras la fila decía
+ * `verdura_fruto`. Las dos tenían razón, sobre planos distintos.
+ *
+ * LA SEÑAL DE QUE EL SPLIT ES EL CORRECTO: con dos campos desaparece el truco
+ * de desempate que la versión anterior necesitaba ("la preparación gana al
+ * ingrediente que la nombra"). No hacía falta un principio, hacía falta una
+ * columna: ya no compiten, porque no responden lo mismo.
+ */
+export const ROLES = [
+  "basico",      // se come como es: la carne, la verdura, la fruta
+  "condimento",  // sazona: sal, pimienta, laurel, vinagre
+  "salsa",       // acompaña o liga: mayonesa, tomate frito, pesto
+  "caldo",       // medio líquido de cocción
+  "grasa",       // grasa de cocinado: aceites, manteca
+  "endulzante",  // azúcares y siropes
+  "bebida",      // se bebe, o entra como líquido alcohólico
+  "encurtido",   // conservado en ácido o salmuera
 ];
 
 /**
@@ -138,9 +178,18 @@ export const GRUPO_POR_FAMILIA = {
   verdura_hoja: "verdura", verdura_fruto: "verdura", verdura_raiz: "verdura",
   verdura_bulbo: "verdura", verdura_col: "verdura", seta: "verdura", alga: "verdura",
   leche: null, queso: null, lacteo_fermentado: null, nata_mantequilla: null,
-  fruta: null, fruto_seco: null, cereal: null, pan: null, tuberculo: null,
-  grasa: null, especia: null, endulzante: null, caldo: null, salsa: null,
-  encurtido: null, bebida: null,
+  fruta: null, fruto_seco: null, especia: null, endulzante: null, cereal: null,
+  pan: null, tuberculo: null, mineral: null, compuesto: null,
+};
+
+/**
+ * Una familia puede tener cualquier rol —un pollo es `basico` y su caldo es
+ * `caldo`— salvo estas dos, que existen precisamente porque el material no
+ * tiene identidad biológica y solo se entienden por su uso.
+ */
+export const ROL_OBLIGATORIO = {
+  mineral: null,   // sal (condimento) y agua (bebida) comparten familia
+  compuesto: null, // no se restringe: un compuesto puede ser salsa o bebida
 };
 
 /**
@@ -185,15 +234,12 @@ export const FAMILIA_DIMENSIONES = {
   // `corte` porque el laurel es la hoja, el sésamo la semilla y la pimienta el
   // grano: en una especia, de qué parte de la planta viene es media identidad.
   especia: ["corte", "estado", "procesado", "presentacion"],
-  endulzante: ["presentacion", "origen"],
-  caldo: ["estado", "presentacion"],
-  // `medio` porque una mayonesa de aceite de soja y una de oliva no tienen la
-  // misma grasa, que es casi todo lo que una mayonesa aporta.
-  salsa: ["estado", "medio", "procesado", "presentacion"],
-  // `estado` porque un encurtido llega en tarro, en lata o a granel.
-  encurtido: ["estado", "medio", "presentacion"],
-  // `procesado` porque el café es una infusión y el té también.
-  bebida: ["estado", "procesado", "presentacion"],
+  endulzante: ["estado", "presentacion", "origen"],
+  // Sin identidad biológica: sal, agua, bicarbonato. Solo forma y estado.
+  mineral: ["estado", "presentacion"],
+  // Hecho de varias cosas, así que ninguna dimensión de la materia prima
+  // aplica; lo que sí varía es cómo llega y en qué medio.
+  compuesto: ["estado", "medio", "procesado", "presentacion"],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -219,7 +265,8 @@ export const ESTADOS_LIBRO = [
  * completas.
  */
 export const CAMPOS_CONTABLES = [
-  "nutricion", "procedencia", "familia", "taxonomia", "densidad", "fraccionComestible",
+  "nutricion", "procedencia", "familia", "rol", "taxonomia", "densidad",
+  "fraccionComestible",
   "corte", "estado", "medio", "procesado", "presentacion", "origen",
 ];
 
@@ -266,8 +313,12 @@ export const AlimentoSchema = z
     fuenteNombre: z.string().nullable(),
     fuenteFecha: z.string().nullable(),
 
-    // ── Plano A: identidad ──────────────────────────────────────────────────
+    // ── Plano A: identidad — QUÉ ES ─────────────────────────────────────────
     familia: z.enum(FAMILIAS_ALIMENTO).nullable(),
+
+    // ── Plano C: función — PARA QUÉ SE USA ──────────────────────────────────
+    rol: z.enum(ROLES).nullable(),
+
     taxonomia: z
       .object({
         reino: z.string().min(1),
@@ -329,7 +380,7 @@ export const AlimentoSchema = z
     // el campo tiene que estar, y si dice ausente no puede estar.
     const valorDe = {
       nutricion: a.nutricion, procedencia: a.fuenteId,
-      familia: a.familia, taxonomia: a.taxonomia,
+      familia: a.familia, rol: a.rol, taxonomia: a.taxonomia,
       densidad: a.densidad, fraccionComestible: a.fraccionComestible,
       ...a.dimensiones,
     };

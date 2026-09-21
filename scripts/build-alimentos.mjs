@@ -28,7 +28,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 import { parseDimensiones } from "./lib/bedcaDimensiones.mjs";
-import { deriveFamilia } from "./lib/familia.mjs";
+import { deriveFamilia, deriveRol } from "./lib/familia.mjs";
 import {
   validateAlimentos, CAMPOS_CONTABLES, FAMILIA_DIMENSIONES,
 } from "../src/data/alimentoSchema.js";
@@ -153,6 +153,7 @@ for (const ing of ingredientes) {
   }
 
   const { familia, via: viaFamilia } = deriveFamilia(ing, juiciosFamilia);
+  const { rol } = deriveRol(ing, juiciosFamilia);
   if (familia) porViaFamilia.set(viaFamilia, (porViaFamilia.get(viaFamilia) ?? 0) + 1);
 
   // La familia decide qué dimensiones tienen sentido, así que en cuanto está
@@ -180,6 +181,7 @@ for (const ing of ingredientes) {
   huecos.nutricion = ing.nutrition ? "relleno" : "ausente_resoluble";
   huecos.procedencia = proc ? "relleno" : "ausente_resoluble";
   huecos.familia = familia ? "relleno" : "ausente_resoluble";
+  huecos.rol = rol ? "relleno" : "ausente_resoluble";
   for (const dim of Object.keys(dimensiones)) {
     if (dimensiones[dim] === "no_aplica") { huecos[dim] = "no_aplica"; continue; }
     if (dimensiones[dim] != null) { huecos[dim] = "relleno"; continue; }
@@ -198,6 +200,7 @@ for (const ing of ingredientes) {
     fuenteNombre: nombreFuente,
     fuenteFecha: proc ? FECHA_INGESTA : null,
     familia,
+    rol,
     taxonomia: null,
     dimensiones,
     nutricion: ing.nutrition ?? null,
