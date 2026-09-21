@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import { uid } from "./groups.js";
 import { callModel, extractJson, AIPlannerError, ICON_TYPE_MAP, CATEGORY_ICON } from "./aiPlanner.js";
 import { FAST_MODEL } from "./aiModels.js";
@@ -9,6 +10,12 @@ import { StepRichSchema, isMontaje } from "../data/recipeSchema.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { lowerFirst } from "./dishNaming.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
+
+/** Los nombres por ración de los 24 micronutrientes (src/data/nutrientes.js). */
+const MICRONUTRIENTES_RACION = CAMPOS_SECUNDARIOS.filter(
+  (c) => !["fiber100g", "sugar100g", "saturatedFat100g", "sodium100g"].includes(c),
+).map((c) => NUTRIENTES[c].porRacion);
+
 import {
   SHOPPING_AISLES,
   guessShoppingAisle,
@@ -707,6 +714,13 @@ export const UserRecipeDraftSchema = z.object({
   sugar_g: z.coerce.number().nonnegative().optional(),
   saturated_fat_g: z.coerce.number().nonnegative().optional(),
   sodium_mg: z.coerce.number().nonnegative().optional(),
+  // Los 24 micronutrientes, generados desde la declaración para que añadir uno
+  // no obligue a tocar este fichero. Solo se rellenan cuando el cálculo tuvo
+  // cobertura suficiente, nunca desde la IA: el prompt no los pide.
+  ...Object.fromEntries(
+    MICRONUTRIENTES_RACION.map((c) => [c, z.coerce.number().nonnegative().optional()]),
+  ),
+  micronutrientesCobertura: z.record(z.number()).optional(),
   nutritionSource: z.enum(["computed", "ai"]).optional(),
   baseServings: z.coerce.number().positive(),
   kidFriendly: z.boolean(),
@@ -831,6 +845,20 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
       if (computed.sugar_g != null) parsed.sugar_g = computed.sugar_g;
       if (computed.saturated_fat_g != null) parsed.saturated_fat_g = computed.saturated_fat_g;
       if (computed.sodium_mg != null) parsed.sodium_mg = computed.sodium_mg;
+      // Y los 24 micronutrientes, que hasta ahora se calculaban y se tiraban.
+      // Aquí no hay nada que decidir: si esta receta ya acepta el cálculo para
+      // sus cuatro macros duros, no hay motivo para descartar el hierro que
+      // sale de la misma suma. Van con su cobertura, igual que en el catálogo.
+      for (const campo of MICRONUTRIENTES_RACION) {
+        if (computed[campo] != null) parsed[campo] = computed[campo];
+      }
+      if (computed.coberturaPorCampo) {
+        parsed.micronutrientesCobertura = Object.fromEntries(
+          MICRONUTRIENTES_RACION
+            .filter((c) => computed[c] != null)
+            .map((c) => [c, computed.coberturaPorCampo[c] ?? 0]),
+        );
+      }
       parsed.nutritionSource = "computed";
     } else {
       parsed.nutritionSource = "ai";
