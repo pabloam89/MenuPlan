@@ -1,5 +1,89 @@
 {
   "_": "Qué ficha de BEDCA corresponde a cada ingrediente. 192 decisiones las propuso claude-sonnet-5 y 27 se tomaron a mano el 14 sep 2026; todas traen motivo. VIVE AQUÍ Y NO EN output/ a propósito: output/ está en .gitignore, así que estas 219 decisiones existían solo en el portátil donde se corrió el pipeline. Son la parte cara de la ingesta —el emparejamiento, no los números— y perderlas obligaría a rehacer la pasada entera. \foodId: null no es un hueco: es la decisión explícita de que ninguna ficha de BEDCA sirve para ese ingrediente.",
+  "alubias": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "«Judías blancas, cocidas» (2199) declara 322,9 kcal con 21,4 g de proteína y 54,8 de carbohidratos. Eso es composición de alubia SECA, no cocida: unas alubias cocidas rondan 120-140 kcal, y esta ficha sale incluso POR ENCIMA de «Alubia blanca, seca, cruda» (899, 271,3 kcal), lo cual es imposible porque cocer solo añade agua. La ficha está mal etiquetada, y lo peligroso es que pasa Atwater —318 contra 322,9— porque sus macros son coherentes entre sí: la fórmula detecta números corruptos, no etiquetas mentirosas. Sin ficha buena hasta que haya otra fuente.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "apio": {
+    "foodId": 2366,
+    "confianza": 0.95,
+    "motivo": "«Apio, crudo», 10,6 kcal, Atwater 10,5. Nombre y estado exactos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "cebollino": {
+    "foodId": 850,
+    "confianza": 0.95,
+    "motivo": "«Cebollino, crudo», 24,6 kcal, Atwater 24,3. Nombre y estado exactos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "calamar": {
+    "foodId": 807,
+    "confianza": 0.95,
+    "motivo": "«Calamar, crudo», 71,5 kcal, Atwater 73,6. Nombre y estado exactos; las recetas pesan el calamar crudo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "merluza": {
+    "foodId": 825,
+    "confianza": 0.85,
+    "motivo": "«Merluza, congelada, cruda», 84,5 kcal con 16,7 g de proteína (Atwater 83,7). Se descarta «Merluza fresca» (2347) pese a llamarse igual que el ingrediente: sus 11,93 g de proteína son atípicamente bajos para una merluza, que ronda 17. Congelada y fresca son el mismo pescado en distinto almacenamiento; lo que no puede variar un tercio es la proteína.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "aji-amarillo": {
+    "foodId": 2610,
+    "confianza": 0.7,
+    "motivo": "«Guindilla, picante», 44,5 kcal, Atwater 44,2. No es la misma variedad —el ají amarillo es peruano y la guindilla española— pero sí el mismo alimento en familia y estado: chile fresco. Se usa a 15 g de mediana, así que la diferencia de variedad no mueve nada apreciable. Se descarta «Guindilla, en polvo» (303,8 kcal), que es el mismo chile deshidratado.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "boletus": {
+    "foodId": 2419,
+    "confianza": 0.75,
+    "motivo": "«Seta», 26,2 kcal, Atwater 25,9. Ficha genérica de seta en estado neutro, que es compatible con el boletus crudo (referencia 22-26). Se descarta «Seta, plancha» (13,1): las recetas pesan la seta cruda.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "tomate-frito": {
+    "foodId": 2560,
+    "confianza": 0.95,
+    "motivo": "«Tomate frito», 83,8 kcal, Atwater 84,4. Coincidencia literal de nombre y de producto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "quinoa": {
+    "foodId": 1083,
+    "confianza": 0.95,
+    "motivo": "«Quinoa, cruda», 305,1 kcal, Atwater 302. Nombre y estado exactos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "salmon-fresco": {
+    "foodId": 2626,
+    "confianza": 0.9,
+    "motivo": "«Salmón», 180,9 kcal con 18,4 de proteína y 12 de grasa (Atwater 181,6). Estado neutro, compatible con el fresco. Se descarta «Salmón ahumado» (2627), que es otro producto: el ahumado concentra proteína (25,4) y pierde grasa.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "mango": {
+    "foodId": 1186,
+    "confianza": 0.95,
+    "motivo": "«Mango, crudo», 58,7 kcal, Atwater 57,8. Nombre y estado exactos. Se descarta el zumo, que es otro alimento.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "remolacha": {
+    "foodId": 2416,
+    "confianza": 0.8,
+    "motivo": "«Remolacha, en conserva», 29,4 kcal, Atwater 29. El ingrediente es «Remolacha cocida», que en España se vende casi siempre cocida y envasada al vacío: mismo producto que la conserva en composición, distinto envase.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
   "jengibre": {
     "foodId": 2606,
     "confianza": 0.8,

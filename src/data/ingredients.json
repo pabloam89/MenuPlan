@@ -260,7 +260,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 15,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 44.5,
+      "protein100g": 1.87,
+      "carbs100g": 6.7,
+      "fat100g": 1.1,
+      "fiber100g": 1.5,
+      "sugar100g": null,
+      "saturatedFat100g": 0.105,
+      "sodium100g": 9
+    }
   },
   {
     "id": "ajo",
@@ -628,7 +637,16 @@
       "nombre": "rama",
       "g": 45
     },
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 10.6,
+      "protein100g": 0.9,
+      "carbs100g": 1.5,
+      "fat100g": 0.1,
+      "fiber100g": 2,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 110
+    }
   },
   {
     "id": "apionabo",
@@ -1170,7 +1188,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 200,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 26.2,
+      "protein100g": 1.8,
+      "carbs100g": 4,
+      "fat100g": 0.3,
+      "fiber100g": 2.5,
+      "sugar100g": null,
+      "saturatedFat100g": 0.07,
+      "sodium100g": 5
+    }
   },
   {
     "id": "boniato",
@@ -1526,7 +1553,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 300,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 71.5,
+      "protein100g": 14,
+      "carbs100g": 1.09091,
+      "fat100g": 1.47,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0.46,
+      "sodium100g": 136.5
+    }
   },
   {
     "id": "caldo-de-carne",
@@ -2016,7 +2052,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 5,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 24.6,
+      "protein100g": 3,
+      "carbs100g": 1.9,
+      "fat100g": 0.525,
+      "fiber100g": 2.3,
+      "sugar100g": 1.9,
+      "saturatedFat100g": 0.12,
+      "sodium100g": 3
+    }
   },
   {
     "id": "cereales",
@@ -4724,7 +4769,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 150,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 58.7,
+      "protein100g": 0.6,
+      "carbs100g": 13.4,
+      "fat100g": 0.2,
+      "fiber100g": 2.3,
+      "sugar100g": 13.1,
+      "saturatedFat100g": 0.05,
+      "sodium100g": 2
+    }
   },
   {
     "id": "manitas-de-cerdo",
@@ -5041,7 +5095,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 200,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 84.5,
+      "protein100g": 16.7033,
+      "carbs100g": 0,
+      "fat100g": 1.8775,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 0.427086,
+      "sodium100g": 100
+    }
   },
   {
     "id": "merluza-lomos",
@@ -7042,7 +7105,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 100,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 305.1,
+      "protein100g": 13.8,
+      "carbs100g": 49.195,
+      "fat100g": 5.55555,
+      "fiber100g": 7.9,
+      "sugar100g": 5.92233,
+      "saturatedFat100g": 0.5,
+      "sodium100g": 61
+    }
   },
   {
     "id": "rabo-de-toro",
@@ -7107,7 +7179,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 200,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 29.4,
+      "protein100g": 1.2,
+      "carbs100g": 5.6,
+      "fat100g": 0.2,
+      "fiber100g": 2.5,
+      "sugar100g": null,
+      "saturatedFat100g": null,
+      "sodium100g": 120
+    }
   },
   {
     "id": "repollo",
@@ -7530,7 +7611,16 @@
     "isVegan": false,
     "defaultUnit": "g",
     "medianAmount": 220,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 180.9,
+      "protein100g": 18.4,
+      "carbs100g": 0,
+      "fat100g": 12,
+      "fiber100g": 0,
+      "sugar100g": null,
+      "saturatedFat100g": 2.16,
+      "sodium100g": 98
+    }
   },
   {
     "id": "salmonete",
@@ -8211,7 +8301,16 @@
     "isVegan": true,
     "defaultUnit": "g",
     "medianAmount": 100,
-    "nutrition": null
+    "nutrition": {
+      "kcal100g": 83.8,
+      "protein100g": 1.5,
+      "carbs100g": 5.2,
+      "fat100g": 6.4,
+      "fiber100g": 1.6,
+      "sugar100g": null,
+      "saturatedFat100g": 0.62,
+      "sodium100g": 340
+    }
   },
   {
     "id": "tomate-seco",

@@ -1,4 +1,20 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+
+// Este fichero prueba el planificador SORTEANDO de verdad: hay ocho tests que
+// repiten entre 10 y 150 veces una elección real de receta, porque lo que
+// comprueban es una propiedad estadística ("nunca propone X"), no un caso.
+// Eso los hace legítimamente lentos —el más pesado tarda ~1,9 s aislado— y
+// con los 5 s por defecto de vitest caen de forma intermitente SOLO en la
+// suite completa, donde la contención dobla los tiempos. Cuando caen lo hacen
+// sin mensaje de aserción y con el stack apuntando al runner, así que parecen
+// un fallo lógico y no lo son: aislados pasan siempre.
+//
+// El margen se sube para el fichero entero en vez de test a test: el que falla
+// va cambiando según cómo reparta vitest los workers, así que parchear el de
+// hoy solo mueve el problema al de mañana. No se toca ninguna iteración ni
+// ninguna aserción.
+vi.setConfig({ testTimeout: 20000 });
+
 import {
   buildUserMessage,
   buildGroupContext,
@@ -223,13 +239,7 @@ describe("pickCatalogReplacement respects school-menu avoidance", () => {
     }
   });
 
-  // Timeout explícito: este test hace 150 sorteos reales del planificador y
-  // tarda ~1,9 s él solo. Con los 5 s por defecto de vitest pasa aislado y
-  // falla intermitentemente en la suite completa, donde la contención dobla
-  // los tiempos — y falla sin mensaje de aserción, que es lo que lo hace
-  // difícil de diagnosticar. Las 150 iteraciones se quedan: lo que sobraba era
-  // el margen, no la prueba.
-  it("never proposes a cena dish whose carb base matches what the school already served that day", { timeout: 20000 }, () => {
+  it("never proposes a cena dish whose carb base matches what the school already served that day", () => {
     const data = dataWithSchoolMenu(
       { "Lun-Primero": "Arroz con verduras", "Lun-Segundo": "Merluza al horno" },
       { timeWeekday: 60 }, // widen the pool so real arroz-base cena candidates are in range
