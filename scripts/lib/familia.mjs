@@ -76,11 +76,16 @@ export function stems(nombre) {
 // Pasillos cuya familia es una sola cosa. No es una suposición sobre el mundo:
 // es lo que el catálogo ya afirma al meter algo en ese pasillo.
 export const FAMILIA_POR_PASILLO = {
-  "Especias": "especia",
   "Legumbres": "legumbre",
   "Huevos": "huevo",
   "Frutas": "fruta",
 };
+// OJO CON LO QUE NO ESTÁ AQUÍ: el pasillo Especias. Estuvo, y era el último
+// resto de la mezcla de planos. Ese pasillo predice muy bien el ROL —de sus 32
+// filas, 31 se usan en 18 g o menos— y no dice nada de la IDENTIDAD: el
+// jengibre es una raíz, el chile un fruto, el ajo en polvo un bulbo y el
+// hinojo se usa a 150 g, que no es condimentar, es comer. Ahora Especias vive
+// en ROL_POR_PASILLO, donde sí acierta, y la identidad la decide el léxico.
 
 // ── Capa 3 ──────────────────────────────────────────────────────────────────
 // Frases: lo que solo significa algo junto. "Leche de coco" no es leche y
@@ -102,6 +107,8 @@ export const FRASES = [
   ["tinta de calamar", "cefalopodo"],
   ["tortilla de maiz", "pan"],
   ["pesto", "verdura_hoja"],
+  // Antes de que "nuez" se la lleve a los frutos secos: es una especia.
+  ["nuez moscada", "especia"],
   // Todos los vinagres igual. Sin esta frase, "Vinagre de manzana" se iba a
   // `fruta` por la manzana y "Vinagre balsámico" a `compuesto`: el mismo
   // producto en dos familias según de qué estuviera hecho. Si el vino ya es
@@ -117,6 +124,13 @@ export const FRASES = [
   // bloque es literalmente la corrección que motivó separar los dos planos.
   ["tomate", "verdura_fruto"],
   ["pimiento del piquillo", "verdura_fruto"],
+  // Todos los caldos igual. Sin esto, "Caldo de pollo" se iba a `carne_ave`
+  // (porque "pollo" está en el léxico) y los otros cuatro a `compuesto`
+  // (porque "carne", "pescado" y "marisco" genéricos no lo están): el mismo
+  // producto en dos familias según de qué estuviera hecho. Un caldo es agua
+  // con extracto de varias cosas —hasta el de pollo lleva cebolla y zanahoria—
+  // así que `compuesto` es lo cierto para los cinco. De qué es lo dice el rol.
+  ["caldo", "compuesto"],
   ["hueso de ternera", "casqueria"],
   ["pata de ternera", "casqueria"],
   ["carne de cocido", "carne_roja"],
@@ -218,11 +232,11 @@ export const LEXICO = [
   ["seta", ["champiñon", "seta", "boletu", "portobello", "niscalo", "shiitake", "trufa"]],
   ["alga", ["alga", "nori", "wakame", "kombu"]],
   ["tuberculo", ["patata", "boniato", "batata", "yuca", "chirivia"]],
-  ["verdura_raiz", ["zanahoria", "remolacha", "nabo", "rabano", "apionabo"]],
-  ["verdura_bulbo", ["cebolla", "cebolleta", "ajo", "ajete", "puerro", "chalota", "escalonia"]],
+  ["verdura_raiz", ["zanahoria", "remolacha", "nabo", "rabano", "apionabo", "jengibre"]],
+  ["verdura_bulbo", ["cebolla", "cebolleta", "ajo", "ajete", "puerro", "chalota", "escalonia", "hinojo"]],
   ["verdura_col", ["brocoli", "coliflor", "col", "repollo", "lombarda", "kale", "romanesco", "grelo", "brusela"]],
   ["verdura_hoja", ["espinaca", "acelga", "lechuga", "rucula", "canonigo", "escarola", "endivia", "berro", "brote", "hoja"]],
-  ["verdura_fruto", ["tomate", "pimiento", "berenjena", "calabacin", "calabaza", "pepino", "pepinillo", "aguacate", "okra", "alcachofa", "esparrago", "guisante", "haba", "edamame", "apio", "maiz", "judia"]],
+  ["verdura_fruto", ["tomate", "pimiento", "berenjena", "calabacin", "calabaza", "pepino", "pepinillo", "aguacate", "okra", "alcachofa", "esparrago", "guisante", "haba", "edamame", "apio", "maiz", "judia", "chile", "guindilla", "aji", "choricero", "alcaparra"]],
   // — legumbres —
   ["legumbre", ["garbanzo", "lenteja", "alubia", "frijol", "fabe", "soja", "tofu", "tempeh", "falafel", "garrofon", "altramuz", "miso", "gochujang"]],
   // — fruta —
@@ -235,7 +249,7 @@ export const LEXICO = [
   // — la especia SÍ es identidad: es una clase de alimento (parte aromática
   //   seca de una planta), no solo un uso. Por eso se queda aquí y no en el
   //   rol, aunque su rol sea casi siempre `condimento`.
-  ["especia", ["pimienta", "pimenton", "comino", "oregano", "laurel", "canela", "azafran", "curry", "jengibre", "moscada", "clavo", "cardamomo", "albahaca", "perejil", "cilantro", "tomillo", "romero", "eneldo", "menta", "hierbabuena", "especia", "vainilla", "cayena", "curcuma", "cajun", "hierba", "cebollino", "salvia", "extracto", "aji", "chile", "guindilla", "choricero", "hinojo", "mostaza", "sriracha", "tabasco"]],
+  ["especia", ["pimienta", "pimenton", "comino", "oregano", "laurel", "canela", "azafran", "curry", "jengibre", "moscada", "clavo", "cardamomo", "albahaca", "perejil", "cilantro", "tomillo", "romero", "eneldo", "menta", "hierbabuena", "especia", "vainilla", "cayena", "curcuma", "cajun", "hierba", "cebollino", "salvia", "extracto", "mostaza", "sriracha", "tabasco"]],
   // La sal no es una planta ni un animal, y el agua tampoco. Fingir que son
   // "especia" era cómodo y falso; `mineral` lo dice como es.
   ["mineral", ["sal", "agua", "bicarbonato", "colorante", "hielo"]],

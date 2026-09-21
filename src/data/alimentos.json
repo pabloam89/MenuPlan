@@ -476,16 +476,16 @@
     "fuenteId": null,
     "fuenteNombre": null,
     "fuenteFecha": null,
-    "familia": "especia",
+    "familia": "verdura_fruto",
     "rol": "condimento",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
-      "medio": "no_aplica",
+      "medio": null,
       "procesado": null,
       "presentacion": null,
-      "origen": "no_aplica"
+      "origen": null
     },
     "nutricion": null,
     "densidad": null,
@@ -498,12 +498,12 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_resoluble",
+      "corte": "no_aplica",
       "estado": "ausente_resoluble",
-      "medio": "no_aplica",
+      "medio": "ausente_resoluble",
       "procesado": "ausente_resoluble",
       "presentacion": "ausente_resoluble",
-      "origen": "no_aplica"
+      "origen": "ausente_resoluble"
     }
   },
   {
@@ -559,16 +559,16 @@
     "fuenteId": "2573",
     "fuenteNombre": "Ajo, en polvo",
     "fuenteFecha": "2026-09-11T16:27:42.436Z",
-    "familia": "especia",
+    "familia": "verdura_bulbo",
     "rol": "condimento",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
       "medio": "no_aplica",
       "procesado": null,
       "presentacion": "polvo",
-      "origen": "no_aplica"
+      "origen": null
     },
     "nutricion": {
       "kcal100g": 369.2,
@@ -590,12 +590,12 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_sin_fuente",
+      "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
       "medio": "no_aplica",
       "procesado": "ausente_sin_fuente",
       "presentacion": "relleno",
-      "origen": "no_aplica"
+      "origen": "ausente_sin_fuente"
     }
   },
   {
@@ -716,16 +716,16 @@
     "fuenteId": "2364",
     "fuenteNombre": "Alcaparra",
     "fuenteFecha": "2026-09-11T16:27:42.436Z",
-    "familia": "especia",
+    "familia": "verdura_fruto",
     "rol": "encurtido",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
-      "medio": "no_aplica",
+      "medio": null,
       "procesado": null,
       "presentacion": null,
-      "origen": "no_aplica"
+      "origen": null
     },
     "nutricion": {
       "kcal100g": 25.7,
@@ -747,12 +747,12 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_sin_fuente",
+      "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
-      "medio": "no_aplica",
+      "medio": "ausente_sin_fuente",
       "procesado": "ausente_sin_fuente",
       "presentacion": "ausente_sin_fuente",
-      "origen": "no_aplica"
+      "origen": "ausente_sin_fuente"
     }
   },
   {
@@ -2875,16 +2875,16 @@
     "fuenteId": null,
     "fuenteNombre": null,
     "fuenteFecha": null,
-    "familia": "carne_ave",
+    "familia": "compuesto",
     "rol": "caldo",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
-      "medio": "no_aplica",
+      "medio": null,
       "procesado": null,
       "presentacion": null,
-      "origen": null
+      "origen": "no_aplica"
     },
     "nutricion": null,
     "densidad": null,
@@ -2897,12 +2897,12 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_resoluble",
+      "corte": "no_aplica",
       "estado": "ausente_resoluble",
-      "medio": "no_aplica",
+      "medio": "ausente_resoluble",
       "procesado": "ausente_resoluble",
       "presentacion": "ausente_resoluble",
-      "origen": "ausente_resoluble"
+      "origen": "no_aplica"
     }
   },
   {
@@ -3502,16 +3502,16 @@
     "fuenteId": null,
     "fuenteNombre": null,
     "fuenteFecha": null,
-    "familia": "especia",
+    "familia": "verdura_fruto",
     "rol": "condimento",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
-      "medio": "no_aplica",
+      "medio": null,
       "procesado": null,
       "presentacion": null,
-      "origen": "no_aplica"
+      "origen": null
     },
     "nutricion": null,
     "densidad": null,
@@ -3524,12 +3524,12 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_resoluble",
+      "corte": "no_aplica",
       "estado": "ausente_resoluble",
-      "medio": "no_aplica",
+      "medio": "ausente_resoluble",
       "procesado": "ausente_resoluble",
       "presentacion": "ausente_resoluble",
-      "origen": "no_aplica"
+      "origen": "ausente_resoluble"
     }
   },
   {
@@ -4471,14 +4471,14 @@
     "fuenteId": null,
     "fuenteNombre": null,
     "fuenteFecha": null,
-    "familia": "especia",
+    "familia": "mineral",
     "rol": "condimento",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
       "medio": "no_aplica",
-      "procesado": null,
+      "procesado": "no_aplica",
       "presentacion": null,
       "origen": "no_aplica"
     },
@@ -4493,10 +4493,10 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_resoluble",
+      "corte": "no_aplica",
       "estado": "ausente_resoluble",
       "medio": "no_aplica",
-      "procesado": "ausente_resoluble",
+      "procesado": "no_aplica",
       "presentacion": "ausente_resoluble",
       "origen": "no_aplica"
     }
@@ -6187,16 +6187,16 @@
     "fuenteId": "2610",
     "fuenteNombre": "Guindilla, picante",
     "fuenteFecha": "2026-09-11T16:27:42.436Z",
-    "familia": "especia",
+    "familia": "verdura_fruto",
     "rol": "condimento",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
-      "medio": "no_aplica",
+      "medio": null,
       "procesado": null,
       "presentacion": null,
-      "origen": "no_aplica"
+      "origen": null
     },
     "nutricion": {
       "kcal100g": 44.5,
@@ -6218,12 +6218,12 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_sin_fuente",
+      "corte": "no_aplica",
       "estado": "ausente_sin_fuente",
-      "medio": "no_aplica",
+      "medio": "ausente_sin_fuente",
       "procesado": "ausente_sin_fuente",
       "presentacion": "ausente_sin_fuente",
-      "origen": "no_aplica"
+      "origen": "ausente_sin_fuente"
     }
   },
   {
@@ -6473,16 +6473,16 @@
     "fuenteId": null,
     "fuenteNombre": null,
     "fuenteFecha": null,
-    "familia": "especia",
-    "rol": "condimento",
+    "familia": "verdura_bulbo",
+    "rol": "basico",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
       "medio": "no_aplica",
       "procesado": null,
       "presentacion": null,
-      "origen": "no_aplica"
+      "origen": null
     },
     "nutricion": null,
     "densidad": null,
@@ -6495,12 +6495,12 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_resoluble",
+      "corte": "no_aplica",
       "estado": "ausente_resoluble",
       "medio": "no_aplica",
       "procesado": "ausente_resoluble",
       "presentacion": "ausente_resoluble",
-      "origen": "no_aplica"
+      "origen": "ausente_resoluble"
     }
   },
   {
@@ -6842,16 +6842,16 @@
     "fuenteId": null,
     "fuenteNombre": null,
     "fuenteFecha": null,
-    "familia": "especia",
+    "familia": "verdura_raiz",
     "rol": "condimento",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
       "medio": "no_aplica",
       "procesado": null,
       "presentacion": null,
-      "origen": "no_aplica"
+      "origen": null
     },
     "nutricion": null,
     "densidad": null,
@@ -6864,12 +6864,12 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_resoluble",
+      "corte": "no_aplica",
       "estado": "ausente_resoluble",
       "medio": "no_aplica",
       "procesado": "ausente_resoluble",
       "presentacion": "ausente_resoluble",
-      "origen": "no_aplica"
+      "origen": "ausente_resoluble"
     }
   },
   {
@@ -10724,16 +10724,16 @@
     "fuenteId": null,
     "fuenteNombre": null,
     "fuenteFecha": null,
-    "familia": "especia",
+    "familia": "verdura_fruto",
     "rol": "condimento",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
-      "medio": "no_aplica",
+      "medio": null,
       "procesado": null,
       "presentacion": null,
-      "origen": "no_aplica"
+      "origen": null
     },
     "nutricion": null,
     "densidad": null,
@@ -10746,12 +10746,12 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_resoluble",
+      "corte": "no_aplica",
       "estado": "ausente_resoluble",
-      "medio": "no_aplica",
+      "medio": "ausente_resoluble",
       "procesado": "ausente_resoluble",
       "presentacion": "ausente_resoluble",
-      "origen": "no_aplica"
+      "origen": "ausente_resoluble"
     }
   },
   {
@@ -12947,11 +12947,11 @@
     "fuenteId": null,
     "fuenteNombre": null,
     "fuenteFecha": null,
-    "familia": "especia",
+    "familia": "fruto_seco",
     "rol": "condimento",
     "taxonomia": null,
     "dimensiones": {
-      "corte": null,
+      "corte": "no_aplica",
       "estado": null,
       "medio": "no_aplica",
       "procesado": null,
@@ -12969,7 +12969,7 @@
       "taxonomia": "ausente_resoluble",
       "densidad": "ausente_resoluble",
       "fraccionComestible": "ausente_resoluble",
-      "corte": "ausente_resoluble",
+      "corte": "no_aplica",
       "estado": "ausente_resoluble",
       "medio": "no_aplica",
       "procesado": "ausente_resoluble",

@@ -106,6 +106,26 @@ export const DIMENSIONES = {
 // fina porque un ingrediente necesita distinguir lo que un menú semanal no
 // (merluza de sardina), pero NO es independiente: GRUPO_POR_FAMILIA la pliega
 // sobre ese vocabulario, y un test comprueba que el destino existe allí.
+/**
+ * DÓNDE ESTÁ EL LÍMITE, porque no es obvio y se puede discutir.
+ *
+ * `familia` es identidad CULINARIA, no botánica. Por eso `pan`, `pasta`,
+ * `embutido`, `queso` y `casqueria` son familias aunque biológicamente sean
+ * transformaciones de trigo, leche y carne: en una cocina la pasta es una
+ * cosa, no "trigo con forma", y las reglas de variedad de este repo necesitan
+ * distinguir pasta de arroz de pan. Purificar el eje hasta lo botánico daría
+ * un modelo más elegante y un producto peor.
+ *
+ * El eje de transformación no falta: ya existe, repartido en las dimensiones
+ * `procesado` y `estado`. Lo que NO puede pasar es que un valor de uso
+ * —salsa, caldo, bebida— vuelva a entrar aquí: para eso está `rol`.
+ *
+ * Solape conocido y aceptado: `casqueria` se pisa con la dimensión `corte`
+ * (los callos y el hígado son cortes). Se mantienen los dos porque responden
+ * a preguntas distintas — `corte` distingue dentro de un animal, `casqueria`
+ * agrupa despojos entre animales— y quitar cualquiera de los dos perdería
+ * información que alguien usa.
+ */
 export const FAMILIAS_ALIMENTO = [
   // proteína animal
   "carne_ave", "carne_roja", "carne_cerdo", "carne_caza", "casqueria", "embutido",
