@@ -24,7 +24,7 @@ declarada como escalar y es derivable de sus partes, y ninguna reconcilia.**
 | tiempo | `time` (100 %) | Σ `stepsRich[].minutes` (97 %) | **no**: entre +25 % y −28,6 % según el operador |
 | gramos | `amount` + `unit` (100 %) | `pieza` del catálogo + `PIECE_WEIGHTS` | **sí, desde hoy** (una sola tabla, `piezaRoundTrip.test.js`) |
 | raciones | `baseServings` (100 %) | ratio de proteína + masa/ración | **no**: 51 sospechosas |
-| precio | `pricePerUnit` | tabla de precios | **no existe ninguna de las dos**: total = 0 € |
+| precio | `pricePerUnit` (el catálogo nunca lo rellena) | SKU de Mercadona, emparejado en runtime | **sí, y funciona** — ver la corrección de §6 |
 
 El patrón correcto para todas es el mismo, y ya lo aplicamos una vez con los
 gramos: **una tabla canónica, un operador que la lee, y un test que impide la
@@ -305,7 +305,7 @@ FK y esto es la red para lo que escribe el usuario.
 
 ### Faltan
 
-- **coste por receta** — no existe, y por eso la cesta da 0 €
+- **coste por receta** — CORREGIDO el 21 sep 2026: la cesta NO da 0 €. lib/listPricing.js la valora con SKUs reales al 92 %. Lo que sí da 0 es shoppingBuilder.total, que multiplica un pricePerUnit que el catálogo nunca rellena; su maquinaria está probada (los tests le pasan precios sintéticos) y solo le faltan datos, así que NO es código muerto y no se retira
 - **`aporte` materializado** — se recalcula por petición
 - **los sumandos de tiempo** (`fijo`, `marginal`) derivados de los pasos
 
@@ -589,7 +589,7 @@ primero o dejarla para después de la 1.
 
 | # | qué | por qué primero | riesgo |
 |---|---|---|---|
-| **1** | Tabla `precios` por ingrediente + operador `costeDeReceta` | es lo único **roto** de cara al usuario: la cesta dice 0 € | bajo |
+| **1** | Afinar el emparejamiento ingrediente→SKU | **PREMISA CORREGIDA (21 sep 2026)**: la cesta NO dice 0 €. `lib/listPricing.js` la valora con SKUs reales de Mercadona, al 92 % de cobertura y contando envases enteros. No falta una tabla de precios: falta curación — 31 ingredientes sin SKU y 89 con confianza < 0,6 | bajo |
 | **2** | Sacar la entidad `base` (7 campos) y los 3 subtipos | mecánico, no cambia comportamiento, deja el esquema en condiciones para todo lo demás | bajo |
 | **3** | Matar los 4 campos muertos; arreglar o retirar `effectiveRecipeTime` | `scalesWithEaters` es una función que no hace nada | bajo |
 | **4** | Módulo `cantidad` (5 operadores → 1) | la tabla ya está unificada; falta la puerta | bajo |
@@ -889,7 +889,7 @@ exactamente lo que esta auditoría ha desmontado tres veces (`getCarbType`,
 | | qué | ingerido o juzgado | coste | desbloquea |
 |---|---|---|---|---|
 | **A1** | `alimentos` con procedencia y dimensiones | ingerido (BEDCA) | reescribir el destino de 1 script | que las macros tengan de dónde |
-| **A2** | `productos` con SKU y precio | ingerido (cron Mercadona) | tabla nueva | la fase 1: la cesta a 0 € |
+| **A2** | `productos` con SKU y precio | ingerido (cron Mercadona) | **mucho menos de lo que parecía**: `public/store/mercadona.json` ya está en el repo con 3.051 productos y sus precios, y `lib/productMatcher.js` ya empareja en runtime | curar los 31 sin SKU y los 89 débiles |
 | **A3** | `familia` en las 383 filas | juzgado, pero derivable de la taxonomía | 1 campo × 383 | §11 favoritos, §6 `aporteDe`, el libro de cuentas |
 | **A4** | `densidad` en ~40 filas | curado | 40 números | 23,4 % del catálogo deja de pesarse a ojo |
 | **A5** | `fraccionComestible` en 14 filas | curado | 14 números | los enteros dejan de contar el hueso como comida |
