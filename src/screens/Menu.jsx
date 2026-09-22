@@ -162,6 +162,7 @@ import {
 import {
   APPLIANCE_LABELS,
   APPLIANCE_COLORS,
+  KITCHEN_TOOLS,
   REQUIRED_APPLIANCE_ICONS,
   selectMethodForRecipe,
   methodDifficultyLabel,
@@ -802,8 +803,6 @@ const COOK_LEVELS = [
   { id: "normal", label: "Normal",            icon: <ChefHat size={20} /> },
   { id: "pro",    label: "Me gusta cocinar",  icon: <Sparkles size={20} /> },
 ];
-
-const KITCHEN_TOOLS = ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"];
 
 const FREQ_OPTIONS = [
   { id: "verdura", label: "Verdura" },

@@ -10,6 +10,17 @@
 
 import { Wind, Flame, Microwave, Bot, CookingPot, Layers2 } from "../components/icons.jsx";
 
+/**
+ * Los trastos que una casa declara tener.
+ *
+ * Vive aquí y no en la pantalla que los pinta porque ya hay dos sitios que
+ * preguntan lo mismo —los ajustes del menú y la baldosa de batch cooking— y
+ * dos listas que tienen que coincidir palabra por palabra acaban sin coincidir.
+ * Son las mismas claves que `REQUIRED_APPLIANCE_ICONS`, en español y con
+ * mayúscula, porque así están guardadas ya en producción.
+ */
+export const KITCHEN_TOOLS = ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"];
+
 export const APPLIANCE_LABELS = {
   airfryer: "Airfryer",
   horno: "Horno",

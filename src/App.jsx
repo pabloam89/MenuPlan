@@ -5682,6 +5682,7 @@ export default function App() {
                   <Suspense fallback={null}>
                     <PizarraControles
                       data={data}
+                      setData={setData}
                       menuPlan={menuPlan}
                       groups={data.groups ?? []}
                       onAplicar={aplicarCambioPizarra}

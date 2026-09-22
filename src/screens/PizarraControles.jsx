@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import {
   BarChart3, CalendarDays, Check, CookingPot, Package, Plus, Salad, Search, Sparkles, X,
 } from "../components/icons.jsx";
@@ -12,6 +12,16 @@ import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
 import { sesionDeBases } from "../lib/bases.js";
 import { enHoras, minutosDeTanda } from "../lib/cookTime.js";
+import { KITCHEN_TOOLS } from "../lib/applianceMethods.js";
+
+/**
+ * El selector de tandas del wizard, tal cual. Va en diferido porque arrastra
+ * el catálogo entero para repartir las recetas por familia, y la mayoría de
+ * quien abre la pizarra no llega a abrir esta baldosa.
+ */
+const BasesPreferidas = lazy(() =>
+  import("../components/BasesPreferidas.jsx").then((m) => ({ default: m.BasesPreferidas })),
+);
 import {
   buildCalendarWeeks,
   conDiaMarcado,
@@ -587,45 +597,39 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUs
  * legumbre son nueve horas de fuego y veinte minutos tuyos, y lo que decide si
  * el domingo sale es lo segundo.
  */
-/**
- * El tiempo, en cuatro toques en vez de un deslizador.
- *
- * El deslizador pedía apuntar a un valor dentro de un recorrido de tres horas
- * y media, y encima traía una etiqueta y un párrafo explicando qué era. Nadie
- * tiene "dos horas y cuarto": tiene un rato, una mañana o el domingo entero.
- */
-const RATOS = [30, 60, 120, 180];
-const enCirculo = (min) => (min < 60 ? "30′" : `${min / 60} h`);
+/** Un rótulo de sección. Tres palabras en mayúscula, sin párrafo debajo. */
+function Rotulo({ children, top = 18 }) {
+  return (
+    <div style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px", margin: `${top}px 2px 9px` }}>
+      {children}
+    </div>
+  );
+}
 
-function PanelTanda({ sesion, minutos, onMinutos, agrupar, onAgrupar, onRellenar, huecosVacios }) {
+function PanelTanda({
+  data, setData, sesion, minutos, agrupar, onAgrupar, onRellenar, huecosVacios,
+}) {
   const bases = sesion?.bases ?? [];
   const usados = sesion?.minutosActivosTotales ?? 0;
   const pasa = usados > minutos;
+  const trastos = data?.kitchenTools ?? [];
+  const todosLosTrastos = [...KITCHEN_TOOLS, ...(data?.customKitchenTools ?? [])];
+
+  const alternarTrasto = (t) => setData?.((d) => ({
+    ...d,
+    kitchenTools: (d.kitchenTools ?? []).includes(t)
+      ? (d.kitchenTools ?? []).filter((v) => v !== t)
+      : [...(d.kitchenTools ?? []), t],
+  }));
 
   return (
     <>
-      {/* El eyebrow dice de qué van los cuatro círculos, y así el número no
-          tiene que repetirse debajo de cada uno como etiqueta. */}
-      <div style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px", margin: "0 2px 9px" }}>
-        TIEMPO QUE TIENES
-      </div>
-      <div style={{ display: "flex", gap: 6, justifyContent: "space-between", marginBottom: 18 }}>
-        {RATOS.map((min, i) => (
-          <Radial
-            key={min}
-            label=""
-            texto={enCirculo(min)}
-            color={NARANJA}
-            active={minutos === min}
-            size={44}
-            delay={i * 60}
-            onClick={() => onMinutos(min)}
-          />
-        ))}
-      </div>
-
+      {/* Lo que sale va PRIMERO: es la respuesta, y los mandos de abajo son
+          lo que la cambia. Al revés, el panel abría pidiendo decisiones antes
+          de enseñar qué producen. */}
+      <Rotulo top={0}>ESTA SEMANA SALE</Rotulo>
       {bases.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "32px 20px" }}>
+        <div style={{ textAlign: "center", padding: "28px 20px" }}>
           <CookingPot size={32} color="#cdd8d0" />
           <p style={{ margin: "8px 0 0", fontSize: 12.5, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.4 }}>
             Sin dos platos que compartan olla<br />no hay tanda
@@ -633,12 +637,9 @@ function PanelTanda({ sesion, minutos, onMinutos, agrupar, onAgrupar, onRellenar
         </div>
       ) : (
         <>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6, margin: "0 2px 9px" }}>
-            <span style={{ flex: 1, fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px" }}>
-              DEJARÁS HECHO
-            </span>
-            {/* Cuando se pasa del rato que has dicho tener, el número avisa en
-                vez de callarse: es el dato que decide si el domingo sale. */}
+          {/* Cuando se pasa del rato que has dicho tener, el número avisa en
+              vez de callarse: es el dato que decide si el domingo sale. */}
+          <div style={{ display: "flex", justifyContent: "flex-end", margin: "-4px 2px 9px" }}>
             <span style={{ fontSize: 12, fontWeight: 800, color: pasa ? "#b45309" : "#9ab0a1", fontVariantNumeric: "tabular-nums" }}>
               {enHoras(usados)} de {enHoras(minutos)}
             </span>
@@ -674,6 +675,53 @@ function PanelTanda({ sesion, minutos, onMinutos, agrupar, onAgrupar, onRellenar
           <Sparkles size={15} strokeWidth={2.6} />
           Completar la tanda
         </button>
+      )}
+
+      {/* Los trastos no son decoración: la bechamel son 25 minutos removiendo
+          o 12 sin tocarla, y la legumbre 60 o 25. Cambian los minutos de la
+          sesión de arriba, que es lo que decide si el domingo sale. */}
+      {setData && (
+        <>
+          <Rotulo>QUÉ TIENES EN LA COCINA</Rotulo>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 6 }}>
+            {todosLosTrastos.map((t) => {
+              const sel = trastos.includes(t);
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => alternarTrasto(t)}
+                  aria-pressed={sel}
+                  style={{
+                    height: 30, borderRadius: 8, padding: "0 4px",
+                    border: `1.5px solid ${sel ? VERDE : "#dde8e0"}`,
+                    background: sel ? VERDE : "#fff",
+                    color: sel ? "#fff" : "#526057",
+                    fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}
+                >
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* El inventario, tal cual se pregunta en el wizard: las tres patas
+              ilustradas y un deslizador por familia. Es el MISMO componente,
+              y trae SU deslizador de tiempo — el de `data.tandaMinutos`, que
+              es el que lee `minutosDeTanda`—. Por eso arriba ya no hay otro:
+              dos deslizadores para la misma pregunta acaban discrepando, y no
+              hay forma de saber cuál manda.
+
+              Ojo: esto escribe en la libreta de la casa, no en esta semana.
+              Lo que pidas aquí vale también para los menús que generes. */}
+          <Rotulo>QUÉ QUIERES DEJAR HECHO</Rotulo>
+          <Suspense fallback={null}>
+            <BasesPreferidas data={data} setData={setData} />
+          </Suspense>
+        </>
       )}
     </>
   );
@@ -728,7 +776,7 @@ const TITULOS = {
 };
 
 export function PizarraControles({
-  data, menuPlan, groups, onAplicar, onRellenar,
+  data, setData, menuPlan, groups, onAplicar, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa, prefs, onPrefs,
 }) {
   const [abierto, setAbierto] = useState(null);
@@ -778,7 +826,10 @@ export function PizarraControles({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [menuPlan, groups, data]);
 
-  const minutos = prefs?.tandaMinutos ?? minutosDeTanda(data);
+  // El tiempo del domingo lo manda `data.tandaMinutos`, que es donde escribe el
+  // deslizador del inventario. No hay copia por semana: la hubo, y eran dos
+  // respuestas a la misma pregunta sin nadie que arbitrara cuál valía.
+  const minutos = minutosDeTanda(data);
   const enDespensa = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish").length;
 
   return (
@@ -902,9 +953,10 @@ export function PizarraControles({
               />
             ) : abierto === "tanda" ? (
               <PanelTanda
+                data={data}
+                setData={setData}
                 sesion={sesion}
                 minutos={minutos}
-                onMinutos={(v) => onPrefs?.({ tandaMinutos: v })}
                 agrupar={prefs?.agrupar ?? false}
                 onAgrupar={(v) => onPrefs?.({ agrupar: v })}
                 onRellenar={onRellenar ? () => { setAbierto(null); onRellenar(); } : null}
