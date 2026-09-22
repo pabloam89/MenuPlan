@@ -1,10 +1,14 @@
 import { useMemo, useState } from "react";
-import { BarChart3, CalendarDays, Check, Sparkles, X } from "../components/icons.jsx";
+import {
+  BarChart3, CalendarDays, Check, CookingPot, Package, Plus, Search, Sparkles, X,
+} from "../components/icons.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
-import { DAYS } from "../lib/planner.js";
+import { DAYS, getDayMeals } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
+import { sesionDeBases } from "../lib/bases.js";
+import { enHoras, minutosDeTanda, TANDA_MAX, TANDA_MIN, TANDA_PASO } from "../lib/cookTime.js";
 import {
   buildCalendarWeeks,
   conDiaMarcado,
@@ -44,6 +48,9 @@ const INK = "#142f1d";
  * un color y dos intensidades.
  */
 const TEAL = "#0f766e";
+
+/** El naranja de la cocina: el mismo con el que la pestaña de Cocina pinta la tanda. */
+const NARANJA = "#b2622f";
 
 const ETIQUETA_SEMANA = ["Esta", "La próxima", "En 2 sem.", "En 3 sem."];
 const DIAS_CORTOS = ["L", "M", "X", "J", "V", "S", "D"];
@@ -251,7 +258,10 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null }) {
       onClick={onClick}
       className="mp-press"
       style={{
-        flexShrink: 0, width: 66,
+        // Se reparten el ancho en vez de medir 66 fijos: con cuatro baldosas
+        // sobraba sitio y con cinco —la de "Rellenar", que es la que más se
+        // usa— la última se quedaba medio fuera del móvil.
+        flex: "1 1 0", minWidth: 0, maxWidth: 70,
         display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
         background: "none", border: "none", padding: 0,
         cursor: "pointer", fontFamily: "inherit",
@@ -289,7 +299,292 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null }) {
   );
 }
 
-export function PizarraControles({ data, menuPlan, groups, onAplicar, onRellenar }) {
+/**
+ * Un interruptor de preferencia, de los que cambian lo que hará "Rellenar".
+ *
+ * Van dentro de los paneles y no en el botón porque el botón tiene que seguir
+ * siendo un toque: quien no abre nada rellena como siempre, y quien entra a
+ * mirar su despensa o su domingo deja ahí dicho cómo quiere que se rellene.
+ */
+function InterruptorPref({ activo, onChange, titulo, detalle }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!activo)}
+      className="mp-press"
+      style={{
+        display: "flex", alignItems: "flex-start", gap: 10, width: "100%",
+        padding: "11px 12px", borderRadius: 14, cursor: "pointer", textAlign: "left",
+        background: activo ? "#eaf6ee" : "#fff",
+        border: `1.5px solid ${activo ? "#bfe6cb" : "#e0eae3"}`,
+        fontFamily: "inherit", marginTop: 12,
+      }}
+    >
+      <span
+        style={{
+          width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1,
+          background: activo ? VERDE : "#fff",
+          border: `1.5px solid ${activo ? VERDE : "#cdd8d0"}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        {activo && <Check size={14} color="#fff" strokeWidth={3} />}
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 800, color: INK }}>{titulo}</span>
+        <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.35, marginTop: 2 }}>
+          {detalle}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+/**
+ * "Lo que tengo en casa".
+ *
+ * ── No es un inventario aparte ────────────────────────────────────────────
+ * Escribe en la MISMA despensa que cruza la lista de la compra, así que en
+ * cuanto añades algo, lo que la semana ya pedía se va solo a "Ya en casa".
+ * Por eso aquí no hay nada que imputar a mano: solo decir qué tienes.
+ *
+ * ── Sin cantidades, a propósito ───────────────────────────────────────────
+ * Para empezar lo que importa es si algo está o no está. La cantidad es el
+ * siguiente escalón y arrastra el cruce parcial de `shoppingBuilder`, que hoy
+ * tacha la línea entera: pedir "medio kilo" y tener 200 g daría la compra por
+ * cubierta.
+ */
+function PanelDespensa({ despensa, onAnadir, onQuitar, usarDespensa, onUsarDespensa }) {
+  const [texto, setTexto] = useState("");
+  const ingredientes = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish");
+
+  const enviar = (e) => {
+    e?.preventDefault?.();
+    const t = texto.trim();
+    if (!t) return;
+    onAnadir(t);
+    setTexto("");
+  };
+
+  return (
+    <>
+      <p style={{ margin: "0 0 12px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
+        Escribe lo que tengas y se descuenta solo de la compra.
+      </p>
+
+      <form onSubmit={enviar} style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        <div
+          style={{
+            flex: 1, display: "flex", alignItems: "center", gap: 8, minWidth: 0,
+            height: 42, padding: "0 12px", borderRadius: 12,
+            background: "#fff", border: "1.5px solid #dbe7df",
+          }}
+        >
+          <Search size={16} color="#9ab0a1" />
+          {/* 16px clavados: por debajo, iOS hace zoom al enfocar y deja el
+              panel descuadrado a media escritura. */}
+          <input
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            placeholder="Tomates, huevos, arroz…"
+            style={{
+              flex: 1, border: "none", background: "transparent", outline: "none",
+              fontSize: 16, color: INK, fontFamily: "inherit", minWidth: 0,
+            }}
+          />
+        </div>
+        <button
+          type="submit"
+          className="mp-press"
+          disabled={!texto.trim()}
+          aria-label="Añadir a la despensa"
+          style={{
+            width: 42, height: 42, borderRadius: 12, flexShrink: 0, padding: 0,
+            border: "none", cursor: texto.trim() ? "pointer" : "default",
+            background: texto.trim() ? VERDE : "#c8d9ce", color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Plus size={20} strokeWidth={2.8} />
+        </button>
+      </form>
+
+      {ingredientes.length === 0 ? (
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.45 }}>
+          Todavía no hay nada. Lo que escribas aquí deja de aparecer en la lista de la compra.
+        </p>
+      ) : (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+          {ingredientes.map((i) => (
+            <span
+              key={i.id}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "6px 8px 6px 12px", borderRadius: 999,
+                background: "#fff", border: "1px solid #e0eae3",
+                fontSize: 12.5, fontWeight: 700, color: INK,
+              }}
+            >
+              {i.ingredientName ?? i.name}
+              <button
+                type="button"
+                onClick={() => onQuitar(i.id)}
+                aria-label={`Quitar ${i.ingredientName ?? i.name}`}
+                style={{
+                  width: 18, height: 18, borderRadius: 999, padding: 0, flexShrink: 0,
+                  border: "none", background: "#f0f4f1", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <X size={11} color="#7a9485" strokeWidth={2.6} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <InterruptorPref
+        activo={usarDespensa}
+        onChange={onUsarDespensa}
+        titulo="Usar lo que tengo al rellenar"
+        detalle="Los huecos se llenan prefiriendo platos que ya puedes hacer con esto."
+      />
+    </>
+  );
+}
+
+/**
+ * "El domingo".
+ *
+ * ── La sesión no se configura: se mira ────────────────────────────────────
+ * Sale de lo que ya has puesto en el tablero (`sesionDeBases`, la misma que
+ * pinta la pestaña de Cocina) y se recalcula sola con cada plato. Lo único que
+ * se DECIDE aquí es cuánto tiempo tienes, que cambia cada semana —por eso vive
+ * en este menú y no en tu perfil—, y si quieres que el relleno arrime hacia
+ * esas bases.
+ *
+ * Los minutos que se comparan son los ACTIVOS, no los de reloj: una olla de
+ * legumbre son nueve horas de fuego y veinte minutos tuyos, y lo que decide si
+ * el domingo sale es lo segundo.
+ */
+function PanelTanda({ sesion, minutos, onMinutos, agrupar, onAgrupar, onRellenar, huecosVacios }) {
+  const bases = sesion?.bases ?? [];
+  const usados = sesion?.minutosActivosTotales ?? 0;
+  const pasa = usados > minutos;
+
+  return (
+    <>
+      <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
+        Cuánto tiempo tienes este domingo. Solo para esta semana.
+      </p>
+
+      <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, padding: "14px 14px 10px", marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 10 }}>
+          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 800, color: INK }}>Tiempo en la cocina</span>
+          <span style={{ fontSize: 15, fontWeight: 900, color: NARANJA, fontVariantNumeric: "tabular-nums" }}>
+            {enHoras(minutos)}
+          </span>
+        </div>
+        <input
+          type="range"
+          min={TANDA_MIN}
+          max={TANDA_MAX}
+          step={TANDA_PASO}
+          value={minutos}
+          onChange={(e) => onMinutos(Number(e.target.value))}
+          style={{ width: "100%", accentColor: NARANJA }}
+        />
+      </div>
+
+      {bases.length === 0 ? (
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.45 }}>
+          Todavía no hay dos platos que compartan olla. En cuanto los haya, la sesión aparece aquí sola.
+        </p>
+      ) : (
+        <>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6, margin: "0 2px 9px" }}>
+            <span style={{ flex: 1, fontSize: 13, fontWeight: 800, color: INK, letterSpacing: "-.2px" }}>
+              {bases.length === 1 ? "1 base" : `${bases.length} bases`}
+            </span>
+            {/* Cuando se pasa del tiempo que has dicho tener, el número avisa
+                en vez de callarse: es el dato que decide si el domingo sale. */}
+            <span style={{ fontSize: 12, fontWeight: 800, color: pasa ? "#b45309" : "#7a9485", fontVariantNumeric: "tabular-nums" }}>
+              {enHoras(usados)} de {enHoras(minutos)}
+            </span>
+          </div>
+          <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden" }}>
+            {bases.map((b, i) => (
+              <div
+                key={b.base.id}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+                  borderBottom: i === bases.length - 1 ? "none" : "1px solid #eef3f0",
+                }}
+              >
+                <span
+                  style={{
+                    width: 32, height: 32, borderRadius: 11, flexShrink: 0,
+                    background: `${NARANJA}18`, color: NARANJA,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <CookingPot size={16} strokeWidth={2.2} />
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK }}>
+                    {b.base.name}
+                  </span>
+                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#7a9485", marginTop: 1 }}>
+                    {b.huecos.length} platos · {enHoras(b.minutosActivos)} tuyos
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <InterruptorPref
+        activo={agrupar}
+        onChange={onAgrupar}
+        titulo="Agrupar al rellenar"
+        detalle="Los huecos se llenan prefiriendo platos que comparten olla con los que ya hay."
+      />
+
+      {/* El atajo: rellenar sin tener que cerrar el panel y buscar la baldosa.
+          Solo cuando queda algo que rellenar — un botón que no hace nada es
+          peor que ningún botón. */}
+      {onRellenar && huecosVacios > 0 && (
+        <button
+          type="button"
+          className="mp-press"
+          onClick={onRellenar}
+          style={{
+            marginTop: 10, width: "100%", padding: "12px 16px", borderRadius: 14,
+            border: `1.5px solid ${NARANJA}55`, background: "#fff", cursor: "pointer",
+            color: NARANJA, fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}
+        >
+          <Sparkles size={15} strokeWidth={2.6} />
+          Completar la tanda
+        </button>
+      )}
+    </>
+  );
+}
+
+const TITULOS = {
+  dias: "¿Qué días?",
+  balance: "Cómo va la semana",
+  despensa: "Lo que tengo en casa",
+  tanda: "El domingo",
+};
+
+export function PizarraControles({
+  data, menuPlan, groups, onAplicar, onRellenar,
+  despensa, onAddDespensa, onQuitarDespensa, prefs, onPrefs,
+}) {
   const [abierto, setAbierto] = useState(null);
   const todayIdx = useMemo(() => todayDayIdx(), []);
   const semanas = useMemo(() => buildCalendarWeeks(MAX_MENU_WEEKS), []);
@@ -316,6 +611,29 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar, onRellenar
     }
     return n;
   }, [menuPlan, groups]);
+
+  /**
+   * La sesión del domingo, sacada del tablero tal y como está ahora mismo.
+   *
+   * Se recalcula con cada plato que pones: no hay nada que "guardar" ni que
+   * confirmar, porque la tanda no es una decisión aparte sino una lectura de
+   * lo que ya has elegido. Los días son los de la semana en curso, que es lo
+   * que hace que una base sepa si cabe en la nevera o tiene que congelarse.
+   */
+  const sesion = useMemo(() => {
+    const plan = {};
+    for (const g of groups ?? []) {
+      if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
+    }
+    return sesionDeBases(plan, recipeCatalogById, {
+      dias: diasDe(0),
+      comidas: getDayMeals(data),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menuPlan, groups, data]);
+
+  const minutos = prefs?.tandaMinutos ?? minutosDeTanda(data);
+  const enDespensa = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish").length;
 
   return (
     <>
@@ -347,6 +665,27 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar, onRellenar
           color="#7a5aa8"
           tinte="#fff"
           onClick={() => setAbierto("balance")}
+        />
+        {/* Las dos que dan de comer al relleno: lo que ya tienes y el tiempo
+            que vas a tener. La chapa cuenta lo que hay dentro, para que se vea
+            que no están vacías sin abrirlas. */}
+        {onAddDespensa && (
+          <BaldosaMando
+            Icon={Package}
+            label="Despensa"
+            color="#3f9656"
+            tinte="#fff"
+            badge={enDespensa > 0 ? enDespensa : null}
+            onClick={() => setAbierto("despensa")}
+          />
+        )}
+        <BaldosaMando
+          Icon={CookingPot}
+          label="Domingo"
+          color={NARANJA}
+          tinte="#fff"
+          badge={sesion.bases.length > 0 ? sesion.bases.length : null}
+          onClick={() => setAbierto("tanda")}
         />
         {onRellenar && huecosVacios > 0 && (
           <BaldosaMando
@@ -382,7 +721,7 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar, onRellenar
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <p style={{ margin: 0, flex: 1, fontSize: 17, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
-                {abierto === "balance" ? "Cómo va la semana" : "¿Qué días?"}
+                {TITULOS[abierto]}
               </p>
               <button
                 type="button"
@@ -401,6 +740,24 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar, onRellenar
 
             {abierto === "balance" ? (
               <PanelBalance menuPlan={menuPlan} groups={groups} />
+            ) : abierto === "despensa" ? (
+              <PanelDespensa
+                despensa={despensa}
+                onAnadir={onAddDespensa}
+                onQuitar={onQuitarDespensa}
+                usarDespensa={prefs?.usarDespensa ?? false}
+                onUsarDespensa={(v) => onPrefs?.({ usarDespensa: v })}
+              />
+            ) : abierto === "tanda" ? (
+              <PanelTanda
+                sesion={sesion}
+                minutos={minutos}
+                onMinutos={(v) => onPrefs?.({ tandaMinutos: v })}
+                agrupar={prefs?.agrupar ?? false}
+                onAgrupar={(v) => onPrefs?.({ agrupar: v })}
+                onRellenar={onRellenar ? () => { setAbierto(null); onRellenar(); } : null}
+                huecosVacios={huecosVacios}
+              />
             ) : (
               <>
                 <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>

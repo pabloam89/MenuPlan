@@ -185,7 +185,10 @@ import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
-import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry } from "./lib/pantry.js";
+import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem } from "./lib/pantry.js";
+import { normalizePantryInput } from "./utils/normalizePantryInput.js";
+import { basesDeReceta } from "./lib/bases.js";
+import { findMatchingPantryItem } from "./lib/shoppingBuilder.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
 import {
   normalizeDeltaBucketMap,
@@ -1066,6 +1069,41 @@ function pendingEndOfDaySweep(data, since) {
     }
   }
   return pending;
+}
+
+/**
+ * De entre los platos que caben en un hueco, cuál conviene más.
+ *
+ * Los candidatos vienen YA filtrados por `pickCatalogReplacement` —rol, tiempo,
+ * alergias, lo que hay esta semana, el cole—, así que aquí no se descarta a
+ * nadie: solo se ordena. Por eso las dos preferencias suman y no filtran: si
+ * ninguna puntúa, sigue entrando el primero del pool, que es tan válido como
+ * antes de que existieran estos interruptores.
+ *
+ *   · despensa → cuántos de sus ingredientes ya tienes en casa, en tanto por
+ *     uno. Un plato que cubres entero gana a uno que cubres a medias.
+ *   · agrupar  → si comparte base con algo que ya vas a cocinar. Vale más que
+ *     la despensa porque ahorra una olla entera, no unos ingredientes.
+ */
+function mejorCandidato(candidatos, { usarDespensa, agrupar, despensa, basesPuestas }) {
+  if (!candidatos?.length) return null;
+  let mejor = null;
+  let mejorNota = -1;
+  for (const r of candidatos) {
+    let nota = 0;
+    if (agrupar && basesPuestas?.size > 0) {
+      if (basesDeReceta(r).some((b) => basesPuestas.has(b.id))) nota += 2;
+    }
+    if (usarDespensa && despensa?.length > 0) {
+      const ings = r.ingredients ?? [];
+      if (ings.length > 0) {
+        const cubiertos = ings.filter((i) => findMatchingPantryItem(i.name, despensa)).length;
+        nota += cubiertos / ings.length;
+      }
+    }
+    if (nota > mejorNota) { mejorNota = nota; mejor = r; }
+  }
+  return mejorNota > 0 ? mejor : null;
 }
 
 export default function App() {
@@ -4429,6 +4467,77 @@ export default function App() {
    * de donde copiarlo.
    */
   /**
+   * Las preferencias de ESTA pizarra: cuánto tiempo tienes el domingo y qué
+   * quiere tener en cuenta el relleno.
+   *
+   * Viven en el menú y no en la casa a propósito. El tiempo del domingo es lo
+   * que más cambia de una semana a otra —un fin de semana tienes tres horas y
+   * el siguiente estás fuera—, así que guardarlo en el perfil haría que la
+   * prisa de un domingo se heredara para siempre.
+   */
+  // Con `?? {}` suelto, el literal es nuevo en cada render y arrastra consigo
+  // a `handleFillSlots`, que lo tiene en sus dependencias.
+  const prefsPizarra = useMemo(
+    () => data.menus?.[data.activeMenuId]?.pizarra ?? {},
+    [data.menus, data.activeMenuId],
+  );
+  const setPrefsPizarra = useCallback((patch) => {
+    setData((d) => {
+      const id = d.activeMenuId;
+      const menu = d.menus?.[id];
+      if (!menu) return d;
+      return {
+        ...d,
+        menus: { ...d.menus, [id]: { ...menu, pizarra: { ...(menu.pizarra ?? {}), ...patch } } },
+      };
+    });
+  }, []);
+
+  // La despensa, cargada para la pizarra. `pantryEpoch` la refresca cuando algo
+  // la toca por otro lado (cocinar un plato, un ticket, el barrido del día).
+  const [despensaPizarra, setDespensaPizarra] = useState([]);
+  useEffect(() => {
+    if (!esPizarra) return undefined;
+    let vivo = true;
+    (async () => {
+      const items = user ? await loadPantry(user.id, syncHouseholdId) : loadLocalPantry();
+      if (vivo) setDespensaPizarra(items ?? []);
+    })();
+    return () => { vivo = false; };
+  }, [esPizarra, user, syncHouseholdId, pantryEpoch]);
+
+  /**
+   * Añadir a la despensa desde la pizarra: se escribe donde vive de verdad.
+   *
+   * No es un inventario aparte: es la MISMA despensa que lee la lista de la
+   * compra (`buildShoppingList` la cruza con lo que pide la semana y manda lo
+   * que ya tienes a «Ya en casa»). Por eso escribir aquí hace que la compra
+   * baje sola, sin que nadie más tenga que enterarse.
+   */
+  const handleAddDespensa = useCallback(async (texto) => {
+    if (householdReadOnly) return;
+    const tokens = normalizePantryInput(texto).filter((t) => !t.ambiguous);
+    if (tokens.length === 0) return;
+    const items = tokens.map((t) => ({
+      name: t.raw,
+      normalized: t.normalized,
+      qty: 1,
+      unit: "ud",
+      source: "manual",
+    }));
+    if (user) await addPantryItems(user.id, items, syncHouseholdId);
+    else addLocalPantryItems(items);
+    setPantryEpoch((n) => n + 1);
+  }, [householdReadOnly, user, syncHouseholdId]);
+
+  const handleQuitarDespensa = useCallback(async (id) => {
+    if (householdReadOnly) return;
+    if (user) await removePantryItem(user.id, id);
+    else removeLocalPantryItem(id);
+    setPantryEpoch((n) => n + 1);
+  }, [householdReadOnly, user]);
+
+  /**
    * Rellenar huecos vacíos de la pizarra: uno, un día, o todo lo que quede.
    *
    * ── Sin llamar al modelo ──────────────────────────────────────────────────
@@ -4447,6 +4556,22 @@ export default function App() {
    */
   const handleFillSlots = useCallback(async (ambito) => {
     if (householdReadOnly) return;
+    const { usarDespensa = false, agrupar = false } = prefsPizarra;
+    const despensa = usarDespensa ? despensaPizarra : [];
+    // Las bases que ya vas a cocinar. Preferir un plato que comparta una de
+    // estas es lo que convierte siete platos en tres ollas.
+    const basesPuestas = new Set();
+    if (agrupar) {
+      for (const gid of Object.keys(menuPlan)) {
+        if (gid === "_warnings") continue;
+        for (const s of Object.values(menuPlan[gid] ?? {})) {
+          for (const rid of [s?.recipeId, s?.firstRecipeId]) {
+            const receta = rid ? recipeCatalogById[String(rid).split("__").pop()] : null;
+            if (receta) for (const b of basesDeReceta(receta)) basesPuestas.add(b.id);
+          }
+        }
+      }
+    }
     const groups = data.groups.length > 0
       ? data.groups
       : groupsFromModel(data.members, data.menuModel);
@@ -4482,7 +4607,22 @@ export default function App() {
         }
 
         for (const course of cursos) {
-          const r = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
+          // Con preferencias no se coge el sorteo: se piden los candidatos que
+          // ese hueco admite —el mismo pool de siempre, ya filtrado— y se elige
+          // el mejor. Sin preferencias, el camino de antes, que sortea.
+          let r;
+          if (usarDespensa || agrupar) {
+            const lista = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, candidatos: 25 });
+            const mejor = mejorCandidato(lista?.candidatos ?? [], { usarDespensa, agrupar, despensa, basesPuestas });
+            r = mejor
+              ? pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, forcedRecipe: mejor })
+              : pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
+            // Lo colocado cuenta para el siguiente hueco: si acabas de meter
+            // una base, la de al lado ya prefiere compartirla.
+            if (mejor) for (const b of basesDeReceta(mejor)) basesPuestas.add(b.id);
+          } else {
+            r = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
+          }
           if (!r) continue;
           nuevas.push(r.frontendRecipe);
           trabajo[gid][key] = {
@@ -4510,7 +4650,7 @@ export default function App() {
     });
     showToast(puestos === 1 ? "Hueco rellenado" : `${puestos} huecos rellenados`);
     trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
-  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor]);
+  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor, prefsPizarra, despensaPizarra]);
 
   /**
    * Soltar un plato en otro hueco (arrastre de la pizarra).
@@ -5532,6 +5672,11 @@ export default function App() {
                       groups={data.groups ?? []}
                       onAplicar={aplicarCambioPizarra}
                       onRellenar={handleFillSlots}
+                      despensa={despensaPizarra}
+                      onAddDespensa={handleAddDespensa}
+                      onQuitarDespensa={handleQuitarDespensa}
+                      prefs={prefsPizarra}
+                      onPrefs={setPrefsPizarra}
                     />
                   </Suspense>
                 ) : null
