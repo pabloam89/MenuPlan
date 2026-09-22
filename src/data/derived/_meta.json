@@ -2,7 +2,7 @@
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
     "ingredientes": "e7596e2067cea067",
-    "recetas": "047bed3a8ab79088"
+    "recetas": "0698313c8a172716"
   },
   "recetas": 1033,
   "recipeNutrition": {
@@ -10,8 +10,8 @@
     "cobertura_media": 0.998,
     "cobertura_media_por_campo": {
       "fiber_g": 0.995,
-      "sugar_g": 0.587,
-      "saturated_fat_g": 0.921,
+      "sugar_g": 0.585,
+      "saturated_fat_g": 0.922,
       "sodium_mg": 0.985,
       "calcium_mg": 0.993,
       "iron_mg": 0.986,
@@ -19,24 +19,42 @@
       "phosphorus_mg": 0.99,
       "potassium_mg": 0.988,
       "zinc_mg": 0.959,
-      "copper_mg": 0.758,
-      "manganese_mg": 0.755,
-      "selenium_ug": 0.932,
-      "iodine_ug": 0.875,
-      "retinol_ug": 0.859,
-      "beta_carotene_ug": 0.744,
+      "copper_mg": 0.762,
+      "manganese_mg": 0.76,
+      "selenium_ug": 0.934,
+      "iodine_ug": 0.876,
+      "retinol_ug": 0.862,
+      "beta_carotene_ug": 0.749,
       "vitamin_d_ug": 0.84,
       "vitamin_e_mg": 0.898,
-      "vitamin_k_ug": 0.662,
-      "vitamin_c_mg": 0.952,
-      "thiamin_mg": 0.971,
-      "riboflavin_mg": 0.978,
-      "niacin_mg": 0.778,
-      "pantothenic_acid_mg": 0.742,
-      "vitamin_b6_mg": 0.98,
+      "vitamin_k_ug": 0.667,
+      "vitamin_c_mg": 0.953,
+      "thiamin_mg": 0.972,
+      "riboflavin_mg": 0.979,
+      "niacin_mg": 0.782,
+      "pantothenic_acid_mg": 0.747,
+      "vitamin_b6_mg": 0.981,
       "folate_ug": 0.968,
       "vitamin_b12_ug": 0.928,
-      "cholesterol_mg": 0.934
+      "cholesterol_mg": 0.935
+    },
+    "reparto_masa": {
+      "min": 0.162,
+      "p05": 1,
+      "mediana": 1,
+      "bajo_95": 5,
+      "bajo_90": 3,
+      "bajo_80": 2,
+      "bajo_50": 1
+    },
+    "reparto_micros": {
+      "min": 0.105,
+      "p05": 0.758,
+      "mediana": 0.909,
+      "bajo_95": 761,
+      "bajo_90": 473,
+      "bajo_80": 134,
+      "bajo_50": 4
     },
     "estrella": {
       "filas": 747,
@@ -52,25 +70,95 @@
         "phosphorus_mg": 0.987,
         "potassium_mg": 0.986,
         "zinc_mg": 0.948,
-        "copper_mg": 0.748,
-        "manganese_mg": 0.745,
+        "copper_mg": 0.749,
+        "manganese_mg": 0.746,
         "selenium_ug": 0.922,
-        "iodine_ug": 0.865,
-        "retinol_ug": 0.848,
-        "beta_carotene_ug": 0.734,
+        "iodine_ug": 0.866,
+        "retinol_ug": 0.849,
+        "beta_carotene_ug": 0.735,
         "vitamin_d_ug": 0.821,
         "vitamin_e_mg": 0.883,
-        "vitamin_k_ug": 0.637,
+        "vitamin_k_ug": 0.638,
         "vitamin_c_mg": 0.945,
         "thiamin_mg": 0.967,
         "riboflavin_mg": 0.974,
-        "niacin_mg": 0.765,
-        "pantothenic_acid_mg": 0.728,
+        "niacin_mg": 0.766,
+        "pantothenic_acid_mg": 0.729,
         "vitamin_b6_mg": 0.977,
         "folate_ug": 0.964,
-        "vitamin_b12_ug": 0.919,
+        "vitamin_b12_ug": 0.92,
         "cholesterol_mg": 0.924
-      }
+      },
+      "reparto_masa": {
+        "min": 0.162,
+        "p05": 1,
+        "mediana": 1,
+        "bajo_95": 4,
+        "bajo_90": 2,
+        "bajo_80": 2,
+        "bajo_50": 1
+      },
+      "reparto_micros": {
+        "min": 0.105,
+        "p05": 0.743,
+        "mediana": 0.899,
+        "bajo_95": 586,
+        "bajo_90": 378,
+        "bajo_80": 113,
+        "bajo_50": 4
+      },
+      "peores_micros": [
+        {
+          "id": "carnes_043",
+          "micros": 0.105,
+          "masa": 0.162
+        },
+        {
+          "id": "carnes_142",
+          "micros": 0.411,
+          "masa": 1
+        },
+        {
+          "id": "carnes_083",
+          "micros": 0.443,
+          "masa": 1
+        },
+        {
+          "id": "desayunos_017",
+          "micros": 0.488,
+          "masa": 0.517
+        },
+        {
+          "id": "ensaladas_verduras_125",
+          "micros": 0.539,
+          "masa": 1
+        },
+        {
+          "id": "carnes_054",
+          "micros": 0.548,
+          "masa": 1
+        },
+        {
+          "id": "carnes_145",
+          "micros": 0.59,
+          "masa": 1
+        },
+        {
+          "id": "pescados_058",
+          "micros": 0.606,
+          "masa": 1
+        },
+        {
+          "id": "ensaladas_verduras_088",
+          "micros": 0.618,
+          "masa": 1
+        },
+        {
+          "id": "carnes_076",
+          "micros": 0.622,
+          "masa": 1
+        }
+      ]
     }
   },
   "recipeParts": {
@@ -83,8 +171,8 @@
     },
     "operador_determinista": {
       "modulo": "src/lib/derive/stepParts.js",
-      "concordancia_con_curado": 0.526,
-      "pasos_medidos": 2465,
+      "concordancia_con_curado": 0.591,
+      "pasos_medidos": 2478,
       "promocionable": false,
       "motivo": "la parte es propiedad del plato, no del ingrediente: el mismo ingrediente cambia de parte segun la receta"
     }

@@ -21,7 +21,7 @@
 
 import ingredientsJson from "../data/ingredients.json";
 import substitutionsJson from "../data/ingredientSubstitutions.json";
-import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida } from "./derive/masaServida.js";
+import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, seFrie } from "./derive/masaServida.js";
 // LA COMPOSICIÓN SE LEE DE LA TABLA MAESTRA, no de una copia en el catálogo.
 // `alimentos.json` es el output maestro del embudo de alimentos —el número y su
 // procedencia viven juntos— y esto es su proyección para el cliente, sellada
@@ -373,7 +373,7 @@ export function computeRecipeNutrition(recipe, servings) {
   // aceite. Aplicarlo línea a línea daba dos veces el 6 % a las 19 recetas que
   // listan dos aceites: «Chuletón a la parrilla» lleva 300 ml de girasol para
   // freír y 150 de oliva suave para el alioli.
-  const tajadaDeAceite = factorAceite(aceiteBruto, solidoGramos);
+  const tajadaDeAceite = factorAceite(aceiteBruto, solidoGramos, seFrie(recipe));
 
   for (const { line, grams: brutos, esAceite, nombre } of lineas) {
     // La costra y el curado, fuera: ni su masa ni su sodio llegan al plato.

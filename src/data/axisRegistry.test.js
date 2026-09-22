@@ -25,6 +25,11 @@ const MEDIDORES = {
   // que nadie comprobaba.
   composicion: () => recetas.filter((r) => composicionDe(r).masaTotal > 0).length / recetas.length,
   parte: () => recetas.filter((r) => (r.stepsRich ?? []).some((s) => s.part != null)).length / recetas.length,
+  // El eje 49 tampoco vive en un campo: se lee de los minutos de los pasos. Su
+  // cobertura es «de cuántas recetas se puede AFIRMAR algo», que es tener
+  // `stepsRich`; una receta sin pasos ricos no es que no necesite víspera, es
+  // que no se sabe. Se mide corriendo la misma función que usa filterRecipes.
+  antelacion: () => recetas.filter((r) => (r.stepsRich ?? []).length > 0).length / recetas.length,
   tecnica: () => recetas.filter((r) => r.tecnica).length / recetas.length,
   cocina: () => recetas.filter((r) => r.cocina).length / recetas.length,
   equipamiento: () => recetas.filter((r) => r.requiredAppliance).length / recetas.length,

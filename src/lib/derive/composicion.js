@@ -43,7 +43,7 @@ import { gramsForRecipeQuantity } from "../kitchenUnits.js";
 // cerrar un ciclo de imports). Sin esta línea `4 ud` de huevo valen null, el
 // huevo desaparece del vector y con él todas las tortillas y los revueltos.
 import "../ingredients.js";
-import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, factorHidratacion } from "./masaServida.js";
+import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, factorHidratacion, seFrie } from "./masaServida.js";
 
 const porId = new Map(alimentos.map((a) => [a.id, a]));
 const alimentoDe = (ingredientId) => porId.get(alimentoPorIngrediente[ingredientId] ?? ingredientId);
@@ -163,7 +163,10 @@ export function composicionDe(receta) {
     if (id && ES_ACEITE_DE_FREIR.test(id)) aceiteBruto += g;
     else solidoGramos += g;
   }
-  const tajadaDeAceite = factorAceite(aceiteBruto, solidoGramos);
+  // El MISMO `seFrie` que usa computeRecipeNutrition: si los dos carriles
+  // decidieran por su cuenta cuándo se fríe, el vector y las kcal acabarían
+  // contando aceites distintos para el mismo plato.
+  const tajadaDeAceite = factorAceite(aceiteBruto, solidoGramos, seFrie(receta));
 
   for (const [parte, lineas] of Object.entries(porParte)) {
     partes[parte] = {};

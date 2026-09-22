@@ -347,4 +347,47 @@
 // queda con su receta al 16 % de cobertura, que es la señal honrada de que
 // sus números no valen; darle una ficha sin darle antes la fracción comestible
 // lo empeoraría, porque son 2,5 kg de medio animal con hueso y piel.
-export const BUNDLED_CATALOG_VERSION = 35;
+// v36 — cuatro recetas de legumbres declaraban el método `olla_rapida`, que no
+// existe: el id del vocabulario es `olla_express`. No rompía nada visible
+// —`APPLIANCE_LABELS[id]` devolvía undefined y la etiqueta simplemente no se
+// pintaba— y por eso llevaba ahí sin que nadie lo viera. Ahora hay un test que
+// comprueba que todo `methods[].appliance` existe.
+// v37 — 62 recetas dejan de ser inalcanzables. `filterRecipes` excluye la
+// receta cuyo `requiredAppliance` no esté entre los trastos que la casa
+// declaró, y el asistente solo deja declarar seis. El catálogo exigía además
+// `batidora` (60 recetas, 45 de ellas estrella: gazpacho, salmorejo, hummus y
+// todas las cremas) y `plancha` (2), que nadie puede declarar: no salían nunca,
+// para ningún usuario, y sin dar ningún error. Se les quita el campo porque una
+// batidora de mano se presupone y «plancha» no es un aparato sino una sartén,
+// que además ya vive en `tecnica`. La gofrera se queda: esa sí es un trasto que
+// no todo el mundo tiene, y es ahora la única excepción, escrita y con nombre.
+// v38 — la noche de la auditoría de estrella. Cuatro cosas que se daban por
+// buenas y no lo estaban, las cuatro silenciosas y las cuatro tocando a las
+// recetas que SÍ se proponen:
+//
+//   · UN VINAGRE NO ES ALCOHOL. `ALCOHOL_RE` hace `\bvino\b`, y eso casa
+//     «Vinagre de vino» —la frontera de palabra no salva de esto, porque ahí
+//     «vino» ES una palabra— igual que `\bjerez\b` casa «Vinagre de Jerez».
+//     50 recetas estrella se caían de TODO menú con niños sin llevar una gota
+//     de alcohol: el salmorejo, cuatro gazpachos y casi todo el bloque de
+//     ensaladas. Y su test lo congelaba, porque llevaba el regex copiado a mano.
+//
+//   · EL VECTOR DE PARTES ERA UN CAMPO DE CEROS. Las 180 filas `curado` de
+//     recipeParts publicaban `kcal: 0` en sus 428 partes —171 de ellas
+//     estrella— porque el build pedía la nutrición a `resolveIngredient(...)
+//     .nutrition`, un campo que dejó de existir cuando la composición se mudó
+//     a alimentosApp.json. Con el hash de fuentes cuadrando y _meta declarando
+//     «curado: 180»: la tabla que parece fresca, exactamente.
+//
+//   · EL TOPE DE ACEITE FRITO SE APLICABA A LAS EMULSIONES. El 6 % describe lo
+//     que se absorbe de un baño que luego se tira; aplicado sin preguntar,
+//     dejaba un alioli en 6 kcal por ración y unos puerros confitados estrella
+//     en 75 frente a 355. Ahora se pregunta al texto si se fríe, y si no lo
+//     dice el aceite se cuenta entero. Las recetas con calculado/declarado
+//     fuera de [0,5 · 2] bajan de 26 a 13.
+//
+//   · TRECE ESTRELLA SIN FOTO DE PROTEÍNA. `caza`, `cordero` y `pato` entraron
+//     en MAIN_PROTEINS y `PROTEIN_IMAGE` se quedó con nueve de trece escritas
+//     a mano. El arte ya existía. Su test tampoco lo cazó: llevaba la misma
+//     lista vieja copiada, y ahora deriva del esquema.
+export const BUNDLED_CATALOG_VERSION = 38;

@@ -196,6 +196,59 @@ export const ACEITE_ABSORBIDO = 0.06;
 export const ES_ACEITE_DE_FREIR = /^aceite-/;
 
 /**
+ * ¿SE FRÍE EN ESTA RECETA? Porque el tope solo vale si el aceite se queda.
+ *
+ * El 6 % describe lo que un alimento ABSORBE de un baño de aceite que después
+ * se tira. Aplicado a ciegas, borra el ingrediente principal de todo plato
+ * donde el aceite ES el plato:
+ *
+ *   Alioli              138 g de aceite → factor 0,007 →   6 kcal por ración
+ *   Mayonesa casera     184 g           → 0,024         →  31 kcal
+ *   Vinagreta clásica    55 g           → 0,036         →   9 kcal
+ *   Puerros confitados con vinagreta (ESTRELLA) → 75 kcal frente a 355
+ *
+ * Y lo hacía en silencio: `coverage` daba 1,00 y las macros cuadraban con
+ * Atwater, porque el aceite desaparecía del numerador Y del denominador.
+ *
+ * Así que se pregunta al texto, que es donde está escrito. Medido sobre las
+ * 207 recetas que llevaban recorte: 99 dicen freír y 108 no, y esas 108 son
+ * exactamente los aliolis, las vinagretas, los mojos, los chimichurris, los
+ * pesto, los pil-pil, los escabeches y el aglio e olio. La señal separa
+ * limpiamente las dos cosas.
+ *
+ * NO incluye «confitar». Un confitado se come con su aceite —el bacalao lo
+ * lleva dentro, los puerros se sirven con él— y absorbe mucho más del 6 %.
+ * Tratarlo como una fritura era la mitad del daño en las recetas estrella.
+ *
+ * Cuando no hay señal, NO SE RECORTA. Sobreestimar por no descontar es un
+ * error que se ve y va en una dirección conocida; inventar una pérdida del
+ * 94 % no se ve y hace publicar un alioli de 6 kcal.
+ */
+/**
+ * El «abundante» del MARCADOR cuenta tanto como el del texto. Los buñuelos
+ * escriben «Calentar {{Aceite de oliva|abundante}} en una sartén honda a
+ * 175 °C» y ahí la palabra que declara el baño viaja dentro del marcador, no
+ * en la frase: sin esta alternativa salían sin recorte y publicaban 1.432 kcal
+ * por ración.
+ */
+const SE_FRIE =
+  /\bfre[ií]r\b|\bfrit[oa]s?\b|\bfriendo\b|\bfreidora\b|\bsumergir\b|\baceite abundante\b|\ben abundante aceite\b|aceite[^|}]*\|\s*abundante|\bpapel absorbente\b/i;
+
+/**
+ * @param {{name?: string, steps?: string[], stepsRich?: {text?: string}[]}} receta
+ * @returns {boolean}
+ */
+export function seFrie(receta) {
+  if (!receta) return false;
+  const texto = [
+    receta.name ?? "",
+    ...(receta.steps ?? []),
+    ...(receta.stepsRich ?? []).map((s) => s?.text ?? ""),
+  ].join(" ");
+  return SE_FRIE.test(texto);
+}
+
+/**
  * El tope de aceite de TODA la receta, repartido entre sus líneas de aceite.
  *
  * Devuelve el factor que hay que aplicar a cada línea de aceite, de 0 a 1. Se
@@ -204,10 +257,13 @@ export const ES_ACEITE_DE_FREIR = /^aceite-/;
  *
  * @param {number} aceiteBruto  la suma de TODAS las líneas de aceite, en gramos
  * @param {number} solidoGramos la masa servida de todo lo que NO es aceite
+ * @param {boolean} hayFritura  si la receta declara que se fríe (ver `seFrie`)
  * @returns {number} factor de 0 a 1 a aplicar a cada línea de aceite
  */
-export function factorAceite(aceiteBruto, solidoGramos) {
+export function factorAceite(aceiteBruto, solidoGramos, hayFritura) {
   if (!(aceiteBruto > 0)) return 1;
+  // Sin fritura el aceite se sirve entero: es aliño, emulsión o confitado.
+  if (!hayFritura) return 1;
   return Math.min(1, (ACEITE_ABSORBIDO * solidoGramos) / aceiteBruto);
 }
 

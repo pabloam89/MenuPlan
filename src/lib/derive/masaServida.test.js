@@ -5,7 +5,7 @@ import fraccionComestibleJson from "../../data/fraccionComestible.json";
 import { recipeCatalog } from "../../data/recipeCatalog.js";
 import {
   fraccionServida, factorHidratacion, factorDeClase,
-  factorAceite, ACEITE_ABSORBIDO, ES_ACEITE_DE_FREIR,
+  factorAceite, seFrie, ACEITE_ABSORBIDO, ES_ACEITE_DE_FREIR,
 } from "./masaServida.js";
 
 const porId = new Map(alimentos.map((a) => [a.id, a]));
@@ -205,11 +205,36 @@ describe("el aceite de freír tiene un solo 0,06 y es de la receta", () => {
     // el chuletón, 256 kcal por ración.
     const solido = 1000;
     const dosLineas = 276 + 138;
-    expect(factorAceite(dosLineas, solido) * dosLineas).toBeCloseTo(ACEITE_ABSORBIDO * solido, 6);
+    expect(factorAceite(dosLineas, solido, true) * dosLineas).toBeCloseTo(ACEITE_ABSORBIDO * solido, 6);
+  });
+
+  /**
+   * EL TOPE SOLO VALE SI EL ACEITE SE QUEDA EN LA SARTÉN.
+   *
+   * El 6 % describe lo que se absorbe de un baño que después se tira. Aplicado
+   * sin preguntar, borraba el ingrediente principal de todo plato donde el
+   * aceite ES el plato: un alioli con 138 g de aceite publicaba 6 kcal por
+   * ración, una mayonesa 31 y unos puerros confitados ESTRELLA 75 frente a las
+   * 355 declaradas. Y en silencio, porque el aceite desaparecía del numerador
+   * y del denominador a la vez: `coverage` daba 1,00 y Atwater cuadraba.
+   */
+  it("sin fritura el aceite se cuenta entero: es aliño, emulsión o confitado", () => {
+    // Un alioli: 138 g de aceite sobre 17 g de sólido. Con tope, ×0,007.
+    expect(factorAceite(138, 17, false)).toBe(1);
+    expect(factorAceite(138, 17, true)).toBeCloseTo(0.0074, 3);
+  });
+
+  it("`seFrie` lee la receta, no el ingrediente", () => {
+    expect(seFrie({ name: "Alioli", steps: ["Emulsionar el aceite con el ajo poco a poco."] })).toBe(false);
+    expect(seFrie({ name: "Patatas fritas", steps: ["Freír en aceite abundante."] })).toBe(true);
+    expect(seFrie({ name: "Croquetas", stepsRich: [{ text: "Freír hasta que estén doradas." }] })).toBe(true);
+    // Un confitado NO es una fritura: se come con su aceite y absorbe mucho
+    // más del 6 %. Tratarlo como fritura era la mitad del daño en estrella.
+    expect(seFrie({ name: "Puerros confitados", steps: ["Confitar a fuego muy suave 40 min."] })).toBe(false);
   });
 
   it("un chorro para sofreír pasa entero: el tope es un mínimo, no un recorte", () => {
-    expect(factorAceite(18, 300)).toBe(1);
+    expect(factorAceite(18, 300, true)).toBe(1);
   });
 
   it("sin aceite no hay factor que aplicar", () => {

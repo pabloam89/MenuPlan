@@ -600,7 +600,13 @@ describe("el aceite de freir se absorbe", () => {
   // En GRAMOS y no en ml a proposito: en ml entraria tambien la densidad del
   // aceite (0,918) y el test dejaria de aislar lo que quiere medir. Que la
   // densidad se aplica ya lo comprueba otro.
+  // EL PASO QUE DICE QUE SE FRÍE no es decorativo: el tope del 6 % describe lo
+  // que se absorbe de un baño que después se tira, y ahora solo se aplica si la
+  // receta declara una fritura. Sin esta línea estas dos pruebas medirían un
+  // aliño —donde el aceite se come entero— llamándolo fritura. Ver `seFrie` en
+  // derive/masaServida.js: aplicarlo a ciegas dejaba un alioli en 6 kcal.
   const conAceite = (gAceite) => ({
+    steps: ["Freír el ajo en el aceite."],
     ingredients: [
       { name: "Ajo", ingredientId: "ajo", amount: 200, unit: "g" },
       { name: "Aceite de oliva", ingredientId: "aceite-oliva", amount: gAceite, unit: "g" },

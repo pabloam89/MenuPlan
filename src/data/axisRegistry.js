@@ -134,17 +134,17 @@ export const EJES = [
     ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
     campo: "stepsRich[].part", vocabulario: ["principal", "guarnicion", "salsa", "combinado"],
     consumidores: ["recipeSteps", "solver", "RecipeSteps", "stepParts", "userRecipes"], cobertura: 0.174,
-    nota: "El eje que salió de un vector que daba la respuesta equivocada: en la «Merluza rebozada con patatas fritas», el vector plano decía patata 0,41 > pescado 0,33 porque metía en la misma bolsa el principal y la guarnición. Por parte, el principal es 79 % pescado y la guarnición 93 % patata, y nunca compitieron. Es TAMBIÉN lo que resuelve las 99 patatas sin tope: la patata gasta presupuesto de guarnición, no convierte el plato en un plato de patatas.",
+    nota: "El eje que salió de un vector que daba la respuesta equivocada: en la «Merluza rebozada con patatas fritas», el vector plano decía patata 0,41 > pescado 0,33 porque metía en la misma bolsa el principal y la guarnición. Por parte, el principal es 79 % pescado y la guarnición 93 % patata, y nunca compitieron. Es TAMBIÉN lo que resuelve las 99 patatas sin tope: la patata gasta presupuesto de guarnición, no convierte el plato en un plato de patatas. La cobertura es la CURADA (180 recetas); el operador `deriveStepParts` podría cubrir el 96 % pero concuerda al 59,1 % con lo curado —y `salsa` solo al 44 %—, así que se mide y no se escribe.",
   },
 
   // ── Percepción del plato (6-13) ──────────────────────────────────────────
   {
     n: 6, id: "formato", nombre: "Formato",
-    ambito: AMBITO.PARTE, tipo: "enum", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "sin_lector",
     campo: "formato",
     vocabulario: ["ensalada", "sopa", "cremoso", "guiso", "plato_seco"],
     consumidores: [], cobertura: 0.725,
-    nota: "Disfrazado en `category`. Es ORTOGONAL a todo lo demás: hay ensaladas de pasta y ensaladas de legumbre. Entre nueve legumbres conviven «Lentejas con verduras» (guiso caliente) y «Ensalada de garbanzos con chorizo» (fría) con la MISMA firma en todos los ejes existentes: les separan formato y temperatura. — VOCABULARIO REHECHO antes de poblarlo, y ese orden importa: el primero (ensalada · guiso · sopa · plato_seco · montaje · masa · bol) se probó contra 31 recetas reales y dio 52 % de encaje único, con 4 sin ningún valor posible y 11 con dos. Cometía el pecado de `category` — mezclaba hidratación (guiso/sopa/seco) con estructura (masa/montaje) y con recipiente (bol) —, así que `masa` y `montaje` salen a ejes propios (46 y 47: la empanada es masa sin montaje, el pan tumaca montaje sin masa, la lasaña las dos), `bol` se cae por ser dónde se sirve y no cómo se hace, y entra `cremoso`, que faltaba para las 65 recetas que empiezan por «Puré» o «Crema». `salsa` no entra: la tiene ya el eje 45. Y el ámbito pasa a PARTE, que es lo que resuelve «Lomo a la plancha CON ENSALADA» — principal seco, guarnición ensalada — y era el mismo error que el eje 45 existe para arreglar, cometido aquí. — POBLADO el 22 sep por derive/formato.js: 749 de 1.033, y se ABSTIENE en 284. La abstención no es pereza: 172 de esas son recetas de olla sin señal en el nombre, y en olla conviven «Brócoli al vapor» y «Ternera guisada» sin nada que las separe. El valor escrito es el de la receta ENTERA, que es el de su parte principal; cuando el eje 45 suba del 17 % pasará a calcularse por parte de verdad.",
+    nota: "Disfrazado en `category`. Es ORTOGONAL a todo lo demás: hay ensaladas de pasta y ensaladas de legumbre. Entre nueve legumbres conviven «Lentejas con verduras» (guiso caliente) y «Ensalada de garbanzos con chorizo» (fría) con la MISMA firma en todos los ejes existentes: les separan formato y temperatura. — VOCABULARIO REHECHO antes de poblarlo, y ese orden importa: el primero (ensalada · guiso · sopa · plato_seco · montaje · masa · bol) se probó contra 31 recetas reales y dio 52 % de encaje único, con 4 sin ningún valor posible y 11 con dos. Cometía el pecado de `category` — mezclaba hidratación (guiso/sopa/seco) con estructura (masa/montaje) y con recipiente (bol) —, así que `masa` y `montaje` salen a ejes propios (46 y 47: la empanada es masa sin montaje, el pan tumaca montaje sin masa, la lasaña las dos), `bol` se cae por ser dónde se sirve y no cómo se hace, y entra `cremoso`, que faltaba para las 65 recetas que empiezan por «Puré» o «Crema». `salsa` no entra: la tiene ya el eje 45. Y el ámbito pasa a PARTE, que es lo que resuelve «Lomo a la plancha CON ENSALADA» — principal seco, guarnición ensalada — y era el mismo error que el eje 45 existe para arreglar, cometido aquí. — POBLADO el 22 sep por derive/formato.js: 749 de 1.033, y se ABSTIENE en 284. La abstención no es pereza: 172 de esas son recetas de olla sin señal en el nombre, y en olla conviven «Brócoli al vapor» y «Ternera guisada» sin nada que las separe. El valor escrito es el de la receta ENTERA, que es el de su parte principal; cuando el eje 45 suba del 17 % pasará a calcularse por parte de verdad. — ÁMBITO CORREGIDO A RECETA el 22 sep, y es una rectificación: se declaró PARTE porque es lo que el eje DEBERÍA ser, pero `formato` no existe en ninguno de los 12.105 pasos de `stepsRich` —solo hay text, kind, minutes, part, base y during—, así que era exactamente el error que el eje 46 explica haber evitado, cometido aquí por querer adelantar el futuro. El ámbito describe dónde vive el dato, no dónde nos gustaría que viviera. Vuelve a PARTE el día que haya un `stepsRich[].formato` de verdad.",
   },
   {
     n: 7, id: "temperatura", nombre: "Temperatura de servicio",
@@ -279,8 +279,9 @@ export const EJES = [
   {
     n: 27, id: "equipamiento", nombre: "Equipamiento requerido",
     ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
-    campo: "requiredAppliance", vocabulario: ["horno", "gofrera", "plancha", "batidora"],
-    consumidores: ["filterRecipes"], cobertura: 0.215,
+    campo: "requiredAppliance", vocabulario: ["horno", "gofrera"],
+    consumidores: ["filterRecipes"], cobertura: 0.155,
+    nota: "SU VOCABULARIO TIENE QUE SER EL DEL ASISTENTE, y no lo era: eso hacía desaparecer 63 recetas. `filterRecipes` excluye la receta cuyo aparato no esté entre los `kitchenTools` declarados, y el asistente solo deja declarar seis (airfryer, horno, microondas, olla rápida, thermomix, vaporera). El catálogo exigía además `batidora` (60 recetas, 45 estrella: gazpacho, salmorejo, hummus, las cremas), `plancha` (2) y `gofrera` (1), que nadie puede declarar: esas recetas no salían nunca para ningún usuario, y no fallaban de forma ruidosa, simplemente no estaban. Resuelto quitando el campo a las 62 de batidora y plancha —una batidora de mano se presupone y «plancha» es una sartén, que ya vive en `tecnica`—, con lo que la cobertura baja del 21,5 % al 15,5 %: el campo dice ahora lo que decía significar. La gofrera se queda como única excepción escrita. Fusible en src/data/aparatos.test.js.",
   },
   {
     n: 28, id: "progresion", nombre: "Progresión / aprendizaje",
@@ -421,6 +422,15 @@ export const EJES = [
     campo: "mainIngredients", vocabulario: null,
     consumidores: [], cobertura: 0.644,
     nota: "EL PEOR CASO DEL CATÁLOGO, y estaba sin declarar. `mainIngredients` tiene 665 recetas rellenas, enum en el esquema, columna en Supabase y sincronización… y CERO lectores: el único sitio del código donde aparece la palabra fuera del esquema y del sync es una variable local del mismo nombre en `recipes.js`, que no tiene nada que ver. Es `mainBase` con el doble de cobertura y sin el consuelo de estar documentado. Se declara aquí para que deje de ser invisible: o alguien lo lee, o se borra — la regla del documento es que todo campo declara su consumidor y si no tiene, se va.",
+  },
+
+  // ── Lo que salió de la auditoría de estrella (49) ────────────────────────
+  {
+    n: 49, id: "antelacion", nombre: "Hay que empezarlo otro día",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: null, vocabulario: null,
+    consumidores: ["filterRecipes", "necesitaVispera"], cobertura: 0.975,
+    nota: "DERIVADO, no curado: sale de `stepsRich[].minutes >= 720` y por eso su cobertura es la de `stepsRich` (97,5 %) y no hay campo que mantener. Nace de un caso concreto: «Carpaccio de salmón con cítricos» es `montaje: true`, y el atajo de `recipeMatchesPreferType(\"cena_rapida\")` devolvía true por esa vía SIN mirar el tiempo, así que la app podía proponerlo como cena de hoy teniendo por primer paso «Congelar un mínimo de 48 h antes». Hoy son 12 recetas estrella con un paso pasivo de 12 h o más: los dos salmones de anisakis, los remojos de legumbre y los curados. NO es `adelanto`, que es de batch cooking y dice si el plato AGUANTA hecho; este dice si EXIGE empezarse antes, y son preguntas opuestas. Se deriva en vez de curarse porque el dato ya está escrito en los pasos y un campo nuevo sería una segunda verdad que se desincroniza.",
   },
 ];
 
