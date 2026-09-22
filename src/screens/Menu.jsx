@@ -4227,16 +4227,19 @@ function DeckToggleVista({ value, onChange, options }) {
         display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 3,
       }}
     >
+      {/* Círculo, y de 42 como el avatar de la derecha: son los dos
+          extremos de la misma fila y con tamaños distintos la fila se veía
+          descuadrada. El copy va debajo, como en el avatar. */}
       <span
         style={{
-          width: 34, height: 34, borderRadius: 11,
-          background: `${color}14`, border: `1.5px solid ${color}40`,
+          width: 42, height: 42, borderRadius: 999,
+          background: `${color}14`, border: `2px solid ${color}55`,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}
       >
-        <Icon size={17} color={color} strokeWidth={2.4} />
+        <Icon size={19} color={color} strokeWidth={2.4} />
       </span>
-      <span style={{ fontSize: 9.5, fontWeight: 800, color, letterSpacing: "-.1px", lineHeight: 1 }}>
+      <span style={{ fontSize: 10, fontWeight: 800, color, letterSpacing: "-.1px", lineHeight: 1 }}>
         {activa?.label}
       </span>
     </button>
@@ -5850,6 +5853,24 @@ export const MenuScreen = memo(function MenuScreen({
                 />
               </button>
             )}
+            {modoPizarra && onFillSlots && huecosLibres > 0 && (
+              <button
+                type="button"
+                onClick={() => onFillSlots()}
+                aria-label={`Rellenar los ${huecosLibres} huecos que faltan`}
+                title="Que los elija la app"
+                style={{
+                  ...iconChipButtonStyle,
+                  width: "auto", padding: "0 11px", gap: 6,
+                  display: "inline-flex", alignItems: "center",
+                  fontSize: 12.5, fontWeight: 800, color: "#2d5a3d",
+                  fontFamily: "inherit", background: "#fff",
+                }}
+              >
+                <Sparkles size={15} strokeWidth={2.6} />
+                {huecosLibres}
+              </button>
+            )}
             {/* El burger es el PLAN B. Cuando hay fila de mandos, sus entradas
                 viven allí como baldosas y este botón sobra: tener las mismas
                 acciones en dos sitios obliga a mirar los dos para saber si
@@ -5993,30 +6014,7 @@ export const MenuScreen = memo(function MenuScreen({
               {modoPizarra
                 ? <DeckToggleVista value={deckView} onChange={setDeckView} options={deckViews} />
                 : <DeckNav value={deckView} onChange={setDeckView} options={deckViews} />}
-              {/* Rellenar lo que falte. Vivía bajo el tablero y había que
-                  bajar siete días para encontrarlo; aquí está desde el primer
-                  momento, que es cuando la semana está más vacía y más falta
-                  hace. Con el número, porque "rellenar" a secas no dice si va
-                  a tocar un hueco o la semana entera. */}
-              {modoPizarra && onFillSlots && huecosLibres > 0 && (
-                <button
-                  type="button"
-                  className="deck-press"
-                  onClick={() => onFillSlots()}
-                  aria-label={`Rellenar ${huecosLibres} huecos`}
-                  title="Que los elija la app"
-                  style={{
-                    marginLeft: 10, flexShrink: 0, cursor: "pointer", fontFamily: "inherit",
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    height: 34, padding: "0 11px", borderRadius: 11,
-                    border: "1.5px solid #cfe0d5", background: "#fff",
-                    color: "#2d5a3d", fontSize: 12.5, fontWeight: 800,
-                  }}
-                >
-                  <Sparkles size={14} strokeWidth={2.6} />
-                  Rellenar {huecosLibres}
-                </button>
-              )}
+
             </div>
             {/* Centrado en la FRANJA, no en el hueco que sobra. Con
                 `flex: 1 + center` el paso de semanas se centraba entre el
