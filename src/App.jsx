@@ -2388,8 +2388,8 @@ export default function App() {
         user
           ? "Menú generado · actívalo con ⚡ cuando lo vayas a usar"
           : weekCount > 1
-            ? `Menú generado con IA (${weekCount} semanas)`
-            : "Menú generado con IA",
+            ? `Menú generado (${weekCount} semanas)`
+            : "Menú generado",
       );
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
