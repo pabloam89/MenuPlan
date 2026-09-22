@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BarChart3, CalendarDays, Check, X } from "../components/icons.jsx";
+import { BarChart3, CalendarDays, Check, Sparkles, X } from "../components/icons.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
 import { DAYS } from "../lib/planner.js";
@@ -50,11 +50,6 @@ const DIAS_CORTOS = ["L", "M", "X", "J", "V", "S", "D"];
 const MESES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-];
-
-const PANELES = [
-  { id: "dias", label: "Días", Icon: CalendarDays },
-  { id: "balance", label: "Balance", Icon: BarChart3 },
 ];
 
 /**
@@ -237,7 +232,64 @@ function PanelBalance({ menuPlan, groups }) {
   );
 }
 
-export function PizarraControles({ data, menuPlan, groups, onAplicar }) {
+/**
+ * Los mandos de la pizarra, en baldosas.
+ *
+ * Vivían en dos lengüetas pegadas al borde izquierdo, asomando 20px. Era
+ * discreto de más: había que descubrirlas, y un mando que no se ve no se usa.
+ * Aquí comparten sitio y forma con la fila de mandos del menú generado —misma
+ * baldosa, mismo tamaño, mismo nombre debajo— así que se leen como lo que
+ * son: los controles de este tablero.
+ *
+ * El tinte de la franja los separa de las tarjetas de plato que vienen justo
+ * debajo: son otra cosa y hay que verlo sin leer.
+ */
+function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mp-press"
+      style={{
+        flexShrink: 0, width: 72,
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+        background: "none", border: "none", padding: 0,
+        cursor: "pointer", fontFamily: "inherit",
+      }}
+    >
+      <span
+        style={{
+          position: "relative",
+          width: 52, height: 52, borderRadius: 17,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: tinte, border: "2px solid transparent",
+          boxShadow: "0 2px 8px -4px rgba(20,47,29,.18)",
+        }}
+      >
+        <Icon size={21} color={color} strokeWidth={2.2} />
+        {badge != null && (
+          <span
+            style={{
+              position: "absolute", top: -4, right: -4,
+              minWidth: 20, height: 20, padding: "0 5px", borderRadius: 999,
+              background: color, color: "#fff",
+              fontSize: 11, fontWeight: 900, fontVariantNumeric: "tabular-nums",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              border: "2px solid #f4f8f5",
+            }}
+          >
+            {badge}
+          </span>
+        )}
+      </span>
+      <span style={{ fontSize: 10.5, fontWeight: 800, color: "#5a7066", letterSpacing: "-.1px" }}>
+        {label}
+      </span>
+    </button>
+  );
+}
+
+export function PizarraControles({ data, menuPlan, groups, onAplicar, onRellenar }) {
   const [abierto, setAbierto] = useState(null);
   const todayIdx = useMemo(() => todayDayIdx(), []);
   const semanas = useMemo(() => buildCalendarWeeks(MAX_MENU_WEEKS), []);
@@ -251,6 +303,20 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar }) {
 
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
 
+  // Cuántos PLATOS faltan por poner: una comida partida en dos que está
+  // entera vacía son dos, no uno. Es el número de la chapa de "Rellenar".
+  const huecosVacios = useMemo(() => {
+    let n = 0;
+    for (const g of groups ?? []) {
+      for (const s of Object.values(menuPlan?.[g.id] ?? {})) {
+        if (!s) continue;
+        if (s.dosPlatos && !s.firstRecipeId) n++;
+        if (!s.recipeId) n++;
+      }
+    }
+    return n;
+  }, [menuPlan, groups]);
+
   return (
     <>
       <style>{`
@@ -261,58 +327,39 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar }) {
         .mp-pizarra-panel { animation: mpPizarraPanel .24s cubic-bezier(.22,1,.36,1) both; }
       `}</style>
 
-      {/* ── Las dos lengüetas, pegadas al margen ──────────────────────────
-          Asoman 20px y nada más: si pidieran atención competirían con el
-          tablero, que es lo que se ha venido a mirar. Se colocan a un tercio
-          de la altura para no chocar ni con la cabecera ni con la nav. */}
-      {/* Anclado a la COLUMNA de la app, no a la ventana.
-          `position: fixed` se resuelve contra el primer ancestro con
-          transform, y el contenedor de pantalla lleva la animación de
-          navegación: según el momento, `left: 0` caía en el borde del
-          navegador o en el de la columna, y en escritorio eso son 500px de
-          diferencia. La caja centrada de 420 da el mismo sitio siempre — y en
-          un móvil, donde la columna ES la ventana, no cambia nada. */}
-      {!abierto && (
-        <div
-          style={{
-            // A media altura y no a un tercio: arriba pisaba el nombre del
-            // día y su número, y más abajo caía sobre las tarjetas de comida y
-            // cena. En el centro la lengüeta cae entre dos filas.
-            position: "fixed", top: "50dvh", transform: "translate(-50%, -50%)",
-            zIndex: 150, left: "50%",
-            // `100%` y no `100vw`: vw incluye la barra de scroll, así que en
-            // escritorio la caja salía 7px más ancha que lo visible y la
-            // lengüeta se quedaba medio fuera por la izquierda.
-            width: "min(420px, 100%)", pointerEvents: "none",
-            display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8,
-          }}
-        >
-          {PANELES.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setAbierto(id)}
-              aria-label={label}
-              className="mp-press"
-              style={{
-                // Más ancha para que el icono respire, y sin color: gris
-                // verdoso sobre blanco translúcido. Un mando que está siempre
-                // ahí no puede pedir atención cada vez que miras el tablero.
-                width: 26, height: 72, padding: 0,
-                borderRadius: "0 14px 14px 0",
-                border: "1px solid #e6ede9", borderLeft: "none",
-                background: "rgba(255,255,255,.86)",
-                backdropFilter: "blur(4px)",
-                boxShadow: "1px 1px 6px -4px rgba(20,47,29,.3)",
-                cursor: "pointer", pointerEvents: "auto",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-            >
-              <Icon size={14} color="#aab8b0" strokeWidth={2} />
-            </button>
-          ))}
-        </div>
-      )}
+      <div
+        style={{
+          display: "flex", gap: 4, overflowX: "auto",
+          background: "#eef4f0", borderTop: "1px solid #e3ebe6",
+          padding: "10px 12px 8px", marginBottom: 14,
+          scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <BaldosaMando
+          Icon={CalendarDays}
+          label="Días"
+          color={TEAL}
+          tinte="#fff"
+          onClick={() => setAbierto("dias")}
+        />
+        <BaldosaMando
+          Icon={BarChart3}
+          label="Balance"
+          color="#7a5aa8"
+          tinte="#fff"
+          onClick={() => setAbierto("balance")}
+        />
+        {onRellenar && huecosVacios > 0 && (
+          <BaldosaMando
+            Icon={Sparkles}
+            label="Rellenar"
+            color="#c98a1e"
+            tinte="#fff"
+            badge={huecosVacios}
+            onClick={() => onRellenar()}
+          />
+        )}
+      </div>
 
       {abierto && (
         <>

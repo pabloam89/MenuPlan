@@ -2023,8 +2023,16 @@ const DECK_VIEW_OPTIONS = [
   { id: "tanda", label: "Tanda" },
 ];
 
-/** Las dos vistas que saben pintar huecos vacíos — ver la prop `modoPizarra`. */
-const DECK_VIEWS_BASICAS = DECK_VIEW_OPTIONS.filter((v) => v.id === "dia" || v.id === "semana");
+/**
+ * La pizarra solo tiene Semana.
+ *
+ * Día también sabe pintar huecos vacíos, pero con una sola vista no hace
+ * falta selector, y sin selector la fila de arriba deja sitio al avatar. Si
+ * algún día vuelve Día, vuelve también el interruptor: la lista manda y el
+ * `deckView` guardado que no esté aquí se corrige solo (ver el efecto que
+ * lo acota).
+ */
+const DECK_VIEWS_BASICAS = DECK_VIEW_OPTIONS.filter((v) => v.id === "semana");
 
 // Tres formas distintas para tres tramos distintos, y ahí está el cambio: antes
 // Día era un calendario y Mes era OTRO calendario, y en este set de Nucleo los
@@ -4422,7 +4430,7 @@ function ScopeCircle({ opt, active, size = 42, members }) {
  * centered "liquid glass" modal to filter by menú (dieta/bebés/niños…) and by
  * persona. Only rendered when there are several menús.
  */
-function DeckFilter({ groups, scope, onScopeChange, members, interactivo = true }) {
+function DeckFilter({ groups, scope, onScopeChange, members, interactivo = true, ciclar = false }) {
   const [open, setOpen] = useState(false);
 
   const scopeOptions = [{ id: "all", label: "Todos", group: null }, ...groups.map((g) => ({ id: g.id, label: g.label, group: g }))];
@@ -4438,7 +4446,15 @@ function DeckFilter({ groups, scope, onScopeChange, members, interactivo = true 
           type="button"
           className="deck-press"
           data-coach="menu-filters"
-          onClick={() => setOpen(true)}
+          // En la pizarra el toque pasa al siguiente menú (Todos → Adultos →
+          // Niños → …) en vez de abrir la hoja: con dos o tres opciones, un
+          // modal para elegir entre ellas cuesta más que recorrerlas. La hoja
+          // sigue estando en el menú generado, donde además filtra.
+          onClick={() => {
+            if (!ciclar) { setOpen(true); return; }
+            const i = scopeOptions.findIndex((o) => o.id === (scope ?? "all"));
+            onScopeChange(scopeOptions[(i + 1) % scopeOptions.length].id);
+          }}
           aria-haspopup="dialog"
           aria-label={`Filtrar menú (${activeOpt.label})`}
           title={`Filtrar · ${activeOpt.label}`}
@@ -5055,6 +5071,10 @@ export const MenuScreen = memo(function MenuScreen({
   // Soltar un plato encima de otro hueco del tablero: mueve, o intercambia si
   // el destino ya tenía algo. Solo la pizarra lo pasa.
   onSlotDrag = null,
+  // La fila de mandos de la pizarra (días, balance, rellenar). Va en el mismo
+  // sitio que la del asistente y por el mismo motivo: se lee como "esto de
+  // aquí arriba controla lo de abajo".
+  pizarraControles = null,
 }) {
   const deckViews = modoPizarra ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
   const [scope, setScope] = useState("all");
@@ -5365,23 +5385,7 @@ export const MenuScreen = memo(function MenuScreen({
   );
   const menuActivado = Boolean(activeMenu?.activatedAt);
   const hasMenu = !isGenerating && !error && hasVisibleMenu;
-  // Cuántos platos faltan por poner en la semana visible. Cuenta PLATOS y no
-  // huecos: una comida partida en dos que está entera vacía son dos.
-  const huecosLibres = useMemo(() => {
-    if (!modoPizarra) return 0;
-    let n = 0;
-    for (const g of visibleGroups) {
-      for (const day of activeDays ?? []) {
-        for (const meal of getDayMeals(data)) {
-          const slot = menuPlan[g.id]?.[`${day}-${meal}`];
-          if (!slot) continue;
-          if (slot.dosPlatos && !slot.firstRecipeId) n++;
-          if (!slot.recipeId) n++;
-        }
-      }
-    }
-    return n;
-  }, [modoPizarra, visibleGroups, activeDays, data, menuPlan]);
+
 
   /**
    * Las acciones del menú —activar, favorito, publicar— como BALDOSAS, en la
@@ -5805,7 +5809,7 @@ export const MenuScreen = memo(function MenuScreen({
             <h2 style={{ fontSize: 20, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.3px" }}>
               Tu menú
             </h2>
-            <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
+            {!modoPizarra && <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {/* Activar y favorito se van a la fila de mandos como baldosas en
@@ -5853,23 +5857,14 @@ export const MenuScreen = memo(function MenuScreen({
                 />
               </button>
             )}
-            {modoPizarra && onFillSlots && huecosLibres > 0 && (
-              <button
-                type="button"
-                onClick={() => onFillSlots()}
-                aria-label={`Rellenar los ${huecosLibres} huecos que faltan`}
-                title="Que los elija la app"
-                style={{
-                  ...iconChipButtonStyle,
-                  width: "auto", padding: "0 11px", gap: 6,
-                  display: "inline-flex", alignItems: "center",
-                  fontSize: 12.5, fontWeight: 800, color: "#2d5a3d",
-                  fontFamily: "inherit", background: "#fff",
-                }}
-              >
-                <Sparkles size={15} strokeWidth={2.6} />
-                {huecosLibres}
-              </button>
+            {modoPizarra && menuWeeks.length > 1 && (
+              <DeckWeekStepper
+                weekIdx={Math.max(0, currentWeekIdx)}
+                weekTotal={menuWeeks.length}
+                onPrev={() => currentWeekIdx > 0 && onSwitchWeek?.(menuWeeks[currentWeekIdx - 1].weekStart)}
+                onNext={() => currentWeekIdx < menuWeeks.length - 1 && onSwitchWeek?.(menuWeeks[currentWeekIdx + 1].weekStart)}
+                onOpen={onOpenMenus}
+              />
             )}
             {/* El burger es el PLAN B. Cuando hay fila de mandos, sus entradas
                 viven allí como baldosas y este botón sobra: tener las mismas
@@ -6010,12 +6005,25 @@ export const MenuScreen = memo(function MenuScreen({
             {/* The coach anchor hugs the view switch alone: the filter circle at
                 the far right gets its own step, and a spotlight over the whole
                 row would highlight both at once. */}
-            <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
-              {modoPizarra
-                ? <DeckToggleVista value={deckView} onChange={setDeckView} options={deckViews} />
-                : <DeckNav value={deckView} onChange={setDeckView} options={deckViews} />}
-
-            </div>
+            {/* En la pizarra no hay selector de vista: solo existe Semana,
+                así que un interruptor de una posición sería un botón que no
+                hace nada. Su sitio lo ocupa el avatar, que sí decide algo. */}
+            {modoPizarra ? (
+              (data.groups?.length > 0) && (
+                <DeckFilter
+                  groups={data.groups}
+                  scope={scope}
+                  onScopeChange={setScope}
+                  members={data.members ?? []}
+                  interactivo={multiGroup}
+                  ciclar={multiGroup}
+                />
+              )
+            ) : (
+              <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
+                <DeckNav value={deckView} onChange={setDeckView} options={deckViews} />
+              </div>
+            )}
             {/* Centrado en la FRANJA, no en el hueco que sobra. Con
                 `flex: 1 + center` el paso de semanas se centraba entre el
                 selector de vistas y el filtro, así que sin avatares —el caso
@@ -6041,13 +6049,12 @@ export const MenuScreen = memo(function MenuScreen({
               )}
             </div>
             <span style={{ flex: 1, minWidth: 0 }} />
-            {(multiGroup || data.groups?.length > 0) && (
+            {!modoPizarra && multiGroup && (
               <DeckFilter
                 groups={data.groups}
                 scope={scope}
                 onScopeChange={setScope}
                 members={data.members ?? []}
-                interactivo={multiGroup}
               />
             )}
           </div>
@@ -6060,6 +6067,7 @@ export const MenuScreen = memo(function MenuScreen({
             a App: los manejadores —activar, favorito, el panel de opciones—
             viven aquí, y hacerlos viajar por dos componentes para volver al
             mismo sitio no le añade nada a nadie. */}
+        {modoPizarra && hasMenu && pizarraControles}
         {accionesEnLaFila
           ? cloneElement(wizardControls, {
               acciones: accionesDelMenu,

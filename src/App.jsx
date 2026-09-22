@@ -5520,20 +5520,23 @@ export default function App() {
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
               onSlotDrag={esPizarra ? handleSlotDrag : null}
               onFillSlots={esPizarra ? handleFillSlots : null}
+              // La fila de mandos de la pizarra. Va como prop y no importada
+              // dentro de MenuScreen para que esa pantalla siga sin saber que
+              // la pizarra existe: recibe nodos, no modos.
+              pizarraControles={
+                esPizarra && !householdReadOnly ? (
+                  <Suspense fallback={null}>
+                    <PizarraControles
+                      data={data}
+                      menuPlan={menuPlan}
+                      groups={data.groups ?? []}
+                      onAplicar={aplicarCambioPizarra}
+                      onRellenar={handleFillSlots}
+                    />
+                  </Suspense>
+                ) : null
+              }
             />
-            {/* Los mandos de la pizarra: dos lengüetas en el borde izquierdo.
-                Van AQUÍ y no dentro de MenuScreen para que esa pantalla siga
-                sin saber que la pizarra existe — recibe props, no modos. */}
-            {esPizarra && !householdReadOnly && (
-              <Suspense fallback={null}>
-                <PizarraControles
-                  data={data}
-                  menuPlan={menuPlan}
-                  groups={data.groups ?? []}
-                  onAplicar={aplicarCambioPizarra}
-                />
-              </Suspense>
-            )}
           </div>
         )}
 
