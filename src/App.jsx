@@ -3650,6 +3650,35 @@ export default function App() {
     setSelectedSlot(null);
   }, [data]);
 
+  /**
+   * "Esta la hago con la Thermomix": guarda el método elegido EN el hueco.
+   *
+   * El selector de métodos ya existía dentro de Pasos, pero era mirar: se
+   * quedaba en el estado de la ficha y al cerrarla se perdía. Ahora vive en el
+   * plan, así que la baldosa lo enseña, la ficha vuelve a abrirse por donde lo
+   * dejaste y —el día que el tiempo del menú lo lea— sabrá que ese guiso son
+   * 12 minutos de robot y no 45 de cazuela.
+   *
+   * Por PLATO y no por hueco: en una comida partida, el primero puede ir al
+   * horno y el segundo a la sartén.
+   */
+  const handlePickAppliance = useCallback((sel, appliance) => {
+    if (householdReadOnly || !sel?.day) return;
+    const key = `${sel.day}-${sel.meal}`;
+    const campo = sel.course === "first" ? "firstAppliance" : "appliance";
+    // "base" es la versión de siempre, no un aparato: se guarda como ausencia.
+    const valor = !appliance || appliance === "base" ? null : appliance;
+    setMenuPlan((plan) => {
+      const slot = plan[sel.groupId]?.[key];
+      if (!slot || slot[campo] === valor) return plan;
+      return {
+        ...plan,
+        [sel.groupId]: { ...plan[sel.groupId], [key]: { ...slot, [campo]: valor } },
+      };
+    });
+    trackEvent(user, "slot_appliance_set", "menu", { appliance: valor ?? "base" });
+  }, [householdReadOnly, user]);
+
   const handleDishTap = useCallback((selection) => {
     setSelectedSlot(selection);
     trackEvent(user, "dish_viewed", "menu", { recipeId: selection?.recipe?.id });
@@ -5497,7 +5526,12 @@ export default function App() {
                 sin saber que la pizarra existe — recibe props, no modos. */}
             {esPizarra && !householdReadOnly && (
               <Suspense fallback={null}>
-                <PizarraControles data={data} onAplicar={aplicarCambioPizarra} />
+                <PizarraControles
+                  data={data}
+                  menuPlan={menuPlan}
+                  groups={data.groups ?? []}
+                  onAplicar={aplicarCambioPizarra}
+                />
               </Suspense>
             )}
           </div>
@@ -6010,7 +6044,16 @@ export default function App() {
           kitchenTools={data.kitchenTools ?? []}
           browse={Boolean(selectedSlot.browse)}
           initialCourse={selectedSlot.initialCourse ?? "principal"}
-          initialAppliance={selectedSlot.initialAppliance ?? null}
+          initialAppliance={
+            selectedSlot.initialAppliance
+            ?? (selectedSlot.course === "first" ? selectedSlot.slot?.firstAppliance : selectedSlot.slot?.appliance)
+            ?? null
+          }
+          onPickAppliance={
+            householdReadOnly || selectedSlot.browse || !selectedSlot.day
+              ? undefined
+              : (ap) => handlePickAppliance(selectedSlot, ap)
+          }
           userVote={householdReadOnly ? null : voteOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
           onVote={householdReadOnly ? undefined : (vote) => handleVoteRecipe(selectedSlot.recipe.id, vote)}
           favoriteScope={favScopeOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}

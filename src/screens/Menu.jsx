@@ -2195,6 +2195,10 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   // `slot.mode` lo pone modeForGroupSlot: "tupper" cuando alguien de este grupo
   // se lleva esa comida fuera y hay que cocinarla igual.
   const esTupper = slot?.mode === "tupper";
+  // El aparato con el que has dicho que harás ESTE plato. Por plato y no por
+  // hueco: en una comida partida, el primero puede ir al horno y el segundo a
+  // la sartén.
+  const aparatoElegido = dish?.courseKey === "first" ? slot?.firstAppliance : slot?.appliance;
   const emptyMealLabel = MEAL_META[meal]?.label ?? meal;
   if (isEmpty) {
     // Use the meal's own MenuPlan icon (Comida = Sol, Cena = Luna…) inside a soft
@@ -2474,13 +2478,32 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           domingo" y el maletín es "esto te lo llevas". Se parecen —las dos
           hablan de cocinar para otro momento— pero no son lo mismo: puedes
           llevarte un tupper de lo que sobró sin haber hecho ninguna tanda. */}
-      {(deTanda || esTupper) && (
+      {(deTanda || esTupper || aparatoElegido) && (
         <div
           style={{
             position: "absolute", right: compact ? 8 : 12, bottom: compact ? 8 : 12,
             display: "flex", gap: compact ? 4 : 6,
           }}
         >
+          {/* Con qué has dicho que lo vas a hacer. Va en esta esquina y no
+              arriba porque es de la misma familia que la olla y el maletín:
+              las tres hablan de CÓMO se cocina esto, no de qué es. */}
+          {aparatoElegido && (
+            <div
+              title={`Lo haces con ${APPLIANCE_LABELS[aparatoElegido] ?? aparatoElegido}`}
+              style={{
+                width: compact ? 22 : 28, height: compact ? 22 : 28, borderRadius: 999,
+                background: "rgba(255,255,255,.92)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+              }}
+            >
+              {(() => {
+                const Ap = APPLIANCE_ICONS[aparatoElegido];
+                return Ap ? <Ap size={compact ? 12 : 15} color={APPLIANCE_COLORS[aparatoElegido] ?? "#5a7066"} strokeWidth={2.4} /> : null;
+              })()}
+            </div>
+          )}
           {deTanda && (
             <div
               title="Lleva algo que dejas hecho el domingo"
@@ -6440,6 +6463,10 @@ export function DishDetail({
   // - autoDemo: "methods" cycles the method tabs; "reject" auto-picks a swap
   //   reason and fires onReject once. Default null → normal interactive behaviour.
   initialAppliance = null,
+  // Se llama al tocar una pestaña de método cuando el plato viene de un hueco
+  // del menú: elegir «Thermomix» aquí es decir con qué lo vas a hacer, no solo
+  // mirar sus pasos. En modo catálogo no se pasa — no hay dónde guardarlo.
+  onPickAppliance = null,
   initialCourse = "principal",
   initialRecipeTab = "ingredientes",
   stepsByAppliance = null,
@@ -7974,7 +8001,7 @@ export function DishDetail({
                         <button
                           key={o.appliance}
                           type="button"
-                          onClick={() => setActiveAppliance(o.appliance)}
+                          onClick={() => { setActiveAppliance(o.appliance); onPickAppliance?.(o.appliance); }}
                           style={{
                             flex: 1, minWidth: 0,
                             display: "flex", alignItems: "center", justifyContent: "center", gap: 5,

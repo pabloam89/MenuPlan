@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Check, X } from "../components/icons.jsx";
+import { BarChart3, CalendarDays, Check, X } from "../components/icons.jsx";
+import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { recuentoDelMenu } from "../lib/menuRecuento.js";
+import { freqsEfectivos } from "../lib/reparto.js";
 import { DAYS } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
@@ -52,6 +55,22 @@ const MESES = [
 
 const PANELES = [
   { id: "dias", label: "Días", Icon: CalendarDays },
+  { id: "balance", label: "Balance", Icon: BarChart3 },
+];
+
+/**
+ * Las familias del balance, con el color con el que esa categoría se pinta en
+ * el resto de la app (ver DESIGN_SYSTEM §1.6). El id es el de
+ * `recuentoDelMenu`, que es el mismo del reparto: si aquí se renombrara uno,
+ * la barra contaría una familia y compararía con otra.
+ */
+const FAMILIAS_BALANCE = [
+  { id: "carne", label: "Carne", color: "#c0392b" },
+  { id: "pescado", label: "Pescado", color: "#2f6f9f" },
+  { id: "legumbres", label: "Legumbres", color: "#b9770e" },
+  { id: "huevos", label: "Huevos", color: "#d4a017" },
+  { id: "pasta_arroz", label: "Pasta y arroz", color: "#cf7833" },
+  { id: "verdura", label: "Verdura", color: "#3f9656" },
 ];
 
 /**
@@ -116,7 +135,123 @@ function Radial({ label, Icon, texto, active, onClick, delay = 0, size = 58, col
   );
 }
 
-export function PizarraControles({ data, onAplicar }) {
+/**
+ * "Cómo va la semana": lo que llevas puesto, contado.
+ *
+ * ── Cuenta, no corrige ────────────────────────────────────────────────────
+ * En un tablero vacío la pregunta no es "¿esto está bien?" sino "¿qué me
+ * falta?". Así que esto no bloquea nada ni pinta errores: enseña cuántos
+ * platos de cada familia llevas y, si la casa tiene un reparto pedido,
+ * cuántos pediste. La diferencia se lee sola.
+ *
+ * ── Del mismo recuento que usa el bot ─────────────────────────────────────
+ * `recuentoDelMenu` es la función que ya alimenta las sugerencias del panel,
+ * y el reparto sale de `freqsEfectivos`, el mismo que baja los porcentajes a
+ * platos para el motor. Si este panel contara por su cuenta, acabaría
+ * diciendo "te falta pescado" mientras el generador cree que va sobrado.
+ */
+function PanelBalance({ menuPlan, data, groups }) {
+  const { recuento, huecosVacios, objetivo } = useMemo(() => {
+    // Solo los grupos visibles de esta casa, y sin `_warnings`.
+    const plan = {};
+    let vacios = 0;
+    for (const g of groups ?? []) {
+      const slots = menuPlan?.[g.id];
+      if (!slots) continue;
+      plan[g.id] = slots;
+      for (const s of Object.values(slots)) {
+        if (!s) continue;
+        if (s.dosPlatos && !s.firstRecipeId) vacios++;
+        if (!s.recipeId) vacios++;
+      }
+    }
+    const r = recuentoDelMenu(plan, recipeCatalogById);
+    const presupuesto = r.huecos + vacios;
+    const obj = data?.reparto && Object.keys(data.reparto).length > 0
+      ? freqsEfectivos({ freqs: data.freqsPedidos ?? {}, reparto: data.reparto }, { presupuesto })
+      : null;
+    return { recuento: r, huecosVacios: vacios, objetivo: obj };
+  }, [menuPlan, data, groups]);
+
+  const filas = FAMILIAS_BALANCE.map((f) => ({
+    ...f,
+    puestos: recuento.familias[f.id] ?? 0,
+    pedidos: objetivo?.[f.id] ?? null,
+  }));
+  const tope = Math.max(1, ...filas.map((f) => Math.max(f.puestos, f.pedidos ?? 0)));
+
+  return (
+    <>
+      <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
+        {huecosVacios === 0
+          ? "La semana está completa."
+          : huecosVacios === 1
+            ? "Queda 1 hueco por llenar."
+            : `Quedan ${huecosVacios} huecos por llenar.`}
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {filas.map((f) => {
+          // La barra mide contra el mayor de la semana, no contra el objetivo:
+          // así una familia que se pasa se ve que se pasa, en vez de tocar
+          // techo y disimularlo.
+          const anchoPuestos = `${Math.round((f.puestos / tope) * 100)}%`;
+          const falta = f.pedidos != null ? f.pedidos - f.puestos : null;
+          return (
+            <div key={f.id}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 5 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", flex: 1 }}>{f.label}</span>
+                <span style={{ fontSize: 13, fontWeight: 900, color: f.color, fontVariantNumeric: "tabular-nums" }}>
+                  {f.puestos}
+                </span>
+                {f.pedidos != null && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#9ab0a1", fontVariantNumeric: "tabular-nums" }}>
+                    / {f.pedidos}
+                  </span>
+                )}
+              </div>
+              <div style={{ position: "relative", height: 8, borderRadius: 99, background: "#eaf0ec" }}>
+                <div
+                  style={{
+                    position: "absolute", inset: 0, width: anchoPuestos,
+                    borderRadius: 99, background: f.color,
+                    transition: "width .3s cubic-bezier(.22,1,.36,1)",
+                  }}
+                />
+                {/* La marca del objetivo: una raya, no otra barra. Lo que se
+                    compara es una posición, y dos barras se leen como dos
+                    cantidades que compiten. */}
+                {f.pedidos != null && f.pedidos > 0 && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute", top: -2, bottom: -2,
+                      left: `calc(${Math.round((f.pedidos / tope) * 100)}% - 1px)`,
+                      width: 2, borderRadius: 2, background: "#5a7066",
+                    }}
+                  />
+                )}
+              </div>
+              {falta != null && falta !== 0 && (
+                <p style={{ margin: "4px 0 0", fontSize: 11, fontWeight: 700, color: falta > 0 ? "#b45309" : "#5a7066" }}>
+                  {falta > 0 ? `Te ${falta === 1 ? "falta" : "faltan"} ${falta}` : `${-falta} de más`}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {!objetivo && (
+        <p style={{ margin: "16px 0 0", fontSize: 11.5, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.45 }}>
+          Sin reparto pedido no hay con qué comparar: esto es solo lo que llevas.
+        </p>
+      )}
+    </>
+  );
+}
+
+export function PizarraControles({ data, menuPlan, groups, onAplicar }) {
   const [abierto, setAbierto] = useState(null);
   const todayIdx = useMemo(() => todayDayIdx(), []);
   const semanas = useMemo(() => buildCalendarWeeks(MAX_MENU_WEEKS), []);
@@ -215,7 +350,7 @@ export function PizarraControles({ data, onAplicar }) {
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <p style={{ margin: 0, flex: 1, fontSize: 17, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
-                ¿Qué días?
+                {abierto === "balance" ? "Cómo va la semana" : "¿Qué días?"}
               </p>
               <button
                 type="button"
@@ -232,6 +367,10 @@ export function PizarraControles({ data, onAplicar }) {
               </button>
             </div>
 
+            {abierto === "balance" ? (
+              <PanelBalance menuPlan={menuPlan} data={data} groups={groups} />
+            ) : (
+              <>
                 <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
                   Toca una semana entera, o afina día a día.
                 </p>
@@ -308,6 +447,8 @@ export function PizarraControles({ data, onAplicar }) {
                     );
                   })}
                 </div>
+              </>
+            )}
           </div>
         </>
       )}
