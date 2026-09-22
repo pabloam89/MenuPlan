@@ -3024,7 +3024,7 @@
       },
       {
         "name": "Gambas",
-        "ingredientId": "gambas",
+        "ingredientId": "gambas-enteras",
         "amount": 150,
         "unit": "g"
       },
@@ -6101,7 +6101,7 @@
     "ingredients": [
       {
         "name": "Atún rojo fresco de calidad sashimi",
-        "ingredientId": "atun",
+        "ingredientId": "atun-fresco",
         "amount": 250,
         "unit": "g"
       },
@@ -8121,7 +8121,7 @@
     "ingredients": [
       {
         "name": "Gambas frescas o congeladas",
-        "ingredientId": "gambas",
+        "ingredientId": "gambas-enteras",
         "amount": 350,
         "unit": "g"
       },
@@ -8139,7 +8139,7 @@
       },
       {
         "name": "Vino de Jerez",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 40,
         "unit": "ml"
       },
@@ -16281,7 +16281,7 @@
     "ingredients": [
       {
         "name": "Bonito fresco en tacos",
-        "ingredientId": "bonito-del-norte",
+        "ingredientId": "bonito-fresco",
         "amount": 500,
         "unit": "g"
       },
@@ -16960,7 +16960,8 @@
       "moluscos",
       "sulfitos",
       "huevo",
-      "pescado"
+      "pescado",
+      "gluten"
     ],
     "season": "verano",
     "ingredients": [
@@ -19852,7 +19853,7 @@
     "ingredients": [
       {
         "name": "Atún (lomo fresco)",
-        "ingredientId": "atun",
+        "ingredientId": "atun-fresco",
         "amount": 320,
         "unit": "g"
       },
@@ -20858,7 +20859,7 @@
     "ingredients": [
       {
         "name": "Atún rojo (calidad sashimi)",
-        "ingredientId": "atun",
+        "ingredientId": "atun-fresco",
         "amount": 240,
         "unit": "g"
       },

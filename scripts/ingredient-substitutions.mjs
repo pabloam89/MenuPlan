@@ -95,8 +95,18 @@ export const DELIBERATELY_NOT_SUBSTITUTABLE = {
   whisky: "Ídem brandy.",
   "licor-de-cafe": "Ídem brandy.",
   cointreau: "Ídem brandy.",
-  "pedro-ximenez": "Vino generoso; su versión sin alcohol no es un producto equivalente.",
-  "jerez-seco": "Ídem Pedro Ximénez.",
+  // `vino-generoso` nació el 22 sep 2026 sacando Pedro Ximénez, Oporto, Jerez,
+  // oloroso y rancio de `vino-blanco`, donde cobraban 60 kcal en vez de 160.
+  // El juicio ya estaba tomado aquí abajo bajo dos ids que nunca existieron
+  // como ingrediente (`pedro-ximenez`, `jerez-seco`): ahora tiene id propio y
+  // el criterio se aplica de verdad, que es lo que cambia. Las tres recetas
+  // afectadas —pluma al PX, carrillada al oporto, gambas al jerez— pasan a
+  // EXCLUIRSE en embarazo en vez de adaptarse, y eso es lo correcto: no hay
+  // Pedro Ximénez sin alcohol en ningún súper, y renombrarlo habría sido una
+  // adaptación inventada, que es justo lo que este fichero existe para evitar.
+  "vino-generoso": "Vino generoso (PX, oporto, jerez, oloroso, rancio): su versión sin alcohol no es un producto equivalente ni existe en el súper. Mismo criterio que el brandy y el ron.",
+  "pedro-ximenez": "Vino generoso; su versión sin alcohol no es un producto equivalente. (Id histórico: el ingrediente real es `vino-generoso`.)",
+  "jerez-seco": "Ídem Pedro Ximénez. (Id histórico: el ingrediente real es `vino-generoso`.)",
   // Lácteos cuya versión sin lactosa es RARA en España. No están fuera por no
   // salir en el catálogo de Mercadona: ese catálogo es de UNA cadena, y el
   // onboarding deja elegir súper ("¿En qué supermercado compras?"), así que

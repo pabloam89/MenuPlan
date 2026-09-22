@@ -5695,7 +5695,7 @@
       },
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 80,
         "unit": "g"
       },
@@ -6072,7 +6072,7 @@
     "ingredients": [
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 80,
         "unit": "g"
       },
@@ -8370,7 +8370,7 @@
     "ingredients": [
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 100,
         "unit": "g"
       },
@@ -8507,7 +8507,7 @@
     "ingredients": [
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 100,
         "unit": "g"
       },
@@ -9590,7 +9590,7 @@
     "ingredients": [
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 100,
         "unit": "g"
       },
@@ -9850,7 +9850,7 @@
     "ingredients": [
       {
         "name": "Lentejas cocidas",
-        "ingredientId": "lentejas",
+        "ingredientId": "lentejas-cocidas",
         "amount": 300,
         "unit": "g"
       },
@@ -13283,7 +13283,7 @@
       },
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 60,
         "unit": "g"
       },

@@ -15,6 +15,7 @@ import {
   ingredientCategoryFor,
   ingredientAllergensFor,
   AMBIGUOUS_STEMS,
+  COMPOSICION,
 } from "./ingredients.js";
 import { guessShoppingAisle, normalizeName } from "./ingredientCategories.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
@@ -225,12 +226,12 @@ describe("deriveRecipeAllergens", () => {
 // resto de la suite.
 describe("computeRecipeNutrition", () => {
   afterEach(() => {
-    ingredientById.ajo.nutrition = null;
-    ingredientById.perejil.nutrition = null;
+    COMPOSICION.delete("ajo");
+    COMPOSICION.delete("perejil");
   });
 
   it("devuelve null si servings no es válido", () => {
-    ingredientById.ajo.nutrition = { kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 1, fiber100g: null, sugar100g: null, saturatedFat100g: null, sodium100g: null };
+    COMPOSICION.set("ajo", { kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 1, fiber100g: null, sugar100g: null, saturatedFat100g: null, sodium100g: null });
     const recipe = { ingredients: [{ name: "Ajo", amount: 2, unit: "diente" }] };
     expect(computeRecipeNutrition(recipe, 0)).toBeNull();
     expect(computeRecipeNutrition(recipe, null)).toBeNull();
@@ -244,10 +245,10 @@ describe("computeRecipeNutrition", () => {
   it("suma correctamente con cobertura total (un solo ingrediente, con nutrición)", () => {
     // 5g/diente (PIECE_WEIGHTS) × 4 dientes = 20g de un ingrediente a 100
     // kcal/100g → 20 kcal totales, entre 2 raciones = 10 kcal/ración.
-    ingredientById.ajo.nutrition = {
+    COMPOSICION.set("ajo", {
       kcal100g: 100, protein100g: 20, carbs100g: 10, fat100g: 5,
       fiber100g: 2, sugar100g: 1, saturatedFat100g: 0.5, sodium100g: 50,
-    };
+    });
     const recipe = { ingredients: [{ name: "Ajo", amount: 4, unit: "diente" }] };
     const r = computeRecipeNutrition(recipe, 2);
     expect(r.kcal).toBeCloseTo(10, 0);
@@ -257,10 +258,10 @@ describe("computeRecipeNutrition", () => {
   });
 
   it("cobertura parcial: un ingrediente sin nutrición cuenta en el peso total pero no en el cubierto", () => {
-    ingredientById.ajo.nutrition = {
+    COMPOSICION.set("ajo", {
       kcal100g: 100, protein100g: 20, carbs100g: 10, fat100g: 5,
       fiber100g: null, sugar100g: null, saturatedFat100g: null, sodium100g: null,
-    };
+    });
     // Ajo: 4 dientes × 5g = 20g (con nutrición). Perejil: 20g (sin nutrición).
     const recipe = {
       ingredients: [
@@ -274,10 +275,10 @@ describe("computeRecipeNutrition", () => {
   });
 
   it("un ingrediente en unidad cualitativa (al gusto/pizca) no cuenta ni en el peso total ni en el cubierto", () => {
-    ingredientById.ajo.nutrition = {
+    COMPOSICION.set("ajo", {
       kcal100g: 100, protein100g: 20, carbs100g: 10, fat100g: 5,
       fiber100g: null, sugar100g: null, saturatedFat100g: null, sodium100g: null,
-    };
+    });
     const recipe = {
       ingredients: [
         { name: "Ajo", amount: 4, unit: "diente" },
@@ -535,8 +536,8 @@ describe("señales de dieta", () => {
 // total de azúcar callando los demás: 740 de 747 recetas estrella lo hacían.
 describe("cobertura por campo, no un si/no", () => {
   afterEach(() => {
-    ingredientById.ajo.nutrition = null;
-    ingredientById.perejil.nutrition = null;
+    COMPOSICION.delete("ajo");
+    COMPOSICION.delete("perejil");
   });
 
   const receta = {
@@ -549,8 +550,8 @@ describe("cobertura por campo, no un si/no", () => {
   const sinAzucar = { ...conAzucar, sugar100g: null };
 
   it("un solo ingrediente con azucar no cubre la receta entera", () => {
-    ingredientById.ajo.nutrition = conAzucar;
-    ingredientById.perejil.nutrition = sinAzucar;
+    COMPOSICION.set("ajo", conAzucar);
+    COMPOSICION.set("perejil", sinAzucar);
     const n = computeRecipeNutrition(receta, 1);
     // El ajo es 100 g de los 400: el azúcar declarado es el de una cuarta parte.
     expect(n.coberturaPorCampo.sugar_g).toBeCloseTo(0.25, 2);
@@ -562,8 +563,8 @@ describe("cobertura por campo, no un si/no", () => {
   });
 
   it("cuando lo traen todos, la cobertura del campo es 1", () => {
-    ingredientById.ajo.nutrition = conAzucar;
-    ingredientById.perejil.nutrition = conAzucar;
+    COMPOSICION.set("ajo", conAzucar);
+    COMPOSICION.set("perejil", conAzucar);
     const n = computeRecipeNutrition(receta, 1);
     for (const c of ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg"]) {
       expect(n.coberturaPorCampo[c]).toBe(1);
@@ -571,8 +572,8 @@ describe("cobertura por campo, no un si/no", () => {
   });
 
   it("cuando no lo trae nadie, el campo es null y su cobertura 0", () => {
-    ingredientById.ajo.nutrition = sinAzucar;
-    ingredientById.perejil.nutrition = sinAzucar;
+    COMPOSICION.set("ajo", sinAzucar);
+    COMPOSICION.set("perejil", sinAzucar);
     const n = computeRecipeNutrition(receta, 1);
     expect(n.sugar_g).toBeNull();
     expect(n.coberturaPorCampo.sugar_g).toBe(0);
@@ -581,8 +582,8 @@ describe("cobertura por campo, no un si/no", () => {
   // Un ingrediente SIN ficha también es un hueco del campo, aunque el hueco
   // venga de más arriba: al comensal le da igual de dónde nazca.
   it("un ingrediente sin ficha cuenta como hueco del campo", () => {
-    ingredientById.ajo.nutrition = conAzucar;
-    ingredientById.perejil.nutrition = null;
+    COMPOSICION.set("ajo", conAzucar);
+    COMPOSICION.delete("perejil");
     const n = computeRecipeNutrition(receta, 1);
     expect(n.coberturaPorCampo.sugar_g).toBeCloseTo(0.25, 2);
     expect(n.coverage).toBeCloseTo(0.25, 2);
@@ -592,8 +593,8 @@ describe("cobertura por campo, no un si/no", () => {
 // El aceite de freir se absorbe, no se come entero. Ver ACEITE_ABSORBIDO.
 describe("el aceite de freir se absorbe", () => {
   afterEach(() => {
-    ingredientById.ajo.nutrition = null;
-    ingredientById["aceite-oliva"].nutrition = null;
+    COMPOSICION.delete("ajo");
+    COMPOSICION.delete("aceite-oliva");
   });
 
   // En GRAMOS y no en ml a proposito: en ml entraria tambien la densidad del
@@ -607,8 +608,8 @@ describe("el aceite de freir se absorbe", () => {
   });
 
   beforeEach(() => {
-    ingredientById.ajo.nutrition = { kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 1 };
-    ingredientById["aceite-oliva"].nutrition = { kcal100g: 900, protein100g: 0, carbs100g: 0, fat100g: 100 };
+    COMPOSICION.set("ajo", { kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 1 });
+    COMPOSICION.set("aceite-oliva", { kcal100g: 900, protein100g: 0, carbs100g: 0, fat100g: 100 });
   });
 
   it("un chorro para sofreir pasa entero", () => {
@@ -633,16 +634,16 @@ describe("el aceite de freir se absorbe", () => {
 // La sal de una costra no se come. Ver SAL_A_GRANEL.
 describe("la costra de sal no se come", () => {
   afterEach(() => {
-    ingredientById["pechuga-de-pollo"].nutrition = null;
-    ingredientById["sal-gruesa"].nutrition = null;
-    ingredientById.azucar.nutrition = null;
+    COMPOSICION.delete("pechuga-de-pollo");
+    COMPOSICION.delete("sal-gruesa");
+    COMPOSICION.delete("azucar");
   });
   beforeEach(() => {
     // Pechuga y no dorada: la dorada lleva fraccion comestible 0,55 y el test
     // dejaria de aislar la regla de la sal.
-    ingredientById["pechuga-de-pollo"].nutrition = { kcal100g: 100, protein100g: 20, carbs100g: 0, fat100g: 2, sodium100g: 60 };
-    ingredientById["sal-gruesa"].nutrition = { kcal100g: 0, protein100g: 0, carbs100g: 0, fat100g: 0, sodium100g: 38850 };
-    ingredientById.azucar.nutrition = { kcal100g: 400, protein100g: 0, carbs100g: 100, fat100g: 0, sodium100g: 0 };
+    COMPOSICION.set("pechuga-de-pollo", { kcal100g: 100, protein100g: 20, carbs100g: 0, fat100g: 2, sodium100g: 60 });
+    COMPOSICION.set("sal-gruesa", { kcal100g: 0, protein100g: 0, carbs100g: 0, fat100g: 0, sodium100g: 38850 });
+    COMPOSICION.set("azucar", { kcal100g: 400, protein100g: 0, carbs100g: 100, fat100g: 0, sodium100g: 0 });
   });
 
   const conSal = (gSal, extra = []) => ({

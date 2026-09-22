@@ -22,8 +22,11 @@
  *     dónde se corte. No es un control de calidad, es elegir el resultado.
  *   · la banda de MASA/RACIÓN es circular: la masa sale de los mismos pesos
  *     que el numerador y se divide por el mismo `baseServings`.
- *   · el ACEITE no da una banda de tres puntos sino binaria: el tope de
- *     absorción del 6 % casi nunca muerde, así que "absorbido" ≈ "entero".
+ *   · el ACEITE es la palanca grande y está casi toda en el sí/no: contarlo o
+ *     no mueve 26 puntos de kcal, y el tope del 6 % mueve 3. Que el tope es
+ *     pequeño NO es que no muerda —muerde en 145 de las 871 recetas con
+ *     aceite, hasta 1.474 kcal/ración en los huevos estrellados—: es que las
+ *     otras 726 llevan un chorro que ya está por debajo del 6 % y pasa entero.
  *
  * Lo que sobrevive a moverlos todos es el SIGNO, no la magnitud: la proteína
  * sumada supera a la declarada en 24 de 24 especificaciones probadas, con
@@ -63,6 +66,7 @@
 
 import { readFileSync, readdirSync } from "fs";
 import { gramsPerPiece } from "../src/lib/kitchenUnits.js";
+import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida } from "../src/lib/derive/masaServida.js";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -80,6 +84,30 @@ for (const file of readdirSync(RECIPES_DIR)) {
 }
 const ingredients = JSON.parse(readFileSync(join(ROOT, "src", "data", "ingredients.json"), "utf8"));
 const BY_ID = new Map(ingredients.map((i) => [i.id, i]));
+
+/**
+ * La nutrición sale de la MAESTRA, no del ingrediente.
+ *
+ * Este script leía `ingrediente.nutrition`, y ese campo dejó de existir el 22
+ * sep 2026 al partir el catálogo: la composición vive ahora en
+ * `alimentos.json` y el ingrediente solo dice a qué alimento apunta. El script
+ * siguió corriendo y saliendo con código 0, publicando «-100,0 % de error de
+ * proteína» sobre «0 recetas» y una curva de «NaN % a NaN %».
+ *
+ * Nadie lo cazó porque un CLI no tiene test. Es el mismo agujero que el resto
+ * del modelo cierra con la regla de que ningún campo se queda sin lector,
+ * visto del otro lado: un lector que se quedó sin campo.
+ */
+const maestra = JSON.parse(readFileSync(join(ROOT, "src", "data", "alimentos.json"), "utf8"));
+const alimentoPorIngrediente = JSON.parse(
+  readFileSync(join(ROOT, "src", "data", "alimentoPorIngrediente.json"), "utf8"),
+);
+const NUTRICION = new Map(maestra.filter((a) => a.nutricion).map((a) => [a.id, a.nutricion]));
+const FILA = new Map(maestra.map((a) => [a.id, a]));
+const alimentoDe = (ingredientId) =>
+  (ingredientId ? FILA.get(alimentoPorIngrediente[ingredientId] ?? ingredientId) : null) ?? null;
+const nutricionDe = (ingredientId) =>
+  (ingredientId ? NUTRICION.get(alimentoPorIngrediente[ingredientId] ?? ingredientId) : null) ?? null;
 
 const estrella = recipes.filter((r) => r.estrella);
 const ROLES_PRINCIPALES = new Set(["primero", "segundo", "plato_unico", "cena"]);
@@ -134,12 +162,13 @@ const gramos = (linea) => {
  *   · la sal y el azúcar de un curado se tiran.
  *   · la concha y el caparazón no se comen.
  */
-const ABSORCION_FRITURA = 0.06;
-const COMESTIBLE = [
-  [/almeja|mejillon|berberecho|navaja|vieira|zamburina|chirla/, 0.30],
-  [/gamba|langostino|cigala|bogavante|carabinero/, 0.50],
-];
-const YA_LIMPIO = /pelad|limpi|sin cascara|sin concha|carne de|desvainad/;
+// Las tres reglas viven en src/lib/derive/masaServida.js y aquí solo se usan.
+//
+// Aquí había una tercera copia, y ya había divergido de la buena: las almejas
+// pesaban 0,30 contra el 0,25 de fraccionComestible.json y las cigalas 0,50
+// contra 0,40. Dos números para el mismo molusco, y el que salía en el informe
+// era el de este fichero. Que las copias diverjan no es un riesgo: es lo que
+// pasa siempre, y por eso la regla es que haya una.
 
 /**
  * Los aceites, por `ingredientId`. Antes esto era `/aceite/` sobre el nombre
@@ -174,15 +203,12 @@ const ALIAS_ALERGENO = {
 };
 const normalizeAllergenId = (raw) => ALIAS_ALERGENO[norm(raw).replace(/\s+/g, "_")] ?? null;
 
-const ACEITES = new Set([
-  "aceite-oliva", "aceite-oliva-virgen", "aceite-girasol", "aceite-de-sesamo",
-]);
-
 function sumaDesdeIngredientes(receta, modoAceite = "absorbido") {
   const total = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   let masa = 0;
   let cubierta = 0;
   let solido = 0;
+  let aceiteBruto = 0;
   const aceites = [];
   const lineas = receta.ingredients ?? [];
 
@@ -191,27 +217,33 @@ function sumaDesdeIngredientes(receta, modoAceite = "absorbido") {
   for (const l of lineas) {
     const g = gramos(l);
     masa += g;
-    const ing = BY_ID.get(l.ingredientId);
-    const nu = ing?.nutrition;
+    const nu = nutricionDe(l.ingredientId);
     if (!nu) continue;
     cubierta += g;
 
     const n = norm(l.name);
     if (/^sal\b|sal gruesa|sal marina/.test(n) && g >= 50) continue;          // curado
     if (/^azucar/.test(n) && g >= 50 && hayCurado) continue;                  // curado
-    if (ACEITES.has(l.ingredientId)) { aceites.push({ g, nu }); continue; }
 
-    let efectivo = g;
-    if (!YA_LIMPIO.test(n)) {
-      for (const [re, factor] of COMESTIBLE) if (re.test(n)) { efectivo = g * factor; break; }
+    // La merma es de la LÍNEA: unos «Chipirones limpios» no vuelven a perder
+    // la pluma. Lo decide fraccionServida, que es quien sabe leer el nombre.
+    const efectivo = g * fraccionServida(l.name, l.ingredientId, alimentoDe(l.ingredientId)).factor;
+    if (ES_ACEITE_DE_FREIR.test(l.ingredientId ?? "")) {
+      aceiteBruto += efectivo;
+      aceites.push({ g: efectivo, nu });
+      continue;
     }
     solido += efectivo;
     acumula(total, nu, efectivo);
   }
+
+  // El tope es de la RECETA y se reparte entre sus líneas de aceite: aplicarlo
+  // línea a línea daba dos veces el 6 % a las que listan dos aceites.
+  const tajada = factorAceite(aceiteBruto, solido);
   for (const { g, nu } of aceites) {
     const efectivo = modoAceite === "fuera" ? 0
       : modoAceite === "entero" ? g
-      : Math.min(g, ABSORCION_FRITURA * solido);
+      : g * tajada;
     acumula(total, nu, efectivo);
   }
 
@@ -298,8 +330,10 @@ say("");
 say("  Mirar SOLO la columna de kcal en la fila 'fuera' invita a leer acuerdo");
 say("  donde hay cancelación: ese total sale de una grasa muy baja sumada a una");
 say("  proteína y unos carbos altos. Los cuatro macros a la vez lo desmienten.");
-say("  Y 'absorbido' ≈ 'entero' porque el tope del 6 % casi nunca muerde: la");
-say("  banda real es binaria, el aceite se cuenta o no se cuenta.");
+say("  La palanca grande es el sí/no: entre 'fuera' y 'entero' hay 26 puntos de");
+say("  kcal y entre 'absorbido' y 'entero' solo 3. El tope del 6 % sí muerde");
+say("  —en 145 de las 871 recetas con aceite— pero las otras 726 llevan un");
+say("  chorro que ya está por debajo y pasa entero.");
 
 // ── 1c · qué sobrevive a mover los filtros ────────────────────────────────
 // Curva de especificación: todas las combinaciones defendibles de umbral de

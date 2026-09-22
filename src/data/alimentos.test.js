@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import alimentos from "./alimentos.json";
 import alimentoPorIngrediente from "./alimentoPorIngrediente.json";
+import proyeccion from "./derived/alimentosApp.json";
+import { createHash } from "node:crypto";
 import ingredientes from "./ingredients.json";
 const ingredients = ingredientes;
 import familiaLabels from "./familiaLabels.json";
@@ -45,27 +47,39 @@ describe("la tabla de alimentos", () => {
     expect(new Set(Object.values(alimentoPorIngrediente)).size).toBe(ingredientes.length);
   });
 
-  it("la nutrición del alimento es la del ingrediente, campo por campo", () => {
-    // TODOS los campos, no solo los cuatro macros duros. El detector de la
-    // primera versión solo miraba kcal/proteína/carbos/grasa y por eso dijo
-    // "cero divergencias" mientras la fusión cambiaba la fibra del tomate
-    // triturado (1,2 → 1,1) y convertía el azúcar de la sal en escamas de
-    // `null` a `0` — que no es una diferencia de número, es romper el
-    // invariante de que un dato ausente nunca es un cero.
-    const porId = new Map(alimentos.map((a) => [a.id, a]));
-    const malos = [];
-    for (const ing of ingredientes) {
-      const fila = porId.get(alimentoPorIngrediente[ing.id]);
-      const x = ing.nutrition ?? null;
-      const y = fila?.nutricion ?? null;
-      if (x === null && y === null) continue;
-      if (x === null || y === null) { malos.push(`${ing.id}: uno tiene nutrición y el otro no`); continue; }
-      for (const k of Object.keys(x)) {
-        // Object.is distingue null de 0, que es justo lo que hay que vigilar.
-        if (!Object.is(x[k], y[k])) malos.push(`${ing.id}.${k}: ${x[k]} contra ${y[k]}`);
-      }
-    }
-    expect(malos).toEqual([]);
+  it("la composición vive en UN solo sitio", () => {
+    // Este test sustituye al del espejo, y el cambio es el punto.
+    //
+    // Los 32 nutrientes estuvieron a la vez en `ingredients.json` y en
+    // `alimentos.json`, idénticos campo a campo y vigilados por un test que
+    // comparaba las dos copias. Dos copias del mismo número no son redundancia
+    // barata: la que la app leía de verdad era la que NO llevaba procedencia,
+    // así que el número y su porqué vivían separados y el trace-back se rompía
+    // justo en ese salto.
+    //
+    // Ahora `alimentos.json` es la tabla maestra —composición y procedencia
+    // juntas— y el catálogo se queda con lo suyo. Lo que antes se comparaba,
+    // ahora no puede existir.
+    const conNumeros = ingredientes.filter((i) => "nutrition" in i).map((i) => i.id);
+    expect(
+      conNumeros,
+      "vuelve a haber nutrición en ingredients.json. La composición es de la tabla maestra "
+      + "(src/data/alimentos.json), que es la única que lleva `fuente`, `via` y `motivo` al "
+      + "lado de cada número. Un ingrediente apunta a su alimento por alimentoPorIngrediente.",
+    ).toEqual([]);
+  });
+
+  it("la proyección que baja al cliente no se queda vieja", () => {
+    // `derived/alimentosApp.json` es la maestra transformada para el transporte
+    // —sin la auditoría, que nadie lee en el navegador— y lleva el hash de la
+    // maestra de la que salió. Si alguien regenera una y no la otra, esto cae.
+    const esperado = createHash("sha256").update(JSON.stringify(alimentos)).digest("hex").slice(0, 16);
+    expect(
+      proyeccion._.hash_maestra,
+      "la proyección del cliente salió de otra versión de alimentos.json. "
+      + "Corre `node scripts/build-alimentos.mjs`.",
+    ).toBe(esperado);
+    expect(proyeccion.filas.length).toBe(alimentos.length);
   });
 
   it("la FK cierra por los dos lados", () => {
@@ -246,14 +260,39 @@ describe("la fracción comestible", () => {
     expect(claves.filter((k) => !fraccionComestible[k].motivo?.trim())).toEqual([]);
   });
 
-  it("solo lista lo que descarta algo", () => {
-    // Un ingrediente con fracción 1 no pinta nada aquí: la ausencia YA
-    // significa «no se tira nada». Listarlo sería ruido y daría a entender
-    // que los demás están sin verificar.
-    const inutiles = claves.filter((k) => fraccionComestible[k].valor >= 1);
-    expect(inutiles).toEqual([]);
-    const fuera = claves.filter((k) => !(fraccionComestible[k].valor >= 0 && fraccionComestible[k].valor < 1));
-    expect(fuera).toEqual([]);
+  /**
+   * El 1 explícito ahora SÍ cuenta, y este test decía lo contrario.
+   *
+   * Decía: «un ingrediente con fracción 1 no pinta nada aquí: la ausencia YA
+   * significa no se tira nada». Era razonable y llevaba meses en pie, pero
+   * hacía el fichero incapaz de distinguir dos silencios muy distintos:
+   *
+   *   «Gambas peladas»  → nadie ha escrito nada porque no hay nada que tirar
+   *   «Rape»            → nadie ha escrito nada porque nadie lo ha mirado
+   *
+   * Los dos eran ausencia y los dos se leían como «se come entero». El
+   * segundo es falso: una cola de rape lleva la espina central, y son 2 kg de
+   * catálogo contados como carne.
+   *
+   * Es el mismo arreglo que se le hizo a la nutrición con `via`: un `fuenteId`
+   * sin `via` parecía trazado y no lo estaba. La cura no fue adivinar mejor,
+   * fue obligar al dato a decir de dónde venía. Aquí igual: el que se come
+   * entero lo declara con un 1 y su motivo, y a partir de ahí la ausencia
+   * significa una sola cosa — que está sin mirar.
+   */
+  it("acepta el 1 explícito, y nada por encima", () => {
+    const imposibles = claves.filter((k) => !(fraccionComestible[k].valor >= 0 && fraccionComestible[k].valor <= 1));
+    expect(imposibles, "una fracción comestible vive entre 0 y 1").toEqual([]);
+  });
+
+  it("el que se come entero dice POR QUÉ lo sabemos", () => {
+    // Un 1 sin motivo es peor que la ausencia: parece verificado y no lo está.
+    // El motivo tiene que decir la prueba —el nombre canónico, la ficha— no
+    // repetir el número.
+    const mudos = claves
+      .filter((k) => fraccionComestible[k].valor === 1)
+      .filter((k) => (fraccionComestible[k].motivo ?? "").trim().length < 25);
+    expect(mudos, "fracción 1 sin motivo: indistinguible de un relleno").toEqual([]);
   });
 
   it("lo que no se come no suma nutrición", () => {

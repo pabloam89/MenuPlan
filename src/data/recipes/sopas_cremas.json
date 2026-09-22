@@ -7785,7 +7785,7 @@
       },
       {
         "name": "Gambas",
-        "ingredientId": "gambas",
+        "ingredientId": "gambas-enteras",
         "amount": 150,
         "unit": "g"
       },
@@ -12737,7 +12737,7 @@
     "ingredients": [
       {
         "name": "Gambas",
-        "ingredientId": "gambas",
+        "ingredientId": "gambas-enteras",
         "amount": 200,
         "unit": "g"
       },
@@ -15022,7 +15022,7 @@
       },
       {
         "name": "Gambas",
-        "ingredientId": "gambas",
+        "ingredientId": "gambas-enteras",
         "amount": 100,
         "unit": "g"
       },
@@ -16443,7 +16443,7 @@
     "ingredients": [
       {
         "name": "Gambas",
-        "ingredientId": "gambas",
+        "ingredientId": "gambas-enteras",
         "amount": 400,
         "unit": "g"
       },

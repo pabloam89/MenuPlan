@@ -55,13 +55,45 @@ export const FRECUENCIAS = ["release", "pipeline", "llm", "build", "carga", "run
 export const TABLAS = [
   // ── FUENTES ───────────────────────────────────────────────────────────────
   {
+    id: "alimentos",
+    tipo: "fuente",
+    ruta: "src/data/alimentos.json",
+    clave: "id",
+    actualizacion: "pipeline",
+    procedencia: "LA TABLA MAESTRA del embudo de alimentos. BEDCA/CIQUAL/USDA entran por sus "
+      + "decisiones curadas y desembocan aquí; el número y su procedencia viven juntos. Hasta el "
+      + "22 sep 2026 la nutrición se copiaba de `ingredientes` y la copia que leía la app era "
+      + "justo la que no llevaba procedencia.",
+    productor: ["scripts/build-alimentos.mjs"],
+    consumidores: [
+      "src/lib/ingredients.js (via derived/alimentosApp.json)",
+      "src/lib/derive/composicion.js",
+      "src/lib/derive/masaServida.js",
+      "scripts/audit-catalog.mjs",
+    ],
+    esquema: "src/data/alimentoSchema.js",
+    campos: [
+      { campo: "id", plano: "identidad", cobertura_min: 100 },
+      { campo: "nutricion", plano: "nutricion", cobertura_min: 96, nota: "377 de 391. Los 14 sin ficha están declarados, no escondidos" },
+      { campo: "fuente", plano: "control", cobertura_min: 96, nota: "bedca | ciqual | usda | heredado | sin_fuente" },
+      { campo: "fuenteId", plano: "control", cobertura_min: 96 },
+      { campo: "via", plano: "control", cobertura_min: 96, nota: "CON QUÉ AUTORIDAD se eligió la ficha. `macros` = nadie la eligió: coincidencia de los 4 macros duros. Son 76 de 377" },
+      { campo: "motivo", plano: "control", cobertura_min: 76, nota: "solo lo llevan las decisiones humanas; la vía `macros` no tiene ninguno que dar" },
+      { campo: "familia", plano: "identidad", cobertura_min: 100 },
+      { campo: "rol", plano: "identidad", cobertura_min: 100 },
+      { campo: "taxonomia", plano: "identidad", cobertura_min: 100 },
+      { campo: "densidad", plano: "logistica", cobertura_min: 4, nota: "solo los que se apartan de 1 g/ml; ausente NO es hueco" },
+      { campo: "fraccionComestible", plano: "logistica", cobertura_min: 14, nota: "solo los que descartan algo; ausente = se come todo" },
+    ],
+  },
+  {
     id: "ingredientes",
     tipo: "fuente",
     ruta: "src/data/ingredients.json",
     clave: "id",
     actualizacion: "release",
-    procedencia: "curado a mano; nutrition via pipeline BEDCA (externa, ver tabla `bedca`)",
-    productor: ["scripts/build-ingredient-catalog.mjs (desarmado: el fichero es fuente)", "scripts/apply-bedca-nutrition.mjs (solo `nutrition`)"],
+    procedencia: "curado a mano. La NUTRICIÓN ya no vive aquí: es de la tabla `alimentos` (22 sep 2026)",
+    productor: ["scripts/build-ingredient-catalog.mjs (desarmado: el fichero es fuente)"],
     consumidores: ["src/lib/ingredients.js", "src/lib/kitchenUnits.js (via registerPieceCatalog)", "src/lib/shoppingBuilder.js", "scripts/audit-catalog.mjs"],
     esquema: "src/data/ingredientSchema.js",
     campos: [
@@ -77,9 +109,13 @@ export const TABLAS = [
       { campo: "isVegan", plano: "identidad", cobertura_min: 100 },
       { campo: "defaultUnit", plano: "logistica", cobertura_min: 100 },
       { campo: "medianAmount", plano: "logistica", cobertura_min: 100 },
-      { campo: "pieza", plano: "logistica", cobertura_min: 13, objetivo: "todo ingrediente que alguna receta pida en `ud`", nota: "regex PIECE_WEIGHTS de red; ver piezaRoundTrip.test.js" },
+      // Bajó de 13 a 12 el 22 sep 2026 y NO porque se perdiera ningún dato:
+      // entraron `gambas-enteras` y `bonito-fresco` al partir dos alimentos, y
+      // ninguno de los dos se pide nunca en `ud`. El numerador está intacto y
+      // creció el denominador. Es la diferencia entre un trinquete que vigila
+      // la calidad y uno que castiga por crecer.
+      { campo: "pieza", plano: "logistica", cobertura_min: 12, objetivo: "todo ingrediente que alguna receta pida en `ud`", nota: "regex PIECE_WEIGHTS de red; ver piezaRoundTrip.test.js" },
       { campo: "piezaPorAlias", plano: "logistica", cobertura_min: 2 },
-      { campo: "nutrition", plano: "nutricion", cobertura_min: 51, objetivo: "~90 %: es el cuello de botella de toda derivación de macros", nota: "SOLO via BEDCA. Lo que BEDCA no tiene (sriracha, cointreau) se queda sin dato" },
     ],
   },
   {
@@ -190,7 +226,7 @@ export const TABLAS = [
     actualizacion: "pipeline",
     procedencia: "Base de Datos Española de Composición de Alimentos",
     productor: ["scripts/bedca-nutrition.mjs → bedca-repesca.mjs → bedca-triage.mjs → bedca-select.mjs → apply-bedca-nutrition.mjs"],
-    consumidores: ["ingredientes.nutrition"],
+    consumidores: ["alimentos.nutricion"],
     esquema: null,
     campos: [],
     nota: "El pipeline NUNCA estima: propone candidatos, filtra por Atwater y estado de cocinado, y una decisión (humana o de bedca-select con lista cerrada) elige el foodId. 185 ingredientes siguen sin nutrición porque BEDCA no los tiene o no se ha decidido su match.",
@@ -215,7 +251,7 @@ export const TABLAS = [
     ruta: "src/data/derived/recipeNutrition.json",
     clave: "recipeId",
     actualizacion: "build",
-    procedencia: "computeRecipeNutrition(receta, baseServings) sobre ingredientes.nutrition, pesando por pieza del catálogo",
+    procedencia: "computeRecipeNutrition(receta, baseServings) sobre alimentos.nutricion, pesando por pieza del catálogo",
     productor: ["scripts/build-derived.mjs"],
     consumidores: ["scripts/audit-catalog.mjs (bloque 1)"],
     esquema: null,
@@ -336,7 +372,7 @@ export const OPERADORES = [
   { id: "resolveIngredient", tipo: "conversor", modulo: "src/lib/ingredientResolver.js", entrada: ["nombre libre"], salida: "ingredientes.id", determinista: false, nota: "nombre → id por alias/stem. Es la red para texto libre; las recetas ya llevan el FK" },
   { id: "pieceGramsFor", tipo: "conversor", modulo: "src/lib/ingredients.js", entrada: ["ingredientes.pieza", "PIECE_WEIGHTS"], salida: "gramos", determinista: true, nota: "catálogo primero, regex de red; kitchenUnits lo ve via registerPieceCatalog" },
   { id: "gramsForRecipeQuantity", tipo: "conversor", modulo: "src/lib/kitchenUnits.js", entrada: ["línea de receta"], salida: "gramos", determinista: true, nota: "g/kg/ml/l directos; ud por pieza; cucharadas por DRY_VOLUME; null si no sabe" },
-  { id: "computeRecipeNutrition", tipo: "calculadora", modulo: "src/lib/ingredients.js", entrada: ["recetas.ingredients", "ingredientes.nutrition"], salida: "recetaNutricion", determinista: true },
+  { id: "computeRecipeNutrition", tipo: "calculadora", modulo: "src/lib/ingredients.js", entrada: ["recetas.ingredients", "alimentos.nutricion"], salida: "recetaNutricion", determinista: true },
   { id: "ingredientsByPart", tipo: "calculadora", modulo: "src/lib/recipeSteps.js", entrada: ["recetas.stepsRich[].part", "recetas.ingredients"], salida: "recetaPartes", determinista: true, nota: "el marcador {{Ingrediente}} atribuye cada línea a la parte de su paso" },
   { id: "deriveStepParts", tipo: "clasificador", modulo: "src/lib/derive/stepParts.js", entrada: ["recetas.stepsRich", "ingredientes.aisle", "recetas.mainProtein"], salida: "stepsRich[].part (derivado)", determinista: true, nota: "por FK y aisle, no por texto; validado contra las curadas en _meta.json" },
   { id: "aporteDe", tipo: "calculadora", modulo: "src/lib/aporte.js", entrada: ["recetas.ingredients"], salida: "aporte", determinista: false, nota: "familiaDeIngrediente va por palabras del nombre" },

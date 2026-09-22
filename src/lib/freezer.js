@@ -382,4 +382,3 @@ export function cookedAgoLabel(cookedAt) {
   if (days === 1) return "ayer";
   return `hace ${days} días`;
 }
-

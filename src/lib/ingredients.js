@@ -21,7 +21,13 @@
 
 import ingredientsJson from "../data/ingredients.json";
 import substitutionsJson from "../data/ingredientSubstitutions.json";
-import fraccionComestibleJson from "../data/fraccionComestible.json";
+import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida } from "./derive/masaServida.js";
+// LA COMPOSICIÓN SE LEE DE LA TABLA MAESTRA, no de una copia en el catálogo.
+// `alimentos.json` es el output maestro del embudo de alimentos —el número y su
+// procedencia viven juntos— y esto es su proyección para el cliente, sellada
+// con el hash de la maestra. Ver scripts/build-alimentos.mjs.
+import alimentosApp from "../data/derived/alimentosApp.json";
+import alimentoPorIngrediente from "../data/alimentoPorIngrediente.json";
 import densidadJson from "../data/densidad.json";
 import { NUTRIENTES, CAMPOS_NUTRICION, CAMPOS_DUROS, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import { validateIngredients } from "../data/ingredientSchema.js";
@@ -173,6 +179,41 @@ registerDensityCatalog(densityFor);
  * @param {{ingredients?: Array<{name: string, amount?: number, unit?: string}>}} recipe
  * @returns {Array<{position: number, rawName: string, amount: number|null, unit: string|null, ingredientId: string|null, ingredient: Ingredient|null}>}
  */
+/**
+ * El índice de composición, por id de alimento.
+ *
+ * Se exporta MUTABLE a propósito y solo por los tests, igual que
+ * `ingredientById`: un test que quiere «este ingrediente aporta 100 kcal» tiene
+ * que poder decirlo por la misma puerta que usa la app, no por una segunda.
+ * En producción lo llena la proyección y nadie lo toca.
+ */
+export const COMPOSICION = new Map(alimentosApp.filas.map((f) => [f.id, f.nutricion]));
+
+/**
+ * La fila entera del alimento, por id de INGREDIENTE.
+ *
+ * `fraccionServida` la necesita para distinguir un hueco de una decisión: sin
+ * la taxonomía no puede saber que «Gambas» es marisco y que por tanto su
+ * fracción comestible ausente es que nadie la miró, no que se coma el
+ * caparazón.
+ */
+const FILA_ALIMENTO = new Map(alimentosApp.filas.map((f) => [f.id, f]));
+const alimentoDeIngrediente = (ingredientId) =>
+  (ingredientId ? FILA_ALIMENTO.get(alimentoPorIngrediente[ingredientId] ?? ingredientId) : null) ?? null;
+
+/**
+ * La composición de un ingrediente, por su id.
+ *
+ * Un ingrediente apunta a un alimento por `alimentoPorIngrediente`; hoy es el
+ * mapa identidad (391 claves, todas a sí mismas) porque cada ingrediente tiene
+ * su ficha, pero el modelo admite N ingredientes → 1 alimento y por eso se
+ * pregunta por el mapa y no por el id directamente.
+ */
+export function composicionDe(ingredientId) {
+  if (!ingredientId) return null;
+  return COMPOSICION.get(alimentoPorIngrediente[ingredientId] ?? ingredientId) ?? null;
+}
+
 export function resolveRecipeIngredients(recipe) {
   return (recipe?.ingredients ?? []).map((line, position) => {
     const ingredient = resolveIngredient(line.name);
@@ -261,31 +302,12 @@ export function deriveRecipeAllergens(recipe) {
  * scripts/audit-catalog.mjs, donde lleva tiempo, y aquí se aplica igual.
  */
 const SAL_A_GRANEL = 50;
-const ES_SAL = /^sal|sal gruesa|sal gorda|sal marina/i;
+const ES_SAL = /^sal\b|sal gruesa|sal gorda|sal marina/i;
 const ES_AZUCAR = /^azucar/i;
 
-/**
- * De todo el aceite que una receta lista, cuánto acaba DENTRO de la comida.
- *
- * Una fritura no se come su aceite: se calienta, se fríe y se tira. Contarlo
- * entero daba números imposibles y no en pocos casos —«Fritura de pescado
- * variado» listaba 367 g de aceite para dos raciones y salía a 2.062 kcal por
- * plato, cinco veces lo declarado; con el tope sale a 632—.
- *
- * El 6 % no es un número redondo elegido a ojo: sale del propio catálogo, y lo
- * midió antes scripts/audit-catalog.mjs. En «Patatas fritas caseras», de las
- * 500 kcal declaradas menos las 288 de la patata quedan 212 kcal de aceite,
- * que son 24 g, que son el 6 % del peso del sólido.
- *
- * Solo los aceites LÍQUIDOS de cocinar. La mantequilla y la manteca no entran:
- * en este catálogo no se fríe con ellas y su grasa sí se come.
- *
- * Y el tope no es un recorte, es un mínimo: un chorro para sofreír ya está por
- * debajo del 6 % del sólido y pasa entero. Muerde en 88 de las 726 recetas
- * estrella —la cola de las frituras— y deja las otras 638 intactas.
- */
-const ACEITE_ABSORBIDO = 0.06;
-const ACEITES_DE_FREIR = /^aceite-/;
+// El tope del aceite de freír vive en derive/masaServida.js, que es el módulo
+// que contesta a «de lo que se compra, cuánto llega al plato». Aquí estaba una
+// de las dos copias que había del mismo 0,06 con significados distintos.
 
 /**
  * @param {{ingredients?: Array<{name: string, amount?: number, unit?: string}>}} recipe
@@ -327,14 +349,19 @@ export function computeRecipeNutrition(recipe, servings) {
   // líneas se resuelven una vez y se recorren dos.
   const lineas = [];
   let solidoGramos = 0;
+  let aceiteBruto = 0;
   for (const line of resolveRecipeIngredients(recipe)) {
     const comprados = gramsForRecipeQuantity(line.rawName, line.amount, line.unit);
     if (comprados == null || comprados <= 0) continue;
-    const fraccion = fraccionComestibleJson[line.ingredient?.id]?.valor ?? 1;
-    const grams = comprados * fraccion;
+    // La merma es de la LÍNEA, no del ingrediente: unos «Mejillones (sin
+    // concha)» no vuelven a perder la concha. Ver derive/masaServida.js — eran
+    // 18 líneas restando dos veces, de 21 a 46 kcal por ración.
+    const grams = comprados
+      * fraccionServida(line.rawName, line.ingredient?.id, alimentoDeIngrediente(line.ingredient?.id)).factor;
     if (grams <= 0) continue;
-    const esAceite = ACEITES_DE_FREIR.test(line.ingredient?.id ?? "");
-    if (!esAceite) solidoGramos += grams;
+    const esAceite = ES_ACEITE_DE_FREIR.test(line.ingredient?.id ?? "");
+    if (esAceite) aceiteBruto += grams;
+    else solidoGramos += grams;
     lineas.push({ line, grams, esAceite, nombre: line.rawName ?? "" });
   }
 
@@ -342,19 +369,22 @@ export function computeRecipeNutrition(recipe, servings) {
   // contar nada, porque el azúcar del gravlax solo se tira si hay sal con él.
   const hayCurado = lineas.some((x) => ES_SAL.test(x.nombre) && x.grams >= SAL_A_GRANEL);
 
+  // El tope del aceite es de la RECETA y se reparte entre sus líneas de
+  // aceite. Aplicarlo línea a línea daba dos veces el 6 % a las 19 recetas que
+  // listan dos aceites: «Chuletón a la parrilla» lleva 300 ml de girasol para
+  // freír y 150 de oliva suave para el alioli.
+  const tajadaDeAceite = factorAceite(aceiteBruto, solidoGramos);
+
   for (const { line, grams: brutos, esAceite, nombre } of lineas) {
     // La costra y el curado, fuera: ni su masa ni su sodio llegan al plato.
     if (ES_SAL.test(nombre) && brutos >= SAL_A_GRANEL) continue;
     if (hayCurado && ES_AZUCAR.test(nombre) && brutos >= SAL_A_GRANEL) continue;
-    // El tope: de todo el aceite que la receta lista, solo se come lo que el
-    // sólido absorbe. Muerde en 88 de las 726 recetas estrella y no toca las
-    // demás, porque un chorro para sofreír ya está por debajo del 6 %.
-    const grams = esAceite ? Math.min(brutos, ACEITE_ABSORBIDO * solidoGramos) : brutos;
+    const grams = esAceite ? brutos * tajadaDeAceite : brutos;
     if (grams <= 0) continue;
 
     totalGrams += grams;
 
-    const nutrition = line.ingredient?.nutrition;
+    const nutrition = composicionDe(line.ingredient?.id);
     if (!nutrition) continue;
     coveredGrams += grams;
 

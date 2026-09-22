@@ -3176,7 +3176,7 @@
       },
       {
         "name": "Arroz cocido",
-        "ingredientId": "arroz",
+        "ingredientId": "arroz-cocido",
         "amount": 100,
         "unit": "g"
       },
@@ -3358,7 +3358,7 @@
       },
       {
         "name": "Gambas",
-        "ingredientId": "gambas",
+        "ingredientId": "gambas-enteras",
         "amount": 150,
         "unit": "g"
       },
