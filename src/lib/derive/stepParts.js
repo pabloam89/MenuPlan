@@ -28,6 +28,46 @@
  * escribe en bloques: "pochar la cebolla / añadir el tomate / dejar reducir"
  * son tres pasos de la misma parte y solo el primero nombra ingredientes.
  *
+ * ── El nombre en texto plano, antes de heredar ────────────────────────────
+ * La herencia arrastra la parte equivocada en cuanto la receta INTERCALA. En
+ * «Magret de pato con salsa de frutos rojos», cuatro pasos seguidos dicen
+ * «Colocar el magret…», «Voltear el magret…», «Retirar el magret…» sin un
+ * solo {{marcador}}, así que heredaban de la chalota de la salsa y salían
+ * `guarnicion` siendo el principal. Era el fallo dominante: 384 pasos de
+ * principal marcados guarnicion, más 229 marcados salsa.
+ *
+ * Y el dato está ahí: de los 1220 pasos curados sin marcador, 750 (61,5 %)
+ * nombran en texto plano un ingrediente de la propia receta. Así que antes de
+ * heredar se busca ese nombre, y el voto sale por el MISMO camino que el del
+ * marcador —`votoDe`, con su NO_VOTA y su pasillo—, no por una regla paralela.
+ *
+ * Solo actúa cuando los marcadores no han votado: un marcador es una
+ * declaración y el texto plano una lectura, y la declaración manda.
+ *
+ * ── Lo que se probó y NO entró ────────────────────────────────────────────
+ * Dos cosas, y las dos se midieron antes de descartarse, que es la única
+ * manera de que un «no» valga algo:
+ *
+ *   · HEREDAR HACIA ATRÁS. La idea era que «Calentar la plancha» o «Batir el
+ *     huevo» anuncian lo que viene en vez de continuar lo anterior. Medido:
+ *     53,7 % frente a 59,1 %. La receta se escribe hacia delante.
+ *
+ *   · UN LÉXICO DE SALSAS (mojo, chimichurri, vinagreta, reducción…), porque
+ *     `salsa` es la parte peor derivada, con 44 %. En su versión agresiva
+ *     subía salsa a 50 % pero hundía principal de 59 a 56 —«Devolver el
+ *     ossobuco a la cazuela CON LA SALSA» es un paso del principal— y el neto
+ *     bajaba. En su versión prudente, corrigiendo solo el voto de guarnición,
+ *     ganaba 3 pasos de 2478. Veinte palabras de regex por tres pasos no se
+ *     pagan, y el código que no se paga es el que luego nadie sabe por qué
+ *     está.
+ *
+ * ── Y por qué esto SIGUE sin promocionarse a fuente ───────────────────────
+ * 59,1 % de concordancia. Ha subido desde el 52,6 % y cada punto está medido,
+ * pero cuatro de cada diez pasos siguen mal y `salsa` no llega ni a la mitad.
+ * El operador vale para MEDIRSE y para explorar; no vale para escribir `part`
+ * en 853 recetas. El día que alguien quiera usarlo, el número está aquí y es
+ * el que manda, no la sensación de que «ya casi».
+ *
  * ── Lo que NO hace ────────────────────────────────────────────────────────
  * No inventa partes en recetas monocomponente. Si todos los pasos votarían lo
  * mismo, devuelve null: una tortilla no tiene "principal y guarnición", tiene
@@ -43,8 +83,25 @@ import { resolveIngredient } from "../ingredients.js";
  * aparecen igual en el principal, en la guarnición y en la salsa, así que su
  * voto solo hace ruido. Medido: sin este filtro, la cebolla y el ajo de un
  * sofrito arrastraban a `guarnicion` 548 pasos que son del principal.
+ *
+ * TERMINA EN `\b`, y no es cosmética: sin la frontera, `^sal` casaba «Salmón»
+ * y «Salsifí», `^ajo` casaba «Ajonjolí» y `^apio` se habría llevado por
+ * delante el «Apionabo» que en varias recetas ES la guarnición. Es el mismo
+ * error que ya se pagó en los regex de alimento, y aquí estaba cobrándose
+ * pescados enteros en silencio.
+ *
+ * ── El rebozado y el ligante ──────────────────────────────────────────────
+ * El huevo de una milanesa de ternera, el pan rallado, la maicena: no son una
+ * parte del plato, son CÓMO se trata el principal. Sin ellos aquí, «Batir
+ * {{Huevo}}» y «Mezclar {{Pan rallado}}» votaban `guarnicion` —el huevo es
+ * pasillo Huevos y la proteína declarada era ternera— y arrastraban por
+ * herencia todos los pasos que venían detrás.
+ *
+ * Callarlos es seguro porque la proteína declarada se pregunta ANTES: en una
+ * tortilla, `mainProtein: huevo` hace que el huevo vote principal y no llegue
+ * hasta aquí. La lista calla el rol, no el alimento.
  */
-const NO_VOTA = /^(cebolla|ajo|tomate|pimiento|aceite|sal|pimienta|perejil|laurel|vino|caldo|agua|azucar|harina|cebolleta|puerro|zanahoria)/;
+const NO_VOTA = /^(cebolla|ajo|tomate|pimiento|aceite|sal|pimienta|perejil|laurel|vino|caldo|agua|azucar|harina|cebolleta|puerro|zanahoria|apio|huevo|pan rallado|maicena|almidon|comino|pimenton|oregano|tomillo|romero|curry|canela|nuez moscada|azafran|cilantro|albahaca|menta|eneldo|cebollino|clavo|jengibre)\b/;
 
 /** Pasillos que casi siempre son el eje del plato cuando hay proteína animal. */
 const PASILLO_PRINCIPAL = new Set(["Carne", "Pescado", "Huevos"]);
@@ -82,14 +139,37 @@ const IDS_POR_PROTEINA = {
 
 const norm = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
+const escapa = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * La raíz del nombre de una línea, para buscarla en el texto de un paso.
+ *
+ * Se corta por « de » y « con » porque un nombre de ingrediente enumera igual
+ * que uno de receta: «Carrilleras DE ternera» se nombra en el paso como
+ * «las carrilleras», y «Muslos DE pollo» como «los muslos».
+ *
+ * CON FRONTERA DE PALABRA, siempre. Sin ella, `sal` casa «salsa» y `ajo`
+ * casa «cangrejo»: es el mismo error que ya se pagó en los regex de alimento.
+ * La `s?` final cubre el plural, que es como el paso lo escribe casi siempre.
+ */
+function raizDeLinea(nombre) {
+  const raiz = norm(nombre).split(/ de | con /)[0].trim().replace(/s$/, "");
+  return raiz.length > 3 ? new RegExp(`\\b${escapa(raiz)}s?\\b`) : null;
+}
+
 /** El voto de un ingrediente, o null si no opina. */
 function votoDe(ingrediente, receta) {
   if (!ingrediente) return null;
   if (ID_SALSA.has(ingrediente.id)) return "salsa";
-  if (NO_VOTA.test(norm(ingrediente.name))) return null;
 
+  // LA PROTEÍNA DECLARADA SE PREGUNTA ANTES QUE NADA, porque es lo único que
+  // la receta afirma de sí misma. Estaba debajo de NO_VOTA, y eso hacía que
+  // `huevo` no pudiera entrar nunca en la lista de los que no votan: habría
+  // callado también a la tortilla, donde el huevo ES el plato.
   const re = IDS_POR_PROTEINA[receta.mainProtein];
   if (re && re.test(norm(ingrediente.name))) return "principal";
+
+  if (NO_VOTA.test(norm(ingrediente.name))) return null;
 
   if (PASILLO_PRINCIPAL.has(ingrediente.aisle)) {
     // Carne o pescado que NO es la proteína declarada: es tropiezo de un
@@ -113,6 +193,16 @@ export function deriveStepParts(receta) {
   const pasos = receta?.stepsRich ?? [];
   if (!pasos.length) return null;
 
+  // Las líneas de la receta, con su raíz buscable y su voto ya resuelto. Se
+  // calcula una vez por receta y no una vez por paso: son los mismos
+  // ingredientes en los quince pasos.
+  const porTexto = (receta.ingredients ?? [])
+    .map((linea) => ({
+      re: raizDeLinea(linea?.name),
+      voto: votoDe(resolveIngredient(linea?.name) ?? null, receta),
+    }))
+    .filter((x) => x.re && x.voto);
+
   const directos = pasos.map((paso) => {
     const cuenta = {};
     for (const marcador of markerIngredientNames(paso?.text)) {
@@ -122,6 +212,13 @@ export function deriveStepParts(receta) {
         : resolveIngredient(marcador);
       const voto = votoDe(ing, receta);
       if (voto) cuenta[voto] = (cuenta[voto] ?? 0) + 1;
+    }
+    // Ningún marcador ha opinado: se lee el texto plano antes de heredar.
+    if (!Object.keys(cuenta).length) {
+      const texto = norm(paso?.text);
+      for (const { re, voto } of porTexto) {
+        if (re.test(texto)) cuenta[voto] = (cuenta[voto] ?? 0) + 1;
+      }
     }
     // La proteína del plato gana aunque la nombre un solo marcador: un paso
     // que toca la merluza es del principal aunque cite tres verduras.
