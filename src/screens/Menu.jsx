@@ -6000,16 +6000,18 @@ export const MenuScreen = memo(function MenuScreen({
         {/* View controls — clásico: segmented + botón para entrar al Deck */}
 
         {/* View controls — deck: vistas (izq) · semana (centro) · filtro círculo (der) */}
-        {hasMenu && (
-          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-            {/* The coach anchor hugs the view switch alone: the filter circle at
-                the far right gets its own step, and a spotlight over the whole
-                row would highlight both at once. */}
-            {/* En la pizarra no hay selector de vista: solo existe Semana,
-                así que un interruptor de una posición sería un botón que no
-                hace nada. Su sitio lo ocupa el avatar, que sí decide algo. */}
-            {modoPizarra ? (
-              (data.groups?.length > 0) && (
+        {/* ── La fila de la pizarra ─────────────────────────────────────
+            Dos secciones en una sola banda: quién come (avatares, en blanco,
+            porque son personas y van con el tablero) y con qué se maneja el
+            tablero (las baldosas, en el slate que esta app ya reserva para lo
+            logístico — ver la escala de Compra en DESIGN_SYSTEM §7). El tinte
+            llega hasta el borde derecho porque la franja es una zona, no una
+            tarjeta: cortarla antes del margen la convertiría en un recuadro
+            más de los que hay debajo. */}
+        {hasMenu && modoPizarra && (
+          <div style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}>
+            <div style={{ background: "#fff", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
+              {(data.groups?.length > 0) && (
                 <DeckFilter
                   groups={data.groups}
                   scope={scope}
@@ -6018,12 +6020,21 @@ export const MenuScreen = memo(function MenuScreen({
                   interactivo={multiGroup}
                   ciclar={multiGroup}
                 />
-              )
-            ) : (
-              <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
-                <DeckNav value={deckView} onChange={setDeckView} options={deckViews} />
-              </div>
-            )}
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0, background: "#f1f5f9", display: "flex", alignItems: "center" }}>
+              {pizarraControles}
+            </div>
+          </div>
+        )}
+        {hasMenu && !modoPizarra && (
+          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            {/* The coach anchor hugs the view switch alone: the filter circle at
+                the far right gets its own step, and a spotlight over the whole
+                row would highlight both at once. */}
+            <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
+              <DeckNav value={deckView} onChange={setDeckView} options={deckViews} />
+            </div>
             {/* Centrado en la FRANJA, no en el hueco que sobra. Con
                 `flex: 1 + center` el paso de semanas se centraba entre el
                 selector de vistas y el filtro, así que sin avatares —el caso
@@ -6037,7 +6048,7 @@ export const MenuScreen = memo(function MenuScreen({
                 display: "flex", justifyContent: "center", pointerEvents: "none",
               }}
             >
-              {menuWeeks.length > 1 && (
+              {!modoPizarra && menuWeeks.length > 1 && (
                 <DeckWeekStepper
                   style={{ pointerEvents: "auto" }}
                   weekIdx={Math.max(0, currentWeekIdx)}
@@ -6067,7 +6078,6 @@ export const MenuScreen = memo(function MenuScreen({
             a App: los manejadores —activar, favorito, el panel de opciones—
             viven aquí, y hacerlos viajar por dos componentes para volver al
             mismo sitio no le añade nada a nadie. */}
-        {modoPizarra && hasMenu && pizarraControles}
         {accionesEnLaFila
           ? cloneElement(wizardControls, {
               acciones: accionesDelMenu,

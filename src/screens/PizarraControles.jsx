@@ -251,8 +251,8 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null }) {
       onClick={onClick}
       className="mp-press"
       style={{
-        flexShrink: 0, width: 72,
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+        flexShrink: 0, width: 66,
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
         background: "none", border: "none", padding: 0,
         cursor: "pointer", fontFamily: "inherit",
       }}
@@ -260,13 +260,13 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null }) {
       <span
         style={{
           position: "relative",
-          width: 52, height: 52, borderRadius: 17,
+          width: 46, height: 46, borderRadius: 15,
           display: "flex", alignItems: "center", justifyContent: "center",
           background: tinte, border: "2px solid transparent",
           boxShadow: "0 2px 8px -4px rgba(20,47,29,.18)",
         }}
       >
-        <Icon size={21} color={color} strokeWidth={2.2} />
+        <Icon size={19} color={color} strokeWidth={2.2} />
         {badge != null && (
           <span
             style={{
@@ -282,7 +282,7 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null }) {
           </span>
         )}
       </span>
-      <span style={{ fontSize: 10.5, fontWeight: 800, color: "#5a7066", letterSpacing: "-.1px" }}>
+      <span style={{ fontSize: 10, fontWeight: 800, color: "#5a7066", letterSpacing: "-.1px" }}>
         {label}
       </span>
     </button>
@@ -329,9 +329,8 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar, onRellenar
 
       <div
         style={{
-          display: "flex", gap: 4, overflowX: "auto",
-          background: "#eef4f0", borderTop: "1px solid #e3ebe6",
-          padding: "10px 12px 8px", marginBottom: 14,
+          display: "flex", gap: 2, overflowX: "auto", width: "100%",
+          padding: "8px 8px 6px",
           scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
         }}
       >
