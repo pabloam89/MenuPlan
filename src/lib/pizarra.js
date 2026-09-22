@@ -216,12 +216,15 @@ export function huecosDelPlan(plan) {
 }
 
 /**
- * Las franjas que un día puede tener, en el orden natural del día. Es el
- * vocabulario CERRADO de `mealSlots.js`: el `+` reparte estas cinco y no
- * inventa ninguna, porque una franja nueva no es UI — son reglas nuevas en
- * validateMenu.js.
+ * Las franjas que el `+` reparte, en el orden natural del día.
+ *
+ * Es el vocabulario CERRADO de `mealSlots.js` menos el postre: el postre no
+ * es una comida que se planifique aparte sino el remate de una, así que como
+ * baldosa suelta en el tablero compite con los platos sin serlo. El motor lo
+ * sigue sabiendo repartir (`data.extraMeals.postre`) y `conHuecoAnadido` lo
+ * sigue aceptando; lo que se ha retirado es ofrecerlo aquí de salida.
  */
-export const FRANJAS_DEL_DIA = ["Desayuno", "Comida", "Merienda", "Cena", "Postre"];
+export const FRANJAS_DEL_DIA = ["Desayuno", "Comida", "Merienda", "Cena"];
 
 /** Qué franjas tiene ya ese día (en cualquiera de los grupos visibles). */
 export function franjasDelDia(plan, day, groups) {

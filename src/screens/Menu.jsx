@@ -2051,20 +2051,32 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
       const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
       if (!slot) continue;
       const dishes = dishesFromSlot(slot, isLunch);
+      // Una comida partida en dos (`dosPlatos`) enseña un hueco por plato,
+      // aunque estén los dos sin poner: es la única forma de que puedas
+      // elegir el primero y el segundo por separado desde el tablero vacío.
+      // `dishesFromSlot` no puede decirlo —solo ve lo que hay puesto—, así
+      // que los vacíos se intercalan aquí, cada uno en su sitio: el primero
+      // delante y el segundo detrás.
+      const dosPlatos = Boolean(isLunch && slot.dosPlatos);
+      const items = [];
+      if (dosPlatos && !slot.firstRecipeId) items.push({ vacio: "first" });
+      for (const dish of dishes) items.push({ dish });
+      if (dosPlatos && !slot.recipeId) items.push({ vacio: "main" });
       // A slot the user emptied ("Vaciar hueco") keeps a `cleared` flag so we can
       // still render a tappable placeholder to refill it (per group, no dedup).
-      if (dishes.length === 0) {
-        if (slot.cleared) {
-          const key = `empty::${meal}::${g.id}`;
+      if (!dosPlatos && dishes.length === 0 && slot.cleared) items.push({ vacio: "main" });
+
+      for (const item of items) {
+        if (item.vacio) {
+          const key = `empty::${meal}::${item.vacio}::${g.id}`;
           if (!byKey.has(key)) {
-            const tile = { meal, group: g, groups: [g], slot, dish: null, empty: true };
+            const tile = { meal, group: g, groups: [g], slot, dish: null, empty: true, course: item.vacio, dosPlatos };
             byKey.set(key, tile);
             tiles.push(tile);
           }
+          continue;
         }
-        continue;
-      }
-      for (const dish of dishes) {
+        const dish = item.dish;
         const key = `${meal}::${dish.recipeId}::${dish.courseKey}`;
         const existing = byKey.get(key);
         if (existing) {
@@ -2130,7 +2142,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   const recipe = isEmpty ? null : RECIPES_BY_ID[dish.recipeId];
   const srcUrl = recipe ? dishImageForRecipe(recipe) : null;
   const sel = isEmpty
-    ? { slot, groupId: group.id, day, meal, group, course: "main", empty: true }
+    ? { slot, groupId: group.id, day, meal, group, course: tile.course ?? "main", empty: true }
     : recipe
       ? { recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey }
       : null;
@@ -2253,7 +2265,9 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           </span>
         </span>
         <span style={{ fontSize: compact ? 10 : 12.5, fontWeight: 800, color: "#4f6a5b", textAlign: "center", lineHeight: 1.2 }}>
-          {emptyMealLabel} libre
+          {tile.dosPlatos
+            ? `${tile.course === "first" ? "1º" : "2º"} libre`
+            : `${emptyMealLabel} libre`}
         </span>
         <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "#9bb0a4" }}>Toca para añadir</span>
       </button>
@@ -5849,7 +5863,9 @@ export const MenuScreen = memo(function MenuScreen({
           <div
             style={{
               paddingTop: 14,
-              paddingLeft: 16,
+              // La lengüeta del calendario ocupa 26px pegada al borde: sin
+              // este aire se comía la esquina izquierda de las tarjetas.
+              paddingLeft: modoPizarra ? 36 : 16,
               paddingRight: 16,
               paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
             }}

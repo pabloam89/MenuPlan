@@ -147,9 +147,15 @@ export function PizarraControles({ data, onAplicar }) {
       {!abierto && (
         <div
           style={{
-            position: "fixed", top: "32dvh", zIndex: 150,
-            left: "50%", transform: "translateX(-50%)",
-            width: "min(420px, 100vw)", pointerEvents: "none",
+            // A media altura y no a un tercio: arriba pisaba el nombre del
+            // día y su número, y más abajo caía sobre las tarjetas de comida y
+            // cena. En el centro la lengüeta cae entre dos filas.
+            position: "fixed", top: "50dvh", transform: "translate(-50%, -50%)",
+            zIndex: 150, left: "50%",
+            // `100%` y no `100vw`: vw incluye la barra de scroll, así que en
+            // escritorio la caja salía 7px más ancha que lo visible y la
+            // lengüeta se quedaba medio fuera por la izquierda.
+            width: "min(420px, 100%)", pointerEvents: "none",
             display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8,
           }}
         >
@@ -161,17 +167,20 @@ export function PizarraControles({ data, onAplicar }) {
               aria-label={label}
               className="mp-press"
               style={{
-                width: 20, height: 62, padding: 0,
-                borderRadius: "0 12px 12px 0",
-                border: "1px solid #dbe7df", borderLeft: "none",
-                background: "rgba(255,255,255,.92)",
+                // Más ancha para que el icono respire, y sin color: gris
+                // verdoso sobre blanco translúcido. Un mando que está siempre
+                // ahí no puede pedir atención cada vez que miras el tablero.
+                width: 26, height: 72, padding: 0,
+                borderRadius: "0 14px 14px 0",
+                border: "1px solid #e6ede9", borderLeft: "none",
+                background: "rgba(255,255,255,.86)",
                 backdropFilter: "blur(4px)",
-                boxShadow: "2px 2px 10px -6px rgba(20,47,29,.45)",
+                boxShadow: "1px 1px 6px -4px rgba(20,47,29,.3)",
                 cursor: "pointer", pointerEvents: "auto",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              <Icon size={13} color="#7a9485" strokeWidth={2.2} />
+              <Icon size={14} color="#aab8b0" strokeWidth={2} />
             </button>
           ))}
         </div>

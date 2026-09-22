@@ -2599,6 +2599,32 @@ export default function App() {
     const day = addSlotDay;
     if (!day || householdReadOnly) return;
 
+    // El segundo plato no abre franja: parte en dos la comida que ya hay. Es
+    // una marca en el hueco (`dosPlatos`) y no un hueco nuevo, porque en el
+    // plan el 1º y el 2º viven en el MISMO slot —`firstRecipeId` y
+    // `recipeId`—, que es como lo escribe el generador y como lo lee la
+    // compra.
+    if (meal === "__segundo") {
+      const { activeDays: dias } = getWeekDatesByMenuWeek(data.menuWeek);
+      const objetivo = todaLaSemana ? dias : [day];
+      setMenuPlan((plan) => {
+        const next = { ...plan };
+        let tocados = 0;
+        for (const gid of Object.keys(plan)) {
+          if (gid === "_warnings") continue;
+          for (const d of objetivo) {
+            const key = `${d}-Comida`;
+            const slot = plan[gid]?.[key];
+            if (!slot || slot.dosPlatos) continue;
+            next[gid] = { ...next[gid], [key]: { ...slot, dosPlatos: true } };
+            tocados++;
+          }
+        }
+        return tocados > 0 ? next : plan;
+      });
+      return;
+    }
+
     const base = resolveModeData(data);
     let nextData = data;
     if (meal === "Comida" || meal === "Cena") {
@@ -5825,6 +5851,11 @@ export default function App() {
           <AnadirHuecoSheet
             day={addSlotDay}
             yaPuestas={franjasDelDia(menuPlan, addSlotDay, data.groups ?? [])}
+            puedePartirComida={(data.groups ?? []).some(
+              (g) => menuPlan[g.id]?.[`${addSlotDay}-Comida`]
+                && !menuPlan[g.id][`${addSlotDay}-Comida`].dosPlatos
+                && !menuPlan[g.id][`${addSlotDay}-Comida`].firstRecipeId,
+            )}
             onAdd={handleAddSlot}
             onClose={() => setAddSlotDay(null)}
           />
@@ -5898,6 +5929,12 @@ export default function App() {
           // que abre ya lleva "Mis recetas" como primera carpeta, así que era
           // el mismo destino dos veces — y costaba 74px de alto justo donde
           // hace falta sitio para las sugerencias de abajo.
+          //
+          // `browseCategories` es lo que mantiene esa rejilla: hasta ahora se
+          // encendía sola por venir de la pestaña "Catálogo", así que quitar
+          // las pestañas se llevó las carpetas por delante. Ahora se pide
+          // explícitamente, que es lo que siempre debió ser.
+          browseCategories
           gatePickType="plato"
           selectedPlatoId={null}
           onPickPlato={(id) => { if (id) handleChooseRecipeForSlot(id); }}

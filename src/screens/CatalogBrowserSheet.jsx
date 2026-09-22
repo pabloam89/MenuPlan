@@ -984,7 +984,10 @@ export function CatalogBrowserSheet({
           style={{
             flex: 1, display: "flex", alignItems: "center", gap: 8,
             height: 42, padding: "0 12px", borderRadius: 12,
-            background: "#f4f7f5", border: "1.5px solid #e8efe9",
+            // Blanco, no el tinte verde: la hoja ya es verde clara, y un campo
+            // del mismo tono no se lee como "aquí se escribe".
+            background: "#fff", border: "1.5px solid #dbe7df",
+            boxShadow: "0 1px 3px rgba(20,47,29,.05)",
           }}
         >
           <Search size={16} color="#9ab0a1" />
@@ -1574,7 +1577,7 @@ export function CatalogBrowserSheet({
               </h3>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "#7a9485" }}>
                 {gatePick
-                  ? "Mis recetas, favoritas o catálogo"
+                  ? "Busca, entra en una carpeta, o mira las sugerencias"
                   : "Elige platos que ya sabes cocinar"}
               </p>
             </div>
