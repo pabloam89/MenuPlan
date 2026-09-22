@@ -1,0 +1,493 @@
+/**
+ * EL REGISTRO DE EJES — lo que hace viable declarar cuarenta y cinco sin que
+ * cuarenta y cinco se pudran.
+ *
+ * Un eje es una pregunta que alguien puede hacerle al catálogo. La lista sale
+ * del documento de normalización (§6, «El vocabulario: los 45 ejes») y los
+ * números se conservan: el eje 23 es `tecnica` aquí y en el documento, para
+ * que una discusión sobre el 23 se pueda seguir en los dos sitios.
+ *
+ * ── Por qué existe este fichero ────────────────────────────────────────────
+ *
+ * Porque `mainBase` ya enseñó cómo se pudre un eje: tiene esquema, columna y
+ * sincronización, 14 valores donde debería haber 8, y NINGUNA regla lo lee.
+ * Nadie lo notó porque un campo sin lector no falla — deja de decidir, que es
+ * peor, porque no avisa. El documento lo dice sin rodeos:
+ *
+ *     «Cuarenta y cinco ejes sin disciplina son cuarenta y cinco `mainBase`.»
+ *
+ * Y también dice que este fichero va ANTES que los ejes que declara: «Si no se
+ * construye primero, B3 y B9 no deberían empezar».
+ *
+ * ── Un eje con cobertura 0 NO es un error ──────────────────────────────────
+ *
+ * Es la excepción disciplinada, y es el motivo de la columna `estado`. Habrá
+ * ejes declarados con cero recetas —`festividad`, `cocina:es-ct`— y eso es
+ * correcto, porque el valor no está en tener la receta:
+ *
+ *     «está en SABER que no la tienes».
+ *
+ * Un eje `silencioso` permite contestar «todavía no tengo nada catalán, ¿te
+ * propongo algo mediterráneo a la brasa?» en vez de improvisar una calçotada.
+ * Lo que no se tolera es el silencio SIN declarar, que es lo que le pasó a
+ * `mainBase`.
+ *
+ * ── Cómo se lee cada columna ───────────────────────────────────────────────
+ *
+ *   n             el número del eje en el documento. No se reordena.
+ *   tipo          enum · jerarquico · tags · numerico · booleano · derivado
+ *   estado        CUATRO, y la primera versión de este fichero tenía dos.
+ *
+ *                 activo      tiene datos Y tiene quien los lea
+ *                 silencioso  declarado a propósito, sin datos y sin lector.
+ *                             NO es un fallo: es lo que permite decir «todavía
+ *                             no tengo nada catalán» en vez de improvisar.
+ *                 sin_lector  tiene datos y NADIE los lee. Es `mainBase`, y es
+ *                             `mainIngredients`: 665 recetas, enum, columna en
+ *                             Supabase y cero consumidores.
+ *                 sin_datos   tiene lector y CERO datos. Es `scalesWithEaters`:
+ *                             `effectiveRecipeTime` lo consulta en las 1.033 y
+ *                             siempre le sale `undefined`.
+ *
+ *                 Los dos últimos son el mismo fallo visto desde cada lado, y
+ *                 con dos estados no se distinguían: los dos caían en
+ *                 «silencioso», que es el estado SANO. Un fallo disfrazado de
+ *                 excepción disciplinada es exactamente lo que este fichero
+ *                 viene a impedir.
+ *   campo         dónde vive hoy, o null si todavía no vive en ninguna parte
+ *   vocabulario   null cuando el documento no lo fija. NO se inventa aquí:
+ *                 un vocabulario a ojo es la forma rápida de tener 14 valores
+ *                 donde debían ser 8.
+ *   consumidores  quién lo lee HOY. Un array vacío con estado `activo` es una
+ *                 contradicción y el test la caza.
+ *   cobertura     medida sobre las 1.033 recetas (o los 396 alimentos, cuando
+ *                 el eje es del alimento) el 22 sep 2026.
+ *
+ * Medido, no estimado: los números de `cobertura` salen de contar el campo en
+ * el catálogo, y el test los vuelve a contar para que no se queden viejos.
+ */
+
+/** @typedef {"enum"|"jerarquico"|"tags"|"numerico"|"booleano"|"derivado"} TipoEje */
+/** @typedef {"activo"|"silencioso"|"sin_lector"|"sin_datos"} EstadoEje */
+
+export const AMBITO = {
+  RECETA: "receta",
+  /**
+   * Una PARTE del plato, no el plato entero.
+   *
+   * Existe por el mismo motivo que el eje 45: «Lomo a la plancha con ensalada»
+   * tiene un principal seco y una guarnición que es ensalada, y obligarle a
+   * elegir uno de los dos formatos es tirar información. Un eje de ámbito
+   * PARTE solo se puede rellenar donde `stepsRich[].part` existe — hoy el
+   * 17,4 % — y eso es una limitación honrada, no un defecto del eje.
+   */
+  PARTE: "parte",
+  ALIMENTO: "alimento",
+  HOGAR: "hogar",
+};
+
+/**
+ * Los 45. Ordenados por número de documento, agrupados como allí.
+ *
+ * `cobertura` es la fracción del ámbito que tiene el eje relleno. Para los que
+ * no existen todavía es 0, y eso NO los hace inválidos: los hace silenciosos.
+ */
+export const EJES = [
+  // ── Composición y nutrición (1-5, 45) ────────────────────────────────────
+  {
+    n: 1, id: "composicion", nombre: "Composición jerárquica ponderada, por parte",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    campo: null, vocabulario: null,
+    consumidores: [], cobertura: 1.0,
+    nota: "Estaba repartida en cuatro campos sin pesos. Hoy la calcula derive/composicion.js: 98,6 % de acuerdo con la curación en proteína, 99,5 % en hidrato.",
+  },
+  {
+    n: 2, id: "subtipoIngrediente", nombre: "Subtipo de ingrediente (garbanzo vs lenteja, bivalvo vs crustáceo)",
+    ambito: AMBITO.ALIMENTO, tipo: "jerarquico", estado: "activo",
+    campo: "alimentos.taxonomia", vocabulario: null,
+    consumidores: ["masaServida"], cobertura: 0.924,
+    nota: "El documento lo daba por FALTA y se construyó. Pero NO está «al 100 %», que es lo que decía aquí antes: reino, clase y subclase sí (396/396), la especie está en 366 y la VARIEDAD en CERO de las 396. La cobertura que cuenta es la de la especie, porque es el peldaño que hace comparables el eje del ingrediente y el de la receta. Su granularidad (pollo/pavo/pato, patata/boniato, arroz/quinoa/cuscús) quitó 21 discrepancias con la curación.",
+  },
+  {
+    n: 3, id: "densidadNutricional", nombre: "Densidad nutricional (kcal/100 g, g proteína/100 kcal, fibra, saciedad)",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
+    campo: null, vocabulario: null,
+    consumidores: [], cobertura: 0,
+    nota: "Calculable hoy: las macros de receta están al 100 % y computeRecipeNutrition da cobertura 99,7 % de media. Falta el campo derivado y quien lo lea.",
+  },
+  {
+    n: 4, id: "micronutrientes", nombre: "Micronutrientes (hierro, calcio, B12, omega-3, folato)",
+    ambito: AMBITO.ALIMENTO, tipo: "numerico", estado: "activo",
+    campo: "alimentos.nutricion", vocabulario: null,
+    consumidores: ["ingredients", "recipeCatalog", "healthFlags", "aiPlanner", "userRecipes"], cobertura: 0.896,
+    nota: "El documento decía «BEDCA los tiene; el pipeline no los trae». Ya los trae: 24 micros por alimento. Pero la cobertura NO es la del calcio (94,9 %), que es de los mejores: es la del PEOR de los que el nombre del eje promete, y ese es la B12 con 89,6 %. Y hay uno que no se puede contestar en absoluto: el OMEGA-3 no tiene campo — omega3100g no existe en ninguna de las 396 filas, así que «dame algo con omega-3» no tiene respuesta por mucho que el eje diga 90 %. Falta además la TABLA DE RETENCIÓN POR TÉCNICA: un hervido pierde folato y el crudo no.",
+  },
+  {
+    n: 5, id: "nova", nombre: "Grado de procesado (NOVA 1-4)",
+    ambito: AMBITO.ALIMENTO, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null,
+    consumidores: [], cobertura: 0,
+    nota: "Sale gratis del atributo `transformacion` de la variante, que hoy vive en alimentos.dimensiones.procesado (16 % donde aplica).",
+  },
+  {
+    n: 45, id: "parte", nombre: "Parte del plato",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "stepsRich[].part", vocabulario: ["principal", "guarnicion", "salsa", "combinado"],
+    consumidores: ["recipeSteps", "solver", "RecipeSteps", "stepParts", "userRecipes"], cobertura: 0.174,
+    nota: "El eje que salió de un vector que daba la respuesta equivocada: en la «Merluza rebozada con patatas fritas», el vector plano decía patata 0,41 > pescado 0,33 porque metía en la misma bolsa el principal y la guarnición. Por parte, el principal es 79 % pescado y la guarnición 93 % patata, y nunca compitieron. Es TAMBIÉN lo que resuelve las 99 patatas sin tope: la patata gasta presupuesto de guarnición, no convierte el plato en un plato de patatas.",
+  },
+
+  // ── Percepción del plato (6-13) ──────────────────────────────────────────
+  {
+    n: 6, id: "formato", nombre: "Formato",
+    ambito: AMBITO.PARTE, tipo: "enum", estado: "silencioso",
+    campo: null,
+    vocabulario: ["ensalada", "sopa", "cremoso", "guiso", "plato_seco"],
+    consumidores: [], cobertura: 0,
+    nota: "Disfrazado en `category`. Es ORTOGONAL a todo lo demás: hay ensaladas de pasta y ensaladas de legumbre. Entre nueve legumbres conviven «Lentejas con verduras» (guiso caliente) y «Ensalada de garbanzos con chorizo» (fría) con la MISMA firma en todos los ejes existentes: les separan formato y temperatura. — VOCABULARIO REHECHO antes de poblarlo, y ese orden importa: el primero (ensalada · guiso · sopa · plato_seco · montaje · masa · bol) se probó contra 31 recetas reales y dio 52 % de encaje único, con 4 sin ningún valor posible y 11 con dos. Cometía el pecado de `category` — mezclaba hidratación (guiso/sopa/seco) con estructura (masa/montaje) y con recipiente (bol) —, así que `masa` y `montaje` salen a ejes propios (46 y 47: la empanada es masa sin montaje, el pan tumaca montaje sin masa, la lasaña las dos), `bol` se cae por ser dónde se sirve y no cómo se hace, y entra `cremoso`, que faltaba para las 65 recetas que empiezan por «Puré» o «Crema». `salsa` no entra: la tiene ya el eje 45. Y el ámbito pasa a PARTE, que es lo que resuelve «Lomo a la plancha CON ENSALADA» — principal seco, guarnición ensalada — y era el mismo error que el eje 45 existe para arreglar, cometido aquí.",
+  },
+  {
+    n: 7, id: "temperatura", nombre: "Temperatura de servicio",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null,
+    consumidores: [], cobertura: 0,
+    nota: "23 recetas Estrella se sirven frías sin poder decirlo.",
+  },
+  {
+    n: 8, id: "textura", nombre: "Textura",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null,
+    consumidores: [], cobertura: 0,
+    nota: "Solo implícita en `etapaBebe`, que la esconde dentro de una categoría.",
+  },
+  {
+    n: 9, id: "sabor", nombre: "Perfil de sabor + intensidad",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "healthFlags", vocabulario: null,
+    consumidores: ["validateMenu", "filterRecipes", "aiPlanner", "healthProfileMatch"], cobertura: 0.006,
+    nota: "`healthFlags` está poblado en 6 recetas de 1.033 y mezcla sabor con salud (frito, embutido, picante). No es este eje: es tres.",
+  },
+  {
+    n: 10, id: "carga", nombre: "Carga / saciedad",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
+    campo: null, vocabulario: null,
+    consumidores: [], cobertura: 0,
+    nota: "Seis reglas del prompt la invocan y no existe. Es una de las tres que la función objetivo del solver necesita, junto con completitud y densidad.",
+  },
+  {
+    n: 11, id: "completitud", nombre: "Completitud (¿es comida entera?)",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    campo: null, vocabulario: null,
+    consumidores: [], cobertura: 0,
+    nota: "En vivo: el solver dio por bueno un menú con «Brócoli al vapor en árbol» de segundo plato, cumpliendo TODAS las restricciones. Las restricciones solo descartan; lo que hace bueno un menú es la función objetivo.",
+  },
+  {
+    n: 12, id: "fotogenia", nombre: "Aspecto y fotogenia",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: "apetecible", vocabulario: null,
+    consumidores: ["CatalogBrowserSheet", "aiPlanner", "pairGarnishes"], cobertura: 0.124,
+    nota: "Parcial. `apetecible` existe en 128 recetas y no lo lee nadie.",
+  },
+  {
+    n: 13, id: "connotacion", nombre: "Connotación emocional",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "silencioso",
+    campo: null, vocabulario: null,
+    consumidores: [], cobertura: 0,
+    nota: "Responde a «algo reconfortante», que es una petición real y hoy no se puede honrar.",
+  },
+
+  // ── Cultura y rito (14-22) ───────────────────────────────────────────────
+  {
+    n: 14, id: "cocina", nombre: "Cocina jerárquica con región",
+    ambito: AMBITO.RECETA, tipo: "jerarquico", estado: "activo",
+    campo: "cocina", vocabulario: null,
+    consumidores: ["filterRecipes", "solver", "cuotaCocinas", "cocinaTopes", "menuRecuento"], cobertura: 0.2,
+    nota: "Insuficiente: ocho países planos, y España es la AUSENCIA del campo. El árbol del documento baja a andaluza (12), vasca (7), valenciana (3), catalana (2, ninguna calçotada).",
+  },
+  {
+    n: 15, id: "autenticidad", nombre: "Autenticidad (tradicional, adaptado, fusión)",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+  },
+  {
+    n: 16, id: "epoca", nombre: "Época",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+  },
+  {
+    n: 17, id: "festividad", nombre: "Festividad",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Un plato pertenece a 0..n festividades, así que es `tags` y no `enum`. Es el ejemplo canónico del eje silencioso sano del documento.",
+  },
+  {
+    n: 18, id: "estacionalidadIngrediente", nombre: "Estacionalidad real del ingrediente",
+    ambito: AMBITO.ALIMENTO, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`season` existe pero es de la RECETA y tiene tres valores. La estacionalidad es del ingrediente, y de ahí sube.",
+  },
+  {
+    n: 19, id: "restriccionReligiosa", nombre: "Halal / kosher / sin cerdo / sin alcohol",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "El alcohol ya sale del plano B: `vino-generoso`, `brandy` y compañía declaran conflictsWith alcohol_cocina.",
+  },
+  {
+    n: 20, id: "aptoVigilia", nombre: "Apto vigilia",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Sale del plano A: si el árbol dice que no hay carne de mamífero ni ave, es de vigilia.",
+  },
+  {
+    n: 21, id: "aptoAyuno", nombre: "Apto ayuno",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+  },
+  {
+    n: 22, id: "vegetarianismoReligioso", nombre: "Vegetarianismos religiosos",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`DIET_RULES` solo tiene dos valores.",
+  },
+
+  // ── Ejecución en la cocina (23-29, 42-44) ────────────────────────────────
+  {
+    n: 23, id: "tecnica", nombre: "Técnica",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "tecnica", vocabulario: ["olla", "sarten", "horno", "plancha", "crudo"],
+    consumidores: ["sesgos", "menuRecuento", "notepad", "panelParser"], cobertura: 0.883,
+    nota: "Le FALTA `fritura`, está al 0 % en guarniciones y tiene valores falsos. 121 recetas sin técnica.",
+  },
+  {
+    n: 24, id: "tiempoActivo", nombre: "Tiempo activo vs calendario",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "98 Estrella tienen activo por debajo del 50 % del total. Derivable ya desde stepsRich[].kind, que está al 97,5 %.",
+  },
+  {
+    n: 25, id: "esfuerzoMental", nombre: "Esfuerzo mental / nº de componentes",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Derivable de stepsRich.",
+  },
+  {
+    n: 26, id: "conflictoRecursos", nombre: "Conflicto de recursos (horno, fuegos)",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Un solver lo exige: dos platos al horno a la vez a temperaturas distintas no se pueden.",
+  },
+  {
+    n: 27, id: "equipamiento", nombre: "Equipamiento requerido",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "requiredAppliance", vocabulario: ["horno", "gofrera", "plancha", "batidora"],
+    consumidores: ["filterRecipes"], cobertura: 0.215,
+  },
+  {
+    n: 28, id: "progresion", nombre: "Progresión / aprendizaje",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+  },
+  {
+    n: 29, id: "escalabilidadTanda", nombre: "Escalabilidad por tanda",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "sin_datos",
+    campo: "scalesWithEaters", vocabulario: null, consumidores: ["filterRecipes"], cobertura: 0,
+    nota: "El caso de estudio del campo muerto: tiene esquema, columna y sincronización, y está a CERO en las 1.033.",
+  },
+  {
+    n: 42, id: "escalabilidadReal", nombre: "Escalabilidad real",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Un guiso escala; doce filetes a la plancha, no. Derivable de la técnica.",
+  },
+  {
+    n: 43, id: "robustez", nombre: "Robustez ante el descuido",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Derivable de stepsRich[].kind: pasos `activo` encadenados = frágil.",
+  },
+  {
+    n: 44, id: "quienCocina", nombre: "Quién puede cocinarlo",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "`kidFriendly` dice quién lo COME; esto dice quién lo HACE. Son dos preguntas y hoy hay un solo campo.",
+  },
+
+  // ── Logística del plato (30-33, 40) ──────────────────────────────────────
+  {
+    n: 30, id: "transportabilidad", nombre: "Transportabilidad / tupper",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: "tupperFriendly", vocabulario: null,
+    consumidores: ["solver", "aiPlanner", "planner", "validateMenu", "menuInsights"], cobertura: 1.0,
+  },
+  {
+    n: 31, id: "conLasManos", nombre: "Se come con las manos",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+  },
+  {
+    n: 32, id: "compartido", nombre: "Compartido vs individual",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+  },
+  {
+    n: 33, id: "congelabilidad", nombre: "Congelabilidad y recalentado",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: "freezable", vocabulario: null,
+    consumidores: ["bases", "aiPlanner", "adelanto"], cobertura: 0.881,
+    nota: "`thawSteps` lo acompaña al 28,4 %.",
+  },
+  {
+    n: 40, id: "perecibilidad", nombre: "Perecibilidad y orden en la semana",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Restricción DE POSICIÓN, no de selección: el pescado fresco va al principio de la semana. Derivable del ingrediente.",
+  },
+
+  // ── Economía y sostenibilidad (34-36) ────────────────────────────────────
+  {
+    n: 34, id: "coste", nombre: "Coste por ración",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Con `priceHistory` y 3.052 productos en el repo. Es el que menos trabajo nuevo pide.",
+  },
+  {
+    n: 35, id: "huella", nombre: "Huella / sostenibilidad",
+    ambito: AMBITO.ALIMENTO, tipo: "numerico", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+  },
+  {
+    n: 36, id: "aprovechamiento", nombre: "Aprovechamiento y merma",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Eje de RELACIÓN ENTRE RECETAS: qué sobra de una y entra en otra. El único de la lista que no es una propiedad de un plato solo.",
+  },
+
+  // ── Curación editorial (37) ──────────────────────────────────────────────
+  {
+    n: 37, id: "curacionEditorial", nombre: "estrella · gourmet · occasion · kidFavourite",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: "estrella", vocabulario: null,
+    consumidores: ["filterRecipes", "aporte", "cocinaTopes", "BasesPreferidas"], cobertura: 0.725,
+    nota: "El documento lo marca SANO: es el patrón correcto de campo curado. `occasion` 5 %, `kidFavourite` 6 %.",
+  },
+
+  // ── El comensal (38, 39, 41) ─────────────────────────────────────────────
+  {
+    n: 38, id: "objetivoCorporal", nombre: "Objetivo corporal",
+    ambito: AMBITO.HOGAR, tipo: "enum", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Falta entero, y gran parte es calculable ya con las macros al 100 %. OJO al error que el documento avisa: «adelgazar» no es propiedad del plato y «bajo en calorías» no es propiedad del usuario. Confundirlas lleva a inventar campos como `apto_dieta`, que envejecen mal.",
+  },
+  {
+    n: 39, id: "contextoPeticion", nombre: "Contexto de la petición",
+    ambito: AMBITO.HOGAR, tipo: "tags", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "Disperso entre `data`, `ctx` y el wizard.",
+  },
+  {
+    n: 41, id: "protocoloDietetico", nombre: "Protocolo dietético (FODMAP, keto, mediterránea, DASH)",
+    ambito: AMBITO.HOGAR, tipo: "tags", estado: "silencioso",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    nota: "El FODMAP prohíbe ajo y cebolla, que es otra prueba de que el aromático no es ornamental: si el eje `rol` no distingue aromático de ración, no se puede contestar.",
+  },
+
+  // ── Posteriores al documento ─────────────────────────────────────────────
+  //
+  // Del 46 en adelante son ejes que el documento no numeró y que salieron de
+  // medir. Se numeran a continuación y NO se intercalan: los números 1-45 son
+  // la referencia cruzada con §6 y reordenarlos rompería toda discusión que ya
+  // se haya tenido sobre «el eje 23».
+  //
+  // Los dos primeros son el enum de `formato` partido en lo que de verdad era:
+  // tres preguntas, no una. Que sean booleanos independientes está medido —
+  // hay recetas con cada combinación de los cuatro cuadrantes.
+  {
+    n: 46, id: "montaje", nombre: "Se monta en el plato",
+    ambito: AMBITO.PARTE, tipo: "booleano", estado: "activo",
+    campo: "montaje", vocabulario: null,
+    consumidores: ["solver", "bases", "aiPlanner", "userRecipes", "CatalogBrowserSheet"], cobertura: 0.092,
+    nota: "Ya existía como campo y NO tenía eje, que es la mitad de cómo se pudre un campo: 95 recetas, cinco lectores y ninguna declaración. Sale del enum de `formato` porque no es hermano de `guiso` ni de `sopa` — se monta una tosta y se monta un bol, y los dos pueden además llevar masa o no.",
+  },
+  {
+    n: 47, id: "llevaMasa", nombre: "Lleva masa",
+    ambito: AMBITO.PARTE, tipo: "booleano", estado: "silencioso",
+    campo: null, vocabulario: null,
+    consumidores: [], cobertura: 0,
+    nota: "El otro que salía del enum de `formato`, y el que causaba 5 de sus 11 dobles encajes: tortitas, lasaña, gnocchi, nidos gratinados y burritos eran «masa» Y otra cosa a la vez. Es independiente del 46 y se demuestra con las cuatro combinaciones: la empanada gallega lleva masa y no se monta, el pan tumaca se monta y no lleva masa, la lasaña y los burritos son las dos, y un guiso no es ninguna.",
+  },
+  {
+    n: 48, id: "gruposSecundarios", nombre: "Grupos de alimento secundarios (verdura, lácteo, fruta, frutos secos, seta, encurtido)",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "sin_lector",
+    campo: "mainIngredients", vocabulario: null,
+    consumidores: [], cobertura: 0.644,
+    nota: "EL PEOR CASO DEL CATÁLOGO, y estaba sin declarar. `mainIngredients` tiene 665 recetas rellenas, enum en el esquema, columna en Supabase y sincronización… y CERO lectores: el único sitio del código donde aparece la palabra fuera del esquema y del sync es una variable local del mismo nombre en `recipes.js`, que no tiene nada que ver. Es `mainBase` con el doble de cobertura y sin el consuelo de estar documentado. Se declara aquí para que deje de ser invisible: o alguien lo lee, o se borra — la regla del documento es que todo campo declara su consumidor y si no tiene, se va.",
+  },
+];
+
+/** Por id, para no recorrer el array en cada consulta. */
+export const EJE_POR_ID = new Map(EJES.map((e) => [e.id, e]));
+
+/**
+ * ¿Cuánto del catálogo tiene este eje relleno?
+ *
+ * Devuelve `null` —y no 0— cuando el eje no existe: son dos respuestas
+ * distintas y confundirlas es el error que este fichero existe para evitar.
+ * Un 0 significa «el eje está declarado y no hay datos»; `null` significa
+ * «esa pregunta no está ni registrada».
+ *
+ * @param {string} ejeId
+ * @returns {number|null}
+ */
+export function cobertura(ejeId) {
+  return EJE_POR_ID.get(ejeId)?.cobertura ?? null;
+}
+
+/**
+ * ¿Puede el catálogo contestar a una petición sobre este eje?
+ *
+ * Es lo que permite decir «todavía no tengo nada catalán» en vez de
+ * improvisar. Un eje silencioso NO es un fallo: es una respuesta.
+ *
+ * @param {string} ejeId
+ * @returns {{puede: boolean, porque: string}}
+ */
+export function puedeResponder(ejeId) {
+  const eje = EJE_POR_ID.get(ejeId);
+  if (!eje) return { puede: false, porque: "el eje no está registrado" };
+  if (eje.cobertura === 0) return { puede: false, porque: `«${eje.nombre}» está declarado y sin datos` };
+  if (!eje.consumidores.length) return { puede: false, porque: `«${eje.nombre}» tiene datos y nadie los lee` };
+  return { puede: true, porque: `cobertura ${(100 * eje.cobertura).toFixed(0)} %` };
+}
+
+/**
+ * Los ejes podridos, que son los dos fallos y no el estado sano.
+ *
+ * Se consulta aparte y no se mezcla con `puedeResponder` porque contestan a
+ * preguntas distintas: aquélla es del producto —¿puedo honrar esta petición?—
+ * y ésta es del que mantiene el catálogo. Un eje `sin_lector` responde
+ * perfectamente a una consulta y aun así hay que arreglarlo.
+ *
+ * @returns {{sinLector: Array, sinDatos: Array}}
+ */
+export function podridos() {
+  return {
+    sinLector: EJES.filter((e) => e.estado === "sin_lector"),
+    sinDatos: EJES.filter((e) => e.estado === "sin_datos"),
+  };
+}
+
+/**
+ * ¿Es este valor del vocabulario del eje?
+ *
+ * `null` cuando el eje no fija vocabulario todavía — que es distinto de
+ * «no es válido». El documento es explícito: un vocabulario a ojo es la forma
+ * rápida de acabar con 14 valores donde debían ser 8.
+ *
+ * @param {string} ejeId
+ * @param {string} valor
+ * @returns {boolean|null}
+ */
+export function valorValido(ejeId, valor) {
+  const v = EJE_POR_ID.get(ejeId)?.vocabulario;
+  return v ? v.includes(valor) : null;
+}
