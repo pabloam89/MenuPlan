@@ -201,7 +201,9 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el calabacín, el pollo, el cuscús y el caldo en la olla a presión y cocina durante 7 minutos desde que sube la válvula. Una vez despresurizada, añade el aceite de oliva y tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_002",
@@ -360,7 +362,9 @@
         "difficulty": "facil",
         "prepSummary": "Corta la zanahoria y la patata a lo largo. Revisa la merluza para asegurarte de que no tiene espinas. Coloca todos los ingredientes en la olla express con 150ml de agua y cocina durante 7 minutos desde que sube la válvula."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_003",
@@ -529,7 +533,9 @@
         "difficulty": "normal",
         "prepSummary": "Introduce la calabaza, el boniato y el pavo troceados en la olla express con un chorrito de agua. Cierra y cocina a presión durante 5-7 minutos desde que sube la válvula."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_004",
@@ -685,7 +691,9 @@
         "difficulty": "facil",
         "prepSummary": "Corta las judías y la patata en trozos pequeños, y la ternera en dados. Cocina todos los ingredientes en la olla express con un poco de agua (100-150 ml) durante 8-10 minutos desde que sube la válvula, hasta que se aplasten sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_005",
@@ -835,7 +843,9 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el pollo troceado, los guisantes, el arroz y 200 ml de agua en la olla express. Cierra y cocina a presión durante 10 minutos. Deja que se libere la presión, añade el aceite y tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_006",
@@ -1005,7 +1015,9 @@
         "difficulty": "normal",
         "prepSummary": "Introduce el brócoli, la merluza y el arroz con 150ml de agua en la olla a presión. Cierra y cocina durante 8 minutos desde que sube la válvula."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_007",
@@ -1170,7 +1182,9 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el arroz, el pollo troceado a lo largo y la zanahoria en la olla express con 200 ml de agua, cierra y cocina durante 8 minutos desde que sube la válvula."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_008",
@@ -1331,7 +1345,9 @@
         "difficulty": "facil",
         "prepSummary": "Lava bien las lentejas rojas y trocea la zanahoria y el calabacín a lo largo. Introduce todos los ingredientes en la olla express junto con 200ml de agua. Cierra la olla y cocina durante 7 minutos desde que sube la válvula. Deja que pierda la presión de forma natural."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_009",
@@ -1505,7 +1521,9 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el boniato, pavo y calabacín troceados a lo largo en la olla express con un vaso de agua. Cierra y cocina a fuego medio durante 8-10 minutos desde que suba la válvula. Libera la presión, y tritura con el aceite de oliva hasta obtener una crema lisa y homogénea."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_010",
@@ -1695,7 +1713,9 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el puerro troceado, el salmón sin espinas ni piel, el arroz, el aceite de oliva y un poco de agua en la olla a presión. Cocina durante 5-7 minutos desde que sube la válvula, luego despresuriza y tritura hasta obtener una crema lisa y homogénea."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_012",
@@ -1869,7 +1889,9 @@
         "difficulty": "facil",
         "prepSummary": "Corta la calabaza y la zanahoria a lo largo. Colócalas en un recipiente apto para microondas con un chorrito de agua, tapa y cocina a máxima potencia durante 5-7 minutos, o hasta que estén muy tiernas y se aplasten sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_013",
@@ -2050,7 +2072,8 @@
         "difficulty": "facil",
         "prepSummary": "Corta el boniato y el tomate, cocínalos en un recipiente apto para microondas con un poco de agua hasta que estén muy tiernos (unos 8-10 minutos)."
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_014",
@@ -2205,7 +2228,9 @@
         "difficulty": "facil",
         "prepSummary": "En la olla exprés, cocina la ternera cortada a lo largo y las espinacas con el caldo y el aceite durante 7 minutos desde que sube la válvula. Despresuriza, añade los copos de avena y cocina 3 minutos más sin tapa a fuego medio."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_015",
@@ -2365,7 +2390,9 @@
         "difficulty": "facil",
         "prepSummary": "Corta el calabacín y cuécelo en la olla express con un poco de agua durante 5 minutos desde que sube la válvula. Despresuriza, añade la sémola y el huevo, y cocina a fuego suave 5 minutos más. Tritura con una batidora de mano hasta obtener una crema lisa y homogénea."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_016",
@@ -2542,7 +2569,9 @@
         "difficulty": "facil",
         "prepSummary": "Corta la coliflor, la patata y el pollo en trozos pequeños. Ponlos en la olla express con 100ml de agua. Cierra y cocina 6 minutos desde que sube la válvula. Libera la presión, añade el aceite de oliva y tritura hasta obtener una crema lisa."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_018",
@@ -2704,7 +2733,9 @@
         "difficulty": "facil",
         "prepSummary": "Corta la patata y el pavo en trozos pequeños. Cuécelos en la olla express con un poco de agua durante 5-7 minutos desde que sube la válvula, hasta que estén tan blandos que se aplasten sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_019",
@@ -2882,7 +2913,9 @@
         "difficulty": "facil",
         "prepSummary": "Corta el boniato a lo largo y colócalo en un recipiente apto para microondas con un chorrito de agua. Cocina a máxima potencia durante 5-7 minutos, hasta que esté muy tierno."
       }
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_021",
@@ -3029,7 +3062,9 @@
     ],
     "extraProteins": [
       "pollo"
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "bebes_022",
@@ -3176,7 +3211,9 @@
     ],
     "extraProteins": [
       "ternera"
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -3308,7 +3345,9 @@
         "difficulty": "facil",
         "prepSummary": "Primero, cocina el brócoli hasta que esté muy tierno y tritúralo; luego, mézclalo con el requesón, el huevo y los copos de avena para formar las tortitas."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -3426,7 +3465,9 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 180°C. Forma las tortitas y colócalas sobre papel de horno en una bandeja. Hornea durante 20 minutos, dándoles la vuelta a mitad del tiempo, hasta que el interior se aplasta sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -3532,7 +3573,9 @@
         "difficulty": "facil",
         "prepSummary": "Forma tortitas pequeñas y distribúyelas en una bandeja de horno forrada con papel de hornear y ligeramente engrasada. Hornea a 180°C durante unos 18 minutos, dándoles la vuelta a mitad de cocción, hasta que se aplasten sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -3646,7 +3689,9 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los bocaditos separados en la cesta de la airfryer y cocina a 175°C durante unos 18 minutos, dándoles la vuelta a mitad. Estarán listos cuando el interior se aplasta sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -3761,7 +3806,9 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los falafel separados en la cesta de la airfryer. Cocina a 180°C durante unos 18 minutos, dándoles la vuelta a mitad del tiempo. Estarán listos cuando el interior se aplaste sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -3875,7 +3922,9 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 180°C. Mezcla los ingredientes, forma las tortitas y colócalas sobre papel de horno en una bandeja. Hornea durante unos 18 minutos hasta que estén cocidas y se aplasten sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -3997,7 +4046,9 @@
         "difficulty": "facil",
         "prepSummary": "Forma las mini hamburguesas y colócalas sobre papel de hornear en la cesta de la vaporera. Cocina al vapor durante 12 minutos. Sabrás que están listas cuando el interior se aplaste sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -4130,7 +4181,9 @@
         "difficulty": "facil",
         "prepSummary": "Forma las albóndigas y colócalas en un recipiente apto para microondas con el tomate triturado y un chorrito de aceite. Tapa y cocina a máxima potencia unos 7 minutos, hasta que se aplasten sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -4242,7 +4295,9 @@
         "difficulty": "facil",
         "prepSummary": "Dispón las mini hamburguesas en una bandeja de horno con papel de hornear, ligeramente untadas con aceite. Hornea a 190°C durante 20 minutos, dándoles la vuelta a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -4353,7 +4408,9 @@
         "difficulty": "facil",
         "prepSummary": "Coloca las hamburguesas separadas en la cesta de la airfryer y cocina a 180°C durante unos 14 minutos, dándoles la vuelta a mitad. Están listas cuando el interior se aplasta sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -4464,7 +4521,9 @@
         "difficulty": "facil",
         "prepSummary": "Forma las albóndigas y colócalas separadas en la cesta de la airfryer. Cocina a 180°C durante unos 15 minutos, dándoles la vuelta a mitad, hasta que se aplasten sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -4551,7 +4610,9 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta la airfryer a 185°C. Coloca los bastones de boniato con un chorrito de aceite en la cesta, asegurándote de que no se amontonen. Cocina durante 18 minutos, agitándolos a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -4642,7 +4703,8 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los bastones de zanahoria en un recipiente apto para microondas con 2-3 cucharadas de agua. Tapa y cocina a máxima potencia (800W) durante 6-8 minutos. Escurre y mezcla con el aceite de oliva. Deben aplastarse sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -4744,7 +4806,9 @@
         "difficulty": "facil",
         "prepSummary": "Bate los huevos con el aceite y vierte en un molde rectangular apto para microondas. Cocina a máxima potencia durante 1-2 minutos, vigilando que cuaje y se aplaste sin esfuerzo. Una vez templado, corta en tiras."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -4835,7 +4899,8 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los arbolitos de brócoli en un recipiente apto para microondas con dos cucharadas de agua, tapa y cocina a máxima potencia durante 5 minutos. Estará listo cuando se aplaste sin esfuerzo entre dos dedos."
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -4934,7 +4999,9 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta la airfryer a 180°C. Coloca las tiras de aguacate rebozadas en la cesta, sin que se superpongan, y cocina durante 8-10 minutos, dándoles la vuelta a mitad. Están listas cuando se aplastan sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -5046,7 +5113,9 @@
         "difficulty": "normal",
         "prepSummary": "Prepara la boloñesa de verduras y carne en una sartén hasta que las verduras estén muy blandas. Cocina la pasta hasta que esté muy blanda."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -5166,7 +5235,8 @@
         "difficulty": "facil",
         "prepSummary": "Cocina el brócoli y el arroz en recipientes aptos para microondas con un poco de agua hasta que estén muy tiernos."
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -5277,7 +5347,9 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los muffins en moldes aptos para airfryer o directamente en la cesta (si la mezcla es firme) y cocina a 170°C durante unos 18 minutos. Están listos cuando el interior se aplasta sin esfuerzo."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -5400,7 +5472,9 @@
         "difficulty": "facil",
         "prepSummary": "Corta el calabacín, la berenjena y el pimiento en bastones. Colócalos en un recipiente apto para microondas con el tomate triturado y el aceite de oliva. Cocina a máxima potencia durante 8-10 minutos, removiendo a mitad, hasta que las verduras estén muy blandas."
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -5518,7 +5592,9 @@
         "prepSummary": "Precalienta el horno a 190°C. Mezcla los ingredientes, forma las tortitas y hornéalas sobre papel de horno en una bandeja durante unos 18 minutos, dándoles la vuelta a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -5644,7 +5720,9 @@
         "prepSummary": "Forma pequeñas tortitas con la masa y colócalas sobre papel de horno en una bandeja. Hornea a 180°C durante unos 20 minutos, dándoles la vuelta a mitad del tiempo. Están listas cuando el interior se aplasta sin esfuerzo entre dos dedos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -5751,7 +5829,9 @@
     ],
     "methods": [],
     "estrella": true,
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -5869,7 +5949,9 @@
         "prepSummary": "Pica finamente la pechuga de pavo y mézclala con el maíz, el huevo y los copos de avena. Forma las tortitas, colócalas sobre papel de horno en una bandeja ligeramente engrasada con aceite de oliva y hornea a 180°C durante 20 minutos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -5986,7 +6068,9 @@
         "prepSummary": "Cocina las tortitas en la vaporera durante 15-20 minutos. Asegúrate de que estén bien blandas y se aplasten sin esfuerzo antes de ofrecerlas."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -6099,7 +6183,9 @@
         "prepSummary": "Mezcla el calabacín, la patata y la cebolla finamente picados o rallados con el huevo batido y el aceite de oliva. Vierte en un molde pequeño apto para airfryer y cocina a 180°C durante 25 minutos, hasta que el centro esté firme y se aplaste sin esfuerzo entre dos dedos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -6218,7 +6304,9 @@
         "prepSummary": "Mezcla el brócoli cocido y finamente picado con el huevo batido, el requesón, la leche y el aceite."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -6343,7 +6431,9 @@
         "prepSummary": "Vierte la mezcla en moldes aptos para vapor y cocina al vapor durante 25 minutos. Están listos cuando el interior se aplasta sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -6469,7 +6559,9 @@
         "prepSummary": "Tras cocinar al vapor la merluza (revisa bien las espinas), la patata y la zanahoria, mézclalas con el huevo y forma las porciones. Cuécelas al vapor unos 15 minutos hasta que se aplasten sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -6579,7 +6671,9 @@
         "prepSummary": "Mezcla todos los ingredientes, forma los nuggets y colócalos separados en la cesta de la airfryer. Cocina a 180°C durante 18 minutos, dándoles la vuelta a mitad del tiempo, hasta que se aplasten sin esfuerzo entre dos dedos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -6706,7 +6800,9 @@
         "prepSummary": "Precalienta la airfryer a 185°C. Coloca las croquetas formadas en la cesta, sin amontonar, y cocina durante unos 18 minutos, dándoles la vuelta a mitad del tiempo. Sabrás que están listas cuando el interior se aplaste sin esfuerzo entre dos dedos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -6824,7 +6920,9 @@
         "prepSummary": "Precalienta la airfryer a 180°C. Coloca las bolitas separadas en la cesta y cocina durante 18 minutos, dándoles la vuelta a mitad del tiempo. Sabrás que están listas cuando se aplasten sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -6942,7 +7040,9 @@
         "prepSummary": "Coloca las albóndigas separadas en la cesta de la airfryer y cocina a 180°C durante 16 minutos, dándoles la vuelta a mitad. Están listas cuando al aplastarlas entre dos dedos se deshagan sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -7054,7 +7154,9 @@
         "prepSummary": "Precalienta la airfryer a 180°C. Coloca los bastones separados en la cesta y cocina durante unos 18 minutos, dándoles la vuelta a mitad del tiempo. Están listos cuando el interior se aplasta sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -7179,7 +7281,9 @@
         "prepSummary": "Cocina las patatas y la cebolla troceadas en un recipiente apto para microondas con un poco de aceite hasta que estén muy tiernas (5-8 minutos). Mezcla con los huevos batidos y vierte en un molde rectangular apto para microondas."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -7276,7 +7380,8 @@
         "prepSummary": "Corta la pera y la manzana en bastones. Ponlos en un recipiente apto para microondas con una cucharada de agua, tapa y cocina a máxima potencia (800W) durante 5 minutos, hasta que estén muy blandos y se aplasten sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -7385,7 +7490,9 @@
         "prepSummary": "Revisa bien las tiras de bacalao para asegurar que no tienen espinas. Colócalas en la cesta de la vaporera, rocía con aceite y cocina al vapor durante unos 14 minutos. Estarán listas cuando se desmenucen y se aplasten sin esfuerzo entre dos dedos."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -7511,7 +7618,8 @@
         "prepSummary": "Corta las verduras a lo largo y ponlas en un recipiente apto para microondas con un chorrito de agua. Tapa y cocina a máxima potencia (800W) durante 5-10 minutos, o hasta que se aplasten sin esfuerzo. Prepara el cuscús en otro recipiente con agua caliente."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -7618,7 +7726,9 @@
         "prepSummary": "Pela y corta las zanahorias en bastones y cuécelas al vapor en el Varoma durante 18 minutos a temperatura Varoma, velocidad 1, hasta que se aplasten sin esfuerzo."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "category": "bebes",
@@ -7741,6 +7851,7 @@
         "prepSummary": "En la olla express, sofríe la cebolla picada muy fina con el aceite hasta que esté transparente. Añade el pollo troceado pequeño, la calabaza en dados pequeños, el arroz y 120ml de agua."
       }
     ],
-    "estrella": true
+    "estrella": true,
+    "temperatura": "caliente"
   }
 ]

@@ -105,7 +105,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_008",
@@ -195,7 +197,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_009",
@@ -296,7 +300,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_010",
@@ -406,7 +412,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_011",
@@ -494,7 +502,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_012",
@@ -596,7 +606,9 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_013",
@@ -689,7 +701,9 @@
       "fruta"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_014",
@@ -779,7 +793,9 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_015",
@@ -893,7 +909,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_016",
@@ -989,7 +1007,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_017",
@@ -1100,7 +1120,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_018",
@@ -1223,7 +1245,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_019",
@@ -1321,7 +1345,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "desayunos_020",
@@ -1437,7 +1463,9 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "desayunos_021",
@@ -1580,7 +1608,9 @@
     "extraProteins": [
       "huevo"
     ],
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_022",
@@ -1762,7 +1792,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_023",
@@ -1871,7 +1903,9 @@
     "sodium_mg": 310,
     "freezable": false,
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_024",
@@ -1966,7 +2000,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "desayunos_025",
@@ -2092,6 +2128,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   }
 ]

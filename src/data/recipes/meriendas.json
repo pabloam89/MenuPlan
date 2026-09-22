@@ -92,7 +92,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "meriendas_002",
@@ -174,7 +176,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "meriendas_003",
@@ -271,7 +275,9 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "meriendas_004",
@@ -357,7 +363,9 @@
       "lacteo"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "meriendas_005",
@@ -440,7 +448,9 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "meriendas_006",
@@ -508,6 +518,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   }
 ]

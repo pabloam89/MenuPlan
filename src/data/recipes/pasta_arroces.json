@@ -187,7 +187,8 @@
       }
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_002",
@@ -415,7 +416,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_003",
@@ -550,7 +552,9 @@
     "sodium_mg": 180,
     "freezable": false,
     "tecnica": "sarten",
-    "estrella": true
+    "estrella": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_004",
@@ -725,7 +729,9 @@
     "saturated_fat_g": 7,
     "sodium_mg": 420,
     "freezable": false,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_005",
@@ -885,7 +891,8 @@
     "extraProteins": [
       "huevo"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_006",
@@ -1080,7 +1087,8 @@
       }
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_007",
@@ -1289,7 +1297,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_008",
@@ -1491,7 +1501,8 @@
     "tecnica": "olla",
     "extraProteins": [
       "ternera"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_009",
@@ -1648,7 +1659,8 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_010",
@@ -1809,7 +1821,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_011",
@@ -1986,7 +1999,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_012",
@@ -2144,7 +2159,8 @@
     "sodium_mg": 420,
     "freezable": false,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_013",
@@ -2334,7 +2350,8 @@
     "saturated_fat_g": 2,
     "sodium_mg": 520,
     "freezable": false,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_014",
@@ -2520,7 +2537,8 @@
       "seta"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_015",
@@ -2708,7 +2726,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 780,
     "freezable": false,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_016",
@@ -2888,7 +2907,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_017",
@@ -3126,7 +3146,9 @@
     ],
     "tecnica": "horno",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_018",
@@ -3404,7 +3426,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_019",
@@ -3570,7 +3594,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 680,
     "freezable": false,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_020",
@@ -3731,7 +3757,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_021",
@@ -3959,7 +3986,9 @@
     "tecnica": "plancha",
     "extraProteins": [
       "marisco"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_022",
@@ -4092,7 +4121,8 @@
     "sodium_mg": 290,
     "freezable": false,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_023",
@@ -4302,7 +4332,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_024",
@@ -4449,7 +4480,9 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "estrella": true
+    "estrella": true,
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "pasta_arroces_025",
@@ -4633,7 +4666,8 @@
       "seta"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_026",
@@ -4805,7 +4839,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_027",
@@ -4971,7 +5006,8 @@
       "cerdo",
       "huevo"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_028",
@@ -5116,7 +5152,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_029",
@@ -5284,7 +5321,8 @@
       "encurtido"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_030",
@@ -5499,7 +5537,8 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_031",
@@ -5699,7 +5738,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_032",
@@ -5946,7 +5986,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_033",
@@ -6159,7 +6200,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_034",
@@ -6379,7 +6421,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_035",
@@ -6660,7 +6703,8 @@
       "hasta": 13,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_036",
@@ -6920,7 +6964,9 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_037",
@@ -7126,7 +7172,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_038",
@@ -7298,7 +7345,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_039",
@@ -7484,7 +7532,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_040",
@@ -7852,7 +7902,9 @@
       "hasta": 24,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_041",
@@ -8040,7 +8092,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_042",
@@ -8259,7 +8312,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_043",
@@ -8495,7 +8549,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_044",
@@ -8747,7 +8803,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_045",
@@ -8904,7 +8961,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_046",
@@ -9045,7 +9103,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_047",
@@ -9230,7 +9289,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_048",
@@ -9410,7 +9470,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_049",
@@ -9628,7 +9689,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_050",
@@ -9783,7 +9845,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_051",
@@ -9997,7 +10060,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_052",
@@ -10196,7 +10260,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_053",
@@ -10391,7 +10456,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_054",
@@ -10517,7 +10583,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "formato": "sopa",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_055",
@@ -10731,7 +10799,9 @@
     "kidFavourite": true,
     "tecnica": "horno",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_056",
@@ -11046,7 +11116,9 @@
       "hasta": 20,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_057",
@@ -11368,7 +11440,9 @@
       "hasta": 22,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_058",
@@ -11676,7 +11750,9 @@
       "hasta": 21,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_059",
@@ -11984,7 +12060,9 @@
       "hasta": 18,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_060",
@@ -12138,7 +12216,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_061",
@@ -12300,7 +12379,9 @@
       "encurtido"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "pasta_arroces_062",
@@ -12491,7 +12572,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_063",
@@ -12677,7 +12759,8 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_064",
@@ -12843,7 +12926,8 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_065",
@@ -13036,7 +13120,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_066",
@@ -13215,7 +13300,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_067",
@@ -13371,7 +13457,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_068",
@@ -13556,7 +13643,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_069",
@@ -13846,7 +13934,8 @@
       "hasta": 13,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_070",
@@ -14137,7 +14226,9 @@
       "hasta": 14,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_071",
@@ -14290,7 +14381,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_072",
@@ -14467,7 +14559,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_073",
@@ -14661,7 +14754,8 @@
     "estrella": true,
     "tecnica": "olla",
     "llevaSalsa": true,
-    "cocina": "india"
+    "cocina": "india",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_074",
@@ -14875,7 +14969,8 @@
       "verdura",
       "seta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_075",
@@ -15069,7 +15164,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_076",
@@ -15267,7 +15363,9 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "occasion": "especial"
+    "occasion": "especial",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_077",
@@ -15515,7 +15613,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "occasion": "especial"
+    "occasion": "especial",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_078",
@@ -15711,7 +15810,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_079",
@@ -15900,7 +16001,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_080",
@@ -16088,7 +16190,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_081",
@@ -16268,7 +16371,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_082",
@@ -16486,7 +16590,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_083",
@@ -16705,7 +16810,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_084",
@@ -16874,7 +16981,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_085",
@@ -17082,7 +17190,9 @@
     ],
     "tecnica": "horno",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_086",
@@ -17332,7 +17442,9 @@
     ],
     "tecnica": "horno",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_087",
@@ -17514,7 +17626,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_088",
@@ -17687,7 +17800,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_089",
@@ -17862,7 +17976,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_090",
@@ -18055,7 +18170,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_091",
@@ -18231,7 +18348,8 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_092",
@@ -18410,7 +18528,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_093",
@@ -18585,7 +18704,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_094",
@@ -18760,7 +18880,8 @@
     ],
     "kidFavourite": true,
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_095",
@@ -18912,7 +19033,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_096",
@@ -19089,7 +19212,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_097",
@@ -19263,7 +19388,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_098",
@@ -19426,7 +19553,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_099",
@@ -19568,7 +19697,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "type": "completo",
@@ -19793,7 +19923,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "type": "completo",
@@ -19997,7 +20129,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "type": "completo",
@@ -20169,7 +20303,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pasta_arroces_103",
@@ -20798,7 +20934,9 @@
       "Mezclar el arroz frío con el pesto hasta que quede todo el grano cubierto.",
       "Añadir los guisantes y {{Tomate cherry}} partido por la mitad, y servir frío."
     ],
-    "methods": []
+    "methods": [],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "pasta_arroces_108",

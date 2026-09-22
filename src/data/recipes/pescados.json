@@ -178,7 +178,9 @@
       }
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_002",
@@ -334,7 +336,9 @@
     "saturated_fat_g": 5,
     "sodium_mg": 220,
     "freezable": false,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_003",
@@ -509,7 +513,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_004",
@@ -643,7 +649,9 @@
     "saturated_fat_g": 6,
     "sodium_mg": 380,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_005",
@@ -790,7 +798,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 120,
     "freezable": false,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_006",
@@ -902,7 +912,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 210,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_007",
@@ -1039,7 +1051,9 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_008",
@@ -1201,7 +1215,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_009",
@@ -1312,7 +1328,9 @@
     "saturated_fat_g": 6,
     "sodium_mg": 280,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_010",
@@ -1428,7 +1446,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 520,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_011",
@@ -1554,7 +1574,9 @@
     "saturated_fat_g": 3,
     "sodium_mg": 280,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_012",
@@ -1660,7 +1682,9 @@
     ],
     "freezable": false,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_013",
@@ -1835,7 +1859,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_014",
@@ -1966,7 +1992,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 520,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_015",
@@ -2117,7 +2145,9 @@
     "saturated_fat_g": 5,
     "sodium_mg": 780,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_016",
@@ -2287,7 +2317,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_017",
@@ -2457,7 +2489,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_018",
@@ -2656,7 +2690,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_019",
@@ -2830,7 +2866,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_020",
@@ -2982,7 +3020,9 @@
     "saturated_fat_g": 3,
     "sodium_mg": 320,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_021",
@@ -3173,7 +3213,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 520,
     "freezable": false,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_022",
@@ -3320,7 +3361,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_023",
@@ -3449,7 +3492,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 85,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_024",
@@ -3608,7 +3653,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_025",
@@ -3809,7 +3856,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_026",
@@ -4027,7 +4076,9 @@
     "tecnica": "crudo",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_027",
@@ -4269,7 +4320,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_028",
@@ -4411,7 +4464,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_029",
@@ -4617,7 +4672,8 @@
       "verdura",
       "fruta"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_030",
@@ -4779,7 +4835,9 @@
     ],
     "kidFavourite": true,
     "tecnica": "crudo",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_031",
@@ -4908,7 +4966,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_032",
@@ -5108,7 +5168,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_033",
@@ -5303,7 +5365,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_034",
@@ -5504,7 +5568,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_035",
@@ -5691,7 +5757,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_036",
@@ -5861,7 +5929,9 @@
     "tecnica": "horno",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_037",
@@ -6069,7 +6139,9 @@
     ],
     "occasion": "especial",
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_038",
@@ -6242,7 +6314,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_039",
@@ -6441,7 +6515,9 @@
     ],
     "estrella": true,
     "tecnica": "crudo",
-    "cocina": "peruana"
+    "cocina": "peruana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_040",
@@ -6658,7 +6734,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_041",
@@ -6856,7 +6933,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_042",
@@ -7009,7 +7087,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_043",
@@ -7176,7 +7256,9 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_044",
@@ -7406,7 +7488,8 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_045",
@@ -7621,7 +7704,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_046",
@@ -7846,7 +7931,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_047",
@@ -8092,7 +8178,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_048",
@@ -8254,7 +8342,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_049",
@@ -8398,7 +8488,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_050",
@@ -8611,7 +8703,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_051",
@@ -8784,7 +8878,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_052",
@@ -9033,7 +9129,9 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "occasion": "especial"
+    "occasion": "especial",
+    "formato": "sopa",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_053",
@@ -9322,7 +9420,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_054",
@@ -9477,7 +9576,9 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_055",
@@ -9668,7 +9769,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_056",
@@ -9840,7 +9943,9 @@
     ],
     "kidFavourite": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_057",
@@ -10028,7 +10133,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "salsa_tomate"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_058",
@@ -10173,7 +10280,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "cocina": "peruana"
+    "cocina": "peruana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_059",
@@ -10339,7 +10448,9 @@
       "fruta"
     ],
     "tecnica": "crudo",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_060",
@@ -10512,7 +10623,9 @@
     "freezable": false,
     "methods": [],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_061",
@@ -10673,7 +10786,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_062",
@@ -10905,7 +11020,9 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_063",
@@ -11102,7 +11219,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_064",
@@ -11267,7 +11386,9 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_065",
@@ -11467,7 +11588,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_066",
@@ -11639,7 +11762,9 @@
     "estrella": true,
     "tecnica": "sarten",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_067",
@@ -11822,7 +11947,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_068",
@@ -12040,7 +12167,9 @@
       "frutos_secos"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_069",
@@ -12232,7 +12361,9 @@
       "encurtido"
     ],
     "tecnica": "crudo",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_070",
@@ -12446,7 +12577,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_071",
@@ -12582,7 +12715,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_072",
@@ -12778,7 +12913,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_073",
@@ -12957,7 +13093,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_074",
@@ -13119,7 +13256,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_075",
@@ -13308,7 +13447,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_076",
@@ -13646,7 +13787,9 @@
       "hasta": 19,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_077",
@@ -13862,7 +14005,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_078",
@@ -14135,7 +14280,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_079",
@@ -14302,7 +14448,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_080",
@@ -14500,7 +14648,9 @@
     ],
     "estrella": true,
     "tecnica": "crudo",
-    "cocina": "peruana"
+    "cocina": "peruana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_081",
@@ -14673,7 +14823,9 @@
     "mainIngredients": [
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_082",
@@ -14825,7 +14977,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_083",
@@ -15033,7 +15187,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_084",
@@ -15221,7 +15377,9 @@
       "fruta"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_085",
@@ -15426,7 +15584,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_086",
@@ -15618,7 +15778,9 @@
     ],
     "tecnica": "sarten",
     "llevaSalsa": true,
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_087",
@@ -15874,7 +16036,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_088",
@@ -16057,7 +16220,9 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_089",
@@ -16247,7 +16412,9 @@
       "hasta": 6,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_090",
@@ -16476,7 +16643,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_091",
@@ -16692,7 +16861,8 @@
     "occasion": "especial",
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_092",
@@ -16934,7 +17104,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_093",
@@ -17109,7 +17281,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "pescados_094",
@@ -17311,7 +17485,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_095",
@@ -17498,7 +17674,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_096",
@@ -17704,7 +17882,9 @@
       "frutos_secos"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_097",
@@ -17914,7 +18094,9 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_098",
@@ -18132,7 +18314,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_099",
@@ -18352,7 +18535,9 @@
     ],
     "occasion": "especial",
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_100",
@@ -18572,7 +18757,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_101",
@@ -18830,7 +19017,9 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_102",
@@ -19041,7 +19230,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_103",
@@ -19318,7 +19509,9 @@
     "cocina": "asiatica",
     "mainBase": "boniato",
     "baseMode": "dentro",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_104",
@@ -19581,7 +19774,9 @@
     "sodium_mg": 520,
     "freezable": false,
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_105",
@@ -19819,7 +20014,9 @@
       "frutos_secos"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_106",
@@ -20062,7 +20259,9 @@
     ],
     "tecnica": "plancha",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_107",
@@ -20293,7 +20492,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_108",
@@ -20518,7 +20719,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_109",
@@ -20828,7 +21031,9 @@
       "hasta": 23,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_110",
@@ -21001,7 +21206,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "pescados_111",
@@ -21209,7 +21416,9 @@
       "hasta": 8,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_112",
@@ -21435,7 +21644,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_113",
@@ -21759,7 +21970,9 @@
       "hasta": 24,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_114",
@@ -22063,7 +22276,9 @@
       "hasta": 23,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_115",
@@ -22275,7 +22490,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_116",
@@ -22518,7 +22735,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_117",
@@ -22722,7 +22941,9 @@
     "extraProteins": [
       "huevo"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_118",
@@ -22959,7 +23180,9 @@
       "hasta": 13,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_119",
@@ -23166,7 +23389,9 @@
     "freezable": false,
     "estrella": true,
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_120",
@@ -23340,7 +23565,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_121",
@@ -23451,7 +23678,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_122",
@@ -23569,7 +23798,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_123",
@@ -23700,7 +23931,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_124",
@@ -23826,7 +24059,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_125",
@@ -23961,7 +24196,9 @@
     ],
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_126",
@@ -24085,7 +24322,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_127",
@@ -24224,7 +24463,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_128",
@@ -24363,7 +24604,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "type": "principal",
@@ -24525,7 +24768,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "pescados_130",

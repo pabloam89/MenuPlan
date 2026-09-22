@@ -121,7 +121,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_002",
@@ -207,7 +209,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_003",
@@ -282,7 +286,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_007",
@@ -407,7 +413,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_008",
@@ -455,7 +463,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_009",
@@ -540,7 +550,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_013",
@@ -592,7 +604,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_014",
@@ -718,7 +732,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_019",
@@ -882,7 +898,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_020",
@@ -1081,7 +1099,9 @@
       "fruta"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_021",
@@ -1288,7 +1308,9 @@
       "frutos_secos"
     ],
     "tecnica": "horno",
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_022",
@@ -1567,7 +1589,9 @@
     "sodium_mg": 80,
     "freezable": false,
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_023",
@@ -1743,7 +1767,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_024",
@@ -1863,7 +1888,9 @@
     "extraProteins": [
       "huevo"
     ],
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_025",
@@ -2060,7 +2087,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_026",
@@ -2275,7 +2304,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_027",
@@ -2499,7 +2530,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_028",
@@ -2752,7 +2785,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_029",
@@ -3006,7 +3041,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_030",
@@ -3174,7 +3211,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_031",
@@ -3305,7 +3344,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "postres_032",
@@ -3448,7 +3489,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "postres_033",
@@ -3628,7 +3671,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_034",
@@ -3842,7 +3887,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_035",
@@ -4019,7 +4066,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_036",
@@ -4221,7 +4270,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "postres_037",

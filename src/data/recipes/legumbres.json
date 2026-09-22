@@ -209,7 +209,8 @@
     "basesAparte": [
       "sofrito"
     ],
-    "estrella": true
+    "estrella": true,
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_002",
@@ -427,7 +428,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_003",
@@ -633,7 +635,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "salsa_tomate"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_004",
@@ -867,7 +870,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_005",
@@ -1093,7 +1098,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_006",
@@ -1307,7 +1314,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_007",
@@ -1552,7 +1561,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_008",
@@ -1756,7 +1767,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_009",
@@ -1949,7 +1961,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_010",
@@ -2119,7 +2132,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_011",
@@ -2355,7 +2370,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_012",
@@ -2495,7 +2511,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_013",
@@ -2701,7 +2719,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_014",
@@ -2913,7 +2932,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_015",
@@ -3060,7 +3080,9 @@
     "baseMode": "aparte",
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_016",
@@ -3285,7 +3307,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_017",
@@ -3504,7 +3528,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_018",
@@ -3693,7 +3718,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_019",
@@ -3907,7 +3933,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_020",
@@ -4074,7 +4101,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_021",
@@ -4254,7 +4283,9 @@
     "baseMode": "aparte",
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_022",
@@ -4432,7 +4463,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_023",
@@ -4628,7 +4661,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_024",
@@ -4828,7 +4863,9 @@
     "tecnica": "horno",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_025",
@@ -5110,7 +5147,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_026",
@@ -5279,7 +5318,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_027",
@@ -5440,7 +5481,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_028",
@@ -5708,7 +5751,8 @@
       "hasta": 7,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_029",
@@ -5958,7 +6002,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_030",
@@ -6165,7 +6210,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_031",
@@ -6373,7 +6420,8 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_032",
@@ -6615,7 +6663,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_033",
@@ -6816,7 +6866,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_034",
@@ -7072,7 +7124,9 @@
       "hasta": 9,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_035",
@@ -7259,7 +7313,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_036",
@@ -7527,7 +7583,8 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_037",
@@ -7766,7 +7823,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_038",
@@ -7991,7 +8049,8 @@
       "huevo"
     ],
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_039",
@@ -8257,7 +8316,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_040",
@@ -8510,7 +8571,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_041",
@@ -8795,7 +8858,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_042",
@@ -9031,7 +9096,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_043",
@@ -9196,7 +9262,9 @@
     ],
     "tecnica": "crudo",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_044",
@@ -9448,7 +9516,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_045",
@@ -9615,7 +9684,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_046",
@@ -9852,7 +9923,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_047",
@@ -10067,7 +10140,9 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_048",
@@ -10316,7 +10391,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_049",
@@ -10477,7 +10553,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_050",
@@ -10606,7 +10684,9 @@
     "estrella": true,
     "tecnica": "sarten",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_051",
@@ -10806,7 +10886,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_052",
@@ -11067,7 +11148,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_053",
@@ -11273,7 +11355,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_054",
@@ -11513,7 +11596,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_055",
@@ -11755,7 +11839,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_056",
@@ -11956,7 +12042,9 @@
     ],
     "tecnica": "horno",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "legumbres_057",
@@ -12197,7 +12285,8 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_058",
@@ -12413,7 +12502,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_059",
@@ -12639,7 +12729,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_060",
@@ -12822,7 +12913,9 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "cremoso",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_061",
@@ -13039,7 +13132,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_062",
@@ -13226,7 +13320,9 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_063",
@@ -13520,7 +13616,9 @@
     "occasion": "especial",
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_064",
@@ -13639,7 +13737,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "sopa",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_065",
@@ -13864,7 +13964,8 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_066",
@@ -14129,7 +14230,8 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_067",
@@ -14334,7 +14436,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_068",
@@ -14465,7 +14569,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_069",
@@ -14625,7 +14730,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_070",
@@ -14773,7 +14880,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_071",
@@ -14928,7 +15036,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_072",
@@ -15089,7 +15199,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_073",
@@ -15245,7 +15356,8 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "type": "completo",
@@ -15422,7 +15534,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "type": "completo",
@@ -15607,7 +15720,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_076",
@@ -15804,7 +15919,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_077",
@@ -16024,7 +16141,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_078",
@@ -16239,7 +16357,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_079",
@@ -16431,7 +16550,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_080",
@@ -16665,7 +16786,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_081",
@@ -16858,7 +16981,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "legumbres_082",
@@ -17003,7 +17127,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "legumbres_083",

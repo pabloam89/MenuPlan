@@ -140,18 +140,18 @@ export const EJES = [
   // ── Percepción del plato (6-13) ──────────────────────────────────────────
   {
     n: 6, id: "formato", nombre: "Formato",
-    ambito: AMBITO.PARTE, tipo: "enum", estado: "silencioso",
-    campo: null,
+    ambito: AMBITO.PARTE, tipo: "enum", estado: "sin_lector",
+    campo: "formato",
     vocabulario: ["ensalada", "sopa", "cremoso", "guiso", "plato_seco"],
-    consumidores: [], cobertura: 0,
-    nota: "Disfrazado en `category`. Es ORTOGONAL a todo lo demás: hay ensaladas de pasta y ensaladas de legumbre. Entre nueve legumbres conviven «Lentejas con verduras» (guiso caliente) y «Ensalada de garbanzos con chorizo» (fría) con la MISMA firma en todos los ejes existentes: les separan formato y temperatura. — VOCABULARIO REHECHO antes de poblarlo, y ese orden importa: el primero (ensalada · guiso · sopa · plato_seco · montaje · masa · bol) se probó contra 31 recetas reales y dio 52 % de encaje único, con 4 sin ningún valor posible y 11 con dos. Cometía el pecado de `category` — mezclaba hidratación (guiso/sopa/seco) con estructura (masa/montaje) y con recipiente (bol) —, así que `masa` y `montaje` salen a ejes propios (46 y 47: la empanada es masa sin montaje, el pan tumaca montaje sin masa, la lasaña las dos), `bol` se cae por ser dónde se sirve y no cómo se hace, y entra `cremoso`, que faltaba para las 65 recetas que empiezan por «Puré» o «Crema». `salsa` no entra: la tiene ya el eje 45. Y el ámbito pasa a PARTE, que es lo que resuelve «Lomo a la plancha CON ENSALADA» — principal seco, guarnición ensalada — y era el mismo error que el eje 45 existe para arreglar, cometido aquí.",
+    consumidores: [], cobertura: 0.725,
+    nota: "Disfrazado en `category`. Es ORTOGONAL a todo lo demás: hay ensaladas de pasta y ensaladas de legumbre. Entre nueve legumbres conviven «Lentejas con verduras» (guiso caliente) y «Ensalada de garbanzos con chorizo» (fría) con la MISMA firma en todos los ejes existentes: les separan formato y temperatura. — VOCABULARIO REHECHO antes de poblarlo, y ese orden importa: el primero (ensalada · guiso · sopa · plato_seco · montaje · masa · bol) se probó contra 31 recetas reales y dio 52 % de encaje único, con 4 sin ningún valor posible y 11 con dos. Cometía el pecado de `category` — mezclaba hidratación (guiso/sopa/seco) con estructura (masa/montaje) y con recipiente (bol) —, así que `masa` y `montaje` salen a ejes propios (46 y 47: la empanada es masa sin montaje, el pan tumaca montaje sin masa, la lasaña las dos), `bol` se cae por ser dónde se sirve y no cómo se hace, y entra `cremoso`, que faltaba para las 65 recetas que empiezan por «Puré» o «Crema». `salsa` no entra: la tiene ya el eje 45. Y el ámbito pasa a PARTE, que es lo que resuelve «Lomo a la plancha CON ENSALADA» — principal seco, guarnición ensalada — y era el mismo error que el eje 45 existe para arreglar, cometido aquí. — POBLADO el 22 sep por derive/formato.js: 749 de 1.033, y se ABSTIENE en 284. La abstención no es pereza: 172 de esas son recetas de olla sin señal en el nombre, y en olla conviven «Brócoli al vapor» y «Ternera guisada» sin nada que las separe. El valor escrito es el de la receta ENTERA, que es el de su parte principal; cuando el eje 45 suba del 17 % pasará a calcularse por parte de verdad.",
   },
   {
     n: 7, id: "temperatura", nombre: "Temperatura de servicio",
-    ambito: AMBITO.RECETA, tipo: "enum", estado: "silencioso",
-    campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
-    nota: "23 recetas Estrella se sirven frías sin poder decirlo.",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "sin_lector",
+    campo: "temperatura", vocabulario: ["caliente", "templado", "frio"],
+    consumidores: [], cobertura: 0.887,
+    nota: "Poblado el 22 sep 2026 por derive/formato.js: 916 de 1.033. La técnica lo da casi entero —lo que se cocina se sirve caliente— y el nombre manda sobre ella, porque un escabeche se cocina y se come frío. Se abstiene en las 117 sin técnica. Queda SIN_LECTOR a propósito: el dato está y todavía no lo lee nadie, y el registro lo dice en vez de dejar que se pudra en silencio. Su primer lector natural es filterRecipes, para poder pedir «algo frío».",
   },
   {
     n: 8, id: "textura", nombre: "Textura",
@@ -165,7 +165,7 @@ export const EJES = [
     ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
     campo: "healthFlags", vocabulario: null,
     consumidores: ["validateMenu", "filterRecipes", "aiPlanner", "healthProfileMatch"], cobertura: 0.006,
-    nota: "`healthFlags` está poblado en 6 recetas de 1.033 y mezcla sabor con salud (frito, embutido, picante). No es este eje: es tres.",
+    nota: "OJO A LA COBERTURA, que son DOS y esta columna solo sabe decir una: en el JSON hay 6 recetas de 1.033 con `healthFlags`, pero `recipeCatalog` lo deriva al cargar con `deriveHealthFlags`, así que lo que los cuatro lectores ven está al 100 %. El 0,6 % es la parte CURADA; el resto se calcula. Y el campo mezcla sabor con salud (frito, embutido, picante): no es este eje, es tres.",
   },
   {
     n: 10, id: "carga", nombre: "Carga / saciedad",
@@ -403,10 +403,10 @@ export const EJES = [
   // hay recetas con cada combinación de los cuatro cuadrantes.
   {
     n: 46, id: "montaje", nombre: "Se monta en el plato",
-    ambito: AMBITO.PARTE, tipo: "booleano", estado: "activo",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
     campo: "montaje", vocabulario: null,
     consumidores: ["solver", "bases", "aiPlanner", "userRecipes", "CatalogBrowserSheet"], cobertura: 0.092,
-    nota: "Ya existía como campo y NO tenía eje, que es la mitad de cómo se pudre un campo: 95 recetas, cinco lectores y ninguna declaración. Sale del enum de `formato` porque no es hermano de `guiso` ni de `sopa` — se monta una tosta y se monta un bol, y los dos pueden además llevar masa o no.",
+    nota: "Ámbito RECETA y no PARTE, aunque conceptualmente sea de la parte: el campo que existe es de la receta (95 de 1.033, cero pasos con él) y declarar un ámbito que el dato no tiene hace mentir al medidor. Ya existía como campo y NO tenía eje, que es la mitad de cómo se pudre un campo: 95 recetas, cinco lectores y ninguna declaración. Sale del enum de `formato` porque no es hermano de `guiso` ni de `sopa` — se monta una tosta y se monta un bol, y los dos pueden además llevar masa o no.",
   },
   {
     n: 47, id: "llevaMasa", nombre: "Lleva masa",

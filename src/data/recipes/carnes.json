@@ -195,7 +195,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_002",
@@ -322,7 +324,9 @@
     "saturated_fat_g": 3,
     "sodium_mg": 95,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_003",
@@ -538,7 +542,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_004",
@@ -667,7 +673,9 @@
     "saturated_fat_g": 6,
     "sodium_mg": 380,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_005",
@@ -891,7 +899,9 @@
     "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_006",
@@ -1057,7 +1067,9 @@
       }
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_007",
@@ -1178,7 +1190,9 @@
     "saturated_fat_g": 6,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_008",
@@ -1389,7 +1403,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_009",
@@ -1592,7 +1608,9 @@
       "verdura"
     ],
     "tecnica": "plancha",
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_010",
@@ -1797,7 +1815,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_011",
@@ -2004,7 +2024,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_012",
@@ -2220,7 +2242,8 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_013",
@@ -2392,7 +2415,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_014",
@@ -2586,7 +2611,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_015",
@@ -2810,7 +2837,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_016",
@@ -3029,7 +3058,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_017",
@@ -3206,7 +3237,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_018",
@@ -3333,7 +3366,9 @@
     "saturated_fat_g": 11,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_019",
@@ -3523,7 +3558,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_020",
@@ -3723,7 +3760,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_021",
@@ -3946,7 +3985,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_022",
@@ -4172,7 +4213,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_023",
@@ -4313,7 +4356,9 @@
     "saturated_fat_g": 7,
     "sodium_mg": 180,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_024",
@@ -4434,7 +4479,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 95,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_025",
@@ -4636,7 +4683,9 @@
     "cocina": "india",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_026",
@@ -4849,7 +4898,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_027",
@@ -4975,7 +5026,9 @@
     "saturated_fat_g": 11,
     "sodium_mg": 320,
     "freezable": false,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_028",
@@ -5203,7 +5256,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_029",
@@ -5417,7 +5471,9 @@
     "tecnica": "plancha",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_030",
@@ -5583,7 +5639,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_031",
@@ -5788,7 +5846,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_032",
@@ -5924,7 +5984,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 320,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_033",
@@ -6133,7 +6195,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_034",
@@ -6324,7 +6388,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_035",
@@ -6517,7 +6583,9 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_037",
@@ -6850,7 +6918,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_038",
@@ -7132,7 +7201,9 @@
       "seta"
     ],
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_039",
@@ -7390,7 +7461,9 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_040",
@@ -7622,7 +7695,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_041",
@@ -7841,7 +7915,9 @@
     "occasion": "especial",
     "tecnica": "sarten",
     "llevaSalsa": true,
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_042",
@@ -8213,7 +8289,8 @@
     ],
     "occasion": "especial",
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_043",
@@ -8451,7 +8528,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_044",
@@ -8701,7 +8780,9 @@
     ],
     "occasion": "especial",
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_045",
@@ -8891,7 +8972,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_046",
@@ -9093,7 +9176,9 @@
     "extraProteins": [
       "huevo"
     ],
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_047",
@@ -9302,7 +9387,9 @@
       "verdura"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_048",
@@ -9647,7 +9734,8 @@
     "estrella": true,
     "tecnica": "olla",
     "llevaSalsa": true,
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_049",
@@ -9860,7 +9948,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_050",
@@ -10120,7 +10209,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_051",
@@ -10352,7 +10443,9 @@
     ],
     "estrella": true,
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_052",
@@ -10631,7 +10724,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_053",
@@ -10860,7 +10955,8 @@
     "occasion": "especial",
     "tecnica": "olla",
     "mainBase": "boniato",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_054",
@@ -10994,7 +11090,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_055",
@@ -11259,7 +11357,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_056",
@@ -11457,7 +11556,9 @@
     ],
     "tecnica": "plancha",
     "cocina": "asiatica",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_057",
@@ -11616,7 +11717,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_058",
@@ -11805,7 +11908,9 @@
     ],
     "kidFavourite": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_059",
@@ -11965,7 +12070,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_060",
@@ -12103,7 +12210,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_061",
@@ -12273,7 +12382,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_062",
@@ -12499,7 +12610,9 @@
       "lacteo"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_063",
@@ -12752,7 +12865,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_064",
@@ -12998,7 +13113,9 @@
     "cocina": "americana",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_065",
@@ -13206,7 +13323,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_066",
@@ -13478,7 +13597,9 @@
     "cocina": "americana",
     "basesAparte": [
       "salsa_tomate"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_067",
@@ -13717,7 +13838,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_068",
@@ -13917,7 +14040,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_069",
@@ -14077,7 +14201,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_070",
@@ -14258,7 +14384,9 @@
     "tecnica": "crudo",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_071",
@@ -14528,7 +14656,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_072",
@@ -14740,7 +14870,9 @@
     ],
     "estrella": true,
     "kidFavourite": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_073",
@@ -14940,7 +15072,9 @@
     ],
     "estrella": true,
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_074",
@@ -15167,7 +15301,9 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_075",
@@ -15383,7 +15519,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_076",
@@ -15619,7 +15756,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_077",
@@ -15929,7 +16067,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_078",
@@ -16213,7 +16352,9 @@
     ],
     "extraProteins": [
       "ternera"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_079",
@@ -16423,7 +16564,8 @@
     "cocina": "asiatica",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_080",
@@ -16629,7 +16771,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_081",
@@ -16891,7 +17035,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_082",
@@ -17141,7 +17286,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_083",
@@ -17286,7 +17433,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_084",
@@ -17520,7 +17669,9 @@
     ],
     "estrella": true,
     "occasion": "especial",
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_085",
@@ -17745,7 +17896,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_086",
@@ -17981,7 +18134,8 @@
       "hasta": 9,
       "guarda": "congelador",
       "dias": 30
-    }
+    },
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_087",
@@ -18179,7 +18333,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_088",
@@ -18438,7 +18594,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_089",
@@ -18628,7 +18786,9 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_090",
@@ -18800,7 +18960,9 @@
       "seta"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_091",
@@ -19007,7 +19169,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_092",
@@ -19163,7 +19327,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_093",
@@ -19415,7 +19581,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_094",
@@ -19645,7 +19813,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_095",
@@ -19961,7 +20130,8 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_096",
@@ -20251,7 +20421,9 @@
       "hasta": 14,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_097",
@@ -20400,7 +20572,9 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_098",
@@ -20687,7 +20861,9 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_099",
@@ -20901,7 +21077,9 @@
     ],
     "occasion": "especial",
     "tecnica": "sarten",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_100",
@@ -21170,7 +21348,9 @@
     "tecnica": "crudo",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_101",
@@ -21417,7 +21597,9 @@
       "seta"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_102",
@@ -21667,7 +21849,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_103",
@@ -21938,7 +22122,9 @@
     "mainBase": "boniato",
     "baseMode": "dentro",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_104",
@@ -22180,7 +22366,9 @@
       "frutos_secos"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_105",
@@ -22381,7 +22569,8 @@
     "tecnica": "olla",
     "mainBase": "boniato",
     "baseMode": "dentro",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_106",
@@ -22614,7 +22803,9 @@
     ],
     "estrella": true,
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_107",
@@ -22875,7 +23066,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_108",
@@ -23142,7 +23335,9 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_109",
@@ -23372,7 +23567,9 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_110",
@@ -23600,7 +23797,9 @@
     ],
     "tecnica": "plancha",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_111",
@@ -23835,7 +24034,8 @@
     "tecnica": "olla",
     "mainBase": "boniato",
     "baseMode": "dentro",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_112",
@@ -24060,7 +24260,8 @@
     "llevaSalsa": true,
     "basesAparte": [
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_113",
@@ -24258,7 +24459,9 @@
     ],
     "estrella": true,
     "tecnica": "horno",
-    "cocina": "asiatica"
+    "cocina": "asiatica",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_114",
@@ -24493,7 +24696,9 @@
       "fruta"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_115",
@@ -24709,7 +24914,9 @@
       "encurtido"
     ],
     "tecnica": "plancha",
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_116",
@@ -24997,7 +25204,9 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "guiso",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_117",
@@ -25194,7 +25403,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_118",
@@ -25458,7 +25669,8 @@
     "basesAparte": [
       "sofrito",
       "caldo"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_119",
@@ -25698,7 +25910,9 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_120",
@@ -25903,7 +26117,9 @@
       "lacteo"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_121",
@@ -26150,7 +26366,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_122",
@@ -26364,7 +26582,9 @@
       "cerdo",
       "huevo"
     ],
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_123",
@@ -26543,7 +26763,9 @@
     ],
     "tecnica": "crudo",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_124",
@@ -26767,7 +26989,9 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_125",
@@ -26884,7 +27108,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_126",
@@ -27021,7 +27247,9 @@
     "mainIngredients": [
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_127",
@@ -27177,7 +27405,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_128",
@@ -27306,7 +27536,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "carnes_129",
@@ -27508,7 +27740,9 @@
     "cocina": "francesa",
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_130",
@@ -27685,7 +27919,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "pavo"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_131",
@@ -27874,7 +28110,9 @@
       "verdura"
     ],
     "kidFavourite": true,
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_132",
@@ -28028,7 +28266,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_133",
@@ -28225,7 +28465,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_134",
@@ -28379,7 +28621,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_135",
@@ -28604,7 +28848,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_136",
@@ -28815,7 +29060,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_137",
@@ -29081,7 +29328,9 @@
       "hasta": 13,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_138",
@@ -29341,7 +29590,9 @@
       "hasta": 12,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_139",
@@ -29550,7 +29801,9 @@
       "hasta": 10,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_140",
@@ -29797,7 +30050,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_141",
@@ -30104,7 +30359,9 @@
       "hasta": 16,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_142",
@@ -30315,7 +30572,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_143",
@@ -30492,7 +30751,9 @@
       "hasta": 6,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_144",
@@ -30749,7 +31010,9 @@
       "hasta": 11,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_145",
@@ -31039,7 +31302,9 @@
       "hasta": 7,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_146",
@@ -31220,7 +31485,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_147",
@@ -31356,7 +31623,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_148",
@@ -31487,7 +31756,9 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_149",
@@ -31614,7 +31885,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_150",
@@ -31764,7 +32037,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_151",
@@ -31905,7 +32180,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_152",
@@ -32046,7 +32323,9 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_153",
@@ -32187,7 +32466,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_154",
@@ -32333,7 +32614,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_155",
@@ -32552,7 +32835,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_156",
@@ -32701,7 +32986,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "type": "principal",
@@ -32896,7 +33183,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "type": "completo",
@@ -33085,7 +33374,9 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "type": "principal",
@@ -33257,7 +33548,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "type": "principal",
@@ -33417,7 +33710,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "carnes_161",

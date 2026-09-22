@@ -191,7 +191,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_002",
@@ -379,7 +380,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_003",
@@ -604,7 +607,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_004",
@@ -883,7 +888,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_005",
@@ -1085,7 +1092,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_006",
@@ -1248,7 +1257,8 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_007",
@@ -1471,7 +1481,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_008",
@@ -1667,7 +1679,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_009",
@@ -1821,7 +1835,9 @@
       "lacteo"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "platos_unicos_010",
@@ -2055,7 +2071,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_011",
@@ -2228,7 +2246,9 @@
     "mainIngredients": [
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_012",
@@ -2446,7 +2466,9 @@
       "verdura",
       "seta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_013",
@@ -2654,7 +2676,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_014",
@@ -2799,7 +2823,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "platos_unicos_015",
@@ -2957,7 +2983,9 @@
     "saturated_fat_g": 4,
     "sodium_mg": 320,
     "freezable": false,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_016",
@@ -3129,7 +3157,9 @@
     "sodium_mg": 420,
     "freezable": false,
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "platos_unicos_017",
@@ -3317,7 +3347,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_018",
@@ -3508,7 +3539,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 420,
     "freezable": false,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "platos_unicos_019",
@@ -3663,7 +3695,9 @@
       "lacteo"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "platos_unicos_020",
@@ -3851,6 +3885,8 @@
     "baseMode": "dentro",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   }
 ]

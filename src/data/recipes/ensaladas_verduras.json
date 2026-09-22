@@ -138,7 +138,9 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "estrella": true
+    "estrella": true,
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_002",
@@ -339,7 +341,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_003",
@@ -630,7 +633,8 @@
     "tecnica": "olla",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_004",
@@ -836,7 +840,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_005",
@@ -963,7 +969,9 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_006",
@@ -1168,7 +1176,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_007",
@@ -1413,7 +1423,9 @@
     ],
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_008",
@@ -1583,7 +1595,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_009",
@@ -1735,7 +1749,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_010",
@@ -1879,7 +1895,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_011",
@@ -2057,7 +2074,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_012",
@@ -2212,7 +2231,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_013",
@@ -2395,7 +2416,9 @@
     ],
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_015",
@@ -2602,7 +2625,9 @@
     "mainBase": "patatas",
     "baseMode": "aparte",
     "llevaSalsa": true,
-    "estrella": true
+    "estrella": true,
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_016",
@@ -2764,7 +2789,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_017",
@@ -3019,7 +3045,9 @@
     ],
     "tecnica": "horno",
     "mainBase": "patatas",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_018",
@@ -3124,7 +3152,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_020",
@@ -3311,7 +3341,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_021",
@@ -3445,7 +3476,9 @@
       "encurtido"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_022",
@@ -3606,7 +3639,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_023",
@@ -3762,7 +3797,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_024",
@@ -3959,7 +3996,9 @@
     ],
     "tecnica": "plancha",
     "cocina": "americana",
-    "estrella": true
+    "estrella": true,
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_025",
@@ -4106,7 +4145,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_031",
@@ -4272,7 +4312,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "pesto"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_032",
@@ -4478,7 +4520,9 @@
       "lacteo"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_033",
@@ -4698,7 +4742,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_034",
@@ -4859,7 +4905,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_035",
@@ -5054,7 +5102,9 @@
     "cocina": "mexicana",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_036",
@@ -5239,7 +5289,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_037",
@@ -5370,7 +5422,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_038",
@@ -5499,7 +5553,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_039",
@@ -5654,7 +5710,9 @@
       "frutos_secos"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_040",
@@ -5850,7 +5908,9 @@
       "fruta"
     ],
     "occasion": "especial",
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_041",
@@ -6043,7 +6103,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_042",
@@ -6193,7 +6255,9 @@
       "frutos_secos"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_043",
@@ -6323,7 +6387,9 @@
       "fruta",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_044",
@@ -6520,7 +6586,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_045",
@@ -6672,7 +6740,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_046",
@@ -6845,7 +6915,9 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "patatas",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_047",
@@ -7007,7 +7079,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_048",
@@ -7175,7 +7249,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_049",
@@ -7309,7 +7385,9 @@
       "verdura",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_050",
@@ -7462,7 +7540,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_051",
@@ -7622,7 +7702,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_052",
@@ -7862,7 +7944,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_053",
@@ -8091,7 +8175,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_054",
@@ -8341,7 +8427,9 @@
     "extraProteins": [
       "huevo"
     ],
-    "cocina": "francesa"
+    "cocina": "francesa",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_055",
@@ -8477,7 +8565,9 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_056",
@@ -8636,7 +8726,9 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_057",
@@ -8841,7 +8933,9 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_058",
@@ -9031,7 +9125,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_059",
@@ -9232,7 +9328,9 @@
       "verdura",
       "encurtido"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_060",
@@ -9408,7 +9506,9 @@
       "verdura",
       "seta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_061",
@@ -9561,7 +9661,9 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_062",
@@ -9705,7 +9807,9 @@
       "frutos_secos"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_063",
@@ -9821,7 +9925,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "pesto"
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_064",
@@ -9982,7 +10088,9 @@
     ],
     "tecnica": "sarten",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_065",
@@ -10170,7 +10278,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_066",
@@ -10343,7 +10453,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_067",
@@ -10605,7 +10717,9 @@
     ],
     "tecnica": "horno",
     "llevaSalsa": true,
-    "cocina": "americana"
+    "cocina": "americana",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_068",
@@ -10751,7 +10865,9 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_069",
@@ -10872,7 +10988,9 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_070",
@@ -11075,7 +11193,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_071",
@@ -11253,7 +11373,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_072",
@@ -11458,7 +11580,9 @@
     "tecnica": "sarten",
     "extraProteins": [
       "huevo"
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_073",
@@ -11601,7 +11725,9 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_074",
@@ -11735,7 +11861,9 @@
       "encurtido"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_075",
@@ -11881,7 +12009,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_076",
@@ -12018,7 +12148,9 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_077",
@@ -12195,7 +12327,9 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_078",
@@ -12347,7 +12481,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_079",
@@ -12543,7 +12679,9 @@
     ],
     "tecnica": "horno",
     "cocina": "arabe",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_080",
@@ -12733,7 +12871,9 @@
     "montaje": true,
     "tecnica": "crudo",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_081",
@@ -12952,7 +13092,9 @@
       "encurtido"
     ],
     "tecnica": "olla",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_082",
@@ -13088,7 +13230,9 @@
       "verdura",
       "fruta"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_083",
@@ -13224,7 +13368,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_084",
@@ -13413,7 +13559,9 @@
     ],
     "tecnica": "sarten",
     "llevaSalsa": true,
-    "cocina": "india"
+    "cocina": "india",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_085",
@@ -13583,7 +13731,9 @@
       "encurtido"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_086",
@@ -13724,7 +13874,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_087",
@@ -13928,7 +14080,9 @@
       "verdura",
       "fruta"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_088",
@@ -14064,7 +14218,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_089",
@@ -14270,7 +14426,9 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_090",
@@ -14539,7 +14697,9 @@
     "llevaSalsa": true,
     "basesAparte": [
       "salsa_tomate"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_091",
@@ -14762,7 +14922,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_092",
@@ -14966,7 +15128,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_093",
@@ -15257,7 +15421,9 @@
       "hasta": 17,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_094",
@@ -15401,7 +15567,9 @@
     "mainIngredients": [
       "seta"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_095",
@@ -15633,7 +15801,9 @@
       "frutos_secos"
     ],
     "tecnica": "plancha",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_096",
@@ -15816,7 +15986,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_097",
@@ -16016,7 +16188,9 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_098",
@@ -16191,7 +16365,9 @@
       }
     ],
     "estrella": true,
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_099",
@@ -16387,7 +16563,9 @@
       "verdura"
     ],
     "tecnica": "horno",
-    "cocina": "arabe"
+    "cocina": "arabe",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_100",
@@ -16567,7 +16745,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_101",
@@ -16730,7 +16910,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_102",
@@ -16878,7 +17060,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_103",
@@ -17097,7 +17281,9 @@
       "hasta": 11,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_104",
@@ -17318,7 +17504,9 @@
       "hasta": 15,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_105",
@@ -17501,7 +17689,9 @@
       "verdura",
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_106",
@@ -17704,7 +17894,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "verdura_asada"
-    ]
+    ],
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_107",
@@ -17928,7 +18120,8 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_108",
@@ -18136,7 +18329,9 @@
       "hasta": 11,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_109",
@@ -18268,7 +18463,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_110",
@@ -18435,7 +18632,9 @@
       "lacteo",
       "frutos_secos"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_111",
@@ -18609,7 +18808,8 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_112",
@@ -18754,7 +18954,9 @@
       "fruta",
       "frutos_secos"
     ],
-    "tecnica": "plancha"
+    "tecnica": "plancha",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_113",
@@ -18890,7 +19092,9 @@
       "seta"
     ],
     "tecnica": "sarten",
-    "llevaSalsa": true
+    "llevaSalsa": true,
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_114",
@@ -19110,7 +19314,9 @@
       "hasta": 13,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_115",
@@ -19352,7 +19558,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_116",
@@ -19524,7 +19732,9 @@
       "verdura",
       "lacteo"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_117",
@@ -19731,7 +19941,9 @@
     "tecnica": "sarten",
     "basesAparte": [
       "sofrito"
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_118",
@@ -20020,7 +20232,9 @@
       "hasta": 18,
       "guarda": "congelador",
       "dias": 60
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_119",
@@ -20365,7 +20579,9 @@
       "hasta": 22,
       "guarda": "nevera",
       "dias": 2
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_120",
@@ -20554,7 +20770,9 @@
     ],
     "kidFavourite": true,
     "tecnica": "horno",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_121",
@@ -20792,7 +21010,9 @@
       "hasta": 11,
       "guarda": "nevera",
       "dias": 1
-    }
+    },
+    "formato": "plato_seco",
+    "temperatura": "caliente"
   },
   {
     "id": "ensaladas_verduras_122",
@@ -20932,7 +21152,9 @@
       "verdura"
     ],
     "montaje": true,
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_123",
@@ -21159,7 +21381,9 @@
     "tecnica": "horno",
     "basesAparte": [
       "bechamel"
-    ]
+    ],
+    "formato": "cremoso",
+    "temperatura": "caliente"
   },
   {
     "type": "completo",
@@ -21315,7 +21539,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "type": "completo",
@@ -21457,7 +21683,9 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_126",
@@ -22395,7 +22623,9 @@
       "Mezclar los garbanzos con la verdura asada templada.",
       "Añadir {{Rúcula}}, aliñar con {{Limón}} y {{Sal|gusto}} y servir enseguida, antes de que la rúcula se apague."
     ],
-    "methods": []
+    "methods": [],
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "ensaladas_verduras_134",
@@ -22686,6 +22916,8 @@
       "Mezclar las patatas templadas con {{Atún en aceite}} escurrido y la cebolleta.",
       "Aliñar con el zumo de {{Limón}} y un hilo de aceite, y añadir {{Rúcula}} al final."
     ],
-    "methods": []
+    "methods": [],
+    "formato": "ensalada",
+    "temperatura": "frio"
   }
 ]

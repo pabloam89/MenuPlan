@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import alimentos from "./alimentos.json";
 import { EJES, EJE_POR_ID, cobertura, puedeResponder, valorValido } from "./axisRegistry.js";
+import { composicionDe } from "../lib/derive/composicion.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
 const recetas = readdirSync(RAIZ)
@@ -18,6 +19,11 @@ const recetas = readdirSync(RAIZ)
  * definición y no hay nada que contar.
  */
 const MEDIDORES = {
+  // El eje 1 no vive en ningún campo: se calcula. Así que su cobertura se mide
+  // CORRIENDO el cálculo, que es lo único que la sostiene. Antes declaraba 1.0
+  // sin campo y sin medidor — la afirmación más fuerte del registro y la única
+  // que nadie comprobaba.
+  composicion: () => recetas.filter((r) => composicionDe(r).masaTotal > 0).length / recetas.length,
   parte: () => recetas.filter((r) => (r.stepsRich ?? []).some((s) => s.part != null)).length / recetas.length,
   tecnica: () => recetas.filter((r) => r.tecnica).length / recetas.length,
   cocina: () => recetas.filter((r) => r.cocina).length / recetas.length,
@@ -29,6 +35,8 @@ const MEDIDORES = {
   escalabilidadTanda: () => recetas.filter((r) => r.scalesWithEaters != null).length / recetas.length,
   sabor: () => recetas.filter((r) => (r.healthFlags ?? []).length > 0).length / recetas.length,
   montaje: () => recetas.filter((r) => r.montaje != null).length / recetas.length,
+  formato: () => recetas.filter((r) => r.formato).length / recetas.length,
+  temperatura: () => recetas.filter((r) => r.temperatura).length / recetas.length,
   gruposSecundarios: () => recetas.filter((r) => (r.mainIngredients ?? []).length > 0).length / recetas.length,
   // Mide la ESPECIE, no la clase: la clase está al 100 % en todas las familias
   // por construcción, y medirla daba verde sobre un árbol cuya `variedad` está
@@ -182,7 +190,7 @@ describe("el registro de ejes", () => {
     curacionEditorial: "estrella", fotogenia: "apetecible",
     escalabilidadTanda: "scalesWithEaters", sabor: "healthFlags",
     subtipoIngrediente: "taxonomia", parte: ".part", montaje: "montaje",
-    gruposSecundarios: "mainIngredients",
+    gruposSecundarios: "mainIngredients", formato: "formato", temperatura: "temperatura",
   };
 
   it("cada consumidor declarado nombra de verdad el campo del eje", () => {
@@ -200,6 +208,27 @@ describe("el registro de ejes", () => {
       "un consumidor declarado que no lee el campo. Es el mismo fallo que el registro "
       + "persigue, cometido por el registro: una lista escrita de memoria que parece "
       + "verificada. Corrígela con lo que diga el código, no al revés.",
+    ).toEqual([]);
+  });
+
+  /**
+   * EL AGUJERO QUE DEJABA COLARSE LA AFIRMACIÓN MÁS FUERTE DEL REGISTRO.
+   *
+   * La primera versión solo exigía medidor `if (e.campo)`. Con eso, un eje con
+   * `campo: null` podía declarar la cobertura que quisiera y nada la
+   * comprobaba — y ya había uno explotándolo: el eje 1 `composicion`, campo
+   * null y cobertura 1.0, que es lo más rotundo que dice este fichero.
+   *
+   * Ahora la regla es: o tienes campo, o tienes medidor, o tu cobertura es 0.
+   */
+  it("ninguna cobertura se declara sin nada que la compruebe", () => {
+    const aire = EJES
+      .filter((e) => e.cobertura > 0 && !e.campo && !MEDIDORES[e.id])
+      .map((e) => `${e.n} ${e.id}: declara ${e.cobertura} sin campo y sin medidor`);
+    expect(
+      aire,
+      "una cobertura en el aire. Si el eje no vive en un campo, necesita un medidor "
+      + "que la calcule; si no puede tener ninguno de los dos, su cobertura es 0.",
     ).toEqual([]);
   });
 
@@ -230,15 +259,18 @@ describe("el registro de ejes", () => {
     it("`cobertura` distingue el eje sin datos del eje que no existe", () => {
       // Son dos respuestas distintas y confundirlas es el error de fondo:
       // 0 = «declarado y vacío», null = «esa pregunta no está registrada».
-      expect(cobertura("formato")).toBe(0);
+      // Se usaba `formato` de ejemplo y dejó de servir al poblarlo: un test
+      // que ilustra con un eje vivo caduca en cuanto ese eje avanza. `textura`
+      // (eje 8) sigue declarada y vacía, que es lo que este caso necesita.
+      expect(cobertura("textura")).toBe(0);
       expect(cobertura("un-eje-que-nadie-ha-declarado")).toBeNull();
     });
 
     it("`puedeResponder` dice por qué NO, que es lo que se le enseña al usuario", () => {
       expect(puedeResponder("tecnica").puede).toBe(true);
-      const formato = puedeResponder("formato");
-      expect(formato.puede).toBe(false);
-      expect(formato.porque).toMatch(/sin datos/);
+      const textura = puedeResponder("textura");
+      expect(textura.puede).toBe(false);
+      expect(textura.porque).toMatch(/sin datos/);
       // El caso «tener datos y que nadie los lea», que no es lo mismo que no
       // tenerlos. El ejemplo era `fotogenia` y era FALSO: `apetecible` sí lo
       // lee CatalogBrowserSheet, en la faceta que la UI llama «gourmet». Este
@@ -258,7 +290,9 @@ describe("el registro de ejes", () => {
       // acabó con 14 valores donde debían ser 8.
       expect(valorValido("parte", "guarnicion")).toBe(true);
       expect(valorValido("parte", "postre")).toBe(false);
-      expect(valorValido("temperatura", "frio")).toBeNull();
+      // `temperatura` ya tiene vocabulario desde que se pobló; `carga` no.
+      expect(valorValido("temperatura", "frio")).toBe(true);
+      expect(valorValido("carga", "alta")).toBeNull();
     });
   });
 });

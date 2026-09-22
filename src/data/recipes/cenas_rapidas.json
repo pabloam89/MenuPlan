@@ -115,7 +115,9 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_002",
@@ -238,7 +240,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_003",
@@ -436,7 +440,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_004",
@@ -556,7 +562,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_005",
@@ -688,7 +696,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_006",
@@ -829,7 +839,9 @@
     ],
     "tecnica": "crudo",
     "mainBase": "patatas",
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_007",
@@ -960,7 +972,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "mexicana"
+    "cocina": "mexicana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_008",
@@ -1099,7 +1113,9 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "italiana"
+    "cocina": "italiana",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_009",
@@ -1198,7 +1214,9 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_010",
@@ -1305,7 +1323,9 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_012",
@@ -1456,7 +1476,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "sopa",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_013",
@@ -1619,7 +1641,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_014",
@@ -1753,7 +1777,9 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "plato_seco",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_015",
@@ -1871,7 +1897,9 @@
       "lacteo",
       "fruta"
     ],
-    "tecnica": "crudo"
+    "tecnica": "crudo",
+    "formato": "sopa",
+    "temperatura": "frio"
   },
   {
     "id": "cenas_rapidas_061",

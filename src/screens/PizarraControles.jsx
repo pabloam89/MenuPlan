@@ -5,6 +5,7 @@ import {
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { formatStockQty } from "../lib/kitchenUnits.js";
+import { PACK_KINDS } from "../lib/packUnits.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
@@ -474,19 +475,26 @@ function CantidadDeLinea({ item, onQty, pool, onEditarFicha }) {
  * encima sin que te enteres de que lo has dicho.
  */
 const POOL = [
-  { nombre: "Cebolla", uno: "cebolla", varias: "cebollas", inicial: 2, factor: 1, canon: "ud" },
-  { nombre: "Ajo", uno: "cabeza", varias: "cabezas", inicial: 1, factor: 60, canon: "g", pie: "una cabeza ≈ 60 g" },
-  { nombre: "Patata", uno: "kilo", varias: "kilos", inicial: 1, factor: 1, canon: "kg" },
-  { nombre: "Tomate", uno: "tomate", varias: "tomates", inicial: 4, factor: 1, canon: "ud" },
-  { nombre: "Zanahoria", uno: "zanahoria", varias: "zanahorias", inicial: 3, factor: 1, canon: "ud" },
-  { nombre: "Limón", uno: "limón", varias: "limones", inicial: 2, factor: 1, canon: "ud" },
-  { nombre: "Huevos", uno: "huevo", varias: "huevos", inicial: 6, factor: 1, canon: "ud" },
-  { nombre: "Leche", uno: "brick", varias: "bricks", inicial: 1, factor: 1, canon: "l", pie: "de 1 L" },
-  { nombre: "Arroz", uno: "paquete", varias: "paquetes", inicial: 1, factor: 500, canon: "g", pie: "de 500 g" },
-  { nombre: "Macarrones", uno: "paquete", varias: "paquetes", inicial: 1, factor: 500, canon: "g", pie: "de 500 g" },
-  { nombre: "Lentejas", uno: "paquete", varias: "paquetes", inicial: 1, factor: 500, canon: "g", pie: "de 500 g" },
-  { nombre: "Aceite de oliva", uno: "botella", varias: "botellas", inicial: 1, factor: 1, canon: "l", pie: "de 1 L" },
+  { nombre: "Cebolla", n: 2, unidad: "ud", uno: "cebolla", varias: "cebollas" },
+  { nombre: "Ajo", n: 1, unidad: "g", envase: "cabeza", tam: 60 },
+  { nombre: "Patata", n: 1, unidad: "kg", uno: "kilo", varias: "kilos" },
+  { nombre: "Tomate", n: 4, unidad: "ud", uno: "tomate", varias: "tomates" },
+  { nombre: "Zanahoria", n: 3, unidad: "ud", uno: "zanahoria", varias: "zanahorias" },
+  { nombre: "Limón", n: 2, unidad: "ud", uno: "limón", varias: "limones" },
+  { nombre: "Huevos", n: 6, unidad: "ud", uno: "huevo", varias: "huevos" },
+  { nombre: "Leche", n: 1, unidad: "l", envase: "brick", tam: 1 },
+  { nombre: "Arroz", n: 1, unidad: "g", envase: "paquete", tam: 500 },
+  { nombre: "Macarrones", n: 1, unidad: "g", envase: "paquete", tam: 500 },
+  { nombre: "Lentejas", n: 1, unidad: "g", envase: "paquete", tam: 500 },
+  { nombre: "Aceite de oliva", n: 1, unidad: "l", envase: "botella", tam: 1 },
 ];
+
+/** Los envases que ofrece el desplegable. El del ajo no es de super, pero es
+ *  la forma en que se tiene el ajo, que es lo que aquí se pregunta. */
+const ENVASES = [...PACK_KINDS.map((k) => k.label), "cabeza"];
+
+/** Plural de un envase. Todos suman una ese menos el cartón. */
+const enPlural = (w) => (w === "cartón" ? "cartones" : `${w}s`);
 
 /** La clave con la que un nombre del pool queda guardado en la despensa. */
 const CLAVES_POOL = new Map();
@@ -499,18 +507,25 @@ function claveDePool(nombre) {
 }
 
 /**
- * Cuánto pesa UNA de las suyas en lo que se guarda de verdad, y en qué unidad.
+ * Lo que vale UNA de las suyas en lo que se guarda de verdad.
  *
  * El almacén siempre es g, ml o ud —lo exige el cruce con la compra— así que
- * los kilos y los litros del pool se bajan aquí a gramos y mililitros. Es la
- * misma cuenta que hace `toCanonicalStockQty` al guardar, del revés.
+ * los kilos y los litros se bajan aquí a gramos y mililitros. Es la misma
+ * cuenta que hace `toCanonicalStockQty` al guardar, del revés.
  */
 function medidaDePool(p) {
-  const grande = p.canon === "kg" || p.canon === "l";
+  const grande = p.unidad === "kg" || p.unidad === "l";
   return {
-    unidad: p.canon === "kg" ? "g" : p.canon === "l" ? "ml" : p.canon,
-    porUnidad: p.factor * (grande ? 1000 : 1),
+    unidad: p.unidad === "kg" ? "g" : p.unidad === "l" ? "ml" : p.unidad,
+    porUnidad: (p.envase ? p.tam : 1) * (grande ? 1000 : 1),
   };
+}
+
+/** Cómo se llama una y cómo se llaman varias. */
+function palabrasDePool(p) {
+  return p.envase
+    ? { uno: p.envase, varias: enPlural(p.envase) }
+    : { uno: p.uno, varias: p.varias };
 }
 
 const POOL_POR_CLAVE = new Map();
@@ -527,60 +542,45 @@ function poolDe(item) {
   if (item.unit !== unidad) return null;
   const n = Number(item.qty) / porUnidad;
   if (!(n > 0) || Math.abs(n - Math.round(n)) > 0.01) return null;
-  return { ...p, n: Math.round(n), porUnidad, unidadBase: unidad };
+  return { ...p, ...palabrasDePool(p), n: Math.round(n), porUnidad, unidadBase: unidad };
 }
 
 /**
- * «¿Cuántos tienes?» — un contador con la palabra del ingrediente al lado.
+ * «Cuánto tienes?» — las cuatro magnitudes de una despensa, en una fila.
  *
- * Un número escrito a mano con un desplegable de unidades al lado obliga a dos
- * decisiones (cuánto Y en qué) cuando aquí la segunda ya está contestada: del
- * ajo se tienen cabezas y del arroz paquetes. Queda una, y se contesta con el
- * pulgar sin abrir el teclado.
+ * Un paquete de arroz son cuatro datos, no uno: CUÁNTOS tienes, DE QUÉ envase,
+ * DE CUÁNTO viene y EN QUÉ se mide. Preguntar solo el peso obliga a una cuenta
+ * que nadie tiene hecha —¿cuánto pesa lo que me queda?— y preguntar solo los
+ * paquetes no deja decir que el tuyo es de kilo.
+ *
+ * Van en UNA fila porque son una sola frase, «un paquete de medio kilo», que
+ * se lee de izquierda a derecha. En dos filas se leían como dos preguntas.
+ *
+ * Lo que se guarda es el producto, en g/ml/ud, que es lo que necesita el cruce
+ * con la compra. Los cuatro campos son la forma de decirlo, no lo dicho.
  */
 function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
-  const { unidad: unidadBase, porUnidad } = medidaDePool(item);
-  // El estado es la cantidad CANÓNICA —lo que se guarda— y no el número de
-  // paquetes. Así los dos mandos son dos vistas del mismo dato en vez de dos
-  // datos que hay que mantener de acuerdo: el contador sube de paquete en
-  // paquete y el campo de abajo escribe gramos, y ninguno puede contradecir
-  // al otro porque no hay otro.
-  const [qty, setQty] = useState((inicial ?? item.inicial) * porUnidad);
-  const [crudo, setCrudo] = useState(null);
+  // Los tres campos escribibles guardan TEXTO, no números: si guardaran número,
+  // borrar el contenido para teclear otro lo volvería un 0 o un NaN delante de
+  // tus narices. Se convierte a la hora de calcular, no a la de escribir.
+  const [n, setN] = useState(String(inicial ?? item.n));
+  const [envase, setEnvase] = useState(item.envase ?? null);
+  const [tam, setTam] = useState(item.envase ? String(item.tam) : "1");
+  const [unidad, setUnidad] = useState(item.unidad);
 
-  const n = qty / porUnidad;
-  const entero = Math.abs(n - Math.round(n)) < 0.001;
-  // Singular solo con un uno exacto: "0,9 paquete" chirría, "0,9 paquetes" no.
-  const palabra = entero && Math.round(n) === 1 ? item.uno : item.varias;
-  // Con una cantidad que no cae en paquetes enteros —450 g de arroz— el
-  // contador dice la verdad a medias, asi que se escribe el decimal.
-  const enPantalla = entero ? String(Math.round(n)) : n.toFixed(1).replace(".", ",");
-  const conDosCaras = porUnidad !== 1;
+  const conEnvase = Boolean(item.envase);
+  const nNum = Number(n) || 0;
+  const tamNum = Number(String(tam).replace(",", ".")) || 0;
+  const factor = unidad === "kg" || unidad === "l" ? 1000 : 1;
+  const uBase = unidad === "kg" ? "g" : unidad === "l" ? "ml" : unidad;
+  const total = conEnvase ? nNum * tamNum * factor : nNum * factor;
 
-  const mando = {
-    width: 34, height: 34, borderRadius: 10, flexShrink: 0, padding: 0,
-    border: "1.5px solid #cfe0d6", background: "#fff", cursor: "pointer",
-    color: VERDE, display: "flex", alignItems: "center", justifyContent: "center",
-  };
+  const palabras = palabrasDePool(item);
+  const palabra = conEnvase
+    ? (nNum === 1 ? envase : enPlural(envase))
+    : (nNum === 1 ? palabras.uno : palabras.varias);
 
-  const paso = (d) => {
-    // Se suelta lo que estuvieras escribiendo a mano: si no, el contador subía
-    // a un paquete y el campo de abajo seguía enseñando los 450 g de antes.
-    setCrudo(null);
-    setQty((v) => {
-      const actual = v / porUnidad;
-      // Desde 450 g, "+1" lleva a un paquete entero, no a 950: el contador
-      // redondea primero y suma después, que es lo que hace quien lo toca.
-      const base = d > 0 ? Math.floor(actual + 0.001) : Math.ceil(actual - 0.001);
-      return Math.max(1, base + d) * porUnidad;
-    });
-  };
-
-  const escribirCanonico = (txt) => {
-    setCrudo(txt);
-    const v = Number(String(txt).replace(",", "."));
-    if (v > 0) setQty(v);
-  };
+  const celda = { ...campoBase, height: 32, padding: "0 4px", textAlign: "center", minWidth: 0 };
 
   return (
     <div
@@ -589,14 +589,17 @@ function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
         padding: 12, marginBottom: 14,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 11 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <Miniatura name={item.nombre} size={40} />
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: "block", fontSize: 13.5, fontWeight: 900, color: INK, lineHeight: 1.2 }}>
             {item.nombre}
           </span>
+          {/* La frase entera, en pequeño: es el último sitio donde compruebas
+              que los cuatro campos dicen lo que querías decir. */}
           <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#9ab0a1", marginTop: 1 }}>
-            {inicial == null ? "¿Cuántos tienes?" : "Cambiar la cantidad"}
+            {n || 0} {palabra}
+            {conEnvase && total > 0 ? ` · ${formatStockQty(total, uBase)}` : ""}
           </span>
         </span>
         <button
@@ -613,54 +616,67 @@ function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
         </button>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: conDosCaras ? 8 : 11 }}>
-        <button type="button" className="mp-press" style={mando} onClick={() => paso(-1)} aria-label="Uno menos">
-          <Minus size={16} strokeWidth={3} />
-        </button>
-        <span style={{ flex: 1, textAlign: "center", minWidth: 0 }}>
-          <span style={{ fontSize: 19, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>{enPantalla}</span>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#5a7066", marginLeft: 5 }}>{palabra}</span>
-          {item.pie && (
-            <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, color: "#9ab0a1", marginTop: -1 }}>
-              {item.pie}
-            </span>
-          )}
-        </span>
-        <button type="button" className="mp-press" style={mando} onClick={() => paso(1)} aria-label="Uno más">
-          <Plus size={16} strokeWidth={3} />
-        </button>
+      {/* Cuatro mandos y ni uno más. Aquí hubo además un +/- para el primer
+          número y eran seis cosas en 288 px: el desplegable del envase se
+          quedaba en "paqu…", que es justo el dato que hay que poder leer.
+          El número se escribe, como los otros tres. */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+        <input
+          value={n}
+          onChange={(e) => setN(e.target.value.replace(/[^0-9]/g, "").slice(0, 2))}
+          inputMode="numeric"
+          aria-label="Cuántos"
+          style={{ ...celda, width: 42, fontWeight: 900 }}
+        />
+        {conEnvase ? (
+          <>
+            <select
+              value={envase}
+              onChange={(e) => setEnvase(e.target.value)}
+              aria-label="Envase"
+              style={{ ...celda, flex: 1, textAlign: "left", padding: "0 0 0 7px", cursor: "pointer" }}
+            >
+              {ENVASES.map((k) => <option key={k} value={k}>{k}</option>)}
+            </select>
+            <input
+              value={tam}
+              onChange={(e) => setTam(e.target.value)}
+              inputMode="decimal"
+              aria-label="Contenido"
+              style={{ ...celda, width: 52 }}
+            />
+            <select
+              value={unidad}
+              onChange={(e) => setUnidad(e.target.value)}
+              aria-label="Unidad"
+              style={{ ...celda, width: 54, padding: "0 0 0 5px", cursor: "pointer" }}
+            >
+              {UNIDADES.filter((u) => u !== "ud").map((u) => (
+                <option key={u} value={u}>{u === "l" ? "L" : u}</option>
+              ))}
+            </select>
+          </>
+        ) : (
+          <select
+            value={unidad}
+            onChange={(e) => setUnidad(e.target.value)}
+            aria-label="Unidad"
+            style={{ ...celda, flex: 1, textAlign: "left", padding: "0 0 0 7px", cursor: "pointer" }}
+          >
+            {UNIDADES.map((u) => <option key={u} value={u}>{u === "l" ? "L" : u}</option>)}
+          </select>
+        )}
       </div>
-
-      {/* La otra magnitud. Un paquete y medio existe, y una balanza no cuenta
-          paquetes: quien quiera decir 450 g lo dice aquí y el contador de
-          arriba se entera. Solo cuando son dos cosas distintas — en las
-          cebollas, que van de una en una, sería el mismo número dos veces. */}
-      {conDosCaras && (
-        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 11, padding: "0 2px" }}>
-          <span style={{ fontSize: 11.5, fontWeight: 700, color: "#9ab0a1", flex: 1 }}>
-            o exactamente
-          </span>
-          <input
-            value={crudo ?? String(Math.round(qty))}
-            onChange={(e) => escribirCanonico(e.target.value)}
-            onBlur={() => setCrudo(null)}
-            inputMode="decimal"
-            aria-label={`Cantidad en ${unidadBase}`}
-            style={{ ...campoBase, width: 74, height: 30, textAlign: "center", padding: "0 4px" }}
-          />
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#5a7066", width: 22 }}>
-            {unidadBase}
-          </span>
-        </div>
-      )}
 
       <button
         type="button"
         className="mp-press"
-        onClick={() => onConfirmar(qty, unidadBase)}
+        disabled={!(total > 0)}
+        onClick={() => onConfirmar(total, uBase)}
         style={{
           width: "100%", height: 36, borderRadius: 11, border: "none",
-          background: VERDE, color: "#fff", cursor: "pointer",
+          background: total > 0 ? VERDE : "#c8d9ce", color: "#fff",
+          cursor: total > 0 ? "pointer" : "default",
           fontSize: 13, fontWeight: 800, fontFamily: "inherit",
         }}
       >
@@ -905,8 +921,7 @@ function Rotulo({ children, top = 18 }) {
  * fuego y veinte minutos tuyos, y lo que decide si el domingo sale es lo
  * segundo.
  */
-function ahorroPorTrasto(sesion, data, minutos) {
-  void minutos;
+function ahorroPorTrasto(sesion, data) {
   const out = {};
   const plan = sesion?._plan;
   if (!plan) return out;
@@ -942,18 +957,16 @@ function PanelTanda({ data, setData, sesion }) {
 
   if (!setData) return null;
 
-  return (
+  // Los trastos van DENTRO del selector de tandas, en el hueco que deja justo
+  // debajo de "Dejarás hecho": primero lo que vas a dejar cocinado, luego con
+  // qué lo cocinas, y solo entonces el rato que tienes. Van ahí y no antes
+  // porque son la condición de lo de arriba —la bechamel son 25 minutos
+  // removiendo o 12 sin tocarla— y por eso cada uno dice lo que te quitaría de
+  // ESTE domingo en vez de limitarse a estar encendido.
+  const trastosDeLaCocina = (
     <>
-      {/* Los trastos, ANTES de pedir tandas: son la condición, no el detalle.
-          La bechamel son 25 minutos removiendo o 12 sin tocarla, y la legumbre
-          60 o 25, así que lo que tienes en la cocina decide cuántas tandas
-          caben en el rato de abajo. Pedirlas primero y enterarte después de
-          que con airfryer cabía otra es el orden al revés.
-
-          Por eso cada uno dice lo que te quitaría de ESTE domingo en vez de
-          limitarse a estar encendido. */}
       <Rotulo top={0}>QUÉ TIENES EN LA COCINA</Rotulo>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginBottom: 4 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginBottom: 14 }}>
         {KITCHEN_TOOLS.map((t) => (
           <TarjetaTrasto
             key={t.id}
@@ -964,18 +977,20 @@ function PanelTanda({ data, setData, sesion }) {
           />
         ))}
       </div>
-
-      {/* El inventario trae SU deslizador de tiempo —el de `data.tandaMinutos`,
-          que es el que lee `minutosDeTanda`—, así que arriba no hay otro: son
-          la misma pregunta, y dos mandos solo darían dos formas de contestarla
-          sin decir cuál manda.
-
-          Ojo: esto escribe en la libreta de la CASA, no en esta semana. Lo que
-          pidas aquí vale también para los menús que generes. */}
-      <Suspense fallback={null}>
-        <BasesPreferidas data={data} setData={setData} />
-      </Suspense>
     </>
+  );
+
+  // El inventario trae SU deslizador de tiempo —el de `data.tandaMinutos`, que
+  // es el que lee `minutosDeTanda`—, así que no hay otro: son la misma
+  // pregunta, y dos mandos solo darían dos formas de contestarla sin decir
+  // cuál manda.
+  //
+  // Ojo: esto escribe en la libreta de la CASA, no en esta semana. Lo que
+  // pidas aquí vale también para los menús que generes.
+  return (
+    <Suspense fallback={null}>
+      <BasesPreferidas data={data} setData={setData} trasInventario={trastosDeLaCocina} />
+    </Suspense>
   );
 }
 

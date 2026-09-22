@@ -125,7 +125,8 @@
     "saturated_fat_g": 9,
     "sodium_mg": 420,
     "freezable": false,
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "cremoso"
   },
   {
     "id": "guarniciones_025",
@@ -1069,7 +1070,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "cremoso"
   },
   {
     "id": "guarniciones_032",
@@ -3111,7 +3113,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "cremoso"
   },
   {
     "id": "guarniciones_045",
@@ -3407,7 +3410,9 @@
     "saturated_fat_g": 2,
     "sodium_mg": 420,
     "freezable": false,
-    "baseMode": "aparte"
+    "baseMode": "aparte",
+    "formato": "ensalada",
+    "temperatura": "frio"
   },
   {
     "id": "guarniciones_047",
@@ -3910,7 +3915,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "cremoso"
   },
   {
     "id": "guarniciones_051",
@@ -4521,7 +4527,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "formato": "cremoso"
   },
   {
     "id": "guarniciones_056",
@@ -5388,7 +5395,8 @@
         "kind": "emplatado"
       }
     ],
-    "baseMode": "dentro"
+    "baseMode": "dentro",
+    "formato": "cremoso"
   },
   {
     "id": "guarniciones_061",
