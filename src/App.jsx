@@ -185,7 +185,8 @@ import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
-import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem } from "./lib/pantry.js";
+import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
+import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
 import { basesDeReceta } from "./lib/bases.js";
 import { findMatchingPantryItem } from "./lib/shoppingBuilder.js";
@@ -4514,15 +4515,19 @@ export default function App() {
    * que ya tienes a «Ya en casa»). Por eso escribir aquí hace que la compra
    * baje sola, sin que nadie más tenga que enterarse.
    */
-  const handleAddDespensa = useCallback(async (texto) => {
+  const handleAddDespensa = useCallback(async (texto, qty = 1, unit = "ud") => {
     if (householdReadOnly) return;
     const tokens = normalizePantryInput(texto).filter((t) => !t.ambiguous);
     if (tokens.length === 0) return;
+    // A gramos y mililitros antes de guardar, como hace la despensa de verdad:
+    // el stock vive en unidades canónicas y "2 kg" son 2000 g. Sin esto, medio
+    // kilo y quinientos gramos serían dos existencias distintas del mismo saco.
+    const canon = toCanonicalStockQty(qty, unit);
     const items = tokens.map((t) => ({
       name: t.raw,
       normalized: t.normalized,
-      qty: 1,
-      unit: "ud",
+      qty: canon.qty,
+      unit: canon.unit,
       source: "manual",
     }));
     if (user) await addPantryItems(user.id, items, syncHouseholdId);
@@ -4534,6 +4539,15 @@ export default function App() {
     if (householdReadOnly) return;
     if (user) await removePantryItem(user.id, id);
     else removeLocalPantryItem(id);
+    setPantryEpoch((n) => n + 1);
+  }, [householdReadOnly, user]);
+
+  /** Corregir la cantidad de algo que ya está guardado, sin borrarlo y volverlo a poner. */
+  const handleQtyDespensa = useCallback(async (id, qty, unit) => {
+    if (householdReadOnly) return;
+    const canon = toCanonicalStockQty(qty, unit);
+    if (user) await setPantryItemQty(user.id, id, canon.qty, canon.unit);
+    else setLocalPantryItemQty(id, canon.qty, canon.unit);
     setPantryEpoch((n) => n + 1);
   }, [householdReadOnly, user]);
 
@@ -5675,6 +5689,7 @@ export default function App() {
                       despensa={despensaPizarra}
                       onAddDespensa={handleAddDespensa}
                       onQuitarDespensa={handleQuitarDespensa}
+                      onQtyDespensa={handleQtyDespensa}
                       prefs={prefsPizarra}
                       onPrefs={setPrefsPizarra}
                     />

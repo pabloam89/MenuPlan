@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
 import {
-  BarChart3, CalendarDays, Check, CookingPot, Package, Plus, Search, Sparkles, X,
+  BarChart3, CalendarDays, Check, CookingPot, Package, Plus, Salad, Search, Sparkles, X,
 } from "../components/icons.jsx";
+import { ingredientThumbSrc } from "../lib/ingredientImages.js";
+import { formatStockQty } from "../lib/kitchenUnits.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
 import { sesionDeBases } from "../lib/bases.js";
-import { enHoras, minutosDeTanda, TANDA_MAX, TANDA_MIN, TANDA_PASO } from "../lib/cookTime.js";
+import { enHoras, minutosDeTanda } from "../lib/cookTime.js";
 import {
   buildCalendarWeeks,
   conDiaMarcado,
@@ -129,9 +132,11 @@ function Radial({ label, Icon, texto, active, onClick, delay = 0, size = 58, col
           </span>
         )}
       </span>
-      <span style={{ fontSize: 10.5, fontWeight: active ? 800 : 700, color: active ? color : "#9ab0a1" }}>
-        {label}
-      </span>
+      {label && (
+        <span style={{ fontSize: 10.5, fontWeight: active ? 800 : 700, color: active ? color : "#9ab0a1" }}>
+          {label}
+        </span>
+      )}
     </button>
   );
 }
@@ -332,9 +337,11 @@ function InterruptorPref({ activo, onChange, titulo, detalle }) {
       </span>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: "block", fontSize: 13, fontWeight: 800, color: INK }}>{titulo}</span>
-        <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.35, marginTop: 2 }}>
-          {detalle}
-        </span>
+        {detalle && (
+          <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.35, marginTop: 2 }}>
+            {detalle}
+          </span>
+        )}
       </span>
     </button>
   );
@@ -354,91 +361,205 @@ function InterruptorPref({ activo, onChange, titulo, detalle }) {
  * tacha la línea entera: pedir "medio kilo" y tener 200 g daría la compra por
  * cubierta.
  */
-function PanelDespensa({ despensa, onAnadir, onQuitar, usarDespensa, onUsarDespensa }) {
+/**
+ * La miniatura del ingrediente. Siempre hay dibujo: `ingredientThumbSrc` cae al
+ * arte del pasillo cuando no conoce el nombre, y solo si esa imagen tampoco
+ * carga aparece el icono neutro. Mismo lenguaje que la ficha de la despensa.
+ */
+function Miniatura({ name, size = 38 }) {
+  const [roto, setRoto] = useState(false);
+  const src = ingredientThumbSrc(name);
+  if (!src || roto) {
+    return (
+      <span style={{ width: size, height: size, borderRadius: 10, background: "#eef4ef", flexShrink: 0, display: "grid", placeItems: "center" }}>
+        <Salad size={Math.round(size * 0.45)} color={VERDE} />
+      </span>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      onError={() => setRoto(true)}
+      style={{ width: size, height: size, borderRadius: 10, objectFit: "cover", flexShrink: 0, background: "#eef4ef" }}
+    />
+  );
+}
+
+/** Las mismas cinco que la despensa de verdad, para que el stock case. */
+const UNIDADES = ["ud", "g", "kg", "ml", "l"];
+
+const campoBase = {
+  boxSizing: "border-box", height: 32, borderRadius: 10,
+  border: "1.5px solid #cfe0d6", background: "#fff",
+  fontFamily: "inherit", color: INK, outline: "none",
+  fontSize: 13, fontWeight: 800,
+};
+
+/**
+ * La cantidad de una línea guardada: se lee como una píldora y se edita al
+ * tocarla, sin salir del panel. Solo escribe al soltar el foco —o con Enter—
+ * para no mandar un guardado por cada tecla.
+ */
+function CantidadDeLinea({ item, onQty }) {
+  const [editando, setEditando] = useState(false);
+  const [valor, setValor] = useState("");
+
+  const guardar = () => {
+    setEditando(false);
+    const n = Number(String(valor).replace(",", "."));
+    if (n > 0 && n !== Number(item.qty)) onQty?.(item.id, n, item.unit ?? "ud");
+  };
+
+  if (!editando) {
+    return (
+      <button
+        type="button"
+        onClick={() => { setValor(String(item.qty ?? 1)); setEditando(true); }}
+        aria-label={`Cambiar la cantidad de ${item.ingredientName ?? item.name}`}
+        style={{
+          flexShrink: 0, padding: "4px 9px", borderRadius: 999,
+          background: "#f0f6f2", border: "1px solid #dfeae3", cursor: "pointer",
+          fontSize: 11.5, fontWeight: 900, color: VERDE, fontFamily: "inherit",
+          fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap",
+        }}
+      >
+        {formatStockQty(item.qty ?? 1, item.unit ?? "ud")}
+      </button>
+    );
+  }
+
+  return (
+    <input
+      autoFocus
+      value={valor}
+      inputMode="decimal"
+      aria-label="Cantidad"
+      onChange={(e) => setValor(e.target.value)}
+      onBlur={guardar}
+      onKeyDown={(e) => { if (e.key === "Enter") guardar(); if (e.key === "Escape") setEditando(false); }}
+      style={{ ...campoBase, width: 58, height: 28, flexShrink: 0, textAlign: "center", fontSize: 16, padding: "0 4px" }}
+    />
+  );
+}
+
+function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUsarDespensa }) {
   const [texto, setTexto] = useState("");
+  const [qty, setQty] = useState("1");
+  const [unidad, setUnidad] = useState("ud");
   const ingredientes = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish");
 
   const enviar = (e) => {
     e?.preventDefault?.();
     const t = texto.trim();
     if (!t) return;
-    onAnadir(t);
+    onAnadir(t, Number(qty.replace(",", ".")) || 1, unidad);
     setTexto("");
+    setQty("1");
+    setUnidad("ud");
   };
 
   return (
     <>
-      <p style={{ margin: "0 0 12px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
-        Escribe lo que tengas y se descuenta solo de la compra.
-      </p>
-
-      <form onSubmit={enviar} style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+      {/* El buscador y la cantidad, en la misma fila y en el mismo gesto: la
+          cantidad es la mitad del dato —"tengo arroz" no dice si llega para un
+          plato o para cinco— y preguntarla después obligaría a un segundo
+          toque por ingrediente. */}
+      <form onSubmit={enviar} style={{ marginBottom: 14 }}>
         <div
           style={{
-            flex: 1, display: "flex", alignItems: "center", gap: 8, minWidth: 0,
-            height: 42, padding: "0 12px", borderRadius: 12,
+            display: "flex", alignItems: "center", gap: 8, minWidth: 0,
+            height: 42, padding: "0 12px", borderRadius: 12, marginBottom: 8,
             background: "#fff", border: "1.5px solid #dbe7df",
           }}
         >
           <Search size={16} color="#9ab0a1" />
-          {/* 16px clavados: por debajo, iOS hace zoom al enfocar y deja el
-              panel descuadrado a media escritura. */}
+          {/* El input va a 16px porque por debajo iOS hace zoom al enfocar; lo
+              que se encoge es el placeholder, con su propia regla. */}
           <input
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            placeholder="Tomates, huevos, arroz…"
+            placeholder="Busca un ingrediente"
+            className="mp-despensa-input"
             style={{
               flex: 1, border: "none", background: "transparent", outline: "none",
               fontSize: 16, color: INK, fontFamily: "inherit", minWidth: 0,
             }}
           />
         </div>
-        <button
-          type="submit"
-          className="mp-press"
-          disabled={!texto.trim()}
-          aria-label="Añadir a la despensa"
-          style={{
-            width: 42, height: 42, borderRadius: 12, flexShrink: 0, padding: 0,
-            border: "none", cursor: texto.trim() ? "pointer" : "default",
-            background: texto.trim() ? VERDE : "#c8d9ce", color: "#fff",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <Plus size={20} strokeWidth={2.8} />
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            value={qty}
+            onChange={(e) => setQty(e.target.value)}
+            inputMode="decimal"
+            aria-label="Cantidad"
+            style={{ ...campoBase, width: 62, textAlign: "center", fontSize: 16, padding: "0 6px" }}
+          />
+          <select
+            value={unidad}
+            onChange={(e) => setUnidad(e.target.value)}
+            aria-label="Unidad"
+            style={{ ...campoBase, width: 72, fontSize: 16, padding: "0 6px", cursor: "pointer" }}
+          >
+            {UNIDADES.map((u) => <option key={u} value={u}>{u === "l" ? "L" : u}</option>)}
+          </select>
+          <button
+            type="submit"
+            className="mp-press"
+            disabled={!texto.trim()}
+            style={{
+              flex: 1, height: 32, borderRadius: 10, padding: 0,
+              border: "none", cursor: texto.trim() ? "pointer" : "default",
+              background: texto.trim() ? VERDE : "#c8d9ce", color: "#fff",
+              fontSize: 13, fontWeight: 800, fontFamily: "inherit",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+            }}
+          >
+            <Plus size={16} strokeWidth={3} />
+            Añadir
+          </button>
+        </div>
       </form>
 
       {ingredientes.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.45 }}>
-          Todavía no hay nada. Lo que escribas aquí deja de aparecer en la lista de la compra.
-        </p>
+        <div style={{ textAlign: "center", padding: "32px 20px" }}>
+          <Package size={32} color="#cdd8d0" />
+          <p style={{ margin: "8px 0 0", fontSize: 12.5, fontWeight: 700, color: "#9ab0a1" }}>
+            Nada guardado todavía
+          </p>
+        </div>
       ) : (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {ingredientes.map((i) => (
-            <span
+        <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden" }}>
+          {ingredientes.map((i, n) => (
+            <div
               key={i.id}
               style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "6px 8px 6px 12px", borderRadius: 999,
-                background: "#fff", border: "1px solid #e0eae3",
-                fontSize: 12.5, fontWeight: 700, color: INK,
+                display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
+                borderBottom: n === ingredientes.length - 1 ? "none" : "1px solid #eef3f0",
               }}
             >
-              {i.ingredientName ?? i.name}
+              <Miniatura name={i.ingredientName ?? i.name} />
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.25 }}>
+                {i.ingredientName ?? i.name}
+              </span>
+              {/* La cantidad se corrige aquí mismo, en el sitio donde la lees:
+                  cambiar "2 kg" por "500 g" no puede obligar a borrar la línea
+                  y volver a escribirla. */}
+              <CantidadDeLinea item={i} onQty={onQty} />
               <button
                 type="button"
                 onClick={() => onQuitar(i.id)}
                 aria-label={`Quitar ${i.ingredientName ?? i.name}`}
                 style={{
-                  width: 18, height: 18, borderRadius: 999, padding: 0, flexShrink: 0,
-                  border: "none", background: "#f0f4f1", cursor: "pointer",
+                  width: 22, height: 22, borderRadius: 999, padding: 0, flexShrink: 0,
+                  border: "none", background: "transparent", cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}
               >
-                <X size={11} color="#7a9485" strokeWidth={2.6} />
+                <X size={13} color="#9ab0a1" strokeWidth={2.6} />
               </button>
-            </span>
+            </div>
           ))}
         </div>
       )}
@@ -447,7 +568,6 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, usarDespensa, onUsarDespe
         activo={usarDespensa}
         onChange={onUsarDespensa}
         titulo="Usar lo que tengo al rellenar"
-        detalle="Los huecos se llenan prefiriendo platos que ya puedes hacer con esto."
       />
     </>
   );
@@ -467,6 +587,16 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, usarDespensa, onUsarDespe
  * legumbre son nueve horas de fuego y veinte minutos tuyos, y lo que decide si
  * el domingo sale es lo segundo.
  */
+/**
+ * El tiempo, en cuatro toques en vez de un deslizador.
+ *
+ * El deslizador pedía apuntar a un valor dentro de un recorrido de tres horas
+ * y media, y encima traía una etiqueta y un párrafo explicando qué era. Nadie
+ * tiene "dos horas y cuarto": tiene un rato, una mañana o el domingo entero.
+ */
+const RATOS = [30, 60, 120, 180];
+const enCirculo = (min) => (min < 60 ? "30′" : `${min / 60} h`);
+
 function PanelTanda({ sesion, minutos, onMinutos, agrupar, onAgrupar, onRellenar, huecosVacios }) {
   const bases = sesion?.bases ?? [];
   const usados = sesion?.minutosActivosTotales ?? 0;
@@ -474,71 +604,48 @@ function PanelTanda({ sesion, minutos, onMinutos, agrupar, onAgrupar, onRellenar
 
   return (
     <>
-      <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
-        Cuánto tiempo tienes este domingo. Solo para esta semana.
-      </p>
-
-      <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, padding: "14px 14px 10px", marginBottom: 14 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 10 }}>
-          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 800, color: INK }}>Tiempo en la cocina</span>
-          <span style={{ fontSize: 15, fontWeight: 900, color: NARANJA, fontVariantNumeric: "tabular-nums" }}>
-            {enHoras(minutos)}
-          </span>
-        </div>
-        <input
-          type="range"
-          min={TANDA_MIN}
-          max={TANDA_MAX}
-          step={TANDA_PASO}
-          value={minutos}
-          onChange={(e) => onMinutos(Number(e.target.value))}
-          style={{ width: "100%", accentColor: NARANJA }}
-        />
+      {/* El eyebrow dice de qué van los cuatro círculos, y así el número no
+          tiene que repetirse debajo de cada uno como etiqueta. */}
+      <div style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px", margin: "0 2px 9px" }}>
+        TIEMPO QUE TIENES
+      </div>
+      <div style={{ display: "flex", gap: 6, justifyContent: "space-between", marginBottom: 18 }}>
+        {RATOS.map((min, i) => (
+          <Radial
+            key={min}
+            label=""
+            texto={enCirculo(min)}
+            color={NARANJA}
+            active={minutos === min}
+            size={44}
+            delay={i * 60}
+            onClick={() => onMinutos(min)}
+          />
+        ))}
       </div>
 
       {bases.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.45 }}>
-          Todavía no hay dos platos que compartan olla. En cuanto los haya, la sesión aparece aquí sola.
-        </p>
+        <div style={{ textAlign: "center", padding: "32px 20px" }}>
+          <CookingPot size={32} color="#cdd8d0" />
+          <p style={{ margin: "8px 0 0", fontSize: 12.5, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.4 }}>
+            Sin dos platos que compartan olla<br />no hay tanda
+          </p>
+        </div>
       ) : (
         <>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6, margin: "0 2px 9px" }}>
-            <span style={{ flex: 1, fontSize: 13, fontWeight: 800, color: INK, letterSpacing: "-.2px" }}>
-              {bases.length === 1 ? "1 base" : `${bases.length} bases`}
+            <span style={{ flex: 1, fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px" }}>
+              DEJARÁS HECHO
             </span>
-            {/* Cuando se pasa del tiempo que has dicho tener, el número avisa
-                en vez de callarse: es el dato que decide si el domingo sale. */}
-            <span style={{ fontSize: 12, fontWeight: 800, color: pasa ? "#b45309" : "#7a9485", fontVariantNumeric: "tabular-nums" }}>
+            {/* Cuando se pasa del rato que has dicho tener, el número avisa en
+                vez de callarse: es el dato que decide si el domingo sale. */}
+            <span style={{ fontSize: 12, fontWeight: 800, color: pasa ? "#b45309" : "#9ab0a1", fontVariantNumeric: "tabular-nums" }}>
               {enHoras(usados)} de {enHoras(minutos)}
             </span>
           </div>
           <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden" }}>
             {bases.map((b, i) => (
-              <div
-                key={b.base.id}
-                style={{
-                  display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
-                  borderBottom: i === bases.length - 1 ? "none" : "1px solid #eef3f0",
-                }}
-              >
-                <span
-                  style={{
-                    width: 32, height: 32, borderRadius: 11, flexShrink: 0,
-                    background: `${NARANJA}18`, color: NARANJA,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <CookingPot size={16} strokeWidth={2.2} />
-                </span>
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK }}>
-                    {b.base.name}
-                  </span>
-                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#7a9485", marginTop: 1 }}>
-                    {b.huecos.length} platos · {enHoras(b.minutosActivos)} tuyos
-                  </span>
-                </span>
-              </div>
+              <BaseDeTanda key={b.base.id} entrada={b} ultima={i === bases.length - 1} />
             ))}
           </div>
         </>
@@ -548,12 +655,10 @@ function PanelTanda({ sesion, minutos, onMinutos, agrupar, onAgrupar, onRellenar
         activo={agrupar}
         onChange={onAgrupar}
         titulo="Agrupar al rellenar"
-        detalle="Los huecos se llenan prefiriendo platos que comparten olla con los que ya hay."
       />
 
-      {/* El atajo: rellenar sin tener que cerrar el panel y buscar la baldosa.
-          Solo cuando queda algo que rellenar — un botón que no hace nada es
-          peor que ningún botón. */}
+      {/* El atajo: rellenar sin cerrar el panel y buscar la baldosa. Solo
+          cuando queda algo — un botón que no hace nada es peor que ninguno. */}
       {onRellenar && huecosVacios > 0 && (
         <button
           type="button"
@@ -574,16 +679,57 @@ function PanelTanda({ sesion, minutos, onMinutos, agrupar, onAgrupar, onRellenar
   );
 }
 
+/** Una base de la sesión, con su foto — la misma que la pestaña de Cocina. */
+function BaseDeTanda({ entrada, ultima }) {
+  const [roto, setRoto] = useState(false);
+  const foto = dishImageForRecipe(entrada.base);
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
+        borderBottom: ultima ? "none" : "1px solid #eef3f0",
+      }}
+    >
+      <span
+        style={{
+          width: 38, height: 38, borderRadius: 10, flexShrink: 0, overflow: "hidden",
+          background: `${NARANJA}18`, color: NARANJA,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        {foto && !roto
+          ? <img src={foto} alt="" loading="lazy" onError={() => setRoto(true)} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          : <CookingPot size={17} strokeWidth={2.2} />}
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.25 }}>
+          {entrada.base.name}
+        </span>
+        <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#9ab0a1", marginTop: 1 }}>
+          {entrada.huecos.length} platos
+        </span>
+      </span>
+      <span style={{
+        flexShrink: 0, padding: "4px 9px", borderRadius: 999,
+        background: `${NARANJA}12`, border: `1px solid ${NARANJA}2e`,
+        fontSize: 11.5, fontWeight: 900, color: NARANJA, fontVariantNumeric: "tabular-nums",
+      }}>
+        {enHoras(entrada.minutosActivos)}
+      </span>
+    </div>
+  );
+}
+
 const TITULOS = {
   dias: "¿Qué días?",
   balance: "Cómo va la semana",
   despensa: "Lo que tengo en casa",
-  tanda: "El domingo",
+  tanda: "Batch Cooking",
 };
 
 export function PizarraControles({
   data, menuPlan, groups, onAplicar, onRellenar,
-  despensa, onAddDespensa, onQuitarDespensa, prefs, onPrefs,
+  despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa, prefs, onPrefs,
 }) {
   const [abierto, setAbierto] = useState(null);
   const todayIdx = useMemo(() => todayDayIdx(), []);
@@ -643,6 +789,9 @@ export function PizarraControles({
           to   { opacity: 1; transform: translateX(0); }
         }
         .mp-pizarra-panel { animation: mpPizarraPanel .24s cubic-bezier(.22,1,.36,1) both; }
+        /* El input se queda en 16px —si baja, iOS hace zoom al enfocarlo—, así
+           que el que se encoge es el texto de muestra, que a 16 gritaba. */
+        .mp-despensa-input::placeholder { font-size: 13px; font-weight: 600; color: #9aa8a0; opacity: 1; }
       `}</style>
 
       <div
@@ -679,9 +828,11 @@ export function PizarraControles({
             onClick={() => setAbierto("despensa")}
           />
         )}
+        {/* "Batch" y no "Batch Cooking": la etiqueta de baldosa son 55px, y
+            el título entero está en el panel que abre. */}
         <BaldosaMando
           Icon={CookingPot}
-          label="Domingo"
+          label="Batch"
           color={NARANJA}
           tinte="#fff"
           badge={sesion.bases.length > 0 ? sesion.bases.length : null}
@@ -745,6 +896,7 @@ export function PizarraControles({
                 despensa={despensa}
                 onAnadir={onAddDespensa}
                 onQuitar={onQuitarDespensa}
+                onQty={onQtyDespensa}
                 usarDespensa={prefs?.usarDespensa ?? false}
                 onUsarDespensa={(v) => onPrefs?.({ usarDespensa: v })}
               />
