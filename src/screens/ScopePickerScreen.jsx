@@ -33,12 +33,14 @@ const TOPICS = [
   { id: "despensa",   title: "¿Queréis usar lo que hay en casa?",        steps: [12, 13] },
   { id: "cocina",     title: "¿Cuánto os gusta cocinar?",                steps: [14] },
   { id: "electros",   title: "¿Qué tenéis en la cocina?",                steps: [15] },
-  // Dos pasos: el ritmo de cada día (16) y, solo si has dicho que cocinas en
-  // tanda, qué dejas hecho (17). Van bajo el mismo tema —y no como tema nuevo—
-  // porque son la misma pregunta, cómo repartes el tiempo de la semana; y
-  // porque un tema propio se ofrecería en el picker a quien cocina cada día,
-  // que es justo a quien no le aplica. El 17 lo oculta App.jsx.
-  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [16, 17] },
+  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [16] },
+  // Batch cooking es tema propio y no un trozo de "tiempos", porque es otra
+  // pregunta: aquella es cuánto rato tienes un martes, y ésta qué dejas hecho
+  // el día que te pones. Las dos se contestan a la vez —"con prisa entre
+  // semana Y cocino el domingo"— y por eso ninguna puede ocupar el sitio de la
+  // otra. Quien no cocina en tanda no marca el tema; y si lo marca y no pide
+  // nada, tampoco pasa nada: sin tandas pedidas no hay batch cooking.
+  { id: "batch",      title: "¿Cocináis en tandas?",                     steps: [17] },
 ];
 
 /**

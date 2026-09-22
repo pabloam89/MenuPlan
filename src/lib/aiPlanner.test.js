@@ -1683,3 +1683,54 @@ describe("validarNinosConCopias — las cenas de los niños ven sus comidas copi
     expect(k.slotAssignments[0].recipeId).toBe("pollo_cena");
   });
 });
+
+describe("pickCatalogReplacement devuelve las sugerencias del hueco con `candidatos`", () => {
+  // Las sugerencias que el recetario enseña abajo tienen que salir del MISMO
+  // pool que el "Cambiar plato" de al lado. Si se calcularan por otro camino,
+  // la app tendría dos ideas distintas de "qué cabe aquí" y acabaría
+  // proponiendo platos que su propio botón descarta.
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+  const huecoVacio = { [group.id]: { "Lun-Cena": { recipeId: null, eaters: 2, cleared: true } } };
+
+  it("devuelve como mucho N candidatos, y son recetas del catálogo", () => {
+    const res = pickCatalogReplacement(data, huecoVacio, {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main", candidatos: 12,
+    });
+    expect(res.candidatos.length).toBeGreaterThan(0);
+    expect(res.candidatos.length).toBeLessThanOrEqual(12);
+    for (const r of res.candidatos) expect(recipeCatalogById[r.id]).toBeTruthy();
+  });
+
+  it("todas valen para ese hueco: una cena nunca propone un plato de solo primero", () => {
+    const res = pickCatalogReplacement(data, huecoVacio, {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main", candidatos: 12,
+    });
+    for (const r of res.candidatos) {
+      expect(r.mealRole.some((rol) => rol === "cena" || rol === "plato_unico")).toBe(true);
+    }
+  });
+
+  it("no propone lo que ya está puesto esta semana", () => {
+    const yaPuesto = Object.values(recipeCatalogById).find((r) => r.mealRole?.includes("cena"));
+    const plan = {
+      [group.id]: {
+        "Lun-Cena": { recipeId: null, eaters: 2, cleared: true },
+        "Mar-Cena": { recipeId: yaPuesto.id, eaters: 2 },
+      },
+    };
+    const res = pickCatalogReplacement(data, plan, {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main", candidatos: 12,
+    });
+    expect(res.candidatos.map((r) => r.id)).not.toContain(yaPuesto.id);
+  });
+
+  it("sin `candidatos` se comporta igual que siempre: coloca un plato", () => {
+    const res = pickCatalogReplacement(data, huecoVacio, {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main",
+    });
+    expect(res.candidatos).toBeUndefined();
+    expect(res.recipeId).toBeTruthy();
+    expect(res.frontendRecipe).toBeTruthy();
+  });
+});

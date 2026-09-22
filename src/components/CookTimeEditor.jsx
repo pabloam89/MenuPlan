@@ -10,7 +10,6 @@ import {
   cookLevelForMinutes,
 } from "../lib/cookTime.js";
 import { cookDayCounts, getMeals } from "../lib/planner.js";
-import { writeCookTimeTanda, cocinaEnTanda } from "../lib/cookTime.js";
 
 const PERIODS = [
   { key: "weekday", label: "Entre semana", icon: BriefcaseBusiness },
@@ -293,87 +292,6 @@ function CookLevelChips({ selected, onSelect }) {
     </div>
   );
 }
-
-/**
- * Cómo sueles cocinar: cada día o en tanda. Es lo PRIMERO de la pantalla
- * porque cambia lo que hay debajo — elegir "cada día" pide un ritmo por comida,
- * y elegir "en tanda" pide qué bases te gusta tener hechas. Enseñar las dos
- * cosas a la vez era pedirle al usuario que contestara una pregunta que aún no
- * se le ha hecho.
- */
-function ModoDeCocinar({ valor, onChange }) {
-  const OPCIONES = [
-    { id: "clasico", label: "Clásico", sub: "Cocino cada día", img: "/avatares/cards/wizard_timing/clasico.jpg" },
-    { id: "tanda", label: "Batch cooking", sub: "Dejo hecho para la semana", img: "/avatares/cards/wizard_timing/batch.jpg" },
-  ];
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 16 }}>
-      {OPCIONES.map((o) => {
-        const sel = valor === o.id;
-        return (
-          <button
-            key={o.id}
-            type="button"
-            onClick={() => onChange(o.id)}
-            aria-pressed={sel}
-            style={{
-              position: "relative", display: "flex", flexDirection: "column",
-              alignItems: "stretch", padding: 0, overflow: "hidden", borderRadius: 15,
-              border: sel ? `2px solid ${SELECTED_TEAL}` : "1.5px solid #e2eae5",
-              background: "#fff",
-              boxShadow: sel ? "0 6px 18px rgba(15,118,110,.22)" : "0 1px 3px rgba(20,47,29,.05)",
-              cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-              transition: "all .16s cubic-bezier(.4,0,.2,1)",
-            }}
-          >
-            {sel && (
-              <span
-                style={{
-                  position: "absolute", top: 6, right: 6, zIndex: 2,
-                  width: 18, height: 18, borderRadius: 999,
-                  background: SELECTED_TEAL, border: "1.5px solid #fff",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-              >
-                <Check size={10} color="#fff" strokeWidth={3} />
-              </span>
-            )}
-            {/* Mucho más bajas que el 2:3 en que están hechas: dos cards
-                verticales una al lado de la otra empujaban el resto de la
-                pantalla fuera del móvil, y el paso entero pedía scroll para
-                ver las cuatro opciones de ritmo.
-
-                5:4 es el límite: se recorta por ABAJO con `center 12%`, que
-                deja la cabeza entera y la banda donde viven las manos — la
-                sartén de uno y los túpers de la otra son lo único que
-                distingue una card de la otra, así que perderlas sería perder
-                la card. Por debajo de esta altura ya se corta la cara. */}
-            <span style={{ width: "100%", aspectRatio: "5 / 4", background: "#f2f6f3" }}>
-              <img
-                src={o.img}
-                alt=""
-                loading="lazy"
-                style={{
-                  width: "100%", height: "100%", display: "block",
-                  objectFit: "cover", objectPosition: "center 12%",
-                }}
-              />
-            </span>
-            <span style={{ padding: "9px 10px 10px" }}>
-              <span style={{ display: "block", fontSize: 13.5, fontWeight: 800, color: sel ? SELECTED_TEAL : "#1f3326" }}>
-                {o.label}
-              </span>
-              <span style={{ display: "block", fontSize: 10.5, color: "#6b7d70", marginTop: 2, lineHeight: 1.25, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {o.sub}
-              </span>
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 export function CookTimeEditor({ data, setData, simple = false, showIntro = true }) {
   const cookTime = migrateCookTime(data);
   const targets = plannedMealTargets(getMeals(data));
@@ -397,12 +315,6 @@ export function CookTimeEditor({ data, setData, simple = false, showIntro = true
     ? periodTab
     : activePeriods[0]?.key ?? "weekday";
   const mealKey = targets.includes(mealTab) ? mealTab : targets[0];
-
-  // Cocinar en tanda o cada dia. `undefined` = todavia no lo ha dicho, y
-  // entonces se asume "clasico" para pintar algo — pero NO se escribe: una
-  // suposicion que se guarda sola deja de ser una suposicion.
-  const enTanda = cocinaEnTanda(data) === true;
-  const setTanda = (modo) => setData((d) => writeCookTimeTanda(d, modo === "tanda"));
 
   const setMode = (mode) => setData((d) => writeCookTimeMode(d, mode));
   const patchPeriod = (period, patch) => setData((d) => writeCookTimePeriod(d, period, patch));
@@ -430,14 +342,15 @@ export function CookTimeEditor({ data, setData, simple = false, showIntro = true
         </p>
       )}
 
-      <ModoDeCocinar valor={enTanda ? "tanda" : "clasico"} onChange={setTanda} />
-
-      {/* El ritmo se pregunta SIEMPRE, se cocine en tanda o no.
-          Marcar batch cooking escondía esta rejilla y se llevaba por delante
-          una pregunta que seguía teniendo respuesta: aunque dejes medio menú
-          hecho el domingo, el martes tienes los minutos que tienes, y son los
-          que deciden si el plato de ese día cabe. Lo que abre el modo tanda es
-          su propia pantalla (qué dejas hecho), no un sustituto de esta. */}
+      {/* Esta pantalla pregunta UNA cosa: cuánto rato tienes por comida.
+          Vivió aquí un selector "Clásico / Batch cooking" que al marcarlo
+          borraba la rejilla de abajo y ponía en su sitio el selector de tandas.
+          Eran dos preguntas peleándose por el mismo hueco, y la que perdía
+          seguía teniendo respuesta: aunque dejes medio menú hecho el domingo,
+          el martes tienes los minutos que tienes y son los que deciden si el
+          plato de ese día cabe. Ahora las tandas tienen pantalla propia
+          («¿Qué cocinas en tandas?») y aquí no hay interruptor que las
+          esconda: quien no cocina en tanda, no pide ninguna. */}
       {dual && <CookTimeModeToggle mode={cookTime.mode} onChange={setMode} />}
 
       {activePeriods.length > 1 && (

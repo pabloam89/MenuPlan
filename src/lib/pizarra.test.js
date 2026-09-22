@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { planVacio, huecosDelPlan } from "./pizarra.js";
+import { planVacio, huecosDelPlan, conHuecosAlDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
 
 const ADULTOS = [
@@ -104,6 +104,44 @@ describe("las franjas de fuera de menú siguen las reglas del generador", () => 
     expect(plan.g1["Lun-Desayuno"]).toBeUndefined();
     expect(plan.g1["Lun-Postre"]).toBeUndefined();
     expect(plan.g1["Lun-Comida"]).toBeDefined();
+  });
+});
+
+describe("cambiar las comidas sobre la marcha", () => {
+  const grupo = grupoCon(ADULTOS);
+
+  it("añade los huecos de la comida que enciendes", () => {
+    const plan = planVacio(casaBase(), [grupo]);
+    expect(plan.g1["Lun-Desayuno"]).toBeUndefined();
+    const conDesayuno = conHuecosAlDia(plan, casaBase(ADULTOS, { meals: ["Desayuno", "Comida", "Cena"] }), [grupo]);
+    expect(conDesayuno.g1["Lun-Desayuno"]).toBeDefined();
+    expect(conDesayuno.g1["Lun-Desayuno"].cleared).toBe(true);
+  });
+
+  it("NO toca lo que ya habías colocado", () => {
+    const plan = planVacio(casaBase(), [grupo]);
+    plan.g1["Lun-Comida"] = { ...plan.g1["Lun-Comida"], recipeId: "r-lentejas", cleared: false };
+    const next = conHuecosAlDia(plan, casaBase(ADULTOS, { meals: ["Desayuno", "Comida", "Cena"] }), [grupo]);
+    expect(next.g1["Lun-Comida"].recipeId).toBe("r-lentejas");
+    expect(next.g1["Lun-Comida"].cleared).toBe(false);
+  });
+
+  it("apagar una comida no borra sus platos: si la enciendes, siguen ahí", () => {
+    const conTodo = casaBase(ADULTOS, { meals: ["Desayuno", "Comida", "Cena"] });
+    const plan = planVacio(conTodo, [grupo]);
+    plan.g1["Lun-Desayuno"] = { ...plan.g1["Lun-Desayuno"], recipeId: "r-tostada", cleared: false };
+    // Se apaga el desayuno: el plan no cambia, solo deja de pintarse.
+    const apagado = conHuecosAlDia(plan, casaBase(), [grupo]);
+    expect(apagado.g1["Lun-Desayuno"].recipeId).toBe("r-tostada");
+    // Y al volver a encenderlo sigue estando.
+    const encendido = conHuecosAlDia(apagado, conTodo, [grupo]);
+    expect(encendido.g1["Lun-Desayuno"].recipeId).toBe("r-tostada");
+  });
+
+  it("sin nada que añadir devuelve el MISMO plan, para no repintar de balde", () => {
+    const data = casaBase();
+    const plan = planVacio(data, [grupo]);
+    expect(conHuecosAlDia(plan, data, [grupo])).toBe(plan);
   });
 });
 

@@ -184,55 +184,39 @@ export function writeCookTimeMode(data, mode) {
 }
 
 /**
- * Cocinar cada día o cocinar en tanda — el reparto del tiempo en la semana.
+ * El día de la tanda necesita sitio en la semana: se lo abre en el fin de
+ * semana, sin tocar el de diario.
  *
- * Es OTRO eje que el ritmo: el ritmo dice cuánto rato tienes por comida, y
- * esto cómo lo repartes. Por eso "con prisa entre semana Y cocino el domingo"
- * se puede decir: son dos respuestas, no una.
+ * Lo lee el planner por `maxCookTime` — un domingo de 90 minutos admite un
+ * guiso que un martes de 20 no. Es OTRO eje que el ritmo: el ritmo dice cuánto
+ * rato tienes por comida, y esto cómo lo repartes en la semana. Por eso "con
+ * prisa entre semana Y cocino el domingo" se puede decir: son dos respuestas.
  *
- * Se guarda EXPLÍCITO y no se deduce de los minutos. Deducirlo de la asimetría
+ * Nunca se dedujo de los minutos, y sigue sin deducirse. Sacarlo de la asimetría
  * ("el finde tiene el doble que el diario") parecía elegante y estaba mal: el
  * valor por defecto de la app ya es 30 y 60, justo el doble, así que cualquiera
  * que no hubiera tocado nada habría salido marcado "en tanda" sin pedirlo.
  *
- * Y hace algo de verdad, no es una etiqueta: abre el presupuesto del fin de
- * semana sin tocar el de diario, y eso lo lee el planner por `maxCookTime` — un
- * domingo de 90 minutos admite un guiso que un martes de 20 no.
+ * Quien lo dispara es pedir tandas (`BasesPreferidas`), no un interruptor:
+ * antes había una card "Batch cooking" que escribía además un `cookTime.tanda`,
+ * y ese campo se quedó sin lector el día que el menú pasó a mirar lo PEDIDO —
+ * ver `hayTandasPedidas`. Una casa podía marcarlo y no pedir nada, que es una
+ * casa que cocina en tanda sin tener nada hecho el martes.
  */
-export function writeCookTimeTanda(data, tanda) {
+export function abrirFindeParaTanda(data, hayTanda) {
   const ct = migrateCookTime(data);
   const diario = ct.weekday?.Comida ?? COOK_TIME_DEFAULTS.weekday.Comida;
-  const finde = tanda ? Math.max(90, diario * 3) : diario;
+  const finde = hayTanda ? Math.max(90, diario * 3) : diario;
   return {
     ...data,
-    cookTime: {
-      ...ct,
-      tanda: Boolean(tanda),
-      weekend: { Comida: finde, Cena: finde },
-    },
+    cookTime: { ...ct, weekend: { Comida: finde, Cena: finde } },
   };
 }
 
 /**
- * ¿Ha dicho esta casa que cocina en tanda? `undefined` = todavía no lo ha dicho.
- *
- * Es una DECLARACIÓN, y desde que la pantalla de tandas vive aparte (2026-09-21)
- * eso es todo lo que es: abre el presupuesto del finde y decide si se ve la
- * pantalla. Quien quiera saber si hay tandas de verdad en juego tiene que
- * preguntar por lo pedido — ver `hayTandasPedidas`.
- */
-export function cocinaEnTanda(data) {
-  return data?.cookTime?.tanda;
-}
-
-/**
- * ¿Hay alguna tanda PEDIDA? La pregunta que le importa al menú.
- *
- * Marcar "batch cooking" y no pedir nada deja una casa que, sobre el papel,
- * cocina en tanda pero no tiene nada hecho el martes: el icono de tanda en el
- * menú y el "¿tienes el sofrito hecho?" de la ficha hablaban entonces de ollas
- * que nadie iba a cocinar. Y al revés: quien pidió sofrito ×3 tiene ese sofrito
- * hecho, haya tocado o no la card del modo.
+ * ¿Hay alguna tanda PEDIDA? La única pregunta sobre batch cooking que se hace
+ * la app, y la que decide tanto el icono de tanda en el menú como el "¿tienes
+ * el sofrito hecho?" de la ficha.
  *
  * Lee las PROYECCIONES de la libreta (`tanda` y `tandaPlatos`), que es donde
  * `BasesPreferidas` deja lo pedido en el mismo gesto de pedirlo. La libreta

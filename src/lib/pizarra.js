@@ -156,6 +156,39 @@ export function planVacio(data, groups) {
   return plan;
 }
 
+/**
+ * Pone al día los huecos de un plan cuando cambian las comidas o los días
+ * desde los mandos de la pizarra.
+ *
+ * SOLO AÑADE. Quitar el desayuno no borra los desayunos que ya habías puesto:
+ * deja de pintarlos, porque el deck dibuja lo que dice `getDayMeals`, y si
+ * vuelves a encenderlo aparecen donde estaban. Borrarlos sería destruir
+ * trabajo por tocar un interruptor, y el interruptor no avisa de eso.
+ *
+ * Devuelve el mismo plan cuando no hay nada que añadir, para no disparar un
+ * render por cada toque que no cambia la forma del tablero.
+ */
+export function conHuecosAlDia(plan, data, groups) {
+  const base = planVacio(data, groups);
+  const next = { ...plan };
+  let nuevos = 0;
+
+  for (const [gid, huecos] of Object.entries(base)) {
+    if (gid === "_warnings") continue;
+    const actuales = next[gid] ?? {};
+    let copia = null;
+    for (const [key, hueco] of Object.entries(huecos)) {
+      if (actuales[key]) continue;
+      copia = copia ?? { ...actuales };
+      copia[key] = hueco;
+      nuevos++;
+    }
+    if (copia) next[gid] = copia;
+  }
+
+  return nuevos > 0 ? next : plan;
+}
+
 /** Cuántos huecos tiene un esqueleto (para el copy de "tienes N huecos"). */
 export function huecosDelPlan(plan) {
   let n = 0;

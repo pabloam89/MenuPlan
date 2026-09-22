@@ -112,7 +112,7 @@ import {
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
 import { recetaConBases } from "../lib/recetaConBases.js";
-import { cocinaEnTanda, hayTandasPedidas } from "../lib/cookTime.js";
+import { hayTandasPedidas } from "../lib/cookTime.js";
 import { basesPedidas, claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
@@ -1496,16 +1496,15 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
         </AccordionSection>
 
         {/* ── Batch cooking ──
-            Sección aparte, y solo para quien lo ha marcado arriba. Dentro de
-            "Tiempo disponible" ocupaba el sitio de las cards de ritmo, así que
-            elegir tanda borraba la pregunta de cuánto tiempo tienes un martes.
-            Se entra por la misma puerta que en el asistente —las cards de la
-            sección de arriba— para que no haya dos formas de encenderlo. */}
-        {cocinaEnTanda(data) === true && (
-          <AccordionSection title="Batch cooking" icon={CookingPot}>
-            <BasesPreferidas data={data} setData={wrappedSetData} />
-          </AccordionSection>
-        )}
+            Sección hermana de la de arriba, no un modo suyo. Vivió DENTRO de
+            "Tiempo disponible", donde un selector "Clásico / Batch cooking"
+            decidía cuál de las dos veías; así que elegir tanda borraba la
+            pregunta de cuánto tiempo tienes un martes, que seguía en pie.
+            Cerrada no estorba a quien cocina cada día, y quien no pide ninguna
+            tanda no hace batch cooking: no hace falta interruptor. */}
+        <AccordionSection title="Batch cooking" icon={CookingPot}>
+          <BasesPreferidas data={data} setData={wrappedSetData} />
+        </AccordionSection>
 
         {/* ── CTA ── */}
         <div style={{ paddingTop: 16 }}>
@@ -2023,7 +2022,7 @@ const DECK_VIEW_OPTIONS = [
   { id: "tanda", label: "Tanda" },
 ];
 
-/** Las dos vistas que saben pintar huecos vacíos — ver la prop `soloDiaYSemana`. */
+/** Las dos vistas que saben pintar huecos vacíos — ver la prop `modoPizarra`. */
 const DECK_VIEWS_BASICAS = DECK_VIEW_OPTIONS.filter((v) => v.id === "dia" || v.id === "semana");
 
 // Tres formas distintas para tres tramos distintos, y ahí está el cambio: antes
@@ -2082,7 +2081,7 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
 }
 
 /** A single photo-forward dish tile. Fills its parent (parent controls size). */
-function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, showGroup = false, members = null, invitados = 0 }) {
+function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, denso = false, showGroup = false, members = null, invitados = 0 }) {
   const { meal, group, slot, dish } = tile;
   const armed = useContext(ArmedContext);
   const clavesTanda = useContext(TandaContext);
@@ -2257,9 +2256,14 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       {/* Lo mismo que ve el cartel de una receta en Inspírate o en Gente: si
           hoy da la vida para cocinar esto se decide con estos dos datos, y
           hasta ahora había que abrir el plato para saberlos. */}
-      <div style={{ position: "absolute", top: compact ? 8 : 12, right: compact ? 8 : 12 }}>
-        <DishSpecPills difficulty={recipe.difficulty} time={recipe.time} compact={compact} align="flex-end" />
-      </div>
+      {/* En denso no: la tarjeta mide la mitad y con dos pastillas encima el
+          nombre del plato, que es lo único que se viene a leer de un vistazo,
+          pierde la esquina. Siguen a un toque, dentro del plato. */}
+      {!denso && (
+        <div style={{ position: "absolute", top: compact ? 8 : 12, right: compact ? 8 : 12 }}>
+          <DishSpecPills difficulty={recipe.difficulty} time={recipe.time} compact={compact} align="flex-end" />
+        </div>
+      )}
       {/* Invitados en este hueco. Comparte esquina con las chapas de grupo y
           va DELANTE: "esta noche sois uno más" cambia lo que hay que cocinar,
           y de quién es el menú no. */}
@@ -2650,9 +2654,9 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 }
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
-function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null }) {
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: denso ? 12 : 18 }}>
       {days.map((day) => {
         const tiles = getDeckDayTiles(day, data, menuPlan, visibleGroups);
         if (tiles.length === 0) return null;
@@ -2666,9 +2670,9 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
             </div>
             <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
               {tiles.map((tile, i) => (
-                <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: "0 0 46%" }}>
-                  <div style={{ height: 150 }}>
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={16} compact showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} />
+                <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: denso ? "0 0 33%" : "0 0 46%" }}>
+                  <div style={{ height: denso ? 104 : 150 }}>
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={denso ? 14 : 16} compact denso={denso} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} />
                   </div>
                 </div>
               ))}
@@ -3881,7 +3885,7 @@ const monthDots = {
   alignItems: "center", gap: 3, maxWidth: 30,
 };
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null }) {
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
@@ -3919,7 +3923,7 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
         />
       )}
       {deckView === "semana" && (
-        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} />
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} />
       )}
       {deckView === "mes" && (
         <DeckMonth
@@ -4773,13 +4777,15 @@ export const MenuScreen = memo(function MenuScreen({
   // exactamente igual que antes de que esto existiera.
   wizardControls = null,
   wizardBubble = null,
-  // La pizarra ofrece solo Día y Semana: son las dos vistas que saben pintar
-  // un hueco vacío (ver getDeckDayTiles), así que en Mes o Tanda un menú sin
-  // platos se vería en blanco y sin nada que tocar — la vista diría "no hay
-  // menú" cuando sí lo hay.
-  soloDiaYSemana = false,
+  // Este menú se monta a mano. Cambia tres cosas, y las tres por el mismo
+  // motivo —aquí no decide un motor, decides tú—: solo Día y Semana (las dos
+  // vistas que saben pintar un hueco vacío; en Mes o Tanda un menú sin platos
+  // se vería en blanco y sin nada que tocar), la semana en denso para que
+  // quepa de un vistazo, y sin la fila de mandos ni la burbuja del asistente,
+  // que App ya no pasa.
+  modoPizarra = false,
 }) {
-  const deckViews = soloDiaYSemana ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
+  const deckViews = modoPizarra ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
   const [pdfExportOpen, setPdfExportOpen] = useState(false);
@@ -5687,6 +5693,7 @@ export const MenuScreen = memo(function MenuScreen({
           >
             <ArmedContext.Provider value={armed}>
             <MenuDeck
+              denso={modoPizarra}
               deckView={deckView}
               days={activeDays}
               weekDates={weekDates}

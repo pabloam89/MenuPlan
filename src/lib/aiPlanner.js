@@ -3014,7 +3014,14 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
  *   elsewhere in the week — callers should tell the user rather than silently
  *   duplicating a dish (see App.jsx#handleReplaceSlot).
  */
-export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false }) {
+/**
+ * `candidatos: N` cambia lo que devuelve: en vez de colocar un plato, corta el
+ * pool ya filtrado y puntuado de ese hueco y lo devuelve como
+ * `{ candidatos: [...] }` — las sugerencias que el recetario enseña abajo.
+ * Solo tiene sentido sin `forcedRecipe`, que es el camino en que no hay nada
+ * que elegir porque el plato ya viene decidido.
+ */
+export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0 }) {
   const group = (data?.groups ?? []).find((g) => g.id === groupId);
   if (!group) return null;
 
@@ -3215,6 +3222,13 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // si no hay escalón. Sigue siendo azar, para no perder la variedad que es
   // la razón de sortear; solo cambia ENTRE QUÉ se sortea.
   candidates = preferirPorSesgo(candidates, data.sesgos, data.favoritos);
+  // Las sugerencias del hueco son ESTE pool, no una lista aparte: todo lo que
+  // se ha filtrado arriba —rol del hueco, tope de tiempo, alergias, lo que ya
+  // está en el menú, el cole, los subtipos, los sesgos de la casa— es
+  // exactamente lo que hace que una sugerencia sea buena. Calcularlas por otro
+  // camino sería tener dos ideas distintas de "qué cabe aquí", y la que ve el
+  // usuario acabaría proponiéndole platos que el botón de al lado descarta.
+  if (candidatos > 0) return { candidatos: candidates.slice(0, candidatos) };
   picked = candidates[Math.floor(Math.random() * candidates.length)];
   }
 

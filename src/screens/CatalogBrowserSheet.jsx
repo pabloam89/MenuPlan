@@ -20,6 +20,7 @@ import {
   IceCream,
   Bean,
   Utensils,
+  UtensilsCrossed,
   Tag,
   ChevronRight,
   ChevronLeft,
@@ -370,6 +371,12 @@ export function CatalogBrowserSheet({
   discardedIds = null,
   onDiscardRecipe = null,
   onRecoverRecipe = null,
+  // Sugerencias para el hueco desde el que se abrió el recetario: recetas de
+  // catálogo ya filtradas y ordenadas para ESE hueco (ver `candidatos` en
+  // pickCatalogReplacement). Vacío = no se pinta la tira y la hoja queda como
+  // siempre.
+  sugerencias = [],
+  onPickSugerencia,
   // Cocinada: "«lo que has escrito» es mía". Es la salida cuando lo que has
   // hecho no está en el catálogo, y sin ella no podrías publicar la cena. Solo
   // la pinta quien la pasa (el composer del feed), y siempre DEBAJO de las
@@ -1599,9 +1606,97 @@ export function CatalogBrowserSheet({
         >
           {showCategoryGrid ? categoryGrid : cards}
         </div>
+
+        <SugerenciasDelHueco sugerencias={sugerencias} onPick={onPickSugerencia} />
       </div>
 
       {overlays}
+    </div>
+  );
+}
+
+/**
+ * La tira de sugerencias, pegada al fondo del recetario.
+ *
+ * ── Por qué come alto de la hoja ──────────────────────────────────────────
+ * Cuesta 108px de lista, y los vale: el recetario abre por carpetas, así que
+ * llenar un hueco son tres toques y una decisión entre 471 platos. Aquí están
+ * los que caben en ESE hueco —rol, tiempo, alergias, lo que ya hay en la
+ * semana, el cole—, ya ordenados, a un toque. Quien quiera mirarlo todo sigue
+ * teniendo el catálogo entero justo encima, sin nada tapado: la tira se queda
+ * fuera del scroll, no encima de él.
+ */
+function SugerenciasDelHueco({ sugerencias, onPick }) {
+  if (!sugerencias || sugerencias.length === 0) return null;
+  return (
+    <div
+      style={{
+        flexShrink: 0,
+        borderTop: "1px solid #e3ebe6",
+        background: "#fff",
+        padding: "10px 0 12px",
+      }}
+    >
+      <p style={{
+        margin: "0 0 8px", padding: "0 18px",
+        fontSize: 10, fontWeight: 800, letterSpacing: ".9px",
+        textTransform: "uppercase", color: "#7a9485",
+      }}>
+        Para este hueco
+      </p>
+      <div
+        className="deck-scroller"
+        style={{
+          display: "flex", gap: 10, overflowX: "auto",
+          padding: "0 18px 2px", WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {sugerencias.map((r) => {
+          const photo = dishImageForRecipe(r);
+          return (
+            <button
+              key={r.id}
+              type="button"
+              className="mp-press"
+              onClick={() => onPick?.(r.id)}
+              style={{
+                flex: "0 0 104px", width: 104, padding: 0, border: "none",
+                background: "transparent", cursor: "pointer", fontFamily: "inherit",
+                textAlign: "left",
+              }}
+            >
+              <div
+                style={{
+                  position: "relative", width: "100%", height: 66,
+                  borderRadius: 12, overflow: "hidden", background: "#eef4f0",
+                  border: "1px solid #e3ebe6",
+                }}
+              >
+                {photo ? (
+                  <img
+                    src={photo}
+                    alt=""
+                    loading="lazy"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <UtensilsCrossed size={18} color="#9ab0a1" />
+                  </div>
+                )}
+              </div>
+              <p style={{
+                margin: "5px 0 0", fontSize: 10.5, fontWeight: 800, color: "#142f1d",
+                lineHeight: 1.25,
+                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}>
+                {r.name}
+              </p>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
