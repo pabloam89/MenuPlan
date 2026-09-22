@@ -111,6 +111,18 @@ textarea::placeholder {
   animation: mpSheetUp .22s cubic-bezier(.25,.46,.45,.94) both;
 }
 
+/* Los desplegables de la despensa (unidad, envase). Salen desde el borde del
+   botón que los abre — de ahí el transform-origin que pone cada uno según
+   abra hacia arriba o hacia abajo — en vez de aparecer de golpe. */
+@keyframes mpPickerIn {
+  from { opacity: 0; transform: scale(.96) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.mp-picker-menu {
+  animation: mpPickerIn .15s cubic-bezier(.22,1,.36,1) both;
+}
+
 /* These wrap long-lived screen/tab content (which itself renders nested
    position:fixed overlays like filter sheets, dish detail, etc.), so we use
    "backwards" rather than "both": once the transition finishes, `transform`
@@ -261,6 +273,7 @@ button {
   .mp-peek-in,
   .mp-drawer-in,
   .mp-pop-bell,
+  .mp-picker-menu,
   .mp-pop {
     animation: mpFadeIn .12s ease both;
   }
