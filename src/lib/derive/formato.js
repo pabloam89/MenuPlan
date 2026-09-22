@@ -111,6 +111,11 @@ const NOMBRE_TEMPLADO = /\btemplad/;
  */
 export function temperaturaDe(receta, formato = null) {
   const n = norm(receta?.name);
+  // EL NOMBRE VA PRIMERO, SIEMPRE. Esta línea estaba debajo de la regla de la
+  // ensalada y tres platos que se llaman «Ensalada TEMPLADA de…» salían fríos:
+  // la regla cortocircuitaba antes de leer la palabra que lo declaraba. Una
+  // regla general no puede pasar por encima de un dato explícito.
+  if (NOMBRE_TEMPLADO.test(n)) return { valor: "templado", via: "lo dice el nombre", duda: null };
   // Una ensalada NO se sirve caliente. 44 del catálogo se cocinan —se hierve la
   // patata de la campera, se asan los garbanzos— y la técnica las mandaba a
   // «caliente». Templada es lo más que llega una ensalada.
@@ -120,7 +125,6 @@ export function temperaturaDe(receta, formato = null) {
       : { valor: "frio", via: "ensalada cruda", duda: null };
   }
   // El nombre manda sobre la técnica: un escabeche se cocina y se come frío.
-  if (NOMBRE_TEMPLADO.test(n)) return { valor: "templado", via: "lo dice el nombre", duda: null };
   if (NOMBRE_FRIO.test(n)) return { valor: "frio", via: "lo dice el nombre", duda: null };
   if (receta?.tecnica === "crudo") return { valor: "frio", via: "técnica cruda", duda: null };
   if (receta?.tecnica) return { valor: "caliente", via: `técnica ${receta.tecnica}`, duda: null };

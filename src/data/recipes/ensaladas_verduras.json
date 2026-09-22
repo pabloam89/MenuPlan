@@ -22625,7 +22625,7 @@
     ],
     "methods": [],
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "templado"
   },
   {
     "id": "ensaladas_verduras_134",
@@ -22918,6 +22918,6 @@
     ],
     "methods": [],
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "templado"
   }
 ]
