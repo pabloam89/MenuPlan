@@ -1,4 +1,5 @@
 import { ETAPAS_BEBE, ETAPA_BEBE_INFO, etapaBebeDe } from "../lib/babyStage.js";
+import { KITCHEN_TOOLS as KITCHEN_TOOLS_CON_ARTE } from "../lib/applianceMethods.js";
 import React, { Fragment, Suspense, lazy, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -9714,7 +9715,9 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 // La lista se mudó a lib/applianceMethods.js para que la baldosa de batch
 // cooking pinte los mismos seis sin importar esta pantalla entera. Se reexporta
 // con el nombre de siempre porque RecipePlanner la importa de aquí.
-export { KITCHEN_TOOLS as APPLIANCES } from "../lib/applianceMethods.js";
+// Se importa y se reexporta, no `export … from`: esa forma NO deja binding
+// local, así que el `APPLIANCES.map` de aquí abajo se quedaba sin variable.
+export const APPLIANCES = KITCHEN_TOOLS_CON_ARTE;
 
 // Sin "Añadir otro": la lista fija son los seis aparatos que el generador sabe
 // aprovechar de verdad (ver resolveCookwareMarker en RecipeSteps.jsx). Un
