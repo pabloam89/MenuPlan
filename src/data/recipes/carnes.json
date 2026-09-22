@@ -5634,7 +5634,7 @@
       },
       {
         "name": "Vino rancio",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 60,
         "unit": "ml"
       },
@@ -7884,7 +7884,7 @@
       },
       {
         "name": "Vino de Jerez",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 300,
         "unit": "ml"
       },
@@ -9688,7 +9688,7 @@
       },
       {
         "name": "Vino Pedro Ximénez",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 150,
         "unit": "ml"
       },
@@ -11029,7 +11029,7 @@
       },
       {
         "name": "Vino de Oporto",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 250,
         "unit": "ml"
       },
@@ -28672,7 +28672,7 @@
       },
       {
         "name": "Vino oloroso",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 30,
         "unit": "ml"
       },
@@ -32080,7 +32080,7 @@
       },
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 80,
         "unit": "g"
       },
@@ -33808,8 +33808,8 @@
         "unit": "g"
       },
       {
-        "name": "Alubias blancas",
-        "ingredientId": "alubias",
+        "name": "Alubias blancas secas",
+        "ingredientId": "alubias-secas",
         "amount": 200,
         "unit": "g"
       },

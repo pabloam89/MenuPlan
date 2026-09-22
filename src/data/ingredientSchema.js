@@ -118,26 +118,22 @@ export const IngredientSchema = z
       )
       .optional(),
 
-    // Nutrición por 100g (Fase 9), vía BEDCA — ver scripts/bedca-nutrition.mjs.
-    // Todo opcional/nullable: BEDCA cubre ~500 alimentos y el catálogo tiene
-    // 379 propios, así que no habrá cobertura del 100% — "sin dato" no es un
-    // error, mismo criterio que el resto de campos derivados de una fuente
-    // externa. `sugar100g` en particular es sparse incluso dentro de BEDCA
-    // (el campo existe pero muchos alimentos no lo tienen relleno).
-    // Misma forma exacta que en alimentoSchema, y por el mismo sitio: la lista
-    // de nutrientes se declara UNA vez, en src/data/nutrientes.js.
-    nutrition: z
-      .object(
-        Object.fromEntries(
-          CAMPOS_NUTRICION.map((campo) => [
-            campo,
-            NUTRIENTES[campo].duro
-              ? z.number().nonnegative()
-              : z.number().nonnegative().nullable().optional(),
-          ]),
-        ),
-      )
-      .nullable(),
+    // ── LA NUTRICIÓN YA NO VIVE AQUÍ ────────────────────────────────────────
+    // Estuvo en esta tabla y en `alimentos.json` a la vez, idéntica campo a
+    // campo, sostenida por un test de espejo. Dos copias del mismo número no
+    // son redundancia barata: la copia que la app leía era justamente la que
+    // NO llevaba procedencia, así que el número y su porqué vivían separados
+    // y el trace-back se rompía en ese salto.
+    //
+    // Ahora la composición vive SOLO en `src/data/alimentos.json` —la tabla
+    // maestra del embudo de alimentos, con `fuente`, `fuenteId`, `via` y
+    // `motivo` al lado de cada número— y esta tabla se queda con lo que sí es
+    // suyo: cómo se llama, dónde se compra, qué alérgenos declara y cuánto
+    // pesa una pieza. Un ingrediente apunta a su alimento por
+    // `alimentoPorIngrediente.json`.
+    //
+    // `.strict()` más abajo hace que esto sea un fusible: si alguien vuelve a
+    // escribir `nutrition` en una fila, el esquema lo rechaza.
 
     /**
      * La SEGUNDA ficha, cuando la propia deja huecos que otra tabla sí

@@ -24,6 +24,7 @@
  * declaran y se anotan como pendientes. Declarar antes de rellenar.
  */
 import { readFileSync, writeFileSync, existsSync } from "fs";
+import { createHash } from "crypto";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -39,6 +40,8 @@ const ROOT = join(__dirname, "..");
 const DRY = process.argv.includes("--dry");
 
 const leerJson = (p) => (existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null);
+/** Mismo criterio que build-derived.mjs: CRLF normalizado, 16 caracteres. */
+const hash = (s) => createHash("sha256").update(s.replace(/\r\n/g, "\n")).digest("hex").slice(0, 16);
 
 const ingredientes = leerJson(join(ROOT, "src", "data", "ingredients.json"));
 // Las decisiones viven en el repo. La copia de output/ se sigue leyendo como
@@ -63,11 +66,26 @@ delete fraccionComestible._;
 const densidad = leerJson(join(ROOT, "src", "data", "densidad.json")) ?? {};
 delete densidad._;
 
-// De qué está hecho lo que no es una sola cosa. Misma convención que los dos
-// de arriba: ausente es el caso normal —el alimento ES su nodo del árbol— y
-// solo aparecen los compuestos cuyas partes juegan en ejes distintos.
-const composicion = leerJson(join(ROOT, "src", "data", "composicion.json")) ?? {};
-delete composicion._;
+// ── LA TABLA MAESTRA SE SOSTIENE A SÍ MISMA ─────────────────────────────────
+// La nutrición ya NO se copia de `ingredients.json`. Venía de allí por una
+// razón histórica —los números se escribían en el catálogo y esta tabla los
+// espejaba— y dejaba la procedencia aguas abajo del número: `alimentos.json`
+// sabía de qué ficha de CIQUAL venía el garbanzo, y la copia que la app leía
+// de verdad no sabía nada.
+//
+// Ahora el número y su porqué viven juntos y en un solo sitio. Esta tabla es
+// el OUTPUT MAESTRO del embudo de alimentos: lo de antes (BEDCA, CIQUAL, USDA,
+// las decisiones curadas) son transformaciones que desembocan aquí, y lo de
+// después son lecturas.
+//
+// Un alimento NUEVO entra sin nutrición y la recibe del pipeline de ingesta,
+// que escribe aquí. Sin nutrición no hay ficha que valga: es lo correcto y es
+// lo que lo hace visible.
+const maestraPrevia = leerJson(join(ROOT, "src", "data", "alimentos.json")) ?? [];
+const nutricionDe = new Map(maestraPrevia.map((f) => [f.id, f.nutricion ?? null]));
+// La segunda ficha viaja con la nutrición, por el mismo motivo: dice de dónde
+// vienen los campos prestados y eso es procedencia, no catálogo.
+const complementoDe = new Map(maestraPrevia.filter((f) => f.fuenteComplemento).map((f) => [f.id, f.fuenteComplemento]));
 
 // Las decisiones de CIQUAL, la segunda tabla de composición. Van aparte de las
 // de BEDCA y no mezcladas en un mismo fichero porque la FUENTE importa: dos
@@ -135,14 +153,53 @@ const mismasMacros = (a, b) =>
  * Dos vías, y la humana gana: una decisión registrada es mejor evidencia que
  * una coincidencia de números.
  */
+/**
+ * Un hueco de nutrición no siempre es trabajo pendiente, y decir que lo es
+ * cuando no lo es hace que la lista de pendientes deje de leerse.
+ *
+ * Los tres estados que existen (alimentoSchema.js:279) y cuándo aplica cada uno:
+ *
+ *   no_aplica            el alimento no aporta masa, así que NADIE leerá su
+ *                        nutrición nunca. No es que falte: es que la pregunta
+ *                        no tiene sentido. Lo garantiza `fraccionComestible: 0`,
+ *                        y no de palabra — `computeRecipeNutrition` descarta la
+ *                        línea con `if (grams <= 0) continue;` ANTES de mirar
+ *                        la ficha, igual que composicion.js en su línea 183.
+ *
+ *   ausente_sin_fuente   se ha buscado en BEDCA, CIQUAL y USDA y no está.
+ *                        Cochinillo, pata de ternera, açaí, mirin, gochujang,
+ *                        colorante y tinta de calamar: cero resultados en las
+ *                        tres tablas el 22 sep 2026. Poner una ficha de un
+ *                        alimento parecido sería inventar — el sake no es
+ *                        mirin, y el pie de cerdo curado no es pata de ternera.
+ *
+ *   ausente_resoluble    lo que de verdad está pendiente. Hoy queda la harissa,
+ *                        que SÍ tiene ficha exacta (ciqual:11112) y no se puede
+ *                        aplicar porque CIQUAL no publica su energía y el
+ *                        pipeline no sabe calcularla por Atwater. Mismo bloqueo
+ *                        que `requeson` y `chocolate`, y el día que exista esa
+ *                        regla se cierran los tres.
+ */
+const SIN_FUENTE_CONOCIDA = new Set([
+  "medio-cochinillo", "pata-de-ternera", "pulpa-de-acai-congelada",
+  "mirin", "gochujang", "colorante", "tinta-de-calamar",
+]);
+
+function estadoDelHuecoNutricional(id) {
+  if (fraccionComestible[id]?.valor === 0) return "no_aplica";
+  if (SIN_FUENTE_CONOCIDA.has(id)) return "ausente_sin_fuente";
+  return "ausente_resoluble";
+}
+
 function procedenciaDe(ing) {
+  const nutricion = nutricionDe.get(ing.id) ?? null;
   const cands = candidatosPorIngrediente.get(ing.id) ?? [];
 
   // El orden es el inverso al de llegada, y por eso: si hay decisión en USDA
   // es porque ni BEDCA ni CIQUAL pudieron, y se tomó después de mirar las dos.
   // La decisión más reciente sobre el mismo ingrediente es la buena.
   const usda = choicesUsda[ing.id];
-  if (usda?.foodId != null && ing.nutrition) {
+  if (usda?.foodId != null && nutricion) {
     return {
       via: "usda",
       fuente: "usda",
@@ -153,7 +210,7 @@ function procedenciaDe(ing) {
   }
 
   const ciqual = choicesCiqual[ing.id];
-  if (ciqual?.foodId != null && ing.nutrition) {
+  if (ciqual?.foodId != null && nutricion) {
     return {
       via: "ciqual",
       fuente: "ciqual",
@@ -174,8 +231,8 @@ function procedenciaDe(ing) {
     };
   }
 
-  if (!ing.nutrition) return null;
-  const casan = cands.filter((c) => mismasMacros(c.nutrition, ing.nutrition));
+  if (!nutricion) return null;
+  const casan = cands.filter((c) => mismasMacros(c.nutrition, nutricion));
   const ids = [...new Set(casan.map((c) => c.foodId))];
   if (ids.length === 1) {
     return { via: "macros", foodId: ids[0], foodName: casan[0].foodName, motivo: null };
@@ -255,7 +312,8 @@ for (const ing of ingredientes) {
 
   const huecos = {};
   for (const campo of CAMPOS_CONTABLES) huecos[campo] = "ausente_resoluble";
-  huecos.nutricion = ing.nutrition ? "relleno" : "ausente_resoluble";
+  const nutricion = nutricionDe.get(ing.id) ?? null;
+  huecos.nutricion = nutricion ? "relleno" : estadoDelHuecoNutricional(ing.id);
   huecos.procedencia = proc ? "relleno" : "ausente_resoluble";
   huecos.familia = familia ? "relleno" : "ausente_resoluble";
   huecos.rol = rol ? "relleno" : "ausente_resoluble";
@@ -276,27 +334,39 @@ for (const ing of ingredientes) {
     nombre: nombreFuente ?? ing.name,
     // Cuatro estados: con ficha de BEDCA, con ficha de CIQUAL, con número pero
     // sin ficha, y vacío.
-    fuente: proc ? (proc.fuente ?? "bedca") : (ing.nutrition ? "heredado" : "sin_fuente"),
+    fuente: proc ? (proc.fuente ?? "bedca") : (nutricion ? "heredado" : "sin_fuente"),
     // La segunda ficha, si la hay: de dónde salen los campos que la propia
     // dejaba vacíos. Se copia tal cual del catálogo, donde la escribió
     // scripts/apply-complemento.mjs con la lista exacta de campos prestados.
-    ...(ing.fuenteComplemento
-      ? { fuenteComplemento: { ...ing.fuenteComplemento, discrepancia: complementos[ing.id]?.discrepancia ?? null } }
+    ...(complementoDe.has(ing.id)
+      ? { fuenteComplemento: { ...complementoDe.get(ing.id), discrepancia: complementos[ing.id]?.discrepancia ?? null } }
       : {}),
     fuenteId: proc ? String(proc.foodId) : null,
     fuenteNombre: nombreFuente,
     fuenteFecha: proc ? FECHA_INGESTA : null,
+    // CON QUÉ AUTORIDAD se eligió esa ficha, y el porqué cuando lo hay.
+    //
+    // `procedenciaDe` lo calcula en sus cuatro ramas desde el primer día y
+    // hasta hoy se tiraba al escribir la fila. El daño no era teórico: 76 de
+    // los 377 alimentos con número —el 32 % de la masa servida del catálogo,
+    // presentes en 1.010 de las 1.033 recetas— salen de la rama `macros`, que
+    // NO es una decisión: es la única ficha candidata cuyos cuatro macros
+    // duros coinciden, contra un artefacto que vive en `output/` y está en
+    // .gitignore. Sin este campo, `aceite-oliva → bedca/2543` se lee
+    // exactamente igual que `garbanzos → ciqual/20507`, y uno es una decisión
+    // revisada con su motivo y el otro una conjetura con buena pinta.
+    //
+    // Es una abstención disfrazada de afirmación, y escribirla es lo único
+    // que hace posible el test que la vigila.
+    via: proc?.via ?? null,
+    motivo: proc?.motivo ?? null,
     familia,
     rol,
     taxonomia,
     dimensiones,
-    nutricion: ing.nutrition ?? null,
+    nutricion,
     densidad: densidad[ing.id]?.valor ?? null,
     fraccionComestible: fraccionComestible[ing.id]?.valor ?? null,
-    // Solo en los compuestos. `taxonomia` sigue diciendo qué es el alimento
-    // PRINCIPALMENTE —y es lo que manda para el hidrato de unos tortellini—;
-    // esto añade lo que el nodo único no cabe: su relleno.
-    ...(composicion[ing.id] ? { composicion: composicion[ing.id].partes } : {}),
     huecos,
   });
   mapaIngredienteAlimento[ing.id] = id;
@@ -310,7 +380,7 @@ for (const ing of ingredientes) {
   else if (proc?.via === "ciqual") informe.ciqual++;
   else if (proc?.via === "decision") informe.conDecision++;
   else if (proc?.via === "macros") informe.porMacros++;
-  else if (ing.nutrition) informe.heredados++;
+  else if (nutricion) informe.heredados++;
   else informe.vacios++;
 }
 
@@ -414,5 +484,42 @@ writeFileSync(
   JSON.stringify(mapaIngredienteAlimento, null, 2) + "\n",
   "utf8",
 );
+
+// ── La proyección que baja al navegador ─────────────────────────────────────
+// La maestra lleva su auditoría —`via`, `motivo`, `huecos`, `dimensiones`, el
+// nombre de la ficha— y eso es lo que la hace valiosa en el repo y lo que NO
+// tiene ningún sentido enviarle a cada usuario: son 45 KB brotli de los que la
+// app lee 22. Esto NO es una segunda tabla ni un segundo carril: es la misma
+// maestra transformada para el transporte, y va sellada con su hash para que
+// no pueda quedarse vieja en silencio (lo vigila alimentos.test.js).
+//
+// Lleva `familia`, `rol` y `taxonomia` además de la composición a propósito:
+// son las tres columnas por las que hoy nueve módulos clasifican ingredientes
+// leyendo su NOMBRE, teniendo la respuesta por clave al 100 %.
+const proyeccion = {
+  _: {
+    que: "Proyección de src/data/alimentos.json para el cliente. NO SE EDITA: la genera "
+      + "scripts/build-alimentos.mjs. Lo que falta aquí (via, motivo, huecos, dimensiones, "
+      + "fuenteNombre) vive en la maestra, que es donde se decide y se discute.",
+    hash_maestra: hash(JSON.stringify(filas)),
+    filas: filas.length,
+  },
+  filas: filas.map((f) => ({
+    id: f.id,
+    nutricion: f.nutricion,
+    familia: f.familia,
+    rol: f.rol,
+    taxonomia: f.taxonomia,
+    densidad: f.densidad,
+    fraccionComestible: f.fraccionComestible,
+  })),
+};
+writeFileSync(
+  join(ROOT, "src", "data", "derived", "alimentosApp.json"),
+  JSON.stringify(proyeccion) + "\n",
+  "utf8",
+);
+
 console.log("✅  src/data/alimentos.json");
 console.log("✅  src/data/alimentoPorIngrediente.json");
+console.log("✅  src/data/derived/alimentosApp.json");

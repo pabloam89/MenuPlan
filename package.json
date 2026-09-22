@@ -16,6 +16,7 @@
     "check:catalog": "node scripts/validate-catalog.mjs",
     "build:derived": "vite-node scripts/build-derived.mjs",
     "check:derived": "vite-node scripts/build-derived.mjs --check",
+    "audit:catalog": "vite-node scripts/audit-catalog.mjs",
     "audit:ingredients": "node scripts/build-ingredient-catalog.mjs",
     "build:icons": "node scripts/build-nucleo-icons.mjs",
     "check:duplicates": "node scripts/detect-duplicate-dishes.mjs",

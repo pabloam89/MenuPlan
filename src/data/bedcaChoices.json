@@ -127,10 +127,10 @@
     "modelo": "decision-humana-2026-09-21"
   },
   "aceitunas-negras": {
-    "foodId": 2215,
-    "confianza": 0.9,
-    "motivo": "Aceituna negra con hueso coincide directamente",
-    "modelo": "claude-sonnet-5"
+    "foodId": null,
+    "confianza": 1,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "Anulada el 22 sep 2026. Decía «Aceituna negra con hueso coincide directamente», y coincidía en todo menos en lo que importaba: las cuatro fichas de aceituna de BEDCA traen 54 mg de sodio, que es aceituna de árbol y no de salmuera. Pasa a ciqual:13033. Se deja escrita en vez de borrada porque es el ejemplo de que una decisión humana también se equivoca."
   },
   "agua": {
     "foodId": 2425,
@@ -487,12 +487,6 @@
     "motivo": "Extracto diluido muy distinto de la vaina entera",
     "modelo": "claude-sonnet-5"
   },
-  "fabes": {
-    "foodId": 2196,
-    "confianza": 0.75,
-    "motivo": "Fabes son variedad de judía blanca seca",
-    "modelo": "claude-sonnet-5"
-  },
   "falafel-congelado": {
     "foodId": null,
     "confianza": 0,
@@ -642,12 +636,6 @@
     "foodId": null,
     "confianza": 0,
     "motivo": "Orégano no es vino de jerez",
-    "modelo": "claude-sonnet-5"
-  },
-  "judia-negra": {
-    "foodId": 2199,
-    "confianza": 0.5,
-    "motivo": "Judía blanca cocida como genérico de judía negra cocida",
     "modelo": "claude-sonnet-5"
   },
   "langostinos": {
@@ -1443,7 +1431,6 @@
     "motivo": "Sin dato utilizable en BEDCA: o no aparece, o aparece y su ficha viene VACIA (melon, sandia, sepia y parmesano existen por nombre y devuelven NULL en macros; comprobado el 14 sep 2026). Decidido NULL, no estimado: un valor inventado entraria igual en todas las cuentas de aguas abajo, y nada comprueba la marca de estimado. Revisable si BEDCA rellena esas filas o se anade una segunda fuente.",
     "modelo": "decision-humana-2026-09-14"
   },
-
   "perdiz": {
     "foodId": 2289,
     "confianza": 0.95,
@@ -1455,5 +1442,431 @@
     "confianza": 0.95,
     "motivo": "«Berberechos», 47,9 kcal. Mismo caso que la perdiz: descartado porque «CIQUAL no publica el berberecho con macros», cierto, y BEDCA sí. Las dos son la misma lección — cuando el motivo de un null nombra UNA tabla, la decisión está a medias.",
     "modelo": "decision-humana-2026-09-21"
+  },
+  "chorizo": {
+    "foodId": 2264,
+    "confianza": 0.65,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "«Chorizo», 321,7 kcal y 47 % de agua. BEDCA no dice el grado de curación, y ese 47 % lo sitúa en chorizo oreado o de guisar, no en sarta curada (30-35 % de agua, 420-460 kcal). Se confirma por el uso: 28 de sus 29 líneas son cocido, fabada, lentejas, garbanzos, callos, huevos rotos y migas —chorizo de guiso— y solo una tabla de embutidos usa el curado. Confianza 0,65 porque sus 27 g de proteína con 23 de grasa no cuadran con ningún chorizo español contrastable, y no hay alternativa: CIQUAL no tiene chorizo y el de USDA es el fresco mexicano."
+  },
+  "requeson": {
+    "foodId": null,
+    "confianza": 1,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "Anulada el 22 sep 2026. La ficha «Requesón» de BEDCA declara «Cottage cheese» en inglés y un tercio de la grasa de un requesón. Pasa a ciqual:19585. Se creyó durante unas horas que no se podía aplicar porque CIQUAL no publica su energía; era falso, el parser del repo la calcula por Atwater."
+  },
+  "chocolate": {
+    "foodId": null,
+    "confianza": 1,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "Anulada el 22 sep 2026. La fila 788 es un chocolate de ~50 % y la buena de BEDCA (587, un 70 %) no publica energía, así que el emparejador por macros no podía verla. Pasa a ciqual:31005, que respalda a la 587 y sí se carga."
+  },
+  "canonigos": {
+    "foodId": 2379,
+    "confianza": 0.9,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "«Canonigos», 13,7 kcal. Colgaban de `lechuga` como alias, y un canónigo es Valerianella locusta: otra planta, con 2 mg de hierro contra los 0,7 de una lechuga y 2.655 µg de betacaroteno. Son 660 g del catálogo, el 30 % del peso que tenía ese id."
+  },
+  "patata": {
+    "foodId": 2403,
+    "confianza": 0.9,
+    "motivo": "«Patata, cruda», 72,5 kcal y 80,6 % de agua. Cruda de nombre y de número: una cocida baja a ~67 kcal con 83 % de agua y una asada sube a 93. Las 169 líneas la compran y la pesan cruda.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "aceite-oliva": {
+    "foodId": 2543,
+    "confianza": 0.95,
+    "motivo": "«Aceite de oliva», 883,4 kcal con 99,9 g de grasa. Un aceite es 100 % grasa y no hay estado que discutir. Que no se coma entero lo resuelve el tope del 6 % en masaServida.js, no la ficha.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "tomate": {
+    "foodId": 2421,
+    "confianza": 0.9,
+    "motivo": "«Tomate», 18,8 kcal y 93,9 % de agua: tomate fresco crudo, que es lo que piden sus 96 líneas. La ficha era correcta aquí; el error estaba en `tomate-triturado`, que la compartía.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "zanahoria": {
+    "foodId": 2424,
+    "confianza": 0.9,
+    "motivo": "«Zanahoria, cruda», 34,3 kcal y 87,8 % de agua. Nombre y estado exactos.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "calabacin": {
+    "foodId": 2376,
+    "confianza": 0.85,
+    "motivo": "«Calabacín» (Cucurbita pepo), 17,2 kcal. El nombre no dice estado pero el número sí: con 94,6 % de agua no está cocinado.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "pimiento-rojo": {
+    "foodId": 2409,
+    "confianza": 0.85,
+    "motivo": "«Pimiento rojo, crudo», 28,9 kcal y 92,2 % de agua. Su sci_name dice Capsicum frutescens, que es la especie del chile y no la del morrón: es un desliz de etiqueta de BEDCA, los números son de morrón.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "costilla": {
+    "foodId": 2258,
+    "confianza": 0.9,
+    "motivo": "«Cerdo, costilla, crudo», 278,2 kcal y 56,9 % de agua. Cruda, como sus 17 líneas. El hueso va fuera por `fraccionComestible` 0,73, que es la porción comestible de esta misma ficha.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "arroz": {
+    "foodId": 2660,
+    "confianza": 0.9,
+    "motivo": "«Arroz», 385,8 kcal con 86 g de hidratos y 5,9 % de agua: seco sin cocer, que es como lo pesan las recetas. El cocido está partido aparte como `arroz-cocido`.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "berenjena": {
+    "foodId": 2370,
+    "confianza": 0.85,
+    "motivo": "«Berenjena» (Solanum melongena), 20,1 kcal y 92,2 % de agua. Cruda por el número.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "puerro": {
+    "foodId": 2411,
+    "confianza": 0.85,
+    "motivo": "«Puerro, crudo y congelado», 24,2 kcal y 90,5 % de agua. Crudo y congelado son el mismo puerro en distinto almacenamiento.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "aguacate": {
+    "foodId": 2216,
+    "confianza": 0.85,
+    "motivo": "«Aguacate» (Persea americana), 136,2 kcal. Es el valor español clásico, más magro que USDA (160) pero coherente con su propia tabla; mezclar una ficha americana aquí sería peor. Hueso y piel van fuera por `fraccionComestible` 0,60.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "vino-blanco": {
+    "foodId": 2462,
+    "confianza": 0.9,
+    "motivo": "«Vino blanco», 60,3 kcal con 8,58 g de alcohol: vino de mesa seco. Los cinco generosos que colgaban de aquí (Pedro Ximénez, oporto, jerez, oloroso, rancio) se sacaron el 22 sep a `vino-generoso`; lo que queda son las 81 líneas de vino blanco de verdad.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "pepino": {
+    "foodId": 2407,
+    "confianza": 0.9,
+    "motivo": "«Pepino» (Cucumis sativus), 11,9 kcal y 95,7 % de agua. Crudo.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "ajo": {
+    "foodId": 2361,
+    "confianza": 0.85,
+    "motivo": "«Ajo» (Allium sativum), 116,8 kcal y 70,4 % de agua: el ajo crudo pelado de la tabla española. Más húmedo que USDA (149 kcal) pero es el dato español y las líneas pesan dientes pelados. AVISO: la porción comestible de esta ficha es 0,01, que es imposible — no afecta porque `ajo` no está en fraccionComestible.json, y hay un test que impide que entre.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "vino-tinto": {
+    "foodId": 2465,
+    "confianza": 0.9,
+    "motivo": "«Vino tinto», 70,2 kcal con 9,82 g de alcohol. Nombre y número exactos, y su id no arrastra alias de otros vinos.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "jamon": {
+    "foodId": 2273,
+    "confianza": 0.9,
+    "motivo": "«Jamón serrano», 317,7 kcal, 39,9 % de agua y 2.130 mg de sodio: perfil de curado. Aquí «curado» no es un error de estado — el jamón se compra ya curado.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "bogavante": {
+    "foodId": 2313,
+    "confianza": 0.85,
+    "motivo": "«Bogavante» (Homarus gammarus), 92 kcal y 79,7 % de agua. BEDCA tiene «Bogavante, hervido» como ficha APARTE (f_id 573), así que «Bogavante» a secas es el crudo, y el contraste de agua y proteína entre las dos lo confirma.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "lechuga": {
+    "foodId": 2399,
+    "confianza": 0.9,
+    "motivo": "«Lechuga» (Lactuca sativa), 15,6 kcal y 95,2 % de agua. Los 660 g de canónigos que colgaban de aquí como alias se sacaron el 22 sep a `canonigos`: era otra planta.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "rodaballo": {
+    "foodId": 2625,
+    "confianza": 0.85,
+    "motivo": "«Rodaballo» (Psetta maxima), 97,3 kcal y 80,3 % de agua: crudo. BEDCA no tiene variante cocinada de este pescado, así que no hay ambigüedad.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "miel": {
+    "foodId": 2643,
+    "confianza": 0.9,
+    "motivo": "«Miel», 314,1 kcal y 17 % de agua, que es exactamente la humedad reglamentaria de una miel. No tiene estado que equivocar.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "sal": {
+    "foodId": 2585,
+    "confianza": 0.95,
+    "motivo": "«Sal yodada», sodio 38.850 mg = 98,7 % de NaCl. La sal es sal. Salvedad: la comparte con `sal-gruesa` y `sal-escamas`, que normalmente NO están yodadas — en macros da igual (las tres son 0 kcal) pero en yodo no.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "morcilla": {
+    "foodId": 2280,
+    "confianza": 0.8,
+    "motivo": "«Morcilla», 323/11/3,2/30, que se corresponde con el boudin noir à cuire de CIQUAL (313/12,2/4,5/27,1).",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "coles-de-bruselas": {
+    "foodId": 1180,
+    "confianza": 0.5,
+    "motivo": "«Col de bruselas, cruda» — y su f_eng_name dice «Brussels sprout, FROZEN». El nombre español miente sobre el estado y `alimentos.json` le declara `procesado: crudo` apoyándose en él. SE MANTIENE porque no hay a dónde ir: la única fila de BEDCA cuyo inglés dice «raw» (f_id 675) viene vacía. Su porción comestible es 0,00, que es un hueco de la tabla y no una medida.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "leche-coco": {
+    "foodId": 911,
+    "confianza": 0.85,
+    "motivo": "2,0/2,8/21,3 clava el «coconut milk, CANNED» de USDA (2,02/2,81/21,33). Es la de lata, que es la que se compra.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "salsa-soja": {
+    "foodId": 2575,
+    "confianza": 0.85,
+    "motivo": "Producto compuesto con ficha propia y no la de su ingrediente principal, que es lo correcto. Sodio 5.720.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "perejil": {
+    "foodId": 2593,
+    "confianza": 0.85,
+    "motivo": "«Perejil, fresco». Su grasa (1,3) es el valor de CIQUAL para el persil frais, no el de USDA.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "repollo": {
+    "foodId": 2417,
+    "confianza": 0.85,
+    "motivo": "Repollo crudo. Una de sus cinco líneas es «Repollo morado», que es lombarda y ya existe como alimento aparte.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "sardinas": {
+    "foodId": 2630,
+    "confianza": 0.8,
+    "motivo": "Sardina fresca entera. Una de sus tres líneas es «Sardinas ahumadas», que es otro alimento.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "rucula": {
+    "foodId": 2418,
+    "confianza": 0.85,
+    "motivo": "Clava el arugula de USDA (2,58/3,65/0,66).",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "hojaldre": {
+    "foodId": 2607,
+    "confianza": 0.85,
+    "motivo": "Masa CRUDA, que es como se pesa: coincide con el «puff pastry, ready-to-bake» de USDA (551/7,4/45,1/38,1).",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "chuletas-de-cerdo": {
+    "foodId": 2257,
+    "confianza": 0.9,
+    "motivo": "«crudo» explícito en el nombre y peso crudo en las líneas. Aquí no se repite el error que tenía la pechuga de pollo.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "salmon-ahumado": {
+    "foodId": 2627,
+    "confianza": 0.85,
+    "motivo": "Coincide con el saumon fumé de CIQUAL (178/22/9,49). Ahumado en los dos lados.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "esparragos-blancos": {
+    "foodId": 2393,
+    "confianza": 0.85,
+    "motivo": "Nombre idéntico y «en conserva» en los dos lados.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "azucar-moreno": {
+    "foodId": 780,
+    "confianza": 0.85,
+    "motivo": "97,6 g de azúcar declarado. AVISO que no es de este alimento sino de sus vecinos: `azucar` y `azucar-glas` comparten esta ficha DE AZÚCAR MORENO, y son sacarosa refinada sin melaza, hierro ni calcio. Los tres pasan por macros casi iguales, que es lo que ciega al emparejador.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "salmonete": {
+    "foodId": 2629,
+    "confianza": 0.8,
+    "motivo": "Pescado entero crudo.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "pinones": {
+    "foodId": 2244,
+    "confianza": 0.75,
+    "motivo": "Se sospechó que sus 14 g de proteína eran de otra especie y CIQUAL confirma 13,7: no es error. Reserva menor: su grasa (62,61) no cuadra ni con su propia energía ni con sus filas gemelas (68,6).",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "pimenton": {
+    "foodId": 2592,
+    "confianza": 0.85,
+    "motivo": "Pimentón en polvo. Que sea picante o ahumado no mueve los macros.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "granada": {
+    "foodId": 2226,
+    "confianza": 0.85,
+    "motivo": "Fruta entera. Sus líneas «(arilos)» las cancela `masaServida.js` desde el 22 sep, que antes les tiraba el 44 % de una granada ya desgranada.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "lombarda": {
+    "foodId": 2400,
+    "confianza": 0.85,
+    "motivo": "«Lombarda», 22 kcal. Col lombarda cruda, alimento distinto del repollo aunque el catálogo tenga una línea llamada «Repollo morado» que es esto mismo.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "butifarra": {
+    "foodId": 2254,
+    "confianza": 0.75,
+    "motivo": "240/10/5,5/20: butifarra blanca cocida con fécula, coherente consigo misma.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "lenguado": {
+    "foodId": 2341,
+    "confianza": 0.85,
+    "motivo": "Pescado crudo entero. Su porción comestible (0,55) coincide con la curada a mano.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "grelo": {
+    "foodId": 2396,
+    "confianza": 0.85,
+    "motivo": "Su f_eng_name es «Turnip greens». Es el grelo.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "kefir": {
+    "foodId": 1168,
+    "confianza": 0.8,
+    "motivo": "64 kcal: leche entera fermentada.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "ketchup": {
+    "foodId": 2605,
+    "confianza": 0.7,
+    "motivo": "Hidratos (21,7), grasa (0,2) y sodio (910) clavan CIQUAL y USDA. La proteína (3,4) es 2,7 veces la de ambos (1,27 y 1,04): es un campo suelto malo, no un problema de identidad.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "vinagre-balsamico": {
+    "foodId": 2557,
+    "confianza": 0.9,
+    "motivo": "0,49/17,03 = el balsamic de USDA exacto. Aviso: la línea «Reducción de vinagre balsámico» está 2-3 veces más concentrada.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "lacon": {
+    "foodId": 2274,
+    "confianza": 0.7,
+    "motivo": "Su f_eng_name es «Shoulder cured ham, lacon»: identidad exacta. Sus 9,9 g de hidratos extrañan (CIQUAL da 1,9-3,6 para paleta de cerdo cocida) y la salmuera azucarada lo explica solo en parte.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "tocino": {
+    "foodId": 2317,
+    "confianza": 0.85,
+    "motivo": "662/8,4/0/71: tocino curado.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "pomelo": {
+    "foodId": 2246,
+    "confianza": 0.85,
+    "motivo": "«Pomelo», 26 kcal. Fruta cruda. Su fracción comestible (0,66) sale de la porción comestible de esta misma ficha, que descuenta la piel y la membrana.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "menta": {
+    "foodId": 872,
+    "confianza": 0.85,
+    "motivo": "«Menta, fresca» = el spearmint fresh de USDA. Su alias «Hierbabuena» ES hierbabuena, así que encaja incluso mejor que el nombre.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "miso": {
+    "foodId": 2157,
+    "confianza": 0.9,
+    "motivo": "Clava el miso de USDA hasta el sodio (3.728).",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "alcaparras": {
+    "foodId": 2364,
+    "confianza": 0.9,
+    "motivo": "Clava el «capers, canned» de USDA incluido el sodio (2.964), y CIQUAL confirma la salmuera (1.620).",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "cava": {
+    "foodId": 2436,
+    "confianza": 0.85,
+    "motivo": "«Cava», 70 kcal. Corresponde a un brut: un semiseco subiría por el azúcar de expedición. Las líneas del catálogo no distinguen dulzor, así que se toma el brut por ser el de cocina.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "salsa-barbacoa": {
+    "foodId": 2581,
+    "confianza": 0.75,
+    "motivo": "Coincide con la sauce barbecue de CIQUAL (136/0,56/30,3); BEDCA algo más rica. Una sola línea.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "sobrasada": {
+    "foodId": 2311,
+    "confianza": 0.8,
+    "motivo": "«Sobrasada», 595 kcal con 62 g de grasa. Embutido crudo curado para untar, que es el estado en el que se compra: no hay variante cocinada que confundir.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "alioli": {
+    "foodId": 790,
+    "confianza": 0.85,
+    "motivo": "86,89 g de grasa: la ficha describe la emulsión y no el ajo. Compuesto con ficha propia, bien resuelto.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "fuet": {
+    "foodId": 1161,
+    "confianza": 0.7,
+    "motivo": "19,5 g de proteína es bajo para un curado (el saucisson sec de CIQUAL da 24,5) y sus 5,5 g de hidratos altos. Una sola línea.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "whisky": {
+    "foodId": 2466,
+    "confianza": 0.9,
+    "motivo": "244 kcal = 40° exactos.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "romero": {
+    "foodId": 2586,
+    "confianza": 0.4,
+    "motivo": "La ficha es romero SECO: 343 kcal y 15,2 g de grasa, y CIQUAL «Romarin, séché» da 328 con el mismo 15,2, que no es casualidad. PERO 7 de sus 15 líneas dicen «Romero fresco», y el romarin frais de CIQUAL es 121 kcal: 2,8 veces menos. BEDCA solo tiene el seco. Se cierra partiendo el alimento en dos o trayendo ciqual:11068, y hasta entonces la mitad de las líneas cobran el estado equivocado.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "nuez-moscada": {
+    "foodId": 2599,
+    "confianza": 0.9,
+    "motivo": "Clava el nutmeg de USDA (5,84/49,29/36,31).",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "ajo-polvo": {
+    "foodId": 2573,
+    "confianza": 0.9,
+    "motivo": "Clava el garlic powder de USDA (16,55/72,73/0,73).",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "licor-de-cafe": {
+    "foodId": 2447,
+    "confianza": 0.8,
+    "motivo": "«Licor de café», 343 kcal. Casi toda su energía es alcohol y azúcar, y por eso no la valida el control de Atwater — entra por la excepción de ALCOHOL_WORDS, igual que el resto de licores.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "azafran": {
+    "foodId": 2475,
+    "confianza": 0.8,
+    "motivo": "«Azafrán», 348 kcal. Hebra seca, que es como se compra y como se pesa; el azafrán molido tiene la misma composición. Aparece en cantidades de decimas de gramo, así que su energía no mueve ningún plato — lo que importa es que el id apunte al azafrán y no a la cúrcuma, que es su falsificación habitual.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "laurel": {
+    "foodId": 2603,
+    "confianza": 0.85,
+    "motivo": "Hoja seca, que es lo que se compra.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "tabasco": {
+    "foodId": 2561,
+    "confianza": 0.85,
+    "motivo": "15 kcal y sodio 633: coincide con la etiqueta real del producto.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "arandanos": {
+    "foodId": 2368,
+    "confianza": 0.5,
+    "motivo": "CERO líneas y CERO kg: no afecta a nada hoy. Si algún día se usa, ojo — su f_eng_name es «Bilberry», el arándano silvestre, y no el cultivado que se compra.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "cigala": {
+    "foodId": 2331,
+    "confianza": 0.85,
+    "motivo": "Cigala cruda entera. Su fracción comestible (0,40) está decidida a mano y NO es el 0,47 de BEDCA: la curación humana manda ahí.",
+    "modelo": "revision-agente-2026-09-22"
+  },
+  "platano": {
+    "foodId": 2245,
+    "confianza": 0.9,
+    "motivo": "89/1,2/20/0,3. «Plátano congelado» es el mismo alimento.",
+    "modelo": "revision-agente-2026-09-22"
   }
 }

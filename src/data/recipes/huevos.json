@@ -496,7 +496,7 @@
         "unit": "ml"
       },
       {
-        "name": "Gambas",
+        "name": "Gambas peladas",
         "ingredientId": "gambas",
         "amount": 80,
         "unit": "g"
@@ -3286,7 +3286,7 @@
       },
       {
         "name": "Canónigos",
-        "ingredientId": "lechuga",
+        "ingredientId": "canonigos",
         "amount": 60,
         "unit": "g"
       },
@@ -4438,7 +4438,7 @@
       },
       {
         "name": "Vino Pedro Ximénez",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 20,
         "unit": "ml"
       }

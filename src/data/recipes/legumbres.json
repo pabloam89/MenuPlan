@@ -662,8 +662,8 @@
     "season": "invierno",
     "ingredients": [
       {
-        "name": "Garbanzos",
-        "ingredientId": "garbanzos",
+        "name": "Garbanzos secos",
+        "ingredientId": "garbanzos-secos",
         "amount": 250,
         "unit": "g"
       },
@@ -1120,8 +1120,8 @@
     "season": "invierno",
     "ingredients": [
       {
-        "name": "Fabes",
-        "ingredientId": "fabes",
+        "name": "Fabes secas",
+        "ingredientId": "alubia-grande",
         "amount": 250,
         "unit": "g"
       },
@@ -2382,7 +2382,7 @@
     "ingredients": [
       {
         "name": "Lentejas cocidas",
-        "ingredientId": "lentejas",
+        "ingredientId": "lentejas-cocidas",
         "amount": 300,
         "unit": "g"
       },
@@ -3084,8 +3084,8 @@
     "season": "invierno",
     "ingredients": [
       {
-        "name": "Alubias blancas",
-        "ingredientId": "alubias",
+        "name": "Alubias blancas secas",
+        "ingredientId": "alubias-secas",
         "amount": 250,
         "unit": "g"
       },
@@ -3935,7 +3935,7 @@
     "ingredients": [
       {
         "name": "Lentejas pardinas cocidas",
-        "ingredientId": "lentejas",
+        "ingredientId": "lentejas-cocidas",
         "amount": 300,
         "unit": "g"
       },
@@ -5470,7 +5470,7 @@
     "ingredients": [
       {
         "name": "Garbanzos secos crudos (en remojo)",
-        "ingredientId": "garbanzos",
+        "ingredientId": "garbanzos-secos",
         "amount": 200,
         "unit": "g"
       },
@@ -7592,7 +7592,7 @@
       },
       {
         "name": "Vino oloroso",
-        "ingredientId": "vino-blanco",
+        "ingredientId": "vino-generoso",
         "amount": 30,
         "unit": "ml"
       },
@@ -8536,7 +8536,7 @@
     "ingredients": [
       {
         "name": "Alubias blancas secas",
-        "ingredientId": "alubias",
+        "ingredientId": "alubias-secas",
         "amount": 200,
         "unit": "g"
       },
@@ -10094,8 +10094,8 @@
     "allergens": [],
     "ingredients": [
       {
-        "name": "Alubias pintas",
-        "ingredientId": "alubias",
+        "name": "Alubias pintas secas",
+        "ingredientId": "alubias-secas",
         "amount": 200,
         "unit": "g"
       },
@@ -10348,7 +10348,7 @@
     "ingredients": [
       {
         "name": "Lentejas cocidas",
-        "ingredientId": "lentejas",
+        "ingredientId": "lentejas-cocidas",
         "amount": 300,
         "unit": "g"
       },
@@ -10833,8 +10833,8 @@
     "allergens": [],
     "ingredients": [
       {
-        "name": "Alubias blancas",
-        "ingredientId": "alubias",
+        "name": "Alubias blancas secas",
+        "ingredientId": "alubias-secas",
         "amount": 220,
         "unit": "g"
       },
@@ -11540,8 +11540,8 @@
     "allergens": [],
     "ingredients": [
       {
-        "name": "Judías blancas",
-        "ingredientId": "judia-blanca",
+        "name": "Judías blancas secas",
+        "ingredientId": "alubias-secas",
         "amount": 200,
         "unit": "g"
       },
@@ -13257,8 +13257,8 @@
     ],
     "ingredients": [
       {
-        "name": "Garbanzos",
-        "ingredientId": "garbanzos",
+        "name": "Garbanzos secos",
+        "ingredientId": "garbanzos-secos",
         "amount": 500,
         "unit": "g"
       },
@@ -13892,8 +13892,8 @@
     "allergens": [],
     "ingredients": [
       {
-        "name": "Garbanzos",
-        "ingredientId": "garbanzos",
+        "name": "Garbanzos secos",
+        "ingredientId": "garbanzos-secos",
         "amount": 400,
         "unit": "g"
       },

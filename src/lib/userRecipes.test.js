@@ -5,7 +5,7 @@ import {
   isOwnCreatedRecipe,
   patchUserRecipeClassification,
 } from "./userRecipes.js";
-import { ingredientById } from "./ingredients.js";
+import { COMPOSICION } from "./ingredients.js";
 
 function mockAIResponse(payload) {
   vi.stubGlobal(
@@ -132,20 +132,20 @@ describe("generateUserRecipeDraft mealRole merienda/postre", () => {
 });
 
 // Fase 9: nutrición fiable. El catálogo real no tiene nutrición BEDCA
-// todavía, así que estos tests inyectan `nutrition` a mano sobre "ajo" (misma
-// técnica que ingredients.test.js: ingredientById devuelve la referencia
+// todavía, así que estos tests inyectan la composición a mano sobre "ajo" (misma
+// técnica que ingredients.test.js: COMPOSICION es el índice que lee la app
 // compartida que usa el resolver) y la restauran después.
 describe("generateUserRecipeDraft nutrición calculada (Fase 9)", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
-    ingredientById.ajo.nutrition = null;
+    COMPOSICION.delete("ajo");
   });
 
   it("sustituye los macros de la IA por el cálculo real cuando la cobertura es alta", async () => {
-    ingredientById.ajo.nutrition = {
+    COMPOSICION.set("ajo", {
       kcal100g: 100, protein100g: 20, carbs100g: 10, fat100g: 5,
       fiber100g: 2, sugar100g: 1, saturatedFat100g: 0.5, sodium100g: 50,
-    };
+    });
     // 20 dientes × 5g/diente (PIECE_WEIGHTS) = 100g, cobertura total.
     const ingredients = [{ name: "Ajo", amount: 20, unit: "diente" }];
     mockAIResponse({ ...VALID_DRAFT_FIELDS, ingredients, kcal: 9999 });

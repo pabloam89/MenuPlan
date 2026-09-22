@@ -445,7 +445,7 @@
     "ingredients": [
       {
         "name": "Garbanzos secos",
-        "ingredientId": "garbanzos",
+        "ingredientId": "garbanzos-secos",
         "amount": 400,
         "unit": "g"
       },
