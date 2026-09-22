@@ -1973,7 +1973,6 @@
       "primero"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 10,
     "difficulty": "facil",
     "kcal": 268,
@@ -9528,7 +9527,6 @@
       "primero"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "season": "all",
@@ -15838,7 +15836,7 @@
     ],
     "methods": [
       {
-        "appliance": "olla_rapida",
+        "appliance": "olla_express",
         "time": 25,
         "difficulty": "facil",
         "prepSummary": "Sofríe la verdura en la olla destapada, añade tomate, alubias y agua a ras, cierra y cuece 6 minutos desde que suba la válvula. Despresuriza y deja reposar 5 minutos para que ligue."
@@ -16053,7 +16051,7 @@
     ],
     "methods": [
       {
-        "appliance": "olla_rapida",
+        "appliance": "olla_express",
         "time": 30,
         "difficulty": "facil",
         "prepSummary": "Haz el sofrito destapado, añade lentejas, patata y agua dos dedos por encima. Cierra y cuece 12 minutos desde que suba la válvula. Sala al abrir."
@@ -16268,7 +16266,7 @@
     ],
     "methods": [
       {
-        "appliance": "olla_rapida",
+        "appliance": "olla_express",
         "time": 28,
         "difficulty": "facil",
         "prepSummary": "Sofrito destapado, añade lentejas y agua, cierra y cuece 10 minutos desde la válvula. Abre, añade judía verde y guisantes y hierve 5 minutos destapada."
@@ -16686,7 +16684,7 @@
     ],
     "methods": [
       {
-        "appliance": "olla_rapida",
+        "appliance": "olla_express",
         "time": 35,
         "difficulty": "normal",
         "prepSummary": "Dora la carne y haz el sofrito destapado. Añade tomate, carne, laurel y agua, cierra y cuece 18 minutos desde la válvula. Abre, incorpora los garbanzos y hierve 5 minutos destapada."

@@ -1359,7 +1359,6 @@
       "guarnicion"
     ],
     "type": "guarnicion",
-    "requiredAppliance": "plancha",
     "time": 30,
     "difficulty": "normal",
     "season": "all",

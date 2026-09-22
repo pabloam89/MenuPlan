@@ -9,7 +9,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 168,
@@ -322,7 +321,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 178,
@@ -531,7 +529,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 152,
@@ -692,7 +689,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 10,
     "difficulty": "facil",
     "kcal": 228,
@@ -839,7 +835,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 158,
@@ -1252,7 +1247,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 192,
@@ -1411,7 +1405,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 172,
@@ -1777,7 +1770,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 148,
@@ -1983,7 +1975,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 186,
@@ -2347,7 +2338,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 142,
@@ -2530,7 +2520,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 268,
@@ -2687,7 +2676,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 162,
@@ -2871,7 +2859,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 20,
     "difficulty": "facil",
     "kcal": 152,
@@ -3378,7 +3365,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 272,
@@ -3709,7 +3695,39 @@
     "estrella": true,
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta el pan en dados, rocíalos con aceite y cocínalos en la airfryer a 180°C durante 8-10 minutos hasta que estén dorados y crujientes, removiendo a mitad. Puedes cocinar el huevo en un molde con un poco de agua."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Corta el pan en dados, rocíalos con aceite y hornéalos durante 10-15 minutos hasta que estén dorados y crujientes, dándoles la vuelta a mitad."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el huevo en el cestillo con 500ml de agua a 100°C, velocidad 1, durante 13-15 minutos para obtener un huevo duro perfecto. Puedes usarla también para picar el pepino rápidamente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el huevo en la vaporera durante 10-12 minutos para obtener un huevo duro con la yema en su punto. Es una forma sencilla y precisa de prepararlo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Para el huevo duro, ponlo en la olla express con agua que lo cubra. Cocina 5-7 minutos desde que sube la válvula, luego despresuriza y enfría."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_022",
@@ -3721,7 +3739,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 35,
     "difficulty": "normal",
     "apetecible": true,
@@ -3933,7 +3950,21 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras y boletus con aceite y mantequilla, añade la patata y el caldo, cocina a 100°C y luego tritura a velocidad progresiva hasta obtener una crema fina. El perejil se fríe en sartén aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras y boletus en la olla con aceite y mantequilla. Incorpora la patata y el caldo, cierra y cocina a presión durante 5-7 minutos. Despresuriza, tritura y añade la nata, friendo el perejil en una sartén aparte."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_023",
@@ -3945,7 +3976,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 75,
     "difficulty": "elaborada",
     "kcal": 265,
@@ -4172,7 +4202,21 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Ideal para el bisque, permite sofreír las cáscaras y verduras (120°C, vel. cuchara), cocinar y triturar a máxima velocidad para una textura fina. El truco es un buen colado para una crema sedosa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Perfecta para extraer el máximo sabor de las cáscaras y verduras en menos tiempo. Sofríe los ingredientes, añade el líquido y cocina a alta presión unos 20 minutos. Luego, tritura y cuela para una base intensa."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_024",
@@ -4184,7 +4228,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 165,
@@ -4357,7 +4400,33 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Asa la calabaza, patata y cebolla troceadas con un chorrito de aceite a 190°C durante 25-30 minutos hasta que estén tiernas y ligeramente doradas. Luego, tritura con el caldo caliente, el jengibre y la nata hasta obtener una crema suave y aromática."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el jengibre picados con aceite unos minutos. Añade la calabaza y patata, el caldo y cocina 20-25 minutos a 100°C, velocidad cuchara. Finalmente, incorpora la nata y tritura a velocidad progresiva hasta obtener una crema fina."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cuece al vapor la calabaza, patata y cebolla troceadas junto al jengibre hasta que estén muy tiernas (unos 20-25 minutos). Una vez cocidas, tritura con el caldo caliente, un chorrito de aceite de oliva y la nata hasta conseguir una crema ligera y saludable."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el jengibre con aceite en la olla. Añade la calabaza, patata y el caldo. Cierra la olla y cocina 5-7 minutos desde que sube la válvula. Despresuriza, añade la nata y tritura hasta obtener una crema muy rápida y sabrosa."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_025",
@@ -4369,7 +4438,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 112,
@@ -4505,7 +4573,15 @@
     ],
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes en el vaso de la Thermomix y tritura a velocidad progresiva (30 segundos/velocidad 10) hasta obtener una crema fina y homogénea. Refrigera bien antes de servir para potenciar su sabor."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_026",
@@ -4521,7 +4597,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 20,
     "difficulty": "facil",
     "kcal": 232,
@@ -4676,7 +4751,15 @@
     ],
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes principales (tomate, pan, ajo, aceite, vinagre, sal) en el vaso y tritura a velocidad progresiva hasta obtener una crema muy fina. Puedes cocer el huevo en el cestillo o Varoma mientras tanto."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_027",
@@ -4691,7 +4774,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 35,
     "difficulty": "facil",
     "kcal": 232,
@@ -4873,7 +4955,21 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el puerro con aceite. Añade patata y caldo, cocina 20 min a 100°C, velocidad cuchara. Incorpora la nata y tritura hasta obtener una crema fina. Sirve con el beicon crujiente hecho aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el puerro en la olla. Añade la patata y el caldo, cierra y cocina 8 minutos desde que sube la válvula. Despresuriza, tritura y añade la nata. El beicon se hace aparte."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_028",
@@ -4885,7 +4981,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 20,
     "difficulty": "facil",
     "kcal": 175,
@@ -5044,7 +5139,21 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla con aceite, luego añade la patata, los guisantes y el caldo. Cocina a 100°C, velocidad cuchara, durante 15-18 minutos. Tritura a velocidad progresiva hasta obtener una crema fina y termina incorporando la nata y la menta."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla en la olla a presión. Incorpora la patata, los guisantes y el caldo de verduras. Cierra la olla y cocina a presión durante 5-7 minutos. Libera la presión, tritura la mezcla hasta lograr una crema homogénea y añade la nata y la menta."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_029",
@@ -5056,7 +5165,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "normal",
     "kcal": 215,
@@ -5246,7 +5354,15 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla y los champiñones en el vaso. Sofríelos con mantequilla. Añade la harina, el caldo y cocina a 100°C, velocidad 2-3, durante unos 15-20 minutos. Incorpora la nata y el zumo de limón, y tritura a velocidad progresiva hasta obtener una crema fina y homogénea."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_030",
@@ -5627,7 +5743,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 35,
     "difficulty": "normal",
     "kcal": 200,
@@ -5804,7 +5919,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 20,
     "difficulty": "facil",
     "kcal": 132,
@@ -5970,7 +6084,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 120,
@@ -6131,7 +6244,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 35,
     "difficulty": "normal",
     "kcal": 230,
@@ -6301,7 +6413,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 202,
@@ -6437,7 +6548,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 150,
@@ -6607,7 +6717,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 245,
@@ -7014,7 +7123,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 140,
@@ -7624,7 +7732,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
@@ -8094,7 +8201,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "season": "all",
@@ -8298,7 +8404,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 20,
     "difficulty": "facil",
     "season": "verano",
@@ -8483,7 +8588,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 40,
     "difficulty": "normal",
     "season": "all",
@@ -8860,7 +8964,6 @@
       "plato_unico"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 35,
     "difficulty": "facil",
     "season": "all",
@@ -9245,7 +9348,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "season": "all",
@@ -9674,7 +9776,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 35,
     "difficulty": "normal",
     "season": "invierno",
@@ -9909,7 +10010,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "mainBase": "patatas",
     "baseMode": "dentro",
     "basesAparte": [
@@ -10118,7 +10218,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 45,
     "difficulty": "normal",
     "season": "invierno",
@@ -10333,7 +10432,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "season": "verano",
@@ -10902,7 +11000,6 @@
       "plato_unico"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 60,
     "difficulty": "elaborada",
     "season": "all",
@@ -11298,7 +11395,6 @@
       "plato_unico"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "season": "all",
@@ -11573,7 +11669,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "season": "all",
@@ -11761,7 +11856,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "normal",
     "kcal": 150,
@@ -11952,7 +12046,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 230,
@@ -12138,7 +12231,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 190,
@@ -12317,7 +12409,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 210,
@@ -12679,7 +12770,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 210,
@@ -12853,7 +12943,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 45,
     "difficulty": "normal",
     "kcal": 270,
@@ -13102,7 +13191,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "normal",
     "kcal": 220,
@@ -13698,7 +13786,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 140,
@@ -13852,7 +13939,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 35,
     "difficulty": "normal",
     "kcal": 220,
@@ -14225,7 +14311,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 180,
@@ -14422,7 +14507,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 35,
     "difficulty": "normal",
     "kcal": 240,
@@ -14613,7 +14697,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 35,
     "difficulty": "normal",
     "kcal": 200,
@@ -14805,7 +14888,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 140,
@@ -14959,7 +15041,6 @@
       "cena"
     ],
     "type": "completo",
-    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 170,
