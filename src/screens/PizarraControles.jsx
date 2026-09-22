@@ -65,12 +65,12 @@ const PANELES = [
  * la barra contaría una familia y compararía con otra.
  */
 const FAMILIAS_BALANCE = [
-  { id: "carne", label: "Carne", color: "#c0392b" },
-  { id: "pescado", label: "Pescado", color: "#2f6f9f" },
-  { id: "legumbres", label: "Legumbres", color: "#b9770e" },
-  { id: "huevos", label: "Huevos", color: "#d4a017" },
-  { id: "pasta_arroz", label: "Pasta y arroz", color: "#cf7833" },
-  { id: "verdura", label: "Verdura", color: "#3f9656" },
+  { id: "carne", label: "Carne", color: "#c0392b", img: "carnes.png" },
+  { id: "pescado", label: "Pescado", color: "#2f6f9f", img: "pescados.png" },
+  { id: "legumbres", label: "Legumbres", color: "#b9770e", img: "legumbres.png" },
+  { id: "huevos", label: "Huevos", color: "#d4a017", img: "huevos.png" },
+  { id: "pasta_arroz", label: "Pasta y arroz", color: "#cf7833", img: "pasta_arroces.png" },
+  { id: "verdura", label: "Verdura", color: "#3f9656", img: "ensaladas_verduras.png" },
 ];
 
 /**
@@ -152,7 +152,6 @@ function Radial({ label, Icon, texto, active, onClick, delay = 0, size = 58, col
  */
 function PanelBalance({ menuPlan, data, groups }) {
   const { recuento, huecosVacios, objetivo } = useMemo(() => {
-    // Solo los grupos visibles de esta casa, y sin `_warnings`.
     const plan = {};
     let vacios = 0;
     for (const g of groups ?? []) {
@@ -166,9 +165,8 @@ function PanelBalance({ menuPlan, data, groups }) {
       }
     }
     const r = recuentoDelMenu(plan, recipeCatalogById);
-    const presupuesto = r.huecos + vacios;
     const obj = data?.reparto && Object.keys(data.reparto).length > 0
-      ? freqsEfectivos({ freqs: data.freqsPedidos ?? {}, reparto: data.reparto }, { presupuesto })
+      ? freqsEfectivos({ freqs: data.freqsPedidos ?? {}, reparto: data.reparto }, { presupuesto: r.huecos + vacios })
       : null;
     return { recuento: r, huecosVacios: vacios, objetivo: obj };
   }, [menuPlan, data, groups]);
@@ -179,74 +177,168 @@ function PanelBalance({ menuPlan, data, groups }) {
     pedidos: objetivo?.[f.id] ?? null,
   }));
   const tope = Math.max(1, ...filas.map((f) => Math.max(f.puestos, f.pedidos ?? 0)));
+  const llenos = recuento.huecos;
+  const totalHuecos = llenos + huecosVacios;
+  const progreso = totalHuecos > 0 ? Math.round((llenos / totalHuecos) * 100) : 0;
+  const RADIO = 23;
+  const VUELTA = 2 * Math.PI * RADIO;
 
   return (
     <>
-      <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
-        {huecosVacios === 0
-          ? "La semana está completa."
-          : huecosVacios === 1
-            ? "Queda 1 hueco por llenar."
-            : `Quedan ${huecosVacios} huecos por llenar.`}
-      </p>
+      {/* ── Cuánto llevas ─────────────────────────────────────────────────
+          El número va dentro de su aro y solo: una barra de progreso aquí
+          arriba competiría con las seis de abajo, que son las que de verdad
+          comparan algo. */}
+      <div
+        style={{
+          display: "flex", alignItems: "center", gap: 14,
+          background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16,
+          padding: 14, marginBottom: 16,
+          boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+        }}
+      >
+        <div style={{ position: "relative", width: 54, height: 54, flexShrink: 0 }}>
+          <svg width="54" height="54" viewBox="0 0 54 54" aria-hidden>
+            <circle cx="27" cy="27" r={RADIO} fill="none" stroke="#eaf0ec" strokeWidth="6" />
+            <circle
+              cx="27" cy="27" r={RADIO} fill="none" stroke={TEAL} strokeWidth="6"
+              strokeLinecap="round"
+              strokeDasharray={`${(progreso / 100) * VUELTA} ${VUELTA}`}
+              transform="rotate(-90 27 27)"
+              style={{ transition: "stroke-dasharray .4s cubic-bezier(.22,1,.36,1)" }}
+            />
+          </svg>
+          <span
+            style={{
+              position: "absolute", inset: 0, display: "flex",
+              alignItems: "center", justifyContent: "center",
+              fontSize: 15, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {llenos}
+          </span>
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: INK, letterSpacing: "-.2px" }}>
+            {huecosVacios === 0 ? "Semana completa" : `Quedan ${huecosVacios}`}
+          </p>
+          <p style={{ margin: "3px 0 0", fontSize: 12, fontWeight: 600, color: "#7a9485", lineHeight: 1.35 }}>
+            {huecosVacios === 0
+              ? `${llenos} ${llenos === 1 ? "plato puesto" : "platos puestos"}`
+              : `${llenos} de ${totalHuecos} huecos llenos`}
+          </p>
+        </div>
+      </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {filas.map((f) => {
-          // La barra mide contra el mayor de la semana, no contra el objetivo:
-          // así una familia que se pasa se ve que se pasa, en vez de tocar
-          // techo y disimularlo.
+      <div style={{ display: "flex", alignItems: "center", gap: 7, margin: "0 2px 9px" }}>
+        <BarChart3 size={15} color={TEAL} strokeWidth={2.4} />
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: TEAL, letterSpacing: "-.2px" }}>
+          Por familia
+        </p>
+      </div>
+
+      <div
+        style={{
+          background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16,
+          overflow: "hidden", boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+        }}
+      >
+        {filas.map((f, i) => {
           const anchoPuestos = `${Math.round((f.puestos / tope) * 100)}%`;
           const falta = f.pedidos != null ? f.pedidos - f.puestos : null;
+          const vacia = f.puestos === 0;
           return (
-            <div key={f.id}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 5 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", flex: 1 }}>{f.label}</span>
-                <span style={{ fontSize: 13, fontWeight: 900, color: f.color, fontVariantNumeric: "tabular-nums" }}>
-                  {f.puestos}
-                </span>
-                {f.pedidos != null && (
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#9ab0a1", fontVariantNumeric: "tabular-nums" }}>
-                    / {f.pedidos}
-                  </span>
-                )}
-              </div>
-              <div style={{ position: "relative", height: 8, borderRadius: 99, background: "#eaf0ec" }}>
-                <div
-                  style={{
-                    position: "absolute", inset: 0, width: anchoPuestos,
-                    borderRadius: 99, background: f.color,
-                    transition: "width .3s cubic-bezier(.22,1,.36,1)",
-                  }}
+            <div
+              key={f.id}
+              style={{
+                display: "flex", alignItems: "center", gap: 11, padding: "11px 12px",
+                borderBottom: i === filas.length - 1 ? "none" : "1px solid #eef3f0",
+              }}
+            >
+              {/* La foto de la categoría, la misma que ves en las carpetas del
+                  recetario: reconoces la familia antes de leer su nombre. Las
+                  que van a cero se quedan en gris — que falte pescado tiene que
+                  verse sin contar barras. */}
+              <span
+                style={{
+                  width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                  overflow: "hidden", background: "#f4f8f5",
+                  border: "1px solid #eef3f0", display: "block",
+                  opacity: vacia ? 0.4 : 1,
+                  filter: vacia ? "saturate(.2)" : "none",
+                  transition: "opacity .25s ease, filter .25s ease",
+                }}
+              >
+                <img
+                  src={`/categories/${f.img}`}
+                  alt=""
+                  loading="lazy"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
-                {/* La marca del objetivo: una raya, no otra barra. Lo que se
-                    compara es una posición, y dos barras se leen como dos
-                    cantidades que compiten. */}
-                {f.pedidos != null && f.pedidos > 0 && (
-                  <span
-                    aria-hidden
+              </span>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: 6 }}>
+                  <span style={{ flex: 1, fontSize: 12.5, fontWeight: 800, color: vacia ? "#9ab0a1" : INK }}>
+                    {f.label}
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 900, color: vacia ? "#c2cfc7" : f.color, fontVariantNumeric: "tabular-nums" }}>
+                    {f.puestos}
+                  </span>
+                  {f.pedidos != null && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#9ab0a1", fontVariantNumeric: "tabular-nums" }}>
+                      /{f.pedidos}
+                    </span>
+                  )}
+                </div>
+                <div style={{ position: "relative", height: 7, borderRadius: 99, background: "#eef3f0" }}>
+                  <div
                     style={{
-                      position: "absolute", top: -2, bottom: -2,
-                      left: `calc(${Math.round((f.pedidos / tope) * 100)}% - 1px)`,
-                      width: 2, borderRadius: 2, background: "#5a7066",
+                      position: "absolute", top: 0, bottom: 0, left: 0, width: anchoPuestos,
+                      borderRadius: 99, background: f.color,
+                      transition: "width .35s cubic-bezier(.22,1,.36,1)",
                     }}
                   />
-                )}
+                  {/* El objetivo es una MARCA, no otra barra: lo que se compara
+                      es una posición, y dos barras se leen como dos cantidades
+                      compitiendo entre ellas. */}
+                  {f.pedidos != null && f.pedidos > 0 && (
+                    <span
+                      aria-hidden
+                      style={{
+                        position: "absolute", top: -2.5, bottom: -2.5,
+                        left: `calc(${Math.round((f.pedidos / tope) * 100)}% - 1px)`,
+                        width: 2, borderRadius: 2, background: "#5a7066",
+                      }}
+                    />
+                  )}
+                </div>
               </div>
+
               {falta != null && falta !== 0 && (
-                <p style={{ margin: "4px 0 0", fontSize: 11, fontWeight: 700, color: falta > 0 ? "#b45309" : "#5a7066" }}>
-                  {falta > 0 ? `Te ${falta === 1 ? "falta" : "faltan"} ${falta}` : `${-falta} de más`}
-                </p>
+                <span
+                  title={falta > 0 ? `Te ${falta === 1 ? "falta" : "faltan"} ${falta}` : `${-falta} de más`}
+                  style={{
+                    flexShrink: 0, fontSize: 10.5, fontWeight: 800,
+                    padding: "3px 8px", borderRadius: 999,
+                    background: falta > 0 ? "#fff8e7" : "#f0f4f1",
+                    color: falta > 0 ? "#b45309" : "#5a7066",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {falta > 0 ? `+${falta}` : falta}
+                </span>
               )}
             </div>
           );
         })}
       </div>
 
-      {!objetivo && (
-        <p style={{ margin: "16px 0 0", fontSize: 11.5, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.45 }}>
-          Sin reparto pedido no hay con qué comparar: esto es solo lo que llevas.
-        </p>
-      )}
+      <p style={{ margin: "12px 2px 0", fontSize: 11.5, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.45 }}>
+        {objetivo
+          ? "La marca de cada barra es lo que pediste en el reparto."
+          : "Sin reparto pedido no hay con qué comparar: esto es solo lo que llevas."}
+      </p>
     </>
   );
 }

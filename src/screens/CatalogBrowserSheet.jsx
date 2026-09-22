@@ -1273,26 +1273,38 @@ export function CatalogBrowserSheet({
     <>
       {folderTiles}
       {inMineRoot ? null : gatePick
-        ? visible.map((entry, i) => (
-            <GatePickCard
-              key={`${entry.kind}-${entry.item.id}`}
-              kind={entry.kind}
-              item={entry.item}
-              selected={
-                entry.kind === "plato"
-                  ? selectedPlatoId === entry.item.id
-                  : selectedGarnishId === entry.item.id
-              }
-              onToggle={() => {
-                if (entry.kind === "plato") {
-                  onPickPlato?.(selectedPlatoId === entry.item.id ? null : entry.item.id);
-                } else {
-                  onPickGarnish?.(selectedGarnishId === entry.item.id ? null : entry.item.id);
-                }
-              }}
-              animDelay={i < 12 ? i * 18 : 0}
-            />
-          ))
+        ? (
+            // Rejilla de tres, y no la lista de filas de antes: dentro de una
+            // carpeta lo que distingue un plato de otro es la FOTO, y en fila
+            // la foto era un sello de 52px al lado del texto. Con tres por
+            // línea entran nueve platos de un vistazo en vez de cuatro.
+            //
+            // La rejilla es suya y no del contenedor para no arrastrar a las
+            // carpetas, que tienen su propia forma justo encima.
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+              {visible.map((entry, i) => (
+                <GatePickCard
+                  key={`${entry.kind}-${entry.item.id}`}
+                  kind={entry.kind}
+                  item={entry.item}
+                  grid
+                  selected={
+                    entry.kind === "plato"
+                      ? selectedPlatoId === entry.item.id
+                      : selectedGarnishId === entry.item.id
+                  }
+                  onToggle={() => {
+                    if (entry.kind === "plato") {
+                      onPickPlato?.(selectedPlatoId === entry.item.id ? null : entry.item.id);
+                    } else {
+                      onPickGarnish?.(selectedGarnishId === entry.item.id ? null : entry.item.id);
+                    }
+                  }}
+                  animDelay={i < 12 ? i * 18 : 0}
+                />
+              ))}
+            </div>
+          )
         : reference && browseCategories
           ? visible.map((r, i) => (
               <RecipeGridCard
@@ -2075,10 +2087,77 @@ function SelectedChip({ kind, label, onClear }) {
   );
 }
 
-function GatePickCard({ kind, item, selected, onToggle, animDelay = 0 }) {
+function GatePickCard({ kind, item, selected, onToggle, animDelay = 0, grid = false }) {
   const isPlato = kind === "plato";
   const color = isPlato ? categoryColor(item.category) : "#3f9656";
   const photo = isPlato ? (item.photo ?? dishImageUrl(item.id)) : null;
+
+  // ── En rejilla: la foto manda ────────────────────────────────────────────
+  // Misma tarjeta y mismo estado de selección, pero en vertical: foto
+  // cuadrada arriba y nombre debajo. En una columna de 115px no cabe la fila
+  // con miniatura, categoría, tiempo y botón — y tampoco hace falta: dentro
+  // de una carpeta ya sabes de qué categoría son todos.
+  if (grid) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        className="catalog-card-enter"
+        aria-pressed={selected}
+        style={{
+          display: "flex", flexDirection: "column", gap: 6, padding: 0,
+          textAlign: "left", cursor: "pointer", fontFamily: "inherit",
+          background: "transparent", border: "none", minWidth: 0,
+          animationDelay: `${animDelay}ms`,
+        }}
+      >
+        <span
+          style={{
+            position: "relative", width: "100%", aspectRatio: "1 / 1",
+            borderRadius: 14, overflow: "hidden", display: "block",
+            border: `2px solid ${selected ? GREEN : "#eef3f0"}`,
+            background: `${color}14`, boxSizing: "border-box",
+            transition: "border-color .15s ease",
+          }}
+        >
+          {photo ? (
+            <img
+              src={deckImg(photo, 260)}
+              alt=""
+              loading="lazy"
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+          ) : (
+            <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {isPlato ? <CategoryIcon category={item.category} size={26} /> : <Salad size={26} color={color} />}
+            </span>
+          )}
+          {/* La marca de elegido va SOBRE la foto: en una rejilla el borde
+              solo no se ve hasta que comparas con la de al lado. */}
+          <span
+            style={{
+              position: "absolute", right: 5, bottom: 5,
+              width: 22, height: 22, borderRadius: 999,
+              background: selected ? GREEN : "rgba(255,255,255,.92)",
+              color: selected ? "#fff" : GREEN,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 2px 6px rgba(9,18,12,.25)",
+            }}
+          >
+            {selected ? <Check size={13} strokeWidth={3} /> : <Plus size={13} strokeWidth={3} />}
+          </span>
+        </span>
+        <span
+          style={{
+            fontSize: 11, fontWeight: 800, color: "#142f1d", lineHeight: 1.25,
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+          }}
+        >
+          {item.name}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button
