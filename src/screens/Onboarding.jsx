@@ -143,7 +143,7 @@ import {
 } from "../lib/kidsMenu.js";
 import { POSTRE_INMEDIATO_KINDS } from "../lib/postres.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu, normalizeSchoolMenus, replaceSchoolWeeks, setSchoolDishAt, clearSchoolWeek, clearSchoolScope, getSchoolIconOverride, setSchoolIconOverride } from "../lib/schoolMenu.js";
-import { outStateFor, isHomeState, resolveQuickActions } from "../lib/schedulePresets.js";
+import { outStateFor, isHomeState, nextSlotState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
 
@@ -4699,13 +4699,13 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     updateSchedule((prev) => ({ ...prev, [`${memberId}|${day}|${meal}`]: value }));
   };
 
-  // Lane view edits are binary: at home, or not. Which "not" gets stored is
-  // resolved per slot by outStateFor, so the comedor label only appears where
-  // a comedor could plausibly exist.
+  // El toque en una casilla recorre el ciclo de estados (slotStateCycle): el
+  // primero es el que daba el viejo toggle binario, así que marcar "come fuera"
+  // sigue costando un toque y el tupper y el comedor están a uno más. Eran los
+  // dos que la leyenda anunciaba y no había forma de escribir.
   const toggleLaneSlot = (member, day, meal) => {
     const cur = effectiveSchedule[`${member.id}|${day}|${meal}`];
-    const next = isHomeState(cur) ? outStateFor(member, day, meal, data.schoolMenus) : "casa";
-    setMemberSlot(member.id, day, meal, next);
+    setMemberSlot(member.id, day, meal, nextSlotState(cur, member, day, meal, data.schoolMenus));
   };
 
   // Tapping a lane's meal glyph is the "Leo come fuera, y ya está" gesture:
