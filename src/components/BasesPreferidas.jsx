@@ -261,13 +261,11 @@ function InventarioDeTanda({ items }) {
   if (!items.length) return null;
   return (
     <div style={{ background: "#fff", border: "1px solid #eef2ef", borderRadius: 16, padding: "11px 12px 12px", marginBottom: 12 }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 9 }}>
-        <span style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px" }}>
-          DEJARÁS HECHO
-        </span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: "#9ab0a1" }}>
-          {items.length} {items.length === 1 ? "tanda" : "tandas"}
-        </span>
+      {/* Sin el "N tandas" que iba a la derecha: las tandas están ahí abajo,
+          una por chip, y contarlas por ti era repetir en números lo que ya se
+          ve de un vistazo. */}
+      <div style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px", marginBottom: 9 }}>
+        DEJARÁS HECHO
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
         {items.map((it) => (
@@ -342,7 +340,7 @@ const SIN_CONTAR_POR_BASE = (() => {
   return n;
 })();
 
-export function BasesPreferidas({ data, setData }) {
+export function BasesPreferidas({ data, setData, trasInventario = null }) {
   const libreta = normalizarLibreta(data?.notepad);
   const [pestana, setPestana] = useState("bases");
 
@@ -613,6 +611,13 @@ export function BasesPreferidas({ data, setData }) {
           crecer es lo que convierte tres pestañas de deslizadores en una sola
           sesión con forma. */}
       <InventarioDeTanda items={loPedido} />
+
+      {/* Un hueco para quien monte esta pantalla dentro de otra. Lo usa la
+          baldosa de batch cooking de la pizarra para meter aquí los trastos
+          de la cocina: van después de lo que vas a dejar hecho y antes del
+          tiempo, porque son los que deciden cuánto de eso cabe en ese rato.
+          En el asistente no se pasa y no se pinta nada. */}
+      {trasInventario}
 
       {/* ── Cuánto quieres cocinar ese día, y cuánto llevas ─────────────────
           El presupuesto va ARRIBA porque es la pregunta que ordena el resto:
