@@ -1077,25 +1077,29 @@ function pendingEndOfDaySweep(data, since) {
  *
  * Los candidatos vienen YA filtrados por `pickCatalogReplacement` —rol, tiempo,
  * alergias, lo que hay esta semana, el cole—, así que aquí no se descarta a
- * nadie: solo se ordena. Por eso las dos preferencias suman y no filtran: si
- * ninguna puntúa, sigue entrando el primero del pool, que es tan válido como
- * antes de que existieran estos interruptores.
+ * nadie: solo se ordena. Por eso los dos criterios SUMAN y no filtran: si
+ * ninguno puntúa —despensa vacía y ninguna base puesta— devuelve null y quien
+ * llama se queda con el sorteo de siempre.
  *
  *   · despensa → cuántos de sus ingredientes ya tienes en casa, en tanto por
  *     uno. Un plato que cubres entero gana a uno que cubres a medias.
- *   · agrupar  → si comparte base con algo que ya vas a cocinar. Vale más que
+ *   · bases    → si comparte base con algo que ya vas a cocinar. Vale más que
  *     la despensa porque ahorra una olla entera, no unos ingredientes.
+ *
+ * Los dos eran interruptores en la pizarra y ya no lo son: ninguno era una
+ * pregunta de verdad. Nadie apunta lo que tiene en casa para pedir que no se
+ * use, ni abre el batch cooking para pedir que los platos no compartan olla.
  */
-function mejorCandidato(candidatos, { usarDespensa, agrupar, despensa, basesPuestas }) {
+function mejorCandidato(candidatos, { despensa, basesPuestas }) {
   if (!candidatos?.length) return null;
   let mejor = null;
   let mejorNota = -1;
   for (const r of candidatos) {
     let nota = 0;
-    if (agrupar && basesPuestas?.size > 0) {
+    if (basesPuestas?.size > 0) {
       if (basesDeReceta(r).some((b) => basesPuestas.has(b.id))) nota += 2;
     }
-    if (usarDespensa && despensa?.length > 0) {
+    if (despensa?.length > 0) {
       const ings = r.ingredients ?? [];
       if (ings.length > 0) {
         const cubiertos = ings.filter((i) => findMatchingPantryItem(i.name, despensa)).length;
@@ -4467,32 +4471,11 @@ export default function App() {
    * tuyo: el plato de otra persona no esta en tu plan, asi que no hay origen
    * de donde copiarlo.
    */
-  /**
-   * Las preferencias de ESTA pizarra: cuánto tiempo tienes el domingo y qué
-   * quiere tener en cuenta el relleno.
-   *
-   * Viven en el menú y no en la casa a propósito. El tiempo del domingo es lo
-   * que más cambia de una semana a otra —un fin de semana tienes tres horas y
-   * el siguiente estás fuera—, así que guardarlo en el perfil haría que la
-   * prisa de un domingo se heredara para siempre.
-   */
-  // Con `?? {}` suelto, el literal es nuevo en cada render y arrastra consigo
-  // a `handleFillSlots`, que lo tiene en sus dependencias.
-  const prefsPizarra = useMemo(
-    () => data.menus?.[data.activeMenuId]?.pizarra ?? {},
-    [data.menus, data.activeMenuId],
-  );
-  const setPrefsPizarra = useCallback((patch) => {
-    setData((d) => {
-      const id = d.activeMenuId;
-      const menu = d.menus?.[id];
-      if (!menu) return d;
-      return {
-        ...d,
-        menus: { ...d.menus, [id]: { ...menu, pizarra: { ...(menu.pizarra ?? {}), ...patch } } },
-      };
-    });
-  }, []);
+  // Aquí hubo un `menu.pizarra` con las preferencias de la semana (tiempo del
+  // domingo, usar despensa, agrupar). Se ha ido entero: el tiempo lo manda
+  // `data.tandaMinutos` —donde escribe el deslizador del batch cooking— y las
+  // otras dos ya no se preguntan porque no eran preguntas. Un campo guardado
+  // que nadie lee es peor que no tenerlo.
 
   // La despensa, cargada para la pizarra. `pantryEpoch` la refresca cuando algo
   // la toca por otro lado (cocinar un plato, un ticket, el barrido del día).
@@ -4570,19 +4553,20 @@ export default function App() {
    */
   const handleFillSlots = useCallback(async (ambito) => {
     if (householdReadOnly) return;
-    const { usarDespensa = false, agrupar = false } = prefsPizarra;
-    const despensa = usarDespensa ? despensaPizarra : [];
+    // Las dos preferencias eran dos interruptores en la pizarra y ya no lo
+    // son, porque ninguna de las dos era una pregunta de verdad: nadie apunta
+    // lo que tiene en casa para pedir luego que no se use, y nadie abre la
+    // baldosa de batch cooking para pedir que los platos NO compartan olla.
+    const despensa = despensaPizarra;
     // Las bases que ya vas a cocinar. Preferir un plato que comparta una de
     // estas es lo que convierte siete platos en tres ollas.
     const basesPuestas = new Set();
-    if (agrupar) {
-      for (const gid of Object.keys(menuPlan)) {
-        if (gid === "_warnings") continue;
-        for (const s of Object.values(menuPlan[gid] ?? {})) {
-          for (const rid of [s?.recipeId, s?.firstRecipeId]) {
-            const receta = rid ? recipeCatalogById[String(rid).split("__").pop()] : null;
-            if (receta) for (const b of basesDeReceta(receta)) basesPuestas.add(b.id);
-          }
+    for (const gid of Object.keys(menuPlan)) {
+      if (gid === "_warnings") continue;
+      for (const s of Object.values(menuPlan[gid] ?? {})) {
+        for (const rid of [s?.recipeId, s?.firstRecipeId]) {
+          const receta = rid ? recipeCatalogById[String(rid).split("__").pop()] : null;
+          if (receta) for (const b of basesDeReceta(receta)) basesPuestas.add(b.id);
         }
       }
     }
@@ -4621,22 +4605,18 @@ export default function App() {
         }
 
         for (const course of cursos) {
-          // Con preferencias no se coge el sorteo: se piden los candidatos que
-          // ese hueco admite —el mismo pool de siempre, ya filtrado— y se elige
-          // el mejor. Sin preferencias, el camino de antes, que sortea.
-          let r;
-          if (usarDespensa || agrupar) {
-            const lista = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, candidatos: 25 });
-            const mejor = mejorCandidato(lista?.candidatos ?? [], { usarDespensa, agrupar, despensa, basesPuestas });
-            r = mejor
-              ? pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, forcedRecipe: mejor })
-              : pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
-            // Lo colocado cuenta para el siguiente hueco: si acabas de meter
-            // una base, la de al lado ya prefiere compartirla.
-            if (mejor) for (const b of basesDeReceta(mejor)) basesPuestas.add(b.id);
-          } else {
-            r = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
-          }
+          // No se coge el sorteo: se piden los candidatos que ese hueco admite
+          // —el mismo pool de siempre, ya filtrado— y se elige el mejor. Si
+          // ninguno puntúa (despensa vacía y sin bases puestas), `mejorCandidato`
+          // devuelve null y se cae al sorteo de antes.
+          const lista = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, candidatos: 25 });
+          const mejor = mejorCandidato(lista?.candidatos ?? [], { despensa, basesPuestas });
+          const r = mejor
+            ? pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course, forcedRecipe: mejor })
+            : pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
+          // Lo colocado cuenta para el siguiente hueco: si acabas de meter una
+          // base, la de al lado ya prefiere compartirla.
+          if (mejor) for (const b of basesDeReceta(mejor)) basesPuestas.add(b.id);
           if (!r) continue;
           nuevas.push(r.frontendRecipe);
           trabajo[gid][key] = {
@@ -4664,7 +4644,7 @@ export default function App() {
     });
     showToast(puestos === 1 ? "Hueco rellenado" : `${puestos} huecos rellenados`);
     trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
-  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor, prefsPizarra, despensaPizarra]);
+  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor, despensaPizarra]);
 
   /**
    * Soltar un plato en otro hueco (arrastre de la pizarra).
@@ -5691,8 +5671,6 @@ export default function App() {
                       onAddDespensa={handleAddDespensa}
                       onQuitarDespensa={handleQuitarDespensa}
                       onQtyDespensa={handleQtyDespensa}
-                      prefs={prefsPizarra}
-                      onPrefs={setPrefsPizarra}
                     />
                   </Suspense>
                 ) : null

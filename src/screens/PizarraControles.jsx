@@ -1,19 +1,17 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import {
-  BarChart3, CalendarDays, Check, CookingPot, Package, Plus, Salad, Search, Sparkles, X,
+  BarChart3, CalendarDays, Check, CookingPot, Minus, Package, Plus, Salad, Search, Sparkles, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { formatStockQty } from "../lib/kitchenUnits.js";
-import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
 import { sesionDeBases } from "../lib/bases.js";
-import { enHoras, minutosDeTanda } from "../lib/cookTime.js";
-import { KITCHEN_TOOLS } from "../lib/applianceMethods.js";
+import { KITCHEN_TOOLS, selectMethodForRecipe } from "../lib/applianceMethods.js";
 
 /**
  * El selector de tandas del wizard, tal cual. Va en diferido porque arrastra
@@ -316,49 +314,6 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null }) {
 }
 
 /**
- * Un interruptor de preferencia, de los que cambian lo que hará "Rellenar".
- *
- * Van dentro de los paneles y no en el botón porque el botón tiene que seguir
- * siendo un toque: quien no abre nada rellena como siempre, y quien entra a
- * mirar su despensa o su domingo deja ahí dicho cómo quiere que se rellene.
- */
-function InterruptorPref({ activo, onChange, titulo, detalle }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!activo)}
-      className="mp-press"
-      style={{
-        display: "flex", alignItems: "flex-start", gap: 10, width: "100%",
-        padding: "11px 12px", borderRadius: 14, cursor: "pointer", textAlign: "left",
-        background: activo ? "#eaf6ee" : "#fff",
-        border: `1.5px solid ${activo ? "#bfe6cb" : "#e0eae3"}`,
-        fontFamily: "inherit", marginTop: 12,
-      }}
-    >
-      <span
-        style={{
-          width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1,
-          background: activo ? VERDE : "#fff",
-          border: `1.5px solid ${activo ? VERDE : "#cdd8d0"}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}
-      >
-        {activo && <Check size={14} color="#fff" strokeWidth={3} />}
-      </span>
-      <span style={{ minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 800, color: INK }}>{titulo}</span>
-        {detalle && (
-          <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.35, marginTop: 2 }}>
-            {detalle}
-          </span>
-        )}
-      </span>
-    </button>
-  );
-}
-
-/**
  * "Lo que tengo en casa".
  *
  * ── No es un inventario aparte ────────────────────────────────────────────
@@ -423,21 +378,33 @@ const campoBase = {
  * tocarla, sin salir del panel. Solo escribe al soltar el foco —o con Enter—
  * para no mandar un guardado por cada tecla.
  */
-function CantidadDeLinea({ item, onQty }) {
+function CantidadDeLinea({ item, onQty, pool }) {
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState("");
+
+  // Si la línea vino del pool se lee y se edita EN SU UNIDAD —tres cabezas, no
+  // ciento ochenta gramos—, aunque por debajo se guarden los gramos, que es lo
+  // que necesita el cruce con la compra. Preguntar en gramos por algo que
+  // compras en cabezas obliga a una cuenta que nadie tiene hecha.
+  const mostrado = pool ? String(pool.n) : String(item.qty ?? 1);
+  const etiqueta = pool
+    ? `${pool.n} ${pool.n === 1 ? pool.uno : pool.varias}`
+    : formatStockQty(item.qty ?? 1, item.unit ?? "ud");
 
   const guardar = () => {
     setEditando(false);
     const n = Number(String(valor).replace(",", "."));
-    if (n > 0 && n !== Number(item.qty)) onQty?.(item.id, n, item.unit ?? "ud");
+    if (!(n > 0)) return;
+    const qty = pool ? n * pool.porUnidad : n;
+    const unidad = pool ? pool.unidadBase : (item.unit ?? "ud");
+    if (qty !== Number(item.qty)) onQty?.(item.id, qty, unidad);
   };
 
   if (!editando) {
     return (
       <button
         type="button"
-        onClick={() => { setValor(String(item.qty ?? 1)); setEditando(true); }}
+        onClick={() => { setValor(mostrado); setEditando(true); }}
         aria-label={`Cambiar la cantidad de ${item.ingredientName ?? item.name}`}
         style={{
           flexShrink: 0, padding: "4px 9px", borderRadius: 999,
@@ -446,7 +413,7 @@ function CantidadDeLinea({ item, onQty }) {
           fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap",
         }}
       >
-        {formatStockQty(item.qty ?? 1, item.unit ?? "ud")}
+        {etiqueta}
       </button>
     );
   }
@@ -470,28 +437,37 @@ function CantidadDeLinea({ item, onQty }) {
  *
  * Una despensa vacía pide quince gestos antes de servir para nada, y los
  * quince son los mismos en todas las casas: cebolla, ajo, patatas, arroz,
- * leche. Con el pool son quince TOQUES, y cada uno se lleva su cantidad
- * razonable puesta — un paquete de arroz son 500 g, un brick de leche un
- * litro— que luego se corrige en la línea si hace falta.
+ * leche. El pool los pone a un toque.
  *
- * Las cantidades van escritas aquí y no salen de `defaultPackFor` porque esto
- * son quince nombres elegidos a mano: para la cebolla, que no viene en envase,
- * la función no tiene nada que decir, y "2 unidades" es una decisión, no un
- * valor por defecto que se pueda deducir.
+ * ── Cada uno en la unidad en la que lo tienes ─────────────────────────────
+ * El ajo no se tiene en gramos, se tiene en CABEZAS. El arroz no se tiene a
+ * peso, se tiene en paquetes de medio kilo. Los huevos van de uno en uno.
+ * Preguntar «¿cuántos gramos de ajo?» es pedir una cuenta que nadie tiene
+ * hecha, así que cada entrada trae su propia palabra y el factor que la lleva
+ * a lo que se guarda de verdad — `canon`, que acaba siendo g, ml o ud.
+ *
+ * Por eso no salen de `defaultPackFor`: esa función sabe de envases y aquí la
+ * mitad no vienen en envase. Son doce nombres elegidos a mano, y sus doce
+ * unidades son doce decisiones, no valores que se puedan deducir.
+ *
+ * ── Y se declara: tocar no mete nada ──────────────────────────────────────
+ * Tocar abre la ficha para decir cuántos tienes. Meterlo de una con una
+ * cantidad inventada es justo el dato malo que luego descuadra la compra, y
+ * encima sin que te enteres de que lo has dicho.
  */
 const POOL = [
-  { nombre: "Cebolla", qty: 2, unidad: "ud" },
-  { nombre: "Ajo", qty: 1, unidad: "ud" },
-  { nombre: "Patata", qty: 1, unidad: "kg" },
-  { nombre: "Tomate", qty: 4, unidad: "ud" },
-  { nombre: "Zanahoria", qty: 3, unidad: "ud" },
-  { nombre: "Limón", qty: 2, unidad: "ud" },
-  { nombre: "Huevos", qty: 6, unidad: "ud" },
-  { nombre: "Leche", qty: 1, unidad: "l" },
-  { nombre: "Arroz", qty: 500, unidad: "g" },
-  { nombre: "Macarrones", qty: 500, unidad: "g" },
-  { nombre: "Lentejas", qty: 500, unidad: "g" },
-  { nombre: "Aceite de oliva", qty: 1, unidad: "l" },
+  { nombre: "Cebolla", uno: "cebolla", varias: "cebollas", inicial: 2, factor: 1, canon: "ud" },
+  { nombre: "Ajo", uno: "cabeza", varias: "cabezas", inicial: 1, factor: 60, canon: "g", pie: "una cabeza ≈ 60 g" },
+  { nombre: "Patata", uno: "kilo", varias: "kilos", inicial: 1, factor: 1, canon: "kg" },
+  { nombre: "Tomate", uno: "tomate", varias: "tomates", inicial: 4, factor: 1, canon: "ud" },
+  { nombre: "Zanahoria", uno: "zanahoria", varias: "zanahorias", inicial: 3, factor: 1, canon: "ud" },
+  { nombre: "Limón", uno: "limón", varias: "limones", inicial: 2, factor: 1, canon: "ud" },
+  { nombre: "Huevos", uno: "huevo", varias: "huevos", inicial: 6, factor: 1, canon: "ud" },
+  { nombre: "Leche", uno: "brick", varias: "bricks", inicial: 1, factor: 1, canon: "l", pie: "de 1 L" },
+  { nombre: "Arroz", uno: "paquete", varias: "paquetes", inicial: 1, factor: 500, canon: "g", pie: "de 500 g" },
+  { nombre: "Macarrones", uno: "paquete", varias: "paquetes", inicial: 1, factor: 500, canon: "g", pie: "de 500 g" },
+  { nombre: "Lentejas", uno: "paquete", varias: "paquetes", inicial: 1, factor: 500, canon: "g", pie: "de 500 g" },
+  { nombre: "Aceite de oliva", uno: "botella", varias: "botellas", inicial: 1, factor: 1, canon: "l", pie: "de 1 L" },
 ];
 
 /** La clave con la que un nombre del pool queda guardado en la despensa. */
@@ -504,10 +480,125 @@ function claveDePool(nombre) {
   return CLAVES_POOL.get(nombre);
 }
 
-function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUsarDespensa }) {
+/**
+ * Cuánto pesa UNA de las suyas en lo que se guarda de verdad, y en qué unidad.
+ *
+ * El almacén siempre es g, ml o ud —lo exige el cruce con la compra— así que
+ * los kilos y los litros del pool se bajan aquí a gramos y mililitros. Es la
+ * misma cuenta que hace `toCanonicalStockQty` al guardar, del revés.
+ */
+function medidaDePool(p) {
+  const grande = p.canon === "kg" || p.canon === "l";
+  return {
+    unidad: p.canon === "kg" ? "g" : p.canon === "l" ? "ml" : p.canon,
+    porUnidad: p.factor * (grande ? 1000 : 1),
+  };
+}
+
+const POOL_POR_CLAVE = new Map();
+function poolDe(item) {
+  if (POOL_POR_CLAVE.size === 0) {
+    for (const p of POOL) POOL_POR_CLAVE.set(claveDePool(p.nombre), p);
+  }
+  const p = POOL_POR_CLAVE.get(item?.ingredientNormalized);
+  if (!p) return null;
+  const { unidad, porUnidad } = medidaDePool(p);
+  // Solo si la línea sigue estando en la unidad en la que la metimos. Si algo
+  // la ha tocado por otro lado —un ticket, la compra— y ahora son mililitros
+  // de una cosa que contábamos en unidades, se lee en crudo y no se inventa.
+  if (item.unit !== unidad) return null;
+  const n = Number(item.qty) / porUnidad;
+  if (!(n > 0) || Math.abs(n - Math.round(n)) > 0.01) return null;
+  return { ...p, n: Math.round(n), porUnidad, unidadBase: unidad };
+}
+
+/**
+ * «¿Cuántos tienes?» — un contador con la palabra del ingrediente al lado.
+ *
+ * Un número escrito a mano con un desplegable de unidades al lado obliga a dos
+ * decisiones (cuánto Y en qué) cuando aquí la segunda ya está contestada: del
+ * ajo se tienen cabezas y del arroz paquetes. Queda una, y se contesta con el
+ * pulgar sin abrir el teclado.
+ */
+function FichaDelPool({ item, onCancelar, onConfirmar }) {
+  const [n, setN] = useState(item.inicial);
+  const palabra = n === 1 ? item.uno : item.varias;
+  const mando = {
+    width: 34, height: 34, borderRadius: 10, flexShrink: 0, padding: 0,
+    border: "1.5px solid #cfe0d6", background: "#fff", cursor: "pointer",
+    color: VERDE, display: "flex", alignItems: "center", justifyContent: "center",
+  };
+
+  return (
+    <div
+      style={{
+        background: "#fff", border: `1.5px solid ${VERDE}`, borderRadius: 16,
+        padding: "12px 12px 12px", marginBottom: 14,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 11 }}>
+        <Miniatura name={item.nombre} size={40} />
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: 13.5, fontWeight: 900, color: INK, lineHeight: 1.2 }}>
+            {item.nombre}
+          </span>
+          <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#9ab0a1", marginTop: 1 }}>
+            ¿Cuántos tienes?
+          </span>
+        </span>
+        <button
+          type="button"
+          onClick={onCancelar}
+          aria-label="Cancelar"
+          style={{
+            width: 24, height: 24, borderRadius: 999, padding: 0, flexShrink: 0,
+            border: "none", background: "#f0f4f1", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <X size={13} color="#7a9485" strokeWidth={2.6} />
+        </button>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 11 }}>
+        <button type="button" className="mp-press" style={mando} onClick={() => setN((v) => Math.max(1, v - 1))} aria-label="Uno menos">
+          <Minus size={16} strokeWidth={3} />
+        </button>
+        <span style={{ flex: 1, textAlign: "center", minWidth: 0 }}>
+          <span style={{ fontSize: 19, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>{n}</span>
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#5a7066", marginLeft: 5 }}>{palabra}</span>
+          {item.pie && (
+            <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, color: "#9ab0a1", marginTop: -1 }}>
+              {item.pie}
+            </span>
+          )}
+        </span>
+        <button type="button" className="mp-press" style={mando} onClick={() => setN((v) => Math.min(99, v + 1))} aria-label="Uno más">
+          <Plus size={16} strokeWidth={3} />
+        </button>
+      </div>
+
+      <button
+        type="button"
+        className="mp-press"
+        onClick={() => onConfirmar(n)}
+        style={{
+          width: "100%", height: 36, borderRadius: 11, border: "none",
+          background: VERDE, color: "#fff", cursor: "pointer",
+          fontSize: 13, fontWeight: 800, fontFamily: "inherit",
+        }}
+      >
+        Lo tengo
+      </button>
+    </div>
+  );
+}
+
+function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
   const [texto, setTexto] = useState("");
   const [qty, setQty] = useState("1");
   const [unidad, setUnidad] = useState("ud");
+  const [pendiente, setPendiente] = useState(null);
   const ingredientes = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish");
   const escribiendo = texto.trim().length > 0;
 
@@ -597,9 +688,24 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUs
         )}
       </form>
 
+      {/* La ficha de declaración, en el hueco del pool. Sustituye a la fila en
+          vez de abrirse encima: es la misma pregunta —qué metes— un paso más
+          adelante, y una hoja flotante por tocar un chip sería un modal cada
+          dos gestos. */}
+      {!escribiendo && pendiente && (
+        <FichaDelPool
+          item={pendiente}
+          onCancelar={() => setPendiente(null)}
+          onConfirmar={(n) => {
+            onAnadir(pendiente.nombre, n * pendiente.factor, pendiente.canon);
+            setPendiente(null);
+          }}
+        />
+      )}
+
       {/* El pool. Desaparece mientras escribes —entonces la respuesta está en
           la barra, no aquí— y también cuando ya lo tienes todo puesto. */}
-      {!escribiendo && pool.length > 0 && (
+      {!escribiendo && !pendiente && pool.length > 0 && (
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 10.5, fontWeight: 900, color: "#9ab0a1", letterSpacing: ".3px", margin: "0 2px 7px" }}>
             LO DE SIEMPRE
@@ -610,7 +716,7 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUs
                 key={p.nombre}
                 type="button"
                 className="mp-press"
-                onClick={() => onAnadir(p.nombre, p.qty, p.unidad)}
+                onClick={() => setPendiente(p)}
                 aria-label={`Añadir ${p.nombre}`}
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 5,
@@ -653,7 +759,7 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUs
               {/* La cantidad se corrige aquí mismo, en el sitio donde la lees:
                   cambiar "2 kg" por "500 g" no puede obligar a borrar la línea
                   y volver a escribirla. */}
-              <CantidadDeLinea item={i} onQty={onQty} />
+              <CantidadDeLinea item={i} onQty={onQty} pool={poolDe(i)} />
               <button
                 type="button"
                 onClick={() => onQuitar(i.id)}
@@ -671,11 +777,9 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUs
         </div>
       )}
 
-      <InterruptorPref
-        activo={usarDespensa}
-        onChange={onUsarDespensa}
-        titulo="Usar lo que tengo al rellenar"
-      />
+      {/* Aquí vivía un «Usar lo que tengo al rellenar». Se ha ido porque no
+          era una pregunta: nadie apunta lo que tiene en casa para pedir luego
+          que no se use. Rellenar tira SIEMPRE de la despensa. */}
     </>
   );
 }
@@ -703,14 +807,45 @@ function Rotulo({ children, top = 18 }) {
   );
 }
 
-function PanelTanda({
-  data, setData, sesion, minutos, agrupar, onAgrupar, onRellenar, huecosVacios,
-}) {
-  const bases = sesion?.bases ?? [];
-  const usados = sesion?.minutosActivosTotales ?? 0;
-  const pasa = usados > minutos;
+/**
+ * Cuántos minutos de MANOS te quitaría cada aparato en la tanda de esta semana.
+ *
+ * No es una promesa del folleto: se recalcula la sesión entera dos veces —con
+ * el aparato y sin él— y se resta. Si esta semana no hay ninguna base que ese
+ * cacharro sepa acortar, el número es cero y no se enseña nada, que es la
+ * verdad; el mismo aparato puede valer veinte minutos la semana que viene.
+ *
+ * Se mide lo ACTIVO y no el reloj: una olla de legumbre son nueve horas de
+ * fuego y veinte minutos tuyos, y lo que decide si el domingo sale es lo
+ * segundo.
+ */
+function ahorroPorTrasto(sesion, data, minutos) {
+  void minutos;
+  const out = {};
+  const plan = sesion?._plan;
+  if (!plan) return out;
+  const base = sesion?.minutosActivosTotales ?? 0;
+  const puestos = data?.kitchenTools ?? [];
+  for (const t of KITCHEN_TOOLS) {
+    // Con el aparato ya encendido la comparación es al revés: lo que enseña
+    // es lo que PERDERÍAS al apagarlo, que es el mismo número y la misma
+    // razón para dejarlo puesto.
+    const otros = puestos.includes(t.id)
+      ? puestos.filter((x) => x !== t.id)
+      : [...puestos, t.id];
+    const alt = sesionDeBases(plan, recipeCatalogById, {
+      ...sesion._opts,
+      metodoDeBase: (b) => selectMethodForRecipe(b, otros),
+    });
+    const diff = Math.round(Math.abs((alt.minutosActivosTotales ?? 0) - base));
+    if (diff > 0) out[t.id] = diff;
+  }
+  return out;
+}
+
+function PanelTanda({ data, setData, sesion }) {
   const trastos = data?.kitchenTools ?? [];
-  const todosLosTrastos = [...KITCHEN_TOOLS, ...(data?.customKitchenTools ?? [])];
+  const ahorro = ahorroPorTrasto(sesion, data);
 
   const alternarTrasto = (t) => setData?.((d) => ({
     ...d,
@@ -719,149 +854,114 @@ function PanelTanda({
       : [...(d.kitchenTools ?? []), t],
   }));
 
+  if (!setData) return null;
+
   return (
     <>
-      {/* Lo que sale va PRIMERO: es la respuesta, y los mandos de abajo son
-          lo que la cambia. Al revés, el panel abría pidiendo decisiones antes
-          de enseñar qué producen. */}
-      <Rotulo top={0}>ESTA SEMANA SALE</Rotulo>
-      {bases.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "28px 20px" }}>
-          <CookingPot size={32} color="#cdd8d0" />
-          <p style={{ margin: "8px 0 0", fontSize: 12.5, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.4 }}>
-            Sin dos platos que compartan olla<br />no hay tanda
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Cuando se pasa del rato que has dicho tener, el número avisa en
-              vez de callarse: es el dato que decide si el domingo sale. */}
-          <div style={{ display: "flex", justifyContent: "flex-end", margin: "-4px 2px 9px" }}>
-            <span style={{ fontSize: 12, fontWeight: 800, color: pasa ? "#b45309" : "#9ab0a1", fontVariantNumeric: "tabular-nums" }}>
-              {enHoras(usados)} de {enHoras(minutos)}
-            </span>
-          </div>
-          <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden" }}>
-            {bases.map((b, i) => (
-              <BaseDeTanda key={b.base.id} entrada={b} ultima={i === bases.length - 1} />
-            ))}
-          </div>
-        </>
-      )}
+      {/* El inventario va PRIMERO porque trae el deslizador del tiempo, y ese
+          es el mando que hay que ver al abrir. Debajo iba enterrado: era el
+          primero de quince deslizadores y había que bajar para encontrarlo.
 
-      <InterruptorPref
-        activo={agrupar}
-        onChange={onAgrupar}
-        titulo="Agrupar al rellenar"
-      />
+          Y no hay un segundo deslizador arriba: son la misma pregunta y el
+          mismo `data.tandaMinutos`, así que dos mandos solo darían dos formas
+          de contestarla sin decir cuál manda.
 
-      {/* El atajo: rellenar sin cerrar el panel y buscar la baldosa. Solo
-          cuando queda algo — un botón que no hace nada es peor que ninguno. */}
-      {onRellenar && huecosVacios > 0 && (
-        <button
-          type="button"
-          className="mp-press"
-          onClick={onRellenar}
-          style={{
-            marginTop: 10, width: "100%", padding: "12px 16px", borderRadius: 14,
-            border: `1.5px solid ${NARANJA}55`, background: "#fff", cursor: "pointer",
-            color: NARANJA, fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
-            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-          }}
-        >
-          <Sparkles size={15} strokeWidth={2.6} />
-          Completar la tanda
-        </button>
-      )}
+          Ojo: esto escribe en la libreta de la CASA, no en esta semana. Lo que
+          pidas aquí vale también para los menús que generes. */}
+      <Suspense fallback={null}>
+        <BasesPreferidas data={data} setData={setData} />
+      </Suspense>
 
       {/* Los trastos no son decoración: la bechamel son 25 minutos removiendo
-          o 12 sin tocarla, y la legumbre 60 o 25. Cambian los minutos de la
-          sesión de arriba, que es lo que decide si el domingo sale. */}
-      {setData && (
-        <>
-          <Rotulo>QUÉ TIENES EN LA COCINA</Rotulo>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 6 }}>
-            {todosLosTrastos.map((t) => {
-              const sel = trastos.includes(t);
-              return (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => alternarTrasto(t)}
-                  aria-pressed={sel}
-                  style={{
-                    height: 30, borderRadius: 8, padding: "0 4px",
-                    border: `1.5px solid ${sel ? VERDE : "#dde8e0"}`,
-                    background: sel ? VERDE : "#fff",
-                    color: sel ? "#fff" : "#526057",
-                    fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}
-                >
-                  {t}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* El inventario, tal cual se pregunta en el wizard: las tres patas
-              ilustradas y un deslizador por familia. Es el MISMO componente,
-              y trae SU deslizador de tiempo — el de `data.tandaMinutos`, que
-              es el que lee `minutosDeTanda`—. Por eso arriba ya no hay otro:
-              dos deslizadores para la misma pregunta acaban discrepando, y no
-              hay forma de saber cuál manda.
-
-              Ojo: esto escribe en la libreta de la casa, no en esta semana.
-              Lo que pidas aquí vale también para los menús que generes. */}
-          <Rotulo>QUÉ QUIERES DEJAR HECHO</Rotulo>
-          <Suspense fallback={null}>
-            <BasesPreferidas data={data} setData={setData} />
-          </Suspense>
-        </>
-      )}
+          o 12 sin tocarla, y la legumbre 60 o 25. Por eso cada uno dice lo que
+          te quitaría de ESTE domingo en vez de limitarse a estar encendido. */}
+      <Rotulo>QUÉ TIENES EN LA COCINA</Rotulo>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+        {KITCHEN_TOOLS.map((t) => (
+          <TarjetaTrasto
+            key={t.id}
+            trasto={t}
+            activo={trastos.includes(t.id)}
+            ahorro={ahorro[t.id] ?? 0}
+            onClick={() => alternarTrasto(t.id)}
+          />
+        ))}
+      </div>
     </>
   );
 }
 
-/** Una base de la sesión, con su foto — la misma que la pestaña de Cocina. */
-function BaseDeTanda({ entrada, ultima }) {
+/**
+ * Un electrodoméstico, con la misma ilustración que el asistente.
+ *
+ * La foto no es adorno: "Vaporera" es una palabra y el cacharro es una cosa,
+ * y en una rejilla de seis nombres en gris no se distingue lo que tienes de
+ * lo que te falta hasta leerlos todos.
+ */
+function TarjetaTrasto({ trasto, activo, ahorro, onClick }) {
   const [roto, setRoto] = useState(false);
-  const foto = dishImageForRecipe(entrada.base);
   return (
-    <div
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={activo}
+      className="mp-press"
       style={{
-        display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
-        borderBottom: ultima ? "none" : "1px solid #eef3f0",
+        position: "relative", padding: 0, borderRadius: 14, overflow: "hidden",
+        border: `2px solid ${activo ? VERDE : "#e3ebe6"}`,
+        background: "#fff", cursor: "pointer", fontFamily: "inherit",
+        boxShadow: activo ? "0 2px 10px -4px rgba(45,90,61,.45)" : "none",
+        transition: "border-color .15s ease, box-shadow .15s ease",
       }}
     >
+      <span style={{ display: "block", aspectRatio: "1 / 1", background: "#f4f8f5" }}>
+        {trasto.img && !roto && (
+          <img
+            src={trasto.img}
+            alt=""
+            loading="lazy"
+            onError={() => setRoto(true)}
+            style={{
+              width: "100%", height: "100%", objectFit: "cover", display: "block",
+              filter: activo ? "none" : "saturate(.35)",
+              opacity: activo ? 1 : 0.65,
+              transition: "filter .2s ease, opacity .2s ease",
+            }}
+          />
+        )}
+      </span>
       <span
         style={{
-          width: 38, height: 38, borderRadius: 10, flexShrink: 0, overflow: "hidden",
-          background: `${NARANJA}18`, color: NARANJA,
-          display: "flex", alignItems: "center", justifyContent: "center",
+          position: "absolute", left: 0, right: 0, bottom: 0,
+          padding: "12px 5px 5px",
+          background: "linear-gradient(to top, rgba(10,24,15,.82), rgba(10,24,15,0))",
+          color: "#fff", fontSize: 10.5, fontWeight: 800, lineHeight: 1.15,
+          display: "block", textAlign: "center",
         }}
       >
-        {foto && !roto
-          ? <img src={foto} alt="" loading="lazy" onError={() => setRoto(true)} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-          : <CookingPot size={17} strokeWidth={2.2} />}
+        {trasto.id}
+        {/* Solo cuando de verdad quita minutos de esta semana. Un "-0 min"
+            constante ensuciaría las seis y no diría nada. */}
+        {ahorro > 0 && (
+          <span style={{ display: "block", fontSize: 9.5, fontWeight: 900, color: "#ffd9a8", marginTop: 1 }}>
+            -{ahorro} min
+          </span>
+        )}
       </span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.25 }}>
-          {entrada.base.name}
+      {activo && (
+        <span
+          aria-hidden
+          style={{
+            position: "absolute", top: 5, right: 5,
+            width: 18, height: 18, borderRadius: 999, background: VERDE,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: "1.5px solid #fff",
+          }}
+        >
+          <Check size={10} color="#fff" strokeWidth={3.4} />
         </span>
-        <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#9ab0a1", marginTop: 1 }}>
-          {entrada.huecos.length} platos
-        </span>
-      </span>
-      <span style={{
-        flexShrink: 0, padding: "4px 9px", borderRadius: 999,
-        background: `${NARANJA}12`, border: `1px solid ${NARANJA}2e`,
-        fontSize: 11.5, fontWeight: 900, color: NARANJA, fontVariantNumeric: "tabular-nums",
-      }}>
-        {enHoras(entrada.minutosActivos)}
-      </span>
-    </div>
+      )}
+    </button>
   );
 }
 
@@ -874,7 +974,7 @@ const TITULOS = {
 
 export function PizarraControles({
   data, setData, menuPlan, groups, onAplicar, onRellenar,
-  despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa, prefs, onPrefs,
+  despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
 }) {
   const [abierto, setAbierto] = useState(null);
   const todayIdx = useMemo(() => todayDayIdx(), []);
@@ -916,17 +1016,18 @@ export function PizarraControles({
     for (const g of groups ?? []) {
       if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
     }
-    return sesionDeBases(plan, recipeCatalogById, {
+    const opts = {
       dias: diasDe(0),
       comidas: getDayMeals(data),
-    });
+      metodoDeBase: (b) => selectMethodForRecipe(b, data?.kitchenTools ?? []),
+    };
+    // El plan y las opciones viajan con el resultado para poder repetir el
+    // cálculo cambiando UNA cosa —quitar o poner un aparato— sin tener que
+    // volver a montar el plan fuera y arriesgarse a montarlo distinto.
+    return { ...sesionDeBases(plan, recipeCatalogById, opts), _plan: plan, _opts: opts };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [menuPlan, groups, data]);
 
-  // El tiempo del domingo lo manda `data.tandaMinutos`, que es donde escribe el
-  // deslizador del inventario. No hay copia por semana: la hubo, y eran dos
-  // respuestas a la misma pregunta sin nadie que arbitrara cuál valía.
-  const minutos = minutosDeTanda(data);
   const enDespensa = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish").length;
 
   return (
@@ -1045,19 +1146,12 @@ export function PizarraControles({
                 onAnadir={onAddDespensa}
                 onQuitar={onQuitarDespensa}
                 onQty={onQtyDespensa}
-                usarDespensa={prefs?.usarDespensa ?? false}
-                onUsarDespensa={(v) => onPrefs?.({ usarDespensa: v })}
               />
             ) : abierto === "tanda" ? (
               <PanelTanda
                 data={data}
                 setData={setData}
                 sesion={sesion}
-                minutos={minutos}
-                agrupar={prefs?.agrupar ?? false}
-                onAgrupar={(v) => onPrefs?.({ agrupar: v })}
-                onRellenar={onRellenar ? () => { setAbierto(null); onRellenar(); } : null}
-                huecosVacios={huecosVacios}
               />
             ) : (
               <>

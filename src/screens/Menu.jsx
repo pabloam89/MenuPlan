@@ -162,7 +162,7 @@ import {
 import {
   APPLIANCE_LABELS,
   APPLIANCE_COLORS,
-  KITCHEN_TOOLS,
+  KITCHEN_TOOL_IDS,
   REQUIRED_APPLIANCE_ICONS,
   selectMethodForRecipe,
   methodDifficultyLabel,
@@ -891,7 +891,7 @@ function AccordionSection({ title, icon: Icon, children, defaultOpen = false, ac
 
 function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const members = data.members ?? [];
-  const allTools = [...KITCHEN_TOOLS, ...(data.customKitchenTools ?? [])];
+  const allTools = [...KITCHEN_TOOL_IDS, ...(data.customKitchenTools ?? [])];
   const fixedDishes = migrateFixedDishes(data.fixedDishes ?? []);
   // members with allergies, and members needing a more careful menu
   const membersWithAllergies = members.filter((m) => (m.allergies ?? []).length > 0);

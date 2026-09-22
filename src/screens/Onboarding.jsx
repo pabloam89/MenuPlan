@@ -9711,14 +9711,10 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 // Exportado: RecipePlanner.jsx ("¿Cómo se prepara?") reutiliza la misma
 // lista + ilustraciones para que el electrodoméstico se vea igual en el
 // asistente de crear receta que aquí, en vez de duplicar el catálogo.
-export const APPLIANCES = [
-  { id: "Airfryer", img: "/avatares/cards/electrodomesticos/airfryer.webp" },
-  { id: "Horno", img: "/avatares/cards/electrodomesticos/horno.webp" },
-  { id: "Microondas", img: "/avatares/cards/electrodomesticos/microondas.webp" },
-  { id: "Olla rápida", img: "/avatares/cards/electrodomesticos/olla_rapida.webp" },
-  { id: "Thermomix", img: "/avatares/cards/electrodomesticos/thermomix.webp" },
-  { id: "Vaporera", img: "/avatares/cards/electrodomesticos/vaporera.webp" },
-];
+// La lista se mudó a lib/applianceMethods.js para que la baldosa de batch
+// cooking pinte los mismos seis sin importar esta pantalla entera. Se reexporta
+// con el nombre de siempre porque RecipePlanner la importa de aquí.
+export { KITCHEN_TOOLS as APPLIANCES } from "../lib/applianceMethods.js";
 
 // Sin "Añadir otro": la lista fija son los seis aparatos que el generador sabe
 // aprovechar de verdad (ver resolveCookwareMarker en RecipeSteps.jsx). Un
