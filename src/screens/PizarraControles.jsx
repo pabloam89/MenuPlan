@@ -5,7 +5,8 @@ import {
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { formatStockQty } from "../lib/kitchenUnits.js";
-import { PACK_KINDS } from "../lib/packUnits.js";
+import { medidasDe, enPlural } from "../lib/medidasDeIngrediente.js";
+import { Picker } from "../components/Picker.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
@@ -489,13 +490,6 @@ const POOL = [
   { nombre: "Aceite de oliva", n: 1, unidad: "l", envase: "botella", tam: 1 },
 ];
 
-/** Los envases que ofrece el desplegable. El del ajo no es de super, pero es
- *  la forma en que se tiene el ajo, que es lo que aquí se pregunta. */
-const ENVASES = [...PACK_KINDS.map((k) => k.label), "cabeza"];
-
-/** Plural de un envase. Todos suman una ese menos el cartón. */
-const enPlural = (w) => (w === "cartón" ? "cartones" : `${w}s`);
-
 /** La clave con la que un nombre del pool queda guardado en la despensa. */
 const CLAVES_POOL = new Map();
 function claveDePool(nombre) {
@@ -560,27 +554,32 @@ function poolDe(item) {
  * con la compra. Los cuatro campos son la forma de decirlo, no lo dicho.
  */
 function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
-  // Los tres campos escribibles guardan TEXTO, no números: si guardaran número,
-  // borrar el contenido para teclear otro lo volvería un 0 o un NaN delante de
-  // tus narices. Se convierte a la hora de calcular, no a la de escribir.
-  const [n, setN] = useState(String(inicial ?? item.n));
-  const [envase, setEnvase] = useState(item.envase ?? null);
-  const [tam, setTam] = useState(item.envase ? String(item.tam) : "1");
-  const [unidad, setUnidad] = useState(item.unidad);
+  // Qué se le puede preguntar a ESTE ingrediente. El ajo ofrece cabeza o
+  // diente; el arroz, paquete o bolsa. La lista entera del súper ofrecía
+  // "brick de ajos", que no es improbable sino imposible.
+  const medidas = useMemo(() => medidasDe(item.nombre), [item.nombre]);
+  const conEnvase = medidas.envases.length > 0;
 
-  const conEnvase = Boolean(item.envase);
+  // Los campos escribibles guardan TEXTO, no números: si guardaran número,
+  // borrar el contenido para teclear otro lo volvería un 0 delante de tus
+  // narices. Se convierte al calcular, no al escribir.
+  const [n, setN] = useState(String(inicial ?? item.n));
+  const [envase, setEnvase] = useState(item.envase ?? medidas.envases[0] ?? null);
+  const [tam, setTam] = useState(item.tam != null ? String(item.tam) : "1");
+  const [unidad, setUnidad] = useState(
+    medidas.unidades.includes(item.unidad) ? item.unidad : medidas.unidades[0],
+  );
+
   const nNum = Number(n) || 0;
   const tamNum = Number(String(tam).replace(",", ".")) || 0;
   const factor = unidad === "kg" || unidad === "l" ? 1000 : 1;
   const uBase = unidad === "kg" ? "g" : unidad === "l" ? "ml" : unidad;
   const total = conEnvase ? nNum * tamNum * factor : nNum * factor;
 
-  const palabras = palabrasDePool(item);
-  const palabra = conEnvase
-    ? (nNum === 1 ? envase : enPlural(envase))
-    : (nNum === 1 ? palabras.uno : palabras.varias);
-
-  const celda = { ...campoBase, height: 32, padding: "0 4px", textAlign: "center", minWidth: 0 };
+  const campo = {
+    ...campoBase, height: 32, padding: "0 4px", textAlign: "center",
+    minWidth: 0, flexShrink: 0,
+  };
 
   return (
     <div
@@ -589,18 +588,12 @@ function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
         padding: 12, marginBottom: 14,
       }}
     >
+      {/* Solo el nombre. Aquí iba además un "1 ud" en gris que repetía en
+          pequeño lo que los campos de abajo ya dicen en grande. */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <Miniatura name={item.nombre} size={40} />
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: "block", fontSize: 13.5, fontWeight: 900, color: INK, lineHeight: 1.2 }}>
-            {item.nombre}
-          </span>
-          {/* La frase entera, en pequeño: es el último sitio donde compruebas
-              que los cuatro campos dicen lo que querías decir. */}
-          <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#9ab0a1", marginTop: 1 }}>
-            {n || 0} {palabra}
-            {conEnvase && total > 0 ? ` · ${formatStockQty(total, uBase)}` : ""}
-          </span>
+        <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 900, color: INK, lineHeight: 1.2 }}>
+          {item.nombre}
         </span>
         <button
           type="button"
@@ -616,55 +609,51 @@ function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
         </button>
       </div>
 
-      {/* Cuatro mandos y ni uno más. Aquí hubo además un +/- para el primer
-          número y eran seis cosas en 288 px: el desplegable del envase se
-          quedaba en "paqu…", que es justo el dato que hay que poder leer.
-          El número se escribe, como los otros tres. */}
+      {/* Con envase son cuatro huecos y la fila se llena entera. Sin él son
+          dos, y se quedan a la izquierda: estirar el desplegable de "ud" hasta
+          el borde promete opciones que no hay. */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
         <input
           value={n}
           onChange={(e) => setN(e.target.value.replace(/[^0-9]/g, "").slice(0, 2))}
           inputMode="numeric"
           aria-label="Cuántos"
-          style={{ ...celda, width: 42, fontWeight: 900 }}
+          style={{ ...campo, width: 46, fontWeight: 900 }}
         />
         {conEnvase ? (
           <>
-            <select
+            <Picker
               value={envase}
-              onChange={(e) => setEnvase(e.target.value)}
-              aria-label="Envase"
-              style={{ ...celda, flex: 1, textAlign: "left", padding: "0 0 0 7px", cursor: "pointer" }}
-            >
-              {ENVASES.map((k) => <option key={k} value={k}>{k}</option>)}
-            </select>
+              options={medidas.envases}
+              onChange={setEnvase}
+              ariaLabel="Envase"
+              flex={1}
+              minWidth={84}
+            />
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#9ab0a1", flexShrink: 0 }}>de</span>
             <input
               value={tam}
               onChange={(e) => setTam(e.target.value)}
               inputMode="decimal"
               aria-label="Contenido"
-              style={{ ...celda, width: 52 }}
+              style={{ ...campo, width: 52 }}
             />
-            <select
+            <Picker
               value={unidad}
-              onChange={(e) => setUnidad(e.target.value)}
-              aria-label="Unidad"
-              style={{ ...celda, width: 54, padding: "0 0 0 5px", cursor: "pointer" }}
-            >
-              {UNIDADES.filter((u) => u !== "ud").map((u) => (
-                <option key={u} value={u}>{u === "l" ? "L" : u}</option>
-              ))}
-            </select>
+              options={medidas.unidades.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
+              onChange={setUnidad}
+              ariaLabel="Unidad"
+              width={56}
+            />
           </>
         ) : (
-          <select
+          <Picker
             value={unidad}
-            onChange={(e) => setUnidad(e.target.value)}
-            aria-label="Unidad"
-            style={{ ...celda, flex: 1, textAlign: "left", padding: "0 0 0 7px", cursor: "pointer" }}
-          >
-            {UNIDADES.map((u) => <option key={u} value={u}>{u === "l" ? "L" : u}</option>)}
-          </select>
+            options={medidas.unidades.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
+            onChange={setUnidad}
+            ariaLabel="Unidad"
+            width={76}
+          />
         )}
       </div>
 
