@@ -1,0 +1,40 @@
+{
+  "_": "Cuántos gramos pesa un mililitro de cada ingrediente. Solo aparecen los que se apartan de 1 g/ml al menos un 2 %: un ingrediente ausente no es un hueco, es agua o algo que pesa como el agua (los caldos, el vino, el vinagre, la cerveza), y el consumidor asume 1. POR QUÉ IMPORTA: 1.776 de las 7.586 líneas del catálogo (23,4 %) se piden en mililitros y hasta hoy se convertían a gramos multiplicando por uno. El aceite es el caso grande — 28.120 ml en el catálogo contados como 28.120 g cuando son 25.814 — y no es un ingrediente cualquiera: es el primer aportador de grasa, que es el macro que peor cuadra en la auditoría. Los 12 primeros ingredientes en volumen cubren el 90 % de los mililitros del catálogo, así que esta lista corta llega a casi todo.",
+
+  "aceite-oliva": {
+    "valor": 0.918,
+    "confianza": 0.95,
+    "motivo": "Densidad del aceite de oliva a temperatura ambiente. Son 723 líneas y 28.120 ml, el mayor volumen del catálogo con diferencia: un 8 % de sesgo sistemático en la grasa de casi todas las recetas."
+  },
+  "aceite-oliva-virgen": { "valor": 0.918, "confianza": 0.95, "motivo": "Mismo aceite; el virgen extra no cambia la densidad de forma apreciable." },
+  "aceite-girasol": { "valor": 0.92, "confianza": 0.95, "motivo": "Densidad del aceite de girasol." },
+  "aceite-de-sesamo": { "valor": 0.92, "confianza": 0.9, "motivo": "Densidad del aceite de sésamo, como la de los demás aceites vegetales." },
+
+  "miel": {
+    "valor": 1.42,
+    "confianza": 0.95,
+    "motivo": "La desviación más grande del catálogo: un mililitro de miel pesa casi el doble que uno de agua. Son 15 líneas y poco volumen, pero el error relativo sería del 42 % en cada una."
+  },
+  "sirope-de-arce": { "valor": 1.32, "confianza": 0.9, "motivo": "Jarabe azucarado concentrado, denso como la miel aunque algo menos." },
+
+  "salsa-soja": {
+    "valor": 1.15,
+    "confianza": 0.9,
+    "motivo": "La sal disuelta la hace bastante más densa que el agua. 42 líneas."
+  },
+  "leche-condensada": { "valor": 1.29, "confianza": 0.9, "motivo": "Leche con el agua evaporada y azúcar añadido: densidad muy por encima de la leche." },
+
+  "tomate-triturado": { "valor": 1.05, "confianza": 0.85, "motivo": "Pulpa con sólidos en suspensión. 114 líneas y 15.300 ml, el quinto volumen del catálogo." },
+  "bechamel": { "valor": 1.05, "confianza": 0.8, "motivo": "Salsa ligada con harina y leche." },
+
+  "leche": { "valor": 1.03, "confianza": 0.95, "motivo": "Densidad de la leche entera. 80 líneas y 19.750 ml, el segundo volumen del catálogo." },
+  "kefir": { "valor": 1.03, "confianza": 0.85, "motivo": "Como la leche fermentada de la que sale." },
+  "limon": { "valor": 1.03, "confianza": 0.85, "motivo": "Zumo de cítrico: agua con azúcares y ácidos disueltos." },
+  "lima": { "valor": 1.03, "confianza": 0.85, "motivo": "Como el limón." },
+  "naranja": { "valor": 1.04, "confianza": 0.85, "motivo": "Zumo de naranja, algo más azucarado que el de limón." },
+
+  "brandy": { "valor": 0.95, "confianza": 0.85, "motivo": "El etanol es menos denso que el agua, y un destilado lleva cerca del 40 %." },
+  "ron": { "valor": 0.95, "confianza": 0.85, "motivo": "Como el brandy." },
+  "vodka": { "valor": 0.94, "confianza": 0.85, "motivo": "Como el brandy, algo más porque no lleva azúcares." },
+  "whisky": { "valor": 0.95, "confianza": 0.85, "motivo": "Como el brandy." }
+}

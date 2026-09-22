@@ -38,8 +38,10 @@ dish-gallery/.vercel/
 dish-gallery/review/
 approvals-live.json
 /Tickets Compra Sintéticos/
-# Ledger local de la pasada de enriquecimiento (scripts/enrich-recipe-steps.mjs)
+# Ledgers locales de las pasadas de enriquecimiento (scripts/enrich-recipe-steps.mjs)
 scripts/.enrich-base-done.json
+scripts/.enrich-parts-done.json
+scripts/.enrich-basesteps-done.json
 
 # Salidas de las pruebas de generación de fotos: son cientos de MB de imágenes
 # descartables que se regeneran con scripts/gen-test-photos.mjs.
@@ -49,7 +51,15 @@ scripts/prompt-test/
 # Caché del CLI de Supabase
 supabase/.temp/
 
+# Datos que descarga el agente de fallos (.github/workflows/agente-fallos.yml)
+# antes de arrancar. Nunca se commitean: el repo es público.
+.ops/
+
 # Vídeos renderizados con Remotion (`npm run video:render`) y su caché de
 # bundle. Los mp4 se regeneran; solo se commitea el que acabe usando la app.
 /out/
 .remotion/
+
+# bancos de pruebas del motor (solver.stress / solver.vs.modelo)
+stress.json
+vs-modelo.json

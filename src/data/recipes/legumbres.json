@@ -23,41 +23,49 @@
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       }
@@ -126,7 +134,8 @@
       {
         "text": "Sofreír la cebolla picada en el aceite caliente a fuego medio hasta que esté transparente, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento rojo y la zanahoria a la olla y sofreír a fuego medio hasta que empiecen a ablandarse, unos 3 min.",
@@ -196,6 +205,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "estrella": true
   },
   {
@@ -224,41 +237,49 @@
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       }
@@ -402,7 +423,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_003",
@@ -430,41 +455,49 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Espinacas",
+        "ingredientId": "espinacas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Pan del día anterior",
+        "ingredientId": "pan",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Comino",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       }
@@ -596,7 +629,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "salsa_tomate"
+    ]
   },
   {
     "id": "legumbres_004",
@@ -626,41 +663,49 @@
     "ingredients": [
       {
         "name": "Garbanzos",
+        "ingredientId": "garbanzos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Morcillo de ternera",
+        "ingredientId": "morcillo-de-ternera",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Pollo",
+        "ingredientId": "pollo",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Tocino",
+        "ingredientId": "tocino",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Repollo",
+        "ingredientId": "repollo",
         "amount": 150,
         "unit": "g"
       }
@@ -821,7 +866,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_005",
@@ -851,41 +897,49 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Bacalao desalado",
+        "ingredientId": "bacalao",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Espinacas",
+        "ingredientId": "espinacas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       }
@@ -930,7 +984,8 @@
       {
         "text": "Picar {{Cebolla}} en trozos pequeños y laminar {{Ajo}}.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Desmigar {{Bacalao desalado}} con los dedos en lascas medianas y reservar.",
@@ -940,27 +995,32 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente, unos 5 min a fuego medio.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo laminado y sofreír hasta que empiece a dorarse, unos 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Pimentón|pizca}} y remover durante 30 segundos para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca y pierda el agua, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Espinacas}} y remover hasta que se ablanden y reduzcan su volumen, unos 2 min.",
@@ -1029,7 +1089,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_006",
@@ -1057,41 +1121,49 @@
     "ingredients": [
       {
         "name": "Fabes",
+        "ingredientId": "fabes",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Morcilla",
+        "ingredientId": "morcilla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Panceta",
+        "ingredientId": "panceta",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Lacón",
+        "ingredientId": "lacon",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Azafrán",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       }
@@ -1261,41 +1333,49 @@
     "ingredients": [
       {
         "name": "Alubias rojas",
+        "ingredientId": "alubias-rojas",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 18,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       }
@@ -1471,7 +1551,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_008",
@@ -1499,41 +1580,49 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       }
@@ -1596,7 +1685,8 @@
       {
         "text": "Sofreír la cebolla picada, el ajo picado y el pimiento rojo en dados en la olla hasta que estén tiernos, unos 5 min a fuego medio.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las rodajas de chorizo y dorar a fuego medio hasta que suelten la grasa y cojan color, unos 3 min.",
@@ -1662,7 +1752,11 @@
       }
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_009",
@@ -1670,6 +1764,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "arroz",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -1689,41 +1787,49 @@
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       }
@@ -1774,7 +1880,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír 3 min hasta que empiece a ablandarse.",
@@ -1870,36 +1977,43 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Comino",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 2,
         "unit": "g"
       }
@@ -2004,7 +2118,8 @@
     "montaje": true,
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_011",
@@ -2032,41 +2147,49 @@
     "ingredients": [
       {
         "name": "Judiones",
+        "ingredientId": "alubia-grande",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Morcilla",
+        "ingredientId": "morcilla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Oreja de cerdo",
+        "ingredientId": "oreja-de-cerdo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       }
@@ -2149,17 +2272,20 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo hasta que estén blandos, unos 5 min.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón|pizca}} y remover 30 segundos hasta que se integre.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar los judiones escurridos y la oreja de cerdo; cubrir con agua fría (unos 2 cm por encima).",
@@ -2225,7 +2351,11 @@
       }
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_012",
@@ -2252,36 +2382,43 @@
     "ingredients": [
       {
         "name": "Lentejas cocidas",
+        "ingredientId": "lentejas",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -2303,7 +2440,8 @@
       {
         "text": "Escurrir {{Lentejas cocidas}} con un colador y aclarar bajo agua fría hasta que estén a temperatura ambiente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Tomate}} en dados pequeños de aproximadamente 1 cm.",
@@ -2356,7 +2494,8 @@
     ],
     "montaje": true,
     "tecnica": "crudo",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_013",
@@ -2382,41 +2521,49 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Comino",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       }
@@ -2474,12 +2621,14 @@
       {
         "text": "Sofreír la cebolla picada en el aceite caliente a fuego medio hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min hasta que empiece a dorarse.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar los dados de calabaza y saltear a fuego medio durante 5 min hasta que empiecen a ablandarse.",
@@ -2548,7 +2697,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_014",
@@ -2556,6 +2709,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "arroz",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"
@@ -2575,41 +2732,49 @@
     "ingredients": [
       {
         "name": "Judías pintas",
+        "ingredientId": "judias-pintas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 18,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       }
@@ -2673,12 +2838,14 @@
       {
         "text": "Sofreír la cebolla picada en el aceite caliente hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento verde y la zanahoria a la olla y sofreír 3 min hasta que empiecen a ablandarse.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón}} y remover 30 segundos a fuego suave para que no se queme.",
@@ -2773,41 +2940,49 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo asado",
+        "ingredientId": "pimiento-rojo",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Comino",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre de Jerez",
+        "ingredientId": "vinagre-de-jerez",
         "amount": 10,
         "unit": "ml"
       }
@@ -2881,7 +3056,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "verdura_asada"
+    ]
   },
   {
     "id": "legumbres_016",
@@ -2906,41 +3085,49 @@
     "ingredients": [
       {
         "name": "Alubias blancas",
+        "ingredientId": "alubias",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 18,
         "unit": "ml"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       }
@@ -3021,22 +3208,26 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada en la sartén a fuego suave hasta que esté transparente, unos 5 min.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min a fuego suave hasta que desprenda aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Tomate triturado}} al sofrito y cocer a fuego medio durante 5 min hasta que reduzca y se concentre.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la patata en trozos a la olla con las alubias y cocer a fuego medio 15 min hasta que esté tierna.",
@@ -3090,7 +3281,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_017",
@@ -3118,41 +3313,49 @@
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Contramuslo de pollo",
+        "ingredientId": "contramuslos-de-pollo",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       }
@@ -3227,7 +3430,8 @@
       {
         "text": "Sofreír la cebolla picada en la misma olla a fuego medio hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír junto a la cebolla durante 2 min, removiendo.",
@@ -3296,7 +3500,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_018",
@@ -3322,36 +3530,43 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Comino",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       }
@@ -3392,32 +3607,38 @@
       {
         "text": "Pelar y picar {{Cebolla}} y {{Ajo}} en trozos finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento verde}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén grande a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento verde en {{@Sartén}} hasta que estén tiernos y la cebolla esté transparente.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Comino|pizca}} al sofrito y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que reduzca y se concentre el sabor.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Garbanzos cocidos}} a la salsa y remover para que se impregnen bien.",
@@ -3468,7 +3689,11 @@
       }
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_019",
@@ -3499,41 +3724,49 @@
     "ingredients": [
       {
         "name": "Alubias blancas cocidas",
+        "ingredientId": "alubias",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Almejas",
+        "ingredientId": "almejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 10,
         "unit": "g"
       }
@@ -3608,7 +3841,8 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio; sofreír la cebolla picada hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y sofreír 1 min más hasta que empiece a dorarse.",
@@ -3669,7 +3903,11 @@
       }
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_020",
@@ -3697,36 +3935,43 @@
     "ingredients": [
       {
         "name": "Lentejas pardinas cocidas",
+        "ingredientId": "lentejas",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre de Módena",
+        "ingredientId": "vinagre-balsamico",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Mostaza",
+        "ingredientId": "mostaza",
         "amount": 5,
         "unit": "g"
       }
@@ -3767,47 +4012,56 @@
       {
         "text": "Cortar {{Pimiento rojo}} y {{Calabacín}} en dados de 1 cm.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Cebolla morada}} en juliana fina y reservar en frío.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar {{Vinagre de Módena}}, {{Mostaza}} y {{Aceite de oliva}} en un bol hasta emulsionar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego fuerte sin aceite hasta que humee.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Saltear los dados de pimiento rojo y calabacín hasta que estén dorados pero ligeramente crujientes, unos 5 min.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Lentejas pardinas cocidas}} a la sartén y saltear hasta que estén templadas, unos 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar la sartén del fuego y volcar las lentejas con las verduras en un bol.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir la vinagreta sobre las lentejas y remover para que se integre bien.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir la ensalada templada con la cebolla morada en juliana por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 9,
@@ -3819,7 +4073,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_021",
@@ -3848,46 +4103,55 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos de bote",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Atún en aceite de oliva",
+        "ingredientId": "atun",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo asado",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceitunas negras",
+        "ingredientId": "aceitunas-negras",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Vinagre de jerez",
+        "ingredientId": "vinagre-de-jerez",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -3986,14 +4250,17 @@
       "encurtido"
     ],
     "tecnica": "crudo",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "verdura_asada"
+    ]
   },
   {
     "id": "legumbres_022",
     "name": "Tosta de hummus, pepino y sésamo",
     "category": "legumbres",
     "mainProtein": "legumbre",
-    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -4016,51 +4283,61 @@
     "ingredients": [
       {
         "name": "Pan de pueblo",
+        "ingredientId": "pan",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 240,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Sésamo tostado",
+        "ingredientId": "sesamo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -4184,61 +4461,73 @@
     "ingredients": [
       {
         "name": "Tortilla de trigo",
+        "ingredientId": "tortilla-de-trigo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Lechuga",
+        "ingredientId": "lechuga",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -4339,8 +4628,7 @@
       "verdura"
     ],
     "tecnica": "crudo",
-    "cocina": "arabe",
-    "mainBase": "pan"
+    "cocina": "arabe"
   },
   {
     "id": "legumbres_024",
@@ -4370,56 +4658,67 @@
     "ingredients": [
       {
         "name": "Falafel congelado",
+        "ingredientId": "falafel-congelado",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 18,
         "unit": "ml"
       },
       {
         "name": "Lechuga variada",
+        "ingredientId": "lechuga",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -4460,36 +4759,42 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Hornear {{Falafel congelado}} en el horno a 200 °C hasta que estén dorados y crujientes.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Triturar {{Garbanzos cocidos}} con {{Tahini}}, {{Zumo de limón}}, {{Comino molido}} y la mitad de {{Aceite de oliva|chorrito}} hasta obtener un hummus homogéneo.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Pepino}} en rodajas.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Laminar {{Cebolla morada}} en juliana fina.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "guarnicion"
       },
       {
         "text": "Repartir {{Lechuga variada}} como base en 2 boles.",
@@ -4522,7 +4827,8 @@
     ],
     "tecnica": "horno",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_025",
@@ -4550,61 +4856,73 @@
     "ingredients": [
       {
         "name": "Lentejas pardinas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -4788,7 +5106,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_026",
@@ -4816,46 +5138,55 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Remolacha cocida",
+        "ingredientId": "remolacha",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -4890,7 +5221,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} y enjuagarlos bajo el grifo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Remolacha cocida}} en dados.",
@@ -4946,7 +5278,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_027",
@@ -4973,46 +5306,55 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Zumo de lima",
+        "ingredientId": "lima",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -5046,7 +5388,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} bajo el grifo y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Aguacate}} por la mitad y retirar el hueso.",
@@ -5096,7 +5439,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_028",
@@ -5126,76 +5470,91 @@
     "ingredients": [
       {
         "name": "Garbanzos secos crudos (en remojo)",
+        "ingredientId": "garbanzos",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Cilantro molido",
+        "ingredientId": "cilantro",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Aceite de girasol",
+        "ingredientId": "aceite-girasol",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Yogur griego",
+        "ingredientId": "yogur",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Agua",
+        "ingredientId": "agua",
         "amount": 20,
         "unit": "ml"
       }
@@ -5265,63 +5624,75 @@
       {
         "text": "Escurrir {{Garbanzos secos crudos (en remojo)}} y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Cebolla}} en trozos y pelar {{Ajo}}.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar los garbanzos escurridos, la cebolla, el ajo, {{Perejil fresco}} y {{Cilantro fresco}} hasta obtener una pasta gruesa.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Comino molido}}, {{Cilantro molido}}, {{Harina}}, {{Levadura química}} y {{Sal|gusto}} a la pasta.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar bien hasta integrar todos los ingredientes.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Tapar la masa y dejar reposar en la nevera.",
         "minutes": 15,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Yogur griego}}, {{Tahini}}, {{Zumo de limón}} y {{Agua}} en un bol hasta obtener una crema fluida.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Formar bolitas de unos 3 cm con las manos húmedas usando la masa reposada.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de girasol|abundante}} en {{@Sartén}} honda a fuego medio-alto hasta que esté bien caliente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír las bolitas en tandas hasta que estén doradas y crujientes por fuera.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los falafel fritos sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir los falafel calientes junto a la salsa de yogur y tahini para mojar.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -5331,7 +5702,13 @@
     "tecnica": "olla",
     "cocina": "arabe",
     "llevaSalsa": true,
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "adelanto": {
+      "hasta": 7,
+      "guarda": "congelador",
+      "dias": 60
+    }
   },
   {
     "id": "legumbres_029",
@@ -5360,51 +5737,61 @@
     "ingredients": [
       {
         "name": "Fabes de la granja secas",
+        "ingredientId": "alubia-grande",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Almejas",
+        "ingredientId": "almejas",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Azafrán en hebras",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -5600,46 +5987,55 @@
     "ingredients": [
       {
         "name": "Lentejas pardinas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Vinagre de jerez",
+        "ingredientId": "vinagre-de-jerez",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Mostaza a la antigua",
+        "ingredientId": "mostaza",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -5685,66 +6081,82 @@
       {
         "text": "Lavar {{Lentejas pardinas}} bajo el grifo con agua fría hasta que salga clara.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal",
+        "base": "legumbre"
       },
       {
         "text": "Cocer las lentejas pardinas en una olla con agua fría y {{Laurel}} a fuego fuerte hasta que rompa a hervir.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal",
+        "base": "legumbre"
       },
       {
         "text": "Bajar el fuego y cocer las lentejas pardinas a fuego suave hasta que estén tiernas pero enteras.",
         "minutes": 22,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Chorizo}} en dados pequeños.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Manzana}} en dados pequeños, sin pelar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebolleta}} en aros finos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva}}, {{Vinagre de jerez}}, {{Mostaza a la antigua}} y {{Sal|gusto}} en un bol pequeño hasta emulsionar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Escurrir las lentejas pardinas y dejarlas templar en un bol amplio.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal",
+        "base": "legumbre"
       },
       {
         "text": "Dorar el chorizo en {{@Sartén}} sin aceite a fuego medio hasta que quede crujiente y suelte su grasa.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el chorizo sobre papel absorbente.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Añadir la manzana, la cebolleta y el chorizo al bol con las lentejas templadas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar con la vinagreta y remover con cuidado hasta integrar. Servir templado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -5752,7 +6164,8 @@
       "fruta"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_031",
@@ -5781,46 +6194,55 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Piñones",
+        "ingredientId": "pinones",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre de jerez",
+        "ingredientId": "vinagre-de-jerez",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -5890,7 +6312,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} bajo el grifo y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Lavar {{Espinacas frescas}} con abundante agua fría y escurrir bien.",
@@ -5949,7 +6372,8 @@
       "frutos_secos"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_032",
@@ -5975,56 +6399,67 @@
     "ingredients": [
       {
         "name": "Lentejas rojas peladas",
+        "ingredientId": "lentejas-rojas",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Leche de coco",
+        "ingredientId": "leche-coco",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Jengibre fresco",
+        "ingredientId": "jengibre",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Curry en polvo",
+        "ingredientId": "curry",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Cúrcuma",
+        "ingredientId": "curcuma",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -6122,7 +6557,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y el jengibre picado y sofreír hasta que suelten el aroma.",
@@ -6175,7 +6611,11 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "cocina": "india",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_033",
@@ -6202,41 +6642,49 @@
     "ingredients": [
       {
         "name": "Guisantes congelados",
+        "ingredientId": "guisantes",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Menta fresca",
+        "ingredientId": "menta",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -6321,7 +6769,8 @@
       {
         "text": "Escurrir y enjuagar {{Garbanzos cocidos}} bajo agua fría.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Pelar {{Ajo}} y reservar.",
@@ -6366,7 +6815,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_034",
@@ -6396,66 +6846,79 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de girasol",
+        "ingredientId": "aceite-girasol",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Menta fresca",
+        "ingredientId": "menta",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 3,
         "unit": "g"
       }
@@ -6507,80 +6970,95 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} con un colador y secarlos bien con papel de cocina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebolleta}} muy fina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Perejil fresco}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar los garbanzos escurridos con la cebolleta picada, el perejil picado, {{Comino molido}} y {{Pimentón dulce}} hasta obtener una pasta gruesa.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Huevo}}, {{Harina}}, {{Levadura química}} y {{Sal|gusto}} a la pasta.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar todo hasta integrar una masa espesa y homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Tapar la masa y reposar en la nevera 10 min.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Ajo}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Menta fresca}} fina.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Yogur natural}} con la menta picada y el ajo rallado hasta integrar. Reservar en frío.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Calentar {{Aceite de girasol|abundante}} en una sartén honda a fuego medio hasta que esté caliente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Formar los buñuelos con 2 cucharas cogiendo porciones de masa del tamaño de una nuez.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír los buñuelos en tandas hasta que estén dorados por todos los lados, unos 3-4 min por tanda.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los buñuelos sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir los buñuelos calientes acompañados de la salsa de yogur y menta.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -6588,7 +7066,13 @@
       "lacteo"
     ],
     "tecnica": "sarten",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "adelanto": {
+      "hasta": 9,
+      "guarda": "nevera",
+      "dias": 1
+    }
   },
   {
     "id": "legumbres_035",
@@ -6616,46 +7100,55 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Vinagre de jerez",
+        "ingredientId": "vinagre-de-jerez",
         "amount": 12,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -6701,7 +7194,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} y enjuagarlos bajo el grifo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Chorizo}} en dados pequeños.",
@@ -6764,7 +7258,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_036",
@@ -6793,51 +7288,61 @@
     "ingredients": [
       {
         "name": "Judiones secos",
+        "ingredientId": "alubia-grande",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Almejas",
+        "ingredientId": "almejas",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -7021,7 +7526,8 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_037",
@@ -7050,51 +7556,61 @@
     "ingredients": [
       {
         "name": "Lentejas pardinas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Boletus",
+        "ingredientId": "boletus",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomillo fresco",
+        "ingredientId": "tomillo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Vino oloroso",
+        "ingredientId": "vino-blanco",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -7246,7 +7762,11 @@
       "seta"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_038",
@@ -7275,51 +7795,61 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Pan del día anterior",
+        "ingredientId": "pan",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -7367,7 +7897,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} bajo agua fría y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Lavar {{Espinacas frescas}} con abundante agua fría y escurrir bien.",
@@ -7459,7 +7990,8 @@
     "extraProteins": [
       "huevo"
     ],
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_039",
@@ -7488,56 +8020,67 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Langostinos",
+        "ingredientId": "langostinos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Azafrán en hebras",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Caldo de pescado",
+        "ingredientId": "caldo-de-pescado",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -7630,17 +8173,20 @@
       {
         "text": "Picar {{Cebolla}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento rojo}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
@@ -7660,17 +8206,20 @@
       {
         "text": "Sofreír la cebolla picada, el ajo picado y el pimiento rojo a fuego medio hasta que ablanden.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce}} y remover para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocinar hasta que pierda el agua y la mezcla espese.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar los garbanzos escurridos, {{Azafrán en hebras}} y {{Caldo de pescado}}.",
@@ -7703,7 +8252,12 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito",
+      "caldo"
+    ]
   },
   {
     "id": "legumbres_040",
@@ -7729,56 +8283,67 @@
     "ingredients": [
       {
         "name": "Fabes de la granja secas",
+        "ingredientId": "alubia-grande",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Chorizo asturiano",
+        "ingredientId": "chorizo",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Morcilla asturiana",
+        "ingredientId": "morcilla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Panceta",
+        "ingredientId": "panceta",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Azafrán en hebras",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -7971,56 +8536,67 @@
     "ingredients": [
       {
         "name": "Alubias blancas secas",
+        "ingredientId": "alubias",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Costilla de cerdo",
+        "ingredientId": "costilla",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -8159,17 +8735,20 @@
       {
         "text": "Bajar el fuego a medio y sofreír la cebolla, el ajo, la zanahoria y el pimiento verde en la misma olla.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce}} y remover hasta que el sofrito huela a especias tostadas.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocinar hasta que pierda el exceso de agua y se integre con el sofrito.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las alubias escurridas, la costilla de cerdo dorada y {{Laurel}}.",
@@ -8212,7 +8791,11 @@
     "extraProteins": [
       "cerdo"
     ],
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_042",
@@ -8238,51 +8821,61 @@
     "ingredients": [
       {
         "name": "Lentejas pardinas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Castañas cocidas",
+        "ingredientId": "castanas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Tomillo fresco",
+        "ingredientId": "tomillo",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Caldo de verduras",
+        "ingredientId": "caldo-de-verduras",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -8434,7 +9027,11 @@
       "frutos_secos"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "caldo"
+    ]
   },
   {
     "id": "legumbres_043",
@@ -8463,46 +9060,55 @@
     "ingredients": [
       {
         "name": "Alubias blancas cocidas de bote",
+        "ingredientId": "alubias",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Atún en aceite de oliva",
+        "ingredientId": "atun",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo asado",
+        "ingredientId": "pimiento-rojo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceitunas negras",
+        "ingredientId": "aceitunas-negras",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Vinagre de jerez",
+        "ingredientId": "vinagre-de-jerez",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -8589,7 +9195,8 @@
       "encurtido"
     ],
     "tecnica": "crudo",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_044",
@@ -8618,56 +9225,67 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Calamar limpio",
+        "ingredientId": "calamar",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -8758,37 +9376,44 @@
       {
         "text": "Picar {{Cebolla}} y {{Pimiento verde}} en trozos pequeños.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento verde hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce|pizca}} y remover 30 segundos para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que pierda el agua, removiendo.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Verter {{Vino blanco}} y dejar reducir hasta que se evapore el alcohol.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las anillas de calamar y saltear a fuego fuerte hasta que estén opacas.",
@@ -8819,7 +9444,11 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_045",
@@ -8847,36 +9476,43 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Remolacha cocida",
+        "ingredientId": "remolacha",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       }
@@ -8927,7 +9563,8 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Remolacha cocida}} en dados.",
@@ -8977,7 +9614,8 @@
     ],
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_046",
@@ -9008,41 +9646,49 @@
     "ingredients": [
       {
         "name": "Alubias blancas cocidas",
+        "ingredientId": "alubias",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Bacalao desalado",
+        "ingredientId": "bacalao",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Espinacas",
+        "ingredientId": "espinacas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       }
@@ -9121,42 +9767,50 @@
       {
         "text": "Picar {{Cebolla}} en dados finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Laminar {{Ajo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo laminado y sofreír hasta que empiece a dorarse, sin que se queme.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego e incorporar {{Pimentón dulce|pizca}}; remover rápidamente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y volver a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír el tomate hasta que reduzca y espese.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Alubias blancas cocidas}} y cubrir con agua hasta superarlas ligeramente.",
@@ -9194,7 +9848,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_047",
@@ -9220,41 +9878,49 @@
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 18,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       }
@@ -9350,22 +10016,26 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo a fuego medio hasta que estén transparentes.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír a fuego medio hasta que empiece a ablandarse.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Comino molido|pizca}} y sofreír hasta que el tomate pierda el agua.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las lentejas escurridas y los dados de calabaza y remover para que se impregnen del sofrito.",
@@ -9393,7 +10063,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_048",
@@ -9421,46 +10095,55 @@
     "ingredients": [
       {
         "name": "Alubias pintas",
+        "ingredientId": "alubias",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Costillas de cerdo",
+        "ingredientId": "costilla",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Hoja de laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       }
@@ -9581,17 +10264,20 @@
       {
         "text": "Sofreír la cebolla picada, el pimiento verde picado y el ajo picado en el mismo aceite a fuego medio hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego y añadir {{Pimentón dulce|pizca}}; remover para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Volver la olla al fuego y añadir {{Tomate triturado}}; sofreír a fuego medio hasta que reduzca ligeramente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las alubias pintas escurridas, las costillas reservadas y {{Hoja de laurel}}; remover para integrar.",
@@ -9626,7 +10312,11 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_049",
@@ -9658,36 +10348,43 @@
     "ingredients": [
       {
         "name": "Lentejas cocidas",
+        "ingredientId": "lentejas",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Salmón ahumado",
+        "ingredientId": "salmon-ahumado",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Rúcula",
+        "ingredientId": "rucula",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Eneldo fresco",
+        "ingredientId": "eneldo",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Vinagre de manzana",
+        "ingredientId": "vinagre-de-manzana",
         "amount": 15,
         "unit": "ml"
       }
@@ -9779,7 +10476,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_050",
@@ -9804,26 +10502,31 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Pimentón picante",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Ajo en polvo",
+        "ingredientId": "ajo-polvo",
         "amount": 3,
         "unit": "g"
       }
@@ -9902,7 +10605,8 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_051",
@@ -9931,36 +10635,43 @@
     "ingredients": [
       {
         "name": "Judías verdes",
+        "ingredientId": "judia-verde",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -10035,7 +10746,8 @@
       {
         "text": "Picar {{Cebolla}} y {{Ajo}} finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Jamón serrano}} en taquitos pequeños.",
@@ -10060,7 +10772,8 @@
       {
         "text": "Sofreír la cebolla y el ajo picados a fuego medio hasta que estén blandos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el jamón serrano en taquitos y saltear hasta que suelte su aroma.",
@@ -10070,7 +10783,8 @@
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las judías verdes escurridas y {{Garbanzos cocidos}} y saltear todo junto a fuego medio-fuerte.",
@@ -10088,7 +10802,11 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_052",
@@ -10116,46 +10834,55 @@
     "ingredients": [
       {
         "name": "Alubias blancas",
+        "ingredientId": "alubias",
         "amount": 220,
         "unit": "g"
       },
       {
         "name": "Butifarra",
+        "ingredientId": "butifarra",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Costilla de cerdo",
+        "ingredientId": "costilla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Hoja de laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       }
@@ -10273,17 +11000,20 @@
       {
         "text": "Sofreír la cebolla picada, la zanahoria picada y el ajo picado en el mismo aceite a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Continuar sofriendo hasta que la verdura esté blanda, unos 6 min.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que se evapore el líquido, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las alubias escurridas, la costilla reservada y {{Hoja de laurel}} a la olla.",
@@ -10333,7 +11063,11 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_053",
@@ -10364,36 +11098,43 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Pulpo cocido",
+        "ingredientId": "pulpo",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -10464,7 +11205,8 @@
       {
         "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pulpo cocido}} en rodajas de un dedo de grosor.",
@@ -10474,12 +11216,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo picados a fuego medio hasta que estén transparentes.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la cazuela del fuego y añadir {{Pimentón dulce|pizca}}.",
@@ -10525,7 +11269,11 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_054",
@@ -10553,36 +11301,43 @@
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Morcilla de Burgos",
+        "ingredientId": "morcilla",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       }
@@ -10688,12 +11443,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y la zanahoria a fuego medio hasta que estén blandas.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego y añadir {{Pimentón dulce|pizca}}.",
@@ -10752,7 +11509,11 @@
       "fruta"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_055",
@@ -10780,46 +11541,55 @@
     "ingredients": [
       {
         "name": "Judías blancas",
+        "ingredientId": "judia-blanca",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Conejo troceado",
+        "ingredientId": "conejo",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Hoja de laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       }
@@ -10935,17 +11705,20 @@
       {
         "text": "Sofreír la cebolla picada, el pimiento picado y el ajo picado en el mismo aceite a fuego medio hasta que estén blandos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego, añadir {{Pimentón dulce|pizca}} y remover para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Volver la olla al fuego medio, añadir {{Tomate triturado}} y sofreír hasta que el tomate pierda el agua y se integre.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las judías escurridas, el conejo reservado y {{Hoja de laurel}} a la olla.",
@@ -10979,7 +11752,10 @@
       }
     ],
     "estrella": true,
-    "tecnica": "olla"
+    "tecnica": "olla",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_056",
@@ -11008,46 +11784,55 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Queso feta",
+        "ingredientId": "queso-feta",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomates cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla roja",
+        "ingredientId": "cebolla-morada",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Orégano seco",
+        "ingredientId": "oregano",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       }
@@ -11170,7 +11955,8 @@
       "lacteo"
     ],
     "tecnica": "horno",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_057",
@@ -11182,6 +11968,10 @@
     ],
     "type": "completo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "time": 40,
     "difficulty": "facil",
     "season": "all",
@@ -11196,41 +11986,49 @@
     "ingredients": [
       {
         "name": "Alubias negras cocidas",
+        "ingredientId": "alubias",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Arroz blanco",
+        "ingredientId": "arroz",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Hoja de laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "ud"
       }
@@ -11309,40 +12107,43 @@
         "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
         "minutes": 3,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Añadir {{Arroz blanco}} y cocer a fuego medio hasta que esté tierno.",
         "minutes": 18,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Picar {{Cebolla}} en dados pequeños.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Picar {{Pimiento verde}} en dados pequeños.",
         "minutes": 2,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "part": "principal",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Escurrir el arroz cocido y reservar.",
         "minutes": 1,
         "kind": "activo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -11354,13 +12155,15 @@
         "text": "Sofreír la cebolla picada y el pimiento picado a fuego medio hasta que estén blandos.",
         "minutes": 6,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y {{Comino molido|pizca}} y sofreír hasta que suelten aroma.",
         "minutes": 1,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Alubias negras cocidas}} y {{Hoja de laurel}} a la sartén.",
@@ -11420,46 +12223,55 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Espinacas",
+        "ingredientId": "espinacas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Leche de coco",
+        "ingredientId": "leche-coco",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Jengibre fresco",
+        "ingredientId": "jengibre",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Curry en polvo",
+        "ingredientId": "curry",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "ml"
       }
@@ -11545,7 +12357,8 @@
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y el jengibre rallado y sofreír hasta que suelten aroma.",
@@ -11560,7 +12373,8 @@
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que reduzca ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Garbanzos cocidos}} y {{Leche de coco}} y remover hasta mezclar bien.",
@@ -11595,7 +12409,11 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "cocina": "india",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_059",
@@ -11623,41 +12441,49 @@
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Salchichas frescas",
+        "ingredientId": "salchicha",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 6,
         "unit": "g"
       }
@@ -11765,17 +12591,20 @@
       {
         "text": "Sofreír la cebolla, la zanahoria y el ajo en el mismo aceite a fuego medio hasta que estén blandos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego y añadir {{Pimentón dulce|pizca}} removiendo rápido para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca y se integre.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir las lentejas escurridas y cubrir con agua hasta superarlas unos 3 cm.",
@@ -11806,7 +12635,11 @@
     "estrella": true,
     "kidFavourite": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_060",
@@ -11834,36 +12667,43 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 2,
         "unit": "g"
       }
@@ -11981,7 +12821,8 @@
     "montaje": true,
     "tecnica": "crudo",
     "cocina": "arabe",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte"
   },
   {
     "id": "legumbres_061",
@@ -12010,41 +12851,49 @@
     "ingredients": [
       {
         "name": "Alubias blancas cocidas",
+        "ingredientId": "alubias",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Setas variadas",
+        "ingredientId": "setas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Romero fresco",
+        "ingredientId": "romero",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Vino blanco",
+        "ingredientId": "vino-blanco",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Nata para cocinar",
+        "ingredientId": "nata",
         "amount": 40,
         "unit": "ml"
       }
@@ -12141,7 +12990,8 @@
       {
         "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y las setas troceadas y saltear a fuego fuerte hasta que las setas se doren.",
@@ -12185,7 +13035,11 @@
       "seta"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_062",
@@ -12216,41 +13070,49 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       }
@@ -12293,7 +13155,8 @@
         "text": "Picar {{Cebolla}} y {{Ajo}} en dados finos.",
         "minutes": 3,
         "kind": "prep",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Chorizo}} en rodajas de unos 5 mm.",
@@ -12311,7 +13174,8 @@
         "text": "Sofreír la cebolla y el ajo picados hasta que estén blandos.",
         "minutes": 5,
         "kind": "activo",
-        "part": "principal"
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el chorizo en rodajas y saltear hasta que suelte su grasa y aroma.",
@@ -12358,7 +13222,11 @@
     ],
     "estrella": true,
     "tecnica": "sarten",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_063",
@@ -12390,56 +13258,67 @@
     "ingredients": [
       {
         "name": "Garbanzos",
+        "ingredientId": "garbanzos",
         "amount": 500,
         "unit": "g"
       },
       {
         "name": "Morcillo de ternera",
+        "ingredientId": "morcillo-de-ternera",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Pollo",
+        "ingredientId": "pollo",
         "amount": 240,
         "unit": "g"
       },
       {
         "name": "Tocino",
+        "ingredientId": "tocino",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Hueso de jamón",
+        "ingredientId": "hueso-de-jamon",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Morcilla",
+        "ingredientId": "morcilla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Repollo",
+        "ingredientId": "repollo",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Fideos finos",
+        "ingredientId": "fideos",
         "amount": 80,
         "unit": "g"
       }
@@ -12516,102 +13395,122 @@
       {
         "text": "Cubrir {{Garbanzos}} con agua fría abundante y dejar en remojo un mínimo de 12 horas.",
         "minutes": 720,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y {{Zanahoria}} y cortar en trozos grandes.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Repollo}} en cuartos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Escurrir los garbanzos remojados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar {{Morcillo de ternera}}, {{Pollo}}, {{Tocino}} y {{Hueso de jamón}} en una olla grande y cubrir con agua fría abundante.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición a fuego fuerte.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Espumar la superficie con una espumadera hasta que el caldo salga limpio.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir los garbanzos escurridos y la zanahoria troceada, bajar a fuego suave y tapar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer tapado a fuego suave durante 60 min.",
         "minutes": 60,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Incorporar la patata troceada, el repollo y {{Chorizo}} entero; tapar y subir ligeramente el fuego.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer tapado a fuego suave hasta que la patata esté tierna, unos 20 min.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Morcilla}} entera y cocer tapado 10 min más para que no se deshaga.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar la morcilla, el chorizo, el morcillo, el pollo y el tocino de la olla y reservar en una fuente tapada.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Retirar los garbanzos, la patata, la zanahoria y el repollo con una espumadera y reservar en una fuente aparte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Colar el caldo sobrante y llevar a ebullición en un cazo a fuego fuerte.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Cocer {{Fideos finos}} en el caldo hirviendo hasta que estén tiernos, unos 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir la sopa con los fideos como primer vuelco en soperas o platos hondos.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir como segundo vuelco los garbanzos con la zanahoria, la patata y el repollo bien escurridos en una fuente.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Trinchar el morcillo, el pollo y el tocino en porciones y cortar el chorizo y la morcilla en rodajas.",
         "minutes": 4,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir las carnes y embutidos como tercer vuelco en una fuente aparte.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -12620,7 +13519,8 @@
     ],
     "occasion": "especial",
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_064",
@@ -12633,6 +13533,10 @@
     ],
     "type": "completo",
     "mainBase": "pasta",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "caldo"
+    ],
     "time": 20,
     "difficulty": "facil",
     "season": "invierno",
@@ -12649,16 +13553,19 @@
     "ingredients": [
       {
         "name": "Caldo de cocido",
+        "ingredientId": "caldo-de-carne",
         "amount": 600,
         "unit": "ml"
       },
       {
         "name": "Fideos finos",
+        "ingredientId": "fideos",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Perejil fresco",
+        "ingredientId": "perejil",
         "amount": 3,
         "unit": "g"
       }
@@ -12696,7 +13603,8 @@
       {
         "text": "Colar {{Caldo de cocido}} sobre la olla para retirar restos de verdura o grasa suelta.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "caldo"
       },
       {
         "text": "Llevar el caldo a ebullición a fuego fuerte.",
@@ -12761,41 +13669,49 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Carne de cocido variada",
+        "ingredientId": "carne-de-cocido",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -12887,37 +13803,44 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén amplia a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el pimiento verde hasta que estén blandos.",
         "minutes": 6,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo y sofreír hasta que desprenda aroma.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la sartén del fuego y añadir {{Pimentón dulce|pizca}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Remover el pimentón con la verdura hasta que se integre.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Volver la sartén al fuego y añadir {{Tomate triturado}}.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír el tomate a fuego medio hasta que pierda el agua y se oscurezca.",
         "minutes": 2,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la carne desmenuzada y saltear a fuego fuerte hasta que se dore por los bordes.",
@@ -12937,7 +13860,11 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "legumbres_066",
@@ -12966,56 +13893,67 @@
     "ingredients": [
       {
         "name": "Garbanzos",
+        "ingredientId": "garbanzos",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Pollo troceado",
+        "ingredientId": "pollo",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Tocino",
+        "ingredientId": "tocino",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Judías verdes",
+        "ingredientId": "judia-verde",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Hierbabuena fresca",
+        "ingredientId": "menta",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -13190,7 +14128,8 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "mainBase": "legumbre"
+    "mainBase": "legumbre",
+    "baseMode": "dentro"
   },
   {
     "id": "legumbres_067",
@@ -13202,6 +14141,7 @@
     ],
     "type": "completo",
     "mainBase": "quinoa",
+    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "time": 35,
     "difficulty": "facil",
@@ -13219,51 +14159,61 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Quinoa",
+        "ingredientId": "quinoa",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Rúcula",
+        "ingredientId": "rucula",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Zumo de limón",
+        "ingredientId": "limon",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Pimentón ahumado",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       }
@@ -13336,13 +14286,15 @@
         "text": "Llevar a ebullición agua con sal en un cazo y cocer {{Quinoa}} según el tiempo del envase.",
         "minutes": 15,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "base": "quinoa"
       },
       {
         "text": "Escurrir la quinoa y dejar templar.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "base": "quinoa"
       },
       {
         "text": "Mezclar {{Tahini}}, {{Zumo de limón}} y el resto del aceite de oliva con 2 cucharadas de agua hasta que el aliño esté fluido.",
@@ -13410,31 +14362,37 @@
     "ingredients": [
       {
         "name": "Alubias blancas cocidas",
+        "ingredientId": "alubias",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Jamón serrano en tacos",
+        "ingredientId": "jamon",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -13457,6 +14415,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
@@ -13529,36 +14491,43 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Acelgas",
+        "ingredientId": "acelga",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       }
@@ -13585,6 +14554,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos finos.",
@@ -13614,7 +14587,8 @@
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y la patata cortadas y sofreír removiendo a fuego medio.",
@@ -13679,31 +14653,37 @@
     "ingredients": [
       {
         "name": "Judías blancas cocidas",
+        "ingredientId": "judia-blanca",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -13726,11 +14706,16 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "arroz",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Cortar {{Cebolla}} en dados finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Chorizo}} en rodajas de medio centímetro.",
@@ -13745,7 +14730,8 @@
       {
         "text": "Sofreír la cebolla en la cazuela hasta que esté transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el chorizo y sofreír hasta que suelte la grasa.",
@@ -13812,36 +14798,43 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Patatas",
+        "ingredientId": "patata",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -13864,6 +14857,10 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "patatas",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar {{Patatas}} y cortar en trozos de bocado.",
@@ -13873,32 +14870,38 @@
       {
         "text": "Pelar y picar {{Cebolla}} en trozos finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Pelar y picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el ajo picado hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Pimentón dulce|pizca}} y remover 30 segundos hasta que aromatice.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír hasta que reduzca y pierda el agua, unos 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar las patatas troceadas y remover para que se impregnen del sofrito.",
@@ -13953,31 +14956,37 @@
     "ingredients": [
       {
         "name": "Alubias blancas cocidas",
+        "ingredientId": "alubias",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Costilla de cerdo",
+        "ingredientId": "costilla",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -14005,6 +15014,10 @@
     ],
     "tecnica": "olla",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
@@ -14102,31 +15115,37 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 0.5,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -14148,64 +15167,83 @@
     "estrella": true,
     "tecnica": "olla",
     "mainBase": "arroz",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Añadir {{Arroz}} cuando rompa a hervir y cocer a fuego medio.",
         "minutes": 16,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Picar {{Cebolla}} en dados finos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pimiento rojo}} en dados.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Calabacín}} en dados.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento rojo y el calabacín y saltear hasta que estén tiernos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Garbanzos cocidos}} y saltear removiendo hasta que estén calientes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir el arroz cocido y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion",
+        "base": "arroz"
       },
       {
         "text": "Mezclar el arroz escurrido con los garbanzos y las verduras y remover.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ]
   },
@@ -14237,46 +15275,55 @@
     "ingredients": [
       {
         "name": "Frijoles negros cocidos",
+        "ingredientId": "judias-pintas",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Bacon en lonchas",
+        "ingredientId": "bacon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Caldo de carne",
+        "ingredientId": "caldo-de-carne",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -14303,6 +15350,11 @@
     "tecnica": "olla",
     "cocina": "mexicana",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito",
+      "caldo"
+    ],
     "stepsRich": [
       {
         "text": "Cortar {{Chorizo}} en dados de 1 cm.",
@@ -14397,51 +15449,61 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Leche de coco",
+        "ingredientId": "leche-coco",
         "amount": 250,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Jengibre fresco",
+        "ingredientId": "jengibre",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Curry en polvo",
+        "ingredientId": "curry",
         "amount": 12,
         "unit": "g"
       },
       {
         "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -14470,6 +15532,10 @@
     "cocina": "asiatica",
     "llevaSalsa": true,
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "stepsRich": [
       {
         "text": "Pelar y picar {{Cebolla}} en trozos finos.",
@@ -14549,6 +15615,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mainIngredients": [
       "verdura"
     ],
@@ -14578,51 +15648,61 @@
     "ingredients": [
       {
         "name": "Alubias blancas cocidas",
+        "ingredientId": "alubias",
         "amount": 320,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -14659,42 +15739,50 @@
       {
         "text": "Pelar {{Cebolla}} y {{Zanahoria}}, picar ambas en dados pequeños.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Limpiar {{Puerro}} y cortar en medias lunas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento verde}} en dados del mismo tamaño que la zanahoria.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el puerro hasta que estén transparentes.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y el pimiento verde y sofreír hasta que estén ligeramente tiernos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Retirar la olla del fuego, añadir {{Pimentón}} y remover deprisa para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que pierda el agua.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar {{Alubias blancas cocidas}}, {{Laurel}} y {{Sal|gusto}}.",
@@ -14724,6 +15812,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "extraProteins": [
       "cerdo"
     ],
@@ -14759,56 +15851,67 @@
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -14878,7 +15981,8 @@
       {
         "text": "Sofreír la cebolla y el ajo en esa misma grasa a fuego medio hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el pimiento rojo y la zanahoria y sofreír hasta que estén ligeramente tiernos.",
@@ -14928,6 +16032,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mainIngredients": [
       "verdura"
     ],
@@ -14957,56 +16065,67 @@
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Judías verdes",
+        "ingredientId": "judia-verde",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 70,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -15061,12 +16180,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír 4 min a fuego medio.",
@@ -15126,6 +16247,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mainIngredients": [
       "verdura"
     ],
@@ -15155,51 +16280,61 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 350,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -15246,12 +16381,14 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla ancha a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el ajo hasta que estén transparentes.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y el pimiento rojo y sofreír hasta que estén tiernos.",
@@ -15266,7 +16403,8 @@
       {
         "text": "Incorporar {{Tomate triturado}} y cocer a fuego medio hasta que se concentre.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir los garbanzos escurridos y {{Laurel}} con un vaso de agua.",
@@ -15301,6 +16439,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "extraProteins": [
       "ternera",
       "cerdo"
@@ -15336,56 +16478,67 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 320,
         "unit": "g"
       },
       {
         "name": "Carne de ternera para guisar",
+        "ingredientId": "carne-de-ternera-para-guisar",
         "amount": 180,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 8,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 4,
         "unit": "g"
       }
@@ -15462,7 +16615,8 @@
       {
         "text": "Añadir la cebolla y el ajo y sofreír a fuego medio hasta que estén transparentes.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir la zanahoria y sofreír hasta que empiece a estar tierna.",
@@ -15472,12 +16626,14 @@
       {
         "text": "Retirar la olla del fuego y añadir {{Pimentón|pizca}}; remover deprisa para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y cocer a fuego medio hasta que se concentre y oscurezca.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Incorporar la ternera reservada y {{Laurel}} a la olla.",
@@ -15517,6 +16673,10 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mainIngredients": [
       "verdura"
     ],
@@ -15546,51 +16706,61 @@
     "ingredients": [
       {
         "name": "Judías pintas",
+        "ingredientId": "judias-pintas",
         "amount": 330,
         "unit": "g"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Laurel",
+        "ingredientId": "laurel",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 3,
         "unit": "g"
       }
@@ -15696,6 +16866,7 @@
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -15726,36 +16897,43 @@
     "ingredients": [
       {
         "name": "Alubias blancas cocidas",
+        "ingredientId": "alubias",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolleta",
+        "ingredientId": "cebolleta",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Sal",
+        "ingredientId": "sal",
         "amount": 2,
         "unit": "g"
       }
@@ -15776,12 +16954,14 @@
       {
         "text": "Escurrir {{Alubias blancas cocidas}} en un colador y enjuagarlas bajo el grifo para eliminar el almidón.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "legumbre"
       },
       {
         "text": "Dejar escurrir las alubias blancas cocidas en el colador hasta que no goteen.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "legumbre"
       },
       {
         "text": "Cortar {{Tomate}} en dados pequeños, retirando la parte más acuosa de las semillas.",
@@ -15823,6 +17003,221 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ]
+  },
+  {
+    "id": "legumbres_083",
+    "name": "Dal makhani",
+    "category": "legumbres",
+    "cocina": "india",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "principal",
+    "estrella": true,
+    "time": 60,
+    "difficulty": "facil",
+    "season": "invierno",
+    "kcal": 420,
+    "protein_g": 18,
+    "carbs_g": 48,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "ingredientId": "lentejas",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Alubias rojas",
+        "ingredientId": "alubias-rojas",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "ingredientId": "mantequilla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Nata líquida",
+        "ingredientId": "nata",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "ingredientId": "jengibre",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "ingredientId": "curry",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "ingredientId": "comino",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
+        "amount": 15,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner las lentejas y las alubias rojas a remojo la noche anterior.",
+      "Cocerlas en agua abundante 40 min hasta que estén muy tiernas; reservar el caldo.",
+      "Derretir la mantequilla en una cazuela y pochar la cebolla picada 10 min.",
+      "Añadir el jengibre y el ajo rallados y sofreír 2 min.",
+      "Incorporar el comino y el curry en polvo y tostar 1 min.",
+      "Añadir el tomate triturado y cocer 10 min hasta que se concentre.",
+      "Volcar las legumbres escurridas y un poco de su caldo.",
+      "Cocer a fuego muy suave 20 min, machacando parte de las lentejas contra la cazuela para espesar.",
+      "Añadir la nata líquida y cocer 5 min más.",
+      "Rectificar de sal y servir con cilantro fresco picado."
+    ],
+    "description": "Lentejas negras guisadas muy lentamente con tomate, mantequilla y nata hasta quedar sedosas. El guiso vegetariano más goloso de la India.",
+    "basesAparte": [
+      "sofrito"
+    ]
+  },
+  {
+    "id": "legumbres_084",
+    "name": "Chana masala",
+    "category": "legumbres",
+    "cocina": "india",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "principal",
+    "estrella": true,
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 380,
+    "protein_g": 16,
+    "carbs_g": 46,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "ingredientId": "jengibre",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "ingredientId": "curry",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "ingredientId": "comino",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Cúrcuma",
+        "ingredientId": "curcuma",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "ingredientId": "cilantro",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "ingredientId": "limon",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pochar la cebolla picada muy fina en aceite de oliva 12 min, hasta que empiece a dorarse.",
+      "Añadir el jengibre y el ajo rallados y sofreír 2 min.",
+      "Incorporar el comino, la cúrcuma y el curry en polvo y tostar 1 min sin dejar de remover.",
+      "Añadir el tomate triturado y cocer 10 min a fuego medio hasta que se separe el aceite.",
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Incorporar los garbanzos y un vaso de agua, y cocer 12 min a fuego suave.",
+      "Machacar un puñado de garbanzos contra la cazuela para espesar la salsa.",
+      "Rectificar de sal y exprimir el limón por encima.",
+      "Servir con abundante cilantro fresco picado."
+    ],
+    "description": "Garbanzos guisados en salsa de tomate y cebolla con especias tostadas y un golpe de limón al final. Vegano, de bote y listo en media hora.",
+    "basesAparte": [
+      "sofrito"
     ]
   }
 ]

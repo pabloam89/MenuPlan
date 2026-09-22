@@ -47,6 +47,10 @@ const MAP = {
   BookOpen: "BookOpenOutline24",
   BookOpenCheck: "BookOpen3Outline24",
   Bot: "FaceRobotOutline24",
+  // La olla con vapor es el "hay algo al fuego AHORA" del modo cocina. Va
+  // aparte de CookingPot (olla en reposo) y de ChefHat, que ya significan
+  // otras cosas en la app: nivel de cocina y plato dado por cocinado.
+  BoilingPot: "BoilingPotOutline24",
   Boxes: "StorageShelfOutline24",
   BriefcaseBusiness: "SuitcaseOutline24",
   Calendar: "CalendarOutline24",
@@ -121,6 +125,11 @@ const MAP = {
   Menu: "MenuOutline24",
   MessageCircle: "MessageOutline24",
   MessageSquarePlus: "ChatBubblePlusOutline24",
+  // El botón de dictar. "microphone" a secas y no las variantes 2-5, que son
+  // micros de estudio y de podcast: aquí se habla de dictar una frase, no de
+  // grabar.
+  Mic: "MicrophoneOutline24",
+  MicOff: "MicrophoneSlashOutline24",
   Microwave: "MicrowaveOutline24",
   Milk: "MilkContainerOutline24",
   // Nucleo no trae "milk-slash": el "sin" lo dice la etiqueta que acompaña.
@@ -133,6 +142,7 @@ const MAP = {
   NotebookPen: "NotebookOutline24",
   Nut: "PeanutOutline24",
   Package: "BoxOutline24",
+  Pause: "MediaPauseOutline24",
   Pencil: "PencilOutline24",
   PersonStanding: "PersonWalkingOutline24",
   Pizza: "PizzaOutline24",
@@ -162,6 +172,11 @@ const MAP = {
   SlidersHorizontal: "Sliders2Outline24",
   Snowflake: "SnowflakeOutline24",
   Soup: "SoupOutline24",
+  // El rodillo es el icono de los platos a medio hacer: lo que define a esa
+  // pata no es el horno ni la sarten, sino el trabajo de dar forma —formar,
+  // montar, cerrar— que se hace el dia de la tanda. Una olla habria dicho
+  // "cocinar", que es justo lo que ese dia NO se hace.
+  RollingPin: "RollingPinOutline24",
   Sparkles: "SparkleOutline24",
   Sprout: "SeedlingOutline24",
   Star: "StarOutline24",

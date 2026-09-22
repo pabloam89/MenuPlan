@@ -4,6 +4,7 @@
  */
 
 import { normalizeName, guessShoppingAisle, isPerishableAisle } from "./ingredientCategories.js";
+import productoBuscadoJson from "../data/productoBuscado.json";
 
 /** @typedef {{ id: string, name: string, price?: number|null, unitSize?: number|null, unitFormat?: string|null, section?: string, category?: string, subcategory?: string }} StoreProduct */
 
@@ -24,12 +25,28 @@ export const MERCADONA_SEARCH_ALIASES = {
   "alubias de bote": ["alubia cocida blanca", "alubia cocida"],
   "pan de hamburguesa": ["pan de burger", "pan burger"],
   huevo: ["huevos"],
+  // Mercadona lo escribe con b y el catálogo con v. Es la misma hortaliza, y
+  // un alias es más honrado que enseñarle al emparejador que la b y la v son
+  // intercambiables, porque no lo son: «baca» y «vaca» tampoco.
+  endivia: ["endibia", "endibias"],
   tirabuzones: ["fusilli", "helices", "espiral"],
   nabo: ["nabo"],
 };
 
+// «preparado de» lleva un hueco a propósito: Mercadona llama «Preparado de
+// carne picada cerdo» a la carne picada CRUDA, que es exactamente lo que pide
+// la receta, y no un plato cocinado. Sin la excepción, las siete referencias
+// de picada del catálogo quedaban fuera y «Carne picada de cerdo» acababa en
+// «Tocino de cerdo» al 0,57 — el mismo producto que ya se llevaba las manitas
+// y el tocino, o sea un imán de tres ingredientes. Los otros cinco
+// «Preparado de …» del súper (paella, verdura para cocido, coco, medallones
+// marinados) sí son platos y siguen fuera.
 const PREPARED_DISH_RE =
-  /arroz de|pasta con|paella con|guisado|estofado|lasaña|lasana|croqueta|empanadilla|plato preparado|revuelto|al horno|con setas|con verduras|frito con|preparado de|cocinado|ultracongelado.*hacendado.*arroz/i;
+  /arroz de|pasta con|paella con|guisado|estofado|lasaña|lasana|croqueta|empanadilla|plato preparado|revuelto|al horno|con setas|con verduras|frito con|preparado de (?!carne picada)|cocinado|ultracongelado.*hacendado.*arroz/i;
+
+/** Comida para bebés: potitos, papillas, leches de continuación y bolsitas. */
+const ES_INFANTIL =
+  /papilla|potito|tarrito|nutriben|blevit|almiron|puleva peques|hero baby|hero solo|bebe|infantil|junior|\+\s*\d+\s*mes|continuacion|crecimiento/i;
 
 export const MATCH_MIN = 0.4;
 export const MATCH_HIGH = 0.7;
@@ -53,58 +70,101 @@ function cachedTokens(s) {
   return t;
 }
 
-/** Cheap bounded edit distance; returns max+1 as soon as it cannot beat `max`. */
-function levenshteinAtMost(a, b, max) {
-  const m = a.length;
-  const n = b.length;
-  if (Math.abs(m - n) > max) return max + 1;
-  let prev = new Array(n + 1);
-  let curr = new Array(n + 1);
-  for (let j = 0; j <= n; j++) prev[j] = j;
-  for (let i = 1; i <= m; i++) {
-    curr[0] = i;
-    let rowMin = curr[0];
-    const ca = a.charCodeAt(i - 1);
-    for (let j = 1; j <= n; j++) {
-      const cost = ca === b.charCodeAt(j - 1) ? 0 : 1;
-      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
-      if (curr[j] < rowMin) rowMin = curr[j];
-    }
-    if (rowMin > max) return max + 1;
-    const tmp = prev;
-    prev = curr;
-    curr = tmp;
-  }
-  return prev[n];
-}
-
-function tokensNear(a, b) {
+/**
+ * Dos tokens son el mismo alimento cuando lo único que cambia es el número:
+ * «gamba» y «gambas», «hélice» y «hélices», «fideo» y «fideos». El plural
+ * AÑADE letras al final y no toca la raíz.
+ *
+ * Lo que aquí había antes era distancia de edición, y la distancia de edición
+ * no sabe distinguir eso de una palabra distinta que se le parece:
+ *
+ *   gamba / gambas      1 edición   el mismo marisco
+ *   hueso / huevo       1 edición   ni siquiera la misma parte del animal
+ *   fresca / fresas     1 edición   un adjetivo y una fruta
+ *   morcilla / morcillo 1 edición   un embutido y un corte de ternera
+ *   granja / granola    2 ediciones nada que ver
+ *
+ * Los cuatro últimos estaban pasando, y salían en la lista de la compra. El
+ * criterio morfológico —solo sufijo, raíz intacta— acepta el primero y rechaza
+ * los otros cuatro sin necesidad de excepciones caso a caso.
+ */
+const PLURALES = ["s", "es"];
+function mismoLema(a, b) {
   if (a === b) return true;
-  if (a.charCodeAt(0) !== b.charCodeAt(0)) return false;
-  const maxLen = Math.max(a.length, b.length);
-  const lenDiff = Math.abs(a.length - b.length);
-  if (maxLen < 4) return false;
-  if (maxLen < 7) return lenDiff === 0 && levenshteinAtMost(a, b, 1) <= 1;
-  if (lenDiff > 1) return false;
-  return levenshteinAtMost(a, b, 2) <= 2;
+  const [corto, largo] = a.length <= b.length ? [a, b] : [b, a];
+  if (corto.length < 4) return false;
+  if (!largo.startsWith(corto)) return false;
+  return PLURALES.includes(largo.slice(corto.length));
 }
 
+/**
+ * Concordancia: la misma raíz con otro género o número —«ibérica»/«ibérico»,
+ * «desalado»/«desaladas»—. En castellano el adjetivo concuerda con su nombre,
+ * así que la misma etiqueta cambia de terminación según a qué acompañe.
+ *
+ * El problema es que «morcilla»/«morcillo» es EXACTAMENTE el mismo cambio y
+ * son dos alimentos distintos. No se puede distinguir mirando la palabra. Sí
+ * se puede mirando qué más casa: por eso la concordancia SUMA pero no sirve
+ * de núcleo. «Presa ibérica» vive porque además casa «presa»; «Morcilla» se
+ * queda sin nada, que es lo correcto.
+ */
+const DESINENCIAS = /(?:os|as|es|o|a|s)$/;
+function concuerda(a, b) {
+  const ra = a.replace(DESINENCIAS, "");
+  return ra.length >= 5 && ra === b.replace(DESINENCIAS, "");
+}
+
+/**
+ * Palabras que describen el alimento pero no lo nombran: dicen CÓMO viene, no
+ * QUÉ es. No pueden ser lo único que sostenga una coincidencia, porque si lo
+ * son el emparejador produce cosas como estas, todas medidas en el catálogo:
+ *
+ *   Atún fresco, Chile fresco, Menta fresca, Salmón fresco  → Butifarra fresca
+ *   Filetes de ternera, Filetes de pez espada               → Filetes de dorada
+ *   Carne picada de ternera, Carne para mechar              → Botifarrón de carne
+ *
+ * Seis ingredientes distintos apuntando a la misma butifarra: la palabra que
+ * casaba era siempre el adjetivo.
+ */
+const MODIFICADORES = new Set([
+  "fresco", "fresca", "frescos", "frescas",
+  "congelado", "congelada", "congelados", "congeladas", "ultracongelado",
+  "cocido", "cocida", "cocidos", "cocidas", "crudo", "cruda",
+  "picado", "picada", "rallado", "rallada", "troceado", "troceada",
+  "molido", "molida", "laminado", "laminada", "pelado", "pelada",
+  "entero", "entera", "enteros", "enteras", "natural", "naturales",
+  "grande", "grandes", "pequeno", "pequena", "pequenos", "pequenas",
+  "mediano", "mediana", "fino", "fina", "finos", "finas", "grueso", "gruesa",
+  "filete", "filetes", "loncha", "lonchas", "trozo", "trozos",
+  "tira", "tiras", "rodaja", "rodajas", "taco", "tacos", "dado", "dados",
+  "carne", "pieza", "piezas", "bandeja", "bolsa", "pack", "lata", "bote",
+  "seco", "seca", "secos", "secas", "dulce", "salado", "salada",
+  "light", "extra", "ecologico", "ecologica", "bio",
+  // Preposiciones y artículos: el filtro de longitud de `tokenize` deja pasar
+  // las de dos letras, y «Filetes de ternera» casaba «Filetes de dorada» con
+  // dos aciertos de tres —«filetes» y «de»— sin nombrar ni una vez al animal.
+  "de", "la", "el", "en", "al", "lo", "un",
+  "con", "sin", "del", "las", "los", "para", "una", "que", "por",
+]);
+
+/**
+ * @returns {{score: number, nucleo: number}} `nucleo` cuenta solo los aciertos
+ * sobre palabras que nombran al alimento, ignorando los modificadores.
+ */
 function tokenOverlap(a, b) {
-  if (a.size === 0 || b.size === 0) return 0;
+  if (a.size === 0 || b.size === 0) return { score: 0, nucleo: 0 };
   let hit = 0;
+  let nucleo = 0;
   for (const t of a) {
-    if (b.has(t)) {
-      hit++;
-      continue;
-    }
-    for (const bt of b) {
-      if (tokensNear(t, bt)) {
-        hit++;
-        break;
-      }
-    }
+    let lema = b.has(t);
+    if (!lema) for (const bt of b) if (mismoLema(t, bt)) { lema = true; break; }
+    let apoyo = false;
+    if (!lema) for (const bt of b) if (concuerda(t, bt)) { apoyo = true; break; }
+    if (!lema && !apoyo) continue;
+    hit++;
+    if (lema && !MODIFICADORES.has(t)) nucleo++;
   }
-  return (2 * hit) / (a.size + b.size);
+  return { score: (2 * hit) / (a.size + b.size), nucleo };
 }
 
 function containsWholePhrase(haystack, needle) {
@@ -120,7 +180,12 @@ export function scoreProductName(productName, probeId) {
   const norm = normalizeName(productName);
   const probeTokens = cachedTokens(probeId);
   if (!norm || probeTokens.size === 0) return 0;
-  let score = tokenOverlap(probeTokens, cachedTokens(norm));
+  const { score: solape, nucleo } = tokenOverlap(probeTokens, cachedTokens(norm));
+  // Si el ingrediente tiene alguna palabra que lo nombre, esa palabra tiene que
+  // aparecer. Cuando el nombre entero son modificadores no hay núcleo que pedir
+  // y se puntúa como antes.
+  const pideNucleo = [...probeTokens].some((t) => !MODIFICADORES.has(t));
+  let score = pideNucleo && nucleo === 0 ? 0 : solape;
   if (containsWholePhrase(norm, probeId) || containsWholePhrase(probeId, norm)) {
     score = Math.max(score, 0.75);
   }
@@ -184,10 +249,11 @@ export function shouldSkipProduct(ingredientId, product) {
   const name = normalizeName(product?.name ?? "");
   if (!name) return true;
 
-  if (
-    /merluza|pescadilla|salmon|atun|dorada|lubina|trucha|bacalao|lenguado/.test(ing) &&
-    /papilla|hero|potito|\+6|bebe|infantil|junior|8m|12m/.test(name)
-  ) {
+  // Alimentación infantil. La regla vieja solo protegía al pescado, y por eso
+  // «Cereales» y «Miel» acababan los dos en la misma bolsita de postre lácteo
+  // «+12 meses»: la palabra casaba de verdad, el producto no. Una receta para
+  // adultos nunca compra un potito, así que la puerta se cierra entera.
+  if (!/papilla|potito|tarrito|infantil|bebe/.test(ing) && ES_INFANTIL.test(name)) {
     return true;
   }
 
@@ -258,9 +324,54 @@ export function shouldSkipProduct(ingredientId, product) {
   return false;
 }
 
+/**
+ * Cómo llama el súper a cada ingrediente cuando no lo llama por su nombre.
+ * Decisiones tomadas a mano y con motivo escrito, en src/data/productoBuscado.json.
+ */
+export const PRODUCTO_BUSCADO = Object.fromEntries(
+  Object.entries(productoBuscadoJson)
+    .filter(([clave]) => !clave.startsWith("_"))
+    .map(([clave, v]) => [clave, v.buscar]),
+);
+
+/**
+ * Puntúa cada producto candidato con SU MEJOR término, y los devuelve ordenados.
+ *
+ * Aquí había un `seen` que descartaba el producto en cuanto un término lo había
+ * puntuado, así que mandaba el término que llegaba primero y no el que mejor
+ * casaba. Como el nombre del ingrediente siempre va el primero de la lista,
+ * ningún alias podía mejorar una puntuación ya puesta: «Solomillo de vacuno»
+ * se quedaba en el 0,67 que le daba «solomillo de ternera» y perdía el desempate
+ * por precio contra «Solomillos de pollo», que sacaba el mismo 0,67. Con el
+ * alias puntuando de verdad saca 0,95 y no hay desempate que valga.
+ */
+function coincidencias(ingredientId, terms, pool, minConfidence) {
+  const mejor = new Map();
+  for (const product of pool) {
+    if (shouldSkipProduct(ingredientId, product)) continue;
+    for (const term of terms) {
+      const confidence = scoreProductName(product.name, term);
+      if (confidence < minConfidence) continue;
+      const previo = mejor.get(product.id);
+      if (!previo || confidence > previo.confidence) {
+        mejor.set(product.id, { product, confidence, via: term });
+      }
+    }
+  }
+  return [...mejor.values()].sort(
+    (a, b) =>
+      b.confidence - a.confidence ||
+      (Number(a.product.price) || 999) - (Number(b.product.price) || 999),
+  );
+}
+
 function searchTermsForIngredient(ingredientName) {
   const id = normalizeName(ingredientName);
-  const terms = [ingredientName, ...(MERCADONA_SEARCH_ALIASES[id] ?? [])];
+  const terms = [
+    ingredientName,
+    ...(MERCADONA_SEARCH_ALIASES[id] ?? []),
+    ...(PRODUCTO_BUSCADO[id] ?? []),
+  ];
   return [...new Set(terms.map((t) => normalizeName(t)).filter(Boolean))];
 }
 
@@ -273,31 +384,8 @@ export function matchProductForIngredient(ingredientName, products = [], { minCo
   if (!ingredientId || !products.length) return null;
 
   const terms = searchTermsForIngredient(ingredientName);
-  const pool = candidateProducts(products, terms);
-  const hits = [];
-  const seen = new Set();
-
-  for (const term of terms) {
-    for (const product of pool) {
-      if (seen.has(product.id)) continue;
-      if (shouldSkipProduct(ingredientId, product)) continue;
-      const confidence = scoreProductName(product.name, term);
-      if (confidence >= minConfidence) {
-        seen.add(product.id);
-        hits.push({ product, confidence, via: term });
-      }
-    }
-  }
-
-  if (!hits.length) return null;
-
-  hits.sort(
-    (a, b) =>
-      b.confidence - a.confidence ||
-      (Number(a.product.price) || 999) - (Number(b.product.price) || 999),
-  );
-
-  return hits[0];
+  const hits = coincidencias(ingredientId, terms, candidateProducts(products, terms), minConfidence);
+  return hits[0] ?? null;
 }
 
 /**
@@ -309,27 +397,6 @@ export function matchProductsForIngredient(ingredientName, products = [], opts =
   const { limit = 3, minConfidence = MATCH_MIN } = opts;
   const ingredientId = normalizeName(ingredientName);
   const terms = searchTermsForIngredient(ingredientName);
-  const pool = candidateProducts(products, terms);
-  const hits = [];
-  const seen = new Set();
-
-  for (const term of terms) {
-    for (const product of pool) {
-      if (seen.has(product.id)) continue;
-      if (shouldSkipProduct(ingredientId, product)) continue;
-      const confidence = scoreProductName(product.name, term);
-      if (confidence >= minConfidence) {
-        seen.add(product.id);
-        hits.push({ product, confidence, via: term });
-      }
-    }
-  }
-
-  hits.sort(
-    (a, b) =>
-      b.confidence - a.confidence ||
-      (Number(a.product.price) || 999) - (Number(b.product.price) || 999),
-  );
-
+  const hits = coincidencias(ingredientId, terms, candidateProducts(products, terms), minConfidence);
   return hits.slice(0, limit);
 }

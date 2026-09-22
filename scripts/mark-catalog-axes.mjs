@@ -100,7 +100,11 @@ const NO_MONTAJE = [
 const CUCHARA_RE = /\b(guiso|estofad|potaje|cocido|caldo|fabada|marmitako|puchero|olla|sopa|crema|pisto|alubiada)/;
 const HORNO_RE = /\b(al horno|asad[oa]|gratinad|empanada|coca|lasan|pastel|tarta|calzone|pizza|papillote|horne)/;
 const PLANCHA_RE = /\b(a la plancha|plancha|parrilla|a la brasa|brasead|grill|entrecot|chuleton|tataki|brocheta|hamburgues|filete ruso|steak)/;
-const CRUDO_RE = /\b(tartar|tartare|ceviche|carpaccio|gazpacho|salmorejo|ajoblanco|sopa fria|crema fria|poke bowl)/;
+// `gravlax` y los curados/marinados en frio entran aqui porque NO pasan por
+// el fuego: sin ellos "Gravlax de salmon casero" caia en `sarten` por descarte
+// (sus 16 pasos son curado en nevera) y este script revertia el arreglo cada
+// vez que se re-ejecutaba. El escabeche NO entra: se cuece y luego se marina.
+const CRUDO_RE = /\b(tartar|tartare|ceviche|carpaccio|gazpacho|salmorejo|ajoblanco|sopa fria|crema fria|poke bowl|gravlax|curad[oa]s? en|marinad[oa] en frio)/;
 const FRITO_RE = /\b(frit|rebozad|empanad|bu[nñ]uel|croquet|tempura|nugget|varitas|torrezno|churro)/;
 
 function tecnicaDe(recipe) {

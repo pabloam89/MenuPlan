@@ -1,0 +1,258 @@
+{
+  "_": "Con qué término buscar cada ingrediente en CIQUAL. Nuestro catálogo está en español y CIQUAL publica en inglés, y eso no se adivina con similitud de cadenas: «Garbanzos» y «Chick pea» no comparten una letra en el sitio correcto. La traducción es un juicio, así que se registra aquí en vez de esconderse dentro del operador — mismo criterio que familiaLabels.json y stepPartsLabels.json. Los términos siguen la forma en que CIQUAL nombra: «alimento, matiz, estado» (Basil, fresh · Beef, rib, raw · Shrimp or prawn, raw). Un array significa «prueba con estos» y gana el de mejor parecido. Que un ingrediente esté aquí NO implica que vaya a tener ficha: solo que se ha buscado.",
+  "pan": [
+    "Bread, white",
+    "Bread, French"
+  ],
+  "parmesano": "Parmesan cheese",
+  "garbanzos": [
+    "Chick pea, cooked",
+    "Chickpea, cooked"
+  ],
+  "cebolla-morada": "Onion, raw",
+  "albahaca": "Basil, fresh",
+  "cilantro": "Coriander, fresh",
+  "gambas": [
+    "Shrimp or prawn, raw",
+    "Shrimp, raw"
+  ],
+  "cebolleta": [
+    "Spring onion",
+    "Onion, raw"
+  ],
+  "caldo-de-pescado": "Broth, stock or bouillon, fish",
+  "aceite-girasol": "Sunflower oil",
+  "bacalao": [
+    "Cod, salted",
+    "Cod, raw"
+  ],
+  "eneldo": "Dill, fresh",
+  "nueces": "Walnut, dried, husked",
+  "manzana": "Apple, pulp, raw",
+  "almendras": "Almond, peeled, unpeeled or blanched",
+  "naranja": "Orange, pulp, raw",
+  "caldo-de-pollo": [
+    "Chicken stock",
+    "Poultry stock",
+    "Stock, poultry"
+  ],
+  "queso-feta": "Feta cheese",
+  "pollo": [
+    "Chicken, meat, raw",
+    "Chicken, raw"
+  ],
+  "alubias": [
+    "Haricot bean, white, cooked",
+    "Bean, dried, cooked",
+    "White bean, cooked"
+  ],
+  "almejas": "Clam, raw",
+  "esparragos": [
+    "Asparagus, peeled, raw",
+    "Asparagus, boiled"
+  ],
+  "maiz": [
+    "Corn or maize grain",
+    "Sweetcorn, canned"
+  ],
+  "tortilla-de-trigo": [
+    "Wheat tortilla",
+    "Tortilla, wheat"
+  ],
+  "levadura-quimica": "Baking powder or raising agent",
+  "contramuslos-de-pollo": [
+    "Chicken, thigh, raw",
+    "Chicken, leg, raw"
+  ],
+  "curcuma": "Turmeric",
+  "pimiento-choricero": [
+    "Pepper, sweet, dried",
+    "Paprika"
+  ],
+  "pan-molde": "Bread, sliced",
+  "monkfish": "Anglerfish, raw",
+  "chalota": "Shallot, raw",
+  "frutos-rojos": [
+    "Red currant, raw",
+    "Black currant, raw"
+  ],
+  "avellanas": "Hazelnut, grilled",
+  "fresa": "Strawberry, raw",
+  "levadura": "Baker's yeast, dehydrated",
+  "arroz-arborio": "Rice, white, raw",
+  "salvia": "Sage, fresh",
+  "pera": "Pear, pulp, raw",
+  "queso-azul": [
+    "Blue cheese",
+    "Blue-veined cheese"
+  ],
+  "hojas-verdes": [
+    "Mixed salad leaves",
+    "Lettuce, raw"
+  ],
+  "masa-quebrada": [
+    "Pastry, shortcrust",
+    "Pastry, average food"
+  ],
+  "pasas": "Raisin",
+  "sepia": "Cuttlefish, raw",
+  "arroz-bomba": "Rice, white, raw",
+  "atun-fresco": "Tuna, raw",
+  "queso-crema": "Cream cheese, plain",
+  "muslo-de-pollo": [
+    "Chicken, thigh, raw",
+    "Chicken, leg, raw"
+  ],
+  "salsa-worcestershire": "Worcestershire sauce",
+  "filete-de-ternera": [
+    "Beef, steak, raw",
+    "Beef, raw"
+  ],
+  "pan-de-payes": [
+    "Bread, country",
+    "Bread, white"
+  ],
+  "cacao": "Cocoa powder, without sugar",
+  "nata-para-montar": [
+    "Cream, whipping",
+    "Cream, 30% fat"
+  ],
+  "pasta-corta": [
+    "Pasta, raw",
+    "Pasta, dry"
+  ],
+  "hamburguesa": [
+    "Hamburger bun",
+    "Bun, hamburger"
+  ],
+  "judias-pintas": [
+    "Black bean, cooked",
+    "Kidney bean, cooked"
+  ],
+  "obleas": "Wafer, plain",
+  "col": [
+    "Chinese cabbage, raw",
+    "Cabbage, raw"
+  ],
+  "alcachofa": "Artichoke, globe, raw",
+  "alcachofa-conserva": "Artichoke, canned, drained",
+  "castanas": "Chestnut, boiled/cooked in water",
+  "cacahuete": "Peanut, grilled, salted",
+  "carrillera": "Beef, cheek, raw",
+  "carrillada": "Pork, shoulder, raw",
+  "costilla-de-ternera": "Beef, short ribs, raw",
+  "solomillo-de-cerdo": "Pork tenderloin, lean, raw",
+  "morcillo-de-ternera": "Beef, shank, raw",
+  "morcillo": "Beef, shank, raw",
+  "jarrete-de-ternera": "Beef, shank, raw",
+  "entrecot": "Beef, sirloin steak, raw",
+  "chuleton-de-ternera": "Beef, rib, raw",
+  "redondo-de-ternera": "Beef, eye of round, raw",
+  "escalopines-de-ternera": "Beef, round, raw",
+  "filetes-finos-de-ternera": "Beef, round, raw",
+  "ternera-magra": "Beef, eye of round, raw",
+  "entrania-de-ternera": "Beef, skirt steak, raw",
+  "rabo-de-toro": "Beef, oxtail, raw",
+  "carne-de-cocido": "Beef, shank, raw",
+  "presa-iberica": "Pork, shoulder, raw",
+  "secreto-iberico": "Pork, shoulder, raw",
+  "medio-cochinillo": "Pork, suckling pig",
+  "guanciale": "Pork, cheek",
+  "oreja-de-cerdo": "Pork, ear",
+  "manitas-de-cerdo": "Pork, trotter",
+  "cordero": "Lamb, chop, raw",
+  "higado-de-ternera": "Liver, veal, raw",
+  "codorniz": "Quail, raw",
+  "perdiz": "Partridge, raw",
+  "alitas-de-pollo": "Chicken, wing, raw",
+  "carne-de-jabali-picada": "Wild boar, raw",
+  "caballa": "Mackerel, raw",
+  "corvina": "Meagre, raw",
+  "dorada": "Sea bream, raw",
+  "rodajas-de-emperador": "Swordfish, raw",
+  "bonito-del-norte": "Tuna, canned",
+  "berberecho": "Cockle, raw",
+  "navaja": "Razor clam, raw",
+  "surimi": "Surimi",
+  "acelga": "Chard, raw",
+  "endivia": "Chicory, raw",
+  "apionabo": "Celeriac, raw",
+  "hinojo": "Fennel, raw",
+  "melon": "Melon, pulp, raw",
+  "sandia": "Watermelon, pulp, raw",
+  "higo": "Fig, raw",
+  "uvas": "Grape, raw",
+  "ciruelas-pasas": "Prune, dried",
+  "melocoton": "Peach, pulp, raw",
+  "pina": "Pineapple, pulp, raw",
+  "platano-macho": "Plantain, raw",
+  "cayena": "Chili pepper, raw",
+  "brote-tierno": "Bean sprout, raw",
+  "ajete": "Garlic, raw",
+  "ajetes-tiernos": "Garlic, raw",
+  "coco": "Coconut, dried",
+  "alubia-grande": "Haricot bean, dried, raw",
+  "mascarpone": "Mascarpone",
+  "roquefort": "Roquefort cheese",
+  "queso-brie": "Brie cheese",
+  "queso-tierno": "Semi-hard cheese",
+  "bechamel": "Bechamel sauce",
+  "pesto": "Pesto sauce",
+  "tomate-concentrado": "Tomato purée, concentrated",
+  "tomate-seco": "Tomato, dried",
+  "sirope-de-arce": "Maple syrup",
+  "semola-de-trigo": "Semolina, raw",
+  "lasana": "Lasagne sheets, raw",
+  "pasta": "Dried pasta, raw",
+  "cereales": "Breakfast cereals",
+  "galletas-maria": "Biscuit, plain",
+  "bizcocho-de-soletilla": "Sponge finger",
+  "masa-de-pizza": "Pizza dough",
+  "baguette": "Bread, ciabatta",
+  "muffin-ingle": "Muffin",
+  "nachos": "Tortilla chips",
+  "tortilla-de-maiz": "Corn tortilla",
+  "falafel-congelado": "Falafel",
+  "caldo-de-marisco": "Broth, stock or bouillon, fish",
+  "mantequilla-de-cacahuete": "Peanut butter",
+  "alga-nori": "Seaweed, nori",
+  "alga-wakame": "Seaweed, wakame",
+  "pimienta-blanca": "Pepper, white",
+  "especia-cajun": "Spice mix",
+  "brandy": "Spirit made from wine",
+  "cerveza": "Beer",
+  "sidra": "Cider",
+  "jerez-seco": "Wine, fortified",
+  "ron": "Rum",
+  "vodka": "Vodka",
+  "cointreau": "Liqueur",
+  "mirin": "Wine, rice",
+  "extracto-de-vainilla": "Vanilla, alcoholic extract",
+  "queso": "Emmental cheese, grated",
+  "atun-lata": "Tuna, plain, canned, drained",
+
+  "aceite-de-sesamo": "Sesame oil",
+  "aceite-oliva-virgen": "Olive oil, extra virgin",
+  "brocoli": "Broccoli, raw",
+  "caldo-de-carne": "Broth, stock or bouillon, beef, dehydrated and reconstituted",
+  "caldo-de-verduras": "Broth, stock or bouillon, vegetables, dehydrated and reconstituted",
+  "cebolla": "Onion, raw",
+  "champinon": "Mushroom, all types, raw",
+  "coliflor": "Cauliflower, raw",
+  "espinacas": "Spinach, raw",
+  "guisantes": "Garden peas, frozen, raw",
+  "harina": "Wheat flour, type 55 (for bread)",
+  "huevos": "Egg, raw",
+  "judia-verde": "French bean, raw",
+  "leche": "Milk, whole, UHT",
+  "limon": "Lemon, pulp, raw",
+  "nata": "Cream, 15-20% fat, fluid, refrigerated",
+  "pimienta": "Black pepper, powder",
+  "pimiento-verde": "Sweet pepper, green, raw",
+  "salchicha": "Chipolata slim sausage, raw",
+  "vinagre": "Vinegar",
+  "vinagre-de-manzana": "Vinegar, cider",
+
+  "zamburina": "Scallop, without coral, raw",
+  "obleas": "Wafer biscuit without filling"
+}

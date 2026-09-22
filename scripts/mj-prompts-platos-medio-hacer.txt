@@ -1,0 +1,34 @@
+Esquema (seed 2151241667):
+[{slug}] cute stylized 3D cartoon render in the style of Pixar and Disney, {sujeto}, {tonos}, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+Para la sesion de tandas: PLATOS A MEDIO HACER (src/lib/adelanto.js, 39 recetas).
+Una ilustracion por familia, no por receta, igual que las bases.
+
+REGLA DE LA IMAGEN: el plato sale CRUDO y listo, nunca dorado ni servido. Es lo
+unico que distingue esta ilustracion de la foto del plato terminado, y es
+justo lo que la pantalla tiene que contar: el trabajo esta hecho, la coccion no.
+Nada de humo, nada de queso fundido, nada de bordes tostados.
+
+[croquetas-crudas] cute stylized 3D cartoon render in the style of Pixar and Disney, a small tray of raw breadcrumbed croquettes lined up in neat rows, pale uncooked breadcrumb coating, not fried, warm beige and cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[bunuelos-masa] cute stylized 3D cartoon render in the style of Pixar and Disney, a covered mixing bowl of thick pale fritter batter with a wooden spoon resting on the rim, nothing fried, soft ivory and butter tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[falafel-crudo] cute stylized 3D cartoon render in the style of Pixar and Disney, a tray of raw green chickpea falafel balls dusted with flour, uncooked and pale, herb green and sand tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[empanadillas-cerradas] cute stylized 3D cartoon render in the style of Pixar and Disney, a tray of raw half-moon dumpling turnovers with fork-crimped edges, pale unbaked dough, warm cream and soft gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[empanada-montada] cute stylized 3D cartoon render in the style of Pixar and Disney, a whole raw rectangular filled pie sealed at the edges with a small vent hole in the centre, pale unbaked dough, soft wheat and cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[lasana-montada] cute stylized 3D cartoon render in the style of Pixar and Disney, an assembled uncooked lasagne in a ceramic baking dish with visible pasta and sauce layers and a pale bechamel top, not browned, terracotta and cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[ravioli-cortados] cute stylized 3D cartoon render in the style of Pixar and Disney, fresh uncooked square ravioli arranged on a lightly floured wooden board, pale yellow pasta, soft butter and flour tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[quiche-sin-hornear] cute stylized 3D cartoon render in the style of Pixar and Disney, a raw quiche in a fluted tart tin, pale pastry shell filled with uncooked custard and vegetables, not baked, soft cream and pale gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pastel-al-horno] cute stylized 3D cartoon render in the style of Pixar and Disney, an assembled uncooked shepherds pie in an oval baking dish, mashed potato top combed with fork lines, pale and not gratinated, cream and soft ochre tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[verduras-rellenas] cute stylized 3D cartoon render in the style of Pixar and Disney, raw stuffed vegetable halves on a baking tray, courgette and tomato filled with grain stuffing, uncooked and fresh, garden green and soft red tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[huevos-rellenos] cute stylized 3D cartoon render in the style of Pixar and Disney, halved boiled eggs filled with pale yellow stuffing arranged in a small oven dish, napped with white sauce, not gratinated, ivory and butter tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[carne-empanada] cute stylized 3D cartoon render in the style of Pixar and Disney, raw breadcrumbed stuffed chicken fillets on a tray, pale uncooked coating, not fried, warm beige and cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667

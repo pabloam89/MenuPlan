@@ -21,21 +21,33 @@
 
 import ingredientsJson from "../data/ingredients.json";
 import substitutionsJson from "../data/ingredientSubstitutions.json";
+import fraccionComestibleJson from "../data/fraccionComestible.json";
+import densidadJson from "../data/densidad.json";
+import { NUTRIENTES, CAMPOS_NUTRICION, CAMPOS_DUROS, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import { validateIngredients } from "../data/ingredientSchema.js";
 import { createIngredientResolver } from "./ingredientResolver.js";
 import { guessShoppingAisle, guessIngredientCategory, normalizeName } from "./ingredientCategories.js";
-import { gramsForRecipeQuantity, gramsPerPiece } from "./kitchenUnits.js";
+import { gramsForRecipeQuantity, gramsPerPiece, registerPieceCatalog, registerDensityCatalog } from "./kitchenUnits.js";
 
-// Mismo criterio que recipeCatalog.js: el JSON va bundleado con la app, así que
-// si está roto tiene que fallar de forma ruidosa e incondicional. El generador
-// ya valida antes de escribir, y scripts/validate-catalog.mjs lo revalida en
-// CI; esto es la última red.
-const errors = validateIngredients(ingredientsJson);
-if (errors.length > 0) {
-  throw new Error(
-    `Catálogo de ingredientes inválido (${errors.length} error/es):\n` +
-      errors.map((e) => `  - ${e}`).join("\n"),
-  );
+// Mismo criterio que recipeCatalog.js, y por el mismo motivo: solo en
+// desarrollo y en tests. `scripts/validate-catalog.mjs` valida este fichero en
+// `prebuild` y en `pretest`, y el JSON va dentro del bundle, así que en
+// producción esto revalidaba algo que no puede haber cambiado.
+//
+// Aquí son ~11-50 ms, bastante menos que los ~210 ms de las recetas — se cambia
+// por coherencia entre los dos catálogos, no porque el ahorro lo justifique
+// solo. Lo que ya NO es cierto es la frase que había aquí sobre "el generador
+// valida antes de escribir": el generador está desarmado desde el 10 sep y este
+// fichero es fuente, no artefacto (ver la cabecera de
+// scripts/build-ingredient-catalog.mjs).
+if (import.meta.env.DEV) {
+  const errors = validateIngredients(ingredientsJson);
+  if (errors.length > 0) {
+    throw new Error(
+      `Catálogo de ingredientes inválido (${errors.length} error/es):\n` +
+        errors.map((e) => `  - ${e}`).join("\n"),
+    );
+  }
 }
 
 /** @typedef {(typeof ingredientsJson)[number]} Ingredient */
@@ -121,6 +133,29 @@ export function pieceGramsFor(name) {
   return pieceFor(name)?.g ?? gramsPerPiece(name);
 }
 
+// A partir de aquí kitchenUnits ve el catálogo: sus lentes ("≈ 3 muslos",
+// "2 huevos"), convertStockAmount y gramsForRecipeQuantity (y con ella
+// computeRecipeNutrition) resuelven la pieza por id antes que por regex. Es lo
+// que cierra el viaje de ida de la lista de la compra — ver el comentario de
+// registerPieceCatalog en kitchenUnits.js.
+registerPieceCatalog(pieceFor);
+
+/**
+ * Gramos por mililitro de un ingrediente, o null si el catálogo no lo declara
+ * (y entonces kitchenUnits asume 1, que es lo correcto para el agua y los
+ * caldos). Resuelve por id, no por texto: la densidad es del alimento, no de
+ * cómo lo escriba la receta.
+ *
+ * @param {string} name
+ * @returns {number|null}
+ */
+export function densityFor(name) {
+  const id = resolveIngredientId(name);
+  return id ? (densidadJson[id]?.valor ?? null) : null;
+}
+
+registerDensityCatalog(densityFor);
+
 /**
  * Las líneas de ingrediente de una receta, resueltas contra el catálogo — el
  * equivalente en cliente de la tabla `recipe_ingredients` (Fase 2).
@@ -205,22 +240,118 @@ export function deriveRecipeAllergens(recipe) {
 // (generateUserRecipeDraft, userRecipes.js) o dejarla como está.
 
 /**
+ * La sal de una COSTRA o de un curado no se come: se apelmaza, se rompe y se
+ * tira. Y la sal no tiene calorías, así que este fallo era invisible mirando
+ * kcal y catastrófico mirando sodio:
+ *
+ *   «Dorada a la sal» lleva 1.500 g de sal gruesa y salía a 291.593 mg de
+ *   sodio por ración. El límite que recomienda la OMS es 2.000 mg AL DÍA.
+ *
+ * El umbral son 50 g. Por debajo es sal de sazonar y sí se come; nadie echa
+ * cincuenta gramos de sal a un guiso de dos raciones. En el catálogo entero
+ * solo lo cruzan tres recetas, y las tres son costra o curado.
+ *
+ * El AZÚCAR se descarta solo si además hay curado, porque entonces forma parte
+ * de la mezcla que se retira —un gravlax lleva sal y azúcar a partes— y no es
+ * el azúcar de un postre.
+ *
+ * LO QUE ESTO NO MODELA, y conviene saberlo: de la costra algo se absorbe. Un
+ * pescado a la sal sale salado. Descartarla entera se queda corto, igual que
+ * contarla entera se pasaba por un factor de 500. La regla viene de
+ * scripts/audit-catalog.mjs, donde lleva tiempo, y aquí se aplica igual.
+ */
+const SAL_A_GRANEL = 50;
+const ES_SAL = /^sal|sal gruesa|sal gorda|sal marina/i;
+const ES_AZUCAR = /^azucar/i;
+
+/**
+ * De todo el aceite que una receta lista, cuánto acaba DENTRO de la comida.
+ *
+ * Una fritura no se come su aceite: se calienta, se fríe y se tira. Contarlo
+ * entero daba números imposibles y no en pocos casos —«Fritura de pescado
+ * variado» listaba 367 g de aceite para dos raciones y salía a 2.062 kcal por
+ * plato, cinco veces lo declarado; con el tope sale a 632—.
+ *
+ * El 6 % no es un número redondo elegido a ojo: sale del propio catálogo, y lo
+ * midió antes scripts/audit-catalog.mjs. En «Patatas fritas caseras», de las
+ * 500 kcal declaradas menos las 288 de la patata quedan 212 kcal de aceite,
+ * que son 24 g, que son el 6 % del peso del sólido.
+ *
+ * Solo los aceites LÍQUIDOS de cocinar. La mantequilla y la manteca no entran:
+ * en este catálogo no se fríe con ellas y su grasa sí se come.
+ *
+ * Y el tope no es un recorte, es un mínimo: un chorro para sofreír ya está por
+ * debajo del 6 % del sólido y pasa entero. Muerde en 88 de las 726 recetas
+ * estrella —la cola de las frituras— y deja las otras 638 intactas.
+ */
+const ACEITE_ABSORBIDO = 0.06;
+const ACEITES_DE_FREIR = /^aceite-/;
+
+/**
  * @param {{ingredients?: Array<{name: string, amount?: number, unit?: string}>}} recipe
  * @param {number} servings
- * @returns {{kcal:number, protein_g:number, carbs_g:number, fat_g:number, fiber_g:number|null, sugar_g:number|null, saturated_fat_g:number|null, sodium_mg:number|null, coverage:number} | null}
+ * @returns {{kcal:number, protein_g:number, carbs_g:number, fat_g:number, fiber_g:number|null, sugar_g:number|null, saturated_fat_g:number|null, sodium_mg:number|null, coverage:number, coberturaPorCampo:{fiber_g:number, sugar_g:number, saturated_fat_g:number, sodium_mg:number}} | null}
  *   `null` si no hay servings válidos o ningún ingrediente aportó nutrición.
+ *
+ *   `coverage` es la masa con ficha. `coberturaPorCampo` es la masa que aporta
+ *   CADA campo secundario, que es siempre menor o igual y a veces mucho menor:
+ *   BEDCA publica azúcar en 42 de sus 198 fichas.
  */
 export function computeRecipeNutrition(recipe, servings) {
   if (!(servings > 0)) return null;
 
-  const totals = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 };
-  const hasSecondary = { fiber_g: false, sugar_g: false, saturated_fat_g: false, sodium_mg: false };
+  // Todo lo que sigue se recorre desde la DECLARACIÓN (src/data/nutrientes.js).
+  // La versión anterior escribía los campos a mano aquí, y era la sexta copia
+  // de la misma lista: al añadir dos micronutrientes hubo que tocar seis
+  // sitios y dos se quedaron atrás sin que nada fallara.
+  const totals = Object.fromEntries(CAMPOS_NUTRICION.map((c) => [c, 0]));
+
+  // Gramos que de verdad aportaron CADA campo secundario, no un sí/no.
+  //
+  // Aquí había un booleano por campo, y bastaba que UN ingrediente trajera
+  // azúcar para que la receta publicara un total de azúcar sumando solo ese y
+  // callando los otros siete. Medido: 740 de las 747 recetas estrella (99 %)
+  // publicaban un azúcar incompleto, y 447 (60 %) una grasa saturada
+  // incompleta. Lo que falta suma cero, así que el error siempre va en la
+  // misma dirección — por debajo— y eso es sesgo, no ruido.
+  //
+  // El número se queda: un parcial es mejor proxy que un hueco. Lo que no
+  // puede seguir es publicarlo como si estuviera completo, así que cada campo
+  // secundario viaja con la fracción de masa que lo sostiene.
+  const gramosDelCampo = Object.fromEntries(CAMPOS_SECUNDARIOS.map((c) => [c, 0]));
   let totalGrams = 0;
   let coveredGrams = 0;
 
+  // El aceite de freír se ABSORBE, no se come entero — ver ACEITE_ABSORBIDO.
+  // Hace falta saber la masa sólida antes de contar el aceite, así que las
+  // líneas se resuelven una vez y se recorren dos.
+  const lineas = [];
+  let solidoGramos = 0;
   for (const line of resolveRecipeIngredients(recipe)) {
-    const grams = gramsForRecipeQuantity(line.rawName, line.amount, line.unit);
-    if (grams == null || grams <= 0) continue;
+    const comprados = gramsForRecipeQuantity(line.rawName, line.amount, line.unit);
+    if (comprados == null || comprados <= 0) continue;
+    const fraccion = fraccionComestibleJson[line.ingredient?.id]?.valor ?? 1;
+    const grams = comprados * fraccion;
+    if (grams <= 0) continue;
+    const esAceite = ACEITES_DE_FREIR.test(line.ingredient?.id ?? "");
+    if (!esAceite) solidoGramos += grams;
+    lineas.push({ line, grams, esAceite, nombre: line.rawName ?? "" });
+  }
+
+  // ¿Hay una costra o un curado? Se decide mirando TODA la receta antes de
+  // contar nada, porque el azúcar del gravlax solo se tira si hay sal con él.
+  const hayCurado = lineas.some((x) => ES_SAL.test(x.nombre) && x.grams >= SAL_A_GRANEL);
+
+  for (const { line, grams: brutos, esAceite, nombre } of lineas) {
+    // La costra y el curado, fuera: ni su masa ni su sodio llegan al plato.
+    if (ES_SAL.test(nombre) && brutos >= SAL_A_GRANEL) continue;
+    if (hayCurado && ES_AZUCAR.test(nombre) && brutos >= SAL_A_GRANEL) continue;
+    // El tope: de todo el aceite que la receta lista, solo se come lo que el
+    // sólido absorbe. Muerde en 88 de las 726 recetas estrella y no toca las
+    // demás, porque un chorro para sofreír ya está por debajo del 6 %.
+    const grams = esAceite ? Math.min(brutos, ACEITE_ABSORBIDO * solidoGramos) : brutos;
+    if (grams <= 0) continue;
+
     totalGrams += grams;
 
     const nutrition = line.ingredient?.nutrition;
@@ -228,14 +359,12 @@ export function computeRecipeNutrition(recipe, servings) {
     coveredGrams += grams;
 
     const factor = grams / 100;
-    totals.kcal += nutrition.kcal100g * factor;
-    totals.protein_g += nutrition.protein100g * factor;
-    totals.carbs_g += nutrition.carbs100g * factor;
-    totals.fat_g += nutrition.fat100g * factor;
-    if (nutrition.fiber100g != null) { totals.fiber_g += nutrition.fiber100g * factor; hasSecondary.fiber_g = true; }
-    if (nutrition.sugar100g != null) { totals.sugar_g += nutrition.sugar100g * factor; hasSecondary.sugar_g = true; }
-    if (nutrition.saturatedFat100g != null) { totals.saturated_fat_g += nutrition.saturatedFat100g * factor; hasSecondary.saturated_fat_g = true; }
-    if (nutrition.sodium100g != null) { totals.sodium_mg += nutrition.sodium100g * factor; hasSecondary.sodium_mg = true; }
+    for (const campo of CAMPOS_DUROS) totals[campo] += nutrition[campo] * factor;
+    for (const campo of CAMPOS_SECUNDARIOS) {
+      if (nutrition[campo] == null) continue;
+      totals[campo] += nutrition[campo] * factor;
+      gramosDelCampo[campo] += grams;
+    }
   }
 
   if (coveredGrams === 0) return null;
@@ -245,17 +374,31 @@ export function computeRecipeNutrition(recipe, servings) {
     return Math.round((v / servings) * factor) / factor;
   };
 
-  return {
-    kcal: perServing(totals.kcal, 0),
-    protein_g: perServing(totals.protein_g),
-    carbs_g: perServing(totals.carbs_g),
-    fat_g: perServing(totals.fat_g),
-    fiber_g: hasSecondary.fiber_g ? perServing(totals.fiber_g) : null,
-    sugar_g: hasSecondary.sugar_g ? perServing(totals.sugar_g) : null,
-    saturated_fat_g: hasSecondary.saturated_fat_g ? perServing(totals.saturated_fat_g) : null,
-    sodium_mg: hasSecondary.sodium_mg ? perServing(totals.sodium_mg, 0) : null,
-    coverage: totalGrams > 0 ? Math.round((coveredGrams / totalGrams) * 1000) / 1000 : 0,
-  };
+  // Fracción de la masa TOTAL de la receta que aportó cada campo secundario.
+  // Se mide contra `totalGrams` y no contra `coveredGrams` a propósito: al
+  // comensal le da igual si el hueco viene de que el ingrediente no tiene
+  // ficha o de que su ficha no publica azúcar. El hueco es el mismo.
+  const cobertura = {};
+  for (const c of CAMPOS_SECUNDARIOS) {
+    const nombre = NUTRIENTES[c].porRacion;
+    cobertura[nombre] = totalGrams > 0 ? Math.round((gramosDelCampo[c] / totalGrams) * 1000) / 1000 : 0;
+  }
+
+  const salida = {};
+  for (const c of CAMPOS_DUROS) {
+    salida[NUTRIENTES[c].porRacion] = perServing(totals[c], NUTRIENTES[c].decimales);
+  }
+  for (const c of CAMPOS_SECUNDARIOS) {
+    const nombre = NUTRIENTES[c].porRacion;
+    // Cobertura 0 significa que NADIE lo aportó: ahí el total es null y no 0,
+    // que es la diferencia entre «no lo sé» y «no tiene».
+    salida[nombre] = cobertura[nombre] > 0 ? perServing(totals[c], NUTRIENTES[c].decimales) : null;
+  }
+  salida.coverage = totalGrams > 0 ? Math.round((coveredGrams / totalGrams) * 1000) / 1000 : 0;
+  // Qué parte de la receta sostiene cada campo secundario. Un 0,31 en
+  // `sugar_g` dice que ese azúcar es el de un tercio del plato.
+  salida.coberturaPorCampo = cobertura;
+  return salida;
 }
 
 // ── Sustituciones (Fase 3) ───────────────────────────────────────────────

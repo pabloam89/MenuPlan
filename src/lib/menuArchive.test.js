@@ -9,6 +9,9 @@ import {
   foldInNewMenu,
   formatISODateShort,
   formatMenuRangeLabel,
+  rekeyWeeksByMonday,
+  weekEntry,
+  explicitDaysForOffset,
   getActiveMenu,
   orderedWeeks,
   pruneAiRecipes,
@@ -17,6 +20,7 @@ import {
   sortMenusDesc,
   toggleMenuFavorite,
 } from "./menuArchive.js";
+import { mondayISOForOffset } from "./weekCalendar.js";
 
 describe("clampWeekCount", () => {
   it("clamps below 1 up to 1", () => {
@@ -285,5 +289,55 @@ describe("removeMenu / toggleMenuFavorite", () => {
 
   it("is a no-op for an unknown id", () => {
     expect(toggleMenuFavorite(menus, "missing")).toBe(menus);
+  });
+});
+
+describe("las semanas se guardan por su lunes, no por un offset", () => {
+  // El bug: un `offset` es relativo a HOY. Lo que marcas como "la semana que
+  // viene" el jueves 17 es, el jueves 24, la semana SIGUIENTE — así que una
+  // selección de días se muda sola a una semana que nadie eligió. Y lo mismo
+  // con el horario propio de una semana, que además no se limpia al generar.
+  // Es la misma trampa que lib/reglas.js ya documenta y evita para las reglas.
+  const JUE_17 = new Date(2026, 8, 17); // jueves 17 sep 2026
+  const JUE_24 = new Date(2026, 8, 24); // una semana después
+
+  it("el mismo offset apunta a lunes distintos según el día que sea", () => {
+    expect(mondayISOForOffset(1, JUE_17)).toBe("2026-09-21");
+    expect(mondayISOForOffset(1, JUE_24)).toBe("2026-09-28");
+  });
+
+  it("migrar congela la semana: deja de deslizarse", () => {
+    const guardado = { 1: ["Lun", "Mar", "Mié"] };
+    const migrado = rekeyWeeksByMonday(guardado, JUE_17);
+    expect(migrado).toEqual({ "2026-09-21": ["Lun", "Mar", "Mié"] });
+    // Una semana después sigue apuntando al mismo lunes, que es el arreglo.
+    expect(rekeyWeeksByMonday(migrado, JUE_24)).toEqual(migrado);
+  });
+
+  it("es idempotente: se puede migrar en cada carga sin miedo", () => {
+    const yaISO = { "2026-09-21": ["Lun"] };
+    expect(rekeyWeeksByMonday(rekeyWeeksByMonday(yaISO), undefined)).toEqual(yaISO);
+  });
+
+  it("tolera basura sin romper", () => {
+    expect(rekeyWeeksByMonday(null)).toEqual({});
+    expect(rekeyWeeksByMonday([])).toEqual({});
+    expect(rekeyWeeksByMonday({ 0: undefined })).toEqual({});
+  });
+
+  it("weekEntry lee por lunes y cae a la clave numérica sin migrar", () => {
+    const hoy = new Date();
+    const lunes = mondayISOForOffset(2, hoy);
+    expect(weekEntry({ [lunes]: ["Lun"] }, 2)).toEqual(["Lun"]);
+    // Blob viejo, o pestaña abierta desde antes del despliegue.
+    expect(weekEntry({ 2: ["Mar"] }, 2)).toEqual(["Mar"]);
+    expect(weekEntry(undefined, 2)).toBeUndefined();
+  });
+
+  it("explicitDaysForOffset encuentra los días tras migrar", () => {
+    const hoy = new Date();
+    const data = { menuWeekDays: rekeyWeeksByMonday({ 1: ["Mié", "Jue"] }, hoy) };
+    expect(explicitDaysForOffset(data, 1)).toEqual(["Mié", "Jue"]);
+    expect(explicitDaysForOffset(data, 0)).toBeNull();
   });
 });

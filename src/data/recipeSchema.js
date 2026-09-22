@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { STEP_KINDS, STEP_PARTS } from "../lib/recipeSteps.js";
+import { UNITS } from "./ingredientSchema.js";
 
 // Canonical taxonomy for the recipe catalog. Adding a new category/protein/etc
 // requires updating this file — that's the point: it forces a conscious
@@ -10,6 +11,10 @@ const CATEGORIES = [
   "bebes", "carnes", "cenas_rapidas", "ensaladas_verduras", "guarniciones",
   "huevos", "legumbres", "pasta_arroces", "pescados", "platos_unicos",
   "sopas_cremas",
+  // "bases" es off-menu por el mismo motivo que "salsas": una olla de arroz
+  // cocido no es la cena de nadie. Vive en su propio catálogo
+  // (data/recipes/bases.json) y la consumen los platos vía `mainBase`.
+  "bases",
   // Off-menu categories: not part of comida/cena generation (isolated in
   // utils/filterRecipes.js, like "bebes"). They power the optional
   // desayuno/merienda/postre pool that unlocks fruit/yogur/kéfir/pan ingredients.
@@ -34,9 +39,52 @@ const CATEGORIES = [
 // nuevas; las existentes siguen validando y funcionando.
 const DEPRECATED_CATEGORIES = ["cenas_rapidas", "platos_unicos"];
 
+// `caza`, `cordero` y `pato` entran el 21 sep 2026, y entran porque faltaban:
+// trece platos del recetario declaraban una proteína que no era la suya porque
+// el enum no tenía palabra para la de verdad. El pato salía como "pollo" en
+// siete recetas, el cordero como "ternera" en dos y el jabalí, la codorniz y
+// la perdiz como lo que tocara. Eso no es una etiqueta gruesa: es un filtro
+// que miente —quien pide pollo recibe pato— y una regla de variedad que cree
+// haber servido dos aves iguales cuando no lo eran.
+//
+// `caza` agrupa jabalí, codorniz, perdiz y conejo, igual que la subclase
+// `carne_caza` del árbol de alimentos: la granularidad del enum sigue a la del
+// árbol en vez de inventarse otra.
 const MAIN_PROTEINS = [
-  "cerdo", "huevo", "legumbre", "marisco", "none", "pavo",
-  "pescado_azul", "pescado_blanco", "pollo", "ternera",
+  "caza", "cerdo", "cordero", "huevo", "legumbre", "marisco", "none", "pato",
+  "pavo", "pescado_azul", "pescado_blanco", "pollo", "ternera",
+];
+
+/**
+ * mainProtein → familia de proteína, que es el grano al que trabajan las reglas
+ * de variedad (regla 3 de validateMenu, el planner, los platos fijos del menú
+ * escolar): pollo y pavo son "carne" para no repetir, aunque sean enums
+ * distintos para el filtro.
+ *
+ * Vive AQUÍ, junto al enum que indexa, porque estuvo copiada tres veces
+ * (aiPlanner.js, fixedDishes.js, validateMenu.js) y una tabla copiada es un
+ * bug esperando: añadir un valor al enum obligaba a acordarse de tres sitios.
+ * `none` no está a propósito: no es una proteína y no agrupa con nada.
+ */
+const PROTEIN_GROUP_BY_MAIN_PROTEIN = {
+  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
+  cordero: "carne", pato: "carne", caza: "carne",
+  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
+  legumbre: "legumbres", huevo: "huevos",
+};
+
+// Los dos ejes de estilo, con nombre y exportados (11 sep 2026). Hasta ahora
+// eran arrays inline dentro del schema, y por eso vivían TRES veces: aquí, como
+// literal repetido en lib/notepadFields.js (el dominio que el panel puede
+// emitir) y en prosa dentro de api/_prompts.js. Tres copias a mano de la misma
+// lista es como se descuadran: aquí es la fuente, los otros dos la importan, y
+// promptContract.test.js comprueba que el prompt la repite tal cual.
+const TECNICAS = ["horno", "plancha", "sarten", "olla", "crudo"];
+// AUSENTE = española (ver el comentario de `cocina` más abajo): por eso
+// "espanola" no está en la lista, y por eso el panel no puede pedirla.
+const COCINAS = [
+  "italiana", "asiatica", "mexicana", "arabe",
+  "francesa", "americana", "india", "peruana",
 ];
 
 // Eje de composición NO proteica y NO feculenta: cubre lo que hoy no se captura
@@ -59,7 +107,108 @@ const SAUCE_COMPAT_TAGS = [
   "huevos", "verduras", "ensaladas", "arroz_blanco",
 ];
 
-const TYPES = ["completo", "principal", "guarnicion", "salsa"];
+const TYPES = ["completo", "principal", "guarnicion", "salsa", "base"];
+
+/**
+ * Las bases: lo que se cocina UNA VEZ y alimenta a varios platos de la semana.
+ *
+ * Este enum es el eje `mainBase`, que hasta ahora era `z.string()` libre — y
+ * por eso convivían `patata` (8 recetas) y `patatas` (81) como si fueran cosas
+ * distintas, más `cuscús`/`cuscus`/`sémola` y `lentejas`/`garbanzos` pisando a
+ * `legumbre`. El sesgo "más patatas" del panel se saltaba en silencio esas 8.
+ * Cerrarlo a enum es lo que convierte el campo en la clave de una base: si no
+ * se escribe siempre igual, no se puede agrupar por él. Ver
+ * scripts/normalize-main-base.mjs, que hizo la limpieza.
+ *
+ * `pan` y `avena` ESTUVIERON aquí y se sacaron (11 sep 2026), porque este campo
+ * responde a una sola pregunta: ¿qué se puede cocinar en una tanda aparte y
+ * repartir entre varios platos? Y el propio catálogo contestaba que no:
+ *
+ *   legumbre 80 · patatas 67 · pasta 52 · arroz 33 · quinoa 6 · cuscus 5 · boniato 4
+ *   pan 0 de 83   ·   avena 0 de 9        ← ni un solo plato marcado "aparte"
+ *
+ * Nadie hace una tanda de pan el domingo, y no hay entrada suya en bases.json.
+ * Tenerlos aquí mezclaba dos ejes: qué OLLA compartes (esto) y qué HIDRATO
+ * percibe el comensal (carbType). Son lo segundo, no lo primero, y como tal
+ * siguen vivos: `CARB_PATTERNS` en utils/validateMenu.js ya llamaba "pan" por su
+ * cuenta a 73 de esos 83 platos, así que la regla 9 apenas se entera.
+ *
+ * Al salir del enum, esas 92 recetas perdieron también su `baseMode` (que exige
+ * mainBase) — era "dentro" en las 92, o sea que no decía nada que no supiéramos.
+ */
+const MAIN_BASES = [
+  "arroz", "pasta", "patatas", "boniato", "legumbre",
+  "quinoa", "cuscus",
+];
+
+/**
+ * Qué tipo de HIDRATO aporta cada base — la tabla que une los dos ejes que
+ * hasta ahora modelaban lo mismo por separado y no se hablaban:
+ *
+ *   · `mainBase`  →  qué OLLA comparte el plato (batch cooking, lib/bases.js)
+ *   · carbType    →  si el comensal percibe "otra vez lo mismo" (regla 9
+ *                    guarnicion_repetida y regla 14, utils/validateMenu.js)
+ *
+ * Hasta ahora el carbType se sacaba SOLO de un regex sobre nombre +
+ * ingredientes, sin mirar el `mainBase` declarado, y las dos taxonomías
+ * discrepaban: "Trofie al pesto genovés" (mainBase pasta) contaba como patatas
+ * porque el pesto genovés lleva patata, "Cocido madrileño" (mainBase legumbre)
+ * también, y "Fettuccine Alfredo" no contaba como nada porque el regex no
+ * conoce "fettuccine". Con `mainBase` declarado mandando sobre el regex, la
+ * regla 9 pasa a leer lo que la receta DICE que es, y el sesgo de batch cooking
+ * deja de pelearse con un dato derivado.
+ *
+ * Deliberadamente SIN cifras de catálogo aquí: el número de recetas afectadas
+ * cambia cada vez que entra una tanda nueva, y un comentario con un absoluto
+ * dentro nace caducando. Para medirlo, cruzar `mainBase` con `getCarbType()`.
+ *
+ * Los dos valores que NO son la identidad son el motivo de que esto sea una
+ * tabla y no un `mainBase === carbType`:
+ *
+ *   boniato → "patatas"  Es una base propia (bases_007: una bandeja de boniato
+ *       asado no es una olla de patatas cocidas) pero en la mesa es el mismo
+ *       tubérculo asado dos veces, y el regex ya metía boniato/batata en
+ *       "patatas" para los platos que no declaran base. Separarlo aquí crearía
+ *       la incoherencia de que el boniato declarado y el no declarado
+ *       contaran distinto.
+ *
+ *   legumbre → null      La legumbre en este catálogo es el eje de PROTEÍNA,
+ *       no el de hidrato.
+ *
+ *       Quién impide de verdad repetir legumbre el mismo día es la REGLA 13
+ *       (`dos_cuchara_mismo_dia`, utils/validateMenu.js), vía `isPlatoCuchara`,
+ *       que mira `category === "legumbres"` y `mainProtein === "legumbre"` y no
+ *       consulta el carbType para nada. Lentejas y garbanzos el mismo día
+ *       saltaban antes de esta tabla y siguen saltando después. (Las reglas 2,
+ *       3b, 3c y 15 son del eje de la proteína y NO sirven de argumento aquí:
+ *       fallan justo para las recetas con mainBase "legumbre" y un mainProtein
+ *       distinto, que existen.)
+ *
+ *       Lo que este `null` quita no era enforcement de legumbre: era
+ *       enforcement CRUZADO y falso. Los guisos arrastraban un carbType de su
+ *       acompañamiento — patata, pan o fideos — y con él un potaje bloqueaba
+ *       las patatas de ese día. Que dos guisos chocaran entre sí solo ocurría
+ *       por accidente, cuando coincidían en el mismo carbType falso.
+ *
+ *       Y el efecto colateral bueno: libera la base con MÁS platos del catálogo
+ *       (bases_004, la mejor tanda que hay — una olla de garbanzos son 55 min
+ *       pasen dos raciones o doce) sin tocar la restricción real.
+ *
+ *       NOTA DE ALCANCE: esto NO resuelve la decisión aparcada en
+ *       specs/batch-cooking.md §7.4, donde `api/_prompts.js:24` enumera las
+ *       bases sin `legumbre` ni `boniato`. Aquella sigue sin tocarse, y sigue
+ *       siendo del dueño del producto: corregirla cambia qué menús genera el
+ *       motor para todo el mundo.
+ */
+const CARB_TYPE_BY_BASE = {
+  arroz: "arroz",
+  pasta: "pasta",
+  patatas: "patatas",
+  boniato: "patatas",
+  legumbre: null,
+  quinoa: "quinoa",
+  cuscus: "cuscus",
+};
 
 const MEAL_ROLES = [
   "cena", "guarnicion", "plato_unico", "primero", "segundo",
@@ -68,6 +217,8 @@ const MEAL_ROLES = [
   // Igual que "guarnicion": una salsa nunca es el hueco de un menú por sí
   // misma, solo marca su propio catálogo (ver TYPES/CATEGORIES "salsa"/"salsas").
   "salsa",
+  // Y una base, menos todavía.
+  "base",
 ];
 
 const DIFFICULTIES = ["elaborada", "facil", "normal"];
@@ -85,7 +236,8 @@ const ALLERGENS = [
   "cacahuetes", "soja", "apio", "mostaza", "sulfitos", "altramuces",
 ];
 
-const UNITS = ["g", "ml", "ud"];
+// Las tres unidades del catálogo se definen en ingredientSchema.js (el
+// ingrediente es lo que se mide); aquí solo se importan.
 
 // Coarse dietary signals for the "menú más cuidado" profiles. Optional and
 // usually derived at load time (lib/healthFlags.js), but a recipe may declare
@@ -99,6 +251,44 @@ const IngredientSchema = z.object({
   name: z.string().min(1),
   amount: z.number().nonnegative(),
   unit: z.enum(UNITS),
+  // El id canónico en src/data/ingredients.json (11 sep 2026).
+  //
+  // Hasta ahora el enlace receta → ingrediente iba SOLO por texto: `name` se
+  // resolvía contra nombre y alias con resolveIngredientId(). Funcionaba —las
+  // 7.415 líneas del catálogo resuelven— pero era una búsqueda difusa en la
+  // fuente de verdad: no se podía cruzar de verdad, y una grafía nueva rompía
+  // el enlace en silencio. Postgres sí tenía recipe_ingredients.ingredient_id
+  // con su FK… y el cliente no lee esa tabla.
+  //
+  // Es opcional en el esquema para que una receta de usuario o una generada
+  // por IA con un ingrediente que no está en el catálogo siga siendo válida
+  // (ahí `null` significa "no sé qué ingrediente es", nunca "no tiene"). Que
+  // en el CATÁLOGO esté SIEMPRE y apunte a un id real lo exige
+  // scripts/validate-catalog.mjs, que además comprueba que coincide con lo que
+  // resuelve `name`: si algún día discrepan, que reviente el build y no la
+  // lista de la compra. Se rellena con scripts/add-ingredient-ids.mjs.
+  ingredientId: z.string().min(1).optional(),
+  // En qué se convierte este ingrediente DENTRO de este plato, cuando lo que
+  // se compra y lo que se come no son la misma cosa (21 sep 2026).
+  //
+  // Existe por la harina, que es el único ingrediente del catálogo cuyo PAPEL
+  // cambia por completo según la receta. En el «Pollo a la naranja crujiente»
+  // son 20 g de rebozado; en el «Pan naan casero» son 300 g que SON el plato.
+  // El árbol de alimentos no puede decidirlo: la harina es harina hasta que
+  // alguien la amasa, y la masa es un nodo del plato, no del alimento.
+  //
+  // POR QUÉ NO ES UN OPERADOR. Se intentaron dos y los dos fallan. Por
+  // CANTIDAD: las 132 recetas con harina separan limpio en 100 g… salvo los
+  // «Gnocchi de ricotta y espinacas» (80 g, y son masa) y la «Fritura de
+  // pescado variado» (100 g, y es rebozado). Por COMPOSICIÓN: levadura → pan,
+  // huevo sin levadura → pasta acierta con los raviolis y los ñoquis, y se
+  // estrella con la «Empanada gallega de atún», que lleva huevo y no lleva
+  // levadura. Distinguir una masa estirada de una horneada es un juicio, y el
+  // juicio se declara donde se puede leer.
+  //
+  // Ausente es el caso normal: el ingrediente es lo que dice ser. Solo se
+  // declara cuando NO lo es, así que son 31 líneas en 7.415.
+  preparacion: z.enum(["masa_pasta", "masa_pan"]).optional(),
 });
 
 const MethodSchema = z.object({
@@ -124,6 +314,26 @@ export const StepRichSchema = z.object({
   // una sola receta ya incluye varias (p. ej. arroz + su salsa). Opcional:
   // la mayoría de recetas de una sola técnica no lo llevan.
   part: z.enum(STEP_PARTS).optional(),
+  // Qué base cocina este paso, si es que cocina alguna. Tercer eje, y otra
+  // pregunta distinta de las dos anteriores: `kind` dice cuánto te ata el paso,
+  // `part` dice a qué componente del plato pertenece, y esto dice si el paso
+  // DESAPARECE cuando esa base ya viene hecha del domingo.
+  //
+  // Es lo único que convierte el batch cooking en una promesa comprobable. Sin
+  // esto sabíamos que un plato "lleva sofrito aparte", pero no cuánto trabajo
+  // te quitas un martes por tenerlo hecho: el ahorro se medía sobre la receta
+  // de la BASE (lo que cuesta la olla), nunca sobre el plato que la usa. Con
+  // esto se suman los minutos de los pasos marcados y sale el número que de
+  // verdad importa — "con el sofrito hecho, esto son 8 minutos".
+  //
+  // El valor es la clave de la base (`baseKey`, o el `mainBase` de las de
+  // fécula), y solo vale si el plato la declara suya: en `basesAparte` o como
+  // su `mainBase` con `baseMode: "aparte"`. Lo comprueba validate-catalog.
+  //
+  // Se marca un paso SOLO si se va entero. Un paso que sofríe la cebolla y
+  // además dora el pollo no se marca: tener el sofrito hecho no te lo ahorra,
+  // te lo acorta, y contar esos minutos como ahorrados sería inflar la promesa.
+  base: z.string().min(1).optional(),
 });
 
 export const RecipeSchema = z
@@ -138,7 +348,84 @@ export const RecipeSchema = z
     // is blocked from cena) but also carries ternera/cerdo/pollo, which the
     // same-day protein-variety rules must see (validateMenu.js proteinGroupsOf).
     extraProteins: z.array(z.enum(MAIN_PROTEINS)).optional(),
-    mainBase: z.string().optional(),
+    // Qué base lleva el plato. Ver MAIN_BASES: era string libre y ahora es
+    // enum, porque es la clave por la que se agrupan los platos que comparten
+    // olla en una sesión de batch cooking.
+    mainBase: z.enum(MAIN_BASES).optional(),
+    // Qué RACIONES entrega el plato, que no es lo mismo que qué plato ES.
+    //
+    // `category` archiva ("dónde busco esta receta"); esto cuenta ("qué me
+    // como"). Una "Ternera a la jardinera" lleva 130 g de verdura por ración y
+    // está archivada en `carnes`: es carne Y entrega verdura, y los objetivos
+    // semanales necesitan las dos cosas. Es la misma idea que `extraProteins`
+    // ya aplicaba a las proteínas, extendida al resto de familias.
+    //
+    // OPCIONAL y casi siempre ausente a propósito: `lib/aporte.js` lo deriva de
+    // los ingredientes (gramos por familia, descontando aromáticos y lo que
+    // llega disuelto en salsa). Este campo es el override a mano para cuando la
+    // derivación se equivoque, igual que `mainBase` manda sobre el regex en
+    // `getCarbType`. Escribirlo apaga la derivación entera para esa receta.
+    aporte: z.array(z.enum([
+      "carne", "pescado", "legumbres", "huevos", "pasta_arroz", "patata", "verdura",
+    ])).optional(),
+    // ¿La base se cocina APARTE del plato, o DENTRO de él?
+    //
+    // Es la distinción que hace posible el batch cooking y la única que
+    // `mainBase` no podía dar: dice QUÉ fécula lleva el plato, no si esa
+    // fécula se puede tener ya hecha el domingo.
+    //
+    //   aparte → el arroz de un bowl, de una ensalada, de unas judías con
+    //            arroz. Se cuece en su olla y se junta al final: una tanda
+    //            grande sirve a tres platos distintos de la semana.
+    //   dentro → el arroz de un risotto, una paella o un arroz caldoso; la
+    //            pasta de una lasaña, de unos canelones o de una sopa. El
+    //            grano se cocina EN el plato absorbiendo su caldo, y
+    //            precocinarlo no ahorra tiempo: arruina el plato.
+    //
+    // Solo tiene sentido junto a `mainBase`, y solo "aparte" engancha con una
+    // receta de base. Ausente = sin decidir todavía, que NO es lo mismo que
+    // "dentro": el generador de sesiones ignora lo que no está marcado en vez
+    // de suponer (ver lib/bases.js).
+    baseMode: z.enum(["aparte", "dentro"]).optional(),
+    // ── Preparaciones batcheables que NO son fécula ────────────────────────
+    // `mainBase` responde "¿qué hidrato lleva este plato?" y alimenta carbType
+    // y las reglas de variedad. El sofrito no es un hidrato, y un plato puede
+    // llevar arroz Y sofrito — así que meterlo en MAIN_BASES habría roto el eje
+    // y solo habría dejado declarar uno de los dos.
+    //
+    // Esto es la otra pregunta: ¿qué preparaciones admite este plato YA HECHAS?
+    // Es una lista porque la respuesta honesta suele ser más de una. El sofrito
+    // es el caso grande: lo llevan 260 platos del recetario estrella, más que
+    // las siete bases de fécula juntas, y es casi todo trabajo de manos — que
+    // es lo único que de verdad se ahorra (ver fraccionActiva en lib/bases.js).
+    //
+    // Riesgo asimétrico, y al revés que en `baseMode`: tener sofrito hecho y no
+    // usarlo no estropea nada, mientras que precocer el arroz de un risotto sí.
+    // Por eso aquí se puede marcar con menos miedo.
+    basesAparte: z.array(z.string().min(1)).optional(),
+    // Solo en recetas `type: "base"`: con qué clave la buscan los platos. Para
+    // las siete de fécula es su `mainBase`; existe para que una base que no es
+    // fécula (el sofrito) tenga nombre propio sin colarse en MAIN_BASES.
+    baseKey: z.string().min(1).optional(),
+    // ── Campos solo de type "base" ─────────────────────────────────────────
+    // Cuánto produce una tanda. Una base rinde 600 g de arroz cocido, no "4
+    // raciones": `baseServings` es la unidad del que se come un plato, y aquí
+    // lo que se reparte es peso entre platos que piden cantidades distintas.
+    rinde: z.object({
+      amount: z.number().positive(),
+      unit: z.enum(UNITS),
+    }).optional(),
+    // El tiempo de una base es AFÍN, no proporcional, y esa es justo la razón
+    // de que el batch cooking ahorre: una olla de garbanzos tarda 40 min tanto
+    // para 2 raciones como para 8. `minutosFijos` es ese 40 —lo que cuesta
+    // aunque sea una sola ración—, y `minutosPorRacion` lo poco que crece
+    // (pelar y cortar sí escala; hervir no). Ver tiempoDeBase() en lib/bases.js.
+    minutosFijos: z.number().nonnegative().optional(),
+    minutosPorRacion: z.number().nonnegative().optional(),
+    // Cuántas raciones caben en UNA tanda. Por encima hace falta otra olla u
+    // otra bandeja, y entonces el tiempo sí se suma entero — sin este tope el
+    // modelo afín prometería cocinar para 20 en el mismo cazo.
+    capacidadMax: z.number().positive().optional(),
     // Composición no proteica/no feculenta — ver MAIN_INGREDIENTS. Aditivo:
     // no sustituye a mainProtein ni a mainBase, que siguen siendo el motor de
     // las reglas de variedad en utils/validateMenu.js.
@@ -192,19 +479,16 @@ export const RecipeSchema = z
     // Se resuelve con una prioridad (nombre → electrodoméstico → pasos), que
     // da un reparto que sí distingue: olla 38%, sartén 29%, horno 20%, crudo
     // 14%, plancha 10%. Ver scripts/mark-catalog-axes.mjs.
-    tecnica: z.enum(["horno", "plancha", "sarten", "olla", "crudo"]).optional(),
+    tecnica: z.enum(TECNICAS).optional(),
     // De dónde es el plato. AUSENTE = española, que es lo que este catálogo es
     // de serie: marcar 580 recetas como "espanola" sería ruido para decir lo
     // obvio. Sale solo del NOMBRE — derivarlo de los ingredientes hacía
     // "asiáticas" a unas costillas BBQ por llevar salsa de soja, y mexicana a
     // la tortilla de jamón y queso.
-    cocina: z.enum([
-      "italiana", "asiatica", "mexicana", "arabe",
-      // Añadidas al medir la convención: 30 platos de nombre inequívocamente
-      // extranjero (quiche lorraine, ceviche, hamburguesa, pollo al curry)
-      // contaban como españoles por omisión.
-      "francesa", "americana", "india", "peruana",
-    ]).optional(),
+    // Las cuatro últimas se añadieron al medir la convención: 30 platos de
+    // nombre inequívocamente extranjero (quiche lorraine, ceviche, hamburguesa,
+    // pollo al curry) contaban como españoles por omisión.
+    cocina: z.enum(COCINAS).optional(),
     // El plato TRAE salsa escrita dentro. No es `sauceId` —que fija UNA salsa
     // concreta a mano y no lo usa nadie— sino "esto es un plato de salsa".
     //
@@ -215,6 +499,45 @@ export const RecipeSchema = z
     //
     // Deliberadamente NO incluye guisos y estofados: tienen su jugo, pero eso
     // ya lo dice `tecnica`, y mezclarlos dejaba el filtro sin filo.
+    //
+    // ── APARTE vs DENTRO: el criterio, fijado el 11 sep 2026 ────────────────
+    // Esa exclusión de los guisos estaba tanteando una distinción que no se
+    // llegó a nombrar, y que es la misma que `baseMode` hace con la fécula:
+    //
+    //   APARTE  se puede servir en un cuenco al lado, Y el plato sigue siendo
+    //           ese plato sin ella. Hacen falta LAS DOS cosas.
+    //   DENTRO  no es escindible de la preparación: sus ingredientes no se
+    //           pueden atribuir por separado.
+    //
+    // Casos que costaron y cómo se resolvieron, para que no haya que volver a
+    // discutirlos:
+    //
+    //   · REDUCCIONES — hay un test mecánico, comprobable en los propios pasos:
+    //     ¿el líquido de la salsa ha cocinado el ingrediente principal?
+    //       NO  → aparte. El magret con reducción de frutos rojos: la reducción
+    //             se hace en un cazo y nunca tocó el pato.
+    //       SÍ  → dentro. La carrillada al vino: esa reducción ES el líquido de
+    //             braseado, y la carne soltó sus jugos en él.
+    //
+    //   · MANTEQUILLAS COMPUESTAS (Café de París, de perejil) → aparte. Se hacen
+    //     en bol, se enfrían, se cortan en rodajas y se posan. Un entrecot sin
+    //     ella sigue siendo un entrecot.
+    //
+    //   · BACALAO AL PIL-PIL → dentro. La salsa se emulsiona con el aceite de
+    //     confitar el propio bacalao y su gelatina: no hay frontera que trazar.
+    //
+    //   · PATATAS BRAVAS → dentro. La brava es separable, pero unas bravas sin
+    //     brava son patatas fritas: falla la segunda cláusula. Y para lo que de
+    //     verdad importa —¿se le puede quitar a un alérgico?— la respuesta es
+    //     que no, porque entonces se le está dando otro plato.
+    //
+    // Medido sobre el catálogo: ~8 % de los platos llevan salsa aparte. La señal
+    // está en el nombre (la preposición: "con salsa X" ≈ aparte, "en salsa X" /
+    // "al X" ≈ dentro) y, mejor todavía, en el texto de los últimos pasos
+    // ("aparte", "al lado", "en un cuenco"), que acertó el 100 % de las veces.
+    // Ojo con cinco familias de falso positivo del "con X": gratinados,
+    // portadores (un wrap con césar la lleva dentro), glaseados que se pincelan,
+    // aliños, y los "con X" donde X no es una salsa.
     llevaSalsa: z.boolean().optional(),
     // Etapa del bebé, solo para category "bebes". "Bebé" no es una etapa: son
     // tres, y hasta ahora las 19 recetas eran todas del primer tramo — un niño
@@ -311,6 +634,65 @@ export const RecipeSchema = z
     // a los pasos de cocinado cuando el slot viene marcado fromFreezer; si además
     // hay raciones frescas que cocinar, se muestran los dos bloques.
     thawSteps: z.array(StepRichSchema).min(1).optional(),
+    // ── Solo en recetas `type: "base"`: cómo se vuelve a poner en marcha ────
+    // Un táper de la nevera no se usa tal cual: el arroz se seca y pide un
+    // chorrito de agua, el sofrito quiere un minuto de sartén, y lo rebozado
+    // pierde la textura si lo pasas por el microondas en vez de por el horno.
+    //
+    // Es el mismo patrón que `thawSteps`, y de hecho la hermana pequeña: si
+    // aquello es "sacarlo del congelador", esto es "sacarlo de la nevera".
+    //
+    // Nace porque el modelo estaba cobrando CERO por esto. `montajeTrasBases`
+    // quitaba los pasos de la base y daba el plato por empezado, así que la
+    // promesa del martes salía más corta de lo que iba a ser. Y además los
+    // pasos del plato están escritos suponiendo que la base acaba de salir del
+    // fuego: sin esto, un martes faltaba una instrucción.
+    //
+    // Va sin marcadores, igual que thawSteps: aquí no hay cantidades que
+    // escalar porque lo que se reactiva ya está cocinado.
+    reactivacion: z.array(StepRichSchema).min(1).optional(),
+    // ── Solo en `type: "base"`: cuántos días aguanta en la nevera ─────────
+    // No es una preferencia de textura: es seguridad alimentaria. El arroz y la
+    // pasta cocidos aguantan uno o dos días a 4 °C por el *Bacillus cereus*,
+    // que no cambia ni el olor ni el sabor, y las guías serias dicen que por eso
+    // no son preparaciones de tanda semanal. Las verduras asadas aguantan
+    // cuatro o cinco, y el sofrito o la salsa de tomate tres o cuatro.
+    //
+    // Sin este campo la sesión del domingo proponía cocinar arroz para el
+    // jueves. Con él, lo que no cabe en la ventana se manda al congelador si la
+    // base lo admite, y si no, ese hueco deja de contar para la tanda.
+    conservacion: z.object({
+      // Días que se puede tener en la nevera contando desde el día siguiente al
+      // de cocinarla.
+      nevera: z.number().int().positive(),
+    }).optional(),
+    // ── Platos a medio hacer: dónde se parte la receta en dos días ──
+    // Una base es un ingrediente que sirve para varios platos. Esto es otra
+    // cosa: un plato CONCRETO cuya parte lenta se hace el día de la tanda y
+    // cuyo remate se hace el día que toca. Las croquetas se forman y se
+    // empanan, y el martes solo se fríen; la lasaña se monta entera y el
+    // jueves solo se mete al horno.
+    //
+    // Solo lo llevan los platos cuyo último acto es freír, hornear o gratinar.
+    // Un guiso NO entra: unas albóndigas en salsa salen mejor cocinadas del
+    // todo y congeladas, y para eso ya está `freezable`. Partir un guiso no
+    // ahorra nada y encima lo empeora.
+    //
+    // `hasta` es el índice del último paso de `stepsRich` que se hace el día
+    // de la tanda. El corte es siempre un prefijo porque el trabajo de
+    // adelantar vive al principio de la receta, sin una sola excepción en el
+    // catálogo. Los minutos de cada lado no se guardan: se suman de los pasos,
+    // que ya traen sus minutos y su `kind`. Guardarlos aparte sería otro
+    // número que puede mentir en cuanto alguien edite un paso.
+    adelanto: z.object({
+      hasta: z.number().int().nonnegative(),
+      // Cómo espera hasta el día que toca. `congelador` es lo que hace que
+      // valga la pena doblar cantidades: diez croquetas crudas dan para dos
+      // cenas. `nevera` es para lo que no congela bien crudo, como las masas
+      // con levadura, el huevo sin cuajar o la verdura rellena.
+      guarda: z.enum(["nevera", "congelador"]),
+      dias: z.number().int().positive(),
+    }).optional(),
     description: z.string().min(1),
     methods: z.array(MethodSchema).optional(),
     // Names this dish is commonly sold as a ready-made product under (e.g.
@@ -360,6 +742,58 @@ export const RecipeSchema = z
       });
     }
 
+    if (type === "base") {
+      if (mealRole.length !== 1 || mealRole[0] !== "base") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${id}": type "base" requiere mealRole === ["base"], recibido [${mealRole.join(", ")}]`,
+        });
+      }
+      if (!recipe.rinde) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${id}": type "base" requiere rinde — una base sin rendimiento no se puede repartir entre platos`,
+        });
+      }
+      // Sin clave la base no se puede emparejar con ningún plato: es el join,
+      // no un adorno. Una base huérfana es dato muerto. La clave es `mainBase`
+      // para las siete de fécula y `baseKey` para las que no lo son — el
+      // sofrito no es un hidrato y no podía entrar en MAIN_BASES sin romper
+      // carbType y las reglas de variedad.
+      if (!recipe.mainBase && !recipe.baseKey) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${id}": type "base" requiere mainBase o baseKey — es la clave por la que los platos la encuentran`,
+        });
+      }
+    } else if (mealRole.includes("base")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": mealRole "base" solo es válido con type "base"`,
+      });
+    }
+
+    // rinde/minutosFijos/minutosPorRacion/capacidadMax describen una TANDA, y
+    // una tanda solo la produce una base. En un plato serían dato muerto.
+    for (const campo of ["rinde", "minutosFijos", "minutosPorRacion", "capacidadMax"]) {
+      if (recipe[campo] !== undefined && type !== "base") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${id}": ${campo} solo es válido en type "base"`,
+        });
+      }
+    }
+
+    // Un baseMode sin mainBase no dice nada: "aparte" ¿de qué? Es el error
+    // típico de marcar el eje a mano en la receta equivocada, y prefiero que
+    // salte al validar que descubrirlo cuando la sesión salga vacía.
+    if (recipe.baseMode && !recipe.mainBase) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": baseMode requiere mainBase`,
+      });
+    }
+
     // sauceCompat solo tiene sentido en la propia receta de salsa; en un plato
     // principal el campo relevante es sauceId (qué salsa lleva), no con qué
     // encaja — mismo error de confusión que canBeGarnish en type "guarnicion".
@@ -367,6 +801,23 @@ export const RecipeSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `"${id}": sauceCompat solo es válido en type "salsa"`,
+      });
+    }
+
+    // Unos pasos de reactivación en algo que no es una base no los pintaría
+    // nadie, y peor: `montajeTrasBases` los cobraría como coste de una tanda
+    // que no existe.
+    if (recipe.conservacion && type !== "base") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": conservacion solo es válido en type "base"`,
+      });
+    }
+
+    if (recipe.reactivacion && type !== "base") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": reactivacion solo es válido en type "base"`,
       });
     }
 
@@ -385,6 +836,37 @@ export const RecipeSchema = z
         code: z.ZodIssueCode.custom,
         message: `"${id}": thawSteps requiere freezable true`,
       });
+    }
+
+    // El corte de un plato a medio hacer tiene que caer DENTRO de la receta y
+    // dejar algo que cocinar el día que toca. Un corte en el último paso no es
+    // adelantar: es cocinar el plato entero y llamarlo de otra manera.
+    if (recipe.adelanto) {
+      const pasos = recipe.stepsRich?.length ?? 0;
+      if (!pasos) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${id}": adelanto requiere stepsRich`,
+        });
+      } else if (recipe.adelanto.hasta >= pasos - 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${id}": adelanto.hasta (${recipe.adelanto.hasta}) no deja ningún paso para el día que toca (${pasos} pasos)`,
+        });
+      } else {
+        // Y el remate tiene que ser una cocción de verdad. Si lo que queda
+        // después del corte es emplatar, el plato estaba terminado y esto
+        // sobra: es justo el error que separa un plato a medio hacer de uno
+        // que simplemente se guarda hecho.
+        const remate = recipe.stepsRich.slice(recipe.adelanto.hasta + 1);
+        const cuece = remate.some((s) => /freír|fríe|hornear|horno|gratinar|grill|dorar|cocer|hervir|saltear|plancha|vapor/i.test(s.text));
+        if (!cuece) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `"${id}": tras adelanto.hasta no queda ninguna cocción; eso no es un plato a medio hacer`,
+          });
+        }
+      }
     }
 
     // Un type "guarnicion" YA está en el pool de guarniciones; marcarlo además
@@ -433,7 +915,7 @@ export function effectiveRecipeTime(recipe, eaters) {
   return recipe.time * (1 + 0.12 * extra);
 }
 
-export { DEPRECATED_CATEGORIES, MAIN_INGREDIENTS, SAUCE_COMPAT_TAGS };
+export { CARB_TYPE_BY_BASE, COCINAS, DEPRECATED_CATEGORIES, MAIN_BASES, MAIN_INGREDIENTS, MAIN_PROTEINS, PROTEIN_GROUP_BY_MAIN_PROTEIN, SAUCE_COMPAT_TAGS, TECNICAS };
 
 /**
  * Validates every recipe in `recipes` against RecipeSchema.

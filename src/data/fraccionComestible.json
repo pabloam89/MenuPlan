@@ -1,0 +1,295 @@
+{
+  "_": "Qué fracción de lo que se COMPRA se acaba COMIENDO. 1 = todo; 0,25 = tres cuartas partes van a la basura. Solo aparecen aquí los ingredientes que descartan algo: un ingrediente ausente de este fichero no es un hueco, es que no se tira nada de él (la harina, el aceite, la leche). Por eso `alimentos.fraccionComestible` se queda a null en esos y el consumidor asume 1: null es «no verificado, se supone entero», no cero. POR QUÉ IMPORTA: estas líneas se pesan en crudo y con su descarte. Un consomé con 400 g de hueso de ternera contaba 400 g de comida en un plato de cuatro raciones, y el hueso va a la basura. No es un ingrediente sin nutrición — es un ingrediente que no se come, y darle nutrición habría sido peor que dejarlo vacío. — UNA RETIRADA, 21 sep 2026: `salmon-fresco` tenía 0,67, la merma del pez ENTERO (cabeza, espina y piel). Sus ocho líneas de receta son todas lomo —«para sushi», «calidad sashimi», «lomo con piel»— y ninguna es un salmón entero, así que la merma se estaba restando de pescado que ya viene limpio: en el poke bowl dejaba 200 g de salmón en 134 y le hacía perder el eje de la proteína contra el edamame. Si algún día entra un salmón entero de verdad, será otro ingrediente, como lo son «Lomos de salmón» y «Salmón ahumado».",
+
+  "hueso-de-ternera": {
+    "valor": 0,
+    "confianza": 0.95,
+    "motivo": "No se come. Da sabor al caldo y se retira. Aparece a 400 g en «Consomé con jerez»: sin esto, el plato contaba 400 g de comida que nadie se lleva a la boca."
+  },
+  "pata-de-ternera": {
+    "valor": 0.4,
+    "confianza": 0.6,
+    "motivo": "En los callos se aprovechan la piel y el tendón gelatinoso; el hueso, que es la mayor parte del peso, no. 0,4 es una estimación conservadora y por eso la confianza es baja: si alguien tiene el dato mejor, que lo cambie."
+  },
+  "manitas-de-cerdo": {
+    "valor": 0.5,
+    "confianza": 0.6,
+    "motivo": "Mismo caso que la pata de ternera: se come la piel y la gelatina, no el hueso."
+  },
+
+  "almejas": {
+    "valor": 0.25,
+    "confianza": 0.85,
+    "motivo": "La concha es la mayor parte del peso que se compra y se paga. Las recetas piden los gramos con concha porque es como se venden."
+  },
+  "berberecho": {
+    "valor": 0.25,
+    "confianza": 0.85,
+    "motivo": "Como la almeja: se compra con concha."
+  },
+  "mejillones": {
+    "valor": 0.3,
+    "confianza": 0.85,
+    "motivo": "Se compran con concha. Un kilo de mejillones son unos 300 g de carne."
+  },
+  "navaja": {
+    "valor": 0.35,
+    "confianza": 0.8,
+    "motivo": "Se compran con concha; la navaja aprovecha algo más que la almeja porque su concha es más fina."
+  },
+  "bogavante": {
+    "valor": 0.35,
+    "confianza": 0.8,
+    "motivo": "Caparazón y pinzas son la mayor parte del peso."
+  },
+  "cigala": {
+    "valor": 0.4,
+    "confianza": 0.8,
+    "motivo": "Se compran enteras, con cabeza y caparazón."
+  },
+
+  "dorada": {
+    "valor": 0.55,
+    "confianza": 0.85,
+    "motivo": "«Dorada (limpia, entera)»: viene eviscerada pero con cabeza, espina y aletas, que son casi la mitad del peso. Aparece a 700 g de mediana, así que el error de no aplicarlo es grande."
+  },
+  "lubina": {
+    "valor": 0.55,
+    "confianza": 0.85,
+    "motivo": "«Lubina entera limpia»: mismo caso que la dorada."
+  },
+
+  "puerro": {
+    "valor": 0.35,
+    "confianza": 0.8,
+    "motivo": "Se tira la parte verde oscura y la raíz. Porción comestible de BEDCA (ficha «Puerro, crudo y congelado», f_id 2411), que es la misma fuente de la que sale su nutrición."
+  },
+  "sardinas": {
+    "valor": 0.52,
+    "confianza": 0.8,
+    "motivo": "Cabeza, espina y vísceras. Porción comestible de BEDCA (ficha «Sardina», f_id 2630), que es la misma fuente de la que sale su nutrición."
+  },
+  "lenguado": {
+    "valor": 0.55,
+    "confianza": 0.8,
+    "motivo": "Piel, cabeza y espina. Porción comestible de BEDCA (ficha «Lenguado», f_id 2341), que es la misma fuente de la que sale su nutrición."
+  },
+  "rodaballo": {
+    "valor": 0.55,
+    "confianza": 0.8,
+    "motivo": "Cabeza y espina; es un pescado plano de mucho descarte. Porción comestible de BEDCA (ficha «Rodaballo», f_id 2625), que es la misma fuente de la que sale su nutrición."
+  },
+  "calamar": {
+    "valor": 0.7,
+    "confianza": 0.8,
+    "motivo": "Pluma, vísceras y aletas. Porción comestible de BEDCA (ficha «Calamar, crudo», f_id 807), que es la misma fuente de la que sale su nutrición."
+  },
+  "merluza": {
+    "valor": 0.7,
+    "confianza": 0.8,
+    "motivo": "Cabeza y espina. «Merluza en lomos» va aparte y sin fracción. Porción comestible de BEDCA (ficha «Merluza, congelada, cruda», f_id 825), que es la misma fuente de la que sale su nutrición."
+  },
+  "salmonete": {
+    "valor": 0.74,
+    "confianza": 0.8,
+    "motivo": "Cabeza, espina y escamas. Porción comestible de BEDCA (ficha «Salmonete», f_id 2629), que es la misma fuente de la que sale su nutrición."
+  },
+  "congrio": {
+    "valor": 0.75,
+    "confianza": 0.8,
+    "motivo": "Cabeza y espina, y el congrio tiene muchas. Porción comestible de BEDCA (ficha «Congrio», f_id 2332), que es la misma fuente de la que sale su nutrición."
+  },
+  "granada": {
+    "valor": 0.56,
+    "confianza": 0.8,
+    "motivo": "La piel y la membrana blanca, que es casi la mitad. Porción comestible de BEDCA (ficha «Granada», f_id 2226), que es la misma fuente de la que sale su nutrición."
+  },
+  "aguacate": {
+    "valor": 0.6,
+    "confianza": 0.8,
+    "motivo": "Hueso y piel. Porción comestible de BEDCA (ficha «Aguacate», f_id 2216), que es la misma fuente de la que sale su nutrición."
+  },
+  "platano": {
+    "valor": 0.66,
+    "confianza": 0.8,
+    "motivo": "La piel. Porción comestible de BEDCA (ficha «Plátano», f_id 2245), que es la misma fuente de la que sale su nutrición."
+  },
+  "pomelo": {
+    "valor": 0.66,
+    "confianza": 0.8,
+    "motivo": "Piel y membranas. Porción comestible de BEDCA (ficha «Pomelo», f_id 2246), que es la misma fuente de la que sale su nutrición."
+  },
+  "lima": {
+    "valor": 0.74,
+    "confianza": 0.8,
+    "motivo": "Se usa el zumo y la ralladura. Porción comestible de BEDCA (ficha «Lima, cruda», f_id 1001), que es la misma fuente de la que sale su nutrición."
+  },
+  "arandanos": {
+    "valor": 0.99,
+    "confianza": 0.8,
+    "motivo": "Prácticamente todo; el 0,99 es el rabito. Porción comestible de BEDCA (ficha «Arandano», f_id 2368), que es la misma fuente de la que sale su nutrición."
+  },
+  "berenjena": {
+    "valor": 0.7,
+    "confianza": 0.8,
+    "motivo": "Pedúnculo y parte de la piel. Porción comestible de BEDCA (ficha «Berenjena», f_id 2370), que es la misma fuente de la que sale su nutrición."
+  },
+  "calabaza": {
+    "valor": 0.7,
+    "confianza": 0.8,
+    "motivo": "Corteza y semillas. Porción comestible de BEDCA (ficha «Calabaza, cruda», f_id 2378), que es la misma fuente de la que sale su nutrición."
+  },
+  "repollo": {
+    "valor": 0.74,
+    "confianza": 0.8,
+    "motivo": "Troncho y hojas exteriores. Porción comestible de BEDCA (ficha «Repollo», f_id 2417), que es la misma fuente de la que sale su nutrición."
+  },
+  "boniato": {
+    "valor": 0.79,
+    "confianza": 0.8,
+    "motivo": "La piel. Porción comestible de BEDCA (ficha «Boniato, crudo», f_id 731), que es la misma fuente de la que sale su nutrición."
+  },
+  "lombarda": {
+    "valor": 0.81,
+    "confianza": 0.8,
+    "motivo": "Troncho y hojas exteriores. Porción comestible de BEDCA (ficha «Lombarda», f_id 2400), que es la misma fuente de la que sale su nutrición."
+  },
+  "patata": {
+    "valor": 0.81,
+    "confianza": 0.8,
+    "motivo": "La piel. Es el que más recetas toca de todo el fichero. Porción comestible de BEDCA (ficha «Patata, cruda», f_id 2403), que es la misma fuente de la que sale su nutrición."
+  },
+  "pimiento-rojo": {
+    "valor": 0.83,
+    "confianza": 0.8,
+    "motivo": "Pedúnculo, semillas y nervaduras. Porción comestible de BEDCA (ficha «Pimiento rojo, crudo», f_id 2409), que es la misma fuente de la que sale su nutrición."
+  },
+  "apio": {
+    "valor": 0.86,
+    "confianza": 0.8,
+    "motivo": "Hojas y la base fibrosa. Porción comestible de BEDCA (ficha «Apio, crudo», f_id 2366), que es la misma fuente de la que sale su nutrición."
+  },
+  "tomate": {
+    "valor": 0.95,
+    "confianza": 0.8,
+    "motivo": "Pedúnculo. Casi todo se come. Porción comestible de BEDCA (ficha «Tomate», f_id 2421), que es la misma fuente de la que sale su nutrición."
+  },
+  "tomate-cherry": {
+    "valor": 0.95,
+    "confianza": 0.8,
+    "motivo": "Igual que el tomate. Porción comestible de BEDCA (ficha «Tomate», f_id 2421), que es la misma fuente de la que sale su nutrición."
+  },
+  "costilla": {
+    "valor": 0.73,
+    "confianza": 0.8,
+    "motivo": "El hueso, que en una costilla de cerdo es más de un cuarto del peso. Porción comestible de BEDCA (ficha «Cerdo, costilla, crudo», f_id 2258), que es la misma fuente de la que sale su nutrición."
+  },
+  "chuletas-de-cerdo": {
+    "valor": 0.8,
+    "confianza": 0.8,
+    "motivo": "El hueso de la chuleta. Porción comestible de BEDCA (ficha «Cerdo, chuleta, crudo», f_id 2257), que es la misma fuente de la que sale su nutrición."
+  },
+  "aceitunas": {
+    "valor": 0.78,
+    "confianza": 0.8,
+    "motivo": "El hueso. Porción comestible de BEDCA (ficha «Aceituna», f_id 2214), que es la misma fuente de la que sale su nutrición."
+  },
+  "aceitunas-negras": {
+    "valor": 0.8,
+    "confianza": 0.8,
+    "motivo": "El hueso; la ficha lo dice en su propio nombre, «Aceituna negra, con hueso». Porción comestible de BEDCA (ficha «Aceituna negra, con hueso», f_id 2215), que es la misma fuente de la que sale su nutrición."
+  },
+  "alcaparras": {
+    "valor": 0.8,
+    "confianza": 0.8,
+    "motivo": "El rabito. Porción comestible de BEDCA (ficha «Alcaparra», f_id 2364), que es la misma fuente de la que sale su nutrición."
+  },
+  "chorizo": {
+    "valor": 0.97,
+    "confianza": 0.8,
+    "motivo": "La tripa. Porción comestible de BEDCA (ficha «Chorizo», f_id 2264), que es la misma fuente de la que sale su nutrición."
+  },
+  "boletus": {
+    "valor": 0.8,
+    "confianza": 0.8,
+    "motivo": "Base del pie y restos de tierra. Porción comestible de BEDCA (ficha «Seta», f_id 2419), que es la misma fuente de la que sale su nutrición."
+  },
+  "setas": {
+    "valor": 0.8,
+    "confianza": 0.8,
+    "motivo": "Igual que el boletus. Porción comestible de BEDCA (ficha «Seta», f_id 2419), que es la misma fuente de la que sale su nutrición."
+  },
+  "rabo-de-toro": {
+    "valor": 0.55,
+    "confianza": 0.6,
+    "motivo": "El rabo de toro es casi mitad hueso. La ficha que cita —«Beef, oxtail, raw»— es la carne, así que BEDCA no puede avisarnos: su porción comestible sale 1. Sin esto, «Rabo de toro al vino de Jerez» contaba 1.400 g de rabo como 1.400 g de carne y salía a 885 g por ración."
+  },
+  "jarrete-de-ternera": {
+    "valor": 0.7,
+    "confianza": 0.6,
+    "motivo": "El ingrediente se llama «Jarrete de ternera CON HUESO» y la ficha es «separable lean only». El hueso del ossobuco ronda el 30 %."
+  },
+  "chuleton-de-ternera": {
+    "valor": 0.75,
+    "confianza": 0.6,
+    "motivo": "El hueso del chuletón. La ficha, «Beef, rib, raw», es la carne."
+  },
+  "cordero": {
+    "valor": 0.65,
+    "confianza": 0.55,
+    "motivo": "Chuletillas de cordero: hueso y palo. Es de los cortes con más descarte."
+  },
+  "pollo": {
+    "valor": 0.7,
+    "confianza": 0.6,
+    "motivo": "«Pollo troceado» se compra con hueso y piel; la ficha es «Chicken, MEAT, raw». Sin esto, «Pollo a la brasa con ají» salía a 131 g de proteína por ración, que es un pollo entero para dos."
+  },
+  "muslo-de-pollo": {
+    "valor": 0.75,
+    "confianza": 0.6,
+    "motivo": "Muslo con hueso; la ficha es «Chicken, leg, MEAT, raw»."
+  },
+  "contramuslos-de-pollo": {
+    "valor": 0.8,
+    "confianza": 0.55,
+    "motivo": "Menos hueso que el muslo. Varias recetas lo piden deshuesado, así que el descarte real es menor."
+  },
+  "alitas-de-pollo": {
+    "valor": 0.65,
+    "confianza": 0.6,
+    "motivo": "El ala es el corte con más hueso en proporción del pollo."
+  },
+  "codorniz": {
+    "valor": 0.6,
+    "confianza": 0.5,
+    "motivo": "Ave pequeña entera: la carcasa pesa mucho en proporción."
+  },
+  "perdiz": {
+    "valor": 0.6,
+    "confianza": 0.5,
+    "motivo": "Igual que la codorniz. BEDCA da 1 porque su ficha, «Perdiz, cruda», ya es la carne."
+  },
+
+  "pato": {
+    "valor": 0.89,
+    "confianza": 0.7,
+    "motivo": "Porción comestible de BEDCA (ficha «Pato, entero, crudo», f_id 2287). Se le pasó a la tanda anterior por un despiste de clave —se escribió «magret-de-pato» y el id del ingrediente es «pato»—, y el hueco lo destapó el ragú de pato: 500 g de muslos con hueso daban 68 g de proteína por ración. Los 0,89 son del pato entero desplumado y eviscerado, así que para un muslo con hueso todavía se quedan largos; se toma el dato de la fuente antes que una estimación propia."
+  },
+
+  "pimiento-verde": {
+    "valor": 0.83,
+    "confianza": 0.6,
+    "motivo": "Pedúnculo, semillas y nervaduras. El valor NO es suyo: es el del pimiento rojo, cuya ficha sí está en BEDCA (0,83). Misma especie y mismo descarte, así que se hereda en vez de estimarlo a ojo, y por eso la confianza baja. Lo destapó una revisión de raciones: al tomate de la misma receta se le aplicaba 0,95 y a 720 g de pimiento verde no se le aplicaba nada."
+  },
+
+  "hueso-de-jamon": {
+    "valor": 0,
+    "confianza": 0.95,
+    "motivo": "No se come. Da sabor al cocido y al consomé y se retira, igual que el hueso de ternera. Antes esta línea resolvía al ingrediente `jamon` —jamón serrano, 317,7 kcal y 28,8 g de proteína por 100 g— así que 100 g de hueso entraban como 100 g de jamón."
+  },
+  "cascara-de-marisco": {
+    "valor": 0,
+    "confianza": 0.95,
+    "motivo": "Se sofríen, se cuelan y se tiran; lo que queda en el plato es el sabor. Antes resolvían al langostino o a la gamba PELADOS, así que 300 g de cáscaras contaban como 300 g de carne: en el bisque metían 44 g de proteína fantasma por ración."
+  }
+}

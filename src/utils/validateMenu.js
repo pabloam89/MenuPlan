@@ -6,7 +6,9 @@
  */
 
 import { HEALTH_PROFILE_BADGE } from "../lib/healthProfileMatch.js";
-import { isMontaje } from "../data/recipeSchema.js";
+import { CARB_TYPE_BY_BASE, PROTEIN_GROUP_BY_MAIN_PROTEIN, isMontaje } from "../data/recipeSchema.js";
+import { esCasqueria } from "../lib/casqueria.js";
+import { clavesDeReceta } from "../lib/bases.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
 // presence-based profile ("must contain iron-rich flag") rather than
@@ -19,8 +21,11 @@ const CORRECTABLE_HEALTH_PROFILES = new Set(
 );
 
 // ── Carb-type extraction ─────────────────────────────────────────
-// Used to detect same-day "guarnición" repetition without catalog edits.
-// Matches recipe name + ingredient list, most specific pattern first.
+// Used to detect same-day "guarnición" repetition. The DECLARED `mainBase`
+// wins when the recipe has one (see getCarbType + CARB_TYPE_BY_BASE in
+// data/recipeSchema.js); these patterns are the fallback for the ~500 recipes
+// that don't declare it, matched against recipe name + ingredient list, most
+// specific pattern first.
 const CARB_PATTERNS = [
   [/arroz|paella|risotto/, "arroz"],
   [/pasta|macarr[oó]n|espagueti|tallar[íi]n|fideo|fideu[áa]|penne|lasa[ñn]a|can+elones|ravioli/, "pasta"],
@@ -30,29 +35,150 @@ const CARB_PATTERNS = [
   // Wheat-flour bases all count as "pan": a pizza for lunch and a bocadillo
   // for dinner is the same repetition the rule exists to prevent, but until
   // these were listed the menu could serve both on the same day undetected.
-  // "empanad" (no boundary) catches empanada/empanadilla; "tosta" catches the
-  // common short form used throughout the catalog alongside "tostada".
-  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|\btosta\b|bruschetta|rebanada|picatoste|pizza|wrap|burrito|quesadilla|empanad|migas|masa quebrada|hojaldre/, "pan"],
+  // "empanad(a|illa)" catches las dos y sus plurales, y deja fuera el
+  // EMPANADO, que es rebozado y no masa: unos "Filetes de lomo empanados" y
+  // un "Pollo empanado" no deben chocar con una empanada gallega. Son tres
+  // platos contra seis. "tosta" catches the common short form used throughout
+  // the catalog alongside "tostada".
+  //
+  // `picatoste` SALIÓ de la lista (21 sep 2026): un crouton nunca es la base
+  // de nada, ni cuando lo dice el nombre del plato. Un «Puré de verduras con
+  // picatostes» y una «Sopa de pescado con picatostes» contaban como pan por
+  // el tropezón de encima, y lo que se come es el puré y la sopa. Sigue en
+  // NO_ES_BASE, para el lado de los ingredientes.
+  //
+  // La masa se detecta por el NOMBRE del plato, no por el ingrediente. Buscar
+  // "hojaldre" o "masa quebrada" en la lista de ingredientes metía aquí al
+  // Solomillo Wellington y a los dos vol-au-vent, donde la masa es el envoltorio
+  // y no el hidrato: que un Wellington chocara con una tosta el mismo día no es
+  // precisión, es un falso positivo. Una quiche o una tarta salada sí son masa
+  // —te comes la porción de masa—, y esas entran por su nombre.
+  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|\btosta\b|bruschetta|rebanada|pizza|wrap|burrito|quesadilla|empanad(a|illa)|migas|quiche|\btarta (salada|fina|de puerros|de cebolla)/, "pan"],
   [/avena|porridge/, "avena"],
 ];
+
+// ── Ingredientes que llevan la palabra pero NO son la base ───────
+// Mismo principio que el párrafo de arriba sobre el hojaldre, un paso más:
+// allí el problema era la MASA que envuelve, aquí es el rebozado, el
+// condimento y el adjetivo. Medido sobre el catálogo, 41 platos sin
+// `mainBase` los clasificaba un ingrediente que nadie llamaría la base:
+//
+//   30  "Pan rallado"         → pan     un rebozado no es un hidrato: el
+//                                       escalope empanado y las albóndigas
+//                                       no chocan con un bocadillo
+//    5  "Almendra tostada"    → pan     `tostada` como ADJETIVO. Es el mismo
+//       "Avellanas tostadas"          fallo de substring de «Lard» dentro de
+//                                       «Collards», con otra palabra
+//    3  "Vinagre de arroz"    → arroz   un tataki de solomillo no lleva arroz
+//    2  "Pan frito"           → pan     los picatostes del romesco van DENTRO
+//                                       de la salsa, molidos
+//
+// El plato sí se clasifica por su propio NOMBRE: una "Tosta de aguacate"
+// sigue siendo pan, y unas "Almendras al romero" no dejan de ser lo que son.
+const NO_ES_BASE = [
+  /pan rallado|panko/,
+  /vinagre/,
+  /pan frito|picatoste|crouton/,
+  /almendra|avellana|nuez|nueces|pistacho|anacardo|cacahuete|pi[ñn][oó]n|pipa|s[ée]samo/,
+  /harina|maicena|levadura/,
+];
+
+// The whole carb vocabulary, derived from the patterns instead of retyped —
+// exported so the test suite can cross-check CARB_TYPE_BY_BASE against it. A
+// base mapped to a carbType this list doesn't contain would classify declared
+// dishes differently from undeclared ones, which is exactly the drift the
+// table exists to end.
+export const CARB_TYPES = CARB_PATTERNS.map(([, carbType]) => carbType);
 
 // Text-only carb classifier — exported so aiPlanner.js can classify the
 // school menu's free-text dish names (which have no ingredients array) with
 // the exact same taxonomy used below, instead of a second regex list that
 // could drift out of sync.
+// «Almendras TOSTADAS» no es una tostada: ahí `tostada` es el adjetivo, no la
+// rebanada. Como participio va detrás de su fruto seco, así que la frase
+// entera se quita del texto antes de clasificar — y «Tosta de aguacate» o
+// «Pan tostado», donde sí es lo que parece, siguen entrando. Es el mismo
+// fallo de substring que `^sal` con «salchicha», con otra palabra.
+const FRUTO_SECO_TOSTADO =
+  /\b(almendras?|avellanas?|nueces|nuez|pistachos?|anacardos?|cacahuetes?|pi[ñn]ones?|pipas?|s[ée]samo|semillas?)\s+tostad[oa]s?\b/g;
+
 export function carbTypeFromText(text) {
   const normalized = String(text ?? "")
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
+    .replace(/[̀-ͯ]/g, "")
+    .replace(FRUTO_SECO_TOSTADO, " ");
   for (const [pattern, carbType] of CARB_PATTERNS) {
-    if (pattern.test(normalized)) return carbType;
+    if (!pattern.test(normalized)) continue;
+    // "Mini quiche SIN MASA de brócoli" casaba con `quiche` y salía como pan,
+    // cuando el nombre dice justo lo contrario. Solo desactiva el pan: un
+    // plato puede no llevar masa y seguir siendo de arroz.
+    if (carbType === "pan" && /\bsin masa\b|\bsin pan\b/.test(normalized)) continue;
+    return carbType;
   }
   return null;
 }
 
+/**
+ * El tipo de hidrato de un PLATO del catálogo (no de un texto suelto).
+ *
+ * El `mainBase` declarado manda sobre el regex, traducido por la tabla
+ * CARB_TYPE_BY_BASE (data/recipeSchema.js), que es donde se explica el porqué
+ * de sus dos únicas entradas no-identidad (boniato → "patatas", legumbre →
+ * null). Antes se ignoraba el campo declarado y se clasificaba SIEMPRE por
+ * regex sobre nombre + ingredientes, y eso hacía dos cosas mal:
+ *
+ *   · leía un ingrediente secundario como si fuera la base del plato — el
+ *     "Trofie al pesto genovés" contaba como patatas (el pesto genovés lleva
+ *     patata) y por tanto NO chocaba con otra pasta el mismo día;
+ *   · no veía lo que su vocabulario no nombra — "Fettuccine Alfredo",
+ *     "Linguine alle vongole" o unos "Tacos de pollo" no tenían base ninguna,
+ *     así que espaguetis de comida + fettuccine de cena pasaban sin más.
+ *
+ * Medido contra el catálogo: 36 de 934 recetas cambian de carbType (26 del
+ * catálogo estrella). Ver el bloque CARB_TYPE_BY_BASE para el reparto.
+ *
+ * Un plato SIN `mainBase` sigue clasificándose por regex, que es lo que
+ * mantiene cubiertas las ~500 recetas que no declaran el campo (y las 109 que
+ * hoy solo tienen carbType gracias a él).
+ */
+// Una línea que declara `preparacion` dice que ESE ingrediente es la base del
+// plato: la harina del naan o de un ravioli no es harina cuando llega a la
+// mesa. Ver IngredientSchema (data/recipeSchema.js) para por qué es un campo
+// declarado y no un operador.
+const CARB_TYPE_BY_PREPARACION = { masa_pasta: "pasta", masa_pan: "pan" };
+
 export function getCarbType(recipe) {
-  return carbTypeFromText([recipe.name, ...recipe.ingredients.map((i) => i.name)].join(" "));
+  if (recipe?.mainBase && Object.hasOwn(CARB_TYPE_BY_BASE, recipe.mainBase)) {
+    return CARB_TYPE_BY_BASE[recipe.mainBase];
+  }
+  // Antes que el regex, y por el mismo motivo que `mainBase`: lo declarado
+  // gana a lo adivinado. Sin esto, el «Crumble de manzana» contaba como
+  // avena por sus 50 g de copos, ignorando los 150 g de harina que son el
+  // crumble — la harina está en NO_ES_BASE, que es la regla correcta para
+  // el ingrediente y la equivocada para esta línea.
+  const declarada = (recipe?.ingredients ?? [])
+    .map((i) => CARB_TYPE_BY_PREPARACION[i.preparacion])
+    .find(Boolean);
+  if (declarada) return declarada;
+  // EL NOMBRE PRIMERO, y solo si calla se mira la despensa.
+  //
+  // Antes se unían nombre e ingredientes en un solo texto y decidía el ORDEN
+  // de CARB_PATTERNS, que es un orden de especificidad y no de autoridad. Así
+  // un "Bocadillo de tortilla" salía `patatas`: el patrón de la patata va
+  // antes que el del pan, y la patata estaba en la lista de ingredientes. El
+  // plato se llama bocadillo.
+  const delNombre = carbTypeFromText(recipe.name);
+  if (delNombre) return delNombre;
+
+  // Los ingredientes, y solo los que pueden SER la base (ver NO_ES_BASE). Se
+  // filtra uno a uno y no sobre el texto ya unido, porque unirlo primero
+  // pierde de quién era cada palabra: "Pan rallado" quedaba indistinguible de
+  // un pan de verdad.
+  const deIngredientes = (recipe.ingredients ?? [])
+    .map((i) => i.name)
+    .filter((nombre) => !NO_ES_BASE.some((re) => re.test(normName(nombre))));
+  return carbTypeFromText(deIngredientes.join(" "));
 }
 
 // ── Meal ordering (chronological across the whole week) ─────────
@@ -70,14 +196,8 @@ const WEEKDAY_SLUGS = new Set(["lun", "mar", "mie", "jue", "vie"]);
 // same-day clash rule (3c) and applyFallback, so "no repetir carne/pescado el
 // mismo día" means the same thing everywhere. Anything not mapped (e.g.
 // "none") falls through to its raw value.
-const PROTEIN_GROUP_MAP = {
-  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
-  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
-  legumbre: "legumbres", huevo: "huevos",
-};
-
 function proteinGroup(mainProtein) {
-  return PROTEIN_GROUP_MAP[mainProtein] ?? mainProtein;
+  return PROTEIN_GROUP_BY_MAIN_PROTEIN[mainProtein] ?? mainProtein;
 }
 
 // All protein GROUPS a dish carries — its mainProtein PLUS any secondary
@@ -162,6 +282,21 @@ function isEnsalada(recipe) {
   return recipe ? ENSALADA_NAME_RE.test(recipe.name.trim()) : false;
 }
 
+// Y los que LLEVAN ensalada de acompañamiento sin serlo: "Filete de pavo a la
+// plancha con ensalada de aguacate". Por sí solos son un segundo perfectamente
+// normal —el comentario de arriba sigue siendo cierto— pero puestos al lado de
+// un primero que SÍ es una ensalada, en la mesa hay dos ensaladas. Reportado
+// tal cual: "de primero ensalada de melón con jamón y de segundo filete de
+// pavo con ensalada de…". Ver la regla 3d.
+//
+// Vale cualquier "ensalada" dentro del nombre, no solo "con ensalada": se
+// escapó "Salmón ahumado con huevo revuelto Y ensalada de aguacate y eneldo",
+// que es la misma situación escrita con otra conjunción.
+const CON_ENSALADA_RE = /\bensalada\b/i;
+function traeEnsalada(recipe) {
+  return recipe ? isEnsalada(recipe) || CON_ENSALADA_RE.test(recipe.name) : false;
+}
+
 /**
  * La "familia" de un plato: la primera palabra de su nombre, que es la que
  * dice QUE ES antes de decir de que va. Hummus, quesadilla, tortilla, wrap,
@@ -233,12 +368,41 @@ function mainMealsOf(mealOrder, poolById) {
 // pescado cap couldn't see it at all. That let marisco dishes stack up
 // unbounded regardless of the configured limit (a tester reported gambas in
 // nearly every slot of the week).
+// Las bases que son fécula "de plato" — las que hacen que un plato cuente como
+// pasta_arroz aunque esté archivado en carnes o ensaladas. Subconjunto
+// deliberado de MAIN_BASES: sin patatas/boniato (guarnición) ni legumbre (ya
+// cuenta por proteína). Ver el comentario de `pasta_arroz` justo debajo.
+const FECULAS = new Set(["arroz", "pasta", "quinoa", "cuscus"]);
+
+// ── Los MÁXIMOS leen IDENTIDAD, no aporte ──────────────────────────────────
+// `category` (más la proteína y la fécula declaradas) dice qué ES el plato;
+// `aporteDe` (lib/aporte.js) dice qué RACIONES entrega, y un plato entrega
+// varias a la vez. Los topes semanales son máximos sobre la identidad: "como
+// mucho dos platos DE pasta". Hubo una versión que contaba aquí por aporte, y
+// el solver (lib/solver.js) demostró al primer intento por qué no:
+//   · verdura como tope + aporte = "evita la verdura": 277 platos la entregan,
+//     así que con el tope en 3 había que esquivarla en 18 de 21 huecos;
+//   · seis topes que suman 21 sobre 21 huecos, con cada plato consumiendo dos o
+//     tres topes a la vez → sin solución posible (12/21 tras 5000 nodos).
+// `aporte` es para los MÍNIMOS ("al menos 4 días con verdura"), que todavía no
+// existen como regla, y viaja al prompt como información para repartir.
+
 export const FREQ_KEY_MATCHERS = {
   carne: (r) => r.category === "carnes" || proteinGroupsOf(r).has("carne"),
   pescado: (r) => r.category === "pescados" || proteinGroupsOf(r).has("pescado"),
   legumbres: (r) => r.category === "legumbres" || proteinGroupsOf(r).has("legumbres"),
   huevos: (r) => r.category === "huevos" || proteinGroupsOf(r).has("huevos"),
-  pasta_arroz: (r) => r.category === "pasta_arroces",
+  // Por categoría O por `mainBase` declarado. Solo la categoría dejaba fuera
+  // 29 platos del estrella que ENTREGAN una ración de fécula y viven en otro
+  // cajón: "Lomo saltado" y "Pollo tikka masala" (carnes, mainBase arroz),
+  // "Tabulé de cuscús" (ensaladas, mainBase cuscus), los bowls de quinoa…
+  // Cuatro días de pollo con arroz y el tope de pasta_arroz no se enteraba.
+  //
+  // Solo las FÉCULAS de verdad (arroz, pasta, quinoa, cuscús). `patatas` y
+  // `boniato` se quedan fuera a propósito: la patata es guarnición, no plato,
+  // y no va en este cubo — la vigilan las reglas 9 y 14 por `carbType` y, el
+  // día que haga falta, un tope propio. `legumbre` ya cuenta por mainProtein.
+  pasta_arroz: (r) => r.category === "pasta_arroces" || FECULAS.has(r.mainBase),
   verdura: (r) => r.category === "ensaladas_verduras" || r.category === "sopas_cremas",
 };
 
@@ -259,9 +423,20 @@ export function splitAchievableFreqs(filteredPool, freqs) {
   const achievable = {};
   const warnings = [];
   for (const [key, target] of Object.entries(freqs ?? {})) {
-    if (!target || target <= 0) continue;
+    if (target == null || target < 0) continue;
     const matcher = FREQ_KEY_MATCHERS[key];
     if (!matcher) continue; // unknown/custom key — ignore rather than crash
+    // Un tope de CERO es un objetivo legítimo y siempre alcanzable: "esta
+    // semana, nada de carne". Aquí se descartaba junto a los nulos, y un cero
+    // salía de esta función como "sin tope", o sea lo contrario de lo que
+    // pidió el usuario: un estilo de comida sin carne producía trece platos de
+    // carne en veintiún huecos. La comprobación de disponibilidad de abajo no
+    // aplica —no hace falta ninguna receta para no poner ninguna—, así que
+    // pasa directo.
+    if (target === 0) {
+      achievable[key] = 0;
+      continue;
+    }
     const available = filteredPool.filter(matcher).length;
     if (available < target) {
       warnings.push(
@@ -274,12 +449,104 @@ export function splitAchievableFreqs(filteredPool, freqs) {
   return { achievable, warnings };
 }
 
+/**
+ * Qué bases pedidas puede dar la semana ENTERAS, y cuáles hay que dejar fuera.
+ *
+ * Todo o nada, y es una decisión de producto, no una limitación técnica: pedir
+ * dos platos de sofrito y colocar uno no deja al usuario a medias, lo deja en
+ * cero. Una tanda existe porque DOS platos comparten la olla; con uno solo, lo
+ * cocinas ese día y no hay nada que partir.
+ *
+ * Se cae una base por dos motivos: la semana no tiene huecos para tantos (una
+ * semana acortada) o el recetario no tiene tantos platos con esa base después
+ * de alergias y preferencias (cuscús tiene seis en todo el catálogo).
+ *
+ * @returns {{alcanzables: Record<string, number>, warnings: string[]}}
+ */
+export function basesAlcanzables(filteredPool, basesPedidas, huecos) {
+  const alcanzables = {};
+  const warnings = [];
+  for (const [clave, pedidas] of Object.entries(basesPedidas ?? {})) {
+    if (!(pedidas > 0)) continue;
+    const disponibles = filteredPool.filter((r) => clavesDeReceta(r).includes(clave)).length;
+    if (disponibles < pedidas) {
+      warnings.push(
+        `No caben ${pedidas} platos con "${clave}": el recetario solo tiene ${disponibles} tras aplicar alergias y preferencias. Se deja fuera esa tanda entera, porque con menos no ahorra nada.`,
+      );
+      continue;
+    }
+    if (huecos != null && huecos < pedidas) {
+      warnings.push(
+        `No caben ${pedidas} platos con "${clave}" en una semana de ${huecos} hueco(s). Se deja fuera esa tanda entera.`,
+      );
+      continue;
+    }
+    alcanzables[clave] = pedidas;
+  }
+  return { alcanzables, warnings };
+}
+
 // Soft ceiling for primero + segundo of the same comida (see rule 7b).
 // Derived from this catalog: median comida ≈ 606 kcal, p90+p90 ≈ 862, worst
 // possible pairing ≈ 1006. 850 sits above the normal range and only catches
 // two-main-sized-dishes-at-once. Tune here if the catalog's balance shifts.
 // It's a QUALITY preference: applyFallback relaxes it before leaving a hole.
 export const COMIDA_KCAL_SOFT_CAP = 850;
+
+/**
+ * Cuánto se admite por encima del presupuesto de la comida (regla 7c), una vez
+ * contado el solape de la cocina.
+ */
+export const SOLAPE_COMIDA = 1.25;
+
+/**
+ * El mismo techo, para una CENA de dos platos (regla 7b).
+ *
+ * Más bajo que el de la comida a propósito: una cena es más ligera, y eso ya
+ * lo dice el catálogo solo — los platos con rol `cena` tienen 360 kcal de
+ * mediana frente a los 445 de un segundo de comida.
+ *
+ * El número sale de la misma cuenta que el de la comida, sobre las cenas: un
+ * primero de cena típico (crema, gazpacho, ensalada) son 262 kcal de mediana y
+ * un plato de cena 360, así que la pareja normal ronda las 620. 700 se queda
+ * por encima de lo normal y por debajo de las parejas pesadas — un gazpacho
+ * con una tortilla y su ensalada entra de sobra; una crema con una hamburguesa
+ * de 800, no. Si no existiera este techo, poner una crema delante serviría
+ * para cenar MÁS, que es justo lo contrario.
+ */
+export const CENA_KCAL_SOFT_CAP = 700;
+
+/**
+ * Cuántas noches puede repetirse la MISMA sopa como entrada de una cena de dos
+ * platos (regla 6).
+ *
+ * Tres, que es lo que da una olla. Es la única excepción a "no repetir plato en
+ * la semana", y no es una concesión: nadie hace una crema distinta cada noche.
+ * Se hace una el domingo y se tira de ella.
+ *
+ * Además es lo que hace posible la cena de dos platos. Las entradas salen solo
+ * del cajón de sopas y cremas, y con 30 minutos entre semana caben ocho para
+ * siete noches: sin repetir, quedaban diez cenas sin entrada de cada 112.
+ */
+export const VECES_MISMA_SOPA = 3;
+
+/**
+ * Cuánto se tarda de verdad en hacer dos platos: el LARGO entero más la mitad
+ * del corto.
+ *
+ * Sumarlos era el modelo equivocado, y se vio en cuanto alguien pidió comidas
+ * de 20 minutos: los primeros que caben en 20 minutos duran justo 20, así que
+ * al segundo le quedaban diez y no entraba nada — cuatro días de dos semanas
+ * se quedaron con un solo plato. Pero nadie cocina dos platos en fila: la
+ * ensalada se monta mientras el pescado está en el horno. Lo que no es cierto
+ * es lo contrario, que salgan gratis, porque hay un rato de manos que no se
+ * puede partir en dos; de ahí la mitad y no cero.
+ */
+export function tiempoDeLaComida(t1, t2) {
+  const a = t1 ?? 0;
+  const b = t2 ?? 0;
+  return Math.round(Math.max(a, b) + Math.min(a, b) / 2);
+}
 
 /**
  * Does this recipe's mealRole fit the slot it's been placed in?
@@ -303,11 +570,47 @@ export const COMIDA_KCAL_SOFT_CAP = 850;
  *   objects ("primero" | "segundo" | "plato_unico") and the raw form parsed
  *   out of a slotId ("1" | "2"), since callers have one or the other.
  */
+/**
+ * De qué cajón sale el primer plato de una cena: sopas y cremas, y nada más.
+ *
+ * Aquí viven también el gazpacho y la crema fría, así que la forma de la cena
+ * queda clara y de una pieza: algo de cuchara delante y el plato detrás. Sopa
+ * y tortilla, sopa y tortilla con ensalada.
+ *
+ * Hubo una versión que admitía además ensaladas y verduras. Sobraba: si la
+ * ensalada puede ser el primero Y la guarnición del segundo, la cena deja de
+ * tener una forma reconocible y hay que ponerse a distinguir cuál es cuál.
+ */
+const ENTRADAS_DE_CENA = new Set(["sopas_cremas"]);
+
 export function slotAcceptsRole(recipe, slot = {}) {
   const roles = recipe?.mealRole ?? [];
   const { mealType, position, preferType } = slot;
 
-  if (mealType === "cena") return roles.includes("cena");
+  if (mealType === "cena") {
+    // En una cena de DOS platos, el primero es un plato de ENTRADA: una crema,
+    // un gazpacho, una ensalada. Eso es exactamente lo que dice el rol
+    // `primero`, y hay 156 en el recetario entre sopas y ensaladas, así que
+    // pedirlo no deja la cena sin candidatos.
+    //
+    // Y hay que pedirlo: aceptando también el rol `cena` salían parejas al
+    // revés —unos filetes de pavo de entrada y una sopa de tomate detrás—
+    // porque para el motor los dos huecos admitían lo mismo.
+    //
+    // El segundo sí va por `cena`, que es donde vive "esto se puede cenar". En
+    // una cena de un solo plato no hay posición y manda `cena`, como siempre.
+    //
+    // Y no basta con el rol: un primero de COMIDA puede ser un plato de pasta,
+    // y de entrada en una cena eso no es una entrada, es la cena. Se pide
+    // además que sea de lo que se pone delante por la noche — sopa, crema,
+    // gazpacho, ensalada o verdura. Sin este filtro salían parejas como "pasta
+    // con pesto de primero y puré de verduras de segundo", que es la cena del
+    // revés.
+    if (position === "primero" || position === "1") {
+      return roles.includes("primero") && ENTRADAS_DE_CENA.has(recipe?.category);
+    }
+    return roles.includes("cena");
+  }
   if (position === "plato_unico" || preferType === "plato_unico") {
     return roles.includes("plato_unico");
   }
@@ -323,6 +626,7 @@ export function validateMenu(
   slotsContext,
   activeHealthProfiles = [],
   freqs = {},
+  basesPedidas = {},
 ) {
   const violations = [];
   const poolIds = new Set(filteredPool.map((r) => r.id));
@@ -336,9 +640,25 @@ export function validateMenu(
 
   const returnedIds = new Set(slotAssignments.map((s) => s.slotId));
 
-  // Build comidaByDay once — reused by rules 7 and future macro checks
+  // Las parejas primero+segundo de cada día, por franja.
+  //
+  // La comida las tuvo siempre. La cena puede tenerlas desde que existe la
+  // estructura de cena de dos platos (una crema y algo ligero detrás), y sus
+  // slotIds tienen la misma forma — "lun_cena_1", "lun_cena_2" — así que
+  // `buildMealOrder` ya les saca la posición sin tocar nada.
+  //
+  // Las reglas de PAREJA (dos ensaladas, peso, tiempo, falta el segundo) leen
+  // este mapa y valen para las dos franjas. Las que hablan solo de la comida
+  // —el primero que arrastra proteína al día entero— siguen leyendo
+  // `comidaByDay`, que se construye en la misma pasada.
+  const parejasPorDia = {};
   const comidaByDay = {};
   for (const m of mealOrder) {
+    if (m.position === "1" || m.position === "2") {
+      const clave = `${m.daySlug}|${m.mealType}`;
+      if (!parejasPorDia[clave]) parejasPorDia[clave] = { daySlug: m.daySlug, mealType: m.mealType };
+      parejasPorDia[clave][m.position] = m;
+    }
     if (m.mealType !== "comida") continue;
     if (!comidaByDay[m.daySlug]) comidaByDay[m.daySlug] = {};
     comidaByDay[m.daySlug][m.position] = m;
@@ -406,14 +726,24 @@ export function validateMenu(
     }
   }
 
-  // 2b. A montaje dish (sándwich, tostas, tabla…) is only allowed in slots the
-  // user explicitly marked cena_rapida. Matched by isMontaje, which also covers
-  // the recipes still carrying the deprecated category (see recipeSchema.js).
+  // 2b. Un plato de montaje (sándwich, tostas, tabla…) no es una COMIDA.
+  //
+  // De CENA sí, cuando su ficha dice que puede serlo. Esta regla vetaba el
+  // montaje en TODAS partes salvo en un hueco marcado a mano como cena
+  // rápida, y eso dejaba fuera de una cena normal a 43 platos del recetario
+  // estrella que llevan "cena" en su `mealRole`: carpaccio, wrap de pollo,
+  // quesadillas, sándwich club, poke bowl, ensalada de aguacate y gambas. Las
+  // cenas rápidas buenas, precisamente. Con ellas vetadas, el motor volvía una
+  // y otra vez a la tortilla — reportado tal cual.
+  //
+  // Qué platos pueden ser cena se decide en el catálogo, plato a plato. Esto
+  // era una segunda reja por encima que contradecía esa decisión.
   for (const { slotId, recipeId } of slotAssignments) {
     const recipe = poolById[recipeId];
     if (!recipe || !isMontaje(recipe)) continue;
     const ctx = contextBySlot[slotId];
     if (ctx?.preferType === "cena_rapida") continue;
+    if (ctx?.mealType === "cena" && (recipe.mealRole ?? []).includes("cena")) continue;
     violations.push({
       rule: "cena_rapida_no_solicitada",
       slotId,
@@ -516,14 +846,16 @@ export function validateMenu(
   // have different categories (ensaladas_verduras vs carnes) and different
   // mainProtein, so rules 3b/3c never fire. Name-based like isPlatoCuchara,
   // because "looks like two salads" is what the user actually perceives.
-  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
-    const slot1 = positions["1"];
-    const slot2 = positions["2"];
+  for (const { daySlug, "1": slot1, "2": slot2 } of Object.values(parejasPorDia)) {
     if (!slot1 || !slot2) continue;
     const r1 = poolById[slot1.recipeId];
     const r2 = poolById[slot2.recipeId];
     if (!r1 || !r2) continue;
-    if (isEnsalada(r1) && isEnsalada(r2)) {
+    // Uno de los dos tiene que SER una ensalada; al otro le basta con traerla
+    // de guarnición. Sin la segunda mitad se escapaba el caso más común, que
+    // es justo el que se ve en la mesa: ensalada de primero y un filete con
+    // ensalada de segundo.
+    if ((isEnsalada(r1) && traeEnsalada(r2)) || (traeEnsalada(r1) && isEnsalada(r2))) {
       violations.push({
         rule: "dos_ensaladas_en_comida",
         slotId: slot2.slotId,
@@ -577,6 +909,29 @@ export function validateMenu(
     }
   }
 
+  // 3e-bis. La CASQUERÍA es de fin de semana.
+  //
+  //     Mismo mecanismo que la regla 3f de aquí abajo y por el mismo motivo:
+  //     lo que hace raro un hígado encebollado un miércoles por la noche no es
+  //     el tiempo (20 minutos), ni la dificultad, ni la proteína — para el
+  //     motor era un segundo de carne rápido, igual que un filete. Es que la
+  //     casquería se come cuando se elige. Reportado tal cual: salió de cena
+  //     entre semana.
+  //
+  //     Qué cuenta como casquería se DERIVA de los ingredientes (lib/casqueria.js),
+  //     no se marca plato a plato, para que el catálogo pueda crecer sin que
+  //     esta regla se quede vieja en silencio.
+  for (const { slotId, recipeId, daySlug } of mealOrder) {
+    if (!WEEKDAY_SLUGS.has(daySlug)) continue;
+    const recipe = poolById[recipeId];
+    if (!esCasqueria(recipe)) continue;
+    violations.push({
+      rule: "casqueria_entre_semana",
+      slotId,
+      message: `"${recipe.name}" es casquería: va en fin de semana, no un ${daySlug}`,
+    });
+  }
+
   // 3f. Los platos de OCASIÓN no caen entre semana.
   //
   //     Reportado tal cual: "nadie en España toma cigalas a la plancha un
@@ -597,9 +952,19 @@ export function validateMenu(
     });
   }
 
-  // 4. schoolProteinsToAvoid respected in cena
-  for (const { slotId, recipeId, mealType } of mealOrder) {
-    if (mealType !== "cena") continue;
+  // 4. schoolProteinsToAvoid respetado DONDE ESTÉ EL CAMPO, no solo en cena.
+  //
+  // Llevaba un `if (mealType !== "cena") continue` y era un fallo real. Cuando
+  // los niños cenan lo que los padres comieron al mediodía (`reuseColeDinner`),
+  // `buildGroupContext` cuelga este campo del SEGUNDO DE LA COMIDA de los
+  // adultos — porque esa comida es lo que el niño va a cenar. El filtro por
+  // `cena` lo saltaba, así que el día que el niño comía pollo en el cole nada
+  // impedía que los padres comieran pollo. La restricción estaba puesta y no la
+  // leía nadie, ni aquí, ni en la reparación, ni en el prompt.
+  //
+  // El campo solo lo llevan los huecos que lo necesitan, así que mirar si está
+  // presente es más preciso que adivinar por el tipo de comida.
+  for (const { slotId, recipeId } of mealOrder) {
     const ctx = contextBySlot[slotId];
     if (!ctx?.schoolProteinsToAvoid?.length) continue;
     const recipe = poolById[recipeId];
@@ -614,12 +979,10 @@ export function validateMenu(
     }
   }
 
-  // 4b. schoolCarbsToAvoid respected in cena — same idea as rule 4 above but
-  // for the carbohydrate base (e.g. school served arroz at lunch, so dinner
-  // shouldn't also be arroz-based). Reuses the same carb taxonomy as rule 9's
-  // same-day guarnición-repetida check below, via getCarbType.
-  for (const { slotId, recipeId, mealType } of mealOrder) {
-    if (mealType !== "cena") continue;
+  // 4b. schoolCarbsToAvoid — misma idea que la 4, y mismo arreglo: se mira
+  // donde esté el campo, no solo en la cena (el arroz del cole tiene que
+  // bloquear también la comida de los padres si es lo que el niño va a cenar).
+  for (const { slotId, recipeId } of mealOrder) {
     const ctx = contextBySlot[slotId];
     if (!ctx?.schoolCarbsToAvoid?.length) continue;
     const recipe = poolById[recipeId];
@@ -650,8 +1013,34 @@ export function validateMenu(
   }
 
   // 6. No repeated recipeId in the week
+  //
+  //    Con UNA excepción, y es la olla de sopa: la entrada de una cena de dos
+  //    platos puede repetirse hasta VECES_MISMA_SOPA veces. Nadie hace una
+  //    crema distinta cada noche — se hace una olla el domingo y da para tres.
+  //
+  //    Sin esta excepción la cena de dos platos no se sostiene: las entradas
+  //    salen solo del cajón de sopas y cremas, y con 30 minutos entre semana
+  //    hay OCHO que quepan para siete noches. Medido: 10 huecos vacíos de 112.
+  //    No es una concesión, es cómo se cocina.
   const usedRecipeIds = new Map();
+  const vecesDeEntrada = new Map();
+  const esEntradaDeCena = (slotId) => {
+    const ctx = contextBySlot[slotId];
+    return ctx?.mealType === "cena" && (ctx?.position === "primero" || ctx?.position === "1");
+  };
   for (const { slotId, recipeId } of slotAssignments) {
+    if (esEntradaDeCena(slotId)) {
+      const previas = vecesDeEntrada.get(recipeId) ?? 0;
+      // Solo si TODAS sus apariciones son entradas de cena: la misma crema de
+      // primero de comida y de entrada de cena sigue siendo una repetición.
+      if (!usedRecipeIds.has(recipeId) || previas > 0) {
+        vecesDeEntrada.set(recipeId, previas + 1);
+        if (previas + 1 <= VECES_MISMA_SOPA) {
+          if (!usedRecipeIds.has(recipeId)) usedRecipeIds.set(recipeId, slotId);
+          continue;
+        }
+      }
+    }
     if (usedRecipeIds.has(recipeId)) {
       const firstSlotId = usedRecipeIds.get(recipeId);
       violations.push({
@@ -668,10 +1057,9 @@ export function validateMenu(
     }
   }
 
-  // 7. Comida structure: primero+segundo or plato_unico
-  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
-    const slot1 = positions["1"];
-    const slot2 = positions["2"];
+  // 7. Estructura de la franja: primero+segundo, o un plato que vale por los
+  //    dos. Vale igual para una comida y para una cena de dos platos.
+  for (const { daySlug, "1": slot1, "2": slot2 } of Object.values(parejasPorDia)) {
     if (slot1 && !slot2) {
       const recipe = poolById[slot1.recipeId];
       if (recipe && !recipe.mealRole.includes("plato_unico")) {
@@ -694,21 +1082,58 @@ export function validateMenu(
   // distribution: a typical comida is ~606 kcal (median primero 228 + median
   // segundo 378) and the heaviest possible pairing reaches ~1006. See
   // COMIDA_KCAL_SOFT_CAP — it's a starting value, meant to be tuned.
-  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
-    const first = positions["1"];
-    const second = positions["2"];
+  //
+  // La cena de dos platos tiene su propio techo y más bajo (CENA_KCAL_SOFT_CAP):
+  // una cena es más ligera que una comida, y si el par no lo respetara, poner
+  // una crema delante serviría para comer MÁS, que es lo contrario de lo que
+  // se busca.
+  for (const { daySlug, mealType, "1": first, "2": second } of Object.values(parejasPorDia)) {
     if (!first || !second) continue;
     const r1 = poolById[first.recipeId];
     const r2 = poolById[second.recipeId];
     if (!r1 || !r2) continue;
     const total = (r1.kcal ?? 0) + (r2.kcal ?? 0);
-    if (total > COMIDA_KCAL_SOFT_CAP) {
+    const tope = mealType === "cena" ? CENA_KCAL_SOFT_CAP : COMIDA_KCAL_SOFT_CAP;
+    if (total > tope) {
       violations.push({
         rule: "comida_desproporcionada",
         // Points at the segundo: swapping the main is the less disruptive fix
         // (the primero is usually the lighter, more "structural" half).
         slotId: second.slotId,
-        message: `${daySlug}: "${r1.name}" + "${r2.name}" suman ${total} kcal, demasiado para una comida de dos platos`,
+        message: `${daySlug}: "${r1.name}" + "${r2.name}" suman ${total} kcal, demasiado para una ${mealType} de dos platos`,
+      });
+    }
+  }
+
+  // 7c. La COMIDA entera cabe en el tiempo que dijo quien cocina.
+  //
+  // El deslizador de tiempo es el presupuesto de la comida, no de cada plato,
+  // y cada plato por su lado ya cabe en él (regla 8). Lo que falta es que la
+  // pareja no se vaya: dos platos de media hora no son una comida de media
+  // hora.
+  //
+  // El factor no es 1: los dos platos se solapan en la cocina —la ensalada se
+  // monta mientras el horno trabaja— así que sumar sus tiempos como si fueran
+  // consecutivos es la lectura más estricta posible, y ya se probó: repartía
+  // el presupuesto 40/60 y dejaba el primero en 12 minutos, con cuatro platos
+  // posibles en todo el catálogo. `SOLAPE_COMIDA` es cuánto se admite de más
+  // sobre el presupuesto contando ese solape.
+  for (const { daySlug, "1": first, "2": second } of Object.values(parejasPorDia)) {
+    if (!first || !second) continue;
+    const presupuesto = contextBySlot[first.slotId]?.mealBudget ?? contextBySlot[second.slotId]?.mealBudget;
+    if (!presupuesto) continue;
+    const r1 = poolById[first.recipeId];
+    const r2 = poolById[second.recipeId];
+    if (!r1 || !r2) continue;
+    const total = tiempoDeLaComida(r1.time, r2.time);
+    const tope = Math.round(presupuesto * SOLAPE_COMIDA);
+    if (total > tope) {
+      violations.push({
+        rule: "comida_demasiado_larga",
+        // Al segundo, igual que `comida_desproporcionada`: cambiar el principal
+        // molesta menos que cambiar el primero.
+        slotId: second.slotId,
+        message: `${daySlug}: "${r1.name}" (${r1.time}min) + "${r2.name}" (${r2.time}min) son ${total}min de cocina para una comida de ${presupuesto}min`,
       });
     }
   }
@@ -834,6 +1259,72 @@ export function validateMenu(
     }
   }
 
+  // 11b. Las BASES pedidas salen al menos N veces.
+  //
+  // Es la única regla de MÍNIMO del fichero, y va al revés que la 11 a
+  // propósito: los objetivos semanales son topes ("como mucho un pescado"),
+  // pero una tanda es lo contrario — si el sofrito sale una sola vez, no hay
+  // tanda que hacer y cocinarlo aparte no tiene sentido.
+  //
+  // De ahí que sea TODO O NADA. `basesAlcanzables` deja fuera la base que la
+  // semana no puede dar entera (semana corta, pool pequeño), en vez de colocar
+  // una sola: media tanda no es media ventaja, es ninguna.
+  {
+    const cuentaPorBase = {};
+    const sinBasePedida = [];
+    for (const m of mealOrder) {
+      const r = poolById[m.recipeId];
+      const suyas = r ? clavesDeReceta(r).filter((c) => basesPedidas[c] > 0) : [];
+      if (suyas.length === 0) sinBasePedida.push(m);
+      for (const c of suyas) cuentaPorBase[c] = (cuentaPorBase[c] ?? 0) + 1;
+    }
+
+    // Un hueco solo se ofrece una vez: si dos bases van cortas, cada una se
+    // lleva un hueco distinto y no se pisan.
+    const ofrecidos = new Set();
+    for (const [clave, pedidas] of Object.entries(basesPedidas)) {
+      if (!(pedidas > 0)) continue;
+      const faltan = pedidas - (cuentaPorBase[clave] ?? 0);
+      if (faltan <= 0) continue;
+
+      // Se ceden los ÚLTIMOS huecos sin base, por el mismo motivo que la 11
+      // se lleva los últimos excesos: los primeros días de la semana son los
+      // que el usuario ya ha visto y moverá menos.
+      //
+      // Pero solo huecos donde esa base PUEDA entrar. Sin esto se ofrecía un
+      // primero de 36 minutos para la bechamel, cuando todos los platos con
+      // bechamel son segundos de 35 a 70: la violación salía, la reparación no
+      // encontraba nada y el hueco se quedaba igual. Con 21 huecos y dos bases
+      // pedidas, colocaba CERO.
+      const cabeAqui = (m) => {
+        const ctxSlot = contextBySlot[m.slotId];
+        const partes = m.slotId.split("_");
+        return filteredPool.some((r) => {
+          if (!clavesDeReceta(r).includes(clave)) return false;
+          if (ctxSlot?.maxTime && r.time > ctxSlot.maxTime) return false;
+          if (ctxSlot?.mode === "tupper" && !r.tupperFriendly) return false;
+          return slotAcceptsRole(r, {
+            mealType: ctxSlot?.mealType ?? partes[1],
+            position: ctxSlot?.position ?? partes[2],
+            preferType: ctxSlot?.preferType,
+          });
+        });
+      };
+      const candidatos = sinBasePedida
+        .filter((m) => !ofrecidos.has(m.slotId) && cabeAqui(m))
+        .slice(-faltan);
+      for (const c of candidatos) {
+        ofrecidos.add(c.slotId);
+        violations.push({
+          rule: "base_pedida_insuficiente",
+          slotId: c.slotId,
+          targetKey: clave,
+          message: `Has pedido ${pedidas} plato(s) con "${clave}" y hay ${cuentaPorBase[clave] ?? 0}. Cambia "${poolById[c.recipeId]?.name ?? c.recipeId}" (${c.slotId}) por algo que lleve esa base.`,
+        });
+      }
+    }
+  }
+
   // 12. No two fried mains in consecutive meals — soft style backstop. Uses the
   // same mainMeals chronological sequence as rule 3 so "seguidos" means the same
   // thing (across the day boundary too). The `frito` flag is derived/declared in
@@ -927,11 +1418,13 @@ export function validateMenu(
 /**
  * Build a correction prompt from validation violations.
  */
-export function buildCorrectionMessage(violations) {
+// `slotsShape` echoes the answer format the planner was asked for: the JSON
+// array by default, a slotId→recipeId map for the "planner-compact" task.
+export function buildCorrectionMessage(violations, slotsShape = '{"slots":[...]}') {
   const lines = violations.map(
     (v) => `- [${v.rule}] ${v.slotId}: ${v.message}`,
   );
-  return `Tu asignación viola estas reglas:\n${lines.join("\n")}\n\nCorrige SOLO los slots afectados y devuelve el JSON completo {"slots":[...]} con TODOS los slots (corregidos y no corregidos).`;
+  return `Tu asignación viola estas reglas:\n${lines.join("\n")}\n\nCorrige SOLO los slots afectados y devuelve el JSON completo ${slotsShape} con TODOS los slots (corregidos y no corregidos).`;
 }
 
 /**
@@ -957,6 +1450,9 @@ export const GUARD_FOR_RULE = {
   dos_ensaladas_en_comida: "ensaladaClash",
   mismo_plato_seguido: "familiaPlato",
   plato_ocasion_entre_semana: "ocasion",
+  // Mismo guardia que la ocasion: el arreglo es el mismo, cambiar el plato
+  // por uno que no sea de fin de semana.
+  casqueria_entre_semana: "ocasion",
   proteina_repetida_en_dia: "primeroGroup",
   proteina_cena_consecutiva: "cenaConsecutiva",
   dos_fritos_seguidos: "frito",
@@ -964,6 +1460,11 @@ export const GUARD_FOR_RULE = {
   cena_rapida_no_solicitada: "cenaRapida",
   comida_desproporcionada: "weight",
   legumbres_en_cena: null,
+  // Sin guardia relajable a propósito: "el sustituto tiene que llevar esa
+  // base" se comprueba en la parte que NO se relaja nunca. Si se pudiera
+  // soltar, el arreglo elegiría un plato sin la base y dejaría la violación
+  // exactamente igual que estaba, habiendo cambiado la cena de sitio.
+  base_pedida_insuficiente: null,
 };
 
 /**
@@ -971,7 +1472,7 @@ export const GUARD_FOR_RULE = {
  * with the first valid alternative from the filtered pool.
  * Also fills missing slots that the LLM omitted.
  */
-export function applyFallback(slotAssignments, violations, filteredPool, slotsContext, activeHealthProfiles = []) {
+export function applyFallback(slotAssignments, violations, filteredPool, slotsContext, activeHealthProfiles = [], freqs = null, basesPedidas = null) {
   const result = slotAssignments.map((s) => ({ ...s }));
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
   const contextBySlot = Object.fromEntries(
@@ -1015,6 +1516,18 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (usedIds.has(r.id)) return false;
       if (ctx.maxTime && r.time > ctx.maxTime) return false;
       if (ctx.mode === "tupper" && !r.tupperFriendly) return false;
+      // Llevar la base pedida es una restricción DURA, no una preferencia.
+      //
+      // Estaba solo en el filtro de `findReplacement`, y el último recurso —el
+      // que repite un plato antes que dejar el hueco vacío— no pasa por ahí:
+      // usa esta función. Así que metía cualquier plato, daba la violación por
+      // arreglada, y la base seguía sin aparecer. En una semana de 21 huecos
+      // pedir dos de bechamel y dos de tomate colocaba CERO de cada.
+      //
+      // Cambiar un hueco por otro plato que tampoco lleva la base no arregla
+      // nada: solo mueve la cena de sitio.
+      if (v.rule === "base_pedida_insuficiente" && v.targetKey
+        && !clavesDeReceta(r).includes(v.targetKey)) return false;
       // Shared with the validation rule (see slotAcceptsRole) so repair can
       // never accept something detection would reject, or vice versa.
       return slotAcceptsRole(r, {
@@ -1100,7 +1613,18 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
   }
 
   // Fix other violations by replacing offending recipes
-  const otherViolations = violations.filter((v) => v.rule !== "slot_faltante");
+  // Las de BASE primero. Es la única regla que exige una propiedad concreta del
+  // plato —que lleve esa base— y por tanto la que menos candidatos tiene: dos
+  // o tres en todo el pool. Las demás (proteína seguida, plato repetido, cena
+  // desproporcionada) tienen cientos, así que saben apañárselas alrededor.
+  //
+  // Al revés no funcionaba: las otras veintitantas reparaciones se comían los
+  // huecos y los platos antes de llegar aquí, y una semana que pide dos de
+  // bechamel y dos de tomate acababa con cero de cada aunque hubiera candidatos.
+  const otherViolations = violations
+    .filter((v) => v.rule !== "slot_faltante")
+    .sort((a, b) => (b.rule === "base_pedida_insuficiente" ? 1 : 0)
+      - (a.rule === "base_pedida_insuficiente" ? 1 : 0));
   for (const v of otherViolations) {
     const idx = result.findIndex((s) => s.slotId === v.slotId);
     if (idx === -1) continue;
@@ -1130,6 +1654,25 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // pass, every candidate search has to independently respect every
     // context-derived constraint, regardless of which rule triggered it.
     const dayCarbsUsed = new Set();
+    // Regla 11 cross-safety, por el MISMO motivo que el parrafo de arriba:
+    // cuantos platos de cada clave con tope lleva ya la semana sin contar este
+    // hueco. Hasta ahora el tope solo se miraba cuando la violacion que se
+    // estaba arreglando ERA el tope, asi que reparar otra cosa (un choque con
+    // el menu del cole, por ejemplo) podia meter un pescado con el cupo de
+    // pescado ya lleno y dejar la semana rota. Se vio con "Gambas al ajillo"
+    // entrando en una cena al arreglar un conflicto distinto.
+    const usosPorClave = {};
+    for (const [clave, tope] of Object.entries(freqs ?? {})) {
+      const matcher = FREQ_KEY_MATCHERS[clave];
+      if (!matcher || !(Number(tope) >= 0)) continue;
+      let n = 0;
+      for (const s2 of result) {
+        if (s2.slotId === slot.slotId) continue;
+        const r = poolById[s2.recipeId];
+        if (r && matcher(r)) n += 1;
+      }
+      usosPorClave[clave] = { usados: n, tope: Number(tope) };
+    }
     // Rule 13 cross-safety: does another dish this day already read as a plato
     // de cuchara? If so, the replacement must not be one too.
     let dayHasCuchara = false;
@@ -1309,6 +1852,32 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       guardTiers.push(dropped);
     }
 
+    // Qué bases pedidas lleva el plato que se va a QUITAR y quedarían por debajo
+    // de lo pedido si se va. El sustituto tiene que traerlas.
+    //
+    // Es el mismo principio que ya sujeta los hidratos del día: nadie
+    // revalida el menú entre arreglo y arreglo, así que un arreglo no puede
+    // deshacer lo que otro acaba de conseguir. Sin esto, la reparación de
+    // bases colocaba los dos platos de bechamel y las veintitantas siguientes
+    // —proteína seguida, plato repetido, cena desproporcionada— los sacaban
+    // otra vez: el menú acababa con cero, habiendo pasado por dos.
+    const basesQueNoPuedenIrse = (() => {
+      const fuera = new Set();
+      const actual = poolById[slot.recipeId];
+      if (!actual || !basesPedidas) return fuera;
+      for (const clave of clavesDeReceta(actual)) {
+        const pedidas = basesPedidas[clave];
+        if (!(pedidas > 0)) continue;
+        let n = 0;
+        for (const s2 of result) {
+          const r2 = poolById[s2.recipeId];
+          if (r2 && clavesDeReceta(r2).includes(clave)) n += 1;
+        }
+        if (n <= pedidas) fuera.add(clave);
+      }
+      return fuera;
+    })();
+
     const findReplacement = (droppedGuards, { relaxMaxTime = false } = {}) => filteredPool.find((r) => {
       if (usedIds.has(r.id) && r.id !== slot.recipeId) return false;
       if (r.id === slot.recipeId) return false;
@@ -1333,11 +1902,15 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
 
       if (ctx?.mode === "tupper" && !r.tupperFriendly) return false;
 
-      if (mealType === "cena" && ctx?.schoolProteinsToAvoid) {
+      // Sin filtrar por `cena`: el campo solo lo llevan los huecos que lo
+      // necesitan, y con "el niño cena lo del mediodía" ese hueco es la COMIDA
+      // de los adultos (ver reglas 4 y 4b). Filtrar por tipo de comida dejaba la
+      // reparación ciega justo en ese caso.
+      if (ctx?.schoolProteinsToAvoid) {
         if ([...proteinGroupsOf(r)].some((g) => ctx.schoolProteinsToAvoid.includes(g))) return false;
       }
 
-      if (mealType === "cena" && ctx?.schoolCarbsToAvoid) {
+      if (ctx?.schoolCarbsToAvoid) {
         const carb = getCarbType(r);
         if (carb && ctx.schoolCarbsToAvoid.includes(carb)) return false;
       }
@@ -1348,6 +1921,24 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         // from when this was a minimum-deficit fix).
         const matcher = FREQ_KEY_MATCHERS[v.targetKey];
         if (matcher && matcher(r)) return false;
+      }
+
+      // Regla 11b al reves que la 11: aqui el candidato tiene que LLEVAR la
+      // base que falta, que es justo el motivo de cambiar este hueco.
+      if (v.rule === "base_pedida_insuficiente" && v.targetKey) {
+        if (!clavesDeReceta(r).includes(v.targetKey)) return false;
+      }
+
+      // Y no se puede DESHACER una base ya colocada para arreglar otra cosa.
+      for (const clave of basesQueNoPuedenIrse) {
+        if (!clavesDeReceta(r).includes(clave)) return false;
+      }
+
+      // Y el tope, SIEMPRE, se arregle lo que se arregle: meter el candidato no
+      // puede pasar de lo que la casa ha pedido como maximo.
+      for (const [clave, { usados, tope }] of Object.entries(usosPorClave)) {
+        const matcher = FREQ_KEY_MATCHERS[clave];
+        if (matcher?.(r) && usados + 1 > tope) return false;
       }
 
       // Prefer a profile-compliant replacement, but only for the violation

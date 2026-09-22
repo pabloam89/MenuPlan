@@ -247,7 +247,7 @@ const MARKER_RE = /\{\{([^}]+)\}\}/g;
  * nunca los de utensilio ({{@Sartén}}), y sin el modificador de
  * {{Ingrediente|modo}}.
  */
-function markerIngredientNames(text) {
+export function markerIngredientNames(text) {
   const names = [];
   let m;
   MARKER_RE.lastIndex = 0;
@@ -336,18 +336,24 @@ export function stepsByPart(stepsRich) {
 export function ingredientsByPart(stepsRich, ingredients) {
   if (availablePartsOf(stepsRich).length === 0) return {};
 
-  const partById = new Map();
+  // La clave es el propio objeto ingrediente, no su `id`: los ingredientes del
+  // JSON del catálogo no tienen `id` (lo fabrica catalogToFrontendRecipe), así
+  // que agrupar por `id` metía el catálogo entero en una sola parte, en
+  // silencio, en cuanto alguien llamaba con los ingredientes crudos.
+  // findIngredientForMarker devuelve el elemento del propio array, así que la
+  // referencia siempre casa (y dos ingredientes homónimos ya no colisionan).
+  const partByIngredient = new Map();
   for (const step of stepsRich ?? []) {
     const part = step?.part && STEP_PARTS.includes(step.part) ? step.part : "principal";
     for (const name of markerIngredientNames(step?.text)) {
       const ing = findIngredientForMarker(name, ingredients);
-      if (ing && !partById.has(ing.id)) partById.set(ing.id, part);
+      if (ing && !partByIngredient.has(ing)) partByIngredient.set(ing, part);
     }
   }
 
   const grouped = {};
   for (const ing of ingredients ?? []) {
-    const part = partById.get(ing.id) ?? "principal";
+    const part = partByIngredient.get(ing) ?? "principal";
     (grouped[part] ??= []).push(ing);
   }
   return grouped;

@@ -183,6 +183,107 @@ export function writeCookTimeMode(data, mode) {
   return { ...data, cookTime: { ...cur, mode: "split" } };
 }
 
+/**
+ * El día de la tanda necesita sitio en la semana: se lo abre en el fin de
+ * semana, sin tocar el de diario.
+ *
+ * Lo lee el planner por `maxCookTime` — un domingo de 90 minutos admite un
+ * guiso que un martes de 20 no. Es OTRO eje que el ritmo: el ritmo dice cuánto
+ * rato tienes por comida, y esto cómo lo repartes en la semana. Por eso "con
+ * prisa entre semana Y cocino el domingo" se puede decir: son dos respuestas.
+ *
+ * Nunca se dedujo de los minutos, y sigue sin deducirse. Sacarlo de la asimetría
+ * ("el finde tiene el doble que el diario") parecía elegante y estaba mal: el
+ * valor por defecto de la app ya es 30 y 60, justo el doble, así que cualquiera
+ * que no hubiera tocado nada habría salido marcado "en tanda" sin pedirlo.
+ *
+ * Quien lo dispara es pedir tandas (`BasesPreferidas`), no un interruptor:
+ * antes había una card "Batch cooking" que escribía además un `cookTime.tanda`,
+ * y ese campo se quedó sin lector el día que el menú pasó a mirar lo PEDIDO —
+ * ver `hayTandasPedidas`. Una casa podía marcarlo y no pedir nada, que es una
+ * casa que cocina en tanda sin tener nada hecho el martes.
+ */
+export function abrirFindeParaTanda(data, hayTanda) {
+  const ct = migrateCookTime(data);
+  const diario = ct.weekday?.Comida ?? COOK_TIME_DEFAULTS.weekday.Comida;
+  const finde = hayTanda ? Math.max(90, diario * 3) : diario;
+  return {
+    ...data,
+    cookTime: { ...ct, weekend: { Comida: finde, Cena: finde } },
+  };
+}
+
+/**
+ * ¿Hay alguna tanda PEDIDA? La única pregunta sobre batch cooking que se hace
+ * la app, y la que decide tanto el icono de tanda en el menú como el "¿tienes
+ * el sofrito hecho?" de la ficha.
+ *
+ * Lee las PROYECCIONES de la libreta (`tanda` y `tandaPlatos`), que es donde
+ * `BasesPreferidas` deja lo pedido en el mismo gesto de pedirlo. La libreta
+ * sigue siendo la fuente; esto solo la consulta.
+ */
+export function hayTandasPedidas(data) {
+  const pedido = (mapa) => Object.values(mapa ?? {}).some((n) => Number(n) > 0);
+  return pedido(data?.tanda) || pedido(data?.tandaPlatos);
+}
+
 export function writeCookTimeShared(data, period, value) {
   return writeCookTimePeriod(data, period, { Comida: value, Cena: value });
+}
+
+/**
+ * El presupuesto de la sesión de tandas, en MINUTOS DE MANOS.
+ *
+ * De manos y no de reloj porque el domingo se solapa: mientras el caldo hierve
+ * cuarenta minutos puedes estar picando otra cosa. Lo que no se puede solapar
+ * es estar delante, así que eso es lo único que se suma. Ver el comentario de
+ * `manosDeMetodo` en lib/bases.js, que es quien calcula las manos de cada base
+ * según el aparato que la casa dijo tener.
+ *
+ * El recorrido del deslizador va de media hora a cuatro, de media en media.
+ * Media hora es el escalón porque es como se habla de esto —"tengo un par de
+ * horas"— y porque por debajo no cabe ni una tanda: el sofrito son 25 minutos
+ * de manos. Y cuatro arriba porque a partir de ahí ya no es un domingo, es un
+ * proyecto.
+ */
+export const TANDA_MIN = 30;
+export const TANDA_MAX = 240;
+export const TANDA_PASO = 30;
+export const TANDA_POR_DEFECTO = 60;
+
+/** Los minutos de manos que esta casa quiere dedicar a la tanda. */
+export function minutosDeTanda(data) {
+  const guardado = Number(data?.tandaMinutos);
+  if (!Number.isFinite(guardado) || guardado <= 0) return TANDA_POR_DEFECTO;
+  return Math.min(TANDA_MAX, Math.max(TANDA_MIN, guardado));
+}
+
+/**
+ * Minutos dichos como los diría una persona: "1 h 30", no "90 min".
+ *
+ * Por debajo de la hora se quedan en minutos, que es como se piensan; a partir
+ * de ahí manda la hora y los minutos van detrás solo si los hay.
+ */
+export function enHoras(minutos) {
+  const m = Math.max(0, Math.round(Number(minutos) || 0));
+  if (m < 60) return `${m} min`;
+  const horas = Math.floor(m / 60);
+  const resto = m % 60;
+  return resto === 0 ? `${horas} h` : `${horas} h ${resto}`;
+}
+
+/**
+ * Los minutos redondeados a cinco, para no prometer una precisión que no hay.
+ *
+ * El gasto de una tanda sale de sumar los minutos de cada paso de cada receta,
+ * y eso da números como 81. Escribir "1 h 21" dice que alguien lo ha medido, y
+ * nadie lo ha medido: son estimaciones de una tabla de métodos, y además tu
+ * cocina no es la de la tabla. "1 h 20" dice lo mismo y no miente.
+ *
+ * A cinco y no a la media hora porque el deslizador de al lado ya va de media
+ * en media: si los dos redondearan igual, la barra de lo gastado daría saltos
+ * de treinta minutos y parecería rota.
+ */
+export function aLoGrueso(minutos) {
+  return Math.round((Number(minutos) || 0) / 5) * 5;
 }

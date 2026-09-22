@@ -8,7 +8,7 @@ import {
 import { foodGroupOf } from "./foodGroups.js";
 
 const FREQ_KEYS = ["verdura", "pescado", "legumbres"];
-const FREQ_LABELS = { verdura: "Verdura", pescado: "Pescado", legumbres: "Legumbres" };
+import { FAMILIA_LABELS } from "./notepadFields.js";
 
 export function getVisibleMenuSlots(menuPlan, groups) {
   return groups.flatMap((group) => getGroupEntries(menuPlan, group));
@@ -73,7 +73,7 @@ function buildFreqRows(freqs, entries) {
     if (met) freqMet++;
     return {
       key,
-      label: FREQ_LABELS[key],
+      label: FAMILIA_LABELS[key],
       count,
       target,
       met,

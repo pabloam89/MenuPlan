@@ -87,10 +87,12 @@ import {
   ToggleSwitch,
   WeekChips,
 } from "../components/ui.jsx";
-import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
+import { MAX_MENU_WEEKS, weekEntry } from "../lib/menuArchive.js";
 import { applyFreqWithinBudget } from "../lib/freqBudget.js";
-import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from "../lib/weekCalendar.js";
+import { FAMILIA_LABELS } from "../lib/notepadFields.js";
+import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset } from "../lib/weekCalendar.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
+import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { StoreBadge } from "./SpendPanel.jsx";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
@@ -98,7 +100,6 @@ import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
 import { CatalogBrowserSheet, categoryColor } from "./CatalogBrowserSheet.jsx";
-import { PantryModeSheet } from "../components/ModeSheets.jsx";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { dishImageUrl } from "../assets/dishes/dishImages.js";
@@ -157,6 +158,25 @@ const MEAL_STRUCTURE_CARDS = [
     title: "Plato combinado",
     subtitle: "Un solo plato",
     img: "/avatares/cards/estructura_plato_combinado.png",
+  },
+];
+
+// La cena tiene su propia pregunta y sus propias palabras. No reusa las de la
+// comida porque no significan lo mismo: de noche "dos platos" no es primero y
+// segundo, es una crema o una ensalada por delante y algo ligero detrás. Y el
+// defecto es al revés que en la comida — en España se cena una cosa.
+const CENA_STRUCTURE_CARDS = [
+  {
+    id: "1_plato",
+    title: "Un plato",
+    subtitle: "Lo normal",
+    img: "/avatares/cards/estructura_cena_un_plato.png",
+  },
+  {
+    id: "primero_segundo",
+    title: "Crema y algo más",
+    subtitle: "Dos platos ligeros",
+    img: "/avatares/cards/estructura_cena_dos_platos.png",
   },
 ];
 
@@ -594,6 +614,101 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     setJustAddedId(id);
     setEditingMemberId(id);
   };
+
+  // Arrastrar un perfil de la paleta hasta "Tu familia" ─────────────────────
+  // Alternativa al toque (que se queda tal cual): coges un perfil de abajo y
+  // lo sueltas en la tarjeta de arriba; al soltarlo se abre el mismo popup de
+  // nombre + avatar. Con ratón arranca al mover 8px; con el dedo hay que
+  // mantener pulsado ~180ms, porque la paleta vive abajo del todo y si no el
+  // gesto se lo queda el scroll de la página. Mientras el arrastre está vivo
+  // bloqueamos el scroll con un touchmove no pasivo (el dedo lleva 180ms
+  // quieto, así que el navegador aún no ha empezado a desplazar y respeta el
+  // preventDefault).
+  const dropZoneRef = useRef(null);
+  const profileDragRef = useRef(null);
+  const suppressClickRef = useRef(false);
+  const [dragGhost, setDragGhost] = useState(null);
+  const [dropHot, setDropHot] = useState(false);
+
+  const isOverDropZone = (x, y) => {
+    const box = dropZoneRef.current?.getBoundingClientRect();
+    if (!box) return false;
+    return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom;
+  };
+
+  const endProfileDrag = () => {
+    const d = profileDragRef.current;
+    if (d?.holdTimer) clearTimeout(d.holdTimer);
+    profileDragRef.current = null;
+    setDragGhost(null);
+    setDropHot(false);
+  };
+
+  const beginProfileDrag = (e, profile) => {
+    if (e.button > 0) return;
+    const touch = e.pointerType !== "mouse";
+    const d = {
+      profile,
+      startX: e.clientX,
+      startY: e.clientY,
+      armed: !touch,
+      active: false,
+      holdTimer: null,
+    };
+    if (touch) {
+      d.holdTimer = setTimeout(() => {
+        const cur = profileDragRef.current;
+        if (!cur) return;
+        cur.armed = true;
+        cur.active = true;
+        setDragGhost({ profile: cur.profile, x: cur.startX, y: cur.startY });
+        setDropHot(isOverDropZone(cur.startX, cur.startY));
+      }, 180);
+    }
+    profileDragRef.current = d;
+  };
+
+  useEffect(() => {
+    const move = (e) => {
+      const d = profileDragRef.current;
+      if (!d) return;
+      const far = Math.hypot(e.clientX - d.startX, e.clientY - d.startY) > 8;
+      if (!d.armed) {
+        // Se ha movido antes de completar la pulsación larga: era un scroll.
+        if (far) endProfileDrag();
+        return;
+      }
+      if (!d.active) {
+        if (!far) return;
+        d.active = true;
+      }
+      setDragGhost({ profile: d.profile, x: e.clientX, y: e.clientY });
+      setDropHot(isOverDropZone(e.clientX, e.clientY));
+    };
+    const up = (e) => {
+      const d = profileDragRef.current;
+      if (!d) return;
+      const dropped = d.active && isOverDropZone(e.clientX, e.clientY);
+      // Un arrastre no debe disparar además el onClick del botón.
+      suppressClickRef.current = d.active;
+      endProfileDrag();
+      if (dropped) addProfile(d.profile);
+    };
+    const blockScroll = (e) => {
+      if (profileDragRef.current?.active) e.preventDefault();
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", endProfileDrag);
+    window.addEventListener("touchmove", blockScroll, { passive: false });
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", endProfileDrag);
+      window.removeEventListener("touchmove", blockScroll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateMemberName = (id, name) => {
     setData((d) => ({
@@ -1173,14 +1288,55 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
           to   { opacity: 1; transform: translateY(0)   scale(1);    }
         }
         @keyframes miniPopFade { from { opacity: 0; } to { opacity: 1; } }
+        /* El fantasma va 26px por encima del puntero para que el dedo no lo
+           tape ni tape el "Suéltalo aquí" de la zona de destino. */
+        @keyframes ghostPop {
+          from { opacity: 0; transform: translate(-50%, calc(-50% - 26px)) scale(0.7); }
+          to   { opacity: 1; transform: translate(-50%, calc(-50% - 26px)) scale(1);   }
+        }
         .member-enter   { animation: memberIn .28s cubic-bezier(.34,1.3,.64,1) both; }
         .member-leaving { animation: memberOut .26s cubic-bezier(.4,0,.2,1) both; overflow: hidden; }
-        .palette-cell { transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, border-color .15s ease; }
+        .palette-cell { transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, border-color .15s ease, opacity .15s ease; }
         .palette-cell:hover { box-shadow: 0 4px 14px rgba(45,90,61,.12); }
         .palette-cell:active { transform: scale(0.95); }
         .fam-chip { transition: transform .12s cubic-bezier(.34,1.56,.64,1); }
         .fam-chip:active { transform: scale(0.94); }
       `}</style>
+
+      {/* Perfil "en la mano" mientras se arrastra: sigue al dedo/ratón y no
+          intercepta punteros para no tapar la zona de soltar. */}
+      {dragGhost && (() => {
+        const p = dragGhost.profile;
+        const GhostIcon = p.icon;
+        return (
+          <div style={{
+            position: "fixed", left: dragGhost.x, top: dragGhost.y, zIndex: 130,
+            transform: "translate(-50%, calc(-50% - 26px))", pointerEvents: "none",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+            animation: "ghostPop .16s cubic-bezier(.34,1.5,.64,1) both",
+          }}>
+            <span style={{
+              width: 58, height: 58, borderRadius: 999, overflow: "hidden",
+              background: p.tint, color: "#fff", display: "inline-flex",
+              alignItems: "center", justifyContent: "center",
+              border: "3px solid #fff", boxShadow: `0 12px 26px ${p.tint}66`,
+            }}>
+              {AVATAR_FOLDER[p.key] ? (
+                <img src={avatarThumbSrcByKey(DEFAULT_AVATAR[p.key] ?? `${AVATAR_FOLDER[p.key]}_1`)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <GhostIcon size={26} strokeWidth={2.3} />
+              )}
+            </span>
+            <span style={{
+              fontSize: 11, fontWeight: 800, color: "#25402f", background: "#fff",
+              borderRadius: 999, padding: "3px 9px", lineHeight: 1,
+              boxShadow: "0 2px 8px rgba(45,90,61,.16)",
+            }}>
+              {p.label}
+            </span>
+          </div>
+        );
+      })()}
 
       {builderMode === "family" ? (
         <>
@@ -1197,11 +1353,19 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
               {data.members.length}
             </span>
           </div>
-          <div style={{
-            background: "#fff",
-            border: "1px solid #e6efe9", borderRadius: 20,
+          {/* Tarjeta de la familia = también la zona donde se sueltan los
+              perfiles arrastrados. El borde cambia de sólido a discontinuo
+              mientras hay un arrastre vivo, sin cambiar de grosor para que no
+              baile el layout. */}
+          <div ref={dropZoneRef} style={{
+            background: dropHot ? "#f2fbf5" : "#fff",
+            border: `1px ${dragGhost ? "dashed" : "solid"} ${dropHot ? "#2d5a3d" : dragGhost ? "#bcd6c6" : "#e6efe9"}`,
+            borderRadius: 20,
             padding: hasMembers ? "16px 18px 20px" : 18, marginBottom: 18,
-            boxShadow: "0 8px 24px rgba(45,90,61,.08)",
+            boxShadow: dropHot
+              ? "0 0 0 3px rgba(45,90,61,.13), 0 10px 26px rgba(45,90,61,.16)"
+              : "0 8px 24px rgba(45,90,61,.08)",
+            transition: "background .15s ease, border-color .15s ease, box-shadow .18s ease",
           }}>
             {hasMembers ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px 4px" }}>
@@ -1252,8 +1416,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                 })}
               </div>
             ) : (
-              <div style={{ position: "relative", textAlign: "center", color: "#8aa093", fontSize: 12.5, fontWeight: 600, padding: "14px 0 6px" }}>
-                Toca un perfil de abajo para empezar a construir tu familia.
+              <div style={{ position: "relative", textAlign: "center", color: dropHot ? "#2d5a3d" : "#8aa093", fontSize: 12.5, fontWeight: dropHot ? 800 : 600, padding: "14px 0 6px", transition: "color .15s ease" }}>
+                {dropHot ? "Suéltalo aquí" : "Toca o arrastra un perfil de abajo para construir tu familia."}
               </div>
             )}
           </div>
@@ -1270,13 +1434,20 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                   key={p.key}
                   type="button"
                   className="palette-cell"
-                  onClick={() => addProfile(p)}
+                  onPointerDown={(e) => beginProfileDrag(e, p)}
+                  onClick={() => {
+                    if (suppressClickRef.current) { suppressClickRef.current = false; return; }
+                    addProfile(p);
+                  }}
                   style={{
                     display: "flex", alignItems: "center", gap: 11,
                     padding: "10px 12px", borderRadius: 14,
                     border: `1.5px solid ${p.tint}33`, background: "#fff",
                     cursor: "pointer", fontFamily: "inherit", textAlign: "left",
                     boxShadow: "0 1px 4px rgba(45,90,61,.05)",
+                    opacity: dragGhost?.profile.key === p.key ? 0.4 : 1,
+                    userSelect: "none", WebkitUserSelect: "none",
+                    touchAction: "manipulation",
                   }}
                 >
                   <span style={{ width: 36, height: 36, borderRadius: 999, overflow: "hidden", background: p.tint, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 3px 10px ${p.tint}44` }}>
@@ -3831,10 +4002,18 @@ const FUERA_COLOR = "#4c2168"; // violeta
 // importador— asi que mezclarlo con "come fuera" escondia justo el que si
 // aporta informacion. Y de paso la rejilla deja de ser dos colores.
 const COLE_COLOR = "#c0392b";
+// El tupper deja de compartir el violeta de "come fuera" y se queda con el
+// ámbar de aviso del sistema de diseño (#b45309, ver DESIGN_SYSTEM 1.6), que
+// es además el color con el que el menú ya escribe "· tupper" en la ficha del
+// plato. Tiene su propio color porque es el único estado "fuera de casa" para
+// el que SÍ hay que cocinar — y cocinar distinto, porque un rebozado o una
+// plancha de última hora no sobreviven al microondas (`tupperFriendly` lo
+// dice plato a plato: 258 de los 689 del recetario no valen).
+const TUPPER_COLOR = "#b45309";
 
 const SLOT_CONFIG = {
   casa:   { label: "En casa",     color: CASA_COLOR },
-  tupper: { label: "Tupper",      color: FUERA_COLOR },
+  tupper: { label: "Tupper",      color: TUPPER_COLOR },
   fuera:  { label: "Come fuera",  color: FUERA_COLOR },
   cole:   { label: "Comedor",     color: COLE_COLOR },
 };
@@ -4407,7 +4586,31 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       : [data.menuWeek?.offset ?? 0];
     return [...new Set(raw)].sort((a, b) => a - b);
   }, [data.menuWeekOffsets, data.menuWeek]);
-  const sameForAllWeeks = data.menuScheduleSameForAllWeeks !== false;
+  // ¿Cubren todas las semanas los MISMOS días?
+  //
+  // Se puede elegir tres días de esta semana y cuatro de la siguiente
+  // (arrastrando en OnboardingWeek). Cuando eso pasa, "misma configuración en
+  // todas las semanas" no significa nada: las semanas ya son distintas de
+  // partida, y el toggle prometía copiar un horario entre calendarios que no
+  // se parecen.
+  const semanasIrregulares = useMemo(() => {
+    if (weekOffsets.length <= 1) return false;
+    const huellaDe = (offset) =>
+      getWeekDatesByMenuWeek({
+        offset,
+        startDayIdx: offset === weekOffsets[0] ? (data.menuWeek?.startDayIdx ?? 0) : 0,
+        days: weekEntry(data.menuWeekDays, offset) ?? null,
+      }).activeDays.join(",");
+    const primera = huellaDe(weekOffsets[0]);
+    return weekOffsets.some((o) => huellaDe(o) !== primera);
+  }, [weekOffsets, data.menuWeekDays, data.menuWeek]);
+
+  // Con semanas irregulares el toggle arranca APAGADO aunque nunca se haya
+  // tocado: el default de "todas iguales" solo tiene sentido cuando lo son.
+  // Sigue siendo pulsable — si el usuario lo enciende a propósito, manda él.
+  const sameForAllWeeks = semanasIrregulares
+    ? data.menuScheduleSameForAllWeeks === true
+    : data.menuScheduleSameForAllWeeks !== false;
   const [editingWeekOffset, setEditingWeekOffset] = useState(weekOffsets[0]);
   // Deselecting a week can leave this pointing at one that no longer exists;
   // falling back while rendering avoids the extra render an effect would cost.
@@ -4425,7 +4628,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       startDayIdx: viewingOffset === baseOffset ? (data.menuWeek?.startDayIdx ?? 0) : 0,
       // Días sueltos marcados a mano (arrastre en OnboardingWeek) para la
       // semana que se está viendo aquí — no solo la semana ancla.
-      days: data.menuWeekDays?.[viewingOffset] ?? null,
+      days: weekEntry(data.menuWeekDays, viewingOffset) ?? null,
     }),
     [viewingOffset, baseOffset, data.menuWeek, data.menuWeekDays],
   );
@@ -4440,7 +4643,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       total: weekOffsets.length,
       label: formatWeekRangeLabel(weekDates, activeDays),
       modified: viewingOffset !== weekOffsets[0]
-        && Boolean(data.menuWeekOverrides?.[viewingOffset]),
+        && Boolean(weekEntry(data.menuWeekOverrides, viewingOffset)),
       onPrev: i > 0 ? () => setEditingWeekOffset(weekOffsets[i - 1]) : null,
       onNext: i < weekOffsets.length - 1 ? () => setEditingWeekOffset(weekOffsets[i + 1]) : null,
     };
@@ -4448,15 +4651,19 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
   const effectiveSchedule = isEditingBaseWeek
     ? data.schedule
-    : (data.menuWeekOverrides?.[viewingOffset] ?? data.schedule);
+    : (weekEntry(data.menuWeekOverrides, viewingOffset) ?? data.schedule);
 
   const updateSchedule = (updater) => {
     setData((d) => {
       if (isEditingBaseWeek) {
         return { ...d, schedule: updater(d.schedule) };
       }
-      const base = d.menuWeekOverrides?.[viewingOffset] ?? d.schedule;
-      return { ...d, menuWeekOverrides: { ...(d.menuWeekOverrides ?? {}), [viewingOffset]: updater(base) } };
+      // Se guarda por el LUNES de esa semana, no por su offset: un offset es
+      // relativo a hoy y el horario se mudaría solo a otra semana pasados unos
+      // días (ver rekeyWeeksByMonday en lib/menuArchive.js).
+      const clave = mondayISOForOffset(viewingOffset);
+      const base = weekEntry(d.menuWeekOverrides, viewingOffset) ?? d.schedule;
+      return { ...d, menuWeekOverrides: { ...(d.menuWeekOverrides ?? {}), [clave]: updater(base) } };
     });
   };
 
@@ -4735,6 +4942,11 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         >
           <span style={{ fontSize: 12.5, fontWeight: 700, color: "#142f1d", paddingRight: 10 }}>
             Misma configuración en todas las semanas
+            {semanasIrregulares && (
+              <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#6b7d70", marginTop: 3, lineHeight: 1.3 }}>
+                Has elegido días distintos en cada semana
+              </span>
+            )}
           </span>
           <ToggleSwitch
             checked={sameForAllWeeks}
@@ -4777,12 +4989,14 @@ function sheetColumns(showCole) {
   return showCole ? SLOT_COLUMNS : SLOT_COLUMNS.filter((s) => s !== "cole");
 }
 
-// La leyenda dice TRES cosas, no cuatro: cada entrada es un color que la
-// rejilla pinta de verdad. "Tupper" se queda fuera a proposito porque comparte
-// el navy de "come fuera" — enumerar dos etiquetas del mismo color es pedirle
-// al usuario que distinga algo que no se ve.
+// Cada entrada es un color que la rejilla pinta de verdad, y ahora son cuatro:
+// el tupper ya no comparte color con "come fuera" (ver TUPPER_COLOR), asi que
+// enumerarlo deja de pedirle al usuario que distinga algo que no se ve. Y hay
+// que enumerarlo, porque es el unico de los tres estados "fuera de casa" en el
+// que sigue habiendo que cocinar.
 const LEYENDA = [
   { label: "En casa", color: CASA_COLOR, estado: "casa" },
+  { label: "Tupper", color: TUPPER_COLOR, estado: "tupper" },
   { label: "Comedor", color: COLE_COLOR, estado: "cole" },
   { label: "Fuera de casa", color: FUERA_COLOR, estado: "fuera" },
 ];
@@ -7101,11 +7315,8 @@ function combinedGoalProfile(goalIds, goalDefs) {
   return { kcal: Math.max(1200, Math.min(3000, kcal)), freqs };
 }
 
-const FREQ_LABELS = {
-  legumbres: "Legumbres",
-  verdura: "Verdura",
-  pescado: "Pescado",
-};
+// La etiqueta de cada familia vive con FAMILIAS (lib/notepadFields.js).
+const FREQ_LABELS = FAMILIA_LABELS;
 
 function goalGridCellStyle(selected) {
   return {
@@ -8385,6 +8596,9 @@ function OnboardingMealExtrasShared({ data, setData, onNext, onBack, onFinish, o
   const expert = Boolean(data.expertMode);
   const postreOn = em.postre && em.postre !== "off";
   const structureId = data.mealStructureByGroup?.[subjectId] ?? "primero_segundo";
+  // La cena empieza en un plato, que es como se cena aquí. Ver
+  // CENA_STRUCTURE_CARDS y `mealStructureCena` en App.jsx.
+  const cenaStructureId = data.mealStructureCenaByGroup?.[subjectId] ?? "1_plato";
 
   const extrasSection = (key, children) => ({ key, children });
 
@@ -8430,6 +8644,32 @@ function OnboardingMealExtrasShared({ data, setData, onNext, onBack, onFinish, o
             setData((d) => ({
               ...d,
                     mealStructureByGroup: { ...(d.mealStructureByGroup ?? {}), [subjectId]: t.id },
+                  }))
+                }
+              />
+            ))}
+          </div>
+        </>,
+      ),
+    );
+    comidaSections.push(
+      extrasSection("estructura_cena",
+        <>
+          <SectionTitle Icon={Moon} color={mealTimeColor("Cena")}>¿Y la cena?</SectionTitle>
+          <div style={{ display: "flex", gap: 8 }}>
+            {CENA_STRUCTURE_CARDS.map((t) => (
+              <RestrictionTabCard
+                key={t.id}
+                img={t.img}
+                title={t.title}
+                subtitle={t.subtitle}
+                imgHeight={160}
+                textOverlay
+                active={cenaStructureId === t.id}
+                onClick={() =>
+                  setData((d) => ({
+                    ...d,
+                    mealStructureCenaByGroup: { ...(d.mealStructureCenaByGroup ?? {}), [subjectId]: t.id },
                   }))
                 }
               />
@@ -8702,11 +8942,17 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
 
 
 // ── ¿Qué tienes ya en casa? ───────────────────────────────────────────────
-// El paso previo de "cuánto pesa la despensa" (spectrum solo↔libre) se quitó
-// del asistente (2026-08-24): se sobreentiende con esta pantalla — si añades
-// algo, cuenta; si la dejas vacía, es como si no contara. `pantryMode` se
-// queda en su valor por defecto ("prefer", INITIAL_DATA) sin preguntarlo
-// aparte. Es la pantalla "En casa" de siempre (pestañas Añadir/Inventario,
+// "Cuánto pesa la despensa" es el paso SIGUIENTE (OnboardingPantryMode), no
+// una hoja que salta aquí encima. Vivió de las dos formas y las dos fallaban:
+// quitada del asistente no se preguntaba nunca, y como hoja automática te
+// interrumpía dando de alta comida para preguntarte otra cosa.
+//
+// Abre en Inventario y no en Añadir: se viene a esta pantalla a ver qué hay en
+// casa, y aterrizar en el formulario de alta obligaba a un toque para ver lo
+// que ya tienes. Con la despensa vacía enseña su propio vacío, que también es
+// una respuesta — y la de la mayoría la primera vez.
+//
+// Es la pantalla "En casa" de siempre (pestañas Añadir/Inventario,
 // foto/ticket/a mano), no una versión apilada/simplificada. "¿Cuándo se da
 // por gastado?" vivió aquí al lado un día (2026-08-25) como paso condicional
 // — se quitó del wizard al día siguiente: esa pregunta se entiende mejor
@@ -8717,38 +8963,26 @@ export function OnboardingPantryInventory({
   onNext, onBack, onFinish, onReset, nextLabel,
   user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, shopping, setShopping,
 }) {
-  const [showModeSheet, setShowModeSheet] = useState(false);
-
-  // La pregunta se hace sola la primera vez que hay algo en casa — con la
-  // despensa vacía no hay nada que ponderar. Quien sabe si hay algo es la
-  // pantalla de despensa, que avisa por `onItemsCount`.
-  const modeAsked = data.pantryModeSet === true;
-  const handlePantryCount = useCallback(
+  // Cuántas cosas hay en casa, apuntado en `data` para que lo pueda leer el
+  // paso siguiente. La despensa vive en Supabase/localStorage, no en `data`, y
+  // quien sabe cuánto hay es esta pantalla — que lo cuenta y avisa por
+  // `onItemsCount`. Sin este dato, "¿cuánto tiramos de lo de casa?" se
+  // preguntaría con la nevera vacía, que es la pregunta más tonta del
+  // asistente.
+  const apuntarCuantos = useCallback(
     (count) => {
-      if (count > 0 && !modeAsked) setShowModeSheet(true);
+      const hay = count > 0;
+      setData((d) => (d.pantryHasItems === hay ? d : { ...d, pantryHasItems: hay }));
     },
-    [modeAsked],
+    [setData],
   );
-
-  // `useHomeStock` se mantiene en sincronía como el booleano heredado que es
-  // (off ⇄ false), igual que hace normalizeData en App.jsx.
-  const applyPantryMode = (mode) => {
-    setData((d) => ({ ...d, pantryMode: mode, pantryModeSet: true, useHomeStock: mode !== "off" }));
-    setShowModeSheet(false);
-  };
-
-  // Cerrar sin elegir es "ahora no": se queda como está, pero se da por
-  // preguntada para no reabrirse en cada cosa que añadas. El interruptor
-  // «Usar despensa» de la propia despensa la vuelve a abrir.
-  const dismissModeSheet = () => {
-    setData((d) => ({ ...d, pantryModeSet: true }));
-    setShowModeSheet(false);
-  };
 
   return (
     <OnboardingShell
       title="¿Qué tienes ya en casa?"
-      subtitle="Añade lo que veas en la nevera, la despensa o el congelador."
+      // Arranca en Inventario, así que el subtítulo habla de lo que vas a ver
+      // primero —lo apuntado, aunque sean cero— y no del formulario de alta.
+      subtitle="Esto es lo que llevamos apuntado. Añade lo que falte de la nevera, la despensa o el congelador."
       nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
@@ -8774,21 +9008,10 @@ export function OnboardingPantryInventory({
           setData={setData}
           shopping={shopping}
           setShopping={setShopping}
-          onItemsCount={handlePantryCount}
-          useHomeStock={data.pantryMode !== "off"}
-          onToggleHomeStock={() =>
-            data.pantryMode === "off" ? setShowModeSheet(true) : applyPantryMode("off")
-          }
+          initialTab="inventory"
+          onItemsCount={apuntarCuantos}
         />
       </Suspense>
-
-      {showModeSheet && (
-        <PantryModeSheet
-          initial={data.pantryMode === "off" ? "prefer" : data.pantryMode}
-          onComplete={applyPantryMode}
-          onClose={dismissModeSheet}
-        />
-      )}
     </OnboardingShell>
   );
 }
@@ -9547,12 +9770,133 @@ export function OnboardingAppliances({ data, setData, onNext, onBack, onFinish, 
   );
 }
 
+/**
+ * ¿Cuánto pesa lo de casa al armar el menú?
+ *
+ * ── Vuelve a ser una PANTALLA ─────────────────────────────────────────────
+ * Esta pregunta ya existía en el asistente, se quitó el 24-ago-2026 dándola
+ * por sobreentendida ("si añades algo, cuenta") y volvió como una hoja que se
+ * abría sola encima de la despensa la primera vez que metías algo. Las dos
+ * versiones fallaban por lo mismo: una hoja que aparece sin que la llames
+ * interrumpe lo que estabas haciendo —dar de alta comida— para hacerte una
+ * pregunta de otra cosa, y se contesta a la carrera o se cierra.
+ *
+ * Aquí es un paso más, después de la despensa, con el mismo peso que "¿qué
+ * tenéis en la cocina?". Se llega habiendo visto ya lo que hay en casa, que es
+ * exactamente el contexto que la pregunta necesita.
+ *
+ * ── Dos, no cuatro ────────────────────────────────────────────────────────
+ * Hubo cuatro. Cayeron dos, y por el mismo motivo cada una:
+ *
+ *   · "Que no cuente" (`off`) — nadie rellena el inventario para que luego no
+ *     cuente. Tenía la coartada de que la despensa también tacha «Ya en casa»
+ *     en la compra (y eso sigue funcionando), pero pedirle a alguien que
+ *     declare que no quiere lo que acaba de apuntar no es una pregunta.
+ *   · "Que desempate" (`prefer`) — sigue existiendo en el motor, pero como
+ *     card no se sostenía: "rompe empates" es una diferencia que no se nota
+ *     con la despensa vacía y es difícil de imaginar con la despensa llena.
+ *
+ * Quedan las dos que sí se distinguen mirándolas, y la diferencia es una sola
+ * pregunta: ¿compro o no compro? Las dos aprovechan TODO lo que hay en casa.
+ *
+ * Las ilustraciones son de Midjourney y llevaban en `public/avatares/cards`
+ * desde agosto sin usarse: se dibujaron para esta pregunta y se quedaron
+ * huérfanas cuando se quitó del asistente.
+ */
+const PANTRY_MODES = [
+  {
+    id: "strict",
+    // Brazos abiertos entre dos neveras llenas, y ni una bolsa a la vista.
+    img: "/avatares/cards/pantry_mode/strict_h.webp",
+    title: "Solo con lo de casa",
+    subtitle: "Sin comprar. Solo si un hueco no sale de otra forma.",
+  },
+  {
+    id: "only",
+    // La MISMA nevera, con la compra en la mano. Antes iba `casa_partir`, donde
+    // las bolsas quedan a un lado y el recorte de la tarjeta se las comía: dos
+    // cards con una nevera cada una y ninguna diferencia visible. La diferencia
+    // entre los dos modos es literalmente "¿compro o no compro?", así que es lo
+    // único que tienen que decir los dibujos.
+    img: "/avatares/cards/pantry_mode/only_h.webp",
+    title: "Sobre todo lo de casa",
+    subtitle: "Gastamos todo lo que tienes y compramos lo que falte.",
+  },
+];
+
+export function OnboardingPantryMode({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+  // `useHomeStock` se mantiene en sincronía como el booleano heredado que es
+  // (off ⇄ false), igual que hace normalizeData en App.jsx.
+  const elegir = (mode) =>
+    setData((d) => ({ ...d, pantryMode: mode, pantryModeSet: true, useHomeStock: mode !== "off" }));
+
+  // Sin elegir todavía no se marca ninguna: `pantryMode` nace en "off"
+  // (INITIAL_DATA), y pintar "Que no cuente" como si la hubieras elegido tú
+  // sería ponerte una respuesta en la boca.
+  const elegido = data.pantryModeSet === true ? data.pantryMode : null;
+
+  return (
+    <OnboardingShell
+      title="¿Cuánto tiramos de lo de casa?"
+      subtitle="Las dos aprovechan todo lo que tienes. La diferencia es si compramos o no."
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+      finishLabel={finishLabel}
+      // Sin elegir no se pasa. Este paso solo sale cuando hay algo en casa
+      // (ver `skipPantryMode` en App.jsx), así que la pregunta siempre tiene
+      // sentido cuando se ve — y con dos cards, saltársela sin contestar sería
+      // dejar que decida un defecto habiendo tenido la respuesta delante.
+      nextDisabled={elegido == null}
+    >
+      {/* Una columna: con dos cards apiladas el arte se ve a lo ancho entero, y
+          la pregunta se resuelve de un vistazo — que es de lo que va tenerlas
+          reducidas a dos. */}
+      <div
+        style={{
+          height: "100%", minHeight: 0,
+          display: "grid",
+          gridTemplateRows: "repeat(2, 1fr)",
+          gap: 8,
+        }}
+      >
+        {PANTRY_MODES.map((m) => (
+          <RestrictionTabCard
+            key={m.id}
+            img={m.img}
+            title={m.title}
+            subtitle={m.subtitle}
+            fillHeight
+            compact
+            // Centrado, no el "center 28%" por defecto. Con el arte cuadrado
+            // de antes, subirlo recortaba justo lo de abajo — que es donde
+            // estaban las bolsas de la compra, o sea lo único que distingue una
+            // card de la otra. El arte nuevo es apaisado (16:9, `_h`) y casi
+            // llena la caja de la card, así que hay poco que recortar; pero
+            // centrado sigue siendo lo correcto, porque la bolsa del rubio y
+            // las dos neveras de ella viven en la franja central y en los
+            // lados, nunca arriba.
+            imgPosition="center"
+            accent={CARD_ACCENT_TEAL}
+            active={elegido === m.id}
+            onClick={() => elegir(m.id)}
+          />
+        ))}
+      </div>
+    </OnboardingShell>
+  );
+}
+
 // Paso propio para el tiempo de cocina, separado de "¿Quién cocina y cómo?"
 // (nivel + herramientas). Aquí viven las 4 cards ilustradas de ritmo de cocina.
 export function OnboardingCookTime({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+  // Una línea. "¿Cuánto tiempo tienes para cocinar?" ocupaba dos en un móvil y
+  // empujaba las cards fuera de pantalla — y además ya no es lo que se pregunta
+  // primero: lo primero es CÓMO cocinas, y el ritmo viene detrás.
   return (
     <OnboardingShell
-      title="¿Cuánto tiempo tienes para cocinar?"
+      title="¿Cómo sueles cocinar?"
       subtitle="Ajustamos las recetas a tu ritmo"
       onBack={onBack}
       onReset={onReset}
@@ -9561,6 +9905,36 @@ export function OnboardingCookTime({ data, setData, onNext, onBack, onFinish, on
       finishLabel={finishLabel}
     >
       <CookTimeEditor data={data} setData={setData} simple={!data.expertMode} showIntro={false} />
+    </OnboardingShell>
+  );
+}
+
+/**
+ * Batch cooking, en pantalla propia — solo para quien lo ha marcado en el paso
+ * anterior.
+ *
+ * Vivía DENTRO del paso de tiempo y en su lugar: marcar "cocino en tanda"
+ * borraba las cards de ritmo y las sustituía por esto. Eran dos preguntas
+ * distintas peleándose por el mismo sitio, y la que perdía —cuánto tiempo
+ * tienes un martes— seguía teniendo respuesta y seguía haciendo falta.
+ *
+ * Aquí se pregunta lo otro: qué dejas hecho el día que cocinas, y cuánto rato
+ * quieres estar. Es una pantalla larga (presupuesto + tres patas), que es la
+ * otra razón para sacarla: apretada debajo de cuatro cards ilustradas no se
+ * leía ninguna de las dos.
+ */
+export function OnboardingBatchCooking({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+  return (
+    <OnboardingShell
+      title="¿Qué cocinas en tandas?"
+      subtitle="Lo que dejas hecho el día que te pones"
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+      finishLabel={finishLabel}
+    >
+      <BasesPreferidas data={data} setData={setData} />
     </OnboardingShell>
   );
 }
@@ -9632,7 +10006,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
   // menuWeekOffsets/menuWeek — así un menú/borrador guardado antes de que
   // existiera el arrastre por días sigue viéndose exactamente igual.
   const daysForOffset = (d, offset) => {
-    const explicit = d.menuWeekDays?.[offset];
+    const explicit = weekEntry(d.menuWeekDays, offset);
     if (Array.isArray(explicit)) return explicit;
     const legacyOffsets = Array.isArray(d.menuWeekOffsets) && d.menuWeekOffsets.length
       ? d.menuWeekOffsets
@@ -9663,9 +10037,14 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
       if (selected) current.add(dayCode);
       else current.delete(dayCode);
       const nextDays = DAYS.filter((day) => current.has(day));
+      // Por el LUNES de esa semana, no por su offset — ver rekeyWeeksByMonday.
+      // Se borra también la clave numérica vieja por si quedaba alguna sin
+      // migrar, para que no reaparezca por el fallback de `weekEntry`.
+      const clave = mondayISOForOffset(offset);
       const menuWeekDays = { ...(d.menuWeekDays ?? {}) };
-      if (nextDays.length > 0) menuWeekDays[offset] = nextDays;
-      else delete menuWeekDays[offset];
+      delete menuWeekDays[offset];
+      if (nextDays.length > 0) menuWeekDays[clave] = nextDays;
+      else delete menuWeekDays[clave];
       const nextOffsets = allOffsets.filter((o) =>
         o === offset ? nextDays.length > 0 : daysForOffset(d, o).length > 0
       );
@@ -9684,9 +10063,11 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
 
   const setWeekDays = (offset, days) => {
     setData((d) => {
+      const clave = mondayISOForOffset(offset);
       const menuWeekDays = { ...(d.menuWeekDays ?? {}) };
-      if (days.length > 0) menuWeekDays[offset] = days;
-      else delete menuWeekDays[offset];
+      delete menuWeekDays[offset];
+      if (days.length > 0) menuWeekDays[clave] = days;
+      else delete menuWeekDays[clave];
       const nextOffsets = allOffsets.filter((o) =>
         o === offset ? days.length > 0 : daysForOffset(d, o).length > 0
       );

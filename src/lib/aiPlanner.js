@@ -2,21 +2,31 @@ import { etapasServibles } from "./babyStage.js";
 import { z } from "zod";
 import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
+import { basesPedidas } from "./bases.js";
+import { ordenarPorSesgo, preferirPorSesgo } from "./sesgos.js";
+import { resolverMenu, solverActivo, REGLAS_RELAJABLES, familiasDe } from "./solver.js";
+import { DEFAULT_FREQS } from "./defaultFreqs.js";
+import { HOLGURA_TOPES, presupuestoDeTopes, repartoAFreqs, freqsAReparto } from "./reparto.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes, recipeMatchesPreferType } from "../utils/filterRecipes.js";
+import { esAnadido, topeDe } from "./cocinaTopes.js";
+import { ajustarCuota } from "./cuotaCocinas.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
+import { recetasRecientes } from "./recientes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
-import { isMontaje } from "../data/recipeSchema.js";
+import { isMontaje, PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 import {
   validateMenu,
   buildCorrectionMessage,
   applyFallback,
   carbTypeFromText,
   getCarbType,
+  basesAlcanzables,
   splitAchievableFreqs,
   slotAcceptsRole,
 } from "../utils/validateMenu.js";
+import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "../data/nutrientes.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import salsasData from "../data/recipes/salsas.json";
 import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
@@ -33,6 +43,17 @@ import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
 import { normalizeKidDinnerConfig, schoolAvoidCategories, householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 import { lowerFirst } from "./dishNaming.js";
+
+/**
+ * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
+ * secundarios (fibra, azúcar, grasa saturada, sodio) van aparte porque esos SÍ
+ * los declara la receta y no se pisan: aquí solo pasan los que no tienen valor
+ * declarado con el que competir.
+ */
+const MICRONUTRIENTES_RACION = CAMPOS_SECUNDARIOS.filter(
+  (c) => !["fiber100g", "sugar100g", "saturatedFat100g", "sodium100g"].includes(c),
+).map((c) => NUTRIENTES[c].porRacion);
+
 
 // School-menu avoidance categories for the kids' cena. Historically the kids'
 // dinner ALWAYS avoided the school's protein + carb base (that's the "cena
@@ -101,13 +122,8 @@ function proteinFromText(text) {
 // Groups catalog mainProtein enums into the same buckets validateMenu.js uses
 // for its consecutive-protein rule. Returns null for "vegetal"/"none"/unmapped
 // values, i.e. dishes that don't carry a protein course.
-const PROTEIN_GROUP_MAP = {
-  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
-  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
-  legumbre: "legumbres", huevo: "huevos",
-};
 function proteinGroupOf(recipe) {
-  return recipe ? (PROTEIN_GROUP_MAP[recipe.mainProtein] ?? null) : null;
+  return recipe ? (PROTEIN_GROUP_BY_MAIN_PROTEIN[recipe.mainProtein] ?? null) : null;
 }
 
 // Every protein GROUP a dish carries — its mainProtein PLUS any secondary animal
@@ -120,7 +136,7 @@ function proteinGroupsOf(recipe) {
   const groups = new Set();
   if (!recipe) return groups;
   const add = (p) => {
-    const g = PROTEIN_GROUP_MAP[p];
+    const g = PROTEIN_GROUP_BY_MAIN_PROTEIN[p];
     if (g) groups.add(g);
   };
   add(recipe.mainProtein);
@@ -130,7 +146,11 @@ function proteinGroupsOf(recipe) {
 
 // Balanced weekly quotas used when the user hasn't set a meal style — includes
 // carbs, meat and eggs so the default menu isn't skewed all-healthy.
-const DEFAULT_FREQS = { carne: 3, pescado: 2, legumbres: 2, pasta_arroz: 2, huevos: 2, verdura: 3 };
+//
+// Exportado (y solo eso: los valores no cambian) porque lib/reparto.js lo usa
+// como punto de partida del eje de reparto, y tenerlo duplicado allí dejaba
+// dos defaults que se desincronizan en cuanto alguien afine uno de los dos.
+export { DEFAULT_FREQS };
 
 const DAY_SLUG = {
   Lun: "lun", Mar: "mar", Mié: "mie", Jue: "jue",
@@ -356,7 +376,68 @@ export function createPlannerStats() {
     invalidFirstPass: 0,
     fallbackUsed: 0,
     groupsReused: 0,
+    // Qué motor asignó los platos: "modelo" (LLM + reintentos + fallback) o
+    // "solver" (lib/solver.js). Las tres de abajo solo se rellenan con solver.
+    // Viajan enteras en el evento de telemetría (App.jsx hace `...plannerStats`),
+    // que es lo que permite comparar los dos motores sobre menús reales.
+    motor: "modelo",
+    solverNodos: 0,
+    solverMs: 0,
+    solverCompleto: null,
+    solverRelajados: 0,
+    solverSemilla: null,
   };
+}
+
+/**
+ * Los topes semanales de un grupo y a dónde apuntar dentro de ellos.
+ *
+ * Dos orígenes:
+ *   · La libreta nueva: App.jsx proyecta `freqsByGroup` CON holgura
+ *     (presupuestoDeTopes) y escribe `objetivoByGroup` con el reparto exacto.
+ *     Se usan tal cual.
+ *   · El wizard viejo o un estilo de comida: `data.freqs` / un `freqsByGroup`
+ *     escrito a mano, sin objetivo. Son el PEDIDO exacto ("carne 3, pescado
+ *     1…"), y suman 10 u 11 para semanas de 10 a 21 huecos: no hay solución
+ *     con ellos como máximos. Medido en una casa real: el solver agotaba
+ *     2 s de búsqueda por grupo y semana antes de rendirse y relajar. Así que
+ *     se guardan como objetivo y se les da la misma holgura que a los otros.
+ *
+ * Solo con solver. El camino del modelo conserva sus topes exactos: sus
+ * tests los fijan y cambiarlos ahí es otra decisión.
+ */
+function topesDelGrupo(data, group, huecos) {
+  const freqs = data.freqsByGroup?.[group.id] ?? data.freqs ?? DEFAULT_FREQS;
+  const objetivo = data.objetivoByGroup?.[group.id] ?? null;
+  if (objetivo || !solverActivo()) return { freqs, objetivo };
+  // Las familias que NADIE ha nombrado se completan con la semana equilibrada
+  // de la app (DEFAULT_FREQS), y lo que el usuario sí dijo manda.
+  //
+  // Los `freqs` que trae la app por defecto solo hablan de tres familias
+  // (legumbres, verdura, pescado). Las otras tres quedaban sin objetivo, y sin
+  // objetivo el solver no tiene ninguna razón para preferirlas ni para
+  // moderarlas: cogía lo que más abunda en el catálogo y salían TRECE platos
+  // de carne en veintiún huecos. Un tope no es solo un techo, es también lo
+  // que dice que esa familia tiene que aparecer.
+  const completos = {};
+  for (const [f, v] of Object.entries({ ...DEFAULT_FREQS, ...freqs })) completos[f] = Number(v) || 0;
+
+  // Los topes se proyectan sobre el MISMO presupuesto que usa el reparto:
+  // los huecos de la semana por la holgura, porque un plato gasta 1,4 topes de
+  // media (ver HOLGURA_TOPES). Subir cada familia un 40 % por su cuenta no
+  // basta: DEFAULT_FREQS suma 14, así que los topes sumaban 20 para 21 huecos
+  // y el solver tenía que saltarse la cuota en ocho de ellos.
+  //
+  // Una familia que el usuario puso a CERO se queda a cero: "nada de carne" no
+  // es una proporción que repartir, es una exclusión.
+  const ceros = Object.keys(completos).filter((f) => completos[f] === 0);
+  const presupuesto = Math.max(
+    presupuestoDeTopes(huecos),
+    Object.values(completos).reduce((a, b) => a + b, 0),
+  );
+  const conHolgura = repartoAFreqs(freqsAReparto(completos), { presupuesto });
+  for (const f of ceros) conHolgura[f] = 0;
+  return { freqs: conHolgura, objetivo: completos };
 }
 
 function recordCall(stats, kind, result) {
@@ -415,8 +496,12 @@ export function buildGroupContext(data, group) {
       ...(impliesAlcoholCocina ? ["alcohol_cocina"] : []),
     ]),
   );
+  // `data.excluidos` es lo que el panel/wizard proyecta de la libreta ("nada
+  // de coliflor"): mismo formato y misma semántica que un dislike —soft, con
+  // fallback para no vaciar el pool— así que va al mismo saco. Hasta el 11
+  // sep 2026 se proyectaba y no lo leía nadie.
   const dislikes = Array.from(
-    new Set([...(data.dislikes ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])]),
+    new Set([...(data.dislikes ?? []), ...(data.excluidos ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])]),
   );
 
   const kitchenTools = [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])];
@@ -518,6 +603,12 @@ export function buildGroupContext(data, group) {
       // si no, primero+segundo.
       const mealStructure =
         data.mealStructureByGroup?.[group.id] ?? data.mealStructure ?? "primero_segundo";
+      // La cena tiene su propia estructura y su propio defecto. No hereda la de
+      // la comida: quien come de primero y segundo no cena por fuerza igual, y
+      // lo normal en España es cenar una cosa. Por eso el defecto es "1_plato"
+      // aunque la comida sea "primero_segundo".
+      const estructuraCena =
+        data.mealStructureCenaByGroup?.[group.id] ?? data.mealStructureCena ?? "1_plato";
 
       if (mealType === "comida") {
         if (isBabyGroup) {
@@ -555,14 +646,21 @@ export function buildGroupContext(data, group) {
           }
           slots.push(slot);
         } else {
-          // The user reads the cook-time slider as the budget for the WHOLE
-          // comida, not per dish. So split it (primeros are quicker → 40%,
-          // segundos get the rest → ~60%) instead of giving each the full max,
-          // which used to let primero+segundo sum up to 1.4× the limit.
-          const primeroMaxTime = Math.max(10, Math.round(maxTime * 0.4));
-          const segundoMaxTime = Math.max(10, maxTime - primeroMaxTime);
-          const primero = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime: primeroMaxTime, slotId: `${daySlug}_comida_1`, position: "primero" };
-          const segundo = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime: segundoMaxTime, slotId: `${daySlug}_comida_2`, position: "segundo" };
+          // El deslizador es el presupuesto de la COMIDA ENTERA, no de cada
+          // plato. Hubo una versión que lo repartía 40/60 y daba a cada plato
+          // un tope propio que sumaba exactamente el presupuesto. Suena bien y
+          // es inaplicable: con los 30 minutos que trae la app por defecto, el
+          // primero se quedaba en 12 minutos y en TODO el catálogo hay cuatro
+          // primeros que caben ahí. Cinco comidas entre semana, cuatro platos
+          // posibles: el hueco se quedaba vacío por aritmética, y por eso unos
+          // días salían con primero y segundo y otros con un solo plato.
+          //
+          // Dos platos no se cocinan uno detrás de otro: la ensalada se monta
+          // mientras el horno trabaja. Así que cada plato cabe en el
+          // presupuesto entero, y lo que se vigila es la PAREJA (regla 8b, con
+          // `mealBudget`): no vale juntar dos platos largos.
+          const primero = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime, slotId: `${daySlug}_comida_1`, position: "primero" };
+          const segundo = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime, slotId: `${daySlug}_comida_2`, position: "segundo" };
           if (linkKidDinner && isAdultsGroup && schoolProteins.size > 0) {
             segundo.schoolProteinsToAvoid = Array.from(schoolProteins);
           }
@@ -575,6 +673,25 @@ export function buildGroupContext(data, group) {
         // (Los huecos de cena de niños que copian/omiten ya se filtraron arriba
         // con kidsSlotAction; aquí solo llega "cena diferente" o menú propio.)
         const isQuick = slotTypeSel === "rapida";
+        // La cena de DOS platos: una crema, un gazpacho o una ensalada delante,
+        // y algo ligero detrás. Una crema sola es poca cena —57 de las 69 sopas
+        // que pueden cenarse están por debajo de 300 kcal— y con algo al lado
+        // deja de serlo.
+        //
+        // Una cena rápida nunca se parte: quien la marcó pidió justo lo
+        // contrario, un solo plato y pronto.
+        const dosPlatos = estructuraCena === "primero_segundo" && !isQuick;
+        if (dosPlatos) {
+          const comun = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime, mealBudget: maxTime };
+          const primeroCena = { ...comun, slotId: `${daySlug}_cena_1`, position: "primero" };
+          const segundoCena = { ...comun, slotId: `${daySlug}_cena_2`, position: "segundo" };
+          const avoid = effectiveSchoolAvoid(data);
+          if (avoid.protein && schoolProteins.size > 0) segundoCena.schoolProteinsToAvoid = Array.from(schoolProteins);
+          if (avoid.carbs && schoolCarbs.size > 0) segundoCena.schoolCarbsToAvoid = Array.from(schoolCarbs);
+          if (avoid.veg && schoolVeg.size > 0) primeroCena.schoolVegToAvoid = Array.from(schoolVeg);
+          slots.push(primeroCena, segundoCena);
+          continue;
+        }
         const slot = {
           day, daySlug, mealType, eaters, mode: mode.mode,
           maxTime: isQuick ? Math.min(maxTime, 15) : maxTime,
@@ -625,10 +742,17 @@ export function buildGroupContext(data, group) {
       recipeMode: data.recipeMode ?? "preferred",
       // Favorites that apply to THIS group (scope "all" or this group's label).
       favoriteIds: favoriteIdsForGroup(data.recipeVotes, group.label),
+      // Cocinas extranjeras pedidas desde la fila de mandos del menú. Vista
+      // proyectada de la libreta (ver useWizardMenu), no la libreta: aquí es un
+      // mapa cocina → platos por semana. `undefined` para quien nunca lo ha
+      // tocado, y entonces filterRecipes no filtra nada.
+      cocinas: data.cocinas ?? null,
     },
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
-      freqs: data.freqsByGroup?.[group.id] ?? data.freqs ?? DEFAULT_FREQS,
+      // `freqs` son los topes y `objetivo` a dónde apuntar dentro de ellos
+      // (solo lo lee el solver). Ver topesDelGrupo.
+      ...topesDelGrupo(data, group, slots.length),
       cookLevel: data.cookLevel ?? "normal",
       cookTime,
       // "Menú más cuidado" profiles present in the group (soft bias for the LLM).
@@ -648,8 +772,44 @@ export function buildGroupContext(data, group) {
 // pantryMode: "strict" (solo con lo de casa, sin comprar) | "only" (partir de
 // lo de casa, fuerte) | "prefer"/"off" (preferencia blanda). "off" nunca llega
 // aquí con nombres porque App vacía la lista antes.
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = []) {
+// Preferred column order for the compact ("planner-compact") catalog table.
+// Any other field a recipe carries is appended after these, and a column no
+// recipe uses is left out, so the table always holds what the JSON form did.
+const COMPACT_CATALOG_COLUMNS = [
+  "id", "name", "category", "mainProtein", "mealRole", "time", "kcal",
+  "kidFriendly", "tupperFriendly", "mainBase", "extraProteins", "cocina",
+  "protein_g", "carbs_g", "fat_g", "healthFlags", "pantryScore", "aporte", "montaje", "favorite", "own",
+];
+
+function compactCell(value) {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "boolean") return value ? "1" : "0";
+  if (Array.isArray(value)) return value.join(",");
+  return String(value).replace(/[|\r\n]+/g, " ");
+}
+
+/**
+ * The decision catalog as a "|"-separated table: a header line, then one line
+ * per recipe. Same content as the JSON form without repeating every field name
+ * for each of ~240 recipes. Exported for tests.
+ */
+export function compactCatalogTable(catalog) {
+  const known = new Set(COMPACT_CATALOG_COLUMNS);
+  const extra = [...new Set(catalog.flatMap((r) => Object.keys(r)))].filter((k) => !known.has(k));
+  const columns = [...COMPACT_CATALOG_COLUMNS, ...extra].filter((c) =>
+    catalog.some((r) => r[c] !== undefined),
+  );
+  return [
+    columns.join("|"),
+    ...catalog.map((r) => columns.map((c) => compactCell(r[c])).join("|")),
+  ].join("\n");
+}
+
+// `format`: "json" (task "planner") or "compact" (task "planner-compact").
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = [], cocinas = null, format = "json", bases = null) {
   const catalog = decisionCatalog(filteredRecipes);
+  // How a boolean catalog flag reads in each format, for the instructions below.
+  const flagText = (field) => (format === "compact" ? `${field} = 1` : `"${field}": true`);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
     if (s.position) out.position = s.position;
@@ -679,11 +839,61 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
       pantryMode === "strict"
         ? `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD MÁXIMA): El usuario quiere cocinar SOLO con lo que ya tiene en casa, sin comprar. Para CADA hueco, elige exclusivamente recetas cuyos ingredientes principales estén en esta lista. Solo si es imposible cubrir un hueco con lo disponible, recurre a una receta con ingredientes de fuera, y reduce esos casos al mínimo absoluto. Nunca rompas las demás reglas (complementación escolar, alergias) ni fuerces combinaciones sin sentido culinario.`
         : pantryMode === "only"
-        ? `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): Construye el menú usando SOBRE TODO ingredientes de esta lista. Para cada hueco, elige preferentemente recetas cuyos ingredientes principales estén ya en casa; solo recurre a recetas con ingredientes fuera de esta lista cuando no haya ninguna opción razonable que encaje con las demás reglas (complementación escolar, variedad, alergias, tipo de plato). Esta preferencia es FUERTE, pero nunca rompas esas reglas ni fuerces combinaciones que no tengan sentido culinario.`
+        // "Sobre todo lo de casa" = GASTAR lo que hay, no "preferir" lo que
+        // hay. Decía "elige preferentemente recetas cuyos ingredientes estén
+        // en casa", que es una preferencia difusa y dejaba media despensa sin
+        // tocar; el objetivo real de quien elige esto es que no se le eche a
+        // perder nada. Lo que sobre después, libre.
+        ? `
+
+INSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): GASTA esta lista. Coloca platos que usen estos ingredientes hasta agotarlos, empezando por los que antes se estropean (fresco antes que seco o congelado). No es una preferencia difusa: el objetivo es que al acabar la semana no quede nada de esta lista sin usar. Los huecos que sobren después, elígelos con total libertad del catálogo. Nunca rompas por esto las demás reglas (complementación escolar, variedad, alergias, tipo de plato) ni fuerces combinaciones sin sentido culinario: si un ingrediente no encaja en ningún hueco, déjalo fuera antes que forzarlo.`
         : `\n\nINSTRUCCIÓN ADICIONAL: Cuando haya dos recetas equivalentes para un hueco, prioriza la que use más ingredientes de esta lista. Esta preferencia es SECUNDARIA a todas las demás reglas (complementación escolar, variedad, alergias). No fuerces recetas que no encajen solo por usar ingredientes disponibles.`;
     parts.push(
       `\nINGREDIENTES QUE EL USUARIO YA TIENE EN CASA:\n${pantryNames.map((n) => `- ${n}`).join("\n")}` +
         pantryInstruction,
+    );
+  }
+
+  // Cocinas pedidas desde la fila de mandos del menú. La PUERTA ya se aplicó
+  // en filterRecipes (lo que está a cero no está en este pool), así que aquí
+  // solo queda pedir que lo pedido se coloque de verdad — una puerta quita
+  // candidatos, no pone platos. Si el modelo no lo cumple, lo repara después
+  // `ajustarCuota` (lib/cuotaCocinas.js), que es lo que convierte esto en una
+  // promesa y no en una sugerencia.
+  const cocinasPedidas = Object.entries(cocinas ?? {})
+    .filter(([cocina, n]) => Number(n) > 0 && esAnadido(cocina))
+    .map(([cocina, n]) => [cocina, Math.min(Number(n), topeDe(cocina))])
+    .filter(([, n]) => n > 0);
+  if (cocinasPedidas.length > 0) {
+    const lista = cocinasPedidas
+      .map(([cocina, n]) => `- ${cocina}: ${n} ${n === 1 ? "plato" : "platos"}`)
+      .join("\n");
+    parts.push(
+      `\nCOCINAS QUE LA CASA QUIERE ESTA SEMANA:\n${lista}` +
+        `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): coloca ESE número de platos de cada una de esas cocinas, repartidos por la semana y no seguidos. Las recetas de esas cocinas llevan su campo "cocina" en el catálogo de arriba. No pongas más de los pedidos, y no metas platos de otras cocinas extranjeras que no estén en esta lista. Nunca rompas por esto las demás reglas: alergias, complementación escolar, tipo de plato, ni dos veces la misma proteína en comidas seguidas.`,
+    );
+  }
+
+  // BASES pedidas. Va junto a las cocinas porque es la misma forma de petición
+  // —"quiero N platos de esto"— y se cumple igual: colocando, no corrigiendo
+  // después.
+  //
+  // Antes esto no se le decía al modelo. La regla existía y se cumplía, pero
+  // solo como reparación posterior: el menú se escribía a ciegas y luego se
+  // sustituían huecos para meter la base. Funciona, pero cambia platos que el
+  // modelo había elegido por otros motivos, y falla en cuanto el hueco que
+  // habría que tocar tiene otras restricciones.
+  const basesPedidasLista = Object.entries(bases ?? {}).filter(([, n]) => n > 0);
+  if (basesPedidasLista.length > 0) {
+    const lista = basesPedidasLista
+      .map(([clave, n]) => `- ${clave}: ${n} ${n === 1 ? "plato" : "platos"}`)
+      .join("\n");
+    parts.push(
+      `\nBASES QUE LA CASA COCINA EN TANDA ESTA SEMANA:\n${lista}`
+      + "\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): coloca ESE número de platos de cada base."
+      + " Un plato lleva una base si la nombra en su campo basesAparte, o si su mainBase coincide y además trae baseMode aparte."
+      + " El sentido es cocinar esa olla UNA vez el domingo y repartirla entre varios días, así que reparte esos platos por la semana en vez de ponerlos seguidos."
+      + " No hace falta pasarse: más de los pedidos no aporta nada. Y nunca rompas por esto las demás reglas: alergias, objetivos semanales, complementación escolar, tipo de plato ni proteína repetida en comidas seguidas.",
     );
   }
 
@@ -717,7 +927,7 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
   // instruction never confuses the model when there's nothing to prioritize.
   if (catalog.some((r) => r.favorite)) {
     parts.push(
-      `\nRECETAS FAVORITAS DEL USUARIO: las marcadas con "favorite": true en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre otras equivalentes. Es una preferencia fuerte pero no absoluta: no repitas la misma favorita más de lo razonable ni rompas la variedad del menú solo por incluirlas.`,
+      `\nRECETAS FAVORITAS DEL USUARIO: las marcadas con ${flagText("favorite")} en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre otras equivalentes. Es una preferencia fuerte pero no absoluta: no repitas la misma favorita más de lo razonable ni rompas la variedad del menú solo por incluirlas.`,
     );
   }
 
@@ -725,8 +935,8 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
   if (ownRecipes.length > 0 && recipeMode !== "catalog") {
     parts.push(
       recipeMode === "only"
-        ? `\nRECETAS PROPIAS DEL USUARIO: las marcadas con "own": true. El menú DEBE usar EXCLUSIVAMENTE estas recetas (${ownRecipes.length} disponibles). Repite las que hagan falta para cubrir todos los huecos, respetando tipo de plato, tiempo, variedad y todas las demás reglas.`
-        : `\nRECETAS PROPIAS DEL USUARIO: las marcadas con "own": true en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre las del catálogo. Es una preferencia fuerte: incluye al menos una receta propia en la semana si alguna encaja, y no las ignores sistemáticamente a favor del catálogo.`,
+        ? `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")}. El menú DEBE usar EXCLUSIVAMENTE estas recetas (${ownRecipes.length} disponibles). Repite las que hagan falta para cubrir todos los huecos, respetando tipo de plato, tiempo, variedad y todas las demás reglas.`
+        : `\nRECETAS PROPIAS DEL USUARIO: las marcadas con ${flagText("own")} en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre las del catálogo. Es una preferencia fuerte: incluye al menos una receta propia en la semana si alguna encaja, y no las ignores sistemáticamente a favor del catálogo.`,
     );
   }
 
@@ -739,7 +949,7 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
   return [
     {
       type: "text",
-      text: `Catálogo:\n${JSON.stringify(catalog)}`,
+      text: `Catálogo:\n${format === "compact" ? compactCatalogTable(catalog) : JSON.stringify(catalog)}`,
       cache_control: { type: "ephemeral" },
     },
     { type: "text", text: parts.join("\n") },
@@ -873,16 +1083,31 @@ const SlotAssignmentSchema = z.object({
   recipeId: z.string().min(1),
 });
 
-const LLMResponseSchema = z.object({
-  slots: z.array(SlotAssignmentSchema).min(1),
-});
+// "planner-compact" answers {"slots":{"lun_cena":"huevos_004",...}}. Normalize
+// that map to the array shape so everything downstream sees a single format.
+function normalizeSlotsShape(value) {
+  const slots = value?.slots;
+  if (!slots || typeof slots !== "object" || Array.isArray(slots)) return value;
+  return {
+    ...value,
+    slots: Object.entries(slots).map(([slotId, recipeId]) => ({ slotId, recipeId })),
+  };
+}
+
+const LLMResponseSchema = z.preprocess(
+  normalizeSlotsShape,
+  z.object({
+    slots: z.array(SlotAssignmentSchema).min(1),
+  }),
+);
 
 // ── Cross-week variety (parallel-safe) ──────────────────────────
 // Multi-week menús are generated in parallel (see App.jsx#regenerateMenu), so a
 // week can't look at what the previous week picked. Instead of a runtime
-// exclusion set, each recipe gets a STABLE bucket in [0, weekCount); a week
-// keeps its own bucket and only tops up from other buckets to stay above a safe
-// floor. Different weeks therefore lean toward disjoint dishes, deterministically
+// exclusion set, each recipe gets a STABLE bucket in [0, weekCount) *within its
+// own category*; a week keeps its own bucket and only tops up from other buckets
+// to stay above a safe floor. Different weeks therefore lean toward disjoint
+// dishes — and toward a comparable mix of meat/fish/legume/etc — deterministically
 // and without any inter-week dependency. "relaxed" disables it; "moderate" uses
 // a higher floor than "strict" (more overlap allowed, milder bias).
 
@@ -907,12 +1132,43 @@ export function poolForWeek(pool, crossWeek, slotCount) {
       : Math.max(slotCount * 2, 12);
   if (pool.length <= floor) return pool;
 
-  const own = [];
-  const rest = [];
+  // ── Se reparte DENTRO de cada categoría, no sobre el pool entero ────────
+  //
+  // Antes el cubo salía de `hashId(r.id) % weekCount` sobre la bolsa completa,
+  // que es ciego a QUÉ es cada receta: con cuatro semanas, a una le podían
+  // tocar seis pescados y a otra uno. La que se queda corta pierde su objetivo
+  // semanal —`splitAchievableFreqs` lo descarta con un aviso— y la otra va
+  // sobrada. El sesgo entre semanas salía gratis y el desequilibrio también.
+  //
+  // Estratificando por `category` (que es lo que cuentan las claves de `freqs`)
+  // cada semana recibe su parte proporcional de cada familia. Se conservan las
+  // dos propiedades que hacen que esto funcione en paralelo: es DETERMINISTA
+  // —misma entrada, misma salida— y no depende de lo que eligiera otra semana.
+  const porEstrato = new Map();
   for (const r of pool) {
-    if (hashId(r.id) % weekCount === weekIndex % weekCount) own.push(r);
-    else rest.push(r);
+    const k = r.category ?? "sin_categoria";
+    if (!porEstrato.has(k)) porEstrato.set(k, []);
+    porEstrato.get(k).push(r);
   }
+  const elegidos = new Set();
+  for (const recetas of porEstrato.values()) {
+    // Se ordena por hash y no por id: los ids del catálogo van por orden de
+    // alta dentro de su fichero, así que un reparto por posición podía
+    // correlacionar con el rol del plato (los primeros cincuenta "carnes" no
+    // son una muestra representativa de las carnes).
+    const ordenadas = [...recetas].sort(
+      (a, b) => hashId(a.id) - hashId(b.id) || (a.id < b.id ? -1 : 1),
+    );
+    ordenadas.forEach((r, i) => {
+      if (i % weekCount === weekIndex % weekCount) elegidos.add(r.id);
+    });
+  }
+  // Se filtra el pool original en vez de devolver las recetas ya agrupadas: el
+  // ORDEN del pool significa algo aguas abajo (el fallback coge "el primero que
+  // pasa", y `ordenarPorSesgo` es un sort estable encima de él), así que
+  // reordenarlo por categoría cambiaría en silencio qué plato sale.
+  const own = pool.filter((r) => elegidos.has(r.id));
+  const rest = pool.filter((r) => !elegidos.has(r.id));
   if (own.length >= floor) return own;
 
   const need = floor - own.length;
@@ -936,7 +1192,262 @@ export function poolForWeek(pool, crossWeek, slotCount) {
 // ── Generation ──────────────────────────────────────────────────
 
 // Exported for tests only — not used elsewhere outside this module.
-export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null } = {}) {
+/**
+ * Pasos 1–3 del camino de siempre: llamada al modelo, reintentos de formato y
+ * de corrección, y fallback determinista si sigue sin ser válido. Devuelve la
+ * primera asignación de platos; lo que viene después (fijados, forzados,
+ * cocinas, guarniciones, revalidación) lo hace generateGroupMenu igual para
+ * este camino y para el solver.
+ */
+async function asignarConModelo({
+  userMessage, format, plannerModel, signal, stats,
+  filteredPool, ctx, achievableFreqs, basesDeLaSemana, data, group, warnings,
+}) {
+  // The primary planner model is resolvable per-generation (A/B Sonnet vs
+  // Haiku); format/correction retries stay on the cheap FAST_MODEL.
+  // Answer shape echoed in retry/correction messages, matching the task's format.
+  const slotsShape =
+    format === "compact"
+      ? '{"slots":{"slotId":"recipeId",...}}'
+      : '{"slots":[{"slotId":"...","recipeId":"..."},...]}';
+  const task = format === "compact" ? "planner-compact" : "planner";
+  const request = (messages, model = plannerModel, kind = "planner") =>
+    callModel(
+      { model, max_tokens: DEFAULT_MAX_TOKENS, task, messages },
+      signal,
+      { onResult: (result) => recordCall(stats, kind, result) },
+    );
+
+  // 1. First LLM call
+  let text = await request([{ role: "user", content: userMessage }]);
+  let parsed;
+  try {
+    parsed = extractJson(text);
+  } catch {
+    // LLM returned non-JSON — ask for a JSON-only retry before giving up
+    const retryText = await request(
+      [
+        { role: "user", content: userMessage },
+        { role: "assistant", content: text },
+        {
+          role: "user",
+          content:
+            `Tu respuesta no contiene JSON válido. Devuelve SOLO esto, sin texto adicional: ${slotsShape}`,
+        },
+      ],
+      RETRY_MODEL,
+      "format_retry",
+    );
+    try {
+      parsed = extractJson(retryText);
+      text = retryText;
+    } catch (err2) {
+      throw new AIPlannerError("No se pudo parsear el JSON de la IA.", { cause: err2, raw: retryText });
+    }
+  }
+
+  let schemaResult = LLMResponseSchema.safeParse(parsed);
+
+  // Schema retry with Haiku if format is wrong
+  if (!schemaResult.success) {
+    // TEMPORAL: diagnóstico del fallo "no se pudo parsear el JSON del
+    // reintento" reportado en pruebas locales — quitar una vez identificada
+    // la causa.
+    console.error(
+      "[aiPlanner] Primera respuesta no cumplió el esquema:",
+      schemaResult.error.issues,
+      "\nJSON parseado:", parsed,
+    );
+    const retryText = await request(
+      [
+        { role: "user", content: userMessage },
+        { role: "assistant", content: text },
+        {
+          role: "user",
+          content: `El JSON no cumple el formato. Devuelve SOLO ${slotsShape}\nErrores:\n${schemaResult.error.issues
+            .slice(0, 5)
+            .map((i) => `${i.path.join(".")}: ${i.message}`)
+            .join("\n")}`,
+        },
+      ],
+      RETRY_MODEL,
+      "format_retry",
+    );
+    try {
+      parsed = extractJson(retryText);
+    } catch (err) {
+      // TEMPORAL: ver comentario de arriba.
+      console.error("[aiPlanner] Texto crudo del reintento que no parseó:", retryText);
+      throw new AIPlannerError("No se pudo parsear el JSON del reintento.", { cause: err, raw: retryText });
+    }
+    schemaResult = LLMResponseSchema.safeParse(parsed);
+    if (!schemaResult.success) {
+      throw new AIPlannerError("La IA no devolvió un formato válido tras reintento.", {
+        cause: schemaResult.error,
+        raw: parsed,
+      });
+    }
+    text = retryText;
+  }
+
+  let slotAssignments = schemaResult.data.slots;
+
+  // 2. Business rule validation + up to 2 correction retries
+  const MAX_RETRIES = 2;
+  // Tracks the validateMenu() result for the CURRENT slotAssignments as of
+  // the end of the loop: the loop only ever reassigns slotAssignments right
+  // before looping back around to revalidate it (or, on the very last
+  // attempt, not at all) — so this is always still accurate afterwards,
+  // making the old unconditional re-validation below redundant.
+  let finalCheck = null;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs, basesDeLaSemana);
+    if (finalCheck.valid) break;
+    if (attempt === 0 && stats) stats.invalidFirstPass++;
+
+    if (attempt < MAX_RETRIES - 1) {
+      const correctionMsg = buildCorrectionMessage(finalCheck.violations, slotsShape);
+      const retryText = await request(
+        [
+          { role: "user", content: userMessage },
+          { role: "assistant", content: text },
+          { role: "user", content: correctionMsg },
+        ],
+        attempt === 0 ? plannerModel : RETRY_MODEL,
+        "correction",
+      );
+      try {
+        const retryParsed = extractJson(retryText);
+        const retrySchema = LLMResponseSchema.safeParse(retryParsed);
+        if (retrySchema.success) {
+          slotAssignments = retrySchema.data.slots;
+          text = retryText;
+        }
+      } catch {
+        // parse failed, will fallback on next iteration
+      }
+    }
+  }
+
+  // 3. Apply deterministic fallback if still invalid after retries.
+  if (!finalCheck.valid) {
+    if (stats) stats.fallbackUsed++;
+    slotAssignments = applyFallback(
+      slotAssignments,
+      finalCheck.violations,
+      // El fallback coge "el primero del pool que pasa", así que el orden ES
+      // la preferencia. Ordenado por los sesgos de la casa (lib/sesgos.js):
+      // estable, y el mismo array si no hay sesgos.
+      ordenarPorSesgo(filteredPool, data.sesgos, data.favoritos),
+      ctx.slots,
+      ctx.config.healthProfiles,
+      achievableFreqs,
+      basesDeLaSemana,
+    );
+    // A violation the fallback could not repair leaves the offending dish in
+    // the menu (dropping it would open a hole). It used to do so with no trace
+    // at all — that's how "arroz de primero y arroz de segundo" reached a user.
+    for (const v of slotAssignments.unfixedViolations ?? []) {
+      warnings.push(`${group.label}: no se pudo corregir "${v.rule}" en ${v.slotId} (no hay ninguna receta alternativa compatible).`);
+    }
+    // Repetition used as a last resort to avoid an empty slot: tell the user
+    // WHY a dish repeats so it reads as a consequence of their constraints,
+    // not as a bug.
+    const repeated = slotAssignments.repeatedForCompleteness ?? [];
+    if (repeated.length > 0) {
+      warnings.push(`${group.label}: se han repetido ${repeated.length} plato(s) porque no hay suficientes recetas distintas que cumplan tus restricciones (prueba a subir el tiempo de cocina).`);
+    }
+  }
+
+  return slotAssignments;
+}
+
+/**
+ * El otro camino: lib/solver.js. Sin modelo, sin reintentos, sin fallback:
+ * construye el menú ya válido, o el parcial válido más largo que encuentre.
+ *
+ * El OBJETIVO (`ctx.config.objetivo`, el reparto exacto sobre los huecos
+ * reales) guía la elección; los TOPES (`achievableFreqs`, con holgura) solo
+ * dicen hasta dónde se puede llegar. Ver el comentario de resolverMenu.
+ */
+function asignarConSolver({
+  group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings,
+}) {
+  const semilla = semillaDeGeneracion();
+  const res = resolverMenu(
+    ctx.slots,
+    ordenarPorSesgo(filteredPool, data.sesgos, data.favoritos),
+    {
+      healthProfiles: ctx.config.healthProfiles,
+      freqs: achievableFreqs,
+      objetivo: ctx.config.objetivo ?? null,
+      basesPedidas: basesDeLaSemana,
+      cocinas: ctx.filterOpts.cocinas ?? null,
+      // Lo que ya saliste comiendo, para no repetirlo. Las favoritas de este
+      // grupo van exentas: si lo marcaste como favorito, que vuelva es lo que
+      // querías.
+      recientes: recetasRecientes(data, { exentos: ctx.filterOpts.favoriteIds }),
+      semilla,
+    },
+  );
+  for (const [cocina, cuantos] of Object.entries(res.cocinasSinSitio)) {
+    warnings.push(
+      `${group.label}: no cabían ${cuantos} plato(s) de cocina ${cocina} esta semana (el catálogo se queda corto o los huecos estaban ocupados).`,
+    );
+  }
+  if (stats) {
+    stats.motor = "solver";
+    stats.solverNodos = res.nodos;
+    stats.solverMs = res.ms;
+    stats.solverCompleto = res.completo;
+    stats.solverRelajados = res.relajados.length;
+    stats.solverSemilla = semilla;
+  }
+  // Los huecos SIN candidatos ya los avisa el paso 3c de generateGroupMenu
+  // uno a uno. Esto es lo otro: había candidatos, pero ninguno compatible con
+  // el resto de la semana.
+  if (res.sinCombinacion.length > 0) {
+    warnings.push(
+      `${group.label}: no se encontró una combinación que cumpla todas las reglas a la vez; ${res.sinCombinacion.length} plato(s) se quedan sin asignar (${res.sinCombinacion.join(", ")}).`,
+    );
+  }
+  if (res.relajados.length > 0) {
+    warnings.push(
+      `${group.label}: en ${res.relajados.join(", ")} no cabía ningún plato sin pasarse del reparto semanal o del perfil de salud; se ha puesto el mejor disponible.`,
+    );
+  }
+  // La regla 11 culpa del exceso al ÚLTIMO plato de esa familia en orden de
+  // comidas, no al que se relajó. Así que la revalidación no puede ignorar el
+  // aviso por hueco: tiene que ignorarlo por FAMILIA relajada, o "repara" un
+  // plato correcto y arrastra una cascada de cambios (medido: seis huecos
+  // cambiados en una semana por un tope relajado en una cena).
+  const porId = new Map(filteredPool.map((r) => [r.id, r]));
+  const familiasRelajadas = new Set();
+  for (const a of res.asignaciones) {
+    if (!res.relajados.includes(a.slotId)) continue;
+    for (const f of familiasDe(porId.get(a.recipeId) ?? {})) familiasRelajadas.add(f);
+  }
+  return {
+    asignaciones: res.asignaciones,
+    relajados: new Set(res.relajados),
+    familiasRelajadas,
+    // Los huecos que se quedan vacíos A PROPÓSITO: ningún plato cabe ni
+    // relajando la orientación. Se dejan vacíos y explicados; rellenarlos con
+    // el fallback pondría un plato que rompe una regla dura, que es justo el
+    // "arroz de primero y arroz de segundo" que llegó a un usuario.
+    vacios: new Set([...res.sinCandidatos, ...res.sinCombinacion]),
+  };
+}
+
+/**
+ * Una semilla nueva por generación, para que "regenerar" dé otra semana. Va a
+ * la telemetría (solverSemilla) para poder reproducir un menú concreto.
+ */
+function semillaDeGeneracion() {
+  return (Date.now() % 1_000_000) >>> 0;
+}
+
+export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer", { stats = null, format = "json" } = {}) {
   const ctx = buildGroupContext(data, group);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
@@ -992,9 +1503,26 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   );
   const warnings = freqWarnings.map((msg) => `${group.label}: ${msg}`);
 
+  // Las BASES que la casa ha pedido para esta semana, y cuáles de ellas caben
+  // enteras. Todo o nada: una tanda a medias no ahorra nada (ver
+  // basesAlcanzables). Una semana acortada deja fuera las que no quepan y lo
+  // dice, en vez de colocar un plato suelto y llamarlo tanda.
+  const { alcanzables: basesDeLaSemana, warnings: baseWarnings } = basesAlcanzables(
+    filteredPool,
+    basesPedidas(data?.tanda),
+    ctx.slots.length,
+  );
+  for (const msg of baseWarnings) warnings.push(`${group.label}: ${msg}`);
+
   // Los platos cocinados viven en la misma tabla que los ingredientes, así que
   // hay que separarlos: "Lentejas estofadas" no es un ingrediente que sumar a la
   // lista de la despensa, es un plato entero listo para colocar en un hueco.
+  //
+  // Separados para USARLOS distinto, no para decidir distinto si entran: el
+  // modo de despensa manda sobre los dos por igual (ver `pantryIngredients` en
+  // App.jsx). Quien sube un táper quiere que entre en el menú, igual que quien
+  // sube un bote de garbanzos; lo que se gradúa es cuánto pesa lo de casa, no
+  // qué tipo de cosa cuenta.
   // Solo se ofrecen los que sobrevivieron al filtro del grupo (alergias, tiempo,
   // temporada): sugerir un plato congelado que este grupo no puede comer sería
   // peor que no sugerir nada.
@@ -1029,7 +1557,10 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     });
   }
 
-  const userMessage = buildUserMessage(
+  // Con solver no hace falta el mensaje para el modelo: construirlo cuesta
+  // (serializa el catálogo entero) y nadie lo lee.
+  const usarSolver = solverActivo();
+  const userMessage = usarSolver ? null : buildUserMessage(
     filteredPool,
     ctx.slots,
     ctx.config,
@@ -1042,151 +1573,36 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     frozenDishes,
     ctx.filterOpts.recipeMode ?? "preferred",
     fridgeDishes,
+    ctx.filterOpts.cocinas,
+    format,
+    basesDeLaSemana,
   );
 
-  // The primary planner model is resolvable per-generation (A/B Sonnet vs
-  // Haiku); format/correction retries stay on the cheap FAST_MODEL.
-  const request = (messages, model = plannerModel, kind = "planner") =>
-    callModel(
-      { model, max_tokens: DEFAULT_MAX_TOKENS, task: "planner", messages },
-      signal,
-      { onResult: (result) => recordCall(stats, kind, result) },
-    );
-
-  // 1. First LLM call
-  let text = await request([{ role: "user", content: userMessage }]);
-  let parsed;
-  try {
-    parsed = extractJson(text);
-  } catch {
-    // LLM returned non-JSON — ask for a JSON-only retry before giving up
-    const retryText = await request(
-      [
-        { role: "user", content: userMessage },
-        { role: "assistant", content: text },
-        {
-          role: "user",
-          content:
-            'Tu respuesta no contiene JSON válido. Devuelve SOLO esto, sin texto adicional: {"slots":[{"slotId":"...","recipeId":"..."},...]}',
-        },
-      ],
-      RETRY_MODEL,
-      "format_retry",
-    );
-    try {
-      parsed = extractJson(retryText);
-      text = retryText;
-    } catch (err2) {
-      throw new AIPlannerError("No se pudo parsear el JSON de la IA.", { cause: err2, raw: retryText });
-    }
-  }
-
-  let schemaResult = LLMResponseSchema.safeParse(parsed);
-
-  // Schema retry with Haiku if format is wrong
-  if (!schemaResult.success) {
-    // TEMPORAL: diagnóstico del fallo "no se pudo parsear el JSON del
-    // reintento" reportado en pruebas locales — quitar una vez identificada
-    // la causa.
-    console.error(
-      "[aiPlanner] Primera respuesta no cumplió el esquema:",
-      schemaResult.error.issues,
-      "\nJSON parseado:", parsed,
-    );
-    const retryText = await request(
-      [
-        { role: "user", content: userMessage },
-        { role: "assistant", content: text },
-        {
-          role: "user",
-          content: `El JSON no cumple el formato. Devuelve SOLO {"slots":[{"slotId":"...","recipeId":"..."},...]}\nErrores:\n${schemaResult.error.issues
-            .slice(0, 5)
-            .map((i) => `${i.path.join(".")}: ${i.message}`)
-            .join("\n")}`,
-        },
-      ],
-      RETRY_MODEL,
-      "format_retry",
-    );
-    try {
-      parsed = extractJson(retryText);
-    } catch (err) {
-      // TEMPORAL: ver comentario de arriba.
-      console.error("[aiPlanner] Texto crudo del reintento que no parseó:", retryText);
-      throw new AIPlannerError("No se pudo parsear el JSON del reintento.", { cause: err, raw: retryText });
-    }
-    schemaResult = LLMResponseSchema.safeParse(parsed);
-    if (!schemaResult.success) {
-      throw new AIPlannerError("La IA no devolvió un formato válido tras reintento.", {
-        cause: schemaResult.error,
-        raw: parsed,
-      });
-    }
-    text = retryText;
-  }
-
-  let slotAssignments = schemaResult.data.slots;
-
-  // 2. Business rule validation + up to 2 correction retries
-  const MAX_RETRIES = 2;
-  // Tracks the validateMenu() result for the CURRENT slotAssignments as of
-  // the end of the loop: the loop only ever reassigns slotAssignments right
-  // before looping back around to revalidate it (or, on the very last
-  // attempt, not at all) — so this is always still accurate afterwards,
-  // making the old unconditional re-validation below redundant.
-  let finalCheck = null;
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs);
-    if (finalCheck.valid) break;
-    if (attempt === 0 && stats) stats.invalidFirstPass++;
-
-    if (attempt < MAX_RETRIES - 1) {
-      const correctionMsg = buildCorrectionMessage(finalCheck.violations);
-      const retryText = await request(
-        [
-          { role: "user", content: userMessage },
-          { role: "assistant", content: text },
-          { role: "user", content: correctionMsg },
-        ],
-        attempt === 0 ? plannerModel : RETRY_MODEL,
-        "correction",
-      );
-      try {
-        const retryParsed = extractJson(retryText);
-        const retrySchema = LLMResponseSchema.safeParse(retryParsed);
-        if (retrySchema.success) {
-          slotAssignments = retrySchema.data.slots;
-          text = retryText;
-        }
-      } catch {
-        // parse failed, will fallback on next iteration
-      }
-    }
-  }
-
-  // 3. Apply deterministic fallback if still invalid after retries.
-  if (!finalCheck.valid) {
-    if (stats) stats.fallbackUsed++;
-    slotAssignments = applyFallback(
-      slotAssignments,
-      finalCheck.violations,
-      filteredPool,
-      ctx.slots,
-      ctx.config.healthProfiles,
-    );
-    // A violation the fallback could not repair leaves the offending dish in
-    // the menu (dropping it would open a hole). It used to do so with no trace
-    // at all — that's how "arroz de primero y arroz de segundo" reached a user.
-    for (const v of slotAssignments.unfixedViolations ?? []) {
-      warnings.push(`${group.label}: no se pudo corregir "${v.rule}" en ${v.slotId} (no hay ninguna receta alternativa compatible).`);
-    }
-    // Repetition used as a last resort to avoid an empty slot: tell the user
-    // WHY a dish repeats so it reads as a consequence of their constraints,
-    // not as a bug.
-    const repeated = slotAssignments.repeatedForCompleteness ?? [];
-    if (repeated.length > 0) {
-      warnings.push(`${group.label}: se han repetido ${repeated.length} plato(s) porque no hay suficientes recetas distintas que cumplan tus restricciones (prueba a subir el tiempo de cocina).`);
-    }
+  // Quién asigna los platos. El solver (lib/solver.js) construye el menú ya
+  // válido sin llamar al modelo; el modelo es el camino de siempre: llamada,
+  // reintentos de corrección y fallback determinista. Los pasos de después
+  // (platos fijados, slots forzados, cocinas, guarniciones, revalidación) son
+  // los mismos para los dos: aquí solo cambia de dónde sale la asignación.
+  let slotAssignments;
+  // Huecos que el solver colocó saltándose una regla de orientación (ver
+  // REGLAS_RELAJABLES): la revalidación del paso 6 no los toca, porque
+  // "repararlos" con el fallback deshace justo lo que se decidió a propósito.
+  let slotsRelajados = new Set();
+  let familiasRelajadas = new Set();
+  let slotsVacios = new Set();
+  if (usarSolver) {
+    const resuelto = asignarConSolver({
+      group, ctx, filteredPool, achievableFreqs, basesDeLaSemana, data, stats, warnings,
+    });
+    slotAssignments = resuelto.asignaciones;
+    slotsRelajados = resuelto.relajados;
+    familiasRelajadas = resuelto.familiasRelajadas;
+    slotsVacios = resuelto.vacios;
+  } else {
+    slotAssignments = await asignarConModelo({
+      userMessage, format, plannerModel, signal, stats,
+      filteredPool, ctx, achievableFreqs, basesDeLaSemana, data, group, warnings,
+    });
   }
 
   // 3b. Last-resort safety net: hydration (generateMenuWithAI) resolves each
@@ -1258,13 +1674,55 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   //     NON-forced side of each such pair with a pool alternative that carries a
   //     different protein. Never touches a fixed/forced slot and never empties a
   //     slot, so it can only improve (or no-op) the menu.
-  slotAssignments = breakProteinClusters(slotAssignments, {
-    data,
-    ctx,
-    poolById,
-    filteredPool,
-    achievableFreqs,
-  });
+  //
+  //     Con el SOLVER no se ejecuta. Su salida ya cumple la regla 3 por
+  //     construcción, y esta pasada aplica una regla MÁS ESTRICTA que el
+  //     validador (compara por GRUPO de proteína: pollo → cerdo le parece una
+  //     repetición, cuando la regla 3 compara la proteína concreta) y re-elige
+  //     platos sin mirar el resto de reglas. Medido sobre menús válidos del
+  //     solver: era la única fuente de platos de montaje fuera de cena rápida,
+  //     conflictos de perfil y comidas desproporcionadas en el menú final. Un
+  //     plato fijado que cree un choque real lo ve la revalidación del paso 6.
+  if (!usarSolver) {
+    slotAssignments = breakProteinClusters(slotAssignments, {
+      data,
+      ctx,
+      poolById,
+      filteredPool,
+      achievableFreqs,
+    });
+  }
+
+  // 4d. Cuota de cocinas. La puerta de filterRecipes ya impidió que entrara lo
+  //     que la casa NO pidió; esto comprueba que lo que SÍ pidió está puesto, y
+  //     si falta lo coloca sobre huecos neutros (plato sin `cocina`, que es de
+  //     lo que sobra). Va DESPUÉS de los platos fijados y de breakProteinClusters
+  //     para no deshacer su trabajo, y nunca toca un hueco fijado o forzado.
+  //
+  //     Sin esta pasada, el mando de Cocina cumpliría "casi siempre" —el modelo
+  //     se salta instrucciones— y un control que cumple cuatro de cada cinco
+  //     veces no se lee como que a veces falla: se lee como que no hace nada.
+  //
+  //     Con el SOLVER tampoco: la cuota entra como objetivo del propio solver
+  //     (ver `cocinas` en resolverMenu), y esta pasada coloca sin validar
+  //     (medido: un plato de 60 minutos en un hueco de 30, montaje fuera de
+  //     cena rápida). Lo que no quepa lo avisa asignarConSolver.
+  if (!usarSolver && ctx.filterOpts.cocinas && Object.keys(ctx.filterOpts.cocinas).length > 0) {
+    const forzados = new Set(ctx.slots.filter((sl) => sl.preferType).map((sl) => sl.slotId));
+    const fijados = new Set(allFixedDishIds(data.fixedDishes));
+    const cuota = ajustarCuota(slotAssignments, {
+      pedido: ctx.filterOpts.cocinas,
+      recetaDe: (id) => poolById[id] ?? recipeCatalogById[id] ?? null,
+      candidatos: filteredPool,
+      bloqueado: (slotId, recipeId) => forzados.has(slotId) || fijados.has(recipeId),
+    });
+    slotAssignments = cuota.asignaciones;
+    for (const [cocina, cuantos] of Object.entries(cuota.sinSitio)) {
+      warnings.push(
+        `${group.label}: no cabían ${cuantos} plato(s) de cocina ${cocina} esta semana (el catálogo se queda corto o los huecos estaban ocupados).`,
+      );
+    }
+  }
 
   // 5. Pair "principal" recipes with garnishes (deterministic, no LLM).
   //    User-pinned combos (dish chosen from the catalog) take priority.
@@ -1311,6 +1769,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       ctx.slots,
       ctx.config.healthProfiles,
       achievableFreqs,
+      basesDeLaSemana,
     );
     if (!postCheck.valid) {
       const fixedIds = allFixedDishIds(data.fixedDishes);
@@ -1321,6 +1780,11 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       const unexpected = postCheck.violations.filter((v) => {
         if (v.rule === "recipeId_repetido" && fixedIds.has(assignBySlot[v.slotId])) return false;
         if (forcedSlotIds.has(v.slotId)) return false;
+        if (slotsRelajados.has(v.slotId) && REGLAS_RELAJABLES.has(v.rule)) return false;
+        if (v.rule === "freq_max_exceeded" && familiasRelajadas.has(v.targetKey)) return false;
+        if (v.rule === "slot_faltante" && slotsVacios.has(v.slotId)) return false;
+        // Un primero sin segundo porque el segundo se dejó vacío a propósito.
+        if (v.rule === "comida_sin_segundo" && slotsVacios.has(`${v.slotId.split("_")[0]}_comida_2`)) return false;
         return true;
       });
 
@@ -1334,9 +1798,11 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
         slotAssignments = applyFallback(
           slotAssignments,
           safeToFix,
-          filteredPool,
+          ordenarPorSesgo(filteredPool, data.sesgos, data.favoritos),
           ctx.slots,
           ctx.config.healthProfiles,
+          achievableFreqs,
+          basesDeLaSemana,
         );
       }
 
@@ -1349,11 +1815,16 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
         ctx.slots,
         ctx.config.healthProfiles,
         achievableFreqs,
+        basesDeLaSemana,
       );
       const finalAssignBySlot = Object.fromEntries(slotAssignments.map((s) => [s.slotId, s.recipeId]));
       const stillUnexpected = finalPostCheck.violations.filter((v) => {
         if (v.rule === "recipeId_repetido" && fixedIds.has(finalAssignBySlot[v.slotId])) return false;
         if (forcedSlotIds.has(v.slotId)) return false;
+        if (slotsRelajados.has(v.slotId) && REGLAS_RELAJABLES.has(v.rule)) return false;
+        if (v.rule === "freq_max_exceeded" && familiasRelajadas.has(v.targetKey)) return false;
+        if (v.rule === "slot_faltante" && slotsVacios.has(v.slotId)) return false;
+        if (v.rule === "comida_sin_segundo" && slotsVacios.has(`${v.slotId.split("_")[0]}_comida_2`)) return false;
         return true;
       });
       for (const v of stillUnexpected) {
@@ -1373,6 +1844,10 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     // invisible ingredient swaps (e.g. lactose-free) to the chosen recipes.
     restrictions: ctx.filterOpts.intolerances ?? [],
     warnings,
+    // Solo con solver: huecos colocados relajando la orientación, y huecos
+    // dejados vacíos a propósito. Vacíos con el modelo (no los distingue).
+    relajados: [...slotsRelajados],
+    vacios: [...slotsVacios],
   };
 }
 
@@ -1468,6 +1943,13 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
       ...(r.sugar_g != null ? { sugar: r.sugar_g } : {}),
       ...(r.saturated_fat_g != null ? { saturatedFat: r.saturated_fat_g } : {}),
       ...(r.sodium_mg != null ? { sodium: r.sodium_mg } : {}),
+      // Los 24 micronutrientes, que recipeCatalog hidrata desde la tabla
+      // derivada. Van con su cobertura: un hierro sostenido por el 30 % del
+      // plato no es un hierro, y quien lo pinte tiene derecho a saberlo.
+      ...Object.fromEntries(
+        MICRONUTRIENTES_RACION.filter((c) => r[c] != null).map((c) => [c, r[c]]),
+      ),
+      ...(r.micronutrientesCobertura ? { cobertura: r.micronutrientesCobertura } : {}),
     },
     // Heuristic flags (see lib/healthFlags.js) carried through so the menu/
     // dish detail can show a "menú más cuidado" badge (lib/healthProfileMatch.js).
@@ -1477,6 +1959,28 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
     // Structured steps (optional): carried through so DishDetail can render the
     // stepper with time + kind. Falls back to `steps` when absent.
     stepsRich: r.stepsRich,
+    // ── El eje de las bases ────────────────────────────────────────────────
+    // Se perdía aquí, y es la SEXTA vez que un campo se cae en un puente sin
+    // que salte nada (antes: apetecible, montaje, estrella, occasion,
+    // extraProteins). `stepsRich` sí viajaba, así que los pasos llegaban
+    // etiquetados con su base y nadie podía leerlos: `clavesDeReceta` pregunta
+    // por `mainBase` y `basesAparte`, que llegaban undefined.
+    //
+    // El síntoma era que la vista Tanda salía siempre vacía —ningún plato del
+    // menú declaraba base, así que nunca había dos compartiendo olla— y la
+    // tarjeta de "ya la tengo hecha" no aparecía en ninguna ficha abierta
+    // desde el menú. Todo el trabajo de etiquetar el catálogo moría aquí.
+    mainBase: r.mainBase,
+    baseMode: r.baseMode,
+    basesAparte: r.basesAparte,
+    // ── El congelador ──────────────────────────────────────────────────────
+    // Y estos se perdían igual, con un síntoma más caro: `canFreezeRecipe` lee
+    // `recipe.freezable === true`, así que para TODO plato que entrara por el
+    // menú la respuesta era que no se congela. La opción no se ofrecía nunca, y
+    // los pasos de descongelado de 291 recetas no se pintaban en ningún sitio.
+    // Lo encontró el fusible de este puente el día que se escribió.
+    freezable: r.freezable,
+    thawSteps: r.thawSteps,
     image: r.photo ?? `/dishes/${r.id}.webp`,
     photo: r.photo ?? undefined,
     ingredients: merged,
@@ -1524,7 +2028,21 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   const members = membersOfGroup(group, data.members);
   if (members.length === 0) return out;
 
-  const eaters = members.length;
+  // Quien come de VERDAD en un hueco, no cuanta gente hay en el grupo.
+  //
+  // Era `members.length`, y contaba a todo el mundo todos los dias: si tu hija
+  // desayuna fuera los martes, el martes salia desayuno para cuatro. Molesto y
+  // poco mas... hasta que los invitados entraron por las reglas. Un invitado es
+  // un miembro del grupo marcado `fuera` en todos los huecos menos el suyo, asi
+  // que con `members.length` el que viene a cenar el miercoles contaba en los
+  // SIETE desayunos, las siete meriendas y los siete postres de la semana.
+  //
+  // Se cuenta por hueco con el mismo criterio que comida y cena: en casa o con
+  // tupper cuenta; fuera y cole, no.
+  const comenEn = (dia, comida) => members.filter((m) => {
+    const estado = data.schedule?.[slotKey(m.id, dia, comida)] ?? "casa";
+    return estado === "casa" || estado === "tupper";
+  });
   const kids = members.filter((m) => {
     const s = stageForAge(resolveMemberAge(m)).id;
     return s === "infantil" || s === "primaria";
@@ -1536,7 +2054,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
     intolerances: [
       ...new Set(members.flatMap((m) => [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])])),
     ],
-    dislikes: [...new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])],
+    dislikes: [...new Set([...(data.dislikes ?? []), ...(data.excluidos ?? []), ...members.flatMap((m) => m.dislikes ?? [])])],
   };
 
   const weekendIdx = (i) => i >= 5; // Sáb/Dom
@@ -1556,7 +2074,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
           const we = (weekIndex + 1) % pool.length;
           r = weekendIdx(i) ? pool[we] : pool[wd];
         } else r = pool[(i + weekIndex) % pool.length]; // variado
-        out.push({ planKey: `${day}-Desayuno`, recipeId: r.id, eaters, mealKey: "desayuno" });
+        out.push({ planKey: `${day}-Desayuno`, recipeId: r.id, eaters: comenEn(day, "Desayuno").length, mealKey: "desayuno" });
       });
     }
   }
@@ -1571,7 +2089,8 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
         out.push({
           planKey: `${day}-Merienda`,
           recipeId: pool[(i + weekIndex) % pool.length].id,
-          eaters: kids.length,
+          // Los niños que esa tarde estan en casa, no todos los del grupo.
+          eaters: kids.filter((k) => comenEn(day, "Merienda").includes(k)).length,
           mealKey: "merienda",
         });
       });
@@ -1599,7 +2118,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
         out.push({
           planKey: `${day}-Postre`,
           recipeId: pool[(i + weekIndex) % pool.length].id,
-          eaters,
+          eaters: comenEn(day, "Postre").length,
           mealKey: "postre",
           when,
         });
@@ -1610,7 +2129,102 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   return out;
 }
 
-export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL, groupCache = null, stats = null } = {}) {
+/**
+ * Valida el menú de los Niños incluyendo los platos que van a copiar de los
+ * Adultos, y repara solo los huecos propios del niño. Muta `kidsRes` en sitio
+ * (`slotAssignments` y `warnings`), igual que hace el resto del pipeline con
+ * sus resultados. Ver el comentario en generateMenuWithAI.
+ *
+ * Lo que se sintetiza, hueco a hueco, según `kidsSlotAction`:
+ *   adultLunch  → Comida   los dos huecos de comida de los adultos, tal cual
+ *   adultLunch  → Cena     el SEGUNDO de los adultos como cena del niño (es lo
+ *                          que se come; el primero no lleva la proteína del día)
+ *   adultDinner → Cena     la cena de los adultos, tal cual
+ *
+ * Limitación conocida: una violación que caiga SOBRE un hueco copiado (p. ej.
+ * la cena propia del lunes choca con la comida copiada del martes — la regla 3
+ * señala el segundo de los dos) no se repara, porque tocarla sería cambiar la
+ * comida de los padres. Es el caso raro; el común —comida copiada → cena propia
+ * el mismo día— cae siempre sobre el hueco propio y sí se arregla.
+ */
+// Exported for tests only — not used elsewhere outside this module.
+export function validarNinosConCopias(data, adultsRes, kidsRes) {
+  const adultBySlot = Object.fromEntries(adultsRes.slotAssignments.map((s) => [s.slotId, s]));
+  const adultCtxBySlot = Object.fromEntries(adultsRes.slotsContext.map((s) => [s.slotId, s]));
+  const adultPoolById = Object.fromEntries(adultsRes.filteredPool.map((r) => [r.id, r]));
+
+  const copiadas = [];
+  const copiadasCtx = [];
+  const copiadasRecetas = new Map();
+  const sintetiza = (dstSlotId, srcSlotId, mealType, position) => {
+    const src = adultBySlot[srcSlotId];
+    const receta = src && adultPoolById[src.recipeId];
+    if (!receta) return;
+    const ctx = adultCtxBySlot[srcSlotId] ?? {};
+    copiadas.push({ slotId: dstSlotId, recipeId: src.recipeId });
+    copiadasCtx.push({
+      slotId: dstSlotId, mealType, position,
+      day: ctx.day, daySlug: ctx.daySlug, eaters: ctx.eaters, mode: ctx.mode, maxTime: ctx.maxTime,
+      // Marca para quien lea el contexto: este hueco es de los padres.
+      copiado: true,
+    });
+    copiadasRecetas.set(receta.id, receta);
+  };
+
+  for (const day of DAYS) {
+    const slug = DAY_SLUG[day];
+    for (const meal of ["Comida", "Cena"]) {
+      const action = kidsSlotAction(data, day, meal);
+      if (action === "adultLunch" && meal === "Comida") {
+        sintetiza(`${slug}_comida_1`, `${slug}_comida_1`, "comida", "primero");
+        sintetiza(`${slug}_comida_2`, `${slug}_comida_2`, "comida", "segundo");
+      } else if (action === "adultLunch" && meal === "Cena") {
+        // Si los adultos comieron plato único, el "segundo" es el comida_1.
+        const main = adultBySlot[`${slug}_comida_2`] ? `${slug}_comida_2` : `${slug}_comida_1`;
+        sintetiza(`${slug}_cena`, main, "cena", undefined);
+      } else if (action === "adultDinner") {
+        sintetiza(`${slug}_cena`, `${slug}_cena`, "cena", undefined);
+      }
+    }
+  }
+  if (copiadas.length === 0) return;
+
+  const propios = new Set(kidsRes.slotAssignments.map((s) => s.slotId));
+  // Los copiados nunca pisan un propio: si por lo que sea coinciden, manda el
+  // hueco que el niño generó para sí.
+  const copiadasLimpias = copiadas.filter((s) => !propios.has(s.slotId));
+  const copiadasCtxLimpias = copiadasCtx.filter((s) => !propios.has(s.slotId));
+
+  const asignaciones = [...kidsRes.slotAssignments, ...copiadasLimpias];
+  const contextos = [...kidsRes.slotsContext, ...copiadasCtxLimpias];
+  // El pool del niño más las recetas copiadas, para que el validador las
+  // resuelva (regla 1) y vea su proteína (reglas 3, 3c, 15). Las copiadas van
+  // al FINAL: applyFallback coge "el primero que pasa" y prefiere no usadas,
+  // así que solo las elegiría como último recurso — y en ese caso ya son
+  // platos que el niño come ese mismo día.
+  const kidsIds = new Set(kidsRes.filteredPool.map((r) => r.id));
+  const pool = [
+    ...kidsRes.filteredPool,
+    ...[...copiadasRecetas.values()].filter((r) => !kidsIds.has(r.id)),
+  ];
+
+  const check = validateMenu(asignaciones, pool, contextos, [], {}, {});
+  if (check.valid) return;
+  const sobrePropios = check.violations.filter((v) => propios.has(v.slotId));
+  if (sobrePropios.length === 0) return;
+
+  const reparadas = applyFallback(asignaciones, sobrePropios, pool, contextos, [], null, null);
+  // Solo vuelven al resultado los huecos propios; los copiados se descartan
+  // aquí y la hidratación los volverá a materializar desde el menú de Adultos.
+  kidsRes.slotAssignments = reparadas.filter((s) => propios.has(s.slotId));
+  for (const v of reparadas.unfixedViolations ?? []) {
+    kidsRes.warnings.push(
+      `${kidsRes.group.label}: no se pudo evitar "${v.rule}" en ${v.slotId} respecto a lo que comen con los adultos.`,
+    );
+  }
+}
+
+export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL, groupCache = null, stats = null, plannerFormat = "json" } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
@@ -1634,7 +2248,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       return cached;
     }
     const run = () =>
-      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode, { stats });
+      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode, { stats, format: plannerFormat });
     let result;
     try {
       result = await run();
@@ -1647,6 +2261,28 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     return result;
   };
   const results = await Promise.all(activeGroups.map(runGroup));
+
+  // ── Los niños, validados CON lo que van a comer copiado ──────────────────
+  //
+  // Los huecos de Niños que copian del menú de Adultos (mediodía en familia,
+  // "cena como los padres", "lo del mediodía" los días de cole, finde juntos)
+  // se SALTAN en buildGroupContext y se materializan en la hidratación de más
+  // abajo, ya fuera del validador. Así que el grupo Niños se validaba a solas
+  // con sus huecos propios — sus cenas, normalmente — sin ver nunca sus
+  // comidas. La regla 3 (proteína seguida comida→cena) no podía saltar: los
+  // adultos comían pollo, se copiaba a los niños, y a los niños se les
+  // generaba aparte un pollo de cena que nadie veía como repetición.
+  //
+  // Se arregla AQUÍ, sobre los resultados crudos y antes de hidratar, para no
+  // tocar ni la hidratación ni el bloque de copia: se sintetizan los huecos
+  // copiados con el plato de los adultos, se valida el conjunto, y se reparan
+  // SOLO los huecos propios del niño — los copiados son la comida de la
+  // familia y no se tocan. Sin serializar los grupos: siguen en paralelo.
+  if (householdKidPolicy(data)) {
+    const adultsRes = results.find((r) => r.group.label === "Adultos");
+    const kidsRes = results.find((r) => r.group.label === "Niños");
+    if (adultsRes && kidsRes) validarNinosConCopias(data, adultsRes, kidsRes);
+  }
 
   const multi = results.length > 1;
   const plan = { _warnings: [] };
@@ -1709,11 +2345,12 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         allRecipes.push(fr);
       }
 
-      // Parse slotId: "lun_comida_1", "lun_comida_2", "lun_cena"
+      // Parse slotId: "lun_comida_1", "lun_comida_2", "lun_cena", y con cena de
+      // dos platos tambien "lun_cena_1" y "lun_cena_2".
       const parts = slotId.split("_");
       const daySlug = parts[0];
       const mealType = parts[1]; // "comida" or "cena"
-      const position = parts[2]; // "1", "2", or undefined for cena
+      const position = parts[2]; // "1", "2", o undefined en la cena de un plato
 
       const day = dayBySlot[slotId] ?? Object.entries(DAY_SLUG).find(([, v]) => v === daySlug)?.[0];
       if (!day) continue;
@@ -1731,7 +2368,11 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         };
       }
 
-      if (mealType === "cena") {
+      // Una cena de un plato no trae posición y es el plato de la noche. Una de
+      // DOS la trae, y entonces se reparte igual que una comida: el primero al
+      // `firstRecipeId` y el segundo al `recipeId`, que es lo que la pantalla
+      // ya sabe pintar como dos platos.
+      if (mealType === "cena" && !position) {
         byDayMeal[planKey].recipeId = frontendId;
       } else if (position === "1") {
         // Check if it's a plato_unico
@@ -1747,8 +2388,19 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       }
     }
 
+    // Una comida entra en el plan si tiene ALGÚN plato, no solo si tiene el
+    // segundo.
+    //
+    // Con `if (slot.recipeId)` una comida con primero y sin segundo se caía
+    // ENTERA y en silencio: no es que se viera el primero sin el segundo, es
+    // que ese mediodía desaparecía del menú. Y si además esa noche tampoco
+    // había cena, el día entero se esfumaba de la lista — reportado tal cual,
+    // "me deja libres jueves y viernes", con el resto de la semana normal.
+    //
+    // Que falte un plato es información: sale su aviso y se ve el hueco. Que
+    // se borre el día es una mentira.
     for (const [key, slot] of Object.entries(byDayMeal)) {
-      if (slot.recipeId) {
+      if (slot.recipeId || slot.firstRecipeId) {
         plan[group.id][key] = slot;
         placedSlots++;
       }
@@ -2362,7 +3014,24 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
  *   elsewhere in the week — callers should tell the user rather than silently
  *   duplicating a dish (see App.jsx#handleReplaceSlot).
  */
-export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false }) {
+/**
+ * `candidatos: N` cambia lo que devuelve: en vez de colocar un plato, corta el
+ * pool ya filtrado y puntuado de ese hueco y lo devuelve como
+ * `{ candidatos: [...] }` — las sugerencias que el recetario enseña abajo.
+ * Solo tiene sentido sin `forcedRecipe`, que es el camino en que no hay nada
+ * que elegir porque el plato ya viene decidido.
+ */
+/**
+ * De qué pool del catálogo se sirve cada franja de fuera de menú. Las que no
+ * están aquí (Comida, Cena) van por el pool normal y por `mealRole`.
+ */
+const POOL_DE_FRANJA = {
+  Desayuno: "desayunos",
+  Merienda: "meriendas",
+  Postre: "postres",
+};
+
+export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0 }) {
   const group = (data?.groups ?? []).find((g) => g.id === groupId);
   if (!group) return null;
 
@@ -2374,6 +3043,47 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // pairing + intolerance-safe scaling in BOTH the auto-pick and the manual
   // "elegir del catálogo" (forcedRecipe) paths, so compute it up front.
   const ctx = buildGroupContext(data, group);
+
+  // ── Las franjas de fuera de menú tienen su propio pool ─────────────────
+  // Desayuno, merienda y postre NO se sirven del catálogo de comida y cena:
+  // salen de `filterOffMenuRecipes`, igual que cuando el menú se genera (ver
+  // planExtraMealsForGroup). Sin esto, pedirle un plato a un hueco de desayuno
+  // caía en la rama de comida y proponía platos únicos — unas lentejas como
+  // sugerencia de desayuno. Los roles (`mealRole`) no pintan nada aquí: en
+  // estos pools la categoría YA es el rol.
+  const poolFranja = POOL_DE_FRANJA[String(meal)];
+  if (poolFranja && !forcedRecipe) {
+    const pool = filterOffMenuRecipes(poolFranja, {
+      allergies: ctx.filterOpts.allergies ?? [],
+      intolerances: ctx.filterOpts.intolerances ?? [],
+      dislikes: ctx.filterOpts.dislikes ?? [],
+      hasKids: ctx.filterOpts.hasKids ?? false,
+    });
+    // Lo ya puesto esta semana baja al final, no se prohíbe: estos pools son
+    // pequeños —un puñado de desayunos— y descartarlos por repetición dejaría
+    // el hueco sin nada que ofrecer.
+    const yaPuestos = new Set();
+    for (const s of Object.values(menuPlan[groupId] ?? {})) {
+      const base = stripGroupPrefix(s?.recipeId);
+      if (base) yaPuestos.add(base);
+    }
+    const frescos = pool.filter((r) => !yaPuestos.has(r.id));
+    const ordenados = [...frescos, ...pool.filter((r) => yaPuestos.has(r.id))];
+    if (ordenados.length === 0) return null;
+    if (candidatos > 0) return { candidatos: ordenados.slice(0, candidatos) };
+
+    const elegido = frescos.length > 0
+      ? frescos[Math.floor(Math.random() * frescos.length)]
+      : pool[Math.floor(Math.random() * pool.length)];
+    const activos = (data.groups ?? []).filter((g) => membersOfGroup(g, data.members).length > 0);
+    const pref = activos.length > 1 ? `${groupId}__` : "";
+    const comensales = currentSlot.eaters ?? 2;
+    const receta = catalogToFrontendRecipe(elegido, comensales, ctx.filterOpts.intolerances ?? []);
+    receta.id = pref + elegido.id;
+    receta.baseRecipeId = elegido.id;
+    // Sin emparejar guarnición: un desayuno no lleva arroz de acompañamiento.
+    return { frontendRecipe: receta, recipeId: receta.id, course, reusedDuplicate: false };
+  }
 
   let picked;
   let reusedDuplicate = false;
@@ -2524,6 +3234,36 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const relaxed = strict.length > 0 ? strict : candidates.filter(sameDayOk);
   if (relaxed.length > 0) candidates = relaxed;
 
+  // ── La base del día, una vez ────────────────────────────────────────────
+  // La guardia de arriba mira PROTEÍNAS, y con eso no basta: macarrones a
+  // mediodía y pasta al horno de cena son dos proteínas distintas y la misma
+  // cena dos veces. Se veía poco cambiando un plato suelto y se ve muchísimo
+  // al rellenar los huecos de la semana de golpe, que es lo que hace la
+  // pizarra. Mismo criterio que el reparador del generador (`carbOk`): pasta,
+  // arroz, patata o legumbre no repiten día.
+  //
+  // Preferencia, no prohibición: si dejar fuera la pasta vacía el pool, entra
+  // igual. Un día con dos pastas es peor que uno con una repetida, pero
+  // mucho mejor que un hueco sin plato.
+  const basesDelDia = new Set();
+  for (const [k, s] of Object.entries(menuPlan[groupId] ?? {})) {
+    if (!k.startsWith(`${day}-`)) continue;
+    for (const rid of [s?.recipeId, s?.firstRecipeId]) {
+      // El plato que se está sustituyendo no cuenta: se va.
+      const base = stripGroupPrefix(rid);
+      if (!base || base === currentBaseId) continue;
+      const carb = getCarbType(recipeCatalogById[base]);
+      if (carb) basesDelDia.add(carb);
+    }
+  }
+  if (basesDelDia.size > 0) {
+    const sinRepetir = candidates.filter((r) => {
+      const c = getCarbType(r);
+      return !(c && basesDelDia.has(c));
+    });
+    if (sinRepetir.length > 0) candidates = sinRepetir;
+  }
+
   // Subtype variety across the WHOLE week (not just adjacent days), for the
   // two groups coarse enough to hide a repeat from every check above:
   // legumbres (garbanzo/lenteja/alubia all count as one "legumbres" group,
@@ -2557,6 +3297,19 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const withFreshSubtype = candidates.filter(freshSubtype);
   if (withFreshSubtype.length > 0) candidates = withFreshSubtype;
 
+  // Los sesgos de la casa (lib/sesgos.js), con el mismo patrón que los
+  // subtipos y el cole justo encima: el sorteo se queda en el escalón
+  // preferido —"más horno" sortea entre los de horno— y cae al pool entero
+  // si no hay escalón. Sigue siendo azar, para no perder la variedad que es
+  // la razón de sortear; solo cambia ENTRE QUÉ se sortea.
+  candidates = preferirPorSesgo(candidates, data.sesgos, data.favoritos);
+  // Las sugerencias del hueco son ESTE pool, no una lista aparte: todo lo que
+  // se ha filtrado arriba —rol del hueco, tope de tiempo, alergias, lo que ya
+  // está en el menú, el cole, los subtipos, los sesgos de la casa— es
+  // exactamente lo que hace que una sugerencia sea buena. Calcularlas por otro
+  // camino sería tener dos ideas distintas de "qué cabe aquí", y la que ve el
+  // usuario acabaría proponiéndole platos que el botón de al lado descarta.
+  if (candidatos > 0) return { candidatos: candidates.slice(0, candidatos) };
   picked = candidates[Math.floor(Math.random() * candidates.length)];
   }
 

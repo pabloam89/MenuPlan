@@ -292,7 +292,6 @@ function CookLevelChips({ selected, onSelect }) {
     </div>
   );
 }
-
 export function CookTimeEditor({ data, setData, simple = false, showIntro = true }) {
   const cookTime = migrateCookTime(data);
   const targets = plannedMealTargets(getMeals(data));
@@ -343,6 +342,15 @@ export function CookTimeEditor({ data, setData, simple = false, showIntro = true
         </p>
       )}
 
+      {/* Esta pantalla pregunta UNA cosa: cuánto rato tienes por comida.
+          Vivió aquí un selector "Clásico / Batch cooking" que al marcarlo
+          borraba la rejilla de abajo y ponía en su sitio el selector de tandas.
+          Eran dos preguntas peleándose por el mismo hueco, y la que perdía
+          seguía teniendo respuesta: aunque dejes medio menú hecho el domingo,
+          el martes tienes los minutos que tienes y son los que deciden si el
+          plato de ese día cabe. Ahora las tandas tienen pantalla propia
+          («¿Qué cocinas en tandas?») y aquí no hay interruptor que las
+          esconda: quien no cocina en tanda, no pide ninguna. */}
       {dual && <CookTimeModeToggle mode={cookTime.mode} onChange={setMode} />}
 
       {activePeriods.length > 1 && (

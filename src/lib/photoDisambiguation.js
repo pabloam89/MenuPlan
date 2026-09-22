@@ -1,9 +1,22 @@
 /**
  * Extra guidance for dish names that generative models routinely misread.
+ *
+ * `esCombo` dice si lo que va detrás de " con " es una GUARNICIÓN APARTE o
+ * parte del propio plato. Sin ese dato solo había una heurística —hay un
+ * " con ", luego hay guarnición— que es falsa en cientos de nombres: un "Bowl
+ * de verduras asadas con quinoa y feta" acababa con la instrucción de pintar
+ * la quinoa "como acompañamiento separado" fuera del bol, que es justo lo
+ * contrario del plato.
+ *
+ * Quien llama sí lo sabe: en el CSV la guarnición va en su propia columna, y
+ * un combo de verdad tiene el id con "+". Si no se pasa, se mantiene la
+ * heurística de siempre para no cambiar en silencio lo que ya generaba bien.
+ *
  * @param {string} dishName
+ * @param {{esCombo?: boolean}} [opts]
  * @returns {string}
  */
-export function disambiguationClause(dishName) {
+export function disambiguationClause(dishName, opts = {}) {
   const d = String(dishName).toLowerCase();
   const clauses = [];
 
@@ -76,7 +89,7 @@ export function disambiguationClause(dishName) {
   }
 
   const conIdx = d.indexOf(" con ");
-  const isCombo = conIdx !== -1;
+  const isCombo = opts.esCombo ?? (conIdx !== -1);
   const garnishPart = isCombo ? d.slice(conIdx + 5).trim() : "";
   // "Macarrones con tomate", "Arroz con atún" — the second part is sauce/filling, not a side.
   const isSauceCompanion = /^(tomate|atún|atun|queso|nata|champiñones|champinones|setas|verduras|salsa|atún en conserva|atun en conserva)$/.test(garnishPart);

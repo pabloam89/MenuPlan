@@ -1,0 +1,1000 @@
+{
+  "_": "Qué ficha de CIQUAL corresponde a cada ingrediente, para los huecos que BEDCA no puede cubrir. Mismo contrato que bedcaChoices.json: cada entrada trae motivo, `foodId: null` es la decisión explícita de que ninguna ficha sirve, y las claves son ids de ingrediente reales. La procedencia se guarda aparte porque la fuente importa: mezclar dos tablas de composición tiene un coste pequeño pero real, y para poder discutirlo hay que poder verlo. — EL LOTE DE LOS 21 (2026-09-21): los que quedaban con `fuente: heredado`, números en uso que nadie podía atribuir a ninguna ficha. No era solo trazabilidad. El atún de más abajo ya había enseñado que un valor heredado podía traer el sodio en gramos donde el resto del catálogo lo trae en miligramos, y aquella barrida solo miró las filas CON fuente. Aquí estaban los otros: cebolla 0,004 frente a los 39 mg de CIQUAL, huevo 0,142 frente a 124, leche 0,044 frente a 44,2, champiñón 0,005 frente a 4,76. Mil veces exactos, comprobado en cuatro alimentos independientes. El caso caro es el caldo de carne, 250 mg por 100 ml que contaban como 0,25, en guisos que llevan medio litro. Sustituirlos por fichas reales arregla la unidad y la procedencia de una, y deja el catálogo sin ningún heredado, que es lo que impide que vuelva.",
+  "garbanzos": {
+    "foodId": "20507",
+    "confianza": 0.9,
+    "motivo": "«Chick pea, boiled/cooked in water», 147 kcal. Cierra el hueco individual más caro del catálogo (55 recetas) y el que BEDCA no podía dar: sus tres fichas de garbanzo tenían dos corruptas y la sana era del garbanzo SECO.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alubias": {
+    "foodId": "20502",
+    "confianza": 0.9,
+    "motivo": "«Haricot bean, boiled/cooked in water», 112 kcal. La ficha de BEDCA decía 322,9 bajo etiqueta de «cocidas» y era composición de alubia seca — más energía que la seca, lo cual es imposible. 112 es lo que pesa una alubia cocida de verdad.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "albahaca": {
+    "foodId": "11033",
+    "confianza": 0.9,
+    "motivo": "«Basil, fresh», 34,8 kcal. El candidato de BEDCA era «Albahaca» a 177 kcal, que es albahaca SECA: un error de 7x sobre la fresca, que es la que usan las recetas.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "parmesano": {
+    "foodId": "12120",
+    "confianza": 0.9,
+    "motivo": "«Parmesan cheese, from cow's milk», 406 kcal. BEDCA tenía 169 filas de parmesano y ninguna con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pan": {
+    "foodId": "7012",
+    "confianza": 0.9,
+    "motivo": "«Bread, French bread, ball, 400g», 266 kcal. Es el pan blanco de barra, que es lo que el catálogo llama «Pan» a secas. Los candidatos de BEDCA eran pan de avena y pan de cebada, variedades concretas que no representan al genérico.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cebolla-morada": {
+    "foodId": "20238",
+    "confianza": 0.9,
+    "motivo": "«Red onion, raw», 36,3 kcal. Variedad y estado exactos. BEDCA solo ofrecía cebolla hervida o asada, y las recetas pesan la cebolla cruda.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cilantro": {
+    "foodId": "11094",
+    "confianza": 0.9,
+    "motivo": "«Coriander, fresh», 22,3 kcal. BEDCA no tenía ninguna ficha de cilantro con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "gambas": {
+    "foodId": "10021",
+    "confianza": 0.9,
+    "motivo": "«Shrimp or prawn, raw», 99 kcal. El mejor candidato de BEDCA por parecido de nombre era «Pipas de girasol».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cebolleta": {
+    "foodId": "20239",
+    "confianza": 0.9,
+    "motivo": "«Yellow onion, raw», 37,8 kcal. CIQUAL no tiene cebolleta como tal; se toma la cebolla cruda, misma especie y mismo estado. La diferencia entre cebolleta y cebolla está por debajo del ruido de medida.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "aceite-girasol": {
+    "foodId": "17440",
+    "confianza": 0.9,
+    "motivo": "«Sunflower oil», 901 kcal, 100 % grasa. El único candidato de BEDCA era «Mayonesa con aceite de girasol».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "bacalao": {
+    "foodId": "26043",
+    "confianza": 0.9,
+    "motivo": "«Cod, raw», 77,6 kcal. El ingrediente es bacalao DESALADO, que tras el desalado recupera agua y se acerca al fresco. Se descarta «Cod, salted, dried» (206 kcal, 47,6 de proteína), que es el bacalao aún seco y salado: eso sería contar el triple de proteína.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "eneldo": {
+    "foodId": "11093",
+    "confianza": 0.9,
+    "motivo": "«Dill, fresh», 48,2 kcal. BEDCA solo tenía eneldo seco (291 kcal).",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "manzana": {
+    "foodId": "13086",
+    "confianza": 0.9,
+    "motivo": "«Apple, var. Golden, pulp, raw», 54,9 kcal. El único candidato de BEDCA era «Pastel de manzana».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "naranja": {
+    "foodId": "13034",
+    "confianza": 0.9,
+    "motivo": "«Orange, pulp, raw», 45,5 kcal. El único candidato de BEDCA era «Zumo de naranja», que es otro alimento.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "caldo-de-pollo": {
+    "foodId": "25947",
+    "confianza": 0.9,
+    "motivo": "«Broth, stock or bouillon, poultry, dehydrated and rehydrated», 5,58 kcal. Es el caldo LISTO PARA TOMAR, no la pastilla. Se descartan las fichas del concentrado (233 y 341 kcal): un caldo real ronda los 5-10, y el candidato de BEDCA era precisamente un cubito a 249.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "queso-feta": {
+    "foodId": "12066",
+    "confianza": 0.9,
+    "motivo": "«Feta cheese, PDO», 285 kcal. BEDCA ofrecía «Queso semicurado genérico», que no es feta ni en textura ni en curación.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pollo": {
+    "foodId": "36003",
+    "confianza": 0.9,
+    "motivo": "«Chicken, meat, raw», 113 kcal. BEDCA solo ofrecía «Grasa de pollo» (882 kcal). Este es el caso que mejor resume por qué hacía falta otra fuente.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "almejas": {
+    "foodId": "10017",
+    "confianza": 0.9,
+    "motivo": "«Clam, raw», 80,5 kcal. Estado crudo, que es como las pesan las recetas; BEDCA solo tenía almejas en conserva.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "esparragos": {
+    "foodId": "20299",
+    "confianza": 0.9,
+    "motivo": "«Asparagus, green, boiled/cooked in water», 26,6 kcal. Verde, que es el triguero. CIQUAL publica el crudo sin kcal, y entre crudo y hervido el espárrago apenas cambia (20 contra 22 de referencia). BEDCA ofrecía espárragos BLANCOS en conserva, que es otra cosa.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tortilla-de-trigo": {
+    "foodId": "7815",
+    "confianza": 0.9,
+    "motivo": "«Wheat tortilla wrap, to be filled», 327 kcal. El candidato de BEDCA era «Almidón de trigo».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "contramuslos-de-pollo": {
+    "foodId": "36024",
+    "confianza": 0.9,
+    "motivo": "«Chicken, leg, meat, raw», 114 kcal. El corte exacto, que es justo lo que BEDCA no tiene: allí este ingrediente se rechazó a mano por no existir ficha de contramuslo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "muslo-de-pollo": {
+    "foodId": "36024",
+    "confianza": 0.9,
+    "motivo": "«Chicken, leg, meat, raw», 114 kcal. Mismo corte que el contramuslo en la nomenclatura de CIQUAL, que no los separa.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "curcuma": {
+    "foodId": "11089",
+    "confianza": 0.9,
+    "motivo": "«Turmeric, powder», 291 kcal. BEDCA ofrecía «Curry», que es una mezcla de especias distinta.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pimiento-choricero": {
+    "foodId": "11049",
+    "confianza": 0.9,
+    "motivo": "«Paprika», 319 kcal. El choricero es pimiento rojo seco, y el pimentón es ese mismo pimiento molido: comparten composición porque solo cambia el triturado. Los candidatos de BEDCA eran pimiento FRESCO (20-30 kcal), diez veces menos, porque el fresco es casi todo agua.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "monkfish": {
+    "foodId": "26018",
+    "confianza": 0.9,
+    "motivo": "«Anglerfish, raw», 67,2 kcal. «Anglerfish» es el nombre inglés del rape; BEDCA solo lo tenía ya cocinado a la parrilla o plancha.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "chalota": {
+    "foodId": "20097",
+    "confianza": 0.9,
+    "motivo": "«Shallot, raw», 63,6 kcal. Nombre y estado exactos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "avellanas": {
+    "foodId": "15033",
+    "confianza": 0.8,
+    "motivo": "«Hazelnut, grilled», 691,2 kcal calculado desde sus macros (ver nueces).",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "fresa": {
+    "foodId": "13014",
+    "confianza": 0.9,
+    "motivo": "«Strawberry, raw», 38,6 kcal. BEDCA solo ofrecía mermelada y yogur de fresa.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "arroz-arborio": {
+    "foodId": "9100",
+    "confianza": 0.9,
+    "motivo": "«Rice, raw», 352 kcal. El arbóreo es arroz blanco de grano corto; su composición en crudo no se distingue del arroz blanco genérico. Se descarta la ficha «mix of species», que promedia variedades integrales y salvajes.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "arroz-bomba": {
+    "foodId": "9100",
+    "confianza": 0.9,
+    "motivo": "«Rice, raw», 352 kcal. Mismo criterio que el arbóreo: en crudo, un arroz blanco es un arroz blanco.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "salvia": {
+    "foodId": "11069",
+    "confianza": 0.9,
+    "motivo": "«Sage, fresh», 36,7 kcal. Los candidatos de BEDCA eran haba, soja y salchicha frescas: coincidían en «fresca» y en nada más.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pera": {
+    "foodId": "13188",
+    "confianza": 0.9,
+    "motivo": "«Pear, var. Conférence, pulp, raw», 53,1 kcal. BEDCA solo tenía pera enlatada en almíbar, que lleva azúcar añadido.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "queso-azul": {
+    "foodId": "12520",
+    "confianza": 0.9,
+    "motivo": "«Blue cheese, from cow's milk», 333 kcal. BEDCA ofrecía queso semicurado genérico.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "hojas-verdes": {
+    "foodId": "20288",
+    "confianza": 0.9,
+    "motivo": "«Lettuce, sucrine, raw», 17,9 kcal. «Hojas verdes variadas» es mezcla de lechugas; las tres candidatas (sucrine, canónigo, hoja de roble) están entre 14 y 18 kcal, así que la elección concreta no mueve nada.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "masa-quebrada": {
+    "foodId": "7600",
+    "confianza": 0.9,
+    "motivo": "«Pastry, average food», 380 kcal. CIQUAL no separa la quebrada de la hojaldrada y publica el promedio de masas. BEDCA ofrecía hojaldre (408), que es la otra masa: el promedio es más honesto que elegir la que no es.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pasas": {
+    "foodId": "13046",
+    "confianza": 0.9,
+    "motivo": "«Raisin», 321 kcal. El único candidato de BEDCA era «Pudding de pasas».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "sepia": {
+    "foodId": "10016",
+    "confianza": 0.9,
+    "motivo": "«Cuttlefish, raw», 76,3 kcal. BEDCA no tenía sepia con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "atun-fresco": {
+    "foodId": "26053",
+    "confianza": 0.9,
+    "motivo": "«Tuna, raw», 144 kcal. El mejor candidato de BEDCA por nombre era «Perejil, fresco».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "filete-de-ternera": {
+    "foodId": "6102",
+    "confianza": 0.9,
+    "motivo": "«Beef, round, raw», 148 kcal. El filete de ternera sale de la babilla o la tapa, que es lo que CIQUAL llama «round». Se descartan «rib» (251 kcal) y «neck» (198), cortes bastante más grasos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "nata-para-montar": {
+    "foodId": "19415",
+    "confianza": 0.9,
+    "motivo": "«Liquid cream 30% fat, UHT», 297 kcal. La nata de montar española ronda el 35 %; la de 30 es la más cercana que publica CIQUAL.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pan-de-payes": {
+    "foodId": "7100",
+    "confianza": 0.9,
+    "motivo": "«Country-style bread, French bread», 253 kcal. Pan rústico de hogaza, que es lo que es el payés.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cacao": {
+    "foodId": "18100",
+    "confianza": 0.9,
+    "motivo": "«Cocoa powder, without sugar, powder, instant», 387 kcal. Sin azúcar, que es el cacao de repostería. BEDCA ofrecía cacao para bebida infantil, ya azucarado.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "hamburguesa": {
+    "foodId": "7259",
+    "confianza": 0.9,
+    "motivo": "«Rolls for hamburger/hotdog (buns), prepacked», 293 kcal. Producto exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "judias-pintas": {
+    "foodId": "20503",
+    "confianza": 0.9,
+    "motivo": "«Red kidney bean, boiled/cooked in water», 116 kcal. El ingrediente es frijol negro cocido y CIQUAL no lo tiene; la alubia roja cocida es la legumbre cocida más próxima en composición. Se descartan por completo los candidatos «Kidney, beef/pork» que salieron por parecido de nombre: son riñón de vaca y de cerdo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alcachofa-conserva": {
+    "foodId": "20155",
+    "confianza": 0.9,
+    "motivo": "«Artichoke, heart, canned, drained», 26 kcal. Corazones en conserva escurridos: producto exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "col": {
+    "foodId": "20296",
+    "confianza": 0.9,
+    "motivo": "«Chinese cabbage or bok choï», 17,7 kcal. Nombre y estado exactos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pasta-corta": {
+    "foodId": "9810",
+    "confianza": 0.9,
+    "motivo": "«Dried pasta, raw», 336 kcal. Pasta seca en crudo, que es como la pesan las recetas. Se descarta la fresca al huevo (283), que es otro producto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "acelga": {
+    "foodId": "20004",
+    "confianza": 0.9,
+    "motivo": "«Swiss chard, raw», 16,4 kcal. Nombre y estado exactos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alcachofa": {
+    "foodId": "20052",
+    "confianza": 0.9,
+    "motivo": "«Artichoke, globe, raw», 44,9 kcal. La alcachofa de verdad; el candidato anterior era «Jerusalem artichoke», que es otra planta (aguaturma) y tiene 60,7.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "apionabo": {
+    "foodId": "20055",
+    "confianza": 0.9,
+    "motivo": "«Celeriac, raw», 29,3 kcal. Nombre y estado exactos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "endivia": {
+    "foodId": "20026",
+    "confianza": 0.9,
+    "motivo": "«Chicory, raw», 20,2 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "hinojo": {
+    "foodId": "20028",
+    "confianza": 0.9,
+    "motivo": "«Fennel, raw», 21,8 kcal. Confirma de paso el juicio de rol: a 150 g de mediana es una verdura que se come, no un condimento.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "brote-tierno": {
+    "foodId": "20183",
+    "confianza": 0.9,
+    "motivo": "«Mung bean, sprouted or soy sprouts, raw», 29,5 kcal. Los brotes tiernos del catálogo son germinados de soja.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cayena": {
+    "foodId": "20151",
+    "confianza": 0.9,
+    "motivo": "«Chili pepper, raw», 44,5 kcal. El ingrediente se llama «Chile fresco».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "higo": {
+    "foodId": "13012",
+    "confianza": 0.9,
+    "motivo": "«Fig, raw», 69,4 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "uvas": {
+    "foodId": "13112",
+    "confianza": 0.9,
+    "motivo": "«Grape, raw», 68,9 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "sandia": {
+    "foodId": "13036",
+    "confianza": 0.9,
+    "motivo": "«Watermelon, pulp, raw», 38,9 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "melocoton": {
+    "foodId": "13043",
+    "confianza": 0.9,
+    "motivo": "«Peach, pulp and peel, raw», 46,5 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pina": {
+    "foodId": "13002",
+    "confianza": 0.9,
+    "motivo": "«Pineapple, pulp, raw», 54,4 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "platano-macho": {
+    "foodId": "53100",
+    "confianza": 0.9,
+    "motivo": "«Plantain banana, raw», 131,6 kcal. Es el plátano macho, no el de postre: el doble de almidón.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "frutos-rojos": {
+    "foodId": "13007",
+    "confianza": 0.7,
+    "motivo": "«Black currant, raw», 63,4 kcal. «Frutos rojos» es una mezcla y CIQUAL no la publica como tal; la grosella negra está en el centro del rango de las bayas (fresa 39, grosella 63, arándano 60).",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "melon": {
+    "foodId": "13026",
+    "confianza": 0.85,
+    "motivo": "«Melon, cantaloupe, pulp, raw», 62,7 kcal. RECTIFICA un motivo que era falso: decía «el ÚNICO candidato que devuelve el término es la SANDÍA» y que CIQUAL no publica el melón. Publica dos, cantaloupe y honeydew, y los dos estaban en su lista de candidatos —la sandía era solo el primero—. Se coge el cantaloupe porque es el melón de carne naranja que llevan la sopa fría y la ensalada con jamón.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "nueces": {
+    "foodId": "15005",
+    "confianza": 0.8,
+    "motivo": "«Walnut, dried, husked». CIQUAL no publica su energía —los cuatro códigos están a «-»— pero sí proteína, carbohidratos, grasa y fibra. El kcal (699,8) se calcula con la fórmula del Reglamento UE 1169/2011, que es la que la propia CIQUAL declara usar. Rellenar una omisión de la fuente no es lo mismo que sobrescribir un error suyo: aquí no hay nada que contradiga a los macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "almendras": {
+    "foodId": "15041",
+    "confianza": 0.8,
+    "motivo": "«Almond, peeled, unpeeled or blanched», 612,9 kcal calculado desde sus macros (ver nueces).",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cacahuete": {
+    "foodId": "15002",
+    "confianza": 0.85,
+    "motivo": "«Peanut, grilled, salted», 617,7 kcal. El ingrediente es «Cacahuetes tostados».",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "castanas": {
+    "foodId": "15020",
+    "confianza": 0.9,
+    "motivo": "«Chestnut, boiled/cooked in water», 121,4 kcal. Cocidas, que es el estado del ingrediente.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "coco": {
+    "foodId": "15007",
+    "confianza": 0.9,
+    "motivo": "«Coconut, kernel, dried», 685,4 kcal. Seco y rallado es el mismo producto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "mantequilla-de-cacahuete": {
+    "foodId": "15202",
+    "confianza": 0.9,
+    "motivo": "«Peanut butter or peanut paste», 635,7 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "carrillera": {
+    "foodId": "6140",
+    "confianza": 0.9,
+    "motivo": "«Beef, cheek, raw», 136 kcal. Corte exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "carrillada": {
+    "foodId": "28001",
+    "confianza": 0.6,
+    "motivo": "«Pork, shoulder, raw», 178 kcal. La carrillada es de CERDO —sus dos recetas son ibéricas— y tenía la ficha de la carrillera de TERNERA, que es otro animal. Ninguna de las dos tablas publica carrillera de cerdo: los 26 cortes crudos de cerdo de CIQUAL no la traen, y el «jowl» (475 kcal) es la papada, que es grasa, no el músculo del carrillo. Va la paleta: mismo animal y mismo uso, un guiso largo de colágeno. Sobrestima la grasa (11,2 g contra ~7 reales) y por eso la confianza baja — entre el corte exacto del animal equivocado y el animal correcto con el corte de al lado, manda el animal, que es lo que leen `mainProtein` y el árbol.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "costilla-de-ternera": {
+    "foodId": "6122",
+    "confianza": 0.9,
+    "motivo": "«Beef, short ribs, raw», 287 kcal. El galbi coreano ES costilla de ternera cortada fina, y el corte y el estado (crudo) coinciden.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "solomillo-de-cerdo": {
+    "foodId": "28201",
+    "confianza": 0.9,
+    "motivo": "«Pork tenderloin, lean, raw», 117 kcal. Corte exacto y mismo animal. Estaba tomando prestada la ficha del solomillo de TERNERA (109 kcal) porque era un alias suyo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "entrecot": {
+    "foodId": "6111",
+    "confianza": 0.9,
+    "motivo": "«Beef, sirloin steak, raw», 152 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "chuleton-de-ternera": {
+    "foodId": "6001",
+    "confianza": 0.9,
+    "motivo": "«Beef, rib, raw», 251 kcal. El chuletón es costilla con hueso, y es el corte más graso de la ternera: 23,7 g contra los 2 del redondo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "redondo-de-ternera": {
+    "foodId": "6106",
+    "confianza": 0.9,
+    "motivo": "«Beef, eye of round, raw», 111 kcal. El corte más magro.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "ternera-magra": {
+    "foodId": "6106",
+    "confianza": 0.9,
+    "motivo": "«Beef, eye of round, raw», 111 kcal. «Magra» pide justamente el corte más flaco.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "escalopines-de-ternera": {
+    "foodId": "6102",
+    "confianza": 0.9,
+    "motivo": "«Beef, round, raw», 148 kcal. Los escalopines salen de la babilla o la tapa.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "filetes-finos-de-ternera": {
+    "foodId": "6102",
+    "confianza": 0.9,
+    "motivo": "«Beef, round, raw», 148 kcal. Mismo corte que el filete.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "rabo-de-toro": {
+    "foodId": "6311",
+    "confianza": 0.9,
+    "motivo": "«Beef, oxtail, raw», 203 kcal. Corte exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "morcillo-de-ternera": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El morcillo es el shank y CIQUAL no lo publica. El único candidato que sale es «Beef, rib» (251 kcal, 19,6 de grasa) y el morcillo es un corte magro y gelatinoso: sería equivocarse por el doble en grasa. Medido en esta misma tanda: entre cortes de ternera la grasa varía x12, así que aquí prestar un genérico no vale.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "morcillo": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Mismo caso que morcillo-de-ternera: sin ficha de shank, y el candidato que sale es el corte más graso.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "jarrete-de-ternera": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Mismo caso: el jarrete es shank y CIQUAL no lo tiene.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "carne-de-cocido": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "Es una mezcla de cortes para cocido, no un corte. El candidato que sale es «Beef, rib», el más graso de todos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "entrania-de-ternera": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "La entraña es skirt y CIQUAL no la publica; el candidato que sale es «Beef, rib steak», bastante más graso.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "presa-iberica": {
+    "foodId": "28009",
+    "confianza": 0.9,
+    "motivo": "«Pork shoulder, raw», 208 kcal. La presa sale del cabecero de lomo, en la paletilla.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "secreto-iberico": {
+    "foodId": "28009",
+    "confianza": 0.75,
+    "motivo": "«Pork shoulder, raw», 208 kcal. El secreto también sale de la zona de la paletilla.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "manitas-de-cerdo": {
+    "foodId": "28540",
+    "confianza": 0.9,
+    "motivo": "«Pork trotters salt-cured», 137 kcal. Producto exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cordero": {
+    "foodId": "21517",
+    "confianza": 0.9,
+    "motivo": "«Lamb, rib chop, raw», 276 kcal. Las chuletillas son costilla de cordero.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "carne-de-jabali-picada": {
+    "foodId": "14002",
+    "confianza": 0.9,
+    "motivo": "«Wild boar, raw», 147 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "codorniz": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es «Quail EGG», el huevo de codorniz, no la carne. CIQUAL no publica la codorniz.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "oreja-de-cerdo": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es «Heart, pork», el corazón. Ni es la oreja ni se le parece en composición.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "higado-de-ternera": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es «Cod liver» —hígado de BACALAO, 619 kcal y 66 g de grasa— por coincidir en la palabra «liver». El hígado de ternera ronda 130. Es el falso positivo más peligroso de esta tanda.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alitas-de-pollo": {
+    "foodId": "36023",
+    "confianza": 0.85,
+    "motivo": "«Chicken, wing, meat and skin, raw», 181 kcal. RECTIFICA una decisión anterior que descartaba el alimento con el motivo «el candidato es el muslo»: el muslo era el candidato NÚMERO UNO y el ala estaba en el número DOS de su propia lista. Desbloquea las dos recetas de alitas, que estaban al 14 % y al 15 %, las peores del recetario.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "guanciale": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "CIQUAL no publica la papada de cerdo curada.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "medio-cochinillo": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "CIQUAL no publica el cochinillo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "perdiz": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "CIQUAL no publica la perdiz.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "caballa": {
+    "foodId": "26051",
+    "confianza": 0.9,
+    "motivo": "«Mackerel, raw», 194 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "corvina": {
+    "foodId": "26107",
+    "confianza": 0.9,
+    "motivo": "«Brown meagre, raw», 87,2 kcal. «Meagre» es la corvina.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "dorada": {
+    "foodId": "26099",
+    "confianza": 0.75,
+    "motivo": "«Black seabream, raw», 130 kcal. La dorada es la seabream dorada y CIQUAL publica la negra; mismo género y composición muy próxima.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "rodajas-de-emperador": {
+    "foodId": "26082",
+    "confianza": 0.9,
+    "motivo": "«Swordfish, raw», 130 kcal. El emperador es el pez espada.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "bonito-del-norte": {
+    "foodId": "26039",
+    "confianza": 0.9,
+    "motivo": "«Tuna, plain, canned, drained», 111 kcal. En conserva y escurrido, como el ingrediente.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "navaja": {
+    "foodId": "10017",
+    "confianza": 0.7,
+    "motivo": "«Clam, raw», 80,5 kcal. CIQUAL no separa la navaja de la almeja; son bivalvos de composición muy próxima.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "surimi": {
+    "foodId": "26046",
+    "confianza": 0.85,
+    "motivo": "«Surimi, on sticks, in slices or grated, crab flavour», 125 kcal. RECTIFICA: el motivo anterior describía «surimi RELLENO DE QUESO» como si fuera el candidato, y era el primero de dos. El palito liso era el segundo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "berberecho": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "CIQUAL no publica el berberecho con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "mascarpone": {
+    "foodId": "19584",
+    "confianza": 0.9,
+    "motivo": "«Mascarpone cheese, from cow's milk», 384,5 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "roquefort": {
+    "foodId": "12500",
+    "confianza": 0.9,
+    "motivo": "«Roquefort cheese, from ewe's milk», 384 kcal. Denominación exacta.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "queso-brie": {
+    "foodId": "12020",
+    "confianza": 0.9,
+    "motivo": "«Brie cheese, from cow's milk», 297 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "queso-tierno": {
+    "foodId": "12827",
+    "confianza": 0.75,
+    "motivo": "«Semi-hard cheese, from ewe's milk», 384 kcal. El ingrediente es queso semicurado en lonchas.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "queso-crema": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es «Fresh cream cheese, fat free» (49 kcal): eso es queso batido desnatado, no queso crema, que ronda 250-350.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "bechamel": {
+    "foodId": "11143",
+    "confianza": 0.9,
+    "motivo": "«Bechamel sauce, home-made», 147 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pesto": {
+    "foodId": "11179",
+    "confianza": 0.9,
+    "motivo": "«Sauce, pesto, prepacked», 370 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tomate-seco": {
+    "foodId": "20189",
+    "confianza": 0.9,
+    "motivo": "«Tomato, dried», 281,5 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "sirope-de-arce": {
+    "foodId": "31034",
+    "confianza": 0.9,
+    "motivo": "«Syrup, maple», 269,1 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "semola-de-trigo": {
+    "foodId": "9610",
+    "confianza": 0.9,
+    "motivo": "«Durum wheat semolina, raw», 352 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pasta": {
+    "foodId": "9810",
+    "confianza": 0.9,
+    "motivo": "«Dried pasta, raw», 336 kcal. «Pasta pequeña» es pasta seca de sopa.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cereales": {
+    "foodId": "32003",
+    "confianza": 0.75,
+    "motivo": "«Breakfast cereals, sweet (average)», 398 kcal. El ingrediente es genérico y CIQUAL publica el promedio.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "galletas-maria": {
+    "foodId": "24001",
+    "confianza": 0.9,
+    "motivo": "«Biscuit (cookie), plain», 448,6 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "bizcocho-de-soletilla": {
+    "foodId": "24430",
+    "confianza": 0.9,
+    "motivo": "«Biscuit, sponge fingers or Lady fingers», 388,2 kcal. Producto exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "muffin-ingle": {
+    "foodId": "7257",
+    "confianza": 0.9,
+    "motivo": "«English muffin, prepacked», 228 kcal. Producto exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "nachos": {
+    "foodId": "38105",
+    "confianza": 0.9,
+    "motivo": "«Corn chips or tortilla chips», 495 kcal. Producto exacto: el nacho es la tortilla frita.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "falafel-congelado": {
+    "foodId": "25571",
+    "confianza": 0.9,
+    "motivo": "«Falafel», 252 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "levadura": {
+    "foodId": "11045",
+    "confianza": 0.8,
+    "motivo": "«Baker's yeast, dehydrated», 353,5 kcal. Energía calculada desde sus macros, que CIQUAL sí publica.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "levadura-quimica": {
+    "foodId": "11046",
+    "confianza": 0.9,
+    "motivo": "«Baking powder or raising agent», 146,2 kcal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pimienta-blanca": {
+    "foodId": "11019",
+    "confianza": 0.9,
+    "motivo": "«White pepper, powder», 310 kcal. Cierra además el hueco que dejó BEDCA, cuya ficha de pimienta blanca fallaba Atwater por -175.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "especia-cajun": {
+    "foodId": "11056",
+    "confianza": 0.7,
+    "motivo": "«Mix of 4 spices», 348 kcal. Mezcla de especias genérica; se usa a 8 g.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tortilla-de-maiz": {
+    "foodId": "7813",
+    "confianza": 0.85,
+    "motivo": "«Corn tortilla wrap, to be filled», 313 kcal. RECTIFICA: el motivo anterior descartaba el alimento porque «el candidato es Corn chips or tortilla chips», la tortilla frita, y era el primero de dos. El wrap blando era el segundo, y es exactamente el paralelo del que ya usa «tortilla-de-trigo» (7815).",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "maiz": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es «Corn or maize grain, raw» (346 kcal), el grano seco. El maíz del catálogo es dulce en conserva, que ronda 80: un factor 4.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "obleas": {
+    "foodId": "24300",
+    "confianza": 0.85,
+    "motivo": "«Wafer biscuit without filling», 419,2 kcal. Aquí el motivo anterior SÍ era correcto —los candidatos eran barquillos rellenos de 455 a 538— pero lo eran porque el término de búsqueda era «Wafer, plain» y no alcanzaba a la ficha sin relleno. Pidiéndosela por su nombre aparece, y queda a 40 kcal de la estimación que hizo aquella decisión a ojo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tomate-concentrado": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "«Tomato puree, canned» (47,1 kcal) es tomate triturado, no concentrado. El doble concentrado ronda 100.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "caldo-de-pescado": {
+    "foodId": "25947",
+    "confianza": 0.6,
+    "motivo": "«Broth, stock or bouillon, poultry, dehydrated and reconstituted», 5,58 kcal, como PROXY declarado. RECTIFICA un motivo cuya premisa era falsa: decía «el cubito no es el caldo», y en esta app el cubito SÍ es el caldo — la lista de la compra manda comprar «Caldo de pescado Hacendado en pastillas», pasillo de aceites y conservas. Nadie hace fumet aquí. CIQUAL no publica el de pescado reconstituido, pero sí los otros tres, y caen todos juntos: vacuno 9,05, ave 5,58, verduras 5,38. Lo que manda es la dilución, no el animal. Sobre medio litro la horquilla entera son 18 kcal en un plato completo. Se coge el de ave y no el de verduras porque un caldo de pescado lleva algo de proteína (0,6 frente a 0,34). Desbloquea 18 recetas Estrella, más que ningún otro alimento del catálogo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "caldo-de-marisco": {
+    "foodId": "25947",
+    "confianza": 0.6,
+    "motivo": "Mismo proxy y mismo razonamiento que el caldo de pescado: la app manda comprarlo hecho y la dilución domina sobre el origen. Aquí hay además un fleco aparte, que NO es de nutrición: el emparejador de la compra le asigna «Caldo de pollo Hacendado», que no es caldo de marisco. Eso se arregla en productoBuscado.json, no aquí.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alga-nori": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "CIQUAL no publica el alga nori con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "alga-wakame": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "CIQUAL no publica el alga wakame con macros.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "brandy": {
+    "foodId": "1023",
+    "confianza": 0.9,
+    "motivo": "«Spirit made from wine, armagnac or cognac type», 228 kcal. Aguardiente de vino, que es el brandy.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "vodka": {
+    "foodId": "1008",
+    "confianza": 0.9,
+    "motivo": "«Vodka», 242 kcal. Nombre exacto.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "ron": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es «Rum baba», que es un bizcocho borracho, no ron.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cerveza": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "«Beer, dark» declara 18,1 kcal y una cerveza ronda 43. El valor no es creíble ni para una negra.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "sidra": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "«Cider» declara 7,5 kcal y una sidra ronda 42.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "jerez-seco": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "«Wine or fortified wine-based aperitif» declara 6 kcal; un jerez ronda 115.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cointreau": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es un cóctel de vino blanco con licor, no el licor.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "mirin": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es sake. El mirin es vino de arroz DULCE y ronda el doble de energía.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "extracto-de-vainilla": {
+    "foodId": null,
+    "confianza": 0.85,
+    "motivo": "El candidato es el extracto ACUOSO (57,7 kcal) y el del catálogo es alcohólico, que ronda 240.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "queso": {
+    "foodId": "12118",
+    "confianza": 0.85,
+    "motivo": "«Emmental cheese, grated, from cow's milk», 367 kcal. El ingrediente es «Queso rallado» y el valor que traía (431) era HEREDADO, sin ficha, y con el sodio en GRAMOS en vez de miligramos: decía 0,621 donde debía decir 621. Un queso rallado sin sodio es justo el dato que un perfil bajo_sodio necesita bien. El emmental rallado es el formato que se vende para gratinar.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "atun-lata": {
+    "foodId": "26039",
+    "confianza": 0.9,
+    "motivo": "«Tuna, plain, canned, drained», 111 kcal. El valor anterior era heredado y traía el sodio en gramos: 0,377 donde debía decir 377. Un atún en conserva es uno de los alimentos más salados del catálogo y estaba contando como si no tuviera sal.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+
+  "aceite-de-sesamo": {
+    "foodId": "17400",
+    "confianza": 0.95,
+    "motivo": "«Sesame oil», 900 kcal. Un aceite es 100 % grasa y no hay margen de interpretación.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "aceite-oliva-virgen": {
+    "foodId": "17270",
+    "confianza": 0.95,
+    "motivo": "«Olive oil, extra virgin», 900 kcal. Los 883,4 anteriores son la cifra de BEDCA, que usa otro factor para la grasa; la diferencia es del 2 % y ahora se puede señalar de dónde sale.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "brocoli": {
+    "foodId": "20057",
+    "confianza": 0.95,
+    "motivo": "«Broccoli, raw», 32,7 kcal frente a los 34 de antes. Sodio 19 mg donde se leía 0,033.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "caldo-de-carne": {
+    "foodId": "25930",
+    "confianza": 0.9,
+    "motivo": "«Broth, stock or bouillon, beef, dehydrated and RECONSTITUTED», 9,05 kcal. La ficha sin reconstituir (11001) declara 240 kcal y 13.200 mg de sodio: es la pastilla, no el caldo. Las recetas miden el caldo en mililitros, así que la reconstituida es la que corresponde. Sodio 290 mg, donde se leía 0,25.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "caldo-de-verduras": {
+    "foodId": "25948",
+    "confianza": 0.9,
+    "motivo": "«Broth, stock or bouillon, vegetables, dehydrated and reconstituted», 5,38 kcal. Misma elección que el de carne y por la misma razón. Sodio 240 mg donde se leía 0,23.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "cebolla": {
+    "foodId": "20034",
+    "confianza": 0.95,
+    "motivo": "«Onion, raw», 38,4 kcal. Se coge la genérica y no la roja ni la amarilla, que es lo que pide un ingrediente llamado «Cebolla» a secas.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "champinon": {
+    "foodId": "20010",
+    "confianza": 0.95,
+    "motivo": "«Mushroom, all types, raw», 21,7 kcal frente a los 22 de antes. Casi idéntica, que es la mejor señal de que el número heredado era correcto y solo le faltaba la ficha.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "coliflor": {
+    "foodId": "20016",
+    "confianza": 0.95,
+    "motivo": "«Cauliflower, raw», 26,2 kcal frente a 25.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "espinacas": {
+    "foodId": "20059",
+    "confianza": 0.95,
+    "motivo": "«Spinach, raw», 28,7 kcal frente a 23. Sodio 66,7 mg donde se leía 0,079, que es el mismo número con la coma corrida.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "guisantes": {
+    "foodId": "20084",
+    "confianza": 0.85,
+    "motivo": "«Garden peas, FROZEN, raw», 75,4 kcal. El congelado es lo que se compra aquí para cocinar. La de conserva (20036) cuadra mejor con los 81 de antes —81,5— pero trae 257 mg de sodio del líquido de gobierno y no es lo que usan estas recetas: cuadrar con un número sin fuente no es razón para elegir ficha.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "harina": {
+    "foodId": "9436",
+    "confianza": 0.9,
+    "motivo": "«Wheat flour, type 55 (for bread)», 350 kcal frente a 349. La T55 es la harina blanca corriente; las T110 y T150 son integrales.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "huevos": {
+    "foodId": "22000",
+    "confianza": 0.95,
+    "motivo": "«Egg, raw», 140 kcal frente a 143. Sodio 124 mg donde se leía 0,142.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "judia-verde": {
+    "foodId": "20061",
+    "confianza": 0.95,
+    "motivo": "«French bean, raw», 31,6 kcal frente a 31.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "leche": {
+    "foodId": "19023",
+    "confianza": 0.95,
+    "motivo": "«Milk, whole, UHT», 65,1 kcal. Se elige ENTERA y no semidesnatada porque los 3,6 g de grasa del valor heredado son los de la entera; la semi tiene 1,55 y habría cambiado el alimento en vez de darle una ficha. Sodio 44,2 mg donde se leía 0,044.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "limon": {
+    "foodId": "13009",
+    "confianza": 0.85,
+    "motivo": "«Lemon, pulp, raw», 27,6 kcal frente a 29. La comprobación de Atwater sale alta en los cítricos porque su energía viene en parte del ácido cítrico, que no es un macronutriente y no entra en la fórmula. No es un defecto de la ficha.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "nata": {
+    "foodId": "19436",
+    "confianza": 0.75,
+    "motivo": "«Cream, 15-20 % fat, fluid, refrigerated», 150,5 kcal con 13,5 g de grasa. Es la única de la franja de la nata de cocinar, pero tira hacia el 15 % y el valor heredado describía una del 20 % (200,8 kcal, 19,99 de grasa). Baja un 25 % y es la peor de las 21: se acepta porque un número con ficha y una diferencia declarada vale más que un número exacto que nadie puede defender, y se deja la confianza baja para que se vea.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pimienta": {
+    "foodId": "11015",
+    "confianza": 0.9,
+    "motivo": "«Black pepper, powder», 330 kcal frente a los 251 de antes. Es la diferencia más grande del lote, pero la pimienta se usa en pellizcos y no mueve una receta.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pimiento-verde": {
+    "foodId": "20085",
+    "confianza": 0.95,
+    "motivo": "«Sweet pepper, green, raw», 26 kcal frente a 20. Se coge la verde y no la de «verde, amarillo o rojo» (20041), que promedia tres pimientos distintos.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "salchicha": {
+    "foodId": "30115",
+    "confianza": 0.75,
+    "motivo": "«Chipolata slim sausage, raw», 253 kcal con 20,6 de grasa. El merguez crudo (30150) cuadra casi exacto con el valor heredado —316 kcal y 28 de grasa frente a 305,5 y 28,1— y aun así no se elige: es una salchicha especiada de cordero y vacuno, no una salchicha fresca de cerdo. Cuadrar con un número sin fuente es exactamente la forma de blanquear ese número. La chipolata es el mismo alimento aunque la cifra baje un 17 %.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "vinagre": {
+    "foodId": "11018",
+    "confianza": 0.9,
+    "motivo": "«Vinegar», 22,6 kcal frente a 18.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "zamburina": {
+    "foodId": "10045",
+    "confianza": 0.8,
+    "motivo": "«Scallop, without coral, raw», 83,6 kcal. No tenía ni término de búsqueda escrito, así que no había llegado nunca a la puerta: su decisión anterior era un null de BEDCA con el motivo «no hay marisco/zamburiña en candidatos». La zamburiña es un pecten pequeño y la vieira sin coral es su ficha más próxima; la diferencia entre las tres vieiras del catálogo es de 7 kcal, así que la elección entre ellas no mueve nada.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "vinagre-de-manzana": {
+    "foodId": "11090",
+    "confianza": 0.9,
+    "motivo": "«Vinegar, cider», 3,7 kcal frente a 4,1. Su sodio heredado, 20, ya venía en miligramos: dentro del propio lote de heredados convivían las dos unidades, que es precisamente por qué había que sustituirlos y no multiplicar por mil a ojo.",
+    "modelo": "decision-humana-2026-09-21"
+  }
+}

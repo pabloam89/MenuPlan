@@ -7,7 +7,6 @@
     "extraProteins": [
       "cerdo"
     ],
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -29,21 +28,25 @@
     "ingredients": [
       {
         "name": "Pan de molde",
+        "ingredientId": "pan-molde",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Queso en lonchas",
+        "ingredientId": "queso-en-lonchas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 10,
         "unit": "g"
       }
@@ -122,7 +125,6 @@
     "extraProteins": [
       "cerdo"
     ],
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -143,21 +145,25 @@
     "ingredients": [
       {
         "name": "Pan de hogaza",
+        "ingredientId": "pan",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -240,6 +246,7 @@
     "category": "cenas_rapidas",
     "mainProtein": "none",
     "mainBase": "quinoa",
+    "baseMode": "aparte",
     "mealRole": [
       "cena"
     ],
@@ -260,41 +267,49 @@
     "ingredients": [
       {
         "name": "Quinoa",
+        "ingredientId": "quinoa",
         "amount": 140,
         "unit": "g"
       },
       {
         "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Queso feta",
+        "ingredientId": "queso-feta",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Granada",
+        "ingredientId": "granada",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 1,
         "unit": "ud"
       }
@@ -344,12 +359,14 @@
       {
         "text": "Llevar a ebullición 280 ml de agua en un cazo a fuego fuerte y añadir {{Quinoa}}.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "quinoa"
       },
       {
         "text": "Cocer la quinoa a fuego suave, tapada, hasta que absorba toda el agua y esté tierna.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "quinoa"
       },
       {
         "text": "Cortar {{Tomate cherry}} por la mitad.",
@@ -384,7 +401,8 @@
       {
         "text": "Escurrir la quinoa cocida y extenderla en un bol amplio para que se enfríe.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "quinoa"
       },
       {
         "text": "Exprimir {{Limón}} y mezclar el zumo con {{Aceite de oliva|chorrito}} en un bol pequeño hasta integrar.",
@@ -425,7 +443,6 @@
     "name": "Pan tumaca con embutido",
     "category": "cenas_rapidas",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -446,21 +463,25 @@
     "ingredients": [
       {
         "name": "Pan de payés",
+        "ingredientId": "pan-de-payes",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Fuet",
+        "ingredientId": "fuet",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -542,7 +563,6 @@
     "name": "Tostada de aguacate y tomate",
     "category": "cenas_rapidas",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -563,26 +583,31 @@
     "ingredients": [
       {
         "name": "Pan de hogaza",
+        "ingredientId": "pan",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 1,
         "unit": "ud"
       }
@@ -690,26 +715,31 @@
     "ingredients": [
       {
         "name": "Salchichas frescas",
+        "ingredientId": "salchicha",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 60,
         "unit": "ml"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -748,37 +778,44 @@
       {
         "text": "Pelar {{Patata}} y cortar en trozos de tamaño similar.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cubrir la patata con agua fría en un cazo, llevar a ebullición a fuego fuerte y cocer a fuego medio hasta que esté tierna, unos 18 min.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego medio con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar {{Salchichas frescas}} en la plancha caliente y dorar por todos los lados hasta que estén doradas y cocidas por dentro, unos 8 min.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir la patata cocida y devolver al cazo a fuego suave para evaporar el exceso de humedad, 1 min.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Añadir {{Mantequilla}} y {{Leche}} a la patata escurrida y aplastar con un tenedor o pasapurés hasta obtener un puré liso.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir el puré en el plato y colocar las salchichas encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -791,7 +828,8 @@
       "lacteo"
     ],
     "tecnica": "crudo",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro"
   },
   {
     "id": "cenas_rapidas_007",
@@ -816,31 +854,37 @@
     "ingredients": [
       {
         "name": "Nachos de maíz",
+        "ingredientId": "nachos",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Cilantro",
+        "ingredientId": "cilantro",
         "amount": 5,
         "unit": "g"
       }
@@ -860,42 +904,50 @@
       {
         "text": "Cortar {{Tomate}} en dados pequeños y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Cebolla}} muy fina y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Cilantro}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Partir {{Limón}} por la mitad y exprimir el zumo en un bol.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Partir {{Aguacate}} por la mitad, retirar el hueso y extraer la pulpa con una cuchara al bol con el zumo de limón.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Aplastar la pulpa de aguacate con un tenedor hasta obtener una textura grumosa al gusto.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir el tomate, la cebolla y el cilantro al bol y mezclar hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Disponer {{Nachos de maíz}} en un plato amplio y servir el guacamole en un bol aparte para mojar.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 7,
@@ -915,7 +967,6 @@
     "name": "Bruschetta de tomate",
     "category": "cenas_rapidas",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -936,26 +987,31 @@
     "ingredients": [
       {
         "name": "Pan chapata",
+        "ingredientId": "baguette",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Albahaca",
+        "ingredientId": "albahaca",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       }
@@ -1074,16 +1130,19 @@
     "ingredients": [
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Queso en porciones",
+        "ingredientId": "queso",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pepinillos",
+        "ingredientId": "pepinillos",
         "amount": 30,
         "unit": "g"
       }
@@ -1171,26 +1230,31 @@
     "ingredients": [
       {
         "name": "Queso curado",
+        "ingredientId": "queso",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceitunas",
+        "ingredientId": "aceitunas",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Pan de barra",
+        "ingredientId": "pan",
         "amount": 80,
         "unit": "g"
       }
@@ -1241,15 +1305,13 @@
       "lacteo",
       "encurtido"
     ],
-    "tecnica": "crudo",
-    "mainBase": "pan"
+    "tecnica": "crudo"
   },
   {
     "id": "cenas_rapidas_012",
     "name": "Gazpacho con picatostes",
     "category": "cenas_rapidas",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -1271,36 +1333,43 @@
     "ingredients": [
       {
         "name": "Tomate maduro",
+        "ingredientId": "tomate",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Pepino",
+        "ingredientId": "pepino",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Pan",
+        "ingredientId": "pan",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -1394,7 +1463,6 @@
     "name": "Tostas de aguacate y huevo poché",
     "category": "cenas_rapidas",
     "mainProtein": "huevo",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -1416,31 +1484,37 @@
     "ingredients": [
       {
         "name": "Pan de hogaza",
+        "ingredientId": "pan",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Lima",
+        "ingredientId": "lima",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Cilantro",
+        "ingredientId": "cilantro",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Vinagre",
+        "ingredientId": "vinagre",
         "amount": 10,
         "unit": "ml"
       }
@@ -1552,7 +1626,6 @@
     "name": "Tortilla wrap de atún",
     "category": "cenas_rapidas",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -1575,31 +1648,37 @@
     "ingredients": [
       {
         "name": "Tortilla de trigo",
+        "ingredientId": "tortilla-de-trigo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Atún en conserva",
+        "ingredientId": "atun-lata",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Lechuga",
+        "ingredientId": "lechuga",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Maíz dulce",
+        "ingredientId": "maiz",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Mayonesa",
+        "ingredientId": "mayonesa",
         "amount": 20,
         "unit": "g"
       }
@@ -1704,26 +1783,31 @@
     "ingredients": [
       {
         "name": "Melón",
+        "ingredientId": "melon",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Menta",
+        "ingredientId": "menta",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -1788,5 +1872,144 @@
       "fruta"
     ],
     "tecnica": "crudo"
+  },
+  {
+    "id": "cenas_rapidas_061",
+    "name": "Patatas bravas al horno",
+    "montaje": false,
+    "mainProtein": "none",
+    "mainBase": "patatas",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "patatas_asadas",
+      "salsa_tomate"
+    ],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "estrella": true,
+    "time": 50,
+    "difficulty": "facil",
+    "kcal": 380,
+    "protein_g": 6,
+    "carbs_g": 44,
+    "fat_g": 20,
+    "fiber_g": 5,
+    "sugar_g": 6,
+    "saturated_fat_g": 3,
+    "sodium_mg": 640,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "huevo"
+    ],
+    "season": "all",
+    "description": "Las bravas de siempre pero asadas: dados especiados con salsa picante y un hilo de alioli.",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "ingredientId": "comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate frito",
+        "ingredientId": "tomate-frito",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Mayonesa",
+        "ingredientId": "mayonesa",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 210 grados.",
+        "minutes": 1,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+        "minutes": 8,
+        "kind": "prep",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+        "minutes": 4,
+        "kind": "activo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+        "minutes": 30,
+        "kind": "pasivo",
+        "base": "patatas_asadas"
+      },
+      {
+        "text": "Calentar {{Tomate frito}} en un cazo con una pizca más de {{Pimentón dulce}} hasta que espese.",
+        "minutes": 6,
+        "kind": "activo",
+        "base": "salsa_tomate"
+      },
+      {
+        "text": "Mezclar {{Mayonesa}} con {{Ajo}} picado muy fino para el alioli rápido.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Servir las patatas con la salsa por encima y el alioli en hilos.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "category": "cenas_rapidas",
+    "steps": [
+      "Encender el {{@Horno}} a 210 grados.",
+      "Pelar {{Patata}} y cortarla en dados de unos 2 cm, parejos.",
+      "Aliñar los dados con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}} y {{Sal|gusto}} y extenderlos sin amontonar.",
+      "Asar hasta que estén dorados, dándoles la vuelta a mitad.",
+      "Calentar {{Tomate frito}} en un cazo con una pizca más de {{Pimentón dulce}} hasta que espese.",
+      "Mezclar {{Mayonesa}} con {{Ajo}} picado muy fino para el alioli rápido.",
+      "Servir las patatas con la salsa por encima y el alioli en hilos."
+    ],
+    "methods": []
   }
 ]

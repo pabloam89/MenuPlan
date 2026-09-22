@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, beforeEach } from "vitest";
 
 import {
   ingredientCatalog,
@@ -320,6 +320,41 @@ describe("coherencia entre los ingredientes y lo que declara cada receta", () =>
     }
     expect(fallos).toEqual([]);
   });
+
+  // El enlace por id. Cada línea de ingrediente del catálogo lleva
+  // `ingredientId`, apunta a un ingrediente que existe, y coincide con lo que
+  // resuelve su `name`. Las tres cosas a la vez: sin la primera el campo vuelve
+  // a ser opcional de facto (el destino de sauceId); sin la tercera, nombre e
+  // id pueden decir ingredientes distintos y la lista de la compra no sabría
+  // a cuál creer. validate-catalog.mjs comprueba lo mismo en prebuild; esto es
+  // la misma invariante vista desde el resolutor de runtime, que es el que
+  // usa la app.
+  it("toda línea de ingrediente lleva ingredientId, existe y coincide con su nombre", () => {
+    const fallos = [];
+    let lineas = 0;
+    for (const recipe of recipeCatalog) {
+      for (const line of recipe.ingredients ?? []) {
+        lineas++;
+        if (!line.ingredientId) {
+          fallos.push(`${recipe.id} "${line.name}" sin ingredientId`);
+          continue;
+        }
+        if (!ingredientById[line.ingredientId]) {
+          fallos.push(`${recipe.id} "${line.name}" → "${line.ingredientId}" no existe`);
+          continue;
+        }
+        const resuelto = resolveIngredientId(line.name);
+        if (resuelto !== line.ingredientId) {
+          fallos.push(`${recipe.id} "${line.name}" lleva "${line.ingredientId}" pero resuelve a "${resuelto}"`);
+        }
+      }
+    }
+    // Suelo de cordura, no censo: `recipeCatalog` son las ~934 recetas de menú
+    // (sin guarniciones, salsas ni bases), unas 6.980 líneas. Si esto baja de
+    // golpe, el bucle ha recorrido nada y el `[]` de abajo sería un falso verde.
+    expect(lineas).toBeGreaterThan(6000);
+    expect(fallos).toEqual([]);
+  });
 });
 
 describe("sustituciones (Fase 3)", () => {
@@ -492,5 +527,147 @@ describe("señales de dieta", () => {
   it("nunca marca vegano sin vegetariano", () => {
     const malos = ingredientCatalog.filter((i) => i.isVegan && !i.isVegetarian);
     expect(malos).toEqual([]);
+  });
+});
+
+// El campo secundario que se publica a medias. Antes esto era un booleano por
+// campo y bastaba UN ingrediente con azúcar para que la receta publicara un
+// total de azúcar callando los demás: 740 de 747 recetas estrella lo hacían.
+describe("cobertura por campo, no un si/no", () => {
+  afterEach(() => {
+    ingredientById.ajo.nutrition = null;
+    ingredientById.perejil.nutrition = null;
+  });
+
+  const receta = {
+    ingredients: [
+      { name: "Ajo", ingredientId: "ajo", amount: 100, unit: "g" },
+      { name: "Perejil", ingredientId: "perejil", amount: 300, unit: "g" },
+    ],
+  };
+  const conAzucar = { kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 1, fiber100g: 2, sugar100g: 8, saturatedFat100g: 0.5, sodium100g: 30 };
+  const sinAzucar = { ...conAzucar, sugar100g: null };
+
+  it("un solo ingrediente con azucar no cubre la receta entera", () => {
+    ingredientById.ajo.nutrition = conAzucar;
+    ingredientById.perejil.nutrition = sinAzucar;
+    const n = computeRecipeNutrition(receta, 1);
+    // El ajo es 100 g de los 400: el azúcar declarado es el de una cuarta parte.
+    expect(n.coberturaPorCampo.sugar_g).toBeCloseTo(0.25, 2);
+    // Los demás campos sí los traen los dos ingredientes.
+    expect(n.coberturaPorCampo.fiber_g).toBe(1);
+    expect(n.coberturaPorCampo.sodium_mg).toBe(1);
+    // Y el número se PUBLICA igual: un parcial etiquetado vale más que un hueco.
+    expect(n.sugar_g).toBeGreaterThan(0);
+  });
+
+  it("cuando lo traen todos, la cobertura del campo es 1", () => {
+    ingredientById.ajo.nutrition = conAzucar;
+    ingredientById.perejil.nutrition = conAzucar;
+    const n = computeRecipeNutrition(receta, 1);
+    for (const c of ["fiber_g", "sugar_g", "saturated_fat_g", "sodium_mg"]) {
+      expect(n.coberturaPorCampo[c]).toBe(1);
+    }
+  });
+
+  it("cuando no lo trae nadie, el campo es null y su cobertura 0", () => {
+    ingredientById.ajo.nutrition = sinAzucar;
+    ingredientById.perejil.nutrition = sinAzucar;
+    const n = computeRecipeNutrition(receta, 1);
+    expect(n.sugar_g).toBeNull();
+    expect(n.coberturaPorCampo.sugar_g).toBe(0);
+  });
+
+  // Un ingrediente SIN ficha también es un hueco del campo, aunque el hueco
+  // venga de más arriba: al comensal le da igual de dónde nazca.
+  it("un ingrediente sin ficha cuenta como hueco del campo", () => {
+    ingredientById.ajo.nutrition = conAzucar;
+    ingredientById.perejil.nutrition = null;
+    const n = computeRecipeNutrition(receta, 1);
+    expect(n.coberturaPorCampo.sugar_g).toBeCloseTo(0.25, 2);
+    expect(n.coverage).toBeCloseTo(0.25, 2);
+  });
+});
+
+// El aceite de freir se absorbe, no se come entero. Ver ACEITE_ABSORBIDO.
+describe("el aceite de freir se absorbe", () => {
+  afterEach(() => {
+    ingredientById.ajo.nutrition = null;
+    ingredientById["aceite-oliva"].nutrition = null;
+  });
+
+  // En GRAMOS y no en ml a proposito: en ml entraria tambien la densidad del
+  // aceite (0,918) y el test dejaria de aislar lo que quiere medir. Que la
+  // densidad se aplica ya lo comprueba otro.
+  const conAceite = (gAceite) => ({
+    ingredients: [
+      { name: "Ajo", ingredientId: "ajo", amount: 200, unit: "g" },
+      { name: "Aceite de oliva", ingredientId: "aceite-oliva", amount: gAceite, unit: "g" },
+    ],
+  });
+
+  beforeEach(() => {
+    ingredientById.ajo.nutrition = { kcal100g: 100, protein100g: 5, carbs100g: 10, fat100g: 1 };
+    ingredientById["aceite-oliva"].nutrition = { kcal100g: 900, protein100g: 0, carbs100g: 0, fat100g: 100 };
+  });
+
+  it("un chorro para sofreir pasa entero", () => {
+    // 200 g de solido admiten 12 g (el 6 %). Con 10 ml no muerde el tope.
+    const n = computeRecipeNutrition(conAceite(10), 1);
+    expect(n.kcal).toBe(200 + Math.round((900 * 10) / 100));
+  });
+
+  it("una fritura solo cuenta lo que el solido absorbe", () => {
+    // 300 ml de aceite para 200 g de solido: solo entran 12 g.
+    const n = computeRecipeNutrition(conAceite(300), 1);
+    expect(n.kcal).toBe(200 + Math.round((900 * 12) / 100));
+  });
+
+  // Lo que se descuenta es MASA que no se come, asi que tampoco cuenta para la
+  // cobertura: si contara, una fritura parecerìa peor cubierta de lo que està.
+  it("el aceite descontado no hunde la cobertura", () => {
+    expect(computeRecipeNutrition(conAceite(300), 1).coverage).toBe(1);
+  });
+});
+
+// La sal de una costra no se come. Ver SAL_A_GRANEL.
+describe("la costra de sal no se come", () => {
+  afterEach(() => {
+    ingredientById["pechuga-de-pollo"].nutrition = null;
+    ingredientById["sal-gruesa"].nutrition = null;
+    ingredientById.azucar.nutrition = null;
+  });
+  beforeEach(() => {
+    // Pechuga y no dorada: la dorada lleva fraccion comestible 0,55 y el test
+    // dejaria de aislar la regla de la sal.
+    ingredientById["pechuga-de-pollo"].nutrition = { kcal100g: 100, protein100g: 20, carbs100g: 0, fat100g: 2, sodium100g: 60 };
+    ingredientById["sal-gruesa"].nutrition = { kcal100g: 0, protein100g: 0, carbs100g: 0, fat100g: 0, sodium100g: 38850 };
+    ingredientById.azucar.nutrition = { kcal100g: 400, protein100g: 0, carbs100g: 100, fat100g: 0, sodium100g: 0 };
+  });
+
+  const conSal = (gSal, extra = []) => ({
+    ingredients: [
+      { name: "Pechuga de pollo", ingredientId: "pechuga-de-pollo", amount: 500, unit: "g" },
+      { name: "Sal gruesa", ingredientId: "sal-gruesa", amount: gSal, unit: "g" },
+      ...extra,
+    ],
+  });
+
+  it("la sal de sazonar SI cuenta", () => {
+    // 2 g de sal son 777 mg de sodio y se comen.
+    expect(computeRecipeNutrition(conSal(2), 1).sodium_mg).toBeGreaterThan(700);
+  });
+
+  it("1500 g de costra no cuentan", () => {
+    // Solo queda el sodio de la pechuga: 500 g a 60 mg/100 g = 300 mg.
+    expect(computeRecipeNutrition(conSal(1500), 1).sodium_mg).toBe(300);
+  });
+
+  it("el azucar solo se tira si hay curado", () => {
+    const linea = { name: "Azucar", ingredientId: "azucar", amount: 100, unit: "g" };
+    // Con costra: el azucar es parte de la mezcla que se retira.
+    expect(computeRecipeNutrition(conSal(1500, [linea]), 1).kcal).toBe(500);
+    // Sin costra: 100 g de azucar son un postre y se comen.
+    expect(computeRecipeNutrition(conSal(2, [linea]), 1).kcal).toBe(900);
   });
 });

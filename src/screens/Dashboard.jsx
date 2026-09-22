@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ChevronRight,
   CalendarDays,
+  LayoutGrid,
   UtensilsCrossed,
   Settings,
   Sparkles,
@@ -313,6 +314,79 @@ function MenuHeroCard({ photos, onClick, title, subtitle, Icon = Sparkles }) {
 }
 
 /**
+ * La segunda puerta: un menú vacío que montas tú (la pizarra).
+ *
+ * Deliberadamente MÁS BAJA que MenuHeroCard y sin su gradiente de héroe:
+ * generar sigue siendo el camino principal de Inicio y dos cards del mismo
+ * tamaño obligarían a elegir antes de saber qué eliges. Esta es la salida
+ * para quien ya sabe lo que quiere cocinar.
+ *
+ * La ilustración va por URL y no importada como las del héroe porque vive en
+ * `public/avatares/cards` con el resto de las ilustraciones de la app (las de
+ * `src/assets/dashboard` son las fotos reales del CTA).
+ */
+function PizarraCard({ onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        position: "relative", width: "100%", height: 92,
+        borderRadius: 18, overflow: "hidden", border: "none", cursor: "pointer",
+        padding: 0, fontFamily: "inherit", display: "block", marginBottom: 16,
+        boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
+      }}
+    >
+      <img
+        src="/avatares/cards/inspirate.webp"
+        alt=""
+        loading="lazy"
+        style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          // La franja alta de la ilustración: las fichas de receta flotando y
+          // las lámparas. Más abajo solo hay encimera, que en 92px de alto se
+          // ve como una mancha oscura.
+          objectFit: "cover", objectPosition: "center 22%",
+        }}
+      />
+      {/* Scrim desde la izquierda: el texto se apoya ahí y la cocina de la
+          ilustración se sigue viendo a la derecha. */}
+      <div
+        style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(90deg, rgba(10,26,16,.86) 0%, rgba(10,26,16,.62) 52%, rgba(10,26,16,.1) 100%)",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute", inset: 0, padding: "0 16px", textAlign: "left",
+          display: "flex", alignItems: "center", gap: 12,
+        }}
+      >
+        <div
+          style={{
+            width: 38, height: 38, borderRadius: 13, flexShrink: 0,
+            background: "rgba(255,255,255,.22)", backdropFilter: "blur(6px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <LayoutGrid size={20} color="#fff" strokeWidth={2.4} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: "-.2px" }}>
+            Empieza en blanco
+          </p>
+          <p style={{ margin: "3px 0 0", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,.88)", lineHeight: 1.3 }}>
+            Tú montas el menú, hueco a hueco
+          </p>
+        </div>
+        <ChevronRight size={18} color="rgba(255,255,255,.8)" strokeWidth={2.4} style={{ marginLeft: "auto", flexShrink: 0 }} />
+      </div>
+    </button>
+  );
+}
+
+/**
  * Post-login home screen: a social-style profile header (avatar, name, family,
  * follows), liquid-glass stats, today's dishes, and the weekly-menu action.
  * The recipe catalog lives in the bottom nav, not here.
@@ -327,6 +401,8 @@ export function DashboardScreen({
   onViewMenu,
   onOpenAccount,
   onGenerateMenu,
+  // Ausente = la pizarra no se ofrece (está apagada fuera de staging).
+  onStartPizarra,
 }) {
   const g = googleInfo(user);
   // Real dishes, not just key count: a plan always carries `_warnings`, so an
@@ -512,6 +588,8 @@ export function DashboardScreen({
             title={hasMenu ? "Generar menú" : "Genera tu primer menú"}
           />
         )}
+
+        {!householdReadOnly && onStartPizarra && <PizarraCard onClick={onStartPizarra} />}
 
         {/* ── Hoy toca (solo renderiza platos; vacío si no hay menú) ── */}
         {showTodaySection && (

@@ -5,6 +5,10 @@
     "category": "platos_unicos",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "salsa_tomate"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -23,41 +27,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Contramuslo de pollo",
+        "ingredientId": "contramuslos-de-pollo",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Judías verdes",
+        "ingredientId": "judia-verde",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Garrofón",
+        "ingredientId": "garrofon",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Azafrán",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       }
@@ -186,7 +198,6 @@
     "name": "Pizza casera",
     "category": "platos_unicos",
     "mainProtein": "none",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -210,31 +221,38 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Levadura fresca",
+        "ingredientId": "levadura",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Mozzarella",
+        "ingredientId": "mozzarella",
         "amount": 125,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Orégano",
+        "ingredientId": "oregano",
         "amount": 3,
         "unit": "g"
       }
@@ -394,41 +412,49 @@
     "ingredients": [
       {
         "name": "Jamón serrano",
+        "ingredientId": "jamon",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Pan rallado",
+        "ingredientId": "pan-rallado",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
         "amount": 2,
         "unit": "g"
       }
@@ -456,23 +482,27 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio-suave sin que se dore.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Calentar {{Leche}} en otro cazo a fuego suave hasta que esté caliente, sin que llegue a hervir.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} al roux de golpe y remover con varillas 2 min hasta obtener una pasta lisa y sin grumos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar la leche caliente poco a poco sin dejar de remover, esperando a que cada adición se integre antes de añadir la siguiente.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir el jamón picado y {{Nuez moscada|pizca}}; remover 1 min a fuego suave para integrar.",
@@ -571,14 +601,16 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "platos_unicos_004",
     "name": "Empanada gallega de atún",
     "category": "platos_unicos",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -603,36 +635,44 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Atún en conserva",
+        "ingredientId": "atun-lata",
         "amount": 160,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 30,
         "unit": "ml"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       }
@@ -681,32 +721,38 @@
       {
         "text": "Picar {{Cebolla}} en daditos finos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Cortar {{Pimiento rojo}} en tiras pequeñas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada y el pimiento rojo a fuego medio hasta que estén tiernos.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} al sofrito y remover hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Cocer a fuego medio hasta que el sofrito reduzca y espese.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir {{Atún en conserva}} y desmenuzarlo sobre un plato.",
@@ -834,14 +880,16 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "horno"
+    "tecnica": "horno",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "platos_unicos_005",
     "name": "Empanadillas de atún",
     "category": "platos_unicos",
     "mainProtein": "pescado_azul",
-    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -865,36 +913,43 @@
     "ingredients": [
       {
         "name": "Obleas de empanadilla",
+        "ingredientId": "obleas",
         "amount": 8,
         "unit": "ud"
       },
       {
         "name": "Atún en conserva",
+        "ingredientId": "atun-lata",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Huevo cocido",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       }
@@ -933,7 +988,8 @@
       {
         "text": "Pelar {{Cebolla}} y cortar en brunoise fina. Lavar {{Pimiento verde}} y cortar también en brunoise fina.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "sofrito"
       },
       {
         "text": "Escurrir {{Atún en conserva}} y desmenuzar con un tenedor. Reservar.",
@@ -948,17 +1004,20 @@
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla y el pimiento verde picados a fuego medio hasta que estén tiernos, unos 6 min.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Tomate triturado}} y remover. Cocer a fuego medio hasta que el líquido reduzca, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el atún desmenuzado y el huevo cocido picado. Mezclar y retirar del fuego.",
@@ -1023,7 +1082,10 @@
         "kind": "emplatado"
       }
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "sofrito"
+    ]
   },
   {
     "id": "platos_unicos_006",
@@ -1056,31 +1118,38 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 100,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 200,
         "unit": "ml"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Queso en lonchas",
+        "ingredientId": "queso-en-lonchas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 15,
         "unit": "g"
       }
@@ -1210,36 +1279,43 @@
     "ingredients": [
       {
         "name": "Masa quebrada",
+        "ingredientId": "masa-quebrada",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Nata",
+        "ingredientId": "nata",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -1403,6 +1479,10 @@
     "category": "platos_unicos",
     "mainProtein": "ternera",
     "mainBase": "patatas",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -1424,31 +1504,37 @@
     "ingredients": [
       {
         "name": "Patata grande",
+        "ingredientId": "patata",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -1489,35 +1575,41 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Lavar {{Patata grande}} y pincharlas por varias partes con un tenedor.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "patatas"
       },
       {
         "text": "Colocar las patatas en la bandeja del horno y hornear hasta que estén tiernas.",
         "minutes": 30,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Pelar y picar {{Cebolla}} en trozos muy finos.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "base": "sofrito"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "base": "sofrito"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente, unos 5 min a fuego medio.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "base": "sofrito"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} a la sartén y saltear hasta que pierda el color rosado.",
@@ -1582,7 +1674,6 @@
     "name": "Wrap de pollo",
     "category": "platos_unicos",
     "mainProtein": "pollo",
-    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -1605,31 +1696,37 @@
     "ingredients": [
       {
         "name": "Tortilla de trigo",
+        "ingredientId": "tortilla-de-trigo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Lechuga",
+        "ingredientId": "lechuga",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Tomate",
+        "ingredientId": "tomate",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -1755,41 +1852,49 @@
     "ingredients": [
       {
         "name": "Bacalao desalado",
+        "ingredientId": "bacalao",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 300,
         "unit": "ml"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Mantequilla",
+        "ingredientId": "mantequilla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Pan rallado",
+        "ingredientId": "pan-rallado",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 5,
         "unit": "g"
       }
@@ -1846,17 +1951,20 @@
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio hasta que esté completamente líquida.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar con unas varillas a fuego medio hasta que la mezcla se despegue de las paredes.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Incorporar {{Leche}} poco a poco, sin dejar de remover con las varillas a fuego medio, hasta que la bechamel esté espesa y sin grumos.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "bechamel"
       },
       {
         "text": "Añadir el bacalao desmigado y el perejil picado a la bechamel. Remover a fuego suave durante 2 min hasta que estén integrados.",
@@ -1944,14 +2052,16 @@
     "mainIngredients": [
       "lacteo"
     ],
-    "tecnica": "sarten"
+    "tecnica": "sarten",
+    "basesAparte": [
+      "bechamel"
+    ]
   },
   {
     "id": "platos_unicos_011",
     "name": "Migas manchegas",
     "category": "platos_unicos",
     "mainProtein": "cerdo",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico"
     ],
@@ -1972,36 +2082,43 @@
     "ingredients": [
       {
         "name": "Pan del día anterior",
+        "ingredientId": "pan",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Panceta",
+        "ingredientId": "panceta",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 12,
         "unit": "g"
       },
       {
         "name": "Pimentón",
+        "ingredientId": "pimenton",
         "amount": 5,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Uvas",
+        "ingredientId": "uvas",
         "amount": 60,
         "unit": "g"
       }
@@ -2027,67 +2144,80 @@
       {
         "text": "Desmigar {{Pan del día anterior}} en trozos pequeños con las manos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Humedecer el pan desmigado con un poco de agua fría hasta que esté ligeramente húmedo pero no empapado.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Chorizo}} en rodajas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Panceta}} en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Ajo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Uvas}} y reservar en un bol.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír el ajo laminado a fuego suave hasta que se dore ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir la panceta y el chorizo a la sartén y sofreír a fuego medio hasta que estén dorados.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar la sartén del fuego y añadir {{Pimentón|pizca}}, removiendo rápido para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar el pan desmigado y húmedo a la sartén y mezclar bien con el sofrito.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Remover las migas a fuego medio sin parar hasta que queden sueltas y ligeramente doradas.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir las migas en plato hondo acompañadas de las uvas reservadas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -2106,6 +2236,10 @@
     "category": "platos_unicos",
     "mainProtein": "none",
     "mainBase": "arroz",
+    "baseMode": "aparte",
+    "basesAparte": [
+      "sofrito"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -2125,36 +2259,43 @@
     "ingredients": [
       {
         "name": "Pimientos rojos",
+        "ingredientId": "pimiento-rojo",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       }
@@ -2219,7 +2360,8 @@
       {
         "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte, añadir {{Arroz}} y cocer 12 min hasta que esté tierno. Escurrir y reservar.",
         "minutes": 14,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "arroz"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
@@ -2229,7 +2371,8 @@
       {
         "text": "Sofreír la cebolla picada en la sartén a fuego medio hasta que esté transparente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "sofrito"
       },
       {
         "text": "Añadir el ajo picado y los champiñones laminados a la sartén y saltear a fuego medio hasta que los champiñones suelten su agua y se doren.",
@@ -2336,31 +2479,38 @@
     "ingredients": [
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Levadura fresca",
+        "ingredientId": "levadura",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Mozzarella",
+        "ingredientId": "mozzarella",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 15,
         "unit": "ml"
       }
@@ -2532,31 +2682,37 @@
     "ingredients": [
       {
         "name": "Pan de hogaza",
+        "ingredientId": "pan",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Tomate cherry",
+        "ingredientId": "tomate-cherry",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Limón",
+        "ingredientId": "limon",
         "amount": 1,
         "unit": "ud"
       }
@@ -2643,8 +2799,7 @@
     "mainIngredients": [
       "verdura"
     ],
-    "tecnica": "crudo",
-    "mainBase": "pan"
+    "tecnica": "crudo"
   },
   {
     "id": "platos_unicos_015",
@@ -2652,6 +2807,10 @@
     "category": "platos_unicos",
     "mainProtein": "huevo",
     "mainBase": "patatas",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "salsa_tomate"
+    ],
     "mealRole": [
       "cena",
       "plato_unico"
@@ -2673,31 +2832,37 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 400,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 100,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 50,
         "unit": "ml"
       },
       {
         "name": "Pimentón picante",
+        "ingredientId": "pimenton",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       }
@@ -2799,7 +2964,6 @@
     "name": "Bocadillo de tortilla",
     "category": "platos_unicos",
     "mainProtein": "huevo",
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -2821,26 +2985,31 @@
     "ingredients": [
       {
         "name": "Pan de barra",
+        "ingredientId": "pan",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 3,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 40,
         "unit": "ml"
       }
@@ -2967,7 +3136,6 @@
     "name": "Burritos caseros de pollo",
     "category": "platos_unicos",
     "mainProtein": "pollo",
-    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -2990,31 +3158,37 @@
     "ingredients": [
       {
         "name": "Tortilla de trigo",
+        "ingredientId": "tortilla-de-trigo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 250,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Arroz cocido",
+        "ingredientId": "arroz",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -3151,6 +3325,10 @@
     "category": "platos_unicos",
     "mainProtein": "marisco",
     "mainBase": "arroz",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "salsa_tomate"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -3174,41 +3352,49 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 200,
         "unit": "g"
       },
       {
         "name": "Gambas",
+        "ingredientId": "gambas",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Mejillones",
+        "ingredientId": "mejillones",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Sepia",
+        "ingredientId": "sepia",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "ml"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 25,
         "unit": "ml"
       },
       {
         "name": "Azafrán",
+        "ingredientId": "azafran",
         "amount": 1,
         "unit": "g"
       }
@@ -3332,7 +3518,6 @@
     "extraProteins": [
       "cerdo"
     ],
-    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -3354,26 +3539,31 @@
     "ingredients": [
       {
         "name": "Tortilla de trigo",
+        "ingredientId": "tortilla-de-trigo",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Jamón cocido",
+        "ingredientId": "jamon-york",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 10,
         "unit": "ml"
       }
@@ -3504,41 +3694,49 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 4,
         "unit": "ud"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 300,
         "unit": "g"
       },
       {
         "name": "Pimiento choricero",
+        "ingredientId": "pimiento-choricero",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 150,
         "unit": "ml"
       },
       {
         "name": "Chorizo",
+        "ingredientId": "chorizo",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ajo",
+        "ingredientId": "ajo",
         "amount": 6,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 20,
         "unit": "ml"
       }
@@ -3649,6 +3847,10 @@
       "verdura"
     ],
     "tecnica": "sarten",
-    "mainBase": "patatas"
+    "mainBase": "patatas",
+    "baseMode": "dentro",
+    "basesAparte": [
+      "sofrito"
+    ]
   }
 ]

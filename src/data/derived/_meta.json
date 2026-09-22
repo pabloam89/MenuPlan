@@ -1,0 +1,92 @@
+{
+  "generado_por": "scripts/build-derived.mjs",
+  "hash_fuentes": {
+    "ingredientes": "c491d1df64181134",
+    "recetas": "c7073dd03823a2b2"
+  },
+  "recetas": 1033,
+  "recipeNutrition": {
+    "filas": 1033,
+    "cobertura_media": 0.997,
+    "cobertura_media_por_campo": {
+      "fiber_g": 0.992,
+      "sugar_g": 0.523,
+      "saturated_fat_g": 0.889,
+      "sodium_mg": 0.983,
+      "calcium_mg": 0.993,
+      "iron_mg": 0.985,
+      "magnesium_mg": 0.99,
+      "phosphorus_mg": 0.988,
+      "potassium_mg": 0.987,
+      "zinc_mg": 0.958,
+      "copper_mg": 0.721,
+      "manganese_mg": 0.718,
+      "selenium_ug": 0.933,
+      "iodine_ug": 0.877,
+      "retinol_ug": 0.832,
+      "beta_carotene_ug": 0.703,
+      "vitamin_d_ug": 0.825,
+      "vitamin_e_mg": 0.895,
+      "vitamin_k_ug": 0.623,
+      "vitamin_c_mg": 0.955,
+      "thiamin_mg": 0.96,
+      "riboflavin_mg": 0.975,
+      "niacin_mg": 0.741,
+      "pantothenic_acid_mg": 0.714,
+      "vitamin_b6_mg": 0.98,
+      "folate_ug": 0.963,
+      "vitamin_b12_ug": 0.909,
+      "cholesterol_mg": 0.933
+    },
+    "estrella": {
+      "filas": 747,
+      "cobertura_media": 0.996,
+      "cobertura_media_por_campo": {
+        "fiber_g": 0.99,
+        "sugar_g": 0.535,
+        "saturated_fat_g": 0.896,
+        "sodium_mg": 0.983,
+        "calcium_mg": 0.991,
+        "iron_mg": 0.981,
+        "magnesium_mg": 0.988,
+        "phosphorus_mg": 0.985,
+        "potassium_mg": 0.984,
+        "zinc_mg": 0.948,
+        "copper_mg": 0.71,
+        "manganese_mg": 0.707,
+        "selenium_ug": 0.923,
+        "iodine_ug": 0.866,
+        "retinol_ug": 0.819,
+        "beta_carotene_ug": 0.69,
+        "vitamin_d_ug": 0.805,
+        "vitamin_e_mg": 0.88,
+        "vitamin_k_ug": 0.596,
+        "vitamin_c_mg": 0.947,
+        "thiamin_mg": 0.955,
+        "riboflavin_mg": 0.97,
+        "niacin_mg": 0.727,
+        "pantothenic_acid_mg": 0.697,
+        "vitamin_b6_mg": 0.977,
+        "folate_ug": 0.958,
+        "vitamin_b12_ug": 0.9,
+        "cholesterol_mg": 0.922
+      }
+    }
+  },
+  "recipeParts": {
+    "filas": 1033,
+    "por_origen": {
+      "monocomponente": 195,
+      "monocomponente_juzgado": 129,
+      "sin_senal": 529,
+      "curado": 180
+    },
+    "operador_determinista": {
+      "modulo": "src/lib/derive/stepParts.js",
+      "concordancia_con_curado": 0.526,
+      "pasos_medidos": 2465,
+      "promocionable": false,
+      "motivo": "la parte es propiedad del plato, no del ingrediente: el mismo ingrediente cambia de parte segun la receta"
+    }
+  }
+}

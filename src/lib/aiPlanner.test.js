@@ -1,4 +1,20 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+
+// Este fichero prueba el planificador SORTEANDO de verdad: hay ocho tests que
+// repiten entre 10 y 150 veces una elección real de receta, porque lo que
+// comprueban es una propiedad estadística ("nunca propone X"), no un caso.
+// Eso los hace legítimamente lentos —el más pesado tarda ~1,9 s aislado— y
+// con los 5 s por defecto de vitest caen de forma intermitente SOLO en la
+// suite completa, donde la contención dobla los tiempos. Cuando caen lo hacen
+// sin mensaje de aserción y con el stack apuntando al runner, así que parecen
+// un fallo lógico y no lo son: aislados pasan siempre.
+//
+// El margen se sube para el fichero entero en vez de test a test: el que falla
+// va cambiando según cómo reparta vitest los workers, así que parchear el de
+// hoy solo mueve el problema al de mañana. No se toca ninguna iteración ni
+// ninguna aserción.
+vi.setConfig({ testTimeout: 20000 });
+
 import {
   buildUserMessage,
   buildGroupContext,
@@ -11,12 +27,15 @@ import {
   selectReplacementCandidates,
   callModel,
   poolForWeek,
+  validarNinosConCopias,
   createPlannerStats,
+  compactCatalogTable,
 } from "./aiPlanner.js";
 import { getCarbType, validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
+import { PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 
 const SLOTS = [{ slotId: "lun_cena", mealType: "cena", mode: "casa", maxTime: 30 }];
 const CONFIG = { targetKcal: 2000, freqs: {}, cookLevel: "normal", cookTime: {} };
@@ -43,6 +62,57 @@ describe("buildUserMessage pantry section", () => {
     expect(textBlock.text).toContain("- cebolla");
     expect(textBlock.text).toContain("SECUNDARIA a todas las demás reglas");
     expect(textBlock.text).toContain("No fuerces recetas que no encajen");
+  });
+});
+
+describe("compact planner format", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("compactCatalogTable keeps every field as a column and encodes lists and booleans", () => {
+    const table = compactCatalogTable([
+      { id: "a_1", name: "Sopa|ajo", mealRole: ["primero"], kidFriendly: true, tupperFriendly: false, time: 20 },
+      { id: "b_2", name: "Tortilla", mealRole: ["cena", "segundo"], favorite: true, rareField: "x" },
+    ]);
+    expect(table.split("\n")).toEqual([
+      "id|name|mealRole|time|kidFriendly|tupperFriendly|favorite|rareField",
+      "a_1|Sopa ajo|primero|20|1|0||",
+      "b_2|Tortilla|cena,segundo||||1|x",
+    ]);
+  });
+
+  it("buildUserMessage sends the table and words the flags for it", () => {
+    const [catalogBlock, textBlock] = buildUserMessage(
+      [{ id: "a", name: "A", category: "huevos", mealRole: ["cena"], isFavorite: true }],
+      SLOTS, CONFIG, {}, [], [], "prefer", [], "preferred", [], null, "compact",
+    );
+    expect(catalogBlock.text).toBe("Catálogo:\nid|name|category|mealRole|favorite\na|A|huevos|cena|1");
+    expect(catalogBlock.cache_control).toEqual({ type: "ephemeral" });
+    expect(textBlock.text).toContain("las marcadas con favorite = 1");
+    expect(textBlock.text).not.toContain('"favorite": true');
+  });
+
+  it("generateMenuWithAI asks for planner-compact and accepts the slotId→recipeId map", async () => {
+    const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 1 };
+    const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
+    const segundo = pool.find((r) => r.mealRole.includes("segundo") && r.id !== primero?.id);
+    const cena = pool.find((r) => r.mealRole.includes("cena"));
+    const answer = { slots: { lun_comida_1: primero.id, lun_comida_2: segundo.id, lun_cena: cena.id } };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ content: [{ text: JSON.stringify(answer) }] }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { plan } = await generateMenuWithAI(data, { plannerFormat: "compact" });
+    const sent = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(sent.task).toBe("planner-compact");
+    expect(sent.messages[0].content[0].text).toMatch(/^Catálogo:\nid\|name\|/);
+    expect(plan[group.id]["Lun-Cena"]?.recipeId).toBeTruthy();
   });
 });
 
@@ -820,14 +890,22 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
       usedIds.add(r.id);
       return r;
     };
+    // El primero tiene que ser SIN pescado, y decirlo aquí no es un detalle:
+    // el escenario que este test quiere montar es "DOS segundos de pescado con
+    // un tope de uno". Sin excluirlo, el primero puede caer en unos mejillones
+    // y entonces la semana lleva TRES, que es otro caso distinto — y uno que
+    // la maquinaria no arregla, así que el test fallaba por un escenario que
+    // nadie había escrito. Pasó al cerrar la puerta de cocinas: los hummus que
+    // salían antes son `cocina: arabe`, dejaron de estar en el pool por defecto
+    // y el predicado cayó en el siguiente candidato, que era de marisco.
     const primero = () =>
-      pick((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico") && getCarbType(r) !== "arroz");
+      pick((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico")
+        && getCarbType(r) !== "arroz" && !esPescado(r));
+    const esPescado = (r) =>
+      r.category === "pescados"
+      || ["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein);
     const segundoPescado = () =>
-      pick(
-        (r) =>
-          r.mealRole.includes("segundo") &&
-          (r.category === "pescados" || ["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein)),
-      );
+      pick((r) => r.mealRole.includes("segundo") && esPescado(r));
     const cenaArrozNoPescado = () =>
       pick(
         (r) =>
@@ -906,7 +984,7 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     const fixedRecipe = recipeCatalogById.carnes_002;
     expect(fixedRecipe, "fixture depends on carnes_002 existing in the catalog").toBeTruthy();
     expect(fixedRecipe.mealRole).toContain("cena");
-    expect(["pollo", "pavo", "cerdo", "ternera"]).toContain(fixedRecipe.mainProtein);
+    expect(PROTEIN_GROUP_BY_MAIN_PROTEIN[fixedRecipe.mainProtein]).toBe("carne");
 
     const data = {
       members: [{ id: "m1", age: 35, allergies: ["Marisco"] }],
@@ -937,8 +1015,13 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     // dishes per slot, so the only violations validateMenu should find are
     // the ones this test deliberately set up (fixed-dish placement + school
     // avoidance), not incidental noise from e.g. recipeId_repetido cascades.
+    // La familia sale de PROTEIN_GROUP_BY_MAIN_PROTEIN y no de una lista
+    // escrita aquí: esta era la CUARTA copia a mano de esa tabla, y se
+    // descuadró en cuanto el enum ganó `pato`, `cordero` y `caza` (21 sep
+    // 2026). Un magret dejó de ser "pollo", pasó el filtro como si no fuera
+    // carne, y el menú de la mock cambió entero.
     const notCarneOrFixed = (r) =>
-      r.id !== fixedRecipe.id && !["pollo", "pavo", "cerdo", "ternera"].includes(r.mainProtein);
+      r.id !== fixedRecipe.id && PROTEIN_GROUP_BY_MAIN_PROTEIN[r.mainProtein] !== "carne";
     const used = new Set([fixedRecipe.id]);
     const pickDistinct = (pred) => {
       const r = pool.find((c) => pred(c) && notCarneOrFixed(c) && !used.has(c.id));
@@ -1435,6 +1518,50 @@ describe("poolForWeek — variedad multi-semana", () => {
     for (const w of weeks) expect(w.size).toBeGreaterThanOrEqual(slotCount);
   });
 
+  it("reparte cada CATEGORÍA entre las semanas, no la bolsa entera", () => {
+    // El bug que esto sujeta: el cubo salía de un hash del id sobre el pool
+    // completo, ciego a qué es cada receta. Con cuatro semanas, a una le podían
+    // tocar seis pescados y a otra uno — y la que se queda corta pierde su
+    // objetivo semanal de pescado con un aviso, mientras la otra va sobrada.
+    const catalogo = [];
+    for (const cat of ["carnes", "pescados", "legumbres", "huevos"]) {
+      for (let i = 0; i < 12; i++) catalogo.push({ id: `${cat}_${i}`, category: cat });
+    }
+    const weekCount = 4;
+    for (let weekIndex = 0; weekIndex < weekCount; weekIndex++) {
+      const semana = poolForWeek(catalogo, { weekIndex, weekCount, varietyPref: "strict" }, 4);
+      for (const cat of ["carnes", "pescados", "legumbres", "huevos"]) {
+        const n = semana.filter((r) => r.category === cat).length;
+        // 12 recetas entre 4 semanas: exactamente 3 de cada categoría.
+        expect(n).toBe(3);
+      }
+    }
+  });
+
+  it("y sigue siendo determinista y sin mirar a las otras semanas", () => {
+    const catalogo = Array.from({ length: 40 }, (_, i) => ({
+      id: `r${i}`,
+      category: i % 2 ? "carnes" : "pescados",
+    }));
+    const args = { weekIndex: 1, weekCount: 3, varietyPref: "strict" };
+    const a = poolForWeek(catalogo, args, 5).map((r) => r.id);
+    const b = poolForWeek(catalogo, args, 5).map((r) => r.id);
+    expect(a).toEqual(b);
+  });
+
+  it("conserva el orden del pool original (importa para el fallback)", () => {
+    // El fallback coge "el primero que pasa" y `ordenarPorSesgo` es un sort
+    // estable encima: si la partición reordenara el pool, cambiaría en silencio
+    // qué plato sale elegido.
+    const catalogo = Array.from({ length: 40 }, (_, i) => ({
+      id: `r${i}`,
+      category: i % 3 === 0 ? "carnes" : i % 3 === 1 ? "pescados" : "huevos",
+    }));
+    const semana = poolForWeek(catalogo, { weekIndex: 0, weekCount: 3, varietyPref: "strict" }, 5);
+    const posiciones = semana.map((r) => catalogo.findIndex((c) => c.id === r.id));
+    expect(posiciones).toEqual([...posiciones].sort((a, b) => a - b));
+  });
+
   it("strict con pool ajustado: hace top-up best-effort sin fallar (no lanza)", () => {
     const small = Array.from({ length: 14 }, (_, i) => ({ id: `s${i}` }));
     expect(() =>
@@ -1485,5 +1612,207 @@ describe("mergeIngredientLines", () => {
       { name: "Pimienta", qty: null, unit: "al gusto" },
     ]);
     expect(merged).toEqual([expect.objectContaining({ name: "Pimienta", qty: null })]);
+  });
+});
+
+describe("validarNinosConCopias — las cenas de los niños ven sus comidas copiadas", () => {
+  // El bug: los huecos de Niños que copian del menú de Adultos se saltan en
+  // buildGroupContext y se materializan en la hidratación, fuera del
+  // validador. Así que el grupo Niños se validaba a solas con sus cenas, sin
+  // ver nunca sus comidas: los adultos comían pollo, se copiaba al niño, y al
+  // niño se le generaba aparte un pollo de cena que nadie veía como repetición.
+  const receta = (id, mainProtein, mealRole, extra = {}) => ({
+    id, name: id, mainProtein, mealRole, category: "carnes",
+    ingredients: [], allergens: [], time: 20, kcal: 400, ...extra,
+  });
+  const adults = { id: "ga", label: "Adultos", memberIds: ["a1"] };
+  const kids = { id: "gk", label: "Niños", memberIds: ["k1"] };
+  const data = {
+    members: [{ id: "a1", age: 40 }, { id: "k1", age: 8 }],
+    groups: [adults, kids],
+    schedule: {},
+    // Mediodía en familia (se copia de los adultos), cena aparte (se genera).
+    kidDinnerConfig: { byMember: { k1: { weekdayLunch: "together", dinner: "different", weekend: "together" } } },
+  };
+  const crema = receta("crema", "none", ["primero"], { category: "sopas_cremas" });
+  const polloSeg = receta("pollo_seg", "pollo", ["segundo"]);
+  const polloCena = receta("pollo_cena", "pollo", ["cena"]);
+  const merluzaCena = receta("merluza_cena", "pescado_blanco", ["cena"], { category: "pescados" });
+  const ctx = (slotId, mealType, position) =>
+    ({ slotId, mealType, position, day: "Lun", daySlug: "lun", eaters: 2, mode: "casa", maxTime: 60 });
+  const adultsRes = () => ({
+    group: adults,
+    slotAssignments: [{ slotId: "lun_comida_1", recipeId: "crema" }, { slotId: "lun_comida_2", recipeId: "pollo_seg" }],
+    filteredPool: [crema, polloSeg],
+    slotsContext: [ctx("lun_comida_1", "comida", "primero"), ctx("lun_comida_2", "comida", "segundo")],
+    warnings: [],
+  });
+  const kidsRes = (cena) => ({
+    group: kids,
+    slotAssignments: [{ slotId: "lun_cena", recipeId: cena }],
+    filteredPool: [polloCena, merluzaCena],
+    slotsContext: [ctx("lun_cena", "cena", undefined)],
+    warnings: [],
+  });
+
+  it("repara la cena propia cuando repite la proteína de la comida copiada", () => {
+    const a = adultsRes();
+    const k = kidsRes("pollo_cena");
+    validarNinosConCopias(data, a, k);
+    expect(k.slotAssignments).toEqual([{ slotId: "lun_cena", recipeId: "merluza_cena" }]);
+    // La comida de los padres no se toca: es su decisión, no la del niño.
+    expect(a.slotAssignments[1].recipeId).toBe("pollo_seg");
+  });
+
+  it("no toca nada cuando no hay choque", () => {
+    const k = kidsRes("merluza_cena");
+    validarNinosConCopias(data, adultsRes(), k);
+    expect(k.slotAssignments).toEqual([{ slotId: "lun_cena", recipeId: "merluza_cena" }]);
+    expect(k.warnings).toEqual([]);
+  });
+
+  it("solo devuelve los huecos propios: los copiados no se cuelan en el resultado", () => {
+    const k = kidsRes("pollo_cena");
+    validarNinosConCopias(data, adultsRes(), k);
+    expect(k.slotAssignments.map((s) => s.slotId)).toEqual(["lun_cena"]);
+  });
+
+  it("sin política de niños no hace nada", () => {
+    const k = kidsRes("pollo_cena");
+    validarNinosConCopias({ ...data, kidDinnerConfig: undefined }, adultsRes(), k);
+    expect(k.slotAssignments[0].recipeId).toBe("pollo_cena");
+  });
+});
+
+describe("pickCatalogReplacement no repite la base del día", () => {
+  // Reportado rellenando la semana de golpe: macarrones a mediodía y pasta al
+  // horno de cena. Son dos proteínas distintas, así que la guardia de
+  // proteínas no las veía — y es la misma cena dos veces.
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+
+  it("con pasta en la comida, la cena no propone pasta", () => {
+    const pasta = Object.values(recipeCatalogById).find(
+      (r) => getCarbType(r) === "pasta" && r.mealRole?.includes("plato_unico"),
+    );
+    expect(pasta).toBeTruthy();
+    const plan = {
+      g1: {
+        "Lun-Comida": { recipeId: pasta.id, eaters: 2 },
+        "Lun-Cena": { recipeId: null, eaters: 2, cleared: true },
+      },
+    };
+    for (let i = 0; i < 20; i++) {
+      const res = pickCatalogReplacement(data, plan, {
+        groupId: "g1", day: "Lun", meal: "Cena", course: "main",
+      });
+      expect(res).toBeTruthy();
+      const puesto = recipeCatalogById[res.frontendRecipe.baseRecipeId];
+      expect(getCarbType(puesto)).not.toBe("pasta");
+    }
+  });
+
+  it("la base de OTRO día no estorba", () => {
+    const pasta = Object.values(recipeCatalogById).find(
+      (r) => getCarbType(r) === "pasta" && r.mealRole?.includes("plato_unico"),
+    );
+    const plan = {
+      g1: {
+        "Mar-Comida": { recipeId: pasta.id, eaters: 2 },
+        "Lun-Cena": { recipeId: null, eaters: 2, cleared: true },
+      },
+    };
+    const res = pickCatalogReplacement(data, plan, {
+      groupId: "g1", day: "Lun", meal: "Cena", course: "main", candidatos: 40,
+    });
+    // No es que TENGA que salir pasta, es que no se prohíbe: el pool sigue
+    // teniendo de todo.
+    expect(res.candidatos.length).toBeGreaterThan(1);
+  });
+});
+
+describe("pickCatalogReplacement devuelve las sugerencias del hueco con `candidatos`", () => {
+  // Las sugerencias que el recetario enseña abajo tienen que salir del MISMO
+  // pool que el "Cambiar plato" de al lado. Si se calcularan por otro camino,
+  // la app tendría dos ideas distintas de "qué cabe aquí" y acabaría
+  // proponiendo platos que su propio botón descarta.
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+  const huecoVacio = { [group.id]: { "Lun-Cena": { recipeId: null, eaters: 2, cleared: true } } };
+
+  it("devuelve como mucho N candidatos, y son recetas del catálogo", () => {
+    const res = pickCatalogReplacement(data, huecoVacio, {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main", candidatos: 12,
+    });
+    expect(res.candidatos.length).toBeGreaterThan(0);
+    expect(res.candidatos.length).toBeLessThanOrEqual(12);
+    for (const r of res.candidatos) expect(recipeCatalogById[r.id]).toBeTruthy();
+  });
+
+  it("todas valen para ese hueco: una cena nunca propone un plato de solo primero", () => {
+    const res = pickCatalogReplacement(data, huecoVacio, {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main", candidatos: 12,
+    });
+    for (const r of res.candidatos) {
+      expect(r.mealRole.some((rol) => rol === "cena" || rol === "plato_unico")).toBe(true);
+    }
+  });
+
+  it("no propone lo que ya está puesto esta semana", () => {
+    const yaPuesto = Object.values(recipeCatalogById).find((r) => r.mealRole?.includes("cena"));
+    const plan = {
+      [group.id]: {
+        "Lun-Cena": { recipeId: null, eaters: 2, cleared: true },
+        "Mar-Cena": { recipeId: yaPuesto.id, eaters: 2 },
+      },
+    };
+    const res = pickCatalogReplacement(data, plan, {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main", candidatos: 12,
+    });
+    expect(res.candidatos.map((r) => r.id)).not.toContain(yaPuesto.id);
+  });
+
+  it("sin `candidatos` se comporta igual que siempre: coloca un plato", () => {
+    const res = pickCatalogReplacement(data, huecoVacio, {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main",
+    });
+    expect(res.candidatos).toBeUndefined();
+    expect(res.recipeId).toBeTruthy();
+    expect(res.frontendRecipe).toBeTruthy();
+  });
+});
+
+describe("las franjas de fuera de menú se sirven de su propio pool", () => {
+  // Reportado: un hueco de desayuno proponía platos únicos de comida. La rama
+  // de roles es de comida/cena; desayuno, merienda y postre tienen pools
+  // propios en el catálogo, los mismos que usa el generador.
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+  const hueco = (meal) => ({ [group.id]: { [`Lun-${meal}`]: { recipeId: null, eaters: 2, cleared: true } } });
+
+  for (const [meal, categoria] of [["Desayuno", "desayunos"], ["Merienda", "meriendas"], ["Postre", "postres"]]) {
+    it(`${meal} solo propone recetas de la categoría ${categoria}`, () => {
+      const res = pickCatalogReplacement(data, hueco(meal), {
+        groupId: group.id, day: "Lun", meal, course: "main", candidatos: 10,
+      });
+      expect(res.candidatos.length).toBeGreaterThan(0);
+      for (const r of res.candidatos) expect(r.category).toBe(categoria);
+    });
+  }
+
+  it("y al colocar de verdad también sale de ese pool", () => {
+    const res = pickCatalogReplacement(data, hueco("Desayuno"), {
+      groupId: group.id, day: "Lun", meal: "Desayuno", course: "main",
+    });
+    expect(recipeCatalogById[res.frontendRecipe.baseRecipeId].category).toBe("desayunos");
+  });
+
+  it("la cena sigue yendo por roles, no por pool de franja", () => {
+    const res = pickCatalogReplacement(data, hueco("Cena"), {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main", candidatos: 10,
+    });
+    for (const r of res.candidatos) {
+      expect(r.mealRole.some((rol) => rol === "cena" || rol === "plato_unico")).toBe(true);
+    }
   });
 });

@@ -62,3 +62,28 @@ describe("ensureHealthFlags", () => {
     expect(result.healthFlags).toEqual([]);
   });
 });
+
+describe("el hierro medido, ademas de las palabras", () => {
+  const receta = (extra) => ({ name: "Bowl de quinoa y semillas", ingredients: ["Quinoa"], ...extra });
+
+  it("marca rico_hierro cuando la racion pasa de 3,5 mg", () => {
+    // Ninguna de las quince palabras de IRON_RE nombra este plato.
+    expect(deriveHealthFlags(receta({ macros: { iron_mg: 4.2 } }))).toContain("rico_hierro");
+  });
+
+  it("no lo marca por debajo del umbral", () => {
+    expect(deriveHealthFlags(receta({ macros: { iron_mg: 1.1 } }))).not.toContain("rico_hierro");
+  });
+
+  // Lo importante del diseno: el dato SUMA, nunca resta. Con el hierro en solo
+  // 166 de los 371 ingredientes, sustituir la heuristica por la medida dejaria
+  // de marcar platos que hoy se marcan.
+  it("sin hierro medido sigue mandando la lista de palabras", () => {
+    expect(deriveHealthFlags({ name: "Lentejas estofadas", ingredients: ["Lentejas"] })).toContain("rico_hierro");
+  });
+
+  it("un hierro bajo NO desmarca lo que la lista ya marco", () => {
+    const f = deriveHealthFlags({ name: "Lentejas estofadas", ingredients: ["Lentejas"], macros: { iron_mg: 0.2 } });
+    expect(f).toContain("rico_hierro");
+  });
+});

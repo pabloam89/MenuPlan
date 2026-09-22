@@ -1,0 +1,124 @@
+{
+  "_doc": {
+    "que": "Cómo llama el súper a un ingrediente cuando no lo llama por su nombre.",
+    "porque": "Hay dos maneras de fallar al emparejar un ingrediente con un producto, y solo una la arregla el algoritmo. Los FALSOS POSITIVOS —«Atún fresco» acabando en «Butifarra fresca»— son un defecto del emparejador y se corrigieron en productMatcher.js. Los FALSOS NEGATIVOS no: el morcillo existe en Mercadona, pero se vende como «Trozo de vacuno para cocido», y no hay medida de parecido entre cadenas que una esas dos cosas. Eso lo sabe una persona o no lo sabe nadie.",
+    "porque_terminos_y_no_ids": "El catálogo se refresca por cron y los identificadores de producto cambian con él; los nombres comerciales no. Fijar el término de búsqueda sobrevive al refresco y fijar el id no. Además un término puede seguir acertando cuando el súper cambia de proveedor, y un id caducado no falla: desaparece en silencio.",
+    "como": "Clave = nombre del ingrediente normalizado (minúsculas, sin tildes). `buscar` son términos adicionales que se suman al nombre propio, no lo sustituyen. `motivo` es obligatorio: si nadie sabe por qué está una línea, nadie se atreve a tocarla.",
+    "verificado": "2026-09-21 contra public/store/mercadona.json. El test productoBuscado.test.js comprueba que cada clave es un ingrediente real y que cada término sigue encontrando algo en el catálogo."
+  },
+
+  "ajetes": {
+    "buscar": ["ajo tierno"],
+    "motivo": "El ajete es el ajo tierno; Mercadona usa el segundo nombre y nunca el primero."
+  },
+  "ajetes tiernos": {
+    "buscar": ["ajo tierno"],
+    "motivo": "Igual que «Ajetes». Antes casaba «Cebollas tiernas», que es otra planta."
+  },
+  "morcillo de ternera": {
+    "buscar": ["trozo de vacuno para cocido"],
+    "motivo": "El morcillo se vende descrito por su uso y no por su nombre. Antes casaba «Morcilla de cebolla», que es un embutido y ni siquiera es la misma pieza."
+  },
+  "carne picada de cerdo": {
+    "buscar": ["preparado de carne picada cerdo"],
+    "motivo": "Mercadona no vende «carne picada»: vende «Preparado de carne picada», y de cerdo, vacuno o mezcla. Sin esto el emparejador la mandaba a «Tocino de cerdo» al 0,57 — el mismo producto que ya se llevaba las manitas y el tocino, y por eso saltó el test del imán."
+  },
+  "carne picada de ternera": {
+    "buscar": ["preparado de carne picada vacuno"],
+    "motivo": "Igual que la de cerdo, y aquí el súper además cambia de palabra: ternera es «vacuno». Sin esto no encontraba NADA, y son 17 recetas."
+  },
+  "carne para mechar (morcillo de ternera)": {
+    "buscar": ["trozo de vacuno para cocido"],
+    "motivo": "El mismo corte que «Morcillo de ternera», escrito de otra manera en el catálogo de recetas."
+  },
+  "solomillo de ternera": {
+    "buscar": ["solomillo de vacuno"],
+    "motivo": "Existe el producto exacto. Antes casaba «Solomillos de pollo»: el corte coincidía y el animal no."
+  },
+  "higado de ternera": {
+    "buscar": ["higado de vacuno"],
+    "motivo": "Existe el producto exacto. Antes casaba «Hígados y corazones de pollo»."
+  },
+  "pluma iberica": {
+    "buscar": ["pluma de cerdo"],
+    "motivo": "En el súper la pieza lleva el animal y no la denominación ibérica."
+  },
+  "laminas de lasana": {
+    "buscar": ["placas para lasana"],
+    "motivo": "Antes casaba «Lasaña de pollo», que es el plato terminado y no la pasta."
+  },
+  "placas de canelones": {
+    "buscar": ["placas para canelones"],
+    "motivo": "Antes casaba «Canelones de carne ultracongelados», que es el plato hecho."
+  },
+  "placas de cannelones": {
+    "buscar": ["placas para canelones"],
+    "motivo": "La misma pasta con la grafía italiana de dos enes, que es como está escrita en algunas recetas."
+  },
+  "arroz bomba": {
+    "buscar": ["arroz albufera"],
+    "motivo": "Mercadona no vende arroz con la denominación bomba. El Albufera es de la misma familia y está pensado para paella, que es para lo que las recetas piden bomba. El redondo genérico absorbe peor el caldo."
+  },
+  "arroz arborio": {
+    "buscar": ["arroz redondo"],
+    "motivo": "Tampoco hay arborio. Aquí sí vale el redondo: para un risotto lo que importa es el almidón del grano corto, no la variedad, y el Albufera es arroz de paella."
+  },
+  "maicena": {
+    "buscar": ["harina fina de maiz"],
+    "motivo": "Sustituye a los alias «fécula de maíz» y «maizena», que no encontraban nada porque ninguno de los dos nombres está en el catálogo. Antes acababa en «Aros de maíz Hacendado»."
+  },
+  "pan chapata": {
+    "buscar": ["panes chapata"],
+    "motivo": "El catálogo lo pluraliza y le añade «de cristal». Antes casaba «Pan Viena»."
+  },
+
+  "queso parmesano": {
+    "buscar": ["grana padano"],
+    "motivo": "No hay parmigiano en el catálogo. El grana padano es el queso de pasta dura curada que ocupa su lugar en la cocina y en el rallador. Antes casaba «Queso cottage», que es fresco y desgrasado: el error nutricional más caro de la lista."
+  },
+  "queso crema": {
+    "buscar": ["queso untar"],
+    "motivo": "Mercadona lo llama «queso para untar». Antes casaba «Crema de queso camembert», que es otro queso y otro sabor."
+  },
+  "hojas de gelatina": {
+    "buscar": ["gelatina neutra en laminas"],
+    "motivo": "Antes casaba «Hoja de laurel»: coincidía la palabra «hoja», que aquí es el formato y no el alimento."
+  },
+  "levadura quimica": {
+    "buscar": ["impulsor gasificante"],
+    "motivo": "En España el producto se etiqueta «impulsor» o «gasificante», nunca «levadura química». Antes casaba «Levadura fresca», que es un hongo vivo y no sirve para repostería química."
+  },
+  "semillas de sesamo": {
+    "buscar": ["semillas sesamo tostado"],
+    "motivo": "Antes casaba «Semillas de chía»: coincidía «semillas», que es el formato."
+  },
+  "curry en polvo": {
+    "buscar": ["curry"],
+    "motivo": "El bote se llama solo «Curry». Antes casaba «Cebolla en polvo», que también es la coincidencia del formato y no del alimento."
+  },
+  "chile fresco": {
+    "buscar": ["cayena guindillas"],
+    "motivo": "El ingrediente tiene id `cayena` aunque se llame «Chile fresco», y la cayena sí está en el catálogo. La palabra «chile» a secas trae mejillones de Chile, que es el país."
+  },
+  "sal gorda": {
+    "buscar": ["sal gruesa"],
+    "motivo": "Antes casaba «Sal fina», que es exactamente lo contrario."
+  },
+  "nachos de maiz": {
+    "buscar": ["nachos"],
+    "motivo": "Antes casaba «Aros de maíz», que es un snack distinto."
+  },
+  "trufa negra": {
+    "buscar": ["salsa de trufa"],
+    "motivo": "No hay trufa fresca. La salsa es lo único con trufa del catálogo y cambia el plato, pero antes casaba «Cerveza negra Ambar» por la palabra «negra», que es peor."
+  },
+
+  "bonito en conserva": {
+    "buscar": ["bonito del norte"],
+    "motivo": "Existe y no lo encontraba nada: el nombre comercial lleva siempre «del norte»."
+  },
+  "foie mi-cuit": {
+    "buscar": ["foie gras de pato"],
+    "motivo": "El catálogo no usa «mi-cuit». Hay foie fresco y en bloc, y ninguno se encontraba."
+  }
+}

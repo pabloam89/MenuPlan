@@ -130,7 +130,43 @@ function devDishPhotoApi(env) {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
+  // El commit del que sale este build, para sellar cada evento de analítica
+  // (ver APP_VERSION en src/lib/analytics.js). Vercel expone
+  // VERCEL_GIT_COMMIT_SHA en el entorno de build; en local no existe y queda
+  // "dev", que es exactamente lo que se quiere — así los eventos de un `npm run
+  // dev` no se mezclan con los de un deploy real.
+  //
+  // Sin esto, `import.meta.env.VITE_APP_VERSION` era siempre undefined y todos
+  // los eventos del histórico quedaron sellados con la misma constante: no hay
+  // forma de saber qué build produjo cuál, ni por tanto de medir si un cambio
+  // de motor mejoró algo.
+  const appVersion =
+    (process.env.VERCEL_GIT_COMMIT_SHA || env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) ||
+    env.VITE_APP_VERSION ||
+    'dev'
+
+  // Qué motor asigna los platos (ver solverActivo en src/lib/solver.js). En
+  // los builds de la rama `staging` el solver va encendido por defecto; en
+  // producción y en local sigue el modelo, salvo que VITE_MOTOR diga otra
+  // cosa. Así staging prueba el solver con casas reales sin tocar prod, y un
+  // navegador concreto puede volver al modelo con localStorage.mp_motor.
+  const gitRef = process.env.VERCEL_GIT_COMMIT_REF || env.VERCEL_GIT_COMMIT_REF || ''
+  const motor =
+    process.env.VITE_MOTOR || env.VITE_MOTOR || (gitRef === 'staging' ? 'solver' : 'modelo')
+
+  // La pizarra: empezar un menú vacío y rellenarlo a mano (ver pizarraActiva
+  // en src/lib/pizarra.js). Mismo trato que el motor —encendida en `staging`,
+  // apagada en producción y en local— porque es lo mismo: una puerta nueva en
+  // Inicio que queremos probar con casas reales antes de abrírsela a todos.
+  const pizarra =
+    process.env.VITE_PIZARRA || env.VITE_PIZARRA || (gitRef === 'staging' ? 'on' : 'off')
+
   return {
+    define: {
+      'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+      'import.meta.env.VITE_MOTOR': JSON.stringify(motor),
+      'import.meta.env.VITE_PIZARRA': JSON.stringify(pizarra),
+    },
     plugins: [
       react(),
       devGenerateApi(env),
@@ -177,6 +213,28 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    test: {
+      // Tope de workers, y no es una manía de rendimiento: sin él la suite
+      // PIERDE TESTS. Medido el 21 sep 2026 en un portátil de 8 hilos, tres
+      // ejecuciones seguidas de `vitest run`:
+      //
+      //   1742 tests ejecutados, 3 "fallos"
+      //   1721 tests ejecutados, los mismos 3 "fallos"
+      //   1751 tests ejecutados, 0 fallos   ← con --no-file-parallelism
+      //
+      // Que el TOTAL cambie entre ejecuciones es el síntoma: no son
+      // aserciones fallando, son workers muriéndose y llevándose por delante
+      // los ficheros que tenían asignados. Los tres que "fallaban" pasan
+      // aislados, y eran distintos cada día según cómo repartiera vitest.
+      //
+      // La causa es memoria: cada worker carga el catálogo entero (recetas,
+      // ingredientes, alimentos, las tablas derivadas), y esos ficheros han
+      // crecido bastante al cerrar la nutrición. Con la mitad de workers cabe.
+      //
+      // Un porcentaje y no un número fijo para que una máquina de CI con más
+      // núcleos siga aprovechándolos.
+      maxWorkers: "50%",
+    },
     server: {
       port: 5176,
       // Falla en vez de saltar a otro puerto: así la URL local es siempre

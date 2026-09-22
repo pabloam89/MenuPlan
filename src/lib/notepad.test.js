@@ -214,15 +214,58 @@ describe("el registro de campos", () => {
 // sitio y el planner lee de otro, en silencio.
 describe("la tabla y proyectar no se contradicen", () => {
   it("cada campo cae donde su fila dice", () => {
-    const valores = { freqs: 2, base: 1, cocina: 1, tecnica: 1, salsa: 1, esfuerzo: 1, excluidos: true, favoritos: true };
+    const valores = { freqs: 2, reparto: 20, base: 1, tanda: 3, tandaPlatos: 2, cocina: 1, tecnica: 1, salsa: 1, esfuerzo: 1, excluidos: true, favoritos: true };
     for (const c of CAMPOS) {
       const valor = c.dominio ? c.dominio[0] : "cilantro";
       const n = poner(libretaVacia(), rutaDe(c.id, valor), valores[c.id], { origen: "texto" });
       const v = proyectar(n);
       if (c.proyecta === "freqs") expect(v.freqs[valor]).toBeDefined();
+      else if (c.proyecta === "reparto") expect(v.reparto[valor]).toBeDefined();
+      else if (c.proyecta === "tanda") expect(v.tanda[valor]).toBeDefined();
+      else if (c.proyecta === "tandaPlatos") expect(v.tandaPlatos[valor]).toBeDefined();
       else if (c.proyecta === "excluidos") expect(v.excluidos).toContain(valor);
       else if (c.proyecta === "favoritos") expect(v.favoritos).toContain(valor);
       else expect(v.sesgos[c.id]?.[valor]).toBeDefined();
     }
+  });
+});
+
+describe("migración: separar la tanda del sesgo en el eje `base`", () => {
+  // Los dos vivían en `base.*` queriendo decir cosas distintas — el panel un
+  // sesgo (±1) y el selector una cuenta (2-5) — y `basesPedidas` promovía
+  // cualquier positivo a tanda. "Echo de menos más pasta" salía como "dos
+  // platos de pasta en tanda, obligatorio".
+  it("mueve a `tanda` lo que solo pudo escribir el selector (>= 2)", () => {
+    const vieja = poner(libretaVacia(), "base.sofrito", 3, { origen: "pregunta" });
+    const n = normalizar(vieja);
+    expect(n.campos["tanda.sofrito"]?.valor).toBe(3);
+    expect(n.campos["base.sofrito"]).toBeUndefined();
+    expect(proyectar(n).tanda).toEqual({ sofrito: 3 });
+  });
+
+  it("deja en `base` el sesgo, que es el significado débil", () => {
+    // El 1 es ambiguo (una versión vieja del selector también lo escribía), y
+    // se degrada a propósito: perder una tanda se arregla volviendo a pedirla;
+    // inventarse una es lo que el motor cumple a la fuerza sin que nadie lo
+    // haya pedido.
+    for (const v of [1, -1]) {
+      const n = normalizar(poner(libretaVacia(), "base.pasta", v, { origen: "texto" }));
+      expect(n.campos["base.pasta"]?.valor).toBe(v);
+      expect(n.campos["tanda.pasta"]).toBeUndefined();
+      expect(proyectar(n).tanda).toEqual({});
+    }
+  });
+
+  it("conserva la procedencia al mover", () => {
+    const vieja = poner(libretaVacia(), "base.bechamel", 4, {
+      origen: "pregunta", frase: "dos de bechamel", fecha: "2026-09-01",
+    });
+    const n = normalizar(vieja);
+    expect(n.campos["tanda.bechamel"]?.procedencia?.frase).toBe("dos de bechamel");
+  });
+
+  it("es idempotente", () => {
+    const una = normalizar(poner(libretaVacia(), "base.arroz", 5, { origen: "pregunta" }));
+    expect(normalizar(una)).toEqual(una);
   });
 });

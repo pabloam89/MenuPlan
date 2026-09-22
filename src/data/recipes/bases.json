@@ -1,0 +1,2169 @@
+[
+  {
+    "id": "bases_001",
+    "name": "Arroz blanco rehogado",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "arroz",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 800,
+      "unit": "g"
+    },
+    "time": 20,
+    "minutosFijos": 18,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 290,
+    "protein_g": 6,
+    "carbs_g": 55,
+    "fat_g": 6,
+    "fiber_g": 1,
+    "sugar_g": 0,
+    "saturated_fat_g": 1,
+    "sodium_mg": 480,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 2
+    },
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "ingredientId": "arroz",
+        "amount": 280,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 560,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y laminar ajo.",
+      "Calentar aceite de oliva virgen extra en una cazuela y dorar el ajo a fuego suave.",
+      "Añadir arroz y rehogar removiendo hasta que el grano se vuelva translúcido.",
+      "Verter agua y sal, subir el fuego y llevar a ebullición.",
+      "Bajar el fuego, tapar y cocer sin destapar hasta que el grano esté suelto.",
+      "Retirar del fuego, dejar reposar tapado y remover con un tenedor para soltar el grano.",
+      "Extender en una bandeja para que enfríe rápido y repartir en táperes."
+    ],
+    "description": "Arroz blanco rehogado con ajo, la base de una olla que da para varios platos de la semana.",
+    "stepsRich": [
+      {
+        "text": "Pelar y laminar {{Ajo}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva virgen extra}} en una {{@Cazuela}} y dorar el ajo a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y rehogar removiendo hasta que el grano se vuelva translúcido.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Agua}} y {{Sal|gusto}}, subir el fuego y llevar a ebullición.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego, tapar y cocer sin destapar hasta que el grano esté suelto.",
+        "minutes": 16,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego, dejar reposar tapado y remover con un tenedor para soltar el grano.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Extender en una bandeja para que enfríe rápido y repartir en táperes.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera, pasarla a un bol y regarla con una cucharada de agua o de caldo: en frío el grano se seca y sin eso queda duro.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar tapado, removiendo a mitad, hasta que vuelva a estar suelto.",
+        "minutes": 3,
+        "kind": "pasivo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar la ración del congelador y pasarla a un bol.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar con una cucharada de agua y tapar el bol.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar en el microondas removiendo a mitad, hasta que el grano vuelva a estar suelto.",
+        "minutes": 3,
+        "kind": "activo"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Rehoga el arroz un minuto en la olla destapada, añade el doble de agua y sal. Cierra y cuenta 5 minutos desde que sube la válvula. Despresuriza y deja reposar 3 minutos tapado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Arroz, agua y sal en el vaso. Programa 14 minutos, 100°C, velocidad cuchara giro inverso. Vuelca en una fuente ancha para que se enfríe rápido antes de guardarlo."
+      }
+    ]
+  },
+  {
+    "id": "bases_002",
+    "name": "Pasta cocida al dente",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 700,
+      "unit": "g"
+    },
+    "time": 12,
+    "minutosFijos": 10,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 300,
+    "protein_g": 11,
+    "carbs_g": 60,
+    "fat_g": 3,
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 0,
+    "sodium_mg": 520,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "conservacion": {
+      "nevera": 2
+    },
+    "allergens": [
+      "gluten"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Pasta corta",
+        "ingredientId": "pasta-corta",
+        "amount": 320,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 3000,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Llevar agua a ebullición en una olla grande y añadir sal.",
+      "Echar pasta corta de golpe y remover para que no se pegue.",
+      "Cocer un minuto MENOS de lo que diga el paquete: va a recalentarse después.",
+      "Escurrir sin enjuagar y devolver a la olla.",
+      "Remover con aceite de oliva virgen extra para que no se apelmace al enfriar.",
+      "Repartir en táperes y guardar en la nevera."
+    ],
+    "description": "Pasta hervida un punto por debajo, lista para saltear con cualquier salsa de la semana.",
+    "stepsRich": [
+      {
+        "text": "Llevar {{Agua}} a ebullición en una {{@Olla}} grande y añadir {{Sal|gusto}}.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Echar {{Pasta corta}} de golpe y remover para que no se pegue.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer un minuto MENOS de lo que diga el paquete: va a recalentarse después.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir sin enjuagar y devolver a la olla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con {{Aceite de oliva virgen extra}} para que no se apelmace al enfriar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en táperes y guardar en la nevera.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera y soltarla con un tenedor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Treinta segundos en agua hirviendo, o directa a la sartén con la salsa ya caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      }
+    ]
+  },
+  {
+    "id": "bases_003",
+    "name": "Patatas cocidas",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "patatas",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 900,
+      "unit": "g"
+    },
+    "time": 30,
+    "minutosFijos": 28,
+    "minutosPorRacion": 1,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 190,
+    "protein_g": 4,
+    "carbs_g": 43,
+    "fat_g": 0,
+    "fiber_g": 4,
+    "sugar_g": 2,
+    "saturated_fat_g": 0,
+    "sodium_mg": 380,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "conservacion": {
+      "nevera": 3
+    },
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 1000,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 2000,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 20,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar patata y dejarlas enteras con piel: así no se aguan al cocer.",
+      "Cubrir con agua fría en una olla, añadir sal y llevar a ebullición.",
+      "Cocer hasta que un cuchillo entre sin resistencia en la más gorda.",
+      "Escurrir y dejar templar lo justo para poder manipularlas.",
+      "Pelar en caliente, que la piel sale sola, y trocear al tamaño que pida cada plato.",
+      "Repartir en táperes y guardar en la nevera."
+    ],
+    "description": "Patatas cocidas enteras con piel, la base de ensaladas, revueltos, purés y guarniciones.",
+    "stepsRich": [
+      {
+        "text": "Lavar {{Patata}} y dejarlas enteras con piel: así no se aguan al cocer.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir con {{Agua}} fría en una {{@Olla}}, añadir {{Sal|gusto}} y llevar a ebullición.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer hasta que un cuchillo entre sin resistencia en la más gorda.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir y dejar templar lo justo para poder manipularlas.",
+        "minutes": 8,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar en caliente, que la piel sale sola, y trocear al tamaño que pida cada plato.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en táperes y guardar en la nevera.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar las patatas de la nevera y cortarlas al tamaño que pida el plato. En ensalada o en tortilla se usan frías tal cual.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Si el plato las quiere calientes, dorarlas en la sartén con un poco de aceite: en el microondas quedan harinosas.",
+        "minutes": 2,
+        "kind": "activo"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Patatas enteras con piel en el cestillo, un dedo de agua y sal. Cierra y cuenta 8 minutos desde que sube la válvula. Pélalas en caliente, que salen solas."
+      },
+      {
+        "appliance": "microondas",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Patatas enteras pinchadas con un tenedor, en un bol tapado con dos dedos de agua. 10-12 minutos a máxima potencia, dándoles la vuelta a mitad. Comprueba con la punta de un cuchillo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Patatas en dados en la bandeja perforada, 22-25 minutos al vapor. Quedan más secas que cocidas y aguantan mejor la semana en la nevera."
+      }
+    ]
+  },
+  {
+    "id": "bases_004",
+    "name": "Legumbre cocida",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "legumbre",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 1000,
+      "unit": "g"
+    },
+    "time": 60,
+    "minutosFijos": 55,
+    "minutosPorRacion": 1,
+    "capacidadMax": 16,
+    "difficulty": "facil",
+    "kcal": 320,
+    "protein_g": 17,
+    "carbs_g": 50,
+    "fat_g": 5,
+    "fiber_g": 12,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 300,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 3
+    },
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Garbanzos secos",
+        "ingredientId": "garbanzos",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 2000,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "ingredientId": "laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 10,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner garbanzos secos en remojo con agua abundante la noche anterior.",
+      "Dejar reposar en remojo un mínimo de 8 h.",
+      "Escurrir el remojo y pasar los garbanzos a una olla.",
+      "Cubrir con agua caliente, añadir laurel y llevar a ebullición.",
+      "Bajar el fuego y cocer a fuego lento hasta que estén tiernos, retirando la espuma.",
+      "Añadir sal al final de la cocción, nunca al principio, o la piel se endurece.",
+      "Escurrir reservando el caldo aparte, que vale para sopas y guisos de la semana.",
+      "Repartir en táperes con un poco de su caldo y guardar."
+    ],
+    "description": "Una olla de garbanzos o lentejas cocidos, con su caldo: la base de guisos, ensaladas y cremas.",
+    "stepsRich": [
+      {
+        "text": "Poner {{Garbanzos secos}} en remojo con agua abundante la noche anterior.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Dejar reposar en remojo un mínimo de 8 h.",
+        "minutes": 480,
+        "kind": "espera"
+      },
+      {
+        "text": "Escurrir el remojo y pasar los garbanzos a una {{@Olla}}.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con {{Agua}} caliente, añadir {{Laurel}} y llevar a ebullición.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego y cocer a fuego lento hasta que estén tiernos, retirando la espuma.",
+        "minutes": 50,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} al final de la cocción, nunca al principio, o la piel se endurece.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir reservando el caldo aparte, que vale para sopas y guisos de la semana.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en táperes con un poco de su caldo y guardar.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera y escurrir el caldo de conservación.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Para ensalada se usa fría tal cual; para un guiso, directa a la cazuela con el sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar la ración del congelador a la nevera la noche anterior.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Escurrir el caldo sobrante y pasar a un cazo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar a fuego suave con un chorro de agua hasta que rompa a hervir.",
+        "minutes": 5,
+        "kind": "activo"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Con la legumbre ya remojada, ponla en la olla con agua fría que la cubra tres dedos, la hoja de laurel y la sal. Cierra y cuenta 18 minutos desde que sube la válvula. Despresuriza sin prisa y escurre."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Coloca la legumbre remojada en el vaso con agua hasta la marca de 2 litros y el laurel. Programa 45 minutos, 100°C, velocidad cuchara giro inverso. Escurre en el cestillo."
+      }
+    ]
+  },
+  {
+    "id": "bases_005",
+    "name": "Quinoa cocida",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "quinoa",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 700,
+      "unit": "g"
+    },
+    "time": 20,
+    "minutosFijos": 18,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 220,
+    "protein_g": 8,
+    "carbs_g": 39,
+    "fat_g": 4,
+    "fiber_g": 5,
+    "sugar_g": 1,
+    "saturated_fat_g": 0,
+    "sodium_mg": 300,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 2
+    },
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Quinoa",
+        "ingredientId": "quinoa",
+        "amount": 240,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 480,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Enjuagar quinoa bajo el grifo en un colador fino hasta que el agua salga clara.",
+      "Pasar a un cazo con agua y sal y llevar a ebullición.",
+      "Tapar, bajar el fuego y cocer hasta que el grano abra su germen en espiral.",
+      "Retirar del fuego y dejar reposar tapada.",
+      "Soltar el grano con un tenedor y repartir en táperes."
+    ],
+    "description": "Quinoa enjuagada y cocida, lista para bowls, ensaladas y rellenos.",
+    "stepsRich": [
+      {
+        "text": "Enjuagar {{Quinoa}} bajo el grifo en un colador fino hasta que el agua salga clara.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar a un {{@Cazo}} con {{Agua}} y {{Sal|gusto}} y llevar a ebullición.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar, bajar el fuego y cocer hasta que el grano abra su germen en espiral.",
+        "minutes": 14,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar tapada.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Soltar el grano con un tenedor y repartir en táperes.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera y soltar el grano con un tenedor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "En bowl o en ensalada va fría; si se quiere caliente, un minuto de sartén con unas gotas de agua.",
+        "minutes": 1,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar la ración del congelador y pasarla a un bol tapado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar en el microondas removiendo a mitad, hasta que esté caliente.",
+        "minutes": 3,
+        "kind": "activo"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 11,
+        "difficulty": "facil",
+        "prepSummary": "Quinoa bien enjuagada con el doble de agua y sal. Cierra y cuenta 3 minutos desde que sube la válvula. Despresuriza, destapa y ahueca con un tenedor."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Enjuaga la quinoa en el cestillo bajo el grifo. Ponla en el vaso con el doble de agua y sal, 14 minutos, 100°C, velocidad cuchara giro inverso."
+      }
+    ]
+  },
+  {
+    "id": "bases_006",
+    "name": "Cuscús hidratado",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "cuscus",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 600,
+      "unit": "g"
+    },
+    "time": 8,
+    "minutosFijos": 6,
+    "minutosPorRacion": 0.3,
+    "capacidadMax": 10,
+    "difficulty": "facil",
+    "kcal": 220,
+    "protein_g": 7,
+    "carbs_g": 45,
+    "fat_g": 2,
+    "fiber_g": 3,
+    "sugar_g": 0,
+    "saturated_fat_g": 0,
+    "sodium_mg": 320,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "conservacion": {
+      "nevera": 2
+    },
+    "allergens": [
+      "gluten"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Cuscús",
+        "ingredientId": "cuscus",
+        "amount": 240,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "ingredientId": "agua",
+        "amount": 260,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner cuscús en un bol amplio con sal.",
+      "Calentar agua hasta que hierva y verterla sobre el cuscús.",
+      "Tapar el bol y dejar que absorba sin tocarlo.",
+      "Añadir aceite de oliva virgen extra y soltar el grano con un tenedor.",
+      "Repartir en táperes y guardar en la nevera."
+    ],
+    "description": "Cuscús hidratado y suelto, la base más rápida de todas: cinco minutos y está.",
+    "stepsRich": [
+      {
+        "text": "Poner {{Cuscús}} en un bol amplio con {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Agua}} hasta que hierva y verterla sobre el cuscús.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar el bol y dejar que absorba sin tocarlo.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva virgen extra}} y soltar el grano con un tenedor.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en táperes y guardar en la nevera.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la ración de la nevera y desgranarlo con un tenedor, que en frío se apelmaza.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Se usa a temperatura ambiente; si se quiere caliente, un golpe corto de microondas tapado.",
+        "minutes": 1,
+        "kind": "activo"
+      }
+    ]
+  },
+  {
+    "id": "bases_007",
+    "name": "Boniato asado",
+    "category": "bases",
+    "mainProtein": "none",
+    "mainBase": "boniato",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 800,
+      "unit": "g"
+    },
+    "time": 45,
+    "minutosFijos": 42,
+    "minutosPorRacion": 1,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 200,
+    "protein_g": 3,
+    "carbs_g": 45,
+    "fat_g": 2,
+    "fiber_g": 6,
+    "sugar_g": 12,
+    "saturated_fat_g": 0,
+    "sodium_mg": 220,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 4
+    },
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Boniato",
+        "ingredientId": "boniato",
+        "amount": 1000,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200 grados.",
+      "Lavar boniato y pincharlos varias veces con un tenedor.",
+      "Untar con aceite de oliva virgen extra y sal y colocar en una bandeja.",
+      "Asar hasta que estén blandos por dentro y la piel arrugada.",
+      "Dejar templar antes de manipular.",
+      "Pelar, trocear y repartir en táperes."
+    ],
+    "description": "Boniato asado entero al horno, dulce y listo para bowls, purés y guarniciones.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el {{@Horno}} a 200 grados.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Lavar {{Boniato}} y pincharlos varias veces con un tenedor.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Untar con {{Aceite de oliva virgen extra}} y {{Sal|gusto}} y colocar en una bandeja.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Asar hasta que estén blandos por dentro y la piel arrugada.",
+        "minutes": 40,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar antes de manipular.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar, trocear y repartir en táperes.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el boniato de la nevera y trocearlo o chafarlo según lo pida el plato.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar en la sartén o en el horno, nunca en el microondas: así no pierde el tostado de fuera.",
+        "minutes": 2,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar la ración del congelador a la nevera la noche anterior.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar en el horno o en una sartén hasta que vuelva a dorarse por fuera.",
+        "minutes": 8,
+        "kind": "activo"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Boniato entero con piel, pinchado y pincelado con aceite. 25 minutos a 200°C, dándole la vuelta a mitad. La piel se arruga y el interior queda cremoso."
+      },
+      {
+        "appliance": "microondas",
+        "time": 16,
+        "difficulty": "facil",
+        "prepSummary": "Pincha el boniato por varios sitios y envuélvelo en papel de cocina húmedo. 10-12 minutos a máxima potencia según el tamaño. Es el más rápido, pero no coge nada de tostado."
+      }
+    ]
+  },
+  {
+    "id": "bases_008",
+    "name": "Sofrito base",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "sofrito",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 700,
+      "unit": "g"
+    },
+    "time": 35,
+    "minutosFijos": 30,
+    "minutosPorRacion": 1.5,
+    "capacidadMax": 16,
+    "difficulty": "facil",
+    "kcal": 95,
+    "protein_g": 1,
+    "carbs_g": 7,
+    "fat_g": 7,
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 1,
+    "sodium_mg": 320,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 4
+    },
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "ingredientId": "pimiento-verde",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "ingredientId": "tomate",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 6,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y picar fino cebolla y ajo.",
+      "Despepitar y picar pimiento rojo y pimiento verde en dados pequeños.",
+      "Rallar tomate y reservar.",
+      "Calentar aceite de oliva virgen extra en una sartén amplia y pochar la cebolla con sal a fuego suave hasta que esté transparente.",
+      "Añadir ajo y los pimientos y seguir pochando hasta que estén tiernos.",
+      "Incorporar el tomate y cocinar a fuego medio hasta que pierda el agua y el sofrito se oscurezca.",
+      "Dejar templar y repartir en botes o en bolsas planas de congelación."
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar fino {{Cebolla}} y {{Ajo}}.",
+        "minutes": 8,
+        "kind": "prep"
+      },
+      {
+        "text": "Despepitar y picar {{Pimiento rojo}} y {{Pimiento verde}} en dados pequeños.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar {{Tomate}} y reservar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva virgen extra}} en una {{@Sartén}} amplia y pochar la cebolla con {{Sal}} a fuego suave hasta que esté transparente.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo y los pimientos y seguir pochando hasta que estén tiernos.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el tomate y cocinar a fuego medio hasta que pierda el agua y el sofrito se oscurezca.",
+        "minutes": 12,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar y repartir en botes o en bolsas planas de congelación.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentarlo un minuto en la sartén antes de seguir: en frío no suelta el aroma y el plato sale plano.",
+        "minutes": 1,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar el bote a la nevera la noche antes, o descongelar la bolsa en el microondas a media potencia.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar en la sartén un par de minutos antes de usarlo.",
+        "minutes": 2,
+        "kind": "activo"
+      }
+    ],
+    "description": "La base de medio recetario español: cebolla, ajo y pimiento pochados despacio con tomate. Es lo que más manos pide de un guiso y lo que mejor se guarda — en la nevera aguanta cuatro días y en el congelador, meses.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 32,
+        "difficulty": "facil",
+        "prepSummary": "Cebolla y pimiento en trozos, 4 segundos a velocidad 4. Añade el aceite y sofríe 8 minutos, 120°C, velocidad 1. Incorpora el tomate y programa 20 minutos, Varoma, velocidad 1 con el cubilete quitado para que reduzca. Ni un removido."
+      }
+    ]
+  },
+  {
+    "id": "bases_009",
+    "name": "Caldo casero de pollo y verduras",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "caldo",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 2000,
+      "unit": "ml"
+    },
+    "time": 100,
+    "minutosFijos": 95,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 20,
+    "protein_g": 2,
+    "carbs_g": 1,
+    "fat_g": 1,
+    "fiber_g": 0,
+    "sugar_g": 1,
+    "saturated_fat_g": 0,
+    "sodium_mg": 210,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 3
+    },
+    "allergens": [
+      "apio"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Pollo troceado",
+        "ingredientId": "pollo",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "ingredientId": "puerro",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "ingredientId": "zanahoria",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "ingredientId": "apio",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "ingredientId": "laurel",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Lavar y trocear en grande {{Puerro}}, {{Zanahoria}}, {{Apio}} y {{Cebolla}}: para el caldo no hace falta picar fino.",
+        "minutes": 8,
+        "kind": "prep"
+      },
+      {
+        "text": "Poner {{Pollo troceado}} y la verdura en una olla grande, cubrir con agua fría y añadir {{Laurel}}.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar a ebullición a fuego fuerte y retirar la espuma que suba a la superficie.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego al mínimo y dejar que cueza destapado, sin hervir a borbotones.",
+        "minutes": 75,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colar el caldo, salar al gusto y retirar el pollo y la verdura.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar enfriar y repartir en botes o bolsas, dejando un dedo libre si van al congelador.",
+        "minutes": 4,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera y verter en un cazo la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar a fuego medio hasta que rompa a hervir.",
+        "minutes": 4,
+        "kind": "pasivo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Pasar la bolsa del congelador a la nevera la noche antes, o al cazo directamente a fuego suave.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar removiendo hasta que se deshaga del todo.",
+        "minutes": 6,
+        "kind": "pasivo"
+      }
+    ],
+    "steps": [
+      "Lavar y trocear en grande {{Puerro}}, {{Zanahoria}}, {{Apio}} y {{Cebolla}}: para el caldo no hace falta picar fino.",
+      "Poner {{Pollo troceado}} y la verdura en una olla grande, cubrir con agua fría y añadir {{Laurel}}.",
+      "Llevar a ebullición a fuego fuerte y retirar la espuma que suba a la superficie.",
+      "Bajar el fuego al mínimo y dejar que cueza destapado, sin hervir a borbotones.",
+      "Colar el caldo, salar al gusto y retirar el pollo y la verdura.",
+      "Dejar enfriar y repartir en botes o bolsas, dejando un dedo libre si van al congelador."
+    ],
+    "description": "Caldo de pollo y verduras colado, la base de arroces, cremas, guisos y sopas de toda la semana.",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Mete la carcasa, las verduras y el agua en la olla sin pasar de dos tercios. Cierra y cuenta 25 minutos desde que sube la válvula. Cuela en caliente y desgrasa cuando enfríe."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "facil",
+        "prepSummary": "Carcasa y verduras troceadas en el vaso, agua hasta 2 litros. Programa 50 minutos, Varoma, velocidad cuchara giro inverso. Cuela por el cestillo apretando poco, para que salga limpio."
+      }
+    ]
+  },
+  {
+    "id": "bases_010",
+    "name": "Salsa de tomate base",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "salsa_tomate",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 800,
+      "unit": "g"
+    },
+    "time": 45,
+    "minutosFijos": 40,
+    "minutosPorRacion": 1,
+    "capacidadMax": 14,
+    "difficulty": "facil",
+    "kcal": 80,
+    "protein_g": 2,
+    "carbs_g": 8,
+    "fat_g": 5,
+    "fiber_g": 2,
+    "sugar_g": 6,
+    "saturated_fat_g": 1,
+    "sodium_mg": 290,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 4
+    },
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
+        "amount": 800,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "ingredientId": "azucar",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar muy fino {{Cebolla}} y {{Ajo}}.",
+        "minutes": 6,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva virgen extra}} en una cazuela y pochar la cebolla a fuego suave hasta que esté transparente.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo y darle un minuto, sin que llegue a dorarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}}, {{Sal}} y {{Azúcar}}, que es lo que le quita la acidez.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego lento, removiendo de vez en cuando, hasta que espese y el aceite suba a la superficie.",
+        "minutes": 22,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar y repartir en botes; se puede triturar si se quiere fina.",
+        "minutes": 4,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentarla un par de minutos en la sartén o en el cazo: gana con el reposo y reactiva perfecta.",
+        "minutes": 2,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Pasar el bote del congelador a la nevera la noche antes.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar en el cazo removiendo hasta que vuelva a ligar.",
+        "minutes": 5,
+        "kind": "pasivo"
+      }
+    ],
+    "steps": [
+      "Pelar y picar muy fino {{Cebolla}} y {{Ajo}}.",
+      "Calentar {{Aceite de oliva virgen extra}} en una cazuela y pochar la cebolla a fuego suave hasta que esté transparente.",
+      "Añadir el ajo y darle un minuto, sin que llegue a dorarse.",
+      "Incorporar {{Tomate triturado}}, {{Sal}} y {{Azúcar}}, que es lo que le quita la acidez.",
+      "Cocer a fuego lento, removiendo de vez en cuando, hasta que espese y el aceite suba a la superficie.",
+      "Dejar templar y repartir en botes; se puede triturar si se quiere fina."
+    ],
+    "description": "Salsa de tomate pochada despacio y en cantidad, lista para pasta, huevos, carnes en salsa y gratinados.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 38,
+        "difficulty": "facil",
+        "prepSummary": "Tritura la cebolla y el ajo 4 segundos a velocidad 5, sofríe 7 minutos a 120°C velocidad 1, añade el tomate y programa 25 minutos, Varoma, velocidad 1 sin cubilete. Termina triturando 30 segundos a velocidad 6 si la quieres fina."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y ajo en la olla destapada, añade el tomate y una pizca de azúcar. Cierra y cuenta 10 minutos desde que sube la válvula. Al abrir, reduce a fuego vivo lo que le sobre de agua."
+      }
+    ]
+  },
+  {
+    "id": "bases_011",
+    "name": "Verduras asadas al horno",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "verdura_asada",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 900,
+      "unit": "g"
+    },
+    "time": 50,
+    "minutosFijos": 45,
+    "minutosPorRacion": 2,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 110,
+    "protein_g": 3,
+    "carbs_g": 10,
+    "fat_g": 6,
+    "fiber_g": 4,
+    "sugar_g": 7,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "conservacion": {
+      "nevera": 4
+    },
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "ingredientId": "calabacin",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "ingredientId": "berenjena",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "ingredientId": "cebolla-morada",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "ingredientId": "oregano",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}}, {{Berenjena}}, {{Pimiento rojo}} y {{Cebolla morada}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+        "minutes": 10,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender la verdura en una bandeja sin amontonarla y aliñar con {{Aceite de oliva virgen extra}}, {{Sal}} y {{Orégano}}.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Asar hasta que los bordes empiecen a tostarse.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Remover y devolver al horno otros diez minutos, hasta que estén tiernas y doradas.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar destapadas para que no suden y repartir en tápers.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar la verdura de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "En ensalada o en tosta va a temperatura ambiente; si se quiere caliente, un golpe de horno o de sartén, nunca de microondas, que las deja blandas.",
+        "minutes": 3,
+        "kind": "activo"
+      }
+    ],
+    "steps": [
+      "Encender el {{@Horno}} a 200 grados con calor arriba y abajo.",
+      "Cortar {{Calabacín}}, {{Berenjena}}, {{Pimiento rojo}} y {{Cebolla morada}} en dados grandes y parejos, que es lo que hace que se asen a la vez.",
+      "Extender la verdura en una bandeja sin amontonarla y aliñar con {{Aceite de oliva virgen extra}}, {{Sal}} y {{Orégano}}.",
+      "Asar hasta que los bordes empiecen a tostarse.",
+      "Remover y devolver al horno otros diez minutos, hasta que estén tiernas y doradas.",
+      "Dejar templar destapadas para que no suden y repartir en tápers."
+    ],
+    "description": "Bandeja de calabacín, berenjena, pimiento y cebolla asados, para ensaladas, tostas, bowls y guarniciones.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 32,
+        "difficulty": "facil",
+        "prepSummary": "Verduras en dados parejos, aceite y sal, sin llenar más de dos tercios de la cesta. 25 minutos a 190°C agitando dos veces. En dos tandas si son muchas: aun así sale antes que el horno."
+      }
+    ]
+  },
+  {
+    "id": "bases_012",
+    "name": "Pesto casero de albahaca",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "pesto",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 300,
+      "unit": "g"
+    },
+    "time": 15,
+    "minutosFijos": 12,
+    "minutosPorRacion": 0.5,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 180,
+    "protein_g": 4,
+    "carbs_g": 2,
+    "fat_g": 18,
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 220,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 7
+    },
+    "allergens": [
+      "frutos_secos",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Albahaca fresca",
+        "ingredientId": "albahaca",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "ingredientId": "pinones",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "ingredientId": "parmesano",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 140,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, vigilando que no se quemen.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Lavar y secar bien {{Albahaca fresca}}: el agua es lo que hace que el pesto se oxide y se ponga oscuro.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar la albahaca con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Sal}}, a golpes cortos para que no se caliente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva virgen extra}} en hilo y seguir triturando hasta que ligue.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Pasar a un bote y cubrir con un dedo de aceite por encima: así aguanta una semana en la nevera sin perder el color.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera un rato antes: en frío el aceite está cuajado y no liga.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Remover para reintegrar la capa de aceite. No se calienta: al fuego se vuelve amargo y pierde el verde.",
+        "minutes": 1,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Sacar los cubitos del congelador y dejarlos unas horas en la nevera.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Remover con una cucharada de agua de cocer la pasta para que vuelva a ligar.",
+        "minutes": 2,
+        "kind": "activo"
+      }
+    ],
+    "steps": [
+      "Tostar {{Piñones}} en una sartén sin aceite hasta que huelan, vigilando que no se quemen.",
+      "Lavar y secar bien {{Albahaca fresca}}: el agua es lo que hace que el pesto se oxide y se ponga oscuro.",
+      "Triturar la albahaca con los piñones, {{Ajo}}, {{Queso parmesano}} y {{Sal}}, a golpes cortos para que no se caliente.",
+      "Añadir {{Aceite de oliva virgen extra}} en hilo y seguir triturando hasta que ligue.",
+      "Pasar a un bote y cubrir con un dedo de aceite por encima: así aguanta una semana en la nevera sin perder el color."
+    ],
+    "description": "Pesto de albahaca, piñones y parmesano, cubierto de aceite para que aguante la semana en la nevera.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 7,
+        "difficulty": "facil",
+        "prepSummary": "Piñones, ajo y queso 10 segundos a velocidad 7. Añade la albahaca y el aceite y tritura 20 segundos a velocidad 5, bajando lo de las paredes con la espátula."
+      }
+    ]
+  },
+  {
+    "id": "bases_013",
+    "name": "Bechamel base",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "bechamel",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "description": "Bechamel de textura media hecha en cantidad, para gratinados, croquetas, lasañas y verduras al horno.",
+    "rinde": {
+      "amount": 1200,
+      "unit": "ml"
+    },
+    "time": 25,
+    "minutosFijos": 18,
+    "minutosPorRacion": 1,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 90,
+    "protein_g": 3,
+    "carbs_g": 7,
+    "fat_g": 6,
+    "fiber_g": 0,
+    "sugar_g": 4,
+    "saturated_fat_g": 4,
+    "sodium_mg": 180,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 3
+    },
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Mantequilla",
+        "ingredientId": "mantequilla",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "ingredientId": "harina",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "ingredientId": "leche",
+        "amount": 1200,
+        "unit": "ml"
+      },
+      {
+        "name": "Nuez moscada",
+        "ingredientId": "nuez-moscada",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 6,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Medir {{Harina}} y reservar en un cuenco: con el fuego encendido no da tiempo a pesar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo amplio a fuego medio, sin que llegue a dorarse.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la harina de golpe y remover con varilla 2 min, hasta que la mezcla esté seca y sin color.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Leche}} poco a poco, en cuatro o cinco tandas, removiendo bien después de cada una.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave removiendo, hasta que espese y cubra el dorso de una cuchara.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal}} y {{Nuez moscada}}, remover y retirar del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en botes y cubrir con film a piel, pegado a la salsa, para que no haga costra.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera: en frío la bechamel está cuajada y se corta en tacos, es normal.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar a fuego suave con un chorro de leche y varilla hasta que vuelva a quedar lisa.",
+        "minutes": 4,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Pasar el bote del congelador a la nevera la noche antes.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar a fuego suave batiendo con varilla: al descongelar se corta y hay que volver a ligarla.",
+        "minutes": 6,
+        "kind": "activo"
+      }
+    ],
+    "steps": [
+      "Medir {{Harina}} y reservar en un cuenco: con el fuego encendido no da tiempo a pesar.",
+      "Fundir {{Mantequilla}} en un cazo amplio a fuego medio, sin que llegue a dorarse.",
+      "Añadir la harina de golpe y remover con varilla 2 min, hasta que la mezcla esté seca y sin color.",
+      "Verter {{Leche}} poco a poco, en cuatro o cinco tandas, removiendo bien después de cada una.",
+      "Cocer a fuego suave removiendo, hasta que espese y cubra el dorso de una cuchara.",
+      "Añadir {{Sal}} y {{Nuez moscada}}, remover y retirar del fuego.",
+      "Repartir en botes y cubrir con film a piel, pegado a la salsa, para que no haga costra."
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Mantequilla y harina en el vaso, 2 minutos a 100°C velocidad 3. Añade la leche fría de golpe con la nuez moscada y la sal, y programa 7 minutos, 90°C, velocidad 4. Sale sin un grumo y sin estar delante."
+      }
+    ]
+  },
+  {
+    "id": "bases_014",
+    "name": "Patatas asadas en dados con especias",
+    "category": "bases",
+    "mainProtein": "none",
+    "baseKey": "patatas_asadas",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "description": "Dados de patata asados con pimentón, comino y ajo, dorados por fuera y tiernos por dentro, para bowls, huevos rotos y ensaladas templadas.",
+    "rinde": {
+      "amount": 1000,
+      "unit": "g"
+    },
+    "time": 50,
+    "minutosFijos": 45,
+    "minutosPorRacion": 2,
+    "capacidadMax": 8,
+    "difficulty": "facil",
+    "kcal": 190,
+    "protein_g": 4,
+    "carbs_g": 30,
+    "fat_g": 6,
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 210,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "conservacion": {
+      "nevera": 4
+    },
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "ingredientId": "patata",
+        "amount": 1200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "ingredientId": "pimenton",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "ingredientId": "comino",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "ingredientId": "ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 6,
+        "unit": "g"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Encender el {{@Horno}} a 210 grados con calor arriba y abajo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortarla en dados de unos 2 cm, todos del mismo tamaño para que se asen a la vez.",
+        "minutes": 10,
+        "kind": "prep"
+      },
+      {
+        "text": "Secar los dados con un paño: mojados se cuecen al vapor en vez de dorarse.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Aliñar los dados en un bol con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}}, {{Ajo}} picado y {{Sal}}.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender los dados en la bandeja en una sola capa, sin que se toquen.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Asar hasta que estén dorados por fuera, dándoles la vuelta a mitad.",
+        "minutes": 30,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar templar destapados para que no se ablanden y repartir en tápers.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar los dados de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Devolverles el crujiente en la sartén o el horno fuerte. En el microondas se quedan blandos y pierden lo que los hace buenos.",
+        "minutes": 4,
+        "kind": "activo"
+      }
+    ],
+    "steps": [
+      "Encender el {{@Horno}} a 210 grados con calor arriba y abajo.",
+      "Pelar {{Patata}} y cortarla en dados de unos 2 cm, todos del mismo tamaño para que se asen a la vez.",
+      "Secar los dados con un paño: mojados se cuecen al vapor en vez de dorarse.",
+      "Aliñar los dados en un bol con {{Aceite de oliva virgen extra}}, {{Pimentón dulce}}, {{Comino molido}}, {{Ajo}} picado y {{Sal}}.",
+      "Extender los dados en la bandeja en una sola capa, sin que se toquen.",
+      "Asar hasta que estén dorados por fuera, dándoles la vuelta a mitad.",
+      "Dejar templar destapados para que no se ablanden y repartir en tápers."
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Dados de patata secos, con el aceite y las especias bien repartidos. 22 minutos a 200°C agitando la cesta a mitad. Quedan más crujientes que en el horno y en la mitad de tiempo."
+      }
+    ]
+  },
+  {
+    "id": "bases_015",
+    "name": "Salsa boloñesa base",
+    "category": "bases",
+    "mainProtein": "ternera",
+    "baseKey": "bolonesa",
+    "mealRole": [
+      "base"
+    ],
+    "type": "base",
+    "rinde": {
+      "amount": 1000,
+      "unit": "g"
+    },
+    "time": 55,
+    "minutosFijos": 45,
+    "minutosPorRacion": 1.5,
+    "capacidadMax": 12,
+    "difficulty": "facil",
+    "kcal": 215,
+    "protein_g": 14,
+    "carbs_g": 8,
+    "fat_g": 14,
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 5,
+    "sodium_mg": 320,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "conservacion": {
+      "nevera": 3
+    },
+    "allergens": [
+      "apio",
+      "sulfitos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "ingredientId": "cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "ingredientId": "zanahoria",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "ingredientId": "apio",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Vino tinto",
+        "ingredientId": "vino-tinto",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "ingredientId": "sal",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "ingredientId": "laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar muy fino {{Cebolla}}, {{Zanahoria}} y {{Apio}}: cuanto más menudo, mejor liga la salsa.",
+        "minutes": 8,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva virgen extra}} en una cazuela ancha y pochar la verdura picada a fuego suave hasta que esté tierna y sin color.",
+        "minutes": 12,
+        "kind": "activo"
+      },
+      {
+        "text": "Subir el fuego y añadir {{Carne picada de ternera}}, deshaciéndola con la cuchara hasta que pierda el rosa y empiece a dorarse.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Regar con {{Vino tinto}} y dejar que evapore el alcohol.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}}, {{Sal}} y {{Laurel}}.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego muy lento, removiendo de vez en cuando, hasta que espese y la grasa suba a la superficie.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel, dejar templar y repartir en botes o en bolsas planas para congelar.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "steps": [
+      "Picar muy fino cebolla, zanahoria y apio.",
+      "Pochar la verdura picada en aceite de oliva a fuego suave hasta que esté tierna y sin color.",
+      "Añadir la carne picada y deshacerla hasta que pierda el rosa y empiece a dorarse.",
+      "Regar con vino tinto y dejar evaporar el alcohol.",
+      "Incorporar el tomate triturado, la sal y el laurel.",
+      "Cocer a fuego muy lento hasta que espese y la grasa suba a la superficie.",
+      "Retirar el laurel, dejar templar y repartir en botes o bolsas planas para congelar."
+    ],
+    "reactivacion": [
+      {
+        "text": "Sacar el bote de la nevera y servir la cantidad que pida el plato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar a fuego medio removiendo; si ha quedado espesa, un chorro de agua de cocer la pasta la devuelve a su punto.",
+        "minutes": 4,
+        "kind": "activo"
+      }
+    ],
+    "thawSteps": [
+      {
+        "text": "Pasar la bolsa del congelador a la nevera la noche antes.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar en la cazuela a fuego medio removiendo hasta que vuelva a ligar.",
+        "minutes": 6,
+        "kind": "pasivo"
+      }
+    ],
+    "description": "La salsa de toda la vida: sofrito menudo de cebolla, zanahoria y apio, carne picada bien dorada, vino y tomate a fuego lento. Hecha el domingo, convierte una lasaña de hora y media en montar y hornear."
+  }
+]

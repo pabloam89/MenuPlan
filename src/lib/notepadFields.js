@@ -29,6 +29,25 @@
  * y además es como habla la gente — nadie dice "para Lucía", dice "los niños".
  */
 
+import basesCatalog from "../data/recipes/bases.json";
+import { COCINAS, MAIN_BASES, TECNICAS } from "../data/recipeSchema.js";
+import { CLAVES_PLATO } from "./tandaFamiliasDefs.js";
+
+/**
+ * El dominio del eje `base`: las féculas más TODA base del catálogo que no lo
+ * sea. Derivado, no escrito a mano, por la misma razón que MAIN_BASES dejó de
+ * ser una lista suelta: una copia se queda atrás y nadie se entera.
+ *
+ * Y se quedó atrás. Decía `[...MAIN_BASES, "sofrito"]` cuando el catálogo ya
+ * tenía trece bases: verdura asada, salsa de tomate, bechamel, pesto y caldo
+ * estaban fuera del dominio, así que el panel no podía pedirlas ni aunque el
+ * usuario las escribiera con todas las letras.
+ */
+const DOMINIO_BASES = [
+  ...MAIN_BASES,
+  ...basesCatalog.map((b) => b.baseKey).filter((k) => k && !MAIN_BASES.includes(k)),
+];
+
 /** Los tres verbos. No hay más: el pool cerrado es lo que hace fiable el panel. */
 export const VERBOS = ["mas", "menos", "nunca"];
 
@@ -47,6 +66,20 @@ export const SERVICIOS = ["ambos", "comida", "cena"];
  */
 export const FAMILIAS = ["carne", "pescado", "legumbres", "pasta_arroz", "huevos", "verdura"];
 
+/**
+ * Etiqueta visible de cada familia. Vive junto a FAMILIAS porque es SU
+ * etiqueta: estuvo copiada en menuInsights.js y profileSummary.js, y una
+ * familia nueva habría salido sin nombre en una pantalla y con él en otra.
+ */
+export const FAMILIA_LABELS = {
+  carne: "Carne",
+  pescado: "Pescado",
+  legumbres: "Legumbres",
+  pasta_arroz: "Pasta y arroz",
+  huevos: "Huevos",
+  verdura: "Verdura",
+};
+
 export const CAMPOS = [
   {
     id: "freqs",
@@ -60,23 +93,106 @@ export const CAMPOS = [
     ejemplo: "menos pescado",
   },
   {
+    id: "reparto",
+    grupo: "familia",
+    etiqueta: "El reparto de la semana",
+    dominio: FAMILIAS,
+    proyecta: "reparto",
+    // Suma fija: mover una familia mueve las demás (ver lib/reparto.js). Es el
+    // eje que hacía falta para un slider de proporciones y que `freqs` no
+    // podía ser: `freqs` son MÁXIMOS independientes, y el prompt del planner
+    // lo repite tres veces. Cambiarles el significado habría obligado a
+    // reescribir ese prompt y sus tests.
+    unidad: "% de la semana",
+    rango: [0, 100],
+    // Sin `ejemplo` a propósito: el parser NO puede escribir aquí hoy. `n` de
+    // AjusteSchema está acotado a 0..7 (veces por semana), así que un
+    // porcentaje no cabe en el contrato del panel. Se toca con el slider; el
+    // panel sigue hablando en veces por semana, que es como habla la gente.
+    ejemplo: null,
+    panel: false,
+  },
+  {
     id: "base",
     grupo: "base",
     etiqueta: "Pasta, arroz o patata",
     // Consume `mainBase` del catálogo (46 %). Es el único eje que separa la
     // pasta del arroz, que `freqs.pasta_arroz` mete en el mismo saco.
-    dominio: ["pasta", "arroz", "patatas", "legumbre", "quinoa", "cuscus", "pan", "avena"],
+    // Importado, no copiado: este dominio era una lista escrita a mano que ya
+    // había derivado del catálogo — le faltaba `boniato` y el campo era string
+    // libre, así que los 8 platos con `patata` (en vez de `patatas`) caían
+    // fuera del sesgo sin que nadie se enterara. Ahora MAIN_BASES es enum y
+    // esta es la misma lista, no una copia que se pueda volver a quedar atrás.
+    // MAIN_BASES son las féculas. `sofrito` se añade aparte porque NO lo es —
+    // meterlo en el enum habría roto carbType y las reglas de variedad, que es
+    // justo lo que ese enum existe para sujetar. Pero sí es una base: 178
+    // platos del recetario estrella lo llevan, más que patatas, pasta y arroz
+    // juntos, y es el único que ahorra TRABAJO de manos (30 minutos de picar y
+    // pochar) en vez de tiempo de olla. `sesgos.js` lo casa por `basesAparte`.
+    dominio: DOMINIO_BASES,
     proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "echo de menos más pasta",
+  },
+  {
+    id: "tanda",
+    grupo: "base",
+    etiqueta: "Lo que cocinas en tanda",
+    // El MISMO dominio que `base`, y ahí está justo la razón de que sean dos
+    // campos y no uno.
+    //
+    // Los dos se escribían en `base.*` queriendo decir cosas distintas: el
+    // panel un SESGO (±1, "me apetece más pasta") y este selector una CUENTA
+    // (2-5, "quiero tres platos con sofrito esta semana"). Y `basesPedidas`
+    // leía el campo sin saber quién lo había escrito: veía un 1, lo subía a 2
+    // con un `Math.max`, y una preferencia blanda se convertía en la regla 11b
+    // — la única de MÍNIMO del validador, todo o nada, la primera que se repara
+    // y cuya base el fallback tiene prohibido soltar.
+    //
+    // O sea: decías "echo de menos más pasta" y el motor entendía "dos platos
+    // de pasta en tanda, obligatorio". Y pasaba con las catorce bases.
+    dominio: DOMINIO_BASES,
+    proyecta: "tanda",
+    unidad: "platos por semana",
+    rango: [2, 5],
+    // Sin `ejemplo` a propósito, igual que `reparto`: el parser NO escribe aquí.
+    // Una tanda es una petición comprobable con consecuencias duras, y se pide
+    // con el selector, no de pasada en una frase.
+    ejemplo: null,
+    panel: false,
+  },
+  {
+    id: "tandaPlatos",
+    grupo: "base",
+    etiqueta: "Los platos que dejas hechos o a medias",
+    // Hermano de `tanda`, y aparte por el VOCABULARIO: aquel cuenta BASES
+    // (arroz, sofrito) y este cuenta FAMILIAS DE PLATO (croquetas, cremas).
+    // Meterlos en un campo obligaba a un dominio que mezclara ingredientes y
+    // platos, y entonces "dos de pasta" no diría si es una olla de pasta para
+    // repartir o dos raviolis que hay que formar el día de la tanda.
+    //
+    // Las dos patas nuevas sí caben en un solo campo, porque el id ya dice
+    // cuál es: lib/tandaFamilias.js sabe si una familia se remata el día que
+    // toca o si es una olla que dura varias noches. Un campo por pata habría
+    // sido la misma tabla dos veces.
+    dominio: CLAVES_PLATO,
+    proyecta: "tandaPlatos",
+    unidad: "veces por semana",
+    rango: [1, 4],
+    // Igual que `tanda`: el parser NO escribe aquí. Se pide con el selector,
+    // porque es una petición con consecuencias, no un gusto de pasada.
+    ejemplo: null,
+    panel: false,
   },
   {
     id: "cocina",
     grupo: "cocina",
     etiqueta: "De dónde es el plato",
     // Consume `cocina`. Ausente = española, así que "española" no está en el
-    // dominio: pedir más española es pedir menos de todo lo demás.
-    dominio: ["italiana", "asiatica", "mexicana", "arabe", "francesa", "americana", "india", "peruana"],
+    // dominio: pedir más española es pedir menos de todo lo demás. La lista
+    // es la del schema, no una copia: si allí entra una cocina, aquí se puede
+    // pedir sin tocar nada.
+    dominio: COCINAS,
     proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "más comida mexicana",
@@ -85,7 +201,7 @@ export const CAMPOS = [
     id: "tecnica",
     grupo: "estilo",
     etiqueta: "Cómo está hecho",
-    dominio: ["horno", "plancha", "sarten", "olla", "crudo"],
+    dominio: TECNICAS,
     proyecta: "sesgos",
     unidad: "sesgo",
     ejemplo: "más cosas al horno",

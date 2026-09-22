@@ -58,6 +58,15 @@ export const ROSTER_SCOPED_KEYS = [
   "kcalByGroup",
   "freqs",
   "freqsByGroup",
+  // Los dos ejes sin fundir: el reparto en porcentajes y lo pedido a mano con
+  // un número. `freqs` de arriba es la vista para pintar; estos dos son la
+  // fuente con la que el motor rehace la cuenta contra los huecos reales de
+  // cada grupo y cada semana (ver App.jsx#regenerateMenu).
+  "reparto",
+  "freqsPedidos",
+  // Las tandas pedidas (base → platos por semana). Es una petición del hogar,
+  // así que viaja con el roster como el resto.
+  "tanda",
   // Which weeks this group's menú covers
   "menuWeek",
   "menuWeekOffsets",

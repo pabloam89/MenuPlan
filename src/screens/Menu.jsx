@@ -1,4 +1,4 @@
-import { createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { cloneElement, createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -8,7 +8,6 @@ import {
   BookOpen,
   BookOpenCheck,
   CalendarDays,
-  CalendarRange,
   Check,
   ChefHat,
   ChevronDown,
@@ -20,11 +19,15 @@ import {
   Apple,
   Coffee,
   CopyPlus,
+  UserPlus,
   CookingPot,
+  BriefcaseBusiness,
   History,
   IceCream,
   Minimize2,
+  MoreHorizontal,
   LayoutGrid,
+  Layers,
   Layers2,
   Download,
   Droplets,
@@ -58,6 +61,7 @@ import {
   Undo2,
   Users,
   Utensils,
+  Tag,
   UtensilsCrossed,
   Wand2,
   Wheat,
@@ -96,6 +100,7 @@ import {
   cookedEatersFor,
   fridgePortionsFor,
   frozenPortionsFor,
+  catalogIdOfPlanRecipe,
   itemPortions,
   pickFridgeItem,
   pickFrozenItem,
@@ -107,6 +112,10 @@ import {
   splitSlotPortions,
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
+import { recetaConBases } from "../lib/recetaConBases.js";
+import { hayTandasPedidas } from "../lib/cookTime.js";
+import { basesPedidas, claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
+import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
@@ -116,10 +125,11 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, WeekRangeBadge, WizardSheet, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CommentThread } from "../components/CommentThread.jsx";
 import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
+import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
@@ -152,6 +162,7 @@ import {
 import {
   APPLIANCE_LABELS,
   APPLIANCE_COLORS,
+  KITCHEN_TOOLS,
   REQUIRED_APPLIANCE_ICONS,
   selectMethodForRecipe,
   methodDifficultyLabel,
@@ -166,6 +177,9 @@ import {
   todayDayIdx,
 } from "../lib/weekCalendar.js";
 import { orderedWeeks } from "../lib/menuArchive.js";
+// La MISMA baldosa que un mando del wizard: las acciones se despliegan en su
+// fila, y con otra forma la fila cambiaría de idioma a mitad de gesto.
+import { BaldosaAccion } from "../components/wizard/ControlRow.jsx";
 
 // Los 1,7 MB de pasos precomputados por electrodomestico se cargan BAJO DEMANDA.
 // Antes viajaban como import estatico, o sea dentro del chunk de Menu -- el mas
@@ -789,8 +803,6 @@ const COOK_LEVELS = [
   { id: "normal", label: "Normal",            icon: <ChefHat size={20} /> },
   { id: "pro",    label: "Me gusta cocinar",  icon: <Sparkles size={20} /> },
 ];
-
-const KITCHEN_TOOLS = ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"];
 
 const FREQ_OPTIONS = [
   { id: "verdura", label: "Verdura" },
@@ -1483,6 +1495,17 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           <CookTimeEditor data={data} setData={wrappedSetData} />
         </AccordionSection>
 
+        {/* ── Batch cooking ──
+            Sección hermana de la de arriba, no un modo suyo. Vivió DENTRO de
+            "Tiempo disponible", donde un selector "Clásico / Batch cooking"
+            decidía cuál de las dos veías; así que elegir tanda borraba la
+            pregunta de cuánto tiempo tienes un martes, que seguía en pie.
+            Cerrada no estorba a quien cocina cada día, y quien no pide ninguna
+            tanda no hace batch cooking: no hace falta interruptor. */}
+        <AccordionSection title="Batch cooking" icon={CookingPot}>
+          <BasesPreferidas data={data} setData={wrappedSetData} />
+        </AccordionSection>
+
         {/* ── CTA ── */}
         <div style={{ paddingTop: 16 }}>
           <button
@@ -1565,6 +1588,20 @@ function useLongPress(onLongPress, onClick, { ms = 420, moveTol = 12 } = {}) {
 // MenuScreen and consumed by the deck tiles/cards without prop drilling.
 const ArmedContext = createContext(null);
 
+/**
+ * Las bases que ESTA semana merecen una tanda, por el mismo criterio que la
+ * vista Tanda: dos platos o más compartiendo olla.
+ *
+ * Va por contexto y no por props por la misma razón que `ArmedContext`: la
+ * usan las fichas del fondo del árbol y encadenarla a mano por Día, Semana y
+ * Mes sería tres sitios donde olvidarse de pasarla.
+ *
+ * Que un plato lleve sofrito no basta para marcarlo: si es el único de la
+ * semana que lo lleva, nadie va a hacer una tanda de sofrito y el icono estaría
+ * prometiendo algo que no va a pasar.
+ */
+const TandaContext = createContext(null);
+
 // Overlay that draws the traveling green "about to move" ring. Absolutely
 // positioned, so its host must be `position: relative`. `radius` matches the
 // host's border-radius so the ring hugs the corners exactly.
@@ -1584,20 +1621,28 @@ export function sameDish(a, b) {
 }
 
 export function dishesFromSlot(slot, isLunch) {
-  if (!slot?.recipeId) return [];
+  // El primero cuenta aunque falte el segundo. Antes se salía en seco si no
+  // había `recipeId`, así que una comida con primero y sin segundo no se
+  // pintaba — y si ese día tampoco había cena, el día entero desaparecía de
+  // la lista. Ver el comentario gemelo en aiPlanner.js, donde esa misma comida
+  // ni siquiera llegaba a entrar en el plan.
+  const tienePrimero = Boolean(isLunch && slot?.firstRecipeId);
+  if (!slot?.recipeId && !tienePrimero) return [];
   const items = [];
-  if (isLunch && slot.firstRecipeId) {
+  if (tienePrimero) {
     items.push({
       course: "1º",
       courseKey: "first",
       recipeId: slot.firstRecipeId,
     });
   }
-  items.push({
-    course: isLunch && slot.firstRecipeId ? "2º" : null,
-    courseKey: "main",
-    recipeId: slot.recipeId,
-  });
+  if (slot?.recipeId) {
+    items.push({
+      course: tienePrimero ? "2º" : null,
+      courseKey: "main",
+      recipeId: slot.recipeId,
+    });
+  }
   return items;
 }
 
@@ -1830,7 +1875,8 @@ export function DishCard({
               color: "#8d978f",
             }}
           >
-            <Clock3 size={13} strokeWidth={2.2} />
+            {/* Sin reloj, igual que en las pastillas de la foto: "25 min" ya
+                dice que es tiempo. Ver DishSpecPills. */}
             {method ? method.time : recipe.time} min
           </span>
           {method && MethodIcon && (
@@ -1960,15 +2006,44 @@ export function DishCard({
 // and fully isolated so the classic renderer above stays untouched.
 // ─────────────────────────────────────────────────────────────────────────
 
+// Tres tramos de tiempo, y solo tres. "Resumen" (`lista`) salió de aquí: era la
+// misma semana que ya enseña la vista Semana, puesta en rejilla, así que la
+// cuarta opción del selector no llevaba a ningún sitio nuevo. Su vista sigue
+// montada más abajo (DeckCalendar) y `deckView === "lista"` sigue funcionando:
+// está APARCADA, no borrada, por si vuelve con algo propio que contar.
 const DECK_VIEW_OPTIONS = [
   { id: "dia", label: "Día" },
   { id: "semana", label: "Semana" },
   { id: "mes", label: "Mes" },
-  { id: "lista", label: "Resumen" },
+  // La cuarta NO es otro tramo de tiempo: es el mismo menú visto por lo que hay
+  // que cocinar ANTES. Va aquí y no en un sitio propio porque se mira en el
+  // mismo gesto que la semana — "¿qué comemos?" y "¿qué dejo hecho?" son la
+  // misma pregunta hecha desde dos lados.
+  { id: "tanda", label: "Tanda" },
 ];
 
-const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers2, mes: CalendarRange, lista: LayoutGrid };
-const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", mes: "#8a5cc4", lista: "#5a5fc8" };
+/**
+ * La pizarra solo tiene Semana.
+ *
+ * Día también sabe pintar huecos vacíos, pero con una sola vista no hace
+ * falta selector, y sin selector la fila de arriba deja sitio al avatar. Si
+ * algún día vuelve Día, vuelve también el interruptor: la lista manda y el
+ * `deckView` guardado que no esté aquí se corrige solo (ver el efecto que
+ * lo acota).
+ */
+const DECK_VIEWS_BASICAS = DECK_VIEW_OPTIONS.filter((v) => v.id === "semana");
+
+// Tres formas distintas para tres tramos distintos, y ahí está el cambio: antes
+// Día era un calendario y Mes era OTRO calendario, y en este set de Nucleo los
+// cuatro glifos de calendario son el mismo marco vacío —se comprobó mirándolos,
+// no leyendo sus nombres—, así que el selector pedía elegir entre dos dibujos
+// iguales. Y "Semana" llevaba `Layers2`, que en esta misma pantalla ya significa
+// "1º y 2º" (dos platos) en el rosco y en la estructura del día.
+//
+// Ahora: un calendario (una fecha), una pila de hojas (varios días seguidos) y
+// una rejilla (que es literalmente lo que dibuja la vista de mes).
+const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers, mes: LayoutGrid, tanda: CookingPot };
+const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", mes: "#8a5cc4", tanda: "#b2622f" };
 
 /** Flatten a day into photo tiles (one per dish/course, across visible groups).
  *  When the same dish (recipe + course) is planned for several groups in the
@@ -1984,20 +2059,40 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
       const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
       if (!slot) continue;
       const dishes = dishesFromSlot(slot, isLunch);
+      // Una comida partida en dos (`dosPlatos`) enseña un hueco por plato,
+      // aunque estén los dos sin poner: es la única forma de que puedas
+      // elegir el primero y el segundo por separado desde el tablero vacío.
+      // `dishesFromSlot` no puede decirlo —solo ve lo que hay puesto—, así
+      // que los vacíos se intercalan aquí, cada uno en su sitio: el primero
+      // delante y el segundo detrás.
+      const dosPlatos = Boolean(isLunch && slot.dosPlatos);
+      const items = [];
+      if (dosPlatos && !slot.firstRecipeId) items.push({ vacio: "first" });
+      for (const dish of dishes) items.push({ dish });
+      if (dosPlatos && !slot.recipeId) items.push({ vacio: "main" });
       // A slot the user emptied ("Vaciar hueco") keeps a `cleared` flag so we can
       // still render a tappable placeholder to refill it (per group, no dedup).
-      if (dishes.length === 0) {
-        if (slot.cleared) {
-          const key = `empty::${meal}::${g.id}`;
-          if (!byKey.has(key)) {
-            const tile = { meal, group: g, groups: [g], slot, dish: null, empty: true };
-            byKey.set(key, tile);
-            tiles.push(tile);
+      if (!dosPlatos && dishes.length === 0 && slot.cleared) items.push({ vacio: "main" });
+
+      for (const item of items) {
+        if (item.vacio) {
+          // Sin el id del grupo en la clave: dos menús con la misma comida
+          // vacía enseñaban DOS baldosas iguales, y rellenar una dejaba la
+          // otra ahí, pidiendo el mismo plato otra vez. Ahora es una sola que
+          // se acuerda de a quién representa (`groups`), y lo que pongas cae
+          // en todos.
+          const key = `empty::${meal}::${item.vacio}`;
+          const existing = byKey.get(key);
+          if (existing) {
+            existing.groups.push(g);
+            continue;
           }
+          const tile = { meal, group: g, groups: [g], slot, dish: null, empty: true, course: item.vacio, dosPlatos };
+          byKey.set(key, tile);
+          tiles.push(tile);
+          continue;
         }
-        continue;
-      }
-      for (const dish of dishes) {
+        const dish = item.dish;
         const key = `${meal}::${dish.recipeId}::${dish.courseKey}`;
         const existing = byKey.get(key);
         if (existing) {
@@ -2013,17 +2108,67 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
   return tiles;
 }
 
+/**
+ * La baldosa del `+`: abre un hueco nuevo en ESE día.
+ *
+ * Va al final de la fila y no en un mando aparte porque lo que se añade es
+ * del día, no de la semana: el sitio donde se decide tiene que ser el sitio
+ * donde se ve. Punteada y sin color, para no competir con los platos — es un
+ * hueco por abrir, no un plato más.
+ */
+function AddSlotTile({ day, onAddSlot, denso = false }) {
+  return (
+    <button
+      type="button"
+      className="mp-press"
+      onClick={() => onAddSlot(day)}
+      aria-label={`Añadir hueco al ${dayLabel(day)}`}
+      style={{
+        width: "100%", height: "100%", minHeight: denso ? 104 : 120,
+        border: "1.5px dashed #cfe0d5", borderRadius: denso ? 14 : 22,
+        background: "transparent", cursor: "pointer", fontFamily: "inherit",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", gap: 6, padding: 0,
+      }}
+    >
+      <span
+        style={{
+          width: denso ? 26 : 32, height: denso ? 26 : 32, borderRadius: 999,
+          background: "#eaf3ed", color: "#2d5a3d",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <Plus size={denso ? 15 : 18} strokeWidth={3} />
+      </span>
+      <span style={{ fontSize: denso ? 10 : 11.5, fontWeight: 800, color: "#8aa394" }}>
+        Añadir hueco
+      </span>
+    </button>
+  );
+}
+
 /** A single photo-forward dish tile. Fills its parent (parent controls size). */
-function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, showGroup = false, members = null }) {
+const mandoStyle = {
+  width: 20, height: 20, borderRadius: 999, cursor: "pointer",
+  background: "rgba(12,22,15,.45)", backdropFilter: "blur(3px)",
+  display: "flex", alignItems: "center", justifyContent: "center",
+};
+
+function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, denso = false, showGroup = false, members = null, invitados = 0, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
   const { meal, group, slot, dish } = tile;
   const armed = useContext(ArmedContext);
+  const clavesTanda = useContext(TandaContext);
   const isEmpty = Boolean(tile.empty);
   const badgeGroups = tile.groups ?? (group ? [group] : []);
   const [failed, setFailed] = useState(false);
   const recipe = isEmpty ? null : RECIPES_BY_ID[dish.recipeId];
   const srcUrl = recipe ? dishImageForRecipe(recipe) : null;
   const sel = isEmpty
-    ? { slot, groupId: group.id, day, meal, group, course: "main", empty: true }
+    ? {
+        slot, groupId: group.id, day, meal, group,
+        groupIds: (tile.groups ?? [group]).map((g) => g.id),
+        course: tile.course ?? "main", empty: true,
+      }
     : recipe
       ? { recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey }
       : null;
@@ -2038,11 +2183,34 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       });
     },
     () => sel && onDishTap?.(sel),
+    // En la pizarra esta misma pulsación levanta el plato para arrastrarlo, y
+    // ahí el listón de 420ms/12px es demasiado fino: sujetar el dedo quieto
+    // medio segundo sobre una baldosa que se mueve con el scroll falla más de
+    // lo que acierta. Un pelín antes y con más margen de temblor.
+    onDishActions ? { ms: 340, moveTol: 18 } : undefined,
   );
   const onPointerDownPrefetch = (e) => {
     press.onPointerDown?.(e);
     if (srcUrl) prefetchDeckHero(srcUrl, 720);
   };
+  // ¿Este plato tira de alguna tanda de esta semana? Se mira contra las bases
+  // que la sesión del domingo justifica, no contra las que el plato declara:
+  // un sofrito que nadie más comparte no se va a cocinar aparte.
+  // El eje de bases se lee del CATÁLOGO y no de la receta guardada, por lo
+  // mismo que `lookupDeTanda`: una semana generada antes de que el puente
+  // copiara `basesAparte` la trae vacía, y el icono no aparecería nunca.
+  const delCatalogo = recipe ? (recipeCatalogById[String(recipe.id).split("__").pop()] ?? recipe) : null;
+  const deTanda = Boolean(
+    delCatalogo && clavesTanda?.size
+    && clavesDeReceta(delCatalogo).some((c) => clavesTanda.has(c)),
+  );
+  // `slot.mode` lo pone modeForGroupSlot: "tupper" cuando alguien de este grupo
+  // se lleva esa comida fuera y hay que cocinarla igual.
+  const esTupper = slot?.mode === "tupper";
+  // El aparato con el que has dicho que harás ESTE plato. Por plato y no por
+  // hueco: en una comida partida, el primero puede ir al horno y el segundo a
+  // la sartén.
+  const aparatoElegido = dish?.courseKey === "first" ? slot?.firstAppliance : slot?.appliance;
   const emptyMealLabel = MEAL_META[meal]?.label ?? meal;
   if (isEmpty) {
     // Use the meal's own MenuPlan icon (Comida = Sol, Cena = Luna…) inside a soft
@@ -2052,9 +2220,55 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     const accent = MEAL_EMPTY_ACCENT[meal] ?? MEAL_EMPTY_ACCENT._default;
     const badge = compact ? 32 : 46;
     return (
+      <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      {/* Cerrar el hueco. Solo aparece sobre uno VACÍO: el plato se quita antes
+          con "vaciar", que es otro gesto y reversible, así que este toque no
+          puede llevarse por delante nada que hubieras elegido. */}
+      {/* "Que lo elija la app": rellena SOLO este hueco, con el mismo pool
+          que ya calcula las sugerencias de abajo. Ni espera ni coste — no
+          pasa por el modelo. */}
+      {onFillSlot && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={`Rellenar el hueco de ${emptyMealLabel}`}
+          onClick={(e) => { e.stopPropagation(); onFillSlot(sel); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); onFillSlot(sel); } }}
+          style={{
+            position: "absolute", top: 5, left: 5, zIndex: 2,
+            width: 20, height: 20, borderRadius: 999, cursor: "pointer",
+            background: "#fff", border: "1px solid #dbe7df",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Sparkles size={11} color="#7a9485" strokeWidth={2.4} />
+        </span>
+      )}
+      {onRemoveSlot && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={`Quitar el hueco de ${emptyMealLabel}`}
+          onClick={(e) => { e.stopPropagation(); onRemoveSlot(sel); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); onRemoveSlot(sel); } }}
+          style={{
+            position: "absolute", top: 5, right: 5, zIndex: 2,
+            width: 20, height: 20, borderRadius: 999, cursor: "pointer",
+            background: "#fff", border: "1px solid #dbe7df",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <X size={11} color="#9ab0a1" strokeWidth={2.6} />
+        </span>
+      )}
       <button
         type="button"
         {...press}
+        data-slot={`${day}-${meal}`}
+        data-group={group?.id}
+        data-course="main"
         style={{
           position: "relative",
           width: "100%",
@@ -2107,10 +2321,13 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           </span>
         </span>
         <span style={{ fontSize: compact ? 10 : 12.5, fontWeight: 800, color: "#4f6a5b", textAlign: "center", lineHeight: 1.2 }}>
-          {emptyMealLabel} libre
+          {tile.dosPlatos
+            ? `${tile.course === "first" ? "1º" : "2º"} libre`
+            : `${emptyMealLabel} libre`}
         </span>
         <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "#9bb0a4" }}>Toca para añadir</span>
       </button>
+      </div>
     );
   }
   if (!recipe) return null;
@@ -2120,12 +2337,50 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   const courseTxt = dish.course ? `${mealLabel} · ${dish.course}` : mealLabel;
   const showPhoto = optimized && !failed;
   const isArmed = !!armed && !!sel && sameDish(armed.source, sel);
+  // El rosco se ancla a la BALDOSA, no al botón que lo abre: así sale
+  // centrado sobre el plato, igual que con la pulsación larga.
+  const abrirMandos = (e, cb) => {
+    const tile = e.currentTarget.closest(".deck-tile");
+    const tr = tile?.getBoundingClientRect();
+    const rad = tile ? parseFloat(getComputedStyle(tile).borderRadius) || 18 : 18;
+    cb({
+      ...sel,
+      anchor: tr ? { tile: { top: tr.top, left: tr.left, width: tr.width, height: tr.height }, radius: rad } : null,
+    });
+  };
+  // Las acciones de un plato ya colocado. En la pizarra la pulsación larga
+  // levanta el plato para arrastrarlo, así que el rosco y el vaciar necesitan
+  // botón propio — sin ellos, un plato puesto no se podía ni quitar.
+  const mandosDelPlato = onDishActions && sel && (
+    <div
+      style={{
+        position: "absolute", top: compact ? 5 : 8, right: compact ? 5 : 8,
+        zIndex: 3, display: "flex",
+      }}
+    >
+      {onDishActions && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={`Acciones de ${recipe.name}`}
+          onClick={(e) => { e.stopPropagation(); abrirMandos(e, onDishActions); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); abrirMandos(e, onDishActions); } }}
+          className="deck-tile-actions"
+          style={mandoStyle}
+        >
+          <MoreHorizontal size={compact ? 11 : 13} color="#fff" strokeWidth={2.8} />
+        </span>
+      )}
+    </div>
+  );
   return (
     <button
       type="button"
       className="deck-tile"
       data-coach="menu-dish"
       data-slot={`${day}-${meal}`}
+      data-group={group?.id}
       data-course={dish?.courseKey}
       {...press}
       onPointerDown={onPointerDownPrefetch}
@@ -2149,6 +2404,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       }}
     >
       {isArmed && <ArmedRing radius={radius} />}
+      {mandosDelPlato}
       {showPhoto ? (
         <img
           src={optimized}
@@ -2174,11 +2430,39 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       {/* Lo mismo que ve el cartel de una receta en Inspírate o en Gente: si
           hoy da la vida para cocinar esto se decide con estos dos datos, y
           hasta ahora había que abrir el plato para saberlos. */}
-      <div style={{ position: "absolute", top: compact ? 8 : 12, right: compact ? 8 : 12 }}>
-        <DishSpecPills difficulty={recipe.difficulty} time={recipe.time} compact={compact} align="flex-end" />
-      </div>
+      {/* En denso no: la tarjeta mide la mitad y con dos pastillas encima el
+          nombre del plato, que es lo único que se viene a leer de un vistazo,
+          pierde la esquina. Siguen a un toque, dentro del plato. */}
+      {!denso && (
+        <div style={{ position: "absolute", top: compact ? 8 : 12, right: compact ? 8 : 12 }}>
+          <DishSpecPills difficulty={recipe.difficulty} time={recipe.time} compact={compact} align="flex-end" />
+        </div>
+      )}
+      {/* Invitados en este hueco. Comparte esquina con las chapas de grupo y
+          va DELANTE: "esta noche sois uno más" cambia lo que hay que cocinar,
+          y de quién es el menú no. */}
+      {invitados > 0 && (
+        <div style={{
+          position: "absolute", top: compact ? 8 : 12, left: compact ? 8 : 12,
+          display: "inline-flex", alignItems: "center", gap: 3,
+          height: compact ? 20 : 26, padding: compact ? "0 7px" : "0 9px",
+          borderRadius: 999, background: "#2d5a3d", color: "#fff",
+          fontSize: compact ? 10.5 : 12, fontWeight: 800,
+          boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+        }}
+        title={invitados === 1 ? "Un comensal más" : `${invitados} comensales más`}
+        >
+          <UserPlus size={compact ? 11 : 13} strokeWidth={2.6} />
+          {invitados > 1 && <span>{invitados}</span>}
+        </div>
+      )}
       {showGroup && badgeGroups.length > 0 && (
-        <div style={{ position: "absolute", top: compact ? 8 : 12, left: compact ? 8 : 12, display: "flex", gap: 4 }}>
+        <div style={{
+          position: "absolute", top: compact ? 8 : 12,
+          // Se aparta para no taparse con la chapa de invitados.
+          left: (compact ? 8 : 12) + (invitados > 0 ? (compact ? 30 : 40) : 0),
+          display: "flex", gap: 4,
+        }}>
           {badgeGroups.map((gr) => (
             // Two faces then a counter: a dish shared by several menús already
             // shows one badge per group, so letting each one run to three would
@@ -2187,7 +2471,71 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           ))}
         </div>
       )}
-      <div style={{ position: "absolute", left: compact ? 10 : 14, right: compact ? 10 : 14, bottom: compact ? 10 : 13 }}>
+      {/* Las dos chapas de la esquina dicen cosas distintas y por eso van
+          juntas y separadas: la olla es "esto tira de algo que dejas hecho el
+          domingo" y el maletín es "esto te lo llevas". Se parecen —las dos
+          hablan de cocinar para otro momento— pero no son lo mismo: puedes
+          llevarte un tupper de lo que sobró sin haber hecho ninguna tanda. */}
+      {(deTanda || esTupper || aparatoElegido) && (
+        <div
+          style={{
+            position: "absolute", right: compact ? 8 : 12, bottom: compact ? 8 : 12,
+            display: "flex", gap: compact ? 4 : 6,
+          }}
+        >
+          {/* Con qué has dicho que lo vas a hacer. Va en esta esquina y no
+              arriba porque es de la misma familia que la olla y el maletín:
+              las tres hablan de CÓMO se cocina esto, no de qué es. */}
+          {aparatoElegido && (
+            <div
+              title={`Lo haces con ${APPLIANCE_LABELS[aparatoElegido] ?? aparatoElegido}`}
+              style={{
+                width: compact ? 22 : 28, height: compact ? 22 : 28, borderRadius: 999,
+                background: "rgba(255,255,255,.92)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+              }}
+            >
+              {(() => {
+                const Ap = APPLIANCE_ICONS[aparatoElegido];
+                return Ap ? <Ap size={compact ? 12 : 15} color={APPLIANCE_COLORS[aparatoElegido] ?? "#5a7066"} strokeWidth={2.4} /> : null;
+              })()}
+            </div>
+          )}
+          {deTanda && (
+            <div
+              title="Lleva algo que dejas hecho el domingo"
+              style={{
+                width: compact ? 22 : 28, height: compact ? 22 : 28, borderRadius: 999,
+                background: "rgba(255,255,255,.92)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+              }}
+            >
+              <CookingPot size={compact ? 12 : 15} color="#b2622f" strokeWidth={2.4} />
+            </div>
+          )}
+          {esTupper && (
+            <div
+              title="Esta comida te la llevas en tupper"
+              style={{
+                width: compact ? 22 : 28, height: compact ? 22 : 28, borderRadius: 999,
+                background: "rgba(255,255,255,.92)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(9,18,12,.35)",
+              }}
+            >
+              <BriefcaseBusiness size={compact ? 12 : 15} color="#b45309" strokeWidth={2.4} />
+            </div>
+          )}
+        </div>
+      )}
+      <div style={{
+        position: "absolute", left: compact ? 10 : 14,
+        // Se aparta de la chapa de la tanda para que el título no pase por debajo.
+        right: (compact ? 10 : 14) + ((deTanda ? 1 : 0) + (esTupper ? 1 : 0)) * (compact ? 26 : 34),
+        bottom: compact ? 10 : 13,
+      }}>
         <div
           style={{
             display: "flex",
@@ -2384,7 +2732,7 @@ function DayRegenButton({ day, onRegenerateDay, groups = [], compact = false }) 
   );
 }
 
-function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false }) {
+function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
   const scrollerRef = useRef(null);
   const rafRef = useRef(0);
 
@@ -2486,9 +2834,14 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
                     key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`}
                     style={many ? { height: 172, flexShrink: 0 } : { flex: 1, minHeight: 0 }}
                   >
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} members={data?.members} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} />
                   </div>
                 ))
+              )}
+              {onAddSlot && (
+                <div style={many ? { height: 96, flexShrink: 0 } : { flex: "0 0 96px" }}>
+                  <AddSlotTile day={day} onAddSlot={onAddSlot} />
+                </div>
               )}
             </div>
           );
@@ -2499,12 +2852,14 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 }
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
-function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false }) {
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: denso ? 12 : 18 }}>
       {days.map((day) => {
         const tiles = getDeckDayTiles(day, data, menuPlan, visibleGroups);
-        if (tiles.length === 0) return null;
+        // Un día sin huecos se sigue pintando cuando hay `+`: si desapareciera,
+        // no habría dónde tocar para volver a abrirle uno.
+        if (tiles.length === 0 && !onAddSlot) return null;
         return (
           <div key={day}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -2515,12 +2870,19 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
             </div>
             <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
               {tiles.map((tile, i) => (
-                <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: "0 0 46%" }}>
-                  <div style={{ height: 150 }}>
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={16} compact showGroup={showGroup} members={data?.members} />
+                <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: denso ? "0 0 33%" : "0 0 46%" }}>
+                  <div style={{ height: denso ? 104 : 150 }}>
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={denso ? 14 : 16} compact denso={denso} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} />
                   </div>
                 </div>
               ))}
+              {onAddSlot && (
+                <div style={{ flex: denso ? "0 0 26%" : "0 0 34%" }}>
+                  <div style={{ height: denso ? 104 : 150 }}>
+                    <AddSlotTile day={day} onAddSlot={onAddSlot} denso={denso} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -3107,6 +3469,450 @@ function monthCellsFromWeeks(menuWeeks, data, visibleGroups) {
  * el detalle se toca el día: lleva a su semana y a su vista de día, que es
  * donde el plato ya se ve entero.
  */
+/**
+ * Vista "Tanda" — lo que hay que dejar hecho antes de que empiece la semana.
+ *
+ * No es otro tramo de tiempo como Día, Semana o Mes: es el MISMO menú visto por
+ * el otro lado. `sesionDeBases` mira los platos de la semana, agrupa los que
+ * comparten olla y saca qué bases merecen una tanda, cuántas raciones y a qué
+ * días alimenta cada una. Esa función existía desde hacía días sin que la
+ * llamara ninguna pantalla: todo el trabajo de etiquetar el catálogo terminaba
+ * en un número que nadie veía.
+ *
+ * Una base solo sale si la comparten DOS platos o más (MIN_PLATOS_POR_BASE):
+ * cocinar el arroz de un único plato no es una tanda, es cocinar.
+ *
+ * Las tarjetas son las del menú —foto real, dificultad y tiempo— porque una
+ * base es una receta como las demás y se abre igual. La ilustración de dibujo
+ * se queda en el selector del wizard, que es donde se ELIGE; aquí se cocina.
+ */
+/**
+ * El índice de recetas con el que se calcula la tanda.
+ *
+ * Manda el CATÁLOGO, no lo que el menú guardó. `RECIPES_BY_ID` se rellena con
+ * las recetas persistidas del menú, y las de un menú generado antes de que el
+ * puente copiara `basesAparte` llegan sin el eje de bases: para ellas la sesión
+ * salía vacía aunque el catálogo supiera perfectamente que ese plato lleva
+ * sofrito.
+ *
+ * Arreglar el puente no bastaba: las semanas YA generadas seguían rotas hasta
+ * que alguien las regenerara, y nadie iba a saber por qué. Mirando primero el
+ * catálogo, una semana vieja funciona igual.
+ *
+ * Lo que no está en el catálogo —recetas propias, generadas por IA— se sigue
+ * leyendo de donde estaba.
+ */
+/**
+ * El nombre de la base como se lee en la tarjeta.
+ *
+ * Quita el "base" del final. Dentro del catálogo "Sofrito base" distingue la
+ * receta de la tanda del sofrito que hace un plato por su cuenta, pero en una
+ * pestaña que ya se llama Tanda y en una tarjeta que ya pone BASE arriba, el
+ * sufijo lo dice por tercera vez.
+ *
+ * Solo lo llevan tres ("Sofrito base", "Salsa de tomate base", "Bechamel
+ * base"); las demás se leen tal cual.
+ */
+const nombreDeBase = (base) => String(base?.name ?? "").replace(/\s+base$/i, "");
+
+function lookupDeTanda() {
+  const m = new Map(Object.entries(RECIPES_BY_ID));
+  for (const [id, r] of Object.entries(recipeCatalogById)) m.set(id, r);
+  return m;
+}
+
+function DeckBatch({ days, data, menuPlan, visibleGroups, onDishTap }) {
+  const comidas = getDayMeals(data);
+  // Lo que hay en esta cocina cambia la tanda entera, no solo una etiqueta: la
+  // bechamel son 25 minutos removiendo o 12 sin tocarla, y la legumbre 60 o 25.
+  // Es justo donde el domingo se paga o no se paga.
+  const utensilios = data?.kitchenTools;
+  const sesion = useMemo(() => {
+    const plan = {};
+    for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
+    return sesionDeBases(plan, lookupDeTanda(), {
+      dias: days, comidas,
+      metodoDeBase: (b) => selectMethodForRecipe(b, utensilios ?? []),
+    });
+  }, [days, comidas, menuPlan, visibleGroups, utensilios]);
+
+  // Las que el usuario PIDIÓ y esta semana no puede dar. Sin esto, marcar tres
+  // bases y ver una sola tarjeta parece un fallo: no lo es — una tanda existe
+  // porque DOS platos comparten la olla, y el menú que ya estaba generado no
+  // sabía nada de lo que se ha pedido después— pero callarlo es peor que el
+  // fallo, porque no hay forma de saber que hay que regenerar.
+  const sinCubrir = useMemo(() => {
+    const puestas = new Set(sesion.bases.map((b) => claveDeBase(b.base)));
+    const pedidas = Object.keys(basesPedidas(data?.tanda)).filter((c) => !puestas.has(c));
+    if (pedidas.length === 0) return [];
+
+    // Cuántos platos de la semana llevan cada una. El número es la explicación:
+    // cero y uno son situaciones distintas y la frase tiene que decir cuál es.
+    const recetas = lookupDeTanda();
+    const cuenta = Object.fromEntries(pedidas.map((c) => [c, 0]));
+    for (const g of visibleGroups) {
+      const slots = menuPlan?.[g.id];
+      if (!slots) continue;
+      for (const dia of days) {
+        for (const comida of comidas) {
+          const slot = slots[`${dia}-${comida}`];
+          if (!slot) continue;
+          for (const rid of [slot.firstRecipeId, slot.recipeId]) {
+            if (!rid) continue;
+            const receta = recetas.get(catalogIdOfPlanRecipe(rid));
+            if (!receta) continue;
+            for (const c of clavesDeReceta(receta)) {
+              if (c in cuenta) cuenta[c] += 1;
+            }
+          }
+        }
+      }
+    }
+    return pedidas.map((c) => ({
+      etiqueta: BASES_UI[c]?.etiqueta ?? c,
+      platos: cuenta[c],
+    }));
+  }, [sesion, data?.sesgos, visibleGroups, menuPlan, days, comidas]);
+
+  if (sesion.bases.length === 0) {
+    return (
+      <div style={{ padding: "28px 18px", textAlign: "center" }}>
+        <div style={{
+          width: 54, height: 54, borderRadius: 999, margin: "0 auto 12px",
+          background: "#f2f0e9", display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <CookingPot size={26} color="#b2622f" strokeWidth={2} />
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "#142f1d", marginBottom: 4 }}>
+          Esta semana no hay tanda
+        </div>
+        <div style={{ fontSize: 12.5, color: "#6b7d70", lineHeight: 1.45, maxWidth: 260, margin: "0 auto" }}>
+          Ninguna base la comparten dos platos o más, así que cocinarla el domingo
+          no te ahorraría nada.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "4px 14px 18px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "2px 2px 12px" }}>
+        {/* Solo el título. Los minutos totales de la sesión estaban de más: cada
+            tarjeta ya lleva los suyos, y el domingo no se decide por un número
+            agregado que nadie va a cocinar de una sentada. */}
+        <span style={{ fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.3px" }}>
+          Deja esto hecho
+        </span>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {sesion.bases.map((b) => (
+          <BatchBaseCard
+            key={b.base.id}
+            entrada={b}
+            onDishTap={onDishTap}
+            grupos={visibleGroups}
+            members={data?.members ?? []}
+          />
+        ))}
+      </div>
+
+      {/* Lo pedido que esta semana no da para una tanda, con el motivo delante.
+          Cero platos y un plato son cosas distintas: la primera es que el menú
+          se generó antes de pedirlo, la segunda es que una tanda necesita DOS
+          que compartan olla. Decir "no lo comparten dos platos" sin el número
+          no explicaba ninguna de las dos. */}
+      {sinCubrir.length > 0 && (
+        <div style={{ margin: "16px 2px 0" }}>
+          <div style={{ fontSize: 12, fontWeight: 800, color: "#142f1d", marginBottom: 6 }}>
+            Lo que pediste y no cabe
+          </div>
+          {sinCubrir.map((b) => (
+            <div key={b.etiqueta} style={{ fontSize: 12, color: "#6b7d70", lineHeight: 1.5 }}>
+              <strong style={{ color: "#3c5346" }}>{b.etiqueta}:</strong>{" "}
+              {b.platos === 0
+                ? "ningún plato del menú la lleva."
+                : "solo la lleva un plato, y una tanda necesita dos que compartan olla."}
+            </div>
+          ))}
+          <div style={{ fontSize: 12, color: "#6b7d70", lineHeight: 1.5, marginTop: 6 }}>
+            El menú se generó antes de que lo pidieras. Regéneralo y entrarán.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Una base de la sesión: la foto arriba como en el menú, y debajo a qué días
+ * alimenta. Los días son la mitad que importa — sin ellos esto es una lista de
+ * la compra, y con ellos es un plan.
+ */
+function BatchBaseCard({ entrada, onDishTap, grupos = [], members = [] }) {
+  const { base, raciones, huecos, minutos, racionesNevera, racionesCongelador, diasEnNevera, metodo } = entrada;
+  const [failed, setFailed] = useState(false);
+  const [platosAbiertos, setPlatosAbiertos] = useState(false);
+  // La base se pinta y se abre por el MISMO puente que un plato del menú. Sin
+  // esto la ficha salía con el formato del catálogo: cantidades en blanco
+  // (`amount` en vez de `qty`), la dificultad en minúscula y sin macros. Y las
+  // raciones que se le pasan son las de la TANDA, no las de un plato, que es lo
+  // que hace que la lista de ingredientes sea la de la olla del domingo.
+  const receta = useMemo(() => catalogToFrontendRecipe(base, raciones), [base, raciones]);
+  // Para quién es esta olla. Un hogar con varios menús —dieta, bebé, niños—
+  // puede tener el mismo sofrito alimentando a dos, y saber a cuál sirve cambia
+  // cuánto hay que cocinar.
+  const gruposDeLaTanda = useMemo(() => {
+    const ids = new Set(huecos.map((h) => h.groupId));
+    return grupos.filter((g) => ids.has(g.id));
+  }, [huecos, grupos]);
+  const srcUrl = dishImageForRecipe(base);
+  const optimized = deckImg(srcUrl, 760);
+  const visual = visualForRecipe(base);
+  const showPhoto = optimized && !failed;
+
+  return (
+    <div>
+    <button
+      type="button"
+      onClick={() => onDishTap?.({
+        recipe: receta,
+        // `slot` NO es opcional aunque se abra en modo catálogo: la ficha lee
+        // `slot.eaters` sin protección en varios sitios, así que abrirla sin él
+        // revienta. El catálogo pasa uno fabricado por el mismo motivo, y aquí
+        // los comensales son las raciones de la TANDA, que es lo que se cocina.
+        slot: { eaters: raciones },
+        browse: true,
+        // Si la tarjeta cuenta 12 minutos de Thermomix, la ficha tiene que
+        // abrirse en Thermomix. Abrirla en "Tradicional" y ensenar 25 hacia
+        // que el numero de la tanda pareciera un error.
+        initialAppliance: metodo?.appliance ?? null,
+      })}
+      style={{
+        position: "relative", display: "block", width: "100%", height: 186,
+        // El mismo radio que las fichas de Día y Semana: son la misma tarjeta
+        // en la misma pantalla, y un borde menos redondeado se lee como otro
+        // componente.
+        border: "none", padding: 0, borderRadius: 22, overflow: "hidden",
+        cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+        background: visual.surface,
+        boxShadow: "0 6px 20px rgba(20,47,29,.14)",
+      }}
+    >
+      {showPhoto ? (
+        <img
+          src={optimized}
+          srcSet={deckSrcSet(srcUrl, 760)}
+          sizes="760px"
+          alt={base.name}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        <div style={{ position: "absolute", inset: 0, background: visual.surface }} />
+      )}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(to top, rgba(0,0,0,.74) 0%, rgba(0,0,0,.25) 42%, rgba(0,0,0,0) 66%)",
+      }} />
+
+      {/* CUÁNTAS VECES, no cuántas raciones. Las raciones son ambiguas — seis
+          pueden ser dos platos para tres o tres platos para dos— y lo que se
+          decide el domingo es cuántas cenas cubre esa olla. Va arriba a la
+          izquierda, a la altura de la dificultad, que es donde el ojo ya busca
+          los datos del plato. */}
+      <div style={{
+        position: "absolute", top: 12, left: 12,
+        display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6,
+      }}>
+        {/* Cuántas veces sale, y al tocarla, cuáles. `stopPropagation` porque va
+            DENTRO del botón de la tarjeta: sin él, abrir la lista abría también
+            la ficha de la base por debajo. */}
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={(e) => { e.stopPropagation(); setPlatosAbiertos(true); }}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault(); e.stopPropagation(); setPlatosAbiertos(true);
+          }}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            height: 26, padding: "0 10px", borderRadius: 999,
+            background: "rgba(255,255,255,.94)", color: "#b2622f",
+            fontSize: 12, fontWeight: 900, cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(9,18,12,.3)",
+          }}
+        >
+          <BookOpen size={13} strokeWidth={2.6} />
+          {huecos.length}x
+        </span>
+        <span style={{
+          display: "inline-flex", alignItems: "center",
+          height: 24, padding: "0 10px", borderRadius: 999,
+          background: "rgba(255,255,255,.88)", color: "#3c5346",
+          fontSize: 11.5, fontWeight: 800,
+          boxShadow: "0 2px 8px rgba(9,18,12,.25)",
+        }}>
+          {raciones} raciones
+        </span>
+      </div>
+
+      <div style={{
+        position: "absolute", top: 12, right: 12,
+        display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 7,
+      }}>
+        {gruposDeLaTanda.length > 0 && (
+          <div style={{ display: "flex", gap: 4 }}>
+            {gruposDeLaTanda.map((g) => (
+              <GroupMenuBadge key={g.id} group={g} size={24} members={members} max={2} />
+            ))}
+          </div>
+        )}
+        <DishSpecPills difficulty={receta.difficulty} time={minutos} align="flex-end" />
+        {/* Con que aparato esta contado. Sin decirlo, una legumbre que pasa de
+            60 a 25 minutos porque la casa tiene olla rapida parece un fallo de
+            la app y no la razon por la que merece la pena. */}
+        {metodo && (
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            height: 22, padding: "0 9px", borderRadius: 999,
+            background: "rgba(255,255,255,.92)",
+            color: APPLIANCE_COLORS[metodo.appliance] ?? "#3c5346",
+            fontSize: 11, fontWeight: 800,
+            boxShadow: "0 2px 8px rgba(9,18,12,.25)",
+          }}>
+            {(() => {
+              const Icono = APPLIANCE_ICONS[metodo.appliance];
+              return Icono ? <Icono size={12} strokeWidth={2.5} /> : null;
+            })()}
+            {APPLIANCE_LABELS[metodo.appliance] ?? metodo.appliance}
+          </span>
+        )}
+      </div>
+
+      <div style={{ position: "absolute", left: 14, right: 14, bottom: 13 }}>
+        <div style={{
+          color: "rgba(255,255,255,.95)", fontSize: 10.5, fontWeight: 800,
+          letterSpacing: ".7px", textTransform: "uppercase",
+          textShadow: "0 1px 6px rgba(0,0,0,.5)", marginBottom: 5,
+        }}>
+          Base
+        </div>
+        <div style={{
+          color: "#fff", fontSize: 20, fontWeight: 900, lineHeight: 1.15,
+          letterSpacing: "-.3px", textShadow: "0 2px 12px rgba(0,0,0,.45)",
+        }}>
+          {nombreDeBase(base)}
+        </div>
+      </div>
+    </button>
+
+    {/* DÓNDE VA CADA RACIÓN, debajo de la tarjeta y con sus iconos.
+        Antes decía "6 raciones · 4 días en nevera · 2 al congelador" dentro de
+        la foto, y ahí no se sabía si el 2 eran días o raciones. Ahora cada
+        número va pegado a su icono, una línea por destino, y las dos cifras
+        suman el total: cuánto meto en la nevera y cuánto congelo.
+
+        No hay una tercera de "hoy" porque la tanda se cocina el día ANTES de
+        que empiece la semana: nada de esta olla se come el mismo día. */}
+    <div style={{
+      display: "flex", flexDirection: "column", gap: 3,
+      padding: "8px 4px 0", fontSize: 11.5, fontWeight: 700, color: "#3c5346",
+    }}>
+      {racionesNevera > 0 && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <Refrigerator size={14} color="#2f6d8a" strokeWidth={2.4} />
+          <span style={{ fontWeight: 600, color: "#6b7d70" }}>
+            {racionesNevera === 1 ? "1 ración" : `${racionesNevera} raciones`}
+            {diasEnNevera != null && (
+              <>
+                {" hasta "}
+                <strong style={{ color: "#3c5346", fontWeight: 800 }}>
+                  {diasEnNevera === 1 ? "mañana" : `${diasEnNevera} días`}
+                </strong>
+              </>
+            )}
+          </span>
+        </span>
+      )}
+      {racionesCongelador > 0 && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <Snowflake size={14} color="#3d6b93" strokeWidth={2.4} />
+          <span style={{ fontWeight: 600, color: "#6b7d70" }}>
+            {racionesCongelador === 1 ? "1 ración" : `${racionesCongelador} raciones`}
+            {" "}
+            <strong style={{ color: "#3c5346", fontWeight: 800 }}>al congelador</strong>
+          </span>
+        </span>
+      )}
+    </div>
+
+    {platosAbiertos && (
+      <WizardSheet
+        icon={BookOpen}
+        iconColor="#b2622f"
+        title={nombreDeBase(base)}
+        subtitle={huecos.length === 1 ? "El plato que la usa" : `Los ${huecos.length} platos que la usan`}
+        onClose={() => setPlatosAbiertos(false)}
+        maxWidth={360}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {huecos.map((h) => {
+            const [dia, comida] = String(h.clave).split("-");
+            const meta = MEAL_META[comida] ?? { label: comida, Icon: Utensils };
+            const MealIcon = meta.Icon;
+            // La miniatura del plato, la misma que en el menú: se reconoce
+            // antes por la foto que por el nombre.
+            const receta = RECIPES_BY_ID[catalogIdOfPlanRecipe(h.recipeId)]
+              ?? recipeCatalogById[catalogIdOfPlanRecipe(h.recipeId)];
+            const foto = receta ? deckImg(dishImageForRecipe(receta), 120) : null;
+            return (
+              <div
+                key={`${h.groupId}-${h.clave}`}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "8px 2px", borderBottom: "1px solid #eef3f0",
+                }}
+              >
+                <span style={{
+                  width: 42, height: 42, borderRadius: 11, flexShrink: 0, overflow: "hidden",
+                  background: "#f2f0e9", display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  {foto
+                    ? <img src={foto} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <UtensilsCrossed size={16} color="#bcc9c4" strokeWidth={1.8} />}
+                </span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  {/* El día y el icono de la comida. El "SÁB · CENA" de antes
+                      repetía en texto lo que el icono ya dice. */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 1 }}>
+                    <span style={{ fontSize: 10.5, fontWeight: 900, color: "#7a9485", letterSpacing: ".4px", textTransform: "uppercase" }}>
+                      {dayLabel(dia)}
+                    </span>
+                    <MealIcon size={13} color="#b2622f" strokeWidth={2.3} />
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#142f1d", lineHeight: 1.3 }}>
+                    {h.nombre}
+                  </div>
+                </div>
+                {/* De dónde sale ese día: de la nevera o del congelador. Es el
+                    dato que convierte la lista en un plan. */}
+                {h.desde === "congelador"
+                  ? <Snowflake size={15} color="#3d6b93" strokeWidth={2.4} />
+                  : <Refrigerator size={15} color="#2f6d8a" strokeWidth={2.4} />}
+              </div>
+            );
+          })}
+        </div>
+      </WizardSheet>
+    )}
+    </div>
+  );
+}
+
 function DeckMonth({ menuWeeks, data, visibleGroups, onPickDay }) {
   const cells = useMemo(
     () => monthCellsFromWeeks(menuWeeks, data, visibleGroups),
@@ -3147,7 +3953,7 @@ function DeckMonth({ menuWeeks, data, visibleGroups, onPickDay }) {
   if (!monthKey) {
     return (
       <div style={{ padding: "40px 20px", textAlign: "center" }}>
-        <CalendarRange size={32} color="#cdd8d0" strokeWidth={2} />
+        <LayoutGrid size={32} color="#cdd8d0" strokeWidth={2} />
         <p style={{ margin: "10px 0 0", fontSize: 13, fontWeight: 700, color: "#9ab0a1" }}>
           Aún no hay menú que poner en el calendario
         </p>
@@ -3286,11 +4092,25 @@ const monthDots = {
   alignItems: "center", gap: 3, maxWidth: 30,
 };
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay }) {
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
+  const comidasDeLaSemana = getDayMeals(data);
+  const clavesTanda = useMemo(() => {
+    // Solo si hay tandas PEDIDAS. El icono salía para todo el mundo, porque se
+    // calculaba de los platos de la semana (dos que comparten olla) sin mirar
+    // si alguien había pedido batch cooking. A quien no lo pidió le aparecían
+    // tandas que no existen — y marcar el modo sin pedir nada es exactamente el
+    // mismo caso: no hay olla que enseñar.
+    if (!hayTandasPedidas(data)) return new Set();
+    const plan = {};
+    for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
+    const s = sesionDeBases(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana });
+    return new Set(s.bases.map((b) => claveDeBase(b.base)).filter(Boolean));
+  }, [days, comidasDeLaSemana, menuPlan, visibleGroups, data]);
   return (
+    <TandaContext.Provider value={clavesTanda}>
     <div key={deckView} className="deck-view-swap">
       {deckView === "dia" && (
         <DeckDayPager
@@ -3306,10 +4126,15 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           onRegenerateDay={onRegenerateDay}
           regenGroups={regenGroups}
           showGroup={showGroup}
+          invitadosPorHueco={invitadosPorHueco}
+          onAddSlot={onAddSlot}
+          onRemoveSlot={onRemoveSlot}
+          onFillSlot={onFillSlot}
+          onDishActions={onDishActions}
         />
       )}
       {deckView === "semana" && (
-        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} />
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} onAddSlot={onAddSlot} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} />
       )}
       {deckView === "mes" && (
         <DeckMonth
@@ -3317,6 +4142,15 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           data={data}
           visibleGroups={visibleGroups}
           onPickDay={onPickMonthDay}
+        />
+      )}
+      {deckView === "tanda" && (
+        <DeckBatch
+          days={days}
+          data={data}
+          menuPlan={menuPlan}
+          visibleGroups={visibleGroups}
+          onDishTap={onDishTap}
         />
       )}
       {deckView === "lista" && (
@@ -3330,12 +4164,13 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
         />
       )}
     </div>
+    </TandaContext.Provider>
   );
 }
 
 /**
  * Deck view selector — a pill showing the active view that unfolds an animated
- * menu (Día / Semana / Lista + week switcher + Vista clásica).
+ * menu (Día / Semana / Mes + week switcher + Vista clásica).
  */
 /** Circular icon for the view picker. Each view has its own accent colour;
  *  active state fills the disc, inactive shows the tinted ring + icon. */
@@ -3371,6 +4206,53 @@ function ViewCircle({ Icon, active, color = "#2d5a3d", size = 36 }) {
 }
 
 /** Menu view picker — circular chip that opens a modal with the view options. */
+/**
+ * El selector de vista de la pizarra: un botón, no un menú.
+ *
+ * Con dos vistas, abrir una hoja modal para elegir entre dos es pedir tres
+ * gestos (tocar, leer, elegir) para algo que es un interruptor. Aquí el toque
+ * ya cambia, el chevron sobra —no despliega nada— y la etiqueta baja debajo
+ * del icono, que es donde cabe sin ensanchar la fila.
+ */
+function DeckToggleVista({ value, onChange, options }) {
+  const i = Math.max(0, options.findIndex((o) => o.id === value));
+  const activa = options[i] ?? options[0];
+  const siguiente = options[(i + 1) % options.length];
+  const Icon = DECK_VIEW_ICON[activa?.id] ?? CalendarDays;
+  const color = DECK_VIEW_COLOR[activa?.id] ?? "#2d5a3d";
+
+  return (
+    <button
+      type="button"
+      className="deck-press"
+      onClick={() => onChange(siguiente.id)}
+      aria-label={`Vista: ${activa?.label}. Tocar para ver ${siguiente?.label}`}
+      title={`Ver ${siguiente?.label}`}
+      style={{
+        border: "none", background: "transparent", padding: 0, cursor: "pointer",
+        fontFamily: "inherit", flexShrink: 0,
+        display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 3,
+      }}
+    >
+      {/* Círculo, y de 42 como el avatar de la derecha: son los dos
+          extremos de la misma fila y con tamaños distintos la fila se veía
+          descuadrada. El copy va debajo, como en el avatar. */}
+      <span
+        style={{
+          width: 42, height: 42, borderRadius: 999,
+          background: `${color}14`, border: `2px solid ${color}55`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <Icon size={19} color={color} strokeWidth={2.4} />
+      </span>
+      <span style={{ fontSize: 10, fontWeight: 800, color, letterSpacing: "-.1px", lineHeight: 1 }}>
+        {activa?.label}
+      </span>
+    </button>
+  );
+}
+
 function DeckNav({ value, onChange, options }) {
   const [open, setOpen] = useState(false);
   const active = options.find((o) => o.id === value) ?? options[0];
@@ -3458,7 +4340,7 @@ function DeckNav({ value, onChange, options }) {
 }
 
 /** Mini "N de X" week stepper shown next to DeckNav when there are multiple weeks. */
-function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen }) {
+function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen, style }) {
   const btn = (Icon, onClick, disabled) => (
     <button
       type="button"
@@ -3476,7 +4358,7 @@ function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen }) {
     </button>
   );
   return (
-    <div style={{ display: "inline-flex", alignItems: "center", background: "#eef4ef", borderRadius: 999, padding: "3px 6px 3px 4px", gap: 1 }}>
+    <div style={{ display: "inline-flex", alignItems: "center", background: "#eef4ef", borderRadius: 999, padding: "3px 6px 3px 4px", gap: 1, ...style }}>
       {btn(ChevronLeft, onPrev, weekIdx <= 0)}
       <button
         type="button"
@@ -3547,7 +4429,7 @@ function ScopeCircle({ opt, active, size = 42, members }) {
  * centered "liquid glass" modal to filter by menú (dieta/bebés/niños…) and by
  * persona. Only rendered when there are several menús.
  */
-function DeckFilter({ groups, scope, onScopeChange, members }) {
+function DeckFilter({ groups, scope, onScopeChange, members, interactivo = true, ciclar = false }) {
   const [open, setOpen] = useState(false);
 
   const scopeOptions = [{ id: "all", label: "Todos", group: null }, ...groups.map((g) => ({ id: g.id, label: g.label, group: g }))];
@@ -3555,26 +4437,43 @@ function DeckFilter({ groups, scope, onScopeChange, members }) {
 
   return (
     <>
-      <button
-        type="button"
-        className="deck-press"
-        data-coach="menu-filters"
-        onClick={() => setOpen(true)}
-        aria-haspopup="dialog"
-        aria-label={`Filtrar menú (${activeOpt.label})`}
-        title={`Filtrar · ${activeOpt.label}`}
-        style={{
-          border: "none",
-          background: "transparent",
-          padding: 0,
-          cursor: "pointer",
-          fontFamily: "inherit",
-          flexShrink: 0,
-          display: "inline-flex",
-        }}
-      >
-        <ScopeCircle opt={activeOpt} active size={42} members={members} />
-      </button>
+      {/* Con un solo menú las caras se ven igual, pero no abren nada: es un
+          recordatorio de para quién cocinas, y un filtro de una sola opción
+          sería un botón que no hace nada. */}
+      {interactivo ? (
+        <button
+          type="button"
+          className="deck-press"
+          data-coach="menu-filters"
+          // En la pizarra el toque pasa al siguiente menú (Todos → Adultos →
+          // Niños → …) en vez de abrir la hoja: con dos o tres opciones, un
+          // modal para elegir entre ellas cuesta más que recorrerlas. La hoja
+          // sigue estando en el menú generado, donde además filtra.
+          onClick={() => {
+            if (!ciclar) { setOpen(true); return; }
+            const i = scopeOptions.findIndex((o) => o.id === (scope ?? "all"));
+            onScopeChange(scopeOptions[(i + 1) % scopeOptions.length].id);
+          }}
+          aria-haspopup="dialog"
+          aria-label={`Filtrar menú (${activeOpt.label})`}
+          title={`Filtrar · ${activeOpt.label}`}
+          style={{
+            border: "none",
+            background: "transparent",
+            padding: 0,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            flexShrink: 0,
+            display: "inline-flex",
+          }}
+        >
+          <ScopeCircle opt={activeOpt} active size={42} members={members} />
+        </button>
+      ) : (
+        <span style={{ flexShrink: 0, display: "inline-flex" }} title={activeOpt.label}>
+          <ScopeCircle opt={activeOpt} active size={42} members={members} />
+        </span>
+      )}
 
       {open && (
         <div
@@ -3891,6 +4790,81 @@ export function RoscoMenu({ anchor, actions, onClose, center = null, inline = fa
 // Acciones rápidas de un plato: fila horizontal (icono + copy debajo), sin
 // radial y sin sub-menús — cada botón ejecuta directamente al tocarlo.
 // Sustituye al RoscoMenu de "Regenerar/Mover/Duplicar/Quitar" (2026-08-28).
+/**
+ * Cuántos comensales de más tiene este plato. Un contador, no un campo de
+ * texto: el número realista es 1, 2 o 3, y sacar el teclado numérico del móvil
+ * para eso es un peaje. El campo sigue ahí para quien monte una mesa de doce.
+ *
+ * EDITA el total, no suma: arranca en los que ya hay y baja hasta cero, así
+ * que quitar invitados es el mismo gesto que ponerlos. Por eso el botón dice
+ * "Guardar" y no "Añadir" cuando ya había alguno.
+ */
+function GuestCountSheet({ inicial = 0, onConfirm, onClose }) {
+  const [n, setN] = useState(Math.max(0, inicial));
+  const paso = (d) => setN((v) => Math.max(0, Math.min(20, v + d)));
+  const redondo = {
+    width: 44, height: 44, borderRadius: 999, border: "1.5px solid #dbe7de",
+    background: "#fff", color: "#2d5a3d", fontSize: 22, fontWeight: 800,
+    display: "grid", placeItems: "center", cursor: "pointer",
+    transition: "transform .15s ease",
+  };
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 1250,
+        background: "rgba(9,18,12,.8)",
+        display: "grid", placeItems: "center", padding: 20,
+        animation: "deckFadeIn .16s ease both",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 22, padding: "22px 20px 18px",
+          width: "100%", maxWidth: 300, textAlign: "center",
+          boxShadow: "0 18px 48px rgba(9,18,12,.28)",
+        }}
+      >
+        <div style={{ fontSize: 15, fontWeight: 800, color: "#1f3326" }}>
+          {inicial > 0 ? "Comensales de más" : "¿Cuántos más?"}
+        </div>
+        <div style={{ fontSize: 12.5, color: "#6b7d70", marginTop: 4, lineHeight: 1.35 }}>
+          {n === 0 ? "Sin invitados en este plato" : "Se suman solo a este plato"}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, margin: "18px 0 20px" }}>
+          <button type="button" aria-label="Uno menos" onClick={() => paso(-1)} disabled={n <= 0}
+            style={{ ...redondo, opacity: n <= 0 ? 0.4 : 1 }}>−</button>
+          <input
+            type="number" inputMode="numeric" min={0} max={20} value={n}
+            aria-label="Comensales de más"
+            onChange={(e) => setN(Math.max(0, Math.min(20, Math.round(Number(e.target.value) || 0))))}
+            style={{
+              width: 68, textAlign: "center", fontSize: 30, fontWeight: 900,
+              color: "#2d5a3d", border: "none", outline: "none",
+              fontVariantNumeric: "tabular-nums", background: "transparent",
+            }}
+          />
+          <button type="button" aria-label="Uno más" onClick={() => paso(1)} disabled={n >= 20}
+            style={{ ...redondo, opacity: n >= 20 ? 0.4 : 1 }}>+</button>
+        </div>
+        <button
+          type="button"
+          onClick={() => { onConfirm(n); onClose(); }}
+          style={{
+            width: "100%", padding: "13px 0", borderRadius: 999, border: "none",
+            background: "#2d5a3d", color: "#fff", fontSize: 14.5, fontWeight: 800,
+            cursor: "pointer",
+          }}
+        >
+          {inicial > 0 ? "Guardar" : "Añadir"}
+        </button>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function DishActionBar({ anchor, actions, onClose }) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -3902,7 +4876,13 @@ function DishActionBar({ anchor, actions, onClose }) {
   // estrecho. Se reparten 3+2 (cinco) o 2+2 (cuatro, cuando la comida no admite
   // cambio de estructura). Nunca se deja un hueco suelto en la fila de abajo:
   // preferimos que los botones bailen de sitio a que se vea un agujero.
-  const topCount = actions.length >= 5 ? 3 : Math.ceil(actions.length / 2);
+  //
+  // Hasta TRES caben en una sola fila y van en horizontal: 3×62 + 2×8 + 24 de
+  // padding son 226 px, que entran de sobra en el móvil más estrecho. La
+  // fórmula de antes (`ceil(n/2)`) partía también los casos pequeños, así que
+  // el submenú de "Cambiar" —dos acciones— salía una debajo de otra, en
+  // vertical, sin necesidad ninguna.
+  const topCount = actions.length <= 3 ? actions.length : actions.length >= 5 ? 3 : 2;
   const rows = [actions.slice(0, topCount), actions.slice(topCount)].filter((r) => r.length > 0);
   const widest = Math.max(...rows.map((r) => r.length));
   const barW = widest * BTN + (widest - 1) * GAP + PAD * 2;
@@ -4022,6 +5002,11 @@ export const MenuScreen = memo(function MenuScreen({
   onDishSwap,
   onDishDuplicate,
   onDishClear,
+  // Ausente = el control no se pinta (menus de solo lectura).
+  onSetGuests,
+  // Invitados por hueco, clave `"<grupoId>|<dia>|<comida>"`. Sale de las
+  // reglas (lib/reglas.js#invitadosPorHueco), no de un campo en el plan.
+  invitadosPorHueco = null,
   onSlotStructure,
   incomingDish = null,
   onDishPlace,
@@ -4038,6 +5023,7 @@ export const MenuScreen = memo(function MenuScreen({
   activeFavorite = false,
   onToggleFavorite,
   onActivateMenu = null,
+  onDeactivateMenu = null,
   onSwitchWeek,
   onOpenMenus,
   onOpenAnalytics,
@@ -4058,7 +5044,38 @@ export const MenuScreen = memo(function MenuScreen({
   onPublishToFeed = null,
   onUnpublishFromFeed = null,
   menuSharedInFeed = false,
+  // ── Wizard generativo (experimento local) ────────────────────────────────
+  // Dos nodos opcionales que el menú se limita a colocar: la fila de mandos
+  // bajo la cabecera y la burbuja flotante del bot. Van como props y no
+  // importados aquí para que esta pantalla NO dependa del wizard: con ambos a
+  // null —que es como los recibe todo lo demás— el menú se comporta
+  // exactamente igual que antes de que esto existiera.
+  wizardControls = null,
+  wizardBubble = null,
+  // Este menú se monta a mano. Cambia tres cosas, y las tres por el mismo
+  // motivo —aquí no decide un motor, decides tú—: solo Día y Semana (las dos
+  // vistas que saben pintar un hueco vacío; en Mes o Tanda un menú sin platos
+  // se vería en blanco y sin nada que tocar), la semana en denso para que
+  // quepa de un vistazo, y sin la fila de mandos ni la burbuja del asistente,
+  // que App ya no pasa.
+  modoPizarra = false,
+  // Abre el menú de "añadir hueco" para ese día. Solo la pizarra lo pasa: en
+  // un menú generado los huecos los pone el motor desde el horario de la casa.
+  onAddSlot = null,
+  // Cierra un hueco vacío. Igual que `onAddSlot`: solo la pizarra lo pasa.
+  onRemoveSlot = null,
+  // Rellena huecos vacíos sin pasar por el modelo. Recibe un ámbito:
+  // `{groupId, day, meal, course}` para uno, o nada para todo lo que quede.
+  onFillSlots = null,
+  // Soltar un plato encima de otro hueco del tablero: mueve, o intercambia si
+  // el destino ya tenía algo. Solo la pizarra lo pasa.
+  onSlotDrag = null,
+  // La fila de mandos de la pizarra (días, balance, rellenar). Va en el mismo
+  // sitio que la del asistente y por el mismo motivo: se lee como "esto de
+  // aquí arriba controla lo de abajo".
+  pizarraControles = null,
 }) {
+  const deckViews = modoPizarra ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
   const [pdfExportOpen, setPdfExportOpen] = useState(false);
@@ -4068,6 +5085,12 @@ export const MenuScreen = memo(function MenuScreen({
   // a two-tap mode (`armed`), where the next dish/hueco tapped is the target;
   // "Cambiar" executes on the spot, no extra step.
   const [dishAction, setDishAction] = useState(null);
+  // Segundo nivel de "Cambiar". No es una barra nueva: es la MISMA
+  // `DishActionBar`, con el mismo ancla y los mismos estilos, a la que se le
+  // pasa otra lista de acciones. Así el submenú no puede desentonar con el
+  // menú del que sale, porque es él.
+  const [cambiarSub, setCambiarSub] = useState(false);
+  const cerrarAcciones = useCallback(() => { setDishAction(null); setCambiarSub(false); }, []);
   const [armed, setArmed] = useState(null); // null | { mode: "swap" | "duplicate" | "incoming", source }
 
   // Un plato copiado del menu de otra persona llega ya armado: has cruzado de
@@ -4102,12 +5125,110 @@ export const MenuScreen = memo(function MenuScreen({
     [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly],
   );
 
+  // El hueco al que se le estan añadiendo comensales, o null. Vive aparte de
+  // `dishAction` porque la barra se cierra al elegir: el contador es el paso
+  // siguiente, no otra barra.
+  const [guestFor, setGuestFor] = useState(null);
+
+  // ── Arrastrar un hueco (solo pizarra) ───────────────────────────────────
+  //
+  // El gesto es el long-press que ya existía, y esa es media solución: como
+  // `useLongPress` cancela en cuanto el dedo se mueve 12px, el scroll de la
+  // fila gana siempre mientras no te hayas parado a propósito. Cuando el
+  // temporizador salta, el plato "se levanta" y a partir de ahí mandan los
+  // listeners de window, no los del tile — el dedo se va a salir de él.
+  //
+  // El destino se busca con `elementFromPoint` y los `data-slot` de las
+  // baldosas, en vez de midiendo rectángulos: así funciona igual en Día y en
+  // Semana, con scroll horizontal por medio y sin que esta pantalla tenga que
+  // saber cómo está maquetada cada vista.
+  const [arrastre, setArrastre] = useState(null);
+  const arrastreRef = useRef(null);
+  useEffect(() => { arrastreRef.current = arrastre; }, [arrastre]);
+
+  const iniciarArrastre = useCallback((sel) => {
+    // La etiqueta nace en el centro de la baldosa que acabas de levantar, no
+    // en (0,0): es la única señal de que el plato está cogido, y si empieza
+    // invisible en una esquina el gesto parece que no ha hecho nada.
+    const t = sel?.anchor?.tile;
+    setArrastre({
+      source: sel,
+      sobre: null,
+      x: t ? t.left + t.width / 2 : 0,
+      y: t ? t.top + t.height / 2 : 0,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!arrastre) return undefined;
+
+    const destinoEn = (x, y) => {
+      const el = document.elementFromPoint(x, y)?.closest?.("[data-slot]");
+      if (!el) return null;
+      const bruto = el.getAttribute("data-slot") ?? "";
+      const corte = bruto.indexOf("-");
+      const groupId = el.getAttribute("data-group");
+      if (corte < 0 || !groupId) return null;
+      return {
+        groupId,
+        day: bruto.slice(0, corte),
+        meal: bruto.slice(corte + 1),
+        course: el.getAttribute("data-course") === "first" ? "first" : "main",
+      };
+    };
+
+    const mover = (e) => {
+      const d = destinoEn(e.clientX, e.clientY);
+      const src = arrastreRef.current?.source;
+      const valido = d && src && !(d.groupId === src.groupId && d.day === src.day && d.meal === src.meal && d.course === src.course);
+      setArrastre((a) => (a ? { ...a, sobre: valido ? d : null, x: e.clientX, y: e.clientY } : a));
+    };
+    const soltar = () => {
+      const a = arrastreRef.current;
+      setArrastre(null);
+      if (a?.sobre) onSlotDrag?.(a.source, a.sobre);
+    };
+
+    // ── Que el navegador no se lleve el gesto ───────────────────────────
+    // Esto es lo que hacía que arrastrar no funcionara en el móvil. Tocar
+    // `touch-action` aquí no sirve: el navegador decide si un toque es scroll
+    // AL EMPEZAR el toque, y para cuando el plato se levanta —420ms después—
+    // esa decisión ya está tomada. En cuanto el dedo se movía, la fila
+    // scrolleaba, el navegador se quedaba el puntero y mandaba `pointercancel`,
+    // que aquí significa "suelta": el arrastre moría antes de empezar.
+    //
+    // Lo que sí llega a tiempo es cancelar cada `touchmove`. Se puede porque
+    // el dedo TODAVÍA no se ha movido (`useLongPress` cancela la pulsación
+    // larga a los 12px), así que no hay scroll en marcha que interrumpir. Y
+    // tiene que ser `passive: false` o el navegador ignora el preventDefault.
+    const bloquearScroll = (e) => e.preventDefault();
+    window.addEventListener("touchmove", bloquearScroll, { passive: false });
+    window.addEventListener("pointermove", mover, { passive: true });
+    window.addEventListener("pointerup", soltar);
+    window.addEventListener("pointercancel", soltar);
+    return () => {
+      window.removeEventListener("touchmove", bloquearScroll);
+      window.removeEventListener("pointermove", mover);
+      window.removeEventListener("pointerup", soltar);
+      window.removeEventListener("pointercancel", soltar);
+    };
+  }, [arrastre, onSlotDrag]);
+
   const handleTileLongPress = useCallback(
     (sel) => {
-      if (readOnly || armed || sel.empty) return;
+      if (readOnly || armed) return;
+      // En la pizarra la pulsación larga LEVANTA el plato. Las acciones
+      // (cambiar, duplicar, vaciar) siguen en el botón de los tres puntos, que
+      // es un gesto explícito: aquí el dedo largo ya significa "lo voy a
+      // mover", y darle dos significados sería pedirle al usuario que adivine.
+      if (modoPizarra && !sel.empty && onSlotDrag) {
+        iniciarArrastre(sel);
+        return;
+      }
+      if (sel.empty) return;
       setDishAction(sel);
     },
-    [armed, readOnly],
+    [armed, readOnly, modoPizarra, onSlotDrag, iniciarArrastre],
   );
 
   // Demo-only autoplay for the value-props carousel: open the quick-actions
@@ -4210,6 +5331,11 @@ export const MenuScreen = memo(function MenuScreen({
       return "dia";
     }
   }); // "dia" | "semana" | "mes" | "lista"
+  // Una vista guardada que este menú no ofrece (la pizarra solo da Día y
+  // Semana) dejaría el deck en blanco: se cae a la primera disponible.
+  useEffect(() => {
+    if (!deckViews.some((v) => v.id === deckView)) setDeckView(deckViews[0].id);
+  }, [deckViews, deckView]);
   useEffect(() => {
     // In demo mode we must not clobber the real user's saved deck preference.
     if (autoDemo) return;
@@ -4221,6 +5347,9 @@ export const MenuScreen = memo(function MenuScreen({
   }, [deckView, autoDemo]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(true);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  // Las otras acciones del menú, plegadas en la fila de mandos. Ver
+  // `accionesDelMenu` más abajo.
+  const [accionesAbiertas, setAccionesAbiertas] = useState(false);
   const [confirmDeleteActive, setConfirmDeleteActive] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => {
     const jsDay = new Date().getDay();
@@ -4253,7 +5382,53 @@ export const MenuScreen = memo(function MenuScreen({
   const menuNeedsActivation = Boolean(
     user && activeMenu && activeMenu.activatedAt === null && onActivateMenu,
   );
+  const menuActivado = Boolean(activeMenu?.activatedAt);
   const hasMenu = !isGenerating && !error && hasVisibleMenu;
+
+
+  /**
+   * Las acciones del menú —activar, favorito, publicar— como BALDOSAS, en la
+   * misma fila que los mandos y plegadas tras una pestaña.
+   *
+   * Vivían sueltas arriba a la derecha, y esa esquina ya estaba llena: con
+   * varias semanas la fila de debajo trae además su paso de semanas, y
+   * cualquier mando nuevo —las bases, sin ir más lejos— no tenía dónde
+   * entrar. Aquí comparten fila con las baldosas y se turnan: o ajustas el
+   * menú o haces algo CON el menú, nunca las dos a la vez.
+   *
+   * Son la MISMA baldosa que un mando —mismo cuadrado, mismo nombre debajo—
+   * con icono en vez de ilustración. Si al desplegarlas aparecieran pastillas,
+   * la fila cambiaría de idioma a mitad de gesto.
+   *
+   * ── Las tres están SIEMPRE ────────────────────────────────────────────
+   * Antes cada una se escondía cuando no procedía: activar solo si el menú
+   * estaba sin activar, favorito solo con cuenta. El resultado era una fila
+   * que cambiaba de contenido sin avisar —con el menú ya activado y sin
+   * sesión quedaba solo publicar— y no había forma de saber si activar
+   * faltaba porque ya estaba hecho o porque la app se lo había comido.
+   *
+   * Ahora salen las tres y lo que cambia es el estado: APAGADA cuando esa
+   * acción ya no está pendiente. Apagada no es muerta —quitar de favoritos y
+   * volver a la hoja de publicar siguen pulsando—: solo se bloquea lo que de
+   * verdad no tiene nada que hacer, un menú ya activado o guardar sin cuenta
+   * donde guardarlo.
+   *
+   * Lo demás —menús guardados, compartir, PDF, regenerar— sigue en el burger
+   * de la cabecera, que se queda donde estaba: son destinos y diálogos, no
+   * interruptores, y una baldosa que abre una pantalla promete algo que no es.
+   */
+  const [publishSheetOpen, setPublishSheetOpen] = useState(false);
+  // Vive aqui arriba, y no junto a los demás manejadores de exportar, porque
+  // la baldosa de Descargar lo lleva en sus dependencias: declarado abajo se
+  // lee antes de existir y revienta en el primer render.
+  const handleDownload = useCallback(() => setPdfExportOpen(true), []);
+  const abrirAcciones = useCallback((v) => setAccionesAbiertas(v), []);
+  // Sin activar Y con cuenta para activarlo: es la única de las tres que pide
+  // un toque ya mismo, así que es la única que se destaca —y la que asoma
+  // cuando la pestaña está plegada.
+  const puedeActivar = Boolean(hasMenu && onActivateMenu && menuNeedsActivation);
+  const puedeFavorito = Boolean(onToggleFavorite && user);
+  const accionesEnLaFila = hasMenu && Boolean(wizardControls);
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
@@ -4315,7 +5490,6 @@ export const MenuScreen = memo(function MenuScreen({
     [data.groups, data.members],
   );
 
-  const [publishSheetOpen, setPublishSheetOpen] = useState(false);
 
   const handleShare = async () => {
     try {
@@ -4334,9 +5508,109 @@ export const MenuScreen = memo(function MenuScreen({
     }
   };
 
-  const handleDownload = () => {
-    setPdfExportOpen(true);
-  };
+
+  /**
+   * Las siete, en orden: lo que cambia el estado del menú primero, lo que se
+   * lo lleva fuera después, y el histórico al final porque no es una acción
+   * sobre este menú sino irse a otro sitio.
+   *
+   * Todas CON COLOR, siempre. Estuvieron un rato apagándose al completarse
+   * —gris para "ya está activado", gris para "ya es favorito"— y leído en la
+   * fila parecía que la app las había deshabilitado, cuando es justo al
+   * revés: activado y guardado son los estados BUENOS. Lo que dice si está
+   * hecho es el aro y el nombre, no el apagarse.
+   *
+   * El gris queda solo para lo que de verdad no se puede hacer aquí —guardar
+   * sin cuenta donde guardarlo—, y entonces el botón ni siquiera responde.
+   */
+  // Lo que hoy no se puede hacer no se apaga: se toca igual y contesta. Un
+  // botón gris y muerto no explica por qué no va.
+  const sinCuenta = (que) => () => onToast?.(`Necesitas cuenta para ${que}`);
+
+  const accionesDelMenu = (
+    <>
+      <BaldosaAccion
+        Icono={Zap}
+        etiqueta={menuActivado ? "Activado" : "Activar"}
+        color="#c9922a"
+        tinte="#fff6e0"
+        marcado={menuActivado}
+        ariaPressed={menuActivado}
+        title={
+          menuActivado ? "Desactivar — se devuelve a En casa lo que este menú descontó"
+            : puedeActivar ? "Activar menú — En casa se moverá según tus preferencias"
+              : "Necesitas cuenta para activar el menú"
+        }
+        onClick={
+          menuActivado ? (onDeactivateMenu ?? sinCuenta("activar el menú"))
+            : puedeActivar ? onActivateMenu : sinCuenta("activar el menú")
+        }
+      />
+      <BaldosaAccion
+        Icono={Heart}
+        etiqueta={activeFavorite ? "Guardado" : "Favorito"}
+        color="#e0405a"
+        tinte="#fff0f3"
+        marcado={activeFavorite}
+        ariaPressed={activeFavorite}
+        title={
+          !puedeFavorito ? "Necesitas cuenta para guardar favoritos"
+            : activeFavorite ? "Quitar de favoritos" : "Guardar en favoritos"
+        }
+        onClick={puedeFavorito ? onToggleFavorite : sinCuenta("guardar favoritos")}
+      />
+      <BaldosaAccion
+        Icono={Users}
+        etiqueta={menuSharedInFeed ? "Publicado" : "Publicar"}
+        color="#4a6fd4"
+        tinte="#e6efff"
+        marcado={menuSharedInFeed}
+        title={
+          !onPublishToFeed ? "Necesitas cuenta para publicar en Gente"
+            : menuSharedInFeed ? "Menú publicado en Gente" : "Publicar en Gente"
+        }
+        onClick={onPublishToFeed ? () => setPublishSheetOpen(true) : sinCuenta("publicar en Gente")}
+      />
+      {/* Estas cuatro no tienen estado: o las haces o no. Nunca llevan aro ni
+          se apagan — compartir dos veces o bajar el PDF otra vez es legítimo. */}
+      <BaldosaAccion
+        Icono={Share2}
+        etiqueta="Compartir"
+        color="#0d9488"
+        tinte="#e0f4f1"
+        title="Compartir el menú fuera de la app"
+        onClick={handleShare}
+      />
+      <BaldosaAccion
+        Icono={Download}
+        etiqueta="Descargar"
+        color="#d97706"
+        tinte="#fdf0e0"
+        title="Descargar el menú en PDF"
+        onClick={handleDownload}
+      />
+      {!isGenerating && !readOnly && onRegenerate && (
+        <BaldosaAccion
+          Icono={RotateCw}
+          etiqueta="Regenerar"
+          color="#16a34a"
+          tinte="#e6f6ec"
+          title="Regenerar el menú entero"
+          onClick={onRegenerate}
+        />
+      )}
+      {onOpenMenus && (
+        <BaldosaAccion
+          Icono={History}
+          etiqueta="Menús"
+          color="#7c3aed"
+          tinte="#f0e9fe"
+          title="Menús guardados"
+          onClick={onOpenMenus}
+        />
+      )}
+    </>
+  );
 
   const runPdfDownload = async (exportOptions) => {
     try {
@@ -4534,13 +5808,19 @@ export const MenuScreen = memo(function MenuScreen({
             <h2 style={{ fontSize: 20, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.3px" }}>
               Tu menú
             </h2>
-            <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
+            {!modoPizarra && <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            {/* Guardar como favorito solo tiene sentido con cuenta: sin ella no
+            {/* Activar y favorito se van a la fila de mandos como baldosas en
+                cuanto esa fila existe (ver `accionesDelMenu`); si no hay fila,
+                se quedan aquí. El burger NO se mueve: sus entradas son
+                destinos y diálogos, no interruptores, y este es el sitio donde
+                se busca "lo demás" en toda la app.
+
+                Guardar como favorito solo tiene sentido con cuenta: sin ella no
                 hay histórico/favoritos persistentes donde recuperarlo, así que
                 no ofrecemos algo que no podemos cumplir. */}
-            {hasMenu && onActivateMenu && menuNeedsActivation && (
+            {!accionesEnLaFila && hasMenu && onActivateMenu && menuNeedsActivation && (
               <button
                 type="button"
                 onClick={onActivateMenu}
@@ -4555,7 +5835,7 @@ export const MenuScreen = memo(function MenuScreen({
                 <Zap size={18} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
               </button>
             )}
-            {hasMenu && onToggleFavorite && user && (
+            {!accionesEnLaFila && hasMenu && onToggleFavorite && user && (
               <button
                 type="button"
                 onClick={onToggleFavorite}
@@ -4576,18 +5856,34 @@ export const MenuScreen = memo(function MenuScreen({
                 />
               </button>
             )}
-            <button
-              type="button"
-              data-coach="menu-options"
-              onClick={() => setHeaderMenuOpen(true)}
-              aria-label="Opciones del menú"
-              aria-haspopup="menu"
-              aria-expanded={headerMenuOpen}
-              title="Opciones"
-              style={{ ...iconChipButtonStyle, background: headerMenuOpen ? "#e8f0ea" : "#fff" }}
-            >
-              <MenuIcon size={18} strokeWidth={2.4} />
-            </button>
+            {modoPizarra && menuWeeks.length > 1 && (
+              <DeckWeekStepper
+                weekIdx={Math.max(0, currentWeekIdx)}
+                weekTotal={menuWeeks.length}
+                onPrev={() => currentWeekIdx > 0 && onSwitchWeek?.(menuWeeks[currentWeekIdx - 1].weekStart)}
+                onNext={() => currentWeekIdx < menuWeeks.length - 1 && onSwitchWeek?.(menuWeeks[currentWeekIdx + 1].weekStart)}
+                onOpen={onOpenMenus}
+              />
+            )}
+            {/* El burger es el PLAN B. Cuando hay fila de mandos, sus entradas
+                viven allí como baldosas y este botón sobra: tener las mismas
+                acciones en dos sitios obliga a mirar los dos para saber si
+                algo está hecho. Sin fila —hogar de solo lectura, o ningún
+                control visible— es la única puerta, así que no se borra. */}
+            {!accionesEnLaFila && (
+              <button
+                type="button"
+                data-coach="menu-options"
+                onClick={() => setHeaderMenuOpen(true)}
+                aria-label="Opciones del menú"
+                aria-haspopup="menu"
+                aria-expanded={headerMenuOpen}
+                title="Opciones"
+                style={{ ...iconChipButtonStyle, background: headerMenuOpen ? "#e8f0ea" : "#fff" }}
+              >
+                <MenuIcon size={18} strokeWidth={2.4} />
+              </button>
+            )}
           </div>
           {headerMenuOpen && (
             <div
@@ -4703,17 +5999,57 @@ export const MenuScreen = memo(function MenuScreen({
         {/* View controls — clásico: segmented + botón para entrar al Deck */}
 
         {/* View controls — deck: vistas (izq) · semana (centro) · filtro círculo (der) */}
-        {hasMenu && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+        {/* ── La fila de la pizarra ─────────────────────────────────────
+            Dos secciones en una sola banda: quién come (avatares, en blanco,
+            porque son personas y van con el tablero) y con qué se maneja el
+            tablero (las baldosas, en el slate que esta app ya reserva para lo
+            logístico — ver la escala de Compra en DESIGN_SYSTEM §7). El tinte
+            llega hasta el borde derecho porque la franja es una zona, no una
+            tarjeta: cortarla antes del margen la convertiría en un recuadro
+            más de los que hay debajo. */}
+        {hasMenu && modoPizarra && (
+          <div style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}>
+            <div style={{ background: "#fff", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
+              {(data.groups?.length > 0) && (
+                <DeckFilter
+                  groups={data.groups}
+                  scope={scope}
+                  onScopeChange={setScope}
+                  members={data.members ?? []}
+                  interactivo={multiGroup}
+                  ciclar={multiGroup}
+                />
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0, background: "#f1f5f9", display: "flex", alignItems: "center" }}>
+              {pizarraControles}
+            </div>
+          </div>
+        )}
+        {hasMenu && !modoPizarra && (
+          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
             {/* The coach anchor hugs the view switch alone: the filter circle at
                 the far right gets its own step, and a spotlight over the whole
                 row would highlight both at once. */}
             <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
-              <DeckNav value={deckView} onChange={setDeckView} options={DECK_VIEW_OPTIONS} />
+              <DeckNav value={deckView} onChange={setDeckView} options={deckViews} />
             </div>
-            <div style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
-              {menuWeeks.length > 1 && (
+            {/* Centrado en la FRANJA, no en el hueco que sobra. Con
+                `flex: 1 + center` el paso de semanas se centraba entre el
+                selector de vistas y el filtro, así que sin avatares —el caso
+                normal, una casa con un solo menú— se quedaba flotando a medio
+                camino: ni en el centro ni pegado a nada. Absoluto y al 50 %
+                está donde se espera, y no se mueve cuando aparecen los
+                avatares. Cabe de sobra: 110 + 70 + 42 en 420. */}
+            <div
+              style={{
+                position: "absolute", left: "50%", transform: "translateX(-50%)",
+                display: "flex", justifyContent: "center", pointerEvents: "none",
+              }}
+            >
+              {!modoPizarra && menuWeeks.length > 1 && (
                 <DeckWeekStepper
+                  style={{ pointerEvents: "auto" }}
                   weekIdx={Math.max(0, currentWeekIdx)}
                   weekTotal={menuWeeks.length}
                   onPrev={() => currentWeekIdx > 0 && onSwitchWeek?.(menuWeeks[currentWeekIdx - 1].weekStart)}
@@ -4722,7 +6058,8 @@ export const MenuScreen = memo(function MenuScreen({
                 />
               )}
             </div>
-            {multiGroup && (
+            <span style={{ flex: 1, minWidth: 0 }} />
+            {!modoPizarra && multiGroup && (
               <DeckFilter
                 groups={data.groups}
                 scope={scope}
@@ -4732,6 +6069,22 @@ export const MenuScreen = memo(function MenuScreen({
             )}
           </div>
         )}
+
+        {/* La fila de mandos del wizard, justo bajo el selector de vistas: se
+            lee como "esto de aquí arriba controla lo de abajo". Solo con menú
+            delante — sin platos que ajustar, un mando no significa nada. */}
+        {/* Las acciones se le inyectan a la fila ya montada en vez de subirlas
+            a App: los manejadores —activar, favorito, el panel de opciones—
+            viven aquí, y hacerlos viajar por dos componentes para volver al
+            mismo sitio no le añade nada a nadie. */}
+        {accionesEnLaFila
+          ? cloneElement(wizardControls, {
+              acciones: accionesDelMenu,
+              accionesAbiertas,
+              onAccionesAbiertas: abrirAcciones,
+              accionesAviso: puedeActivar,
+            })
+          : hasMenu && wizardControls}
       </div>
 
       {/* ── Second divider: end of nav zone (solo clásico; en deck sobra) ── */}
@@ -4753,13 +6106,20 @@ export const MenuScreen = memo(function MenuScreen({
           <div
             style={{
               paddingTop: 14,
-              paddingLeft: 16,
+              // La lengüeta del calendario ocupa 26px pegada al borde: sin
+              // este aire se comía la esquina izquierda de las tarjetas.
+              paddingLeft: modoPizarra ? 36 : 16,
               paddingRight: 16,
               paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
             }}
           >
             <ArmedContext.Provider value={armed}>
             <MenuDeck
+              denso={modoPizarra}
+              onAddSlot={modoPizarra ? onAddSlot : null}
+              onRemoveSlot={modoPizarra ? onRemoveSlot : null}
+              onFillSlot={modoPizarra ? onFillSlots : null}
+              onDishActions={modoPizarra && !readOnly ? setDishAction : null}
               deckView={deckView}
               days={activeDays}
               weekDates={weekDates}
@@ -4778,35 +6138,96 @@ export const MenuScreen = memo(function MenuScreen({
               regenGroups={activeMenus}
               menuWeeks={monthWeeks}
               onPickMonthDay={handlePickMonthDay}
+              invitadosPorHueco={invitadosPorHueco}
             />
             </ArmedContext.Provider>
           </div>
         )}
 
-        {dishAction && autoDemo !== "actions" && !readOnly && (
+        {/* La etiqueta que sigue al dedo mientras arrastras. Es la única pista
+            de que el gesto va bien: sin ella el plato levantado no dice a
+            dónde va a caer, y hay que soltarlo para averiguarlo. */}
+        {arrastre && (
+          <div
+            aria-hidden
+            style={{
+              position: "fixed", zIndex: 250, pointerEvents: "none",
+              left: arrastre.x, top: arrastre.y - 46,
+              transform: "translateX(-50%)",
+              padding: "7px 13px", borderRadius: 999,
+              background: arrastre.sobre ? "#2d5a3d" : "#1a3a24",
+              color: "#fff", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap",
+              boxShadow: "0 6px 20px rgba(20,47,29,.35)",
+            }}
+          >
+            {arrastre.sobre
+              ? `Soltar en ${MEAL_META[arrastre.sobre.meal]?.label ?? arrastre.sobre.meal} · ${dayLabel(arrastre.sobre.day)}`
+              : "Arrastra a otro hueco"}
+          </div>
+        )}
+
+        {dishAction && cambiarSub && autoDemo !== "actions" && !readOnly && (
           <DishActionBar
             anchor={dishAction.anchor}
-            onClose={() => setDishAction(null)}
+            onClose={cerrarAcciones}
+            actions={[
+              ...(onDishManualPick ? [{
+                id: "manual", Icon: BookOpen, label: "Elegir a mano",
+                onPick: () => { onDishManualPick(dishAction); cerrarAcciones(); },
+              }] : []),
+              {
+                id: "mismo", Icon: Tag, label: "Del mismo tipo",
+                // `sameCategory` acota el reemplazo a la categoría del plato que
+                // hay (carnes → otra carne). Ya existía en el motor
+                // (pickCatalogReplacement) y no lo usaba nadie.
+                onPick: () => { onDishReplace?.(dishAction, { sameCategory: true }); cerrarAcciones(); },
+              },
+            ]}
+          />
+        )}
+
+        {dishAction && !cambiarSub && autoDemo !== "actions" && !readOnly && (
+          <DishActionBar
+            anchor={dishAction.anchor}
+            onClose={cerrarAcciones}
             actions={[
               {
                 id: "regen", Icon: RotateCw, label: "Cambiar",
-                // Sin submenú de "cómo reemplazar": elige otra receta compatible
-                // con el hueco (mismo día/comida/curso) y la aplica ya — el
-                // criterio de "al azar" es cosa nuestra, no una decisión que deba
-                // tomar el usuario cada vez.
-                onPick: () => { onDishReplace?.(dishAction); setDishAction(null); },
+                // Abre un segundo nivel en vez de cambiar el plato de golpe.
+                //
+                // Hasta el 17 sep 2026 ejecutaba al toque, y el comentario de
+                // aquí defendía que el criterio de reemplazo "es cosa nuestra,
+                // no una decisión que deba tomar el usuario cada vez". Era
+                // razonable cuando no había selector manual; ahora sí lo hay
+                // (`onDishManualPick`, que abre el catálogo) y esconderlo
+                // detrás de una pulsación larga lo dejaba sin encontrar.
+                onPick: () => setCambiarSub(true),
               },
               {
                 id: "swap", Icon: ArrowLeftRight, label: "Mover",
-                onPick: () => { setArmed({ mode: "swap", source: dishAction }); setDishAction(null); },
+                onPick: () => { setArmed({ mode: "swap", source: dishAction }); cerrarAcciones(); },
               },
               {
                 id: "dup", Icon: CopyPlus, label: "Duplicar",
-                onPick: () => { setArmed({ mode: "duplicate", source: dishAction }); setDishAction(null); },
+                onPick: () => { setArmed({ mode: "duplicate", source: dishAction }); cerrarAcciones(); },
               },
+              // "Uno mas": escribe una REGLA de invitado para ESTE hueco, no
+              // un numero. A partir de ahi el comensal se cuenta solo, la
+              // receta escala y la compra sube (ver handleAddGuest en
+              // App.jsx). Se queda fuera cuando el padre no lo pasa, que es
+              // como se apaga en los menus de solo lectura.
+              ...(onSetGuests ? [{
+                id: "guest", Icon: UserPlus,
+                // La etiqueta cambia porque la acción cambia: con invitados ya
+                // puestos, el contador sirve para bajarlos, y llamarlo
+                // "Añadir" sería mentir sobre lo que hay detrás.
+                label: (invitadosPorHueco?.[`${dishAction.groupId}|${dishAction.day}|${dishAction.meal}`] ?? 0) > 0
+                  ? "Comensales" : "Añadir comensal",
+                onPick: () => { setGuestFor(dishAction); cerrarAcciones(); },
+              }] : []),
               {
                 id: "clear", Icon: Trash2, label: "Quitar",
-                onPick: () => { onDishClear?.(dishAction); setDishAction(null); },
+                onPick: () => { onDishClear?.(dishAction); cerrarAcciones(); },
               },
               // Estructura: solo en comidas y cenas. En desayuno, merienda o
               // postre no hay primero y segundo que repartir, así que la barra
@@ -4814,10 +6235,18 @@ export const MenuScreen = memo(function MenuScreen({
               ...(onSlotStructure && isStructuralMeal(dishAction.meal)
                 ? [structureActionFor(dishAction, menuPlan, (structure) => {
                     onSlotStructure(dishAction, structure);
-                    setDishAction(null);
+                    cerrarAcciones();
                   })]
                 : []),
             ]}
+          />
+        )}
+
+        {guestFor && !readOnly && (
+          <GuestCountSheet
+            inicial={invitadosPorHueco?.[`${guestFor.groupId}|${guestFor.day}|${guestFor.meal}`] ?? 0}
+            onClose={() => setGuestFor(null)}
+            onConfirm={(n) => onSetGuests?.(guestFor, n)}
           />
         )}
 
@@ -4995,6 +6424,10 @@ export const MenuScreen = memo(function MenuScreen({
         />
       )}
 
+      {/* La burbuja del bot va DESPUÉS de la nav: se posiciona ella sola por
+          encima, y montarla antes la dejaba tapada por la barra inferior. */}
+      {wizardBubble}
+
       <BottomNav active="menu" onNav={onNav} />
     </div>
   );
@@ -5101,6 +6534,10 @@ export function DishDetail({
   // - autoDemo: "methods" cycles the method tabs; "reject" auto-picks a swap
   //   reason and fires onReject once. Default null → normal interactive behaviour.
   initialAppliance = null,
+  // Se llama al tocar una pestaña de método cuando el plato viene de un hueco
+  // del menú: elegir «Thermomix» aquí es decir con qué lo vas a hacer, no solo
+  // mirar sus pasos. En modo catálogo no se pasa — no hay dónde guardarlo.
+  onPickAppliance = null,
   initialCourse = "principal",
   initialRecipeTab = "ingredientes",
   stepsByAppliance = null,
@@ -5124,9 +6561,17 @@ export function DishDetail({
   onSlotFreezerChange = null,
   // Owner-only: patch classification (tipo / aplica) on a user-created recipe.
   onUpdateUserRecipe = null,
+  // Abrir el perfil de quien subió esta receta. Sin este callback el nombre y
+  // la cara siguen ahí, pero como texto: no se pinta un enlace que no lleva a
+  // ningún sitio.
+  onOpenPerson = null,
   readOnly = false,
 }) {
   const isFavorite = favoriteScope != null;
+  // Solo hay perfil que abrir si la receta es de ALGUIEN. Las del catálogo son
+  // de la casa ("HoMenu"), y ahí no hay perfil detrás.
+  const ownerId = recipe.owner?.id ?? recipe.owner?.userId ?? null;
+  const abrirPerfil = onOpenPerson && ownerId ? () => onOpenPerson(ownerId) : null;
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
   const [rejected, setRejected] = useState(null);
   // Demo only (autoDemo="reject"): visual "press" on "Sustituir plato" right
@@ -5135,6 +6580,16 @@ export function DishDetail({
   // Receta section: segmented control between "Ingredientes" and "Pasos".
   const [recipeTab, setRecipeTab] = useState(initialRecipeTab);
   const [recipeExpanded, setRecipeExpanded] = useState(true);
+  // ¿Se cocina con las bases YA hechas? Empieza en SÍ.
+  //
+  // Es una decisión de producto y no una deducción: quien abre un plato de una
+  // semana con tanda lo normal es que la tenga hecha, y encontrarse la receta
+  // larga cuando no toca molesta más que al revés. El que no la tenga lo apaga
+  // y ve la receta entera; nadie se queda sin poder cocinar.
+  //
+  // Cuando la vista del domingo sepa qué se cocinó de verdad, podrá decidirlo
+  // ella en vez de asumirlo.
+  const [conBases, setConBases] = useState(true);
   const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
   // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
@@ -5305,6 +6760,28 @@ export function DishDetail({
     platoUnico,
     baseName,
   ]);
+  // ── La receta vista desde el martes, con las bases ya hechas ────────────
+  // Solo en el plato principal: una guarnición o una salsa de catálogo tienen
+  // su propia pestaña con sus propios pasos, y meter ahí la tanda mezclaría
+  // dos cosas que el usuario está mirando por separado.
+  const vistaBases = useMemo(() => recetaConBases(recipe), [recipe]);
+  // La pregunta solo tiene sentido si hay tandas pedidas. Antes salía en
+  // cualquier plato que TUVIERA bases, que son casi todos, así que a quien
+  // nunca pidió batch cooking le preguntaba si tiene cocinado un sofrito que
+  // nadie le dijo que cocinara — y de paso hacía parecer que el menú traía
+  // tandas que no había pedido.
+  const puedeConBases =
+    vistaBases.aplicada && !garnishRecipe && !sauceRecipe && hayTandasPedidas(data);
+  const usandoBases = puedeConBases && conBases;
+  // Los ingredientes de la ficha vienen escalados, así que la marca se cruza
+  // por nombre — que es la misma clave con la que se resolvieron.
+  const deBasePorNombre = useMemo(() => {
+    const m = new Map();
+    if (!puedeConBases) return m;
+    for (const i of vistaBases.ingredientes) if (i.deBase) m.set(i.name, i.deBase);
+    return m;
+  }, [puedeConBases, vistaBases]);
+
   const onGarnishCourse = showGarnishCourse && activeCourse === "guarnicion";
   const onSalsaCourse = showSalsaCourse && activeCourse === "salsa";
   const onCombinedCourse =
@@ -5713,6 +7190,21 @@ export function DishDetail({
   const activeMethod =
     methodOptions.find((o) => o.appliance === activeAppliance) ?? methodOptions[0];
 
+  /**
+   * Los minutos que se anuncian arriba son los de la receta que se está
+   * viendo, no siempre los del método.
+   *
+   * Con el interruptor de bases en SÍ, los pasos de abajo ya son los cortos
+   * —la base sale de la nevera— pero la píldora seguía diciendo los 33
+   * minutos de cocinarla desde cero. Decía una cosa y enseñaba otra.
+   *
+   * Solo aplica al método tradicional: el ahorro se mide sobre SUS pasos
+   * (`stepsRich`), y un airfryer reescribe la receta entera, así que restarle
+   * un tiempo calculado sobre otra técnica daría un número inventado.
+   */
+  const minutosDelPlato =
+    usandoBases && activeMethod?.appliance === "base" ? vistaBases.minutos : activeMethod.time;
+
   // Demo autoplay for the value-prop carousel (guarded by autoDemo).
   useEffect(() => {
     if (autoDemo !== "methods" || methodOptions.length <= 1) return undefined;
@@ -5884,6 +7376,7 @@ export function DishDetail({
           </button>
         )}
 
+
         <DishVisual
           recipe={recipe}
           height={220}
@@ -5900,22 +7393,55 @@ export function DishDetail({
                   top-left of the sheet. */}
               {(recipe.owner || recipe.rating || browse) && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {/* La cara abre el perfil igual que el nombre: son el mismo
+                      objetivo, y tocar el avatar de alguien es el gesto que la
+                      gente prueba primero. */}
                   {recipe.owner?.avatar ? (
                     <img
                       src={recipe.owner.avatar}
                       alt={recipe.owner.name ?? ""}
-                      style={{ width: 30, height: 30, borderRadius: 999, objectFit: "cover", flexShrink: 0 }}
+                      onClick={abrirPerfil ?? undefined}
+                      style={{
+                        width: 30, height: 30, borderRadius: 999, objectFit: "cover", flexShrink: 0,
+                        cursor: abrirPerfil ? "pointer" : "default",
+                      }}
                     />
                   ) : (
                     <MenuPlanBadge size={30} />
                   )}
-                  <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 800, color: recipe.owner ? "#2f6fb8" : "#2d5a3d" }}>
-                      {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
-                    </span>
+                  {/* Nombre y fecha en VERDE los dos, con la fecha más suave.
+                      El nombre iba en un azul (#2f6fb8) que no está en la
+                      paleta y que no significaba nada: no era un enlace, no
+                      era una categoría, era un color suelto en una ficha donde
+                      todo lo demás es verde. Y entre ese azul y el gris de la
+                      fecha, dos datos del mismo hecho —quién y cuándo— parecían
+                      de dos sitios distintos.
+
+                      Sin el "·" delante de la fecha: separaba dos cosas que ya
+                      están separadas por un espacio y por el peso del texto, y
+                      en una ficha con cuatro pastillas debajo era un punto más
+                      que leer. */}
+                  <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 7, flexWrap: "wrap" }}>
+                    {abrirPerfil ? (
+                      <button
+                        type="button"
+                        onClick={abrirPerfil}
+                        style={{
+                          border: "none", background: "none", padding: 0, cursor: "pointer",
+                          fontFamily: "inherit", fontSize: 13.5, fontWeight: 800, color: "#2d5a3d",
+                          textAlign: "left",
+                        }}
+                      >
+                        {recipe.owner.name ?? "Tú"}
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: 13.5, fontWeight: 800, color: "#2d5a3d" }}>
+                        {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
+                      </span>
+                    )}
                     {recipe.createdAt && (
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#9ab0a1" }}>
-                        · {formatRecipeDate(recipe.createdAt)}
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#7a9485" }}>
+                        {formatRecipeDate(recipe.createdAt)}
                       </span>
                     )}
                   </div>
@@ -5959,7 +7485,7 @@ export function DishDetail({
               <Users size={12} /> {slot.eaters} comensales
             </span>
             <span style={detailTagStyle}>
-              <Clock3 size={12} /> {activeMethod.time} min
+              <Clock3 size={12} /> {minutosDelPlato} min
             </span>
             <span style={detailTagStyle}>
               <Gauge size={12} /> {activeMethod.difficultyLabel}
@@ -6248,6 +7774,86 @@ export function DishDetail({
 
             {recipeExpanded && (
               <>
+            {/* ── ¿Tienes la base hecha? ────────────────────────────
+                Una PREGUNTA con su interruptor, no un botón que dice "la
+                tengo". "Ya la tengo / La tengo" era equívoco: no se sabía si
+                describía el estado o lo que iba a pasar al tocarlo.
+
+                Empieza en SÍ. Es una decisión de producto, no una deducción:
+                quien llega a este plato desde una semana con tanda lo normal es
+                que la tenga hecha, y encontrarse la receta larga cuando no toca
+                molesta más que al revés. El que no la tenga lo apaga y ve la
+                receta entera.
+
+                Una sola fila: base a la izquierda, pregunta, interruptor. El
+                ahorro NO se cuenta aquí — "18 min en vez de 33" dentro de la
+                tarjeta era el mismo dato que la píldora de minutos de arriba,
+                dicho dos veces y con distinta forma. Ahora la píldora cambia
+                sola al mover el interruptor, que es donde el usuario ya mira
+                el tiempo del plato. */}
+            {puedeConBases && (
+              <div
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 12px", marginBottom: 12, borderRadius: 12,
+                  background: usandoBases ? "#e8f5ec" : "#f7f9f7",
+                  outline: usandoBases ? "1.5px solid #2d5a3d" : "1px solid #e3ede6",
+                  outlineOffset: -1,
+                  transition: "background .15s, outline .15s",
+                }}
+              >
+                {/* Ilustración con su nombre debajo, como en el selector de
+                    bases: es la misma cosa y se reconoce por el dibujo. */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexShrink: 0 }}>
+                  {vistaBases.bases.map((b) => {
+                    const img = ingredientThumbSrc(BASES_UI[b.clave]?.foto ?? b.clave);
+                    return (
+                      <div key={b.clave} style={{ textAlign: "center", width: 54 }}>
+                        {img && (
+                          <img
+                            src={img}
+                            alt=""
+                            style={{ width: 42, height: 42, objectFit: "contain", display: "block", margin: "0 auto" }}
+                          />
+                        )}
+                        <div style={{
+                          fontSize: 10, fontWeight: 800, color: "#142f1d", lineHeight: 1.15, marginTop: 2,
+                        }}>
+                          {BASES_UI[b.clave]?.etiqueta ?? b.nombre}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.3 }}>
+                  {vistaBases.bases.length === 1
+                    ? "¿Tienes cocinada esta base?"
+                    : "¿Tienes cocinadas estas bases?"}
+                </div>
+
+                <div style={{ display: "flex", flexShrink: 0, background: "#fff", borderRadius: 999, padding: 3, outline: "1.5px solid #cfe0d5", outlineOffset: -1.5 }}>
+                  {[["si", "Sí", true], ["no", "No", false]].map(([id, texto, valor]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setConBases(valor)}
+                      aria-pressed={usandoBases === valor}
+                      style={{
+                        padding: "5px 13px", borderRadius: 999, border: "none",
+                        background: usandoBases === valor ? "#2d5a3d" : "transparent",
+                        color: usandoBases === valor ? "#fff" : "#7a9485",
+                        fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                        transition: "background .15s, color .15s",
+                      }}
+                    >
+                      {texto}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Segmented control: Ingredientes | Pasos */}
             <div style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }}>
               {[
@@ -6340,6 +7946,7 @@ export function DishDetail({
                     revertible={!readOnly && cookable && cookCourse && Boolean(manuallyOwnedIds[ing.id])}
                     onMarkOwned={() => markIngredientOwned(ing)}
                     onRevertOwned={() => revertIngredientOwned(ing)}
+                    deBase={usandoBases ? deBasePorNombre.get(ing.name) ?? null : null}
                   />
                 ))}
               </div>
@@ -6376,7 +7983,12 @@ export function DishDetail({
                 // (principal+guarnición/salsa+combinado intercalados); RecipeStepList
                 // ya pinta una cabecera de color al cambiar de `part` entre pasos
                 // consecutivos, así que no hace falta reconstruir bloques aquí.
-                <RecipeStepList rich={richSteps} plain={mainPlainSteps} ingredients={ingredients} kitchenTools={kitchenTools} />
+                <RecipeStepList
+                  rich={usandoBases ? vistaBases.pasos : richSteps}
+                  plain={mainPlainSteps}
+                  ingredients={ingredients}
+                  kitchenTools={kitchenTools}
+                />
               ) : (
                 <>
                   {/* Combinado: pasos del plato + guarnición + salsa (los que
@@ -6460,7 +8072,7 @@ export function DishDetail({
                         <button
                           key={o.appliance}
                           type="button"
-                          onClick={() => setActiveAppliance(o.appliance)}
+                          onClick={() => { setActiveAppliance(o.appliance); onPickAppliance?.(o.appliance); }}
                           style={{
                             flex: 1, minWidth: 0,
                             display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
@@ -6490,7 +8102,9 @@ export function DishDetail({
                     (recetas de usuario vía API), cae a la lista numerada. */}
                 {activeAppliance === "base" && richSteps?.length > 0 ? (
                   <RecipeStepList
-                    rich={hasOwnParts ? (ownStepsByPart.principal ?? richSteps) : richSteps}
+                    rich={usandoBases
+                      ? vistaBases.pasos
+                      : (hasOwnParts ? (ownStepsByPart.principal ?? richSteps) : richSteps)}
                     plain={mainPlainSteps}
                     ingredients={hasOwnParts ? (ownIngredientsByPart.principal ?? ingredients) : ingredients}
                     kitchenTools={kitchenTools}
@@ -6935,7 +8549,7 @@ function IngredientThumb({ ing, dimmed = false, size = 30 }) {
   );
 }
 
-function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned }) {
+function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned, deBase = null }) {
   const unit = ing.unit ?? "ud";
   const qty = ing.qtyScaled;
   const displayVal = qty == null ? qualitativeUnitLabel(unit) : formatDisplay(qty, unit);
@@ -6948,7 +8562,11 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
     <div
       style={{
         borderBottom: isLast ? "none" : "1px solid #dde8e1",
-        opacity: owned ? 0.45 : 1,
+        // Lo que resuelve una tanda se atenua igual que lo que ya tienes en
+        // casa, porque para esta cena significa lo mismo: no hay que hacerlo.
+        // Pero NO se tacha ni se borra — sigue haciendo falta comprarlo, solo
+        // que para el domingo, y una linea tachada diria lo contrario.
+        opacity: owned || deBase ? 0.45 : 1,
         padding: "10px 4px",
       }}
     >
@@ -7018,6 +8636,19 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
           >
             {ing.name}
           </span>
+          {deBase && (
+            <span
+              title="Lo lleva la base que ya tienes hecha"
+              style={{
+                display: "flex", alignItems: "center", gap: 3,
+                fontSize: 10, fontWeight: 800, color: "#2d5a3d",
+                marginTop: 1,
+              }}
+            >
+              <Check size={11} strokeWidth={3} />
+              Ya en la base
+            </span>
+          )}
           {ing.adapted && (
             <span
               title="Adaptado por una intolerancia"

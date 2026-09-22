@@ -200,6 +200,9 @@ export function proyectar(notepad) {
   const freqs = {};
   const freqsByGroup = {};
   const sesgos = {};
+  const reparto = {};
+  const tanda = {};
+  const tandaPlatos = {};
   const excluidos = [];
   const favoritos = [];
 
@@ -214,18 +217,43 @@ export function proyectar(notepad) {
       } else {
         freqs[valorId] = campo.valor;
       }
+    } else if (campoId === "reparto") {
+      // Sale APARTE de `freqs` y no se mezcla aquí a propósito. Son dos cosas
+      // distintas —un porcentaje de suma fija y un máximo semanal— y decidir
+      // cuál gana es una política de producto, no de proyección: la resuelve
+      // `freqsEfectivos()` en lib/reparto.js, donde se puede leer y cambiar.
+      // Mezclarlas aquí habría movido en silencio los freqs de quien ya tenía
+      // el wizard viejo contestado.
+      reparto[valorId] = campo.valor;
+    } else if (campoId === "tanda") {
+      // Aparte de `base` y por el mismo motivo que `reparto` sale aparte de
+      // `freqs`: son dos cosas distintas sobre el mismo vocabulario. `base` es
+      // un sesgo que ordena candidatos; `tanda` es una CUENTA que el validador
+      // exige como mínimo (regla 11b). Mezclarlas es lo que convertía "más
+      // pasta" en dos platos obligatorios — ver la cabecera de `tanda` en
+      // notepadFields.js.
+      tanda[valorId] = campo.valor;
+    } else if (campoId === "tandaPlatos") {
+      // Aparte de `tanda` por el vocabulario, no por el tipo: los dos son
+      // cuentas, pero uno cuenta ollas de base y el otro familias de plato.
+      // Ver la cabecera del campo en notepadFields.js.
+      tandaPlatos[valorId] = campo.valor;
     } else if (campoId === "excluidos") {
       if (campo.valor) excluidos.push(valorId);
     } else if (campoId === "favoritos") {
       if (campo.valor) favoritos.push(valorId);
     } else {
-      // base, cocina, tecnica, salsa, esfuerzo — ejes de sesgo, sin consumidor
-      // todavía: los estrenará el panel.
+      // base, cocina, tecnica, salsa, esfuerzo — ejes de sesgo. `cocina` sale
+      // a `data.cocinas` (puerta opt-in en filterRecipes); base, tecnica y
+      // salsa a `data.sesgos` y de ahí a lib/sesgos.js, que ordena candidatos
+      // en las sustituciones y en el fallback. `esfuerzo` sigue sin consumidor
+      // —no hay campo del plato que lo represente sin ambigüedad— y está
+      // anotado allí. La proyección la escribe useWizardMenu.jsx#guardar.
       (sesgos[campoId] ??= {})[valorId] = campo.valor;
     }
   }
 
-  return { freqs, freqsByGroup, sesgos, excluidos, favoritos };
+  return { freqs, freqsByGroup, sesgos, reparto, tanda, tandaPlatos, excluidos, favoritos };
 }
 
 /**
@@ -262,5 +290,37 @@ export function normalizar(raw) {
   const parsed = NotepadSchema.safeParse(raw);
   // Una libreta corrupta se tira entera. Duele menos de lo que parece: se
   // reconstruye con `importarDeData` desde lo que el wizard ya guardó.
-  return parsed.success ? parsed.data : libretaVacia();
+  return parsed.success ? separarTandaDeBase(parsed.data) : libretaVacia();
+}
+
+/**
+ * Migración de `base.*` a `tanda.*` para lo que de verdad era una tanda.
+ *
+ * Los dos vivían en la misma clave con dos significados (ver la cabecera de
+ * `tanda` en notepadFields.js). Se separan por el VALOR, que es la única pista
+ * que queda de quién escribió:
+ *
+ *   >= 2   solo lo escribe el selector de tandas → se mueve a `tanda.*`
+ *   1 / -1 sesgo del panel o del wizard          → se queda en `base.*`
+ *
+ * El `1` es ambiguo: una versión vieja del selector también lo escribía. Se
+ * degrada al significado DÉBIL a propósito — si acierto, perfecto; si me
+ * equivoco, el usuario pierde una tanda que puede volver a pedir. Al revés
+ * (promover un sesgo a tanda) es lo que causó el problema: una tanda fantasma
+ * que el motor cumple a la fuerza y nadie pidió.
+ *
+ * Idempotente: una libreta ya migrada no tiene `base.*` con valor >= 2.
+ */
+function separarTandaDeBase(libreta) {
+  const entradas = Object.entries(libreta.campos);
+  const aMover = entradas.filter(
+    ([clave, campo]) => clave.startsWith("base.") && Number(campo?.valor) >= 2,
+  );
+  if (aMover.length === 0) return libreta;
+  const campos = { ...libreta.campos };
+  for (const [clave, campo] of aMover) {
+    campos[`tanda.${clave.slice("base.".length)}`] = campo;
+    delete campos[clave];
+  }
+  return { ...libreta, campos };
 }

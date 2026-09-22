@@ -21,7 +21,7 @@ ESTRUCTURA DE UN DÍA EN ESPAÑA:
 - COMIDA (mediodía): primero ligero (sopa, crema, ensalada, verdura, legumbre) + segundo principal (carne, pescado, huevo), o un plato_unico solo.
   - Plato único (paella, cocido, pizza): va solo, sin primero ni segundo. Pon el plato_unico en el slot _1 y omite el slot _2.
   - Nunca dos platos de cuchara el MISMO DÍA (ni primero+segundo, ni comida+cena). Cuenta como plato de cuchara todo lo de category "sopas_cremas" o "legumbres", y cualquier receta con mainProtein "legumbre".
-  - Primero y segundo no comparten proteína (mainProtein) ni base de carbohidrato. La base la da el campo "mainBase" del catálogo (arroz/pasta/patatas/quinoa/cuscus/pan/avena): si ambos platos traen el mismo mainBase, es una repetición y NO vale. Un plato sin mainBase no tiene base de carbohidrato dominante.
+  - Primero y segundo no comparten proteína (mainProtein) ni base de carbohidrato. La base la da el campo "mainBase" del catálogo (arroz/pasta/patatas/boniato/quinoa/cuscus): si ambos platos traen el mismo mainBase, es una repetición y NO vale. Un plato sin mainBase no tiene base de carbohidrato dominante.
   - PESO DE LA COMIDA: primero + segundo NO deben sumar más de 850 kcal entre los dos (usa el campo "kcal" del catálogo). Si el segundo es contundente, el primero debe ser ligero.
   - COHERENCIA DE CARGA: no combines dos platos contundentes/feculentos el mismo mediodía. Si el primero ya es un plato abundante de arroz/pasta/patata (type "completo", o mainBase arroz/pasta/patatas, p. ej. "Arroz con tomate frito"), el segundo debe ser una proteína ligera a la plancha/horno acompañada de verdura, y NUNCA otro plato con carbohidrato ni pan (nada de hamburguesas con pan, bocadillos, perritos, empanados/rebozados con guarnición de patatas). Un primero feculento pide un segundo sencillo, no otro plato "de relleno".
 - CENA: un solo plato, siempre más ligero que la comida.
@@ -43,12 +43,13 @@ OBJETIVOS SEMANALES (config.freqs) — MÁXIMOS por semana, no mínimos:
 - Cada clave de config.freqs es el número MÁXIMO de veces que ese tipo de plato principal puede aparecer en toda la semana. NUNCA lo superes. Por debajo del número está siempre bien; superarlo no.
 - Un plato puede contar para más de una clave a la vez (p. ej. "Arroz a la cubana" es pasta_arroz Y huevos, y consume las dos cuotas de golpe) — ten cuidado con estos platos combinados, agotan dos topes con un solo hueco.
 - Mapeo de cada clave al catálogo (usa category y mainProtein de cada receta):
-  - carne: category "carnes" o mainProtein pollo/pavo/cerdo/ternera
+  - carne: category "carnes" o mainProtein pollo/pavo/cerdo/ternera/cordero/pato/caza
   - pescado: category "pescados" o mainProtein pescado_blanco/pescado_azul/marisco
   - legumbres: category "legumbres" o mainProtein legumbre
   - huevos: category "huevos" o mainProtein huevo
-  - pasta_arroz: category "pasta_arroces"
+  - pasta_arroz: category "pasta_arroces", O cualquier plato con mainBase arroz/pasta/quinoa/cuscus (un pollo tikka con arroz cuenta como pasta_arroz Y como carne). Ojo: mainBase patatas o boniato NO cuenta aquí
   - verdura: category "ensaladas_verduras" o "sopas_cremas" (van sobre todo en el primero de la comida)
+- El campo "aporte" del catálogo dice qué RACIONES entrega un plato (una "Ternera a la jardinera" es category carnes y trae aporte ["carne","verdura"]). NO cuenta para los máximos de arriba, que van por categoría y proteína. Úsalo para REPARTIR: que la semana lleve verdura en muchos días aunque sea como acompañamiento, y para no amontonar la misma cosa.
 - Reparte el resto de huecos (los que no hacen falta para llegar a ningún máximo) con variedad, sin amontonar en una sola categoría aunque ninguna tenga tope explícito.
 
 PERFILES DE SALUD (config.healthProfiles) — ORIENTACIÓN, nunca exclusión:
@@ -68,13 +69,13 @@ RESTRICCIONES POR SLOT:
   · slot con preferType "plato_unico" → receta con mealRole "plato_unico" (ver más abajo).
   Un plato de solo cena (p. ej. quesadillas, tostas, wraps) NUNCA va en una comida. Un "plato_unico" (lasaña, paella, carbonara…) ES la comida entera: no lo pongas de primero con un segundo detrás, solo en un hueco marcado como plato único.
 - Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
-- Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
-- Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/quinoa/cuscús/pan) en la CENA de ese día.
+- Si un slot trae schoolProteinsToAvoid, no uses esas proteínas EN ESE SLOT. Normalmente es la cena, pero cuando los niños cenan lo que los adultos comieron al mediodía el campo viaja en el slot de COMIDA: respétalo esté donde esté.
+- Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/boniato/quinoa/cuscus) EN ESE SLOT, con el mismo criterio.
 - Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
 - Si un slot trae preferType "plato_unico" (excepción marcada por el usuario), asígnale una receta con mealRole "plato_unico" (paella, pizza, guiso completo…). Ese día NO lleva primero ni segundo: solo el slot _comida_1 con ese plato.
-- Si un slot trae preferType "cena_rapida", asígnale una receta de category "cenas_rapidas" (sándwich, tosta, ensalada, revuelto…): algo ligero y rápido (≤ 15 min).
-- Si un slot trae preferType "comida_rapida", asígnale un plato de comida rápido (≤ 15 min): ensalada, filete/pescado a la plancha, tortilla, revuelto… NUNCA uses category "cenas_rapidas" ahí.
-- NUNCA uses una receta de category "cenas_rapidas" en un slot que NO tenga preferType "cena_rapida". Esa categoría es solo para el hueco marcado explícitamente por el usuario como cena rápida.
+- Si un slot trae preferType "cena_rapida", asígnale una receta de MONTAJE (sándwich, tosta, wrap, tabla, ensalada de asamblaje: las que traen montaje = 1) O bien una receta con mealRole "cena", difficulty "facil" y time < 20. Algo ligero que se resuelve en un momento.
+- Si un slot trae preferType "comida_rapida", asígnale un plato de comida rápido (≤ 15 min): ensalada, filete/pescado a la plancha, tortilla, revuelto… NUNCA uses ahí una receta de montaje (montaje = 1).
+- NUNCA uses una receta de montaje (montaje = 1) en un slot que NO tenga preferType "cena_rapida". Son solo para el hueco marcado explícitamente por el usuario como cena rápida.
 - Si hay platos a repetir (fixedDishes), cada plato debe aparecer exactamente timesPerWeek veces a lo largo de la semana, en slots del tipo indicado en meals (comida o cena) y REPARTIDO en días distintos (no días seguidos). Colócalo en la posición que le corresponda por su mealRole: si es "primero" va en comida_1, si es "segundo" va en comida_2, si es "cena" en el hueco de cena. NUNCA pongas una verdura/primero como segundo (plato principal): el día debe conservar su proteína. Usa SOLO recipeIds del catálogo: si catalogMatches trae ids usa uno de esos; si está vacío elige la receta más parecida por nombre; NUNCA inventes ids.
 
 IMPORTANTE: Debes cubrir TODOS los slots del listado. Cada día tiene 3 huecos (comida_1, comida_2, cena) o 2 si usas plato_unico. No omitas ninguno.
@@ -159,7 +160,7 @@ Reglas:
 - Completa cualquier campo que falte con tu mejor estimación realista.
 - "allergens" SOLO puede contener valores de esta lista (usa el id, no la etiqueta): gluten, crustaceos, huevos, pescado, cacahuetes, soja, leche, frutos_cascara, apio, mostaza, sesamo, sulfitos, altramuces, moluscos. Si el usuario ya marcó algún alérgeno él mismo (campo "allergens" del payload), inclúyelo SIEMPRE en el resultado sin excepción, y añade además cualquier otro que detectes a partir de los ingredientes que no haya marcado (ej. leche/queso -> "leche", harina/pasta/pan -> "gluten", gambas/langostinos -> "crustaceos"). Si no hay ninguno declarado ni detectado, devuelve un array vacío.
 - Macros (kcal, protein_g, carbs_g, fat_g) son POR RACIÓN, estimados a partir de los ingredientes.
-- "steps": array de OBJETOS {text, minutes, kind} — no de strings. MUY IMPORTANTE: si el usuario proporciona "preparationNotes" (su propia explicación de cómo lo prepara), tu única labor es reestructurar ESE texto en pasos, en el mismo orden y con la misma técnica que describe — no inventes un método distinto ni lo sustituyas por uno genérico, solo dale formato. Si no hay "preparationNotes", estima los pasos a partir de los ingredientes. Si el payload trae "appliance" (Horno/Airfryer/Thermomix/Olla rápida/Microondas/Vaporera), los pasos tienen que estar escritos PARA ESE aparato — temperaturas y tiempos propios de él, sin dar por hecho fuego/sartén tradicional salvo que "preparationNotes" diga explícitamente lo contrario. Sin "appliance", asume la forma tradicional (fuego/sartén/olla). Reglas de los pasos:
+- "steps": array de OBJETOS {text, minutes, kind} — no de strings. MUY IMPORTANTE: si el usuario proporciona "preparationNotes" (su propia explicación de cómo lo prepara), tu única labor es reestructurar ESE texto en pasos, en el mismo orden y con la misma técnica que describe — no inventes un método distinto ni lo sustituyas por uno genérico, solo dale formato. Si no hay "preparationNotes", estima los pasos a partir de los ingredientes. Si el payload trae "appliance" (es un id, no una etiqueta: airfryer, horno, thermomix, vaporera, olla_express, microondas), los pasos tienen que estar escritos PARA ESE aparato — temperaturas y tiempos propios de él, sin dar por hecho fuego/sartén tradicional salvo que "preparationNotes" diga explícitamente lo contrario. Sin "appliance", asume la forma tradicional (fuego/sartén/olla). Reglas de los pasos:
   · UNA sola acción por paso, sin límite máximo de pasos: mejor 10 pasos claros que 5 apretados. No metas varias técnicas en el mismo paso.
   · "text": la orden SIEMPRE en INFINITIVO ("Cortar…", "Sofreír…", "Añadir…"), nunca imperativo ni gerundio. Empieza en mayúscula, termina en punto, máx 140 caracteres. Si un paso se pasa de 140, PÁRTELO en dos en vez de recortar detalle. Tiempo en "min", temperatura "200 °C", fuego "suave/medio/fuerte".
   · No des por hecho ninguna preparación: si un paso usa algo picado o cocido, un paso ANTERIOR debe haberlo picado o cocido.
@@ -174,7 +175,7 @@ Reglas:
 - "canBeGarnish": true si, aunque hoy la sirvas de plato normal, es lo bastante simple (un arroz suelto, una ensalada, una verdura salteada) para acompañar TAMBIÉN a otro plato principal otro día. false para platos que son claramente el centro de la comida (una carne, un guiso, un pescado con guarnición propia).
 - "type": deriva de usageTags — "principal" si usageTags incluye "plato_normal"; "guarnicion" si incluye "guarnicion" y no "plato_unico"; "completo" en el resto. (Se recalcula en el cliente igualmente, pero devuélvelo coherente.)
 - "category": estímala a partir de los ingredientes si el usuario no la indicó. SOLO uno de estos valores EXACTOS (nunca inventes otro): "carnes", "pescados", "legumbres", "huevos", "pasta_arroces", "ensaladas_verduras", "sopas_cremas", "platos_unicos", "cenas_rapidas", "guarniciones". Si la receta es solo guarnición ("guarnicion" y nada más), usa category "guarniciones".
-- "mainProtein": estímalo a partir de los ingredientes si el usuario no lo indicó. SOLO uno de estos valores EXACTOS (nunca inventes otro como "pescado" a secas): "pollo", "pavo", "cerdo", "ternera", "pescado_blanco" (merluza, bacalao, lenguado, rape, dorada, lubina...), "pescado_azul" (salmón, atún, sardina, caballa, boquerón...), "marisco" (gambas, langostinos, mejillones, calamar, pulpo...), "huevo", "legumbre", "none" (sin proteína animal ni legumbre, ej. una ensalada de fruta). Si la receta es solo guarnición, usa mainProtein "none".
+- "mainProtein": estímalo a partir de los ingredientes si el usuario no lo indicó. SOLO uno de estos valores EXACTOS (nunca inventes otro como "pescado" a secas): "pollo", "pavo", "pato", "cerdo", "ternera", "cordero", "caza" (jabalí, conejo, codorniz, perdiz), "pescado_blanco" (merluza, bacalao, lenguado, rape, dorada, lubina...), "pescado_azul" (salmón, atún, sardina, caballa, boquerón, trucha, emperador...), "marisco" (gambas, langostinos, mejillones, calamar, pulpo...), "huevo", "legumbre", "none" (sin proteína animal ni legumbre, ej. una ensalada de fruta). Si la receta es solo guarnición, usa mainProtein "none".
 - "mealRole": array con los valores que apliquen entre "primero", "segundo", "plato_unico", "cena", "guarnicion".
 - "season": SOLO uno de estos 3 valores EXACTOS, en inglés/código, NUNCA los traduzcas ni los cambies de forma: "all" (se puede comer todo el año — úsalo por defecto si no hay pista clara), "verano" (plato frío o de temporada estival: gazpacho, ensaladas frías, helados), "invierno" (plato de cuchara, guiso caliente pensado para frío: cocido, sopas calientes, asados copiosos).
 - "ingredients": respeta EXACTAMENTE los que indicó el usuario (nombre, amount, unit), sin añadir, quitar ni re-cuantificar ninguno. Tres unidades son especiales porque no tienen cantidad numérica fija — "al gusto" (a gusto personal: sal, pimienta, aliño), "pizca" (un pellizco, nunca se pesa) y "c/n" ("cantidad necesaria", lo que el proceso requiera y no el paladar: aceite para freír, agua para cubrir). Si el usuario ya puso una de esas 3 como unidad, NO inventes ni cambies su "amount" — omítelo (no pongas 0, ni un número inventado, ni la palabra "al gusto" dentro de amount).
@@ -204,7 +205,7 @@ Cada ajuste es {campo, valor, op, n?, ambito?, servicio?}.
 
 Campos y sus valores permitidos. No existe ningún otro campo ni ningún otro valor:
 - "freqs": carne, pescado, legumbres, pasta_arroz, huevos, verdura
-- "base": pasta, arroz, patatas, legumbre, quinoa, cuscus, pan, avena
+- "base": arroz, pasta, patatas, boniato, legumbre, quinoa, cuscus, sofrito, caldo, salsa_tomate, verdura_asada, pesto, bechamel, patatas_asadas, bolonesa
 - "cocina": italiana, asiatica, mexicana, arabe, francesa, americana, india, peruana
 - "tecnica": horno, plancha, sarten, olla, crudo
 - "salsa": si, no

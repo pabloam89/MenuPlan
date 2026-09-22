@@ -1,0 +1,129 @@
+{
+  "_": "Qué ficha de USDA presta sus micronutrientes a una fila que ya tiene ficha de BEDCA. — POR QUÉ EXISTE: una fila toma sus 32 campos de UNA ficha, así que hereda los huecos de esa tabla. BEDCA no publica vitamina K en absoluto, y cobre, manganeso, betacaroteno y ácido pantoténico solo en el 11-14 % de sus fichas. Como BEDCA son 198 de las 371 filas, el techo de la vitamina K era el 47 % por pura aritmética. — QUÉ SE TOMA PRESTADO: SOLO los campos que la ficha propia deja vacíos. Ni uno más. Los 8 macros y todo lo que BEDCA sí publica se quedan como están, y la fila declara en `fuenteComplemento` de qué ficha salió lo prestado y qué campos son. Una fila puede citar dos fichas, pero nunca en el mismo campo. — CÓMO SE ELIGE: el NOMBRE identifica y el NÚMERO comprueba, en ese orden. Se probó al revés —buscar la ficha cuyos macros más se parecieran— y con 10.865 candidatos siempre hay una coincidencia: «Agua de la red» casaba con «Salt, white» al 0,0 % y «Salmón ahumado» con «Bison, ground» al 0,9 %. Los macros no identifican un alimento. — EL FILTRO: solo entra el emparejamiento donde las dos tablas coinciden en los cuatro macros dentro del 30 %. Es la prueba de que hablan del mismo alimento. De 50 candidatos por impacto, pasan 18. «Jamón cocido» se cae al 43 % y se queda sin prestar, que es lo correcto: el alimento correcto discrepa. — POR QUÉ 50 Y NO 198: la cobertura se pesa por masa y el uso está sesgadísimo — 50 alimentos cierran el 81 % del hueco y el resto es rendimiento decreciente.",
+  "sal-gruesa": {
+    "tabla": "usda",
+    "foodId": "173468",
+    "discrepancia": 0,
+    "motivo": "«Salt, table» presta a «Sal yodada». Las dos tablas coinciden en los cuatro macros dentro del 0 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, betaCarotene, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "agua": {
+    "tabla": "usda",
+    "foodId": "175103",
+    "discrepancia": 0,
+    "motivo": "«Beverages, water, tap, municipal» presta a «Agua de la red». Las dos tablas coinciden en los cuatro macros dentro del 0 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, betaCarotene, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "aceite-oliva": {
+    "tabla": "usda",
+    "foodId": "171413",
+    "discrepancia": 0.001,
+    "motivo": "«Oil, olive, salad or cooking» presta a «Aceite de oliva». Las dos tablas coinciden en los cuatro macros dentro del 0 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, betaCarotene, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "espaguetis": {
+    "tabla": "usda",
+    "foodId": "168927",
+    "discrepancia": 0.052,
+    "motivo": "«Pasta, dry, unenriched» presta a «Pasta alimenticia, cruda». Las dos tablas coinciden en los cuatro macros dentro del 5 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, pantothenicAcid.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tomate": {
+    "tabla": "usda",
+    "foodId": "170457",
+    "discrepancia": 0.1,
+    "motivo": "«Tomatoes, red, ripe, raw, year round average» presta a «Tomate». Las dos tablas coinciden en los cuatro macros dentro del 10 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tomate-cherry": {
+    "tabla": "usda",
+    "foodId": "170457",
+    "discrepancia": 0.1,
+    "motivo": "«Tomatoes, red, ripe, raw, year round average» presta a «Tomate». Las dos tablas coinciden en los cuatro macros dentro del 10 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "platano": {
+    "tabla": "usda",
+    "foodId": "173944",
+    "discrepancia": 0.124,
+    "motivo": "«Bananas, raw» presta a «Plátano». Las dos tablas coinciden en los cuatro macros dentro del 12 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "salmon": {
+    "tabla": "usda",
+    "foodId": "175167",
+    "discrepancia": 0.13,
+    "motivo": "«Fish, salmon, Atlantic, farmed, raw» presta a «Salmón». Las dos tablas coinciden en los cuatro macros dentro del 13 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, betaCarotene, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "patata": {
+    "tabla": "usda",
+    "foodId": "170026",
+    "discrepancia": 0.131,
+    "motivo": "«Potatoes, flesh and skin, raw» presta a «Patata, cruda». Las dos tablas coinciden en los cuatro macros dentro del 13 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "tomate-triturado": {
+    "tabla": "usda",
+    "foodId": "170051",
+    "discrepancia": 0.15,
+    "motivo": "«Tomatoes, red, ripe, canned, packed in tomato juice» presta a «Tomate». Las dos tablas coinciden en los cuatro macros dentro del 15 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "yogur": {
+    "tabla": "usda",
+    "foodId": "171284",
+    "discrepancia": 0.167,
+    "motivo": "«Yogurt, plain, whole milk» presta a «Yogur, enriquecido, natural». Las dos tablas coinciden en los cuatro macros dentro del 17 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, betaCarotene, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "lentejas": {
+    "tabla": "usda",
+    "foodId": "172420",
+    "discrepancia": 0.231,
+    "motivo": "«Lentils, raw» presta a «Lenteja, seca, cruda». Las dos tablas coinciden en los cuatro macros dentro del 23 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, betaCarotene.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "carne-de-ternera-para-guisar": {
+    "tabla": "usda",
+    "foodId": "174056",
+    "discrepancia": 0.236,
+    "motivo": "«Beef, chuck, arm pot roast, separable lean only, trimmed to 1/8\" fat, choice, raw» presta a «Ternera, costilla, cruda». Las dos tablas coinciden en los cuatro macros dentro del 24 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, manganese, betaCarotene, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "arroz": {
+    "tabla": "usda",
+    "foodId": "169756",
+    "discrepancia": 0.24,
+    "motivo": "«Rice, white, long-grain, regular, raw, unenriched» presta a «Arroz». Las dos tablas coinciden en los cuatro macros dentro del 24 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, betaCarotene, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "remolacha": {
+    "tabla": "usda",
+    "foodId": "169966",
+    "discrepancia": 0.242,
+    "motivo": "«Beets, canned, drained solids» presta a «Remolacha, en conserva». Las dos tablas coinciden en los cuatro macros dentro del 24 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, betaCarotene, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "boniato": {
+    "tabla": "usda",
+    "foodId": "168482",
+    "discrepancia": 0.25,
+    "motivo": "«Sweet potato, raw, unprepared (Includes foods for USDA's Food Distribution Program)» presta a «Boniato, crudo». Las dos tablas coinciden en los cuatro macros dentro del 25 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "zanahoria": {
+    "tabla": "usda",
+    "foodId": "170393",
+    "discrepancia": 0.269,
+    "motivo": "«Carrots, raw» presta a «Zanahoria, cruda». Las dos tablas coinciden en los cuatro macros dentro del 27 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "pimiento-rojo": {
+    "tabla": "usda",
+    "foodId": "170108",
+    "discrepancia": 0.3,
+    "motivo": "«Peppers, sweet, red, raw» presta a «Pimiento rojo, crudo». Las dos tablas coinciden en los cuatro macros dentro del 30 %, que es la prueba de que describen el mismo alimento. Se toman prestados solo los campos que BEDCA deja vacíos: vitaminK, copper, manganese, pantothenicAcid, niacin.",
+    "modelo": "decision-humana-2026-09-21"
+  }
+}

@@ -1,5 +1,5 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
-import { categoryForIngredient, normalizeIngredientKey, isQualitativeUnit, qualitativeUnitLabel } from "./ingredientCategories.js";
+import { categoryForIngredient, normalizeIngredientKey, ingredientStem, isQualitativeUnit, qualitativeUnitLabel } from "./ingredientCategories.js";
 import { DAYS, MEALS } from "./planner.js";
 import { ingredientWords, wordsOverlapEither, isWordSubsetOf } from "../utils/normalizePantryInput.js";
 import { cookedEatersFor, slotUsesPrepared, slotGarnishInTupper } from "./freezer.js";
@@ -87,9 +87,39 @@ export function findMatchingPantryItem(ingredientName, pantryStock, { adapted = 
 // Sin gramos por pieza conocidos devuelve la unidad tal cual, y entonces las
 // dos mitades siguen separadas igual que hasta ahora. Es lo correcto: preferimos
 // dos filas visibles a fusionarlas con un factor inventado.
-function aggregationUnit(name, unit) {
-  if (unit === "ud" && pieceGramsFor(name) != null) return "g";
+//
+// Y convierte SOLO si el ingrediente aparece de verdad en las dos unidades en
+// esta lista (`unidadesPorIngrediente`, calculado en un pre-paso). Antes
+// convertía en cuanto SABÍA pesar, y eso mandaba a gramos ingredientes que
+// solo se piden por piezas: "6 huevos" salía como "360 g de huevo", perdía el
+// redondeo a pieza entera de snapToPackSize y, si la lente "Unidades" no
+// conocía el ingrediente, no había forma de volver a verlo como piezas.
+// Saber pesar no es motivo para convertir; tener algo que fusionar sí.
+function aggregationUnit(name, unit, unidadesPorIngrediente) {
+  if (unit !== "ud") return unit;
+  const unidades = unidadesPorIngrediente.get(ingredientStem(name));
+  const tambienEnPeso = unidades && (unidades.has("g") || unidades.has("kg"));
+  if (tambienEnPeso && pieceGramsFor(name) != null) return "g";
   return unit;
+}
+
+// Pre-paso de aggregationUnit: en qué unidades pide cada ingrediente el menú
+// entero. Recorre lo mismo que el bucle principal, sin escalar ni agregar.
+function unidadesPorIngredienteDelPlan(menuPlan, groupById, meals) {
+  const porIngrediente = new Map();
+  for (const [groupId, slots] of Object.entries(menuPlan)) {
+    if (!groupById[groupId]) continue;
+    for (const slot of Object.values(slots)) {
+      for (const rid of [slot?.firstRecipeId, slot?.recipeId].filter(Boolean)) {
+        for (const ing of RECIPES_BY_ID[rid]?.ingredients ?? []) {
+          const k = ingredientStem(ing.name);
+          if (!porIngrediente.has(k)) porIngrediente.set(k, new Set());
+          porIngrediente.get(k).add(ing.unit);
+        }
+      }
+    }
+  }
+  return porIngrediente;
 }
 
 function scaleIngredient(ing, eaters, recipeServings) {
@@ -196,6 +226,7 @@ function formatQty(qty, unit) {
  */
 export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredients = []) {
   const groupById = Object.fromEntries(groups.map((g) => [g.id, g]));
+  const unidadesPorIngrediente = unidadesPorIngredienteDelPlan(menuPlan, groupById, meals);
   /** @type {Record<string, {id:string,name:string,category:string,unit:string,qty:number,price:number,sources:Array<{day:string,meal:string,group:string,recipeName:string}>}>} */
   const aggregate = {};
   /** @type {Record<string, Array<any>>} */
@@ -234,7 +265,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
             const scaled = scaleIngredient(ing, ingEaters, recipe.servings);
             // Ver aggregationUnit: "1 aguacate" y "150 g de aguacate" tienen que
             // caer en la misma fila, no en dos.
-            const aggUnit = aggregationUnit(ing.name, ing.unit);
+            const aggUnit = aggregationUnit(ing.name, ing.unit, unidadesPorIngrediente);
             const aggQty =
               aggUnit === ing.unit ? scaled.qty : scaled.qty * pieceGramsFor(ing.name);
             const key = normalizeIngredientKey(ing.name, aggUnit);

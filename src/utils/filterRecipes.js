@@ -7,6 +7,8 @@ import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 import { isMontaje, effectiveRecipeTime } from "../data/recipeSchema.js";
 import { resolveIngredientId } from "../lib/ingredients.js";
+import { esAnadido } from "../lib/cocinaTopes.js";
+import { aporteDe } from "../lib/aporte.js";
 
 // Off-menu categories: the optional desayuno/merienda/postre pool. They live in
 // the same catalog but must never be picked by the comida/cena planner (see the
@@ -210,6 +212,10 @@ export function filterRecipes({
   // "preferred" (default) | "only" (only the user's recipes) | "catalog"
   // (only the bundled catalog). Set from data.recipeMode.
   recipeMode = "preferred",
+  // Cuántos platos de cada cocina extranjera quiere la casa esta semana
+  // ({ peruana: 1, india: 0, ... }). `null` = nadie lo ha tocado, y entonces
+  // esto no filtra nada: es el comportamiento de siempre.
+  cocinas = null,
   // Set<string> of recipe ids the user favorited for this group. Soft ranking
   // signal (annotates `isFavorite`, never excludes) EXCEPT con recipeMode
   // "only", donde ademas hacen de salvoconducto: una favorita del catalogo
@@ -279,6 +285,39 @@ export function filterRecipes({
   // (fruit, yogur, kéfir, pan), never candidates for the comida/cena planner.
   // Same guard style as the baby isolation above.
   pool = pool.filter((r) => !OFF_MENU_CATEGORIES.has(r.category));
+
+  // 0d. Cocinas extranjeras — PUERTA DE ENTRADA, no un sesgo.
+  //
+  // Una cocina extranjera está APAGADA salvo que la casa la pida. Es al revés
+  // que el resto de filtros de este fichero, y a propósito: `cocina` está
+  // ausente en 554 de las 711 recetas servibles, y ausente significa española
+  // por convención. Sin esta puerta, un plato peruano entra en tu semana lo
+  // hayas pedido o no, y el mando de Cocina del menú se pasó meses guardando un
+  // número que no cambiaba un solo plato.
+  //
+  // Solo se cae lo que está EXPLÍCITAMENTE a cero, y solo si es un añadido:
+  //   · sin `cocina`  → se queda siempre (es el fondo de armario español)
+  //   · italiana      → se queda siempre (ver SIEMPRE_ENCENDIDAS: en este
+  //                     catálogo es sinónimo de pasta, y la pasta ya se pide
+  //                     desde el reparto)
+  //   · pedida (> 0)  → se queda, y la cuota del prompt intentará colocarla
+  //   · a 0           → fuera
+  //
+  // No puede vaciar el pool: apagarlo todo quita 157 de 711.
+  //
+  // Y se aplica SIEMPRE, también cuando la casa no ha guardado nada. Antes la
+  // puerta se saltaba entera si `cocinas` venía vacío, o sea que una casa
+  // recién creada —la que nunca ha tocado el mando— era justo la que veía
+  // platos de todas las cocinas. No se notaba porque las 27 recetas peruanas e
+  // indias estaban en `estrella: false` y no llegaban al pool de todos modos;
+  // en cuanto se encienden, ese hueco las mete en la semana de cualquiera.
+  //
+  // "No me has pedido ninguna" y "me has pedido cero" tienen que significar lo
+  // mismo: fondo de armario español más lo que esté siempre encendido.
+  pool = pool.filter((r) => {
+    if (!r.cocina || !esAnadido(r.cocina)) return true;
+    return (cocinas?.[r.cocina] ?? 0) > 0;
+  });
 
   // 1. Allergens — exclude any recipe containing a blocked allergen. Declared
   // `allergens` cover 8 of the 14 UE allergens; the ingredient-name safety net
@@ -557,6 +596,19 @@ export function decisionCatalog(filteredRecipes) {
     // otherwise "Judías verdes rehogadas" reads as mainProtein "none" and it
     // can't tell the dish carries meat.
     if (r.extraProteins?.length) entry.extraProteins = r.extraProteins;
+    // Qué tandas aprovecha el plato. Sin esto el modelo no podía cumplir la
+    // petición de bases ni queriendo: sabía que la casa quiere dos platos con
+    // bechamel, pero no cuáles de las 700 recetas la llevan. La regla se
+    // arreglaba después a golpe de sustitución, que funciona pero cambia platos
+    // que el modelo había elegido por otros motivos.
+    if (r.basesAparte?.length) entry.basesAparte = r.basesAparte;
+    // Y si su fécula se cuece APARTE, que es lo que la hace batcheable: el
+    // arroz de un bowl sí, el de un risotto no.
+    if (r.baseMode) entry.baseMode = r.baseMode;
+    // The "cocinas" instruction in buildUserMessage tells the model these
+    // recipes carry their "cocina" field — without it here it had nothing to
+    // go on and only ajustarCuota's post-pass placed them.
+    if (r.cocina) entry.cocina = r.cocina;
     if (r.category === "bebes") {
       entry.protein_g = r.protein_g ?? 0;
     }
@@ -574,6 +626,21 @@ export function decisionCatalog(filteredRecipes) {
     if (r.pantryScore > 0) {
       entry.pantryScore = Math.round(r.pantryScore * 100) / 100;
     }
+    // Qué raciones entrega (ver lib/aporte.js). El prompt lo nombra en el
+    // mapeo de los objetivos semanales, así que tiene que viajar o el modelo no
+    // puede aplicar la regla: una "Ternera a la jardinera" cuenta para carne Y
+    // para verdura, y por la categoría sola parecía solo carne. Se manda ya
+    // resuelto (declarado o derivado) para que el modelo vea exactamente lo
+    // mismo que contará después `FREQ_KEY_MATCHERS`.
+    const entregas = [...aporteDe(r)];
+    if (entregas.length > 0) entry.aporte = entregas;
+    // Plato de MONTAJE (sándwich, tosta, tabla, ensalada de asamblaje). El
+    // prompt lo nombra dos veces —"solo en un hueco de cena rápida", "nunca en
+    // uno de comida rápida"— y hasta ahora no viajaba, así que el modelo tenía
+    // que adivinarlo por el nombre. Se manda con `isMontaje` y no con
+    // `r.montaje` para respetar el fallback a la categoría deprecada que
+    // arrastran las recetas de usuario ya guardadas (ver recipeSchema.js).
+    if (isMontaje(r)) entry.montaje = true;
     // Signals for prioritization (only present when true, to keep payload lean).
     if (r.isFavorite) entry.favorite = true;
     if (r.source === "user") entry.own = true;

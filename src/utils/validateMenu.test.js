@@ -7,10 +7,13 @@ import {
   buildCorrectionMessage,
   applyFallback,
   carbTypeFromText,
+  getCarbType,
+  CARB_TYPES,
   splitAchievableFreqs,
   slotAcceptsRole,
   GUARD_FOR_RULE,
 } from "./validateMenu.js";
+import { CARB_TYPE_BY_BASE, MAIN_BASES } from "../data/recipeSchema.js";
 
 function recipe(overrides) {
   // El nombre por defecto sale del id porque hay reglas que miran el NOMBRE
@@ -85,6 +88,9 @@ describe("GUARD_FOR_RULE stays in sync with the rules validateMenu actually emit
       "slot_faltante", "recipeId_not_in_catalog", "rol_incompatible_con_hueco",
       "tiempo_excedido", "tupper_not_friendly", "recipeId_repetido",
       "comida_sin_segundo", "health_profile_conflict", "freq_max_exceeded",
+      // Estructural como tiempo_excedido: no se arregla aflojando una
+      // preferencia, se arregla cambiando el plato por uno mas corto.
+      "comida_demasiado_larga",
       "school_protein_conflict", "legumbres_en_cena",
     ]);
     const unmapped = [...emittedRuleNames].filter(
@@ -216,6 +222,48 @@ describe("validateMenu", () => {
     expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("merluza");
   });
 
+  it("reparar OTRA regla no puede pasarse del tope semanal", () => {
+    // El fallo, tal cual se vio: la semana ya tenia su unico pescado permitido,
+    // se reparaba un rol incompatible en la cena, y la busqueda cogia el primer
+    // candidato valido — que eran unas gambas. El tope solo se miraba cuando la
+    // violacion que se estaba arreglando ERA el tope, asi que la reparacion
+    // dejaba la semana rota por una regla que ya habia pasado.
+    const pool = [
+      recipe({ id: "atun", name: "Atún a la plancha", mainProtein: "pescado_azul", mealRole: ["segundo"] }),
+      recipe({ id: "lasana", name: "Lasaña", category: "pasta_arroces", mealRole: ["plato_unico"] }),
+      recipe({ id: "gambas", name: "Gambas al ajillo", mainProtein: "marisco", mealRole: ["cena"] }),
+      recipe({ id: "tortilla", name: "Tortilla francesa", mainProtein: "huevo", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_comida_2"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_2", recipeId: "atun" },
+      { slotId: "lun_cena", recipeId: "lasana" },
+    ];
+    // La violacion NO es del tope: es un rol que no encaja en el hueco.
+    const violations = [{ rule: "rol_incompatible_con_hueco", slotId: "lun_cena", message: "" }];
+
+    // Sin topes, las gambas son el primer candidato valido y entran.
+    expect(
+      applyFallback(assignments, violations, pool, slots).find((s) => s.slotId === "lun_cena")?.recipeId,
+    ).toBe("gambas");
+
+    // Con el tope de pescado en 1 y uno ya puesto, tiene que irse a la tortilla.
+    const conTope = applyFallback(assignments, violations, pool, slots, [], { pescado: 1 });
+    expect(conTope.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("tortilla");
+  });
+
+  it("el tope no estorba cuando todavia queda sitio", () => {
+    const pool = [
+      recipe({ id: "lasana", name: "Lasaña", category: "pasta_arroces", mealRole: ["plato_unico"] }),
+      recipe({ id: "gambas", name: "Gambas al ajillo", mainProtein: "marisco", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena")];
+    const assignments = [{ slotId: "lun_cena", recipeId: "lasana" }];
+    const violations = [{ rule: "rol_incompatible_con_hueco", slotId: "lun_cena", message: "" }];
+    const r = applyFallback(assignments, violations, pool, slots, [], { pescado: 2 });
+    expect(r.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("gambas");
+  });
+
   it("passes a menu with no violations", () => {
     const pool = [recipe({ id: "a", mealRole: ["primero", "plato_unico"] })];
     const slots = [slot("lun_comida_1")];
@@ -283,6 +331,46 @@ describe("validateMenu", () => {
     const assignments = [{ slotId: "lun_cena", recipeId: "a" }];
     const { violations } = validateMenu(assignments, pool, slots);
     expect(violations.map((v) => v.rule)).toContain("school_protein_conflict");
+  });
+
+  it("flags a school-avoided protein in a COMIDA slot (niños cenan lo del mediodía)", () => {
+    // El fallo que esto sujeta: con `reuseColeDinner`, buildGroupContext cuelga
+    // schoolProteinsToAvoid del SEGUNDO DE LA COMIDA de los adultos, porque esa
+    // comida es lo que el niño cenará. Las reglas 4/4b filtraban por
+    // `mealType === "cena"` y se lo saltaban: el día que el niño comía pollo en
+    // el cole, nada impedía que los padres comieran pollo. La restricción estaba
+    // puesta y no la leía nadie.
+    const pool = [
+      recipe({ id: "p", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "a", mainProtein: "pollo", mealRole: ["segundo"] }),
+    ];
+    const slots = [
+      slot("lun_comida_1", { mealType: "comida", position: "primero" }),
+      slot("lun_comida_2", { mealType: "comida", position: "segundo", schoolProteinsToAvoid: ["carne"] }),
+    ];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "p" },
+      { slotId: "lun_comida_2", recipeId: "a" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("school_protein_conflict");
+  });
+
+  it("y lo mismo con la base de hidratos en un hueco de comida", () => {
+    const pool = [
+      recipe({ id: "p", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "a", name: "Merluza con arroz", mainProtein: "pescado_blanco", mealRole: ["segundo"], mainBase: "arroz" }),
+    ];
+    const slots = [
+      slot("lun_comida_1", { mealType: "comida", position: "primero" }),
+      slot("lun_comida_2", { mealType: "comida", position: "segundo", schoolCarbsToAvoid: ["arroz"] }),
+    ];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "p" },
+      { slotId: "lun_comida_2", recipeId: "a" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("school_carb_conflict");
   });
 
   it("flags a school-avoided carb base reused in cena", () => {
@@ -1080,6 +1168,205 @@ describe("carbTypeFromText", () => {
   });
 });
 
+describe("getCarbType: el mainBase declarado manda sobre el regex", () => {
+  // El eje de la base (qué olla comparte el plato, lib/bases.js) y el del
+  // hidrato (si el comensal percibe "otra vez lo mismo", regla 9) eran el mismo
+  // concepto modelado dos veces y sin hablarse. La tabla CARB_TYPE_BY_BASE es
+  // la unión; estas pruebas fijan lo que cambia y lo que NO.
+
+  it("cubre TODOS los valores de MAIN_BASES — una base nueva obliga a decidir", () => {
+    // Sin esto, añadir una base al enum la dejaría cayendo al regex en
+    // silencio: volveríamos justo a la divergencia que la tabla cierra.
+    for (const base of MAIN_BASES) {
+      expect(Object.hasOwn(CARB_TYPE_BY_BASE, base)).toBe(true);
+    }
+    expect(Object.keys(CARB_TYPE_BY_BASE).sort()).toEqual([...MAIN_BASES].sort());
+  });
+
+  it("solo mapea a hidratos que el regex también sabe producir", () => {
+    // Si una base apuntara a un carbType fuera del vocabulario, un plato con
+    // base declarada y otro sin ella contarían distinto siendo lo mismo.
+    for (const carbType of Object.values(CARB_TYPE_BY_BASE)) {
+      if (carbType === null) continue;
+      expect(CARB_TYPES).toContain(carbType);
+    }
+  });
+
+  it("usa mainBase en vez de un ingrediente secundario del regex", () => {
+    // "Trofie al pesto genovés": el pesto genovés lleva patata, así que el
+    // regex lo contaba como patatas y no chocaba con otra pasta el mismo día.
+    const trofie = recipe({
+      id: "trofie", name: "Trofie al pesto genovés", mainBase: "pasta",
+      ingredients: [{ name: "Trofie" }, { name: "Patata" }, { name: "Albahaca" }],
+    });
+    expect(carbTypeFromText("Trofie al pesto genovés patata")).toBe("patatas");
+    expect(getCarbType(trofie)).toBe("pasta");
+  });
+
+  it("clasifica pastas que el regex no nombra", () => {
+    // "Fettuccine Alfredo" no tenía base NINGUNA: se podían servir espaguetis de
+    // comida y fettuccine de cena sin que saltara nada.
+    const fettuccine = recipe({
+      id: "fettuccine", name: "Fettuccine Alfredo", mainBase: "pasta",
+      ingredients: [{ name: "Fettuccine" }, { name: "Nata" }],
+    });
+    expect(carbTypeFromText("Fettuccine Alfredo nata")).toBeNull();
+    expect(getCarbType(fettuccine)).toBe("pasta");
+  });
+
+  it("el pan NO es una base: un taco se clasifica por el regex, no por mainBase", () => {
+    // `pan` salió de MAIN_BASES el 11 sep — ni uno de sus 83 platos se cocinaba
+    // "aparte", así que no era una olla, era una percepción. Sigue existiendo
+    // como carbType (lo pone CARB_PATTERNS), pero ya no como base declarable.
+    const tacos = recipe({
+      id: "tacos", name: "Tacos de pollo",
+      ingredients: [{ name: "Tortillas de trigo" }, { name: "Pollo" }],
+    });
+    expect(getCarbType(tacos)).toBeNull();
+    // Y lo que el regex sí nombra sigue contando como pan, sin declarar nada.
+    const bocadillo = recipe({
+      id: "boca", name: "Bocadillo de calamares",
+      ingredients: [{ name: "Pan" }, { name: "Calamares" }],
+    });
+    expect(getCarbType(bocadillo)).toBe("pan");
+  });
+
+  it("boniato cuenta como patatas aunque sea una base (olla) distinta", () => {
+    // bases_007 es su propia bandeja, pero en la mesa es el mismo tubérculo
+    // asado dos veces — y el regex ya metía boniato en "patatas" para los
+    // platos que no declaran base: separarlos aquí los descuadraría.
+    const boniato = recipe({
+      id: "boniato", name: "Puré de boniato con pavo", mainBase: "boniato",
+      ingredients: [{ name: "Boniato" }],
+    });
+    expect(getCarbType(boniato)).toBe("patatas");
+  });
+
+  it("legumbre NO es un hidrato: el eje que la gobierna es el de proteína", () => {
+    // 81 de las 83 recetas con mainBase "legumbre" llevan mainProtein
+    // "legumbre", así que las reglas 2/3b/3c/15 ya impiden repetirla. Lo que
+    // esto quita es el carbType FALSO que arrastraban 14 guisos por llevar
+    // patata o pan de acompañamiento: un potaje bloqueaba las patatas del día.
+    const potaje = recipe({
+      id: "potaje", name: "Potaje de habichuelas", mainBase: "legumbre",
+      mainProtein: "legumbre",
+      ingredients: [{ name: "Alubias" }, { name: "Patata" }],
+    });
+    expect(carbTypeFromText("Potaje de habichuelas alubias patata")).toBe("patatas");
+    expect(getCarbType(potaje)).toBeNull();
+  });
+
+  it("un potaje ya no bloquea las patatas del mismo día (regla 9)", () => {
+    const pool = [
+      recipe({
+        id: "potaje", mealRole: ["primero"], mainProtein: "legumbre",
+        name: "Potaje de habichuelas", mainBase: "legumbre",
+        ingredients: [{ name: "Alubias" }, { name: "Patata" }],
+      }),
+      recipe({
+        id: "merluza", mealRole: ["segundo"], mainProtein: "pescado_blanco",
+        name: "Merluza con patatas panadera",
+        ingredients: [{ name: "Merluza" }, { name: "Patata" }],
+      }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "potaje" },
+      { slotId: "lun_comida_2", recipeId: "merluza" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("guarnicion_repetida");
+  });
+
+  it("dos pastas el mismo día siguen chocando aunque el regex no las nombre", () => {
+    const pool = [
+      recipe({
+        id: "fettuccine", mealRole: ["primero"], mainProtein: "none",
+        name: "Fettuccine Alfredo", mainBase: "pasta",
+        ingredients: [{ name: "Fettuccine" }],
+      }),
+      recipe({
+        id: "orzo", mealRole: ["cena"], mainProtein: "pollo",
+        name: "Orzo con pollo y limón", mainBase: "pasta",
+        ingredients: [{ name: "Orzo" }],
+      }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "fettuccine" },
+      { slotId: "lun_cena", recipeId: "orzo" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("guarnicion_repetida");
+  });
+
+  it("una receta sin mainBase sigue clasificándose por el regex", () => {
+    // Es lo que cubre las ~500 recetas que no declaran el campo.
+    const arroz = recipe({
+      id: "arroz", name: "Arroz tres delicias",
+      ingredients: [{ name: "Arroz" }, { name: "Guisantes" }],
+    });
+    expect(getCarbType(arroz)).toBe("arroz");
+  });
+
+  // La regla 14 es donde la tabla más muerde, y donde no había cobertura.
+  // Los platos que el regex no nombraba y que `mainBase` rescata son
+  // abrumadoramente de rol cena —wraps, quesadillas, tacos, empanadas— así que
+  // el salto grande no está en la regla 9 (mismo día) sino en las cenas de días
+  // consecutivos: medido sobre el pool de cena, las semanas con al menos un
+  // choque suben del 35,7 % al 38,7 %.
+  //
+  // Sin este test, la tabla podía dejar de aplicarse a la regla 14 sin que
+  // fallara nada: los dos platos dan carbType `null` por el regex, así que un
+  // `getCarbType` que ignorase `mainBase` los daría por buenos en silencio.
+  it("dos cenas consecutivas de base pasta chocan, aunque el regex no las nombre", () => {
+    const pool = [
+      recipe({
+        id: "fettuccine", name: "Fettuccine Alfredo",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Fettuccine" }],
+      }),
+      recipe({
+        id: "orzo", name: "Orzo con verduras",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Orzo" }],
+      }),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "fettuccine" },
+      { slotId: "mar_cena", recipeId: "orzo" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("guarnicion_cena_consecutiva");
+  });
+
+  // La otra cara: dejar un día de por medio tiene que bastar. Es exactamente la
+  // pauta que hereda el batch cooking — repartir la tanda por la semana no
+  // basta si dos de sus platos caen en cenas seguidas.
+  it("las mismas dos cenas con un día de por medio no chocan", () => {
+    const pool = [
+      recipe({
+        id: "fettuccine", name: "Fettuccine Alfredo",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Fettuccine" }],
+      }),
+      recipe({
+        id: "orzo", name: "Orzo con verduras",
+        category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"],
+        mainBase: "pasta", ingredients: [{ name: "Orzo" }],
+      }),
+    ];
+    const slots = [slot("lun_cena"), slot("mie_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "fettuccine" },
+      { slotId: "mie_cena", recipeId: "orzo" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("guarnicion_cena_consecutiva");
+  });
+});
+
 describe("splitAchievableFreqs", () => {
   it("keeps a key when the filtered pool has enough matching recipes", () => {
     const pool = [
@@ -1112,9 +1399,19 @@ describe("splitAchievableFreqs", () => {
     expect(warnings[0]).toContain("pescado");
   });
 
-  it("ignores zero/undefined targets and unknown keys without crashing", () => {
+  it("un tope de CERO se respeta: es una exclusión, no un hueco sin tope", () => {
+    // Antes se descartaba junto a los nulos y salía de aquí como "sin tope",
+    // o sea lo contrario de lo pedido: un estilo de comida con carne 0 producía
+    // trece platos de carne en veintiún huecos.
     const pool = [recipe({ id: "a" })];
     const { achievable, warnings } = splitAchievableFreqs(pool, { carne: 0, misterio: 5 });
+    expect(achievable).toEqual({ carne: 0 });
+    expect(warnings).toEqual([]);
+  });
+
+  it("y las claves desconocidas o nulas se siguen ignorando sin romper", () => {
+    const pool = [recipe({ id: "a" })];
+    const { achievable, warnings } = splitAchievableFreqs(pool, { misterio: 5, pescado: undefined, carne: -2 });
     expect(achievable).toEqual({});
     expect(warnings).toEqual([]);
   });
@@ -1395,11 +1692,13 @@ describe("dos_ensaladas_en_comida", () => {
     expect(violations.map((v) => v.rule)).not.toContain("dos_ensaladas_en_comida");
   });
 
-  it("NO flags un segundo que lleva ensalada de guarnición (\"ensalada\" no está al principio del nombre)", () => {
-    // "Salmón a la plancha con ensalada de pepino y eneldo" es un plato de
-    // pescado con una ensalada de acompañamiento, no "una ensalada" — muy
-    // distinto de "Ensalada de pollo asado..." donde SÍ lo es. Real, del
-    // catálogo: 35 segundos contienen "ensalada" en el nombre así.
+  it("SÍ flags una ensalada de primero con un segundo que trae ensalada de guarnición", () => {
+    // Este test decía lo contrario: que "Salmón a la plancha con ensalada de
+    // pepino" es un plato de pescado CON ensalada, no "una ensalada", y que
+    // por eso no había que contarlo. Sigue siendo verdad lo primero y falso lo
+    // segundo, porque la regla mira la MESA, no el plato: reportado tal cual,
+    // "de primero ensalada de melón con jamón y de segundo filete de pavo con
+    // ensalada de…". Son dos ensaladas seguidas aunque una sea guarnición.
     const pool = [
       recipe({ id: "ens_rucula", name: "Ensalada de rúcula, parmesano y piñones", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"] }),
       recipe({ id: "salmon", name: "Salmón a la plancha con ensalada de pepino y eneldo", category: "pescados", mainProtein: "pescado_azul", mealRole: ["segundo"] }),
@@ -1407,6 +1706,23 @@ describe("dos_ensaladas_en_comida", () => {
     const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
     const assignments = [
       { slotId: "lun_comida_1", recipeId: "ens_rucula" },
+      { slotId: "lun_comida_2", recipeId: "salmon" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("dos_ensaladas_en_comida");
+  });
+
+  it("pero NO cuando el primero no es una ensalada: un segundo con guarnición verde es normal", () => {
+    // La otra mitad de la regla, y la que impide que se vuelva insufrible: un
+    // salmón con ensalada de pepino detrás de una crema o de unos macarrones
+    // es exactamente lo que se cena en cualquier casa.
+    const pool = [
+      recipe({ id: "crema", name: "Crema de calabacín", category: "sopas_cremas", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "salmon", name: "Salmón a la plancha con ensalada de pepino y eneldo", category: "pescados", mainProtein: "pescado_azul", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "crema" },
       { slotId: "lun_comida_2", recipeId: "salmon" },
     ];
     const { violations } = validateMenu(assignments, pool, slots);
@@ -1641,5 +1957,66 @@ describe("platos de ocasión entre semana (regla 3f)", () => {
     const { violations } = validateMenu(assignments, [cigalas, filete], slots);
     const result = applyFallback(assignments, violations, [cigalas, filete], slots);
     expect(result[0].recipeId).toBe("filete");
+  });
+});
+
+describe("la casquería es de fin de semana", () => {
+  const higado = recipe({ id: "hig", name: "Hígado encebollado", category: "carnes", mainProtein: "ternera", mealRole: ["segundo", "cena"], time: 20 });
+  const filete = recipe({ id: "fil", name: "Filete de ternera a la plancha", category: "carnes", mainProtein: "ternera", mealRole: ["segundo", "cena"], time: 15 });
+
+  it("un hígado encebollado un miércoles se marca", () => {
+    const { violations } = validateMenu(
+      [{ slotId: "mie_cena", recipeId: "hig" }], [higado, filete], [slot("mie_cena")],
+    );
+    expect(violations.map((v) => v.rule)).toContain("casqueria_entre_semana");
+  });
+
+  it("el sábado no", () => {
+    const { violations } = validateMenu(
+      [{ slotId: "sab_cena", recipeId: "hig" }], [higado, filete], [slot("sab_cena")],
+    );
+    expect(violations.map((v) => v.rule)).not.toContain("casqueria_entre_semana");
+  });
+
+  it("y un filete normal no es casquería ningún día", () => {
+    const { violations } = validateMenu(
+      [{ slotId: "mie_cena", recipeId: "fil" }], [higado, filete], [slot("mie_cena")],
+    );
+    expect(violations.map((v) => v.rule)).not.toContain("casqueria_entre_semana");
+  });
+});
+
+describe("la comida entera cabe en el tiempo que se pidió", () => {
+  const corto = recipe({ id: "c", name: "Ensalada de tomate", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"], time: 10 });
+  const medio = recipe({ id: "m", name: "Merluza al horno", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["segundo"], time: 30 });
+  const largo = recipe({ id: "l", name: "Estofado de ternera", category: "carnes", mainProtein: "ternera", mealRole: ["segundo"], time: 50 });
+  const pool = [corto, medio, largo];
+  const slotsDe = (budget) => [
+    { ...slot("lun_comida_1"), position: "primero", maxTime: budget, mealBudget: budget },
+    { ...slot("lun_comida_2"), position: "segundo", maxTime: budget, mealBudget: budget },
+  ];
+  const par = (a, b) => [{ slotId: "lun_comida_1", recipeId: a }, { slotId: "lun_comida_2", recipeId: b }];
+
+  it("una ensalada de 10 con un pescado de 30 entra en una comida de 30", () => {
+    const { violations } = validateMenu(par("c", "m"), pool, slotsDe(30));
+    expect(violations.map((v) => v.rule)).not.toContain("comida_demasiado_larga");
+  });
+
+  it("pero un pescado de 30 con un estofado de 50 no", () => {
+    // 80 minutos para una comida de 30: ni solapándolos.
+    const { violations } = validateMenu(
+      [{ slotId: "lun_comida_1", recipeId: "m" }, { slotId: "lun_comida_2", recipeId: "l" }],
+      pool, slotsDe(30),
+    );
+    expect(violations.map((v) => v.rule)).toContain("comida_demasiado_larga");
+  });
+
+  it("sin presupuesto declarado no dice nada: solo aplica donde hay dos platos", () => {
+    const sinBudget = [
+      { ...slot("lun_comida_1"), position: "primero" },
+      { ...slot("lun_comida_2"), position: "segundo" },
+    ];
+    const { violations } = validateMenu(par("c", "l"), pool, sinBudget);
+    expect(violations.map((v) => v.rule)).not.toContain("comida_demasiado_larga");
   });
 });

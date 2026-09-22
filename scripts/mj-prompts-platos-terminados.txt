@@ -1,0 +1,32 @@
+Esquema (seed 2151241667):
+[{slug}] cute stylized 3D cartoon render in the style of Pixar and Disney, {sujeto}, {tonos}, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+Para la sesion de tandas: PLATOS TERMINADOS que se cocinan una vez y se comen
+varias noches. La tercera pata, despues de las bases (un ingrediente que sirve
+para varios platos) y los platos a medio hacer (src/lib/adelanto.js).
+
+Van en public/ingredients/<slug>.png como las bases, porque los resuelve el
+mismo ingredientThumbSrc.
+
+ENCUADRE: el mismo que sofrito.png, que es la base mas parecida a esto. Olla o
+cuenco de barro rustico con la preparacion dentro, unas pocas piezas sueltas
+delante, nada de cubiertos y nadie comiendo.
+
+REGLA DE LA IMAGEN: la OLLA, no el plato servido. Un cuenco individual se lee
+como la cena de esta noche, y lo que hay que contar es justo lo contrario: una
+olla que da para tres. Por eso el recipiente sale lleno y es grande.
+
+Caldo: OJO, ya existe caldo.png y es el brik del super. Para la tanda hace
+falta la olla, por eso va aqui con slug propio.
+
+[crema] cute stylized 3D cartoon render in the style of Pixar and Disney, a large rustic ceramic pot full of smooth orange vegetable soup with a swirl of cream on top, a few pumpkin and carrot chunks scattered in front, warm orange and cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[sopa] cute stylized 3D cartoon render in the style of Pixar and Disney, a large rustic ceramic pot full of clear brothy soup with visible vegetable pieces and small pasta, a wooden ladle resting across the rim, golden broth and garden green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[gazpacho] cute stylized 3D cartoon render in the style of Pixar and Disney, a tall glass jug full of chilled red tomato gazpacho with condensation on the outside, a few cucumber and pepper pieces scattered in front, bright tomato red and fresh green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[caldo-casero] cute stylized 3D cartoon render in the style of Pixar and Disney, a large rustic stockpot full of golden homemade broth with a leek and a carrot poking out, steam not shown, a few peppercorns scattered in front, warm amber and soft green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pure-de-patata] cute stylized 3D cartoon render in the style of Pixar and Disney, a large rustic ceramic bowl full of creamy mashed potato combed with fork lines and a small knob of butter melting on top, a whole potato beside it, ivory and soft butter tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pure-de-boniato] cute stylized 3D cartoon render in the style of Pixar and Disney, a large rustic ceramic bowl full of creamy orange sweet potato mash, half a roasted sweet potato beside it, deep orange and cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667

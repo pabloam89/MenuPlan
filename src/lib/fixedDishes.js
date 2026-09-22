@@ -1,25 +1,25 @@
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 import { getCarbType } from "../utils/validateMenu.js";
+import { PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 
 // Mirrors validateMenu.js rule 4's grouping (pollo/pavo/cerdo/ternera -> carne,
 // etc.) so enforceFixedDishes can check a cena candidate against the same
 // schoolProteinsToAvoid the day's slot context carries — kept as a local copy
 // (not imported) because validateMenu.js doesn't export it separately.
-const PROTEIN_GROUP_MAP = {
-  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
-  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
-  legumbre: "legumbres", huevo: "huevos",
-};
 
-/** True when placing `recipe` in the cena slot at `ctx` would reintroduce a
- * protein or carb base the school menu already served that day (validateMenu
- * rules 4 / 4b). Only meaningful for cena — comida slots never carry
- * schoolProteinsToAvoid/schoolCarbsToAvoid. */
+/** True when placing `recipe` at `ctx` would reintroduce a protein or carb base
+ * the school menu already served that day (validateMenu rules 4 / 4b).
+ *
+ * Se comprueba por PRESENCIA del campo, no por tipo de comida, y es lo correcto:
+ * el comentario anterior decía que solo la cena lleva estos campos y era falso
+ * desde que existe "el niño cena lo del mediodía" (`reuseColeDinner`), donde
+ * viajan en el slot de COMIDA de los adultos. Esta función ya acertaba; las
+ * reglas 4/4b y la reparación filtraban por `cena` y no. */
 function conflictsWithSchoolMenu(recipe, ctx) {
   if (!ctx) return false;
   if (ctx.schoolProteinsToAvoid?.length) {
-    const group = PROTEIN_GROUP_MAP[recipe.mainProtein] ?? recipe.mainProtein;
+    const group = PROTEIN_GROUP_BY_MAIN_PROTEIN[recipe.mainProtein] ?? recipe.mainProtein;
     if (ctx.schoolProteinsToAvoid.includes(group)) return true;
   }
   if (ctx.schoolCarbsToAvoid?.length) {
@@ -113,12 +113,41 @@ function norm(s) {
     .trim();
 }
 
+// Normalizing a recipe name costs a toLowerCase + an NFD decomposition + a
+// regex pass, and the same names get normalized over and over: every fixed
+// dish is matched against the WHOLE catalog (1011 recipes), and the school
+// menu importer does that once per keyword of every dish it reads \u2014 fifteen
+// dishes times several keywords times 1011. That was 5 s of wall clock in
+// schoolMenuImport, enough to blow a 5 s test timeout, and the same cost lands
+// on the user when they import their school's PDF.
+//
+// A WeakMap keyed on the recipe object needs no invalidation: catalog entries
+// are frozen for the life of the module, and a rehydrated recipe is a new
+// object that simply gets its own entry.
+const normNameCache = new WeakMap();
+
+function recipeNorm(recipe) {
+  if (!recipe || typeof recipe !== "object") return norm(recipe?.name);
+  const hit = normNameCache.get(recipe);
+  if (hit !== undefined) return hit;
+  const value = norm(recipe.name);
+  normNameCache.set(recipe, value);
+  return value;
+}
+
 export function recipeMatchesFixedDish(recipe, fixedDish) {
   // Exact match when the dish was chosen from the catalog browser.
   if (fixedDish?.catalogId) return recipe?.id === fixedDish.catalogId;
-  const wanted = norm(fixedDish?.name);
+  return matchesWantedName(recipe, norm(fixedDish?.name));
+}
+
+// The half of recipeMatchesFixedDish that runs per candidate, with the fixed
+// dish's own name already normalized by the caller. Hoisting that out of the
+// loop is most of the win: filtering the catalog normalized the SAME wanted
+// string 1011 times per call.
+function matchesWantedName(recipe, wanted) {
   if (!wanted) return false;
-  const name = norm(recipe?.name);
+  const name = recipeNorm(recipe);
   return name.includes(wanted) || wanted.includes(name);
 }
 
@@ -375,5 +404,7 @@ export function catalogMatchesForFixedDish(fixedDish, catalog = recipeCatalog) {
     return exact ? [exact] : [];
   }
   if (!fixedDish?.name) return [];
-  return catalog.filter((r) => recipeMatchesFixedDish(r, fixedDish));
+  const wanted = norm(fixedDish.name);
+  if (!wanted) return [];
+  return catalog.filter((r) => matchesWantedName(r, wanted));
 }

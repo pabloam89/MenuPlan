@@ -18,7 +18,7 @@ import { CatalogBrowserSheet, GarnishPickerSheet } from "../screens/CatalogBrows
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
-import { aisleImageSrc, categoryImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
+import { aisleImageSrc, categoryImageSrc, ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { lowerFirst } from "../lib/dishNaming.js";
 
 const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
@@ -59,7 +59,47 @@ const editInputBase = {
 // (ingrediente o plato). Debajo va el grid. Cuando hay un modo elegido, muestra
 // a su derecha (misma altura) un botón para volver — a Categorías si hay una
 // categoría abierta, o al selector de miniaturas si estás en la parrilla raíz.
-function PantrySearchBar({ query, onQueryChange, mode, onBack, backLabel = "Categorías" }) {
+/**
+ * Lo que la barra CREE que estás escribiendo, dibujado mientras escribes.
+ *
+ * Es un espejo, no una sugerencia: `ingredientImageSrc` solo devuelve algo
+ * cuando reconoce el nombre —por id, por alias o por familia—, así que ver
+ * aparecer el tomate confirma que lo has escrito de forma que la app entiende.
+ * Si no sale nada es que no lo reconoce, y eso también es información: ese
+ * ingrediente no se va a cruzar con la lista de la compra.
+ *
+ * Y se toca: es el camino corto a la ficha de cantidad sin bajar al grid.
+ */
+function EspejoDeBusqueda({ query, onPick }) {
+  const nombre = query.trim();
+  // Se guarda QUÉ imagen falló, no un sí/no: con un booleano haría falta un
+  // efecto que lo rearmara en cada tecla, y eso son renders en cascada.
+  const [fallida, setFallida] = useState(null);
+  const src = useMemo(() => (nombre.length >= 3 ? ingredientImageSrc(nombre) : null), [nombre]);
+  if (!src || fallida === src) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => onPick(nombre)}
+      className="mp-press mp-espejo"
+      aria-label={`Añadir ${nombre}`}
+      style={{
+        flexShrink: 0, width: 30, height: 30, padding: 0, borderRadius: 8,
+        border: "none", background: "transparent", cursor: "pointer",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}
+    >
+      <img
+        src={src}
+        alt=""
+        onError={() => setFallida(src)}
+        style={{ width: 30, height: 30, objectFit: "contain", display: "block" }}
+      />
+    </button>
+  );
+}
+
+function PantrySearchBar({ query, onQueryChange, mode, onBack, onPick, backLabel = "Categorías" }) {
   const active = query.trim().length > 0;
   const field = (
     <div
@@ -83,6 +123,7 @@ function PantrySearchBar({ query, onQueryChange, mode, onBack, backLabel = "Cate
           fontSize: 13, fontWeight: 700, color: INK,
         }}
       />
+      {mode !== "cooked_dish" && onPick && <EspejoDeBusqueda query={query} onPick={onPick} />}
       {active && (
         <button
           type="button"
@@ -197,8 +238,12 @@ function StyledPickerMenu({ value, options, anchorRef, onSelect, onClose }) {
       const width = Math.max(r.width, 124);
       const spaceBelow = vh - r.bottom;
       const openUp = spaceBelow < 220 && r.top > spaceBelow;
+      // Se cuelga del borde DERECHO del botón cuando el menú es más ancho que
+      // él —el de unidades mide 66px y el menú 124—, que es como se lee que
+      // sale de ahí. Alineado por la izquierda parecía flotar suelto.
+      const ideal = r.width < width ? r.right - width : r.left;
       setPos({
-        left: Math.min(r.left, window.innerWidth - width - 12),
+        left: Math.max(8, Math.min(ideal, window.innerWidth - width - 8)),
         width,
         top: openUp ? null : r.bottom + 6,
         bottom: openUp ? vh - r.top + 6 : null,
@@ -234,6 +279,7 @@ function StyledPickerMenu({ value, options, anchorRef, onSelect, onClose }) {
     <div
       ref={menuRef}
       role="listbox"
+      className="mp-picker-menu"
       style={{
         position: "fixed",
         left: pos.left,
@@ -244,44 +290,48 @@ function StyledPickerMenu({ value, options, anchorRef, onSelect, onClose }) {
         overflowY: "auto",
         background: "#fff",
         borderRadius: 14,
-        border: "1.5px solid #d7e6dc",
+        border: "1.5px solid #e3ede7",
         boxShadow: "0 16px 40px -12px rgba(20,47,29,.28)",
         zIndex: 600,
-        padding: 4,
+        padding: 5,
+        transformOrigin: pos.bottom != null ? "bottom center" : "top center",
       }}
     >
-      {options.map((opt, i) => {
+      {/* Sin raya entre opciones: cinco líneas separadas por cinco rayas se
+          leen como una tabla, y lo que hay que ver es cuál está marcada. Lo
+          marcado ya lo dicen el fondo, el peso y el check. */}
+      {options.map((opt) => {
         const selected = value === opt.value;
         return (
-          <div key={opt.value}>
-            {i > 0 && <div style={{ height: 1, margin: "2px 8px", background: "#cfe0d6" }} />}
-            <button
-              type="button"
-              role="option"
-              aria-selected={selected}
-              onClick={() => onSelect(opt.value)}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 10,
-                padding: "9px 11px",
-                border: "none",
-                borderRadius: 10,
-                background: selected ? "#eaf3ec" : "transparent",
-                color: selected ? GREEN : INK,
-                fontWeight: selected ? 800 : 600,
-                fontSize: 13,
-                textAlign: "left",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <span>{opt.label}</span>
-              {selected && <Check size={15} strokeWidth={2.8} color={GREEN} style={{ flexShrink: 0 }} />}
-            </button>
-          </div>
+          <button
+            key={opt.value}
+            type="button"
+            role="option"
+            aria-selected={selected}
+            onClick={() => onSelect(opt.value)}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10,
+              minHeight: 38,
+              padding: "8px 11px",
+              border: "none",
+              borderRadius: 10,
+              background: selected ? "#eaf3ec" : "transparent",
+              color: selected ? GREEN : INK,
+              fontWeight: selected ? 800 : 600,
+              fontSize: 13,
+              textAlign: "left",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "background .15s ease",
+            }}
+          >
+            <span>{opt.label}</span>
+            {selected && <Check size={15} strokeWidth={2.8} color={GREEN} style={{ flexShrink: 0 }} />}
+          </button>
         );
       })}
     </div>,
@@ -917,8 +967,14 @@ function ChipThumb({ name, size = 44 }) {
 // congelado sí/no debajo, "+" para confirmar. Nada de nombre editable ni
 // envase/pack: eso sigue existiendo en la lista de chips (foto/voz), aquí la
 // gracia es la velocidad.
-function QuickAddPopup({ item, onChangeQty, onChangeUnit, onChangeLocation, onConfirm, onClose, saving }) {
+function QuickAddPopup({ item, onChange, onChangeQty, onChangeUnit, onChangeLocation, onConfirm, onClose, saving }) {
   if (!item) return null;
+  // Lo que viene en envase se cuenta en envases, no en gramos sueltos: nadie
+  // tiene "500 g de arroz", tiene un paquete. Los valores por defecto salen de
+  // `defaultPackFor`, que ya sabe que el arroz es un paquete de medio kilo y
+  // el atún una lata de 80 g, así que lo normal es confirmar sin tocar nada.
+  const pack = item.usePack === true;
+  const sizeUnits = pack ? packSizeUnitOptions(item.raw) : [];
   return createPortal(
     <div
       onClick={onClose}
@@ -939,7 +995,7 @@ function QuickAddPopup({ item, onChangeQty, onChangeUnit, onChangeLocation, onCo
         aria-label={`Añadir ${item.raw}`}
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 300,
+          width: 320,
           maxWidth: "calc(100vw - 32px)",
           background: "#fff",
           borderRadius: 18,
@@ -950,15 +1006,16 @@ function QuickAddPopup({ item, onChangeQty, onChangeUnit, onChangeLocation, onCo
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "96px 46px 66px 30px",
-            gridTemplateRows: "auto auto",
-            gridTemplateAreas: `"icon cant ud plus" "icon where where ."`,
+            gridTemplateColumns: "88px 46px 92px 30px",
+            gridTemplateAreas: pack
+              ? `"icon cant ud plus" "icon size size ." "icon where where ."`
+              : `"icon cant ud plus" "icon where where ."`,
             columnGap: 8,
             rowGap: 8,
           }}
         >
           <div style={{ gridArea: "icon", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3, minWidth: 0 }}>
-            <ChipThumb name={item.raw} size={94} />
+            <ChipThumb name={item.raw} size={86} />
             <span
               style={{
                 fontSize: 9.5, fontWeight: 800, color: INK, textAlign: "center", lineHeight: 1.15,
@@ -969,7 +1026,7 @@ function QuickAddPopup({ item, onChangeQty, onChangeUnit, onChangeLocation, onCo
             </span>
           </div>
           <div style={{ gridArea: "cant", minWidth: 0 }}>
-            <div style={centeredLabelStyle}>Cant.</div>
+            <div style={centeredLabelStyle}>{pack ? "Cuántos" : "Cant."}</div>
             <input
               autoFocus
               value={item.entryQty}
@@ -980,16 +1037,47 @@ function QuickAddPopup({ item, onChangeQty, onChangeUnit, onChangeLocation, onCo
             />
           </div>
           <div style={{ gridArea: "ud", minWidth: 0 }}>
-            <div style={centeredLabelStyle}>Ud.</div>
-            <StyledPicker
-              value={item.entryUnit}
-              onChange={onChangeUnit}
-              options={PANTRY_UNITS.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
-              width={66}
-              height={30}
-              ariaLabel="Unidad"
-            />
+            <div style={centeredLabelStyle}>{pack ? "Envase" : "Ud."}</div>
+            {pack ? (
+              <StyledPicker
+                value={item.packKind}
+                onChange={(v) => onChange({ packKind: v })}
+                options={PACK_KINDS}
+                width={92}
+                height={30}
+                ariaLabel="Envase"
+              />
+            ) : (
+              <StyledPicker
+                value={item.entryUnit}
+                onChange={onChangeUnit}
+                options={PANTRY_UNITS.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
+                width={92}
+                height={30}
+                ariaLabel="Unidad"
+              />
+            )}
           </div>
+          {pack && (
+            <div style={{ gridArea: "size", display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: "#7a9485", flexShrink: 0 }}>de</span>
+              <input
+                value={item.packSizeQty}
+                onChange={(e) => onChange({ packSizeQty: e.target.value })}
+                inputMode="decimal"
+                aria-label="Contenido del envase"
+                style={{ ...editInputBase, background: FIELD_BG, width: 54, height: 30, padding: "0 4px", textAlign: "center", fontSize: 12.5, fontWeight: 800 }}
+              />
+              <StyledPicker
+                value={item.packSizeUnit}
+                onChange={(v) => onChange({ packSizeUnit: v })}
+                options={sizeUnits.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
+                width={66}
+                height={30}
+                ariaLabel="Unidad del contenido"
+              />
+            </div>
+          )}
           <div style={{ gridArea: "plus" }}>
             <div style={{ ...centeredLabelStyle, visibility: "hidden" }}>·</div>
             <button
@@ -1483,19 +1571,38 @@ export function PantryInput({
       entryQty: 1,
       entryUnit: "ud",
       location: defaultLocationForName(parsed.raw ?? parsed.normalized),
+      // Los mismos valores por defecto que la lista de chips. Estaban solo
+      // allí, así que el camino rápido —el que usa todo el mundo— guardaba
+      // "1 ud de arroz" y perdía que un paquete son 500 g.
+      ...chipPackDefaults(parsed.raw ?? parsed.normalized),
     });
   };
 
   const confirmQuickAdd = async () => {
     if (!quickAdd || saving) return;
     setSaving(true);
-    const { qty, unit } = toCanonicalStockQty(quickAdd.entryQty, quickAdd.entryUnit);
+    let qty;
+    let unit;
+    let pack = null;
+    const convertido = quickAdd.usePack
+      ? stockFromPack({
+          count: quickAdd.entryQty,
+          kind: quickAdd.packKind,
+          sizeQty: quickAdd.packSizeQty,
+          sizeUnit: quickAdd.packSizeUnit,
+        })
+      : null;
+    if (convertido) {
+      ({ qty, unit, pack } = convertido);
+    } else {
+      ({ qty, unit } = toCanonicalStockQty(quickAdd.entryQty, quickAdd.entryUnit));
+    }
     const items = [{
       name: quickAdd.raw,
       normalized: quickAdd.normalized,
       qty,
       unit,
-      pack: null,
+      pack,
       source: "manual",
       location: quickAdd.location,
       frozen: quickAdd.location === "congelador",
@@ -1657,6 +1764,7 @@ export function PantryInput({
                 onQueryChange={(v) => { setPickQuery(v); if (v) setPickAisle(null); }}
                 mode={effMode}
                 onBack={showBack ? handleBack : undefined}
+                onPick={toggleIngredient}
                 backLabel={subLevel ? "Categorías" : "Volver"}
               />
             )}
@@ -1699,6 +1807,7 @@ export function PantryInput({
 
             <QuickAddPopup
               item={quickAdd}
+              onChange={(patch) => setQuickAdd((cur) => (cur ? { ...cur, ...patch } : cur))}
               onChangeQty={(v) => setQuickAdd((cur) => (cur ? { ...cur, entryQty: v } : cur))}
               onChangeUnit={(v) => setQuickAdd((cur) => (cur ? { ...cur, entryUnit: v } : cur))}
               onChangeLocation={(v) => setQuickAdd((cur) => (cur ? { ...cur, location: v } : cur))}

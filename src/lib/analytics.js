@@ -3,7 +3,17 @@ import { supabase } from "./supabase.js";
 const deviceType = () =>
   /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop";
 
-export const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? "mvp-2026";
+// El build del que salió este evento. `VITE_APP_VERSION` lo inyecta
+// vite.config.js desde `VERCEL_GIT_COMMIT_SHA`, así que en un deploy real es el
+// commit corto ("e820e17") y en local es "dev".
+//
+// Antes caía siempre al literal "mvp-2026" porque nadie inyectaba la variable:
+// todos los eventos del histórico están sellados con la misma constante. Eso
+// hace imposible lo que hay que hacer justo ahora — separar los eventos de
+// ANTES de un cambio de motor de los de DESPUÉS para saber si el cambio
+// funcionó. Una métrica que no se puede atribuir a una versión no es una
+// métrica, es una anécdota.
+export const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? "dev";
 
 export async function upsertUserProfile(user, extra = {}) {
   if (!supabase || !user) return;
@@ -144,7 +154,22 @@ export async function trackEvent(user, event, screen, metadata = {}) {
   const created_at = new Date().toISOString();
   if (user) {
     if (!supabase) return;
-    queue.push({ user_id: user.id, event, screen, metadata, created_at });
+    // `app_version` viaja TAMBIÉN en los eventos de usuario con cuenta.
+    //
+    // Antes solo lo llevaban los invitados, con el argumento de que para los
+    // demás está en `user_profiles`. No está: ese upsert guarda `device_type` y
+    // `locale`, nunca la versión. Y aunque la guardara, sería la del último
+    // login —una sola fila por usuario, sobrescrita— no la del build que generó
+    // cada evento, que es justo lo que hace falta para comparar antes/después
+    // de un cambio. El resultado era que NINGÚN evento con cuenta se podía
+    // atribuir a una versión, y son los que generan los menús.
+    queue.push({
+      user_id: user.id,
+      event,
+      screen,
+      metadata: { ...metadata, app_version: APP_VERSION },
+      created_at,
+    });
   } else {
     // No user_profiles row to join against for guests, so device and version
     // travel with each event.

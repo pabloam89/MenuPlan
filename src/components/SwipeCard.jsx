@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Clock, Info, ThumbsUp, ThumbsDown, CookingPot, MessageCircle } from "./icons.jsx";
+import { Info, ThumbsUp, ThumbsDown, CookingPot, MessageCircle } from "./icons.jsx";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { categoryColor, categoryLabel } from "../screens/CatalogBrowserSheet.jsx";
@@ -74,10 +74,12 @@ export function DishSpecPills({ difficulty = null, time = null, compact = false,
       {diffLabel && (
         <span style={{ ...badge, color: DIFFICULTY_COLOR[key] }}>{diffLabel}</span>
       )}
+      {/* Sin reloj: "25 min" ya dice que es tiempo, y la pastilla de encima
+          —"Fácil"— tampoco lleva icono. Un glifo en una de las dos y no en la
+          otra las hacía parecer dos cosas distintas cuando son la misma ficha,
+          y a 9px sobre una foto el reloj era una mancha, no un icono. */}
       {timeLabel && (
-        <span style={{ ...badge, color: "#42594c", gap: 4 }}>
-          <Clock size={compact ? 9 : 11} strokeWidth={2.6} /> {timeLabel}
-        </span>
+        <span style={{ ...badge, color: "#42594c" }}>{timeLabel}</span>
       )}
     </div>
   );

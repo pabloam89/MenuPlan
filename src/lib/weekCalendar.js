@@ -86,6 +86,30 @@ export function getWeekDatesFromStartISO(startISO, startDayIdx = 0, days = null)
   return { dates, activeDays };
 }
 
+/**
+ * El LUNES de la semana que está a `offset` semanas de hoy, en ISO local.
+ *
+ * Es la clave con la que se guarda todo lo que pertenece a una semana concreta
+ * (los días sueltos marcados a mano, el horario propio de esa semana). Guardarlo
+ * por `offset` era una bomba de relojería: el "1" que hoy significa la semana
+ * que viene, dentro de siete días significa la siguiente, así que una selección
+ * de días se mudaba sola a una semana que el usuario nunca eligió. El lunes no
+ * se mueve.
+ *
+ * `lib/reglas.js` ya documenta y aplica esta misma decisión para el ámbito de
+ * las reglas temporales (su decisión 4): "las semanas se nombran por su lunes,
+ * nunca por offset".
+ *
+ * Reutiliza `getWeekDates` en vez de repetir la aritmética del lunes, que tiene
+ * el caso raro del domingo (`dow === 0` retrocede seis días, no uno).
+ */
+export function mondayISOForOffset(offset = 0, today = new Date()) {
+  const ref = new Date(today);
+  ref.setHours(0, 0, 0, 0);
+  ref.setDate(ref.getDate() + (Number(offset) || 0) * 7);
+  return isoLocalDate(getWeekDates(ref)[DAYS[0]]);
+}
+
 /** Returns the 0-based Monday index of today (0=Lun … 6=Dom). */
 export function todayDayIdx() {
   const dow = new Date().getDay(); // 0=Sun

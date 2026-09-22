@@ -27,10 +27,20 @@ const TOPICS = [
   // Ojo: el ON/OFF del desayuno sigue viviendo en "¿Dónde coméis?" (7); aquí
   // solo se afina la variedad (10) y merienda/postre (11).
   { id: "extras",     title: "¿Queréis desayunos?",                      steps: [10, 11] },
-  { id: "despensa",   title: "¿Queréis usar lo que hay en casa?",        steps: [12] },
-  { id: "cocina",     title: "¿Cuánto os gusta cocinar?",                steps: [13] },
-  { id: "electros",   title: "¿Qué tenéis en la cocina?",                steps: [14] },
-  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [15] },
+  // Dos pasos: lo que hay en casa (12) y cuánto pesa al armar el menú (13).
+  // Van juntos bajo el mismo tema porque la segunda no se entiende sin haber
+  // visto la primera.
+  { id: "despensa",   title: "¿Queréis usar lo que hay en casa?",        steps: [12, 13] },
+  { id: "cocina",     title: "¿Cuánto os gusta cocinar?",                steps: [14] },
+  { id: "electros",   title: "¿Qué tenéis en la cocina?",                steps: [15] },
+  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [16] },
+  // Batch cooking es tema propio y no un trozo de "tiempos", porque es otra
+  // pregunta: aquella es cuánto rato tienes un martes, y ésta qué dejas hecho
+  // el día que te pones. Las dos se contestan a la vez —"con prisa entre
+  // semana Y cocino el domingo"— y por eso ninguna puede ocupar el sitio de la
+  // otra. Quien no cocina en tanda no marca el tema; y si lo marca y no pide
+  // nada, tampoco pasa nada: sin tandas pedidas no hay batch cooking.
+  { id: "batch",      title: "¿Cocináis en tandas?",                     steps: [17] },
 ];
 
 /**

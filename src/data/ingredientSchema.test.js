@@ -50,12 +50,42 @@ describe("IngredientSchema", () => {
     for (const bad of ["lactosa", "marisco", "huevo", "frutos_secos"]) {
       expect(IngredientSchema.safeParse({ ...VALID, allergens: [bad] }).success).toBe(false);
     }
-    expect(IngredientSchema.safeParse({ ...VALID, allergens: ["leche"] }).success).toBe(true);
+    // `isVegan: false` no es decoración: VALID es vegano, y desde que el
+    // schema cruza alérgenos con dieta, "lleva leche y es vegano" se rechaza
+    // por el motivo correcto. Aquí se mide el vocabulario, no la dieta.
+    expect(
+      IngredientSchema.safeParse({ ...VALID, allergens: ["leche"], isVegan: false }).success,
+    ).toBe(true);
   });
 
   it("rechaza vegano sin vegetariano", () => {
     const r = IngredientSchema.safeParse({ ...VALID, isVegetarian: false, isVegan: true });
     expect(r.success).toBe(false);
+  });
+
+  // Los tres casos reales que entraron al catálogo porque nadie cruzaba estos
+  // campos entre sí. Los cuatro peores —pez espada, rabo de toro, navajas y
+  // salsa César— estaban marcados aptos para vegetarianos.
+  it("rechaza un alérgeno animal en algo marcado vegetariano", () => {
+    for (const a of ["pescado", "crustaceos", "moluscos"]) {
+      const r = IngredientSchema.safeParse({ ...VALID, allergens: [a] });
+      expect(r.success).toBe(false);
+      expect(JSON.stringify(r.error.issues)).toContain("isVegetarian");
+    }
+  });
+
+  it("rechaza algo del pasillo de la carne o del pescado marcado vegetariano", () => {
+    for (const aisle of ["Carne", "Pescado"]) {
+      expect(IngredientSchema.safeParse({ ...VALID, aisle }).success).toBe(false);
+    }
+  });
+
+  it("rechaza leche o huevo en algo marcado vegano", () => {
+    for (const a of ["leche", "huevos"]) {
+      const r = IngredientSchema.safeParse({ ...VALID, allergens: [a] });
+      expect(r.success).toBe(false);
+      expect(JSON.stringify(r.error.issues)).toContain("isVegan");
+    }
   });
 
   it("rechaza el mismo alérgeno en los dos niveles a la vez", () => {

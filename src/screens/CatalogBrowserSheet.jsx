@@ -20,6 +20,7 @@ import {
   IceCream,
   Bean,
   Utensils,
+  UtensilsCrossed,
   Tag,
   ChevronRight,
   ChevronLeft,
@@ -121,11 +122,31 @@ const CATEGORY_META = {
 // ninguna receta — se está rellenando aparte, por lotes, en los JSON del
 // catálogo); verano/invierno filtran por `season` (ese campo sí ya tenía
 // datos reales en el catálogo, solo faltaba conectar el chip).
+/**
+ * Qué entra en "Cenas rápidas": lo que se MONTA (tostas, sándwiches,
+ * wraps… `isMontaje`) o lo que se hace en 15 minutos o menos.
+ *
+ * Solo el montaje se quedaba corto —una tortilla francesa no se "monta" y es
+ * la cena rápida por excelencia— y solo el tiempo colaba cualquier cosa. Las
+ * dos juntas dan 94 platos; por separado, 66 y 88 con mucho que no pega.
+ *
+ * Y tiene que ser CENA, con dos filtros que parecen obvios y no lo eran:
+ *   · el rol del plato, o entraban las tostadas de desayuno y las ensaladas
+ *     de primero, que son montaje y de 10 minutos pero no son la cena;
+ *   · fuera los de bebé, que tienen sus dos carpetas propias y llenaban esta
+ *     de papillas de quince minutos.
+ */
+const CENA_RAPIDA_MINUTOS = 15;
+function esCenaRapida(recipe) {
+  if (!recipe || recipe.category === "bebes") return false;
+  const rol = recipe.mealRole ?? [];
+  if (!rol.some((r) => r === "cena" || r === "plato_unico")) return false;
+  return isMontaje(recipe) || (recipe.time ?? 999) <= CENA_RAPIDA_MINUTOS;
+}
+
 const FACET_META = {
   ninos:    { label: "Para peques", img: "/categories/faceta_ninos.webp", wired: true, color: "#d56b9a", Icon: Baby },
-  // "rapido" filtra por `montaje` (isMontaje) — se monta, no se cocina de
-  // verdad (tostas, sándwiches, gazpachos...) — no por tiempo/dificultad
-  // como antes, que colaba cualquier plato rápido aunque requiriera cocinar.
+  // Ver `esCenaRapida`: montaje O 15 minutos o menos.
   rapido:   { label: "Cenas rápidas", img: "/categories/faceta_rapido.webp", wired: true, color: "#cf7833", Icon: Clock },
   gourmet:  { label: "Platos gourmet", img: "/categories/faceta_gourmet.webp", wired: true, color: "#a97e21", Icon: Sparkles },
   verano:   { label: "De verano", img: "/categories/faceta_verano.webp", wired: true, color: "#e0a83a", Icon: Sun },
@@ -370,6 +391,12 @@ export function CatalogBrowserSheet({
   discardedIds = null,
   onDiscardRecipe = null,
   onRecoverRecipe = null,
+  // Sugerencias para el hueco desde el que se abrió el recetario: recetas de
+  // catálogo ya filtradas y ordenadas para ESE hueco (ver `candidatos` en
+  // pickCatalogReplacement). Vacío = no se pinta la tira y la hoja queda como
+  // siempre.
+  sugerencias = [],
+  onPickSugerencia,
   // Cocinada: "«lo que has escrito» es mía". Es la salida cuando lo que has
   // hecho no está en el catálogo, y sin ella no podrías publicar la cena. Solo
   // la pinta quien la pasa (el composer del feed), y siempre DEBAJO de las
@@ -571,7 +598,12 @@ export function CatalogBrowserSheet({
     const p = new Set();
     const source = gatePick ? platoCatalog : fullCatalog;
     for (const r of source) {
-      if (r.category && !isGuarnicionRecipe(r)) c.add(catKeyOf(r));
+      // La categoría `cenas_rapidas` está deprecada (ver isMontaje en
+      // recipeSchema.js): sobrevive solo como respaldo de recetas de usuario
+      // ya guardadas. Como teja enseñaba UNA receta al lado de la faceta del
+      // mismo nombre, que tiene sesenta y seis — dos carpetas que se llaman
+      // igual y no contienen lo mismo. La faceta es la buena.
+      if (r.category && r.category !== "cenas_rapidas" && !isGuarnicionRecipe(r)) c.add(catKeyOf(r));
       // Las dos tejas de bebé se ofrecen aunque una esté vacía: es la única
       // forma de que se vea que "sólidos" existe y todavía no tiene recetas.
       if (r.category === "bebes") { c.add("bebes_cremas"); c.add("bebes_solidos"); }
@@ -614,7 +646,7 @@ export function CatalogBrowserSheet({
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
       if (gourmetOnly && !r.apetecible) return false;
-      if (rapidoOnly && !isMontaje(r)) return false;
+      if (rapidoOnly && !esCenaRapida(r)) return false;
       if (seasonFilter && r.season !== seasonFilter) return false;
       if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
       if (cocina && r.cocina !== cocina) return false;
@@ -662,7 +694,7 @@ export function CatalogBrowserSheet({
         if (difficulties.size && !difficulties.has(r.difficulty)) return false;
         if (kidOnly && !r.kidFriendly) return false;
         if (gourmetOnly && !r.apetecible) return false;
-        if (rapidoOnly && !isMontaje(r)) return false;
+        if (rapidoOnly && !esCenaRapida(r)) return false;
         if (seasonFilter && r.season !== seasonFilter) return false;
         if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
         return true;
@@ -696,7 +728,7 @@ export function CatalogBrowserSheet({
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
       if (gourmetOnly && !r.apetecible) return false;
-      if (rapidoOnly && !isMontaje(r)) return false;
+      if (rapidoOnly && !esCenaRapida(r)) return false;
       if (seasonFilter && r.season !== seasonFilter) return false;
       if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
       return true;
@@ -862,7 +894,7 @@ export function CatalogBrowserSheet({
     const counts = { ninos: 0, rapido: 0, gourmet: 0, verano: 0, invierno: 0 };
     for (const r of platoCatalog) {
       if (r.kidFriendly) counts.ninos++;
-      if (isMontaje(r)) counts.rapido++;
+      if (esCenaRapida(r)) counts.rapido++;
       if (r.apetecible) counts.gourmet++;
       if (r.season === "verano") counts.verano++;
       if (r.season === "invierno") counts.invierno++;
@@ -977,7 +1009,10 @@ export function CatalogBrowserSheet({
           style={{
             flex: 1, display: "flex", alignItems: "center", gap: 8,
             height: 42, padding: "0 12px", borderRadius: 12,
-            background: "#f4f7f5", border: "1.5px solid #e8efe9",
+            // Blanco, no el tinte verde: la hoja ya es verde clara, y un campo
+            // del mismo tono no se lee como "aquí se escribe".
+            background: "#fff", border: "1.5px solid #dbe7df",
+            boxShadow: "0 1px 3px rgba(20,47,29,.05)",
           }}
         >
           <Search size={16} color="#9ab0a1" />
@@ -1081,8 +1116,14 @@ export function CatalogBrowserSheet({
     .filter((id) => (cocinaCounts[id] ?? 0) > 0)
     .sort((a, b) => (cocinaCounts[b] ?? 0) - (cocinaCounts[a] ?? 0));
 
+  // "Cenas rápidas" entra como TEJA y no solo como faceta escondida en
+  // Filtros. Hasta ahora la única carpeta con ese nombre era la categoría
+  // deprecada, que tenía una receta dentro, mientras el filtro de verdad —con
+  // noventa y pico— vivía a dos toques de profundidad. Va la primera de las
+  // categorías porque es la que más se busca al montar una semana.
   const gridTiles = [
     { kind: "mine", id: "__mine__" },
+    { kind: "facet", id: "rapido" },
     ...allCats.map((catId) => ({ kind: "category", id: catId })),
     ...cocinaTiles.map((id) => ({ kind: "cocina", id })),
   ];
@@ -1263,26 +1304,38 @@ export function CatalogBrowserSheet({
     <>
       {folderTiles}
       {inMineRoot ? null : gatePick
-        ? visible.map((entry, i) => (
-            <GatePickCard
-              key={`${entry.kind}-${entry.item.id}`}
-              kind={entry.kind}
-              item={entry.item}
-              selected={
-                entry.kind === "plato"
-                  ? selectedPlatoId === entry.item.id
-                  : selectedGarnishId === entry.item.id
-              }
-              onToggle={() => {
-                if (entry.kind === "plato") {
-                  onPickPlato?.(selectedPlatoId === entry.item.id ? null : entry.item.id);
-                } else {
-                  onPickGarnish?.(selectedGarnishId === entry.item.id ? null : entry.item.id);
-                }
-              }}
-              animDelay={i < 12 ? i * 18 : 0}
-            />
-          ))
+        ? (
+            // Rejilla de tres, y no la lista de filas de antes: dentro de una
+            // carpeta lo que distingue un plato de otro es la FOTO, y en fila
+            // la foto era un sello de 52px al lado del texto. Con tres por
+            // línea entran nueve platos de un vistazo en vez de cuatro.
+            //
+            // La rejilla es suya y no del contenedor para no arrastrar a las
+            // carpetas, que tienen su propia forma justo encima.
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+              {visible.map((entry, i) => (
+                <GatePickCard
+                  key={`${entry.kind}-${entry.item.id}`}
+                  kind={entry.kind}
+                  item={entry.item}
+                  grid
+                  selected={
+                    entry.kind === "plato"
+                      ? selectedPlatoId === entry.item.id
+                      : selectedGarnishId === entry.item.id
+                  }
+                  onToggle={() => {
+                    if (entry.kind === "plato") {
+                      onPickPlato?.(selectedPlatoId === entry.item.id ? null : entry.item.id);
+                    } else {
+                      onPickGarnish?.(selectedGarnishId === entry.item.id ? null : entry.item.id);
+                    }
+                  }}
+                  animDelay={i < 12 ? i * 18 : 0}
+                />
+              ))}
+            </div>
+          )
         : reference && browseCategories
           ? visible.map((r, i) => (
               <RecipeGridCard
@@ -1567,7 +1620,7 @@ export function CatalogBrowserSheet({
               </h3>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "#7a9485" }}>
                 {gatePick
-                  ? "Mis recetas, favoritas o catálogo"
+                  ? "Busca, entra en una carpeta, o mira las sugerencias"
                   : "Elige platos que ya sabes cocinar"}
               </p>
             </div>
@@ -1599,9 +1652,97 @@ export function CatalogBrowserSheet({
         >
           {showCategoryGrid ? categoryGrid : cards}
         </div>
+
+        <SugerenciasDelHueco sugerencias={sugerencias} onPick={onPickSugerencia} />
       </div>
 
       {overlays}
+    </div>
+  );
+}
+
+/**
+ * La tira de sugerencias, pegada al fondo del recetario.
+ *
+ * ── Por qué come alto de la hoja ──────────────────────────────────────────
+ * Cuesta 108px de lista, y los vale: el recetario abre por carpetas, así que
+ * llenar un hueco son tres toques y una decisión entre 471 platos. Aquí están
+ * los que caben en ESE hueco —rol, tiempo, alergias, lo que ya hay en la
+ * semana, el cole—, ya ordenados, a un toque. Quien quiera mirarlo todo sigue
+ * teniendo el catálogo entero justo encima, sin nada tapado: la tira se queda
+ * fuera del scroll, no encima de él.
+ */
+function SugerenciasDelHueco({ sugerencias, onPick }) {
+  if (!sugerencias || sugerencias.length === 0) return null;
+  return (
+    <div
+      style={{
+        flexShrink: 0,
+        borderTop: "1px solid #e3ebe6",
+        background: "#fff",
+        padding: "10px 0 12px",
+      }}
+    >
+      <p style={{
+        margin: "0 0 8px", padding: "0 18px",
+        fontSize: 10, fontWeight: 800, letterSpacing: ".9px",
+        textTransform: "uppercase", color: "#7a9485",
+      }}>
+        Para este hueco
+      </p>
+      <div
+        className="deck-scroller"
+        style={{
+          display: "flex", gap: 10, overflowX: "auto",
+          padding: "0 18px 2px", WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {sugerencias.map((r) => {
+          const photo = dishImageForRecipe(r);
+          return (
+            <button
+              key={r.id}
+              type="button"
+              className="mp-press"
+              onClick={() => onPick?.(r.id)}
+              style={{
+                flex: "0 0 104px", width: 104, padding: 0, border: "none",
+                background: "transparent", cursor: "pointer", fontFamily: "inherit",
+                textAlign: "left",
+              }}
+            >
+              <div
+                style={{
+                  position: "relative", width: "100%", height: 66,
+                  borderRadius: 12, overflow: "hidden", background: "#eef4f0",
+                  border: "1px solid #e3ebe6",
+                }}
+              >
+                {photo ? (
+                  <img
+                    src={photo}
+                    alt=""
+                    loading="lazy"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <UtensilsCrossed size={18} color="#9ab0a1" />
+                  </div>
+                )}
+              </div>
+              <p style={{
+                margin: "5px 0 0", fontSize: 10.5, fontWeight: 800, color: "#142f1d",
+                lineHeight: 1.25,
+                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}>
+                {r.name}
+              </p>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1977,10 +2118,77 @@ function SelectedChip({ kind, label, onClear }) {
   );
 }
 
-function GatePickCard({ kind, item, selected, onToggle, animDelay = 0 }) {
+function GatePickCard({ kind, item, selected, onToggle, animDelay = 0, grid = false }) {
   const isPlato = kind === "plato";
   const color = isPlato ? categoryColor(item.category) : "#3f9656";
   const photo = isPlato ? (item.photo ?? dishImageUrl(item.id)) : null;
+
+  // ── En rejilla: la foto manda ────────────────────────────────────────────
+  // Misma tarjeta y mismo estado de selección, pero en vertical: foto
+  // cuadrada arriba y nombre debajo. En una columna de 115px no cabe la fila
+  // con miniatura, categoría, tiempo y botón — y tampoco hace falta: dentro
+  // de una carpeta ya sabes de qué categoría son todos.
+  if (grid) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        className="catalog-card-enter"
+        aria-pressed={selected}
+        style={{
+          display: "flex", flexDirection: "column", gap: 6, padding: 0,
+          textAlign: "left", cursor: "pointer", fontFamily: "inherit",
+          background: "transparent", border: "none", minWidth: 0,
+          animationDelay: `${animDelay}ms`,
+        }}
+      >
+        <span
+          style={{
+            position: "relative", width: "100%", aspectRatio: "1 / 1",
+            borderRadius: 14, overflow: "hidden", display: "block",
+            border: `2px solid ${selected ? GREEN : "#eef3f0"}`,
+            background: `${color}14`, boxSizing: "border-box",
+            transition: "border-color .15s ease",
+          }}
+        >
+          {photo ? (
+            <img
+              src={deckImg(photo, 260)}
+              alt=""
+              loading="lazy"
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+          ) : (
+            <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {isPlato ? <CategoryIcon category={item.category} size={26} /> : <Salad size={26} color={color} />}
+            </span>
+          )}
+          {/* La marca de elegido va SOBRE la foto: en una rejilla el borde
+              solo no se ve hasta que comparas con la de al lado. */}
+          <span
+            style={{
+              position: "absolute", right: 5, bottom: 5,
+              width: 22, height: 22, borderRadius: 999,
+              background: selected ? GREEN : "rgba(255,255,255,.92)",
+              color: selected ? "#fff" : GREEN,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 2px 6px rgba(9,18,12,.25)",
+            }}
+          >
+            {selected ? <Check size={13} strokeWidth={3} /> : <Plus size={13} strokeWidth={3} />}
+          </span>
+        </span>
+        <span
+          style={{
+            fontSize: 11, fontWeight: 800, color: "#142f1d", lineHeight: 1.25,
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+          }}
+        >
+          {item.name}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button

@@ -9,7 +9,9 @@ Specs producidas por ingeniería inversa del código real (`src/`, `api/`, esque
 | [shopping-list.md](shopping-list.md) | Lista de la compra (vista derivada, sin tabla propia) |
 | [receipt-ocr.md](receipt-ocr.md) | OCR de tickets y fotos de despensa vía visión IA |
 | [recipe-catalog.md](recipe-catalog.md) | Catálogo de recetas, pasos enriquecidos, recetas de usuario |
+| [batch-cooking.md](batch-cooking.md) | Bases: cocinar una vez para varios platos (`type: "base"`, `mainBase`, `baseMode`) |
 | [pagos.md](pagos.md) | No existe — documentado como ausencia, con evidencia |
+| [modelo-datos.md](modelo-datos.md) | Auditoría de normalización del modelo y plan: campos por plano, operadores y calculadoras, magnitudes (tiempo/gramos/macros/raciones/precio), el mapa de tablas por ámbito (global/hogar), sesgos y batch cooking; Fase A: esquema de `alimentos` (alimento/producto/ingrediente, siete dimensiones, procedencia BEDCA) y plan de curación de `familia`, `densidad` y `rendimiento` |
 
 ## Mapa de dependencias entre dominios
 

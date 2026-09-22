@@ -1,6 +1,7 @@
 import { migrateFixedDishes } from "./fixedDishes.js";
 import { formatCookTimeSummary } from "./cookTime.js";
 import { DAYS, getMeals, slotKey } from "./planner.js";
+import { FAMILIA_LABELS } from "./notepadFields.js";
 
 const GOAL_LABELS = {
   sano: "Sano",
@@ -10,11 +11,6 @@ const GOAL_LABELS = {
   variado: "Variado",
 };
 
-const FREQ_LABELS = {
-  verdura: "Verdura",
-  pescado: "Pescado",
-  legumbres: "Legumbres",
-};
 
 const COOK_LABELS = {
   basic: "Básico",
@@ -104,7 +100,7 @@ export function buildProfileSummary(data) {
 
   const freqs = data.freqs ?? {};
   const freqLines = Object.entries(freqs).map(
-    ([k, v]) => `${FREQ_LABELS[k] ?? k}: ≥${v}/sem`
+    ([k, v]) => `${FAMILIA_LABELS[k] ?? k}: ≥${v}/sem`
   );
   if (freqLines.length) {
     sections.push({ title: "Frecuencias", lines: freqLines });
@@ -145,7 +141,7 @@ export function buildProfilePreviewLine(data) {
   const freqBits = Object.entries(freqs)
     .filter(([, v]) => v > 0)
     .slice(0, 2)
-    .map(([k, v]) => `${FREQ_LABELS[k] ?? k} ≥${v}`);
+    .map(([k, v]) => `${FAMILIA_LABELS[k] ?? k} ≥${v}`);
   if (freqBits.length) bits.push(freqBits.join(" · "));
 
   return bits.join(" · ") || "Perfil sin configurar";

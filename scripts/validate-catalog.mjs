@@ -60,7 +60,8 @@ if (existsSync(INGREDIENTS_PATH)) {
 
   // Cobertura: cada ingrediente que usa una receta tiene que resolver contra el
   // catálogo. Si no, es que se añadió una receta sin regenerarlo
-  // (npm run build:ingredients).
+  // (el catálogo de ingredientes es fuente; se edita a mano — ver la
+  // cabecera de scripts/build-ingredient-catalog.mjs).
   const labels = new Set();
   for (const ing of ingredients) {
     for (const label of [ing.name, ...ing.aliases]) labels.add(normalizeName(label));
@@ -72,7 +73,40 @@ if (existsSync(INGREDIENTS_PATH)) {
     }
   }
   for (const name of sinResolver) {
-    errors.push(`Ingrediente "${name}" no está en ingredients.json — regenera con npm run build:ingredients`);
+    errors.push(`Ingrediente "${name}" no está en ingredients.json — añádelo a mano (el catálogo es fuente, no se regenera)`);
+  }
+
+  // El enlace por id (ingredientId, ver IngredientSchema). En el CATÁLOGO es
+  // obligatorio en toda línea y tiene que apuntar a un id real — en el esquema
+  // es opcional solo para que una receta de usuario con un ingrediente fuera
+  // del catálogo siga siendo válida. Y tiene que coincidir con lo que resuelve
+  // el nombre por etiqueta: si `name` y `ingredientId` dicen ingredientes
+  // distintos, uno de los dos miente y no hay forma de saber cuál desde la
+  // lista de la compra. Mejor aquí. Se rellena con scripts/add-ingredient-ids.mjs.
+  const idByLabel = new Map();
+  for (const ing of ingredients) {
+    for (const label of [ing.name, ...ing.aliases]) idByLabel.set(normalizeName(label), ing.id);
+  }
+  const knownIds = new Set(ingredients.map((i) => i.id));
+  let sinId = 0;
+  for (const r of recipes) {
+    for (const line of r.ingredients ?? []) {
+      if (!line.ingredientId) {
+        sinId++;
+        continue;
+      }
+      if (!knownIds.has(line.ingredientId)) {
+        errors.push(`[${r.id}] "${line.name}" apunta a ingredientId "${line.ingredientId}", que no existe en ingredients.json`);
+        continue;
+      }
+      const byLabel = idByLabel.get(normalizeName(line.name));
+      if (byLabel && byLabel !== line.ingredientId) {
+        errors.push(`[${r.id}] "${line.name}" lleva ingredientId "${line.ingredientId}" pero su nombre resuelve a "${byLabel}"`);
+      }
+    }
+  }
+  if (sinId > 0) {
+    errors.push(`${sinId} líneas de ingrediente sin ingredientId — ejecuta: npx vite-node scripts/add-ingredient-ids.mjs`);
   }
 
   // Sustituciones (Fase 3). Una que apunte a un ingrediente inexistente no da
@@ -121,6 +155,58 @@ if (existsSync(IMAGES_PATH)) {
   const sinFoto = recipes.filter((r) => r.estrella && !conFoto.has(r.id));
   for (const r of sinFoto) {
     errors.push(`[${r.id}] "${r.name}": es estrella pero no tiene foto en dishImages.json`);
+  }
+}
+
+// ── `stepsRich[i].base` solo puede nombrar una base del propio plato ────────
+// El campo dice "este paso desaparece si esa base viene hecha del domingo", y
+// de él salen los minutos que se le prometen al usuario un martes. Una clave
+// que el plato no declara suya (`basesAparte`, o su `mainBase` con
+// `baseMode: "aparte"`) es una promesa que la sesión de batch cooking nunca va
+// a cumplir: nadie va a cocinar esa tanda, porque nada la pide.
+//
+// Se vigila aquí y no en el schema porque es una regla entre DOS campos de la
+// receta, y zod valida cada uno por su cuenta.
+for (const r of recipes) {
+  const propias = new Set([
+    ...(r.mainBase && r.baseMode === "aparte" ? [r.mainBase] : []),
+    ...(r.basesAparte ?? []),
+  ]);
+  (r.stepsRich ?? []).forEach((paso, i) => {
+    if (paso?.base && !propias.has(paso.base)) {
+      errors.push(
+        `[${r.id}] "${r.name}": el paso ${i} dice base "${paso.base}", que el plato no declara `
+        + `suya (tiene: ${[...propias].join(", ") || "ninguna"})`,
+      );
+    }
+  });
+}
+
+// ── Toda base tiene que decir cómo se reactiva ─────────────────────────
+// Sin `reactivacion`, `montajeTrasBases` cobra CERO por sacar el táper de la
+// nevera y el martes sale más barato de lo que va a ser. Una base nueva sin
+// estos pasos no rompe nada: solo infla el ahorro en silencio, que es
+// exactamente el fallo que este campo vino a corregir.
+for (const r of recipes.filter((x) => x.type === "base")) {
+  if (!r.reactivacion?.length) {
+    errors.push(`[${r.id}] "${r.name}": es una base y no dice cómo se reactiva (campo \`reactivacion\`)`);
+  }
+}
+
+// ── Dos recetas no pueden llamarse igual ──────────────────────────────
+// El id lo vigila el bucle de arriba; el NOMBRE no lo vigilaba nadie, y es el
+// que ve el usuario. Pasó al crear la base de tomate: quedó una "Salsa de
+// tomate casera" en bases.json y otra en salsas.json, y en la lista de la
+// compra o en un menú no habría forma de saber cuál es cuál.
+const porNombre = new Map();
+for (const r of recipes) {
+  const clave = String(r.name ?? "").trim().toLowerCase();
+  if (!clave) continue;
+  (porNombre.get(clave) ?? porNombre.set(clave, []).get(clave)).push(`${r.id} (${r.type ?? "?"})`);
+}
+for (const [clave, ids] of porNombre) {
+  if (ids.length > 1) {
+    errors.push(`Dos recetas se llaman "${clave}": ${ids.join(", ")}. Un nombre es lo que ve el usuario.`);
   }
 }
 

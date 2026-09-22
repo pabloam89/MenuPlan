@@ -37,6 +37,80 @@ export const BEDCA_COMPONENT_IDS = {
   sugar: 446,
   saturatedFat: 299,
   sodium: 323,
+  // ── Los micronutrientes ──────────────────────────────────────────────────
+  // Unidades COMPROBADAS una a una contra `v_unit` de la propia respuesta, y
+  // coinciden con las declaradas en src/data/nutrientes.js. No se convierte
+  // nada: el sodio de este catálogo estuvo en gramos en 30 filas y la única
+  // forma de que no vuelva es que no haya ninguna conversión que revisar.
+  calcium: 317,          // mg
+  iron: 319,             // mg — «iron, total»
+  magnesium: 322,        // mg
+  phosphorus: 326,       // mg
+  potassium: 321,        // mg
+  zinc: 464,             // mg
+  copper: 453,           // mg
+  manganese: 457,        // mg
+  selenium: 462,         // µg — «selenium, total»
+  iodine: 456,           // µg — BEDCA lo llama «iodide»
+  retinol: 88,           // µg — «retinol (preformed vitamin A)»
+  // El 69 y NO el 70. El 70 es «beta-carotene EQUIVALENTS», que suma el
+  // alfa-caroteno y la beta-criptoxantina convertidos, y eso no es lo que
+  // publican CIQUAL ni USDA bajo ese nombre. Mezclarlos daría un caroteno
+  // inflado en las filas españolas y normal en las otras, que es la forma más
+  // silenciosa de romper una columna.
+  betaCarotene: 69,      // µg
+  vitaminD: 102,         // µg
+  vitaminE: 103,         // mg — alfa-tocoferol equivalente
+  vitaminC: 486,         // mg
+  thiamin: 483,          // mg
+  riboflavin: 482,       // mg
+  // El 474 y NO el 475, por la misma razón que el caroteno: «niacin
+  // equivalents» incluye la niacina que el cuerpo fabrica a partir del
+  // triptófano, y la «preformed» es la que está en el alimento. En la patata
+  // solo aparece el 475, así que mirando un único alimento se habría cogido la
+  // equivocada — salió al unir los componentes de siete.
+  niacin: 474,           // mg — «niacin, preformed»
+  pantothenicAcid: 478,  // mg
+  vitaminB6: 485,        // mg — «vitamin B-6, total»
+  // El 472 y no el 487: el 487 es «folic acid», la forma sintética de los
+  // alimentos fortificados, y el 472 es el folato total del alimento.
+  folate: 472,           // µg
+  vitaminB12: 484,       // µg
+  cholesterol: 433,      // mg
+  // La vitamina K NO está: no aparece en ninguno de los siete alimentos
+  // sondeados y BEDCA no la publica. Se queda como hueco declarado, cubierto
+  // solo por CIQUAL y USDA.
+};
+
+/** c_id de BEDCA → el campo de src/data/nutrientes.js que rellena. */
+export const BEDCA_CAMPOS = {
+  [BEDCA_COMPONENT_IDS.fiber]: "fiber100g",
+  [BEDCA_COMPONENT_IDS.sugar]: "sugar100g",
+  [BEDCA_COMPONENT_IDS.saturatedFat]: "saturatedFat100g",
+  [BEDCA_COMPONENT_IDS.sodium]: "sodium100g",
+  [BEDCA_COMPONENT_IDS.calcium]: "calcium100g",
+  [BEDCA_COMPONENT_IDS.iron]: "iron100g",
+  [BEDCA_COMPONENT_IDS.magnesium]: "magnesium100g",
+  [BEDCA_COMPONENT_IDS.phosphorus]: "phosphorus100g",
+  [BEDCA_COMPONENT_IDS.potassium]: "potassium100g",
+  [BEDCA_COMPONENT_IDS.zinc]: "zinc100g",
+  [BEDCA_COMPONENT_IDS.copper]: "copper100g",
+  [BEDCA_COMPONENT_IDS.manganese]: "manganese100g",
+  [BEDCA_COMPONENT_IDS.selenium]: "selenium100g",
+  [BEDCA_COMPONENT_IDS.iodine]: "iodine100g",
+  [BEDCA_COMPONENT_IDS.retinol]: "retinol100g",
+  [BEDCA_COMPONENT_IDS.betaCarotene]: "betaCarotene100g",
+  [BEDCA_COMPONENT_IDS.vitaminD]: "vitaminD100g",
+  [BEDCA_COMPONENT_IDS.vitaminE]: "vitaminE100g",
+  [BEDCA_COMPONENT_IDS.vitaminC]: "vitaminC100g",
+  [BEDCA_COMPONENT_IDS.thiamin]: "thiamin100g",
+  [BEDCA_COMPONENT_IDS.riboflavin]: "riboflavin100g",
+  [BEDCA_COMPONENT_IDS.niacin]: "niacin100g",
+  [BEDCA_COMPONENT_IDS.pantothenicAcid]: "pantothenicAcid100g",
+  [BEDCA_COMPONENT_IDS.vitaminB6]: "vitaminB6100g",
+  [BEDCA_COMPONENT_IDS.folate]: "folate100g",
+  [BEDCA_COMPONENT_IDS.vitaminB12]: "vitaminB12100g",
+  [BEDCA_COMPONENT_IDS.cholesterol]: "cholesterol100g",
 };
 
 const KJ_PER_KCAL = 4.184;
@@ -141,14 +215,17 @@ export async function getFoodNutrition(foodId) {
   // una nutrición a medias que parezca completa.
   if (energyKJ == null || protein == null || fat == null || carbs == null) return null;
 
-  return {
+  const salida = {
     kcal100g: Math.round((energyKJ / KJ_PER_KCAL) * 10) / 10,
     protein100g: protein,
     carbs100g: carbs,
     fat100g: fat,
-    fiber100g: values.get(BEDCA_COMPONENT_IDS.fiber) ?? null,
-    sugar100g: values.get(BEDCA_COMPONENT_IDS.sugar) ?? null,
-    saturatedFat100g: values.get(BEDCA_COMPONENT_IDS.saturatedFat) ?? null,
-    sodium100g: values.get(BEDCA_COMPONENT_IDS.sodium) ?? null,
   };
+  // Los 28 restantes salen del mapa, no de 28 líneas escritas a mano. Un campo
+  // nuevo se añade en BEDCA_CAMPOS y aquí no hay nada que tocar.
+  for (const [cId, campo] of Object.entries(BEDCA_CAMPOS)) {
+    salida[campo] = values.get(Number(cId)) ?? null;
+  }
+  return salida;
 }
+

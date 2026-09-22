@@ -4,7 +4,8 @@
     "name": "Puré de calabacín con pollo y cuscús",
     "category": "bebes",
     "mainProtein": "pollo",
-    "mainBase": "cuscús",
+    "mainBase": "cuscus",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -26,26 +27,31 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Cuscús",
+        "ingredientId": "cuscus",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       },
       {
         "name": "Caldo casero sin sal",
+        "ingredientId": "caldo-de-verduras",
         "amount": 200,
         "unit": "ml"
       }
@@ -100,17 +106,20 @@
       {
         "text": "Apartar 60 ml del caldo de cocción caliente y reservar en un bol pequeño.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "cuscus"
       },
       {
         "text": "Añadir {{Cuscús}} al bol con el caldo de cocción reservado y tapar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "base": "cuscus"
       },
       {
         "text": "Esperar hasta que el cuscús absorba todo el caldo y esté hidratado.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "cuscus"
       },
       {
         "text": "Añadir el calabacín cocido, la pechuga de pollo cocida y el cuscús hidratado al vaso de la batidora.",
@@ -199,7 +208,8 @@
     "name": "Puré de zanahoria con merluza y patata",
     "category": "bebes",
     "mainProtein": "pescado_blanco",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -221,21 +231,25 @@
     "ingredients": [
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Merluza",
+        "ingredientId": "merluza",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -354,6 +368,7 @@
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "boniato",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -373,21 +388,25 @@
     "ingredients": [
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -517,7 +536,8 @@
     "name": "Puré de judías verdes con ternera y patata",
     "category": "bebes",
     "mainProtein": "ternera",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -536,21 +556,25 @@
     "ingredients": [
       {
         "name": "Judías verdes",
+        "ingredientId": "judia-verde",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Ternera magra",
+        "ingredientId": "ternera-magra",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -669,6 +693,7 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -687,21 +712,25 @@
     "ingredients": [
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -814,6 +843,7 @@
     "category": "bebes",
     "mainProtein": "pescado_blanco",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -835,21 +865,25 @@
     "ingredients": [
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Merluza",
+        "ingredientId": "merluza",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -979,6 +1013,7 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -997,21 +1032,25 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -1138,7 +1177,8 @@
     "name": "Puré de lentejas rojas con zanahoria y calabacín",
     "category": "bebes",
     "mainProtein": "legumbre",
-    "mainBase": "lentejas",
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -1157,21 +1197,25 @@
     "ingredients": [
       {
         "name": "Lentejas rojas",
+        "ingredientId": "lentejas-rojas",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -1295,6 +1339,7 @@
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "boniato",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1314,21 +1359,25 @@
     "ingredients": [
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -1464,6 +1513,7 @@
     "category": "bebes",
     "mainProtein": "pescado_azul",
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1485,21 +1535,25 @@
     "ingredients": [
       {
         "name": "Puerro",
+        "ingredientId": "puerro",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salmón fresco",
+        "ingredientId": "salmon-fresco",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -1648,7 +1702,8 @@
     "name": "Puré de garbanzos con calabaza",
     "category": "bebes",
     "mainProtein": "legumbre",
-    "mainBase": "garbanzos",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -1667,21 +1722,25 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -1818,6 +1877,7 @@
     "category": "bebes",
     "mainProtein": "huevo",
     "mainBase": "boniato",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1839,21 +1899,25 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Tomate natural",
+        "ingredientId": "tomate",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -1875,12 +1939,14 @@
       {
         "text": "Pelar {{Boniato}} y cortar en trozos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "boniato"
       },
       {
         "text": "Llevar a ebullición agua en un cazo y cocer el boniato durante 10 min, hasta que esté tierno.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "boniato"
       },
       {
         "text": "Rallar {{Tomate natural}} sobre un bol pequeño y reservar.",
@@ -1897,7 +1963,8 @@
       {
         "text": "Escurrir el boniato cocido y chafar con un tenedor hasta obtener un puré liso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "boniato"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
@@ -1990,7 +2057,6 @@
     "name": "Papilla de avena con ternera y espinacas",
     "category": "bebes",
     "mainProtein": "ternera",
-    "mainBase": "avena",
     "mealRole": [
       "plato_unico"
     ],
@@ -2011,26 +2077,31 @@
     "ingredients": [
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Ternera magra",
+        "ingredientId": "ternera-magra",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       },
       {
         "name": "Caldo casero sin sal",
+        "ingredientId": "caldo-de-verduras",
         "amount": 200,
         "unit": "ml"
       }
@@ -2141,7 +2212,8 @@
     "name": "Crema de calabacín con huevo y sémola",
     "category": "bebes",
     "mainProtein": "huevo",
-    "mainBase": "sémola",
+    "mainBase": "cuscus",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -2164,21 +2236,25 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Sémola de trigo",
+        "ingredientId": "semola-de-trigo",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -2296,7 +2372,8 @@
     "name": "Puré de coliflor con pollo y patata",
     "category": "bebes",
     "mainProtein": "pollo",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -2315,21 +2392,25 @@
     "ingredients": [
       {
         "name": "Coliflor",
+        "ingredientId": "coliflor",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -2468,7 +2549,8 @@
     "name": "Puré de remolacha con pavo y patata",
     "category": "bebes",
     "mainProtein": "pavo",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "mealRole": [
       "plato_unico"
     ],
@@ -2487,21 +2569,25 @@
     "ingredients": [
       {
         "name": "Remolacha cocida",
+        "ingredientId": "remolacha",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -2626,6 +2712,7 @@
     "category": "bebes",
     "mainProtein": "pescado_azul",
     "mainBase": "boniato",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -2647,21 +2734,25 @@
     "ingredients": [
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Salmón fresco",
+        "ingredientId": "salmon-fresco",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 3,
         "unit": "ml"
       }
@@ -2682,7 +2773,8 @@
       {
         "text": "Pelar {{Boniato}} y cortar en dados de unos 2 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "base": "boniato"
       },
       {
         "text": "Retirar la piel y las espinas de {{Salmón fresco}} y cortar en trozos pequeños.",
@@ -2697,7 +2789,8 @@
       {
         "text": "Añadir los dados de boniato al cazo cuando rompa a hervir y cocer a fuego medio hasta que estén tiernos.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "boniato"
       },
       {
         "text": "Añadir {{Espinacas frescas}} y los trozos de salmón al cazo y cocer a fuego medio hasta que el salmón esté opaco y las espinacas mustias.",
@@ -2795,8 +2888,9 @@
     "id": "bebes_021",
     "name": "Puré de garbanzos con pollo y espinacas",
     "category": "bebes",
-    "mainProtein": "pollo",
-    "mainBase": "garbanzos",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -2815,21 +2909,25 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -2928,14 +3026,18 @@
         "difficulty": "facil",
         "prepSummary": "Coloca el pollo y las espinacas en la olla express con 100ml de agua y cocina 5 minutos desde que sube la válvula. Despresuriza, añade los garbanzos cocidos y el aceite, y tritura con una batidora de mano hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
+    ],
+    "extraProteins": [
+      "pollo"
     ]
   },
   {
     "id": "bebes_022",
     "name": "Puré de lentejas con ternera y zanahoria",
     "category": "bebes",
-    "mainProtein": "ternera",
-    "mainBase": "lentejas",
+    "mainProtein": "legumbre",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "mealRole": [
       "plato_unico"
     ],
@@ -2954,21 +3056,25 @@
     "ingredients": [
       {
         "name": "Lentejas rojas",
+        "ingredientId": "lentejas-rojas",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Ternera magra",
+        "ingredientId": "ternera-magra",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
+        "ingredientId": "aceite-oliva",
         "amount": 5,
         "unit": "ml"
       }
@@ -3067,6 +3173,9 @@
         "difficulty": "facil",
         "prepSummary": "Introduce las lentejas, ternera y zanahoria troceada con agua en la olla express. Cierra y cocina a presión durante 10-12 minutos desde que sube la válvula, luego tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
+    ],
+    "extraProteins": [
+      "ternera"
     ]
   },
   {
@@ -3103,26 +3212,31 @@
     "ingredients": [
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Requesón",
+        "ingredientId": "requeson",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3228,26 +3342,31 @@
     "ingredients": [
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3337,26 +3456,29 @@
     "mainIngredients": [
       "fruta"
     ],
-    "mainBase": "avena",
     "tecnica": "sarten",
     "ingredients": [
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3435,30 +3557,36 @@
     "fat_g": 5,
     "allergens": [],
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       }
@@ -3543,31 +3671,37 @@
     "fat_g": 7,
     "allergens": [],
     "mainBase": "legumbre",
+    "baseMode": "dentro",
     "cocina": "arabe",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Lentejas",
+        "ingredientId": "lentejas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 3,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -3663,26 +3797,31 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Queso fresco",
+        "ingredientId": "queso-fresco",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3768,26 +3907,31 @@
     "ingredients": [
       {
         "name": "Merluza en lomos",
+        "ingredientId": "merluza-lomos",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Pan rallado",
+        "ingredientId": "pan-rallado",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -3884,26 +4028,31 @@
     "ingredients": [
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Pan rallado",
+        "ingredientId": "pan-rallado",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4015,26 +4164,31 @@
     "ingredients": [
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Pan rallado",
+        "ingredientId": "pan-rallado",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -4116,30 +4270,36 @@
       "gluten"
     ],
     "mainBase": "legumbre",
+    "baseMode": "aparte",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4221,30 +4381,36 @@
       "huevo"
     ],
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Lomos de salmón",
+        "ingredientId": "salmon",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 2,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4322,7 +4488,8 @@
     "carbs_g": 28,
     "fat_g": 5,
     "allergens": [],
-    "mainBase": "patatas",
+    "mainBase": "boniato",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -4330,11 +4497,13 @@
     "ingredients": [
       {
         "name": "Boniato",
+        "ingredientId": "boniato",
         "amount": 140,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4413,11 +4582,13 @@
     "ingredients": [
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -4501,11 +4672,13 @@
     "ingredients": [
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4602,11 +4775,13 @@
     "ingredients": [
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 110,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -4693,16 +4868,19 @@
     "ingredients": [
       {
         "name": "Aguacate",
+        "ingredientId": "aguacate",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -4783,36 +4961,43 @@
       "gluten"
     ],
     "mainBase": "pasta",
+    "baseMode": "aparte",
     "cocina": "italiana",
     "tecnica": "sarten",
     "ingredients": [
       {
         "name": "Pasta pequeña",
+        "ingredientId": "pasta",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Carne picada de ternera",
+        "ingredientId": "carne-picada",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 6,
         "unit": "ml"
       }
@@ -4844,7 +5029,8 @@
       {
         "text": "Cocer la {{Pasta pequeña}} dos minutos más de lo que diga el paquete: al dente no vale a esta edad.",
         "minutes": 12,
-        "kind": "paralelo"
+        "kind": "paralelo",
+        "base": "pasta"
       },
       {
         "text": "Mezclar y dejar templar antes de servir.",
@@ -4887,6 +5073,7 @@
       "sesamo"
     ],
     "mainBase": "arroz",
+    "baseMode": "aparte",
     "mainIngredients": [
       "verdura"
     ],
@@ -4895,21 +5082,25 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Semillas de sésamo",
+        "ingredientId": "sesamo",
         "amount": 4,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5003,30 +5194,36 @@
       "lactosa"
     ],
     "mainBase": "patatas",
+    "baseMode": "dentro",
     "tecnica": "horno",
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Champiñones",
+        "ingredientId": "champinon",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Queso rallado",
+        "ingredientId": "queso",
         "amount": 15,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5113,31 +5310,37 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Berenjena",
+        "ingredientId": "berenjena",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Pimiento rojo",
+        "ingredientId": "pimiento-rojo",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Tomate triturado",
+        "ingredientId": "tomate-triturado",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 7,
         "unit": "ml"
       }
@@ -5215,7 +5418,6 @@
     "id": "bebes_043",
     "name": "Tortitas de calabaza y canela",
     "mainProtein": "huevo",
-    "mainBase": "avena",
     "time": 20,
     "kcal": 185,
     "protein_g": 8,
@@ -5232,26 +5434,31 @@
     "ingredients": [
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Canela molida",
+        "ingredientId": "canela",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5347,31 +5554,37 @@
     "ingredients": [
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Queso fresco",
+        "ingredientId": "queso-fresco",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5466,26 +5679,31 @@
     "ingredients": [
       {
         "name": "Pera",
+        "ingredientId": "pera",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Harina",
+        "ingredientId": "harina",
         "amount": 35,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 70,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5532,7 +5750,8 @@
       }
     ],
     "methods": [],
-    "estrella": true
+    "estrella": true,
+    "cocina": "francesa"
   },
   {
     "category": "bebes",
@@ -5566,26 +5785,31 @@
     "ingredients": [
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Maíz",
+        "ingredientId": "maiz",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5663,7 +5887,8 @@
     "id": "bebes_047",
     "name": "Tortitas de lenteja roja y zanahoria",
     "mainProtein": "legumbre",
-    "mainBase": "lentejas",
+    "mainBase": "legumbre",
+    "baseMode": "dentro",
     "time": 30,
     "kcal": 195,
     "protein_g": 11,
@@ -5677,21 +5902,25 @@
     "ingredients": [
       {
         "name": "Lentejas rojas",
+        "ingredientId": "lentejas-rojas",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -5775,7 +6004,8 @@
     "id": "bebes_048",
     "name": "Frittata al horno de calabacín y patata",
     "mainProtein": "huevo",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 40,
     "kcal": 230,
     "protein_g": 14,
@@ -5791,26 +6021,31 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 10,
         "unit": "ml"
       }
@@ -5899,26 +6134,31 @@
     "ingredients": [
       {
         "name": "Brócoli",
+        "ingredientId": "brocoli",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Requesón",
+        "ingredientId": "requeson",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Leche",
+        "ingredientId": "leche",
         "amount": 40,
         "unit": "ml"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 5,
         "unit": "ml"
       }
@@ -5996,7 +6236,6 @@
     "id": "bebes_050",
     "name": "Muffins de plátano y avena",
     "mainProtein": "huevo",
-    "mainBase": "avena",
     "time": 32,
     "kcal": 225,
     "protein_g": 9,
@@ -6014,26 +6253,31 @@
     "ingredients": [
       {
         "name": "Plátano",
+        "ingredientId": "platano",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Yogur natural",
+        "ingredientId": "yogur",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Levadura química",
+        "ingredientId": "levadura-quimica",
         "amount": 2,
         "unit": "g"
       }
@@ -6117,7 +6361,8 @@
     "id": "bebes_051",
     "name": "Pastel de merluza y patata en porciones",
     "mainProtein": "pescado_blanco",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 45,
     "kcal": 215,
     "protein_g": 20,
@@ -6134,26 +6379,31 @@
     "ingredients": [
       {
         "name": "Merluza en lomos",
+        "ingredientId": "merluza-lomos",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6251,21 +6501,25 @@
     "ingredients": [
       {
         "name": "Pechuga de pollo",
+        "ingredientId": "pechuga-de-pollo",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6343,7 +6597,8 @@
     "id": "bebes_053",
     "name": "Croquetas al horno de merluza y calabacín",
     "mainProtein": "pescado_blanco",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 40,
     "kcal": 200,
     "protein_g": 17,
@@ -6361,31 +6616,37 @@
     "ingredients": [
       {
         "name": "Merluza en lomos",
+        "ingredientId": "merluza-lomos",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 90,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 25,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6464,6 +6725,7 @@
     "name": "Bolitas de quinoa, garbanzo y espinaca",
     "mainProtein": "legumbre",
     "mainBase": "quinoa",
+    "baseMode": "aparte",
     "time": 35,
     "kcal": 215,
     "protein_g": 12,
@@ -6477,26 +6739,31 @@
     "ingredients": [
       {
         "name": "Quinoa",
+        "ingredientId": "quinoa",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 70,
         "unit": "g"
       },
       {
         "name": "Espinacas frescas",
+        "ingredientId": "espinacas",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       }
@@ -6514,7 +6781,8 @@
       {
         "text": "Cocer la {{Quinoa}} hasta que esté muy blanda y escurrirla. Pasada de punto a propósito: al dente no vale aquí.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "quinoa"
       },
       {
         "text": "Cocer las {{Espinacas frescas}}, escurrirlas apretando y picarlas muy fino.",
@@ -6590,26 +6858,31 @@
     "ingredients": [
       {
         "name": "Pechuga de pavo",
+        "ingredientId": "pechuga-de-pavo",
         "amount": 110,
         "unit": "g"
       },
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 20,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6703,21 +6976,25 @@
     "ingredients": [
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Copos de avena",
+        "ingredientId": "avena",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -6795,7 +7072,8 @@
     "id": "bebes_057",
     "name": "Tortilla de patata en tiras, sin sal",
     "mainProtein": "huevo",
-    "mainBase": "patata",
+    "mainBase": "patatas",
+    "baseMode": "dentro",
     "time": 35,
     "kcal": 245,
     "protein_g": 13,
@@ -6811,21 +7089,25 @@
     "ingredients": [
       {
         "name": "Patata",
+        "ingredientId": "patata",
         "amount": 150,
         "unit": "g"
       },
       {
         "name": "Huevo",
+        "ingredientId": "huevos",
         "amount": 2,
         "unit": "ud"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 12,
         "unit": "ml"
       }
@@ -6928,11 +7210,13 @@
     "ingredients": [
       {
         "name": "Pera",
+        "ingredientId": "pera",
         "amount": 1,
         "unit": "ud"
       },
       {
         "name": "Manzana",
+        "ingredientId": "manzana",
         "amount": 1,
         "unit": "ud"
       }
@@ -7023,16 +7307,19 @@
     "ingredients": [
       {
         "name": "Bacalao desalado",
+        "ingredientId": "bacalao",
         "amount": 110,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 10,
         "unit": "ml"
       },
       {
         "name": "Perejil",
+        "ingredientId": "perejil",
         "amount": 2,
         "unit": "g"
       }
@@ -7116,7 +7403,8 @@
     "id": "bebes_060",
     "name": "Cuscús con verduras muy blandas",
     "mainProtein": "none",
-    "mainBase": "cuscús",
+    "mainBase": "cuscus",
+    "baseMode": "aparte",
     "time": 25,
     "kcal": 240,
     "protein_g": 8,
@@ -7132,26 +7420,31 @@
     "ingredients": [
       {
         "name": "Cuscús",
+        "ingredientId": "cuscus",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Calabacín",
+        "ingredientId": "calabacin",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 50,
         "unit": "g"
       },
       {
         "name": "Guisantes",
+        "ingredientId": "guisantes",
         "amount": 40,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }
@@ -7178,7 +7471,8 @@
       {
         "text": "Hidratar el {{Cuscús}} con agua caliente y dejarlo reposar tapado. Un poco más de agua de la que pone el paquete: seco se desmiga y no hay forma de cogerlo.",
         "minutes": 6,
-        "kind": "espera"
+        "kind": "espera",
+        "base": "cuscus"
       },
       {
         "text": "Soltarlo con un tenedor y mezclarlo con la verdura y el {{Aceite de oliva virgen extra}}.",
@@ -7235,7 +7529,8 @@
     "id": "bebes_061",
     "name": "Hummus suave con bastones de zanahoria",
     "mainProtein": "legumbre",
-    "mainBase": "garbanzos",
+    "mainBase": "legumbre",
+    "baseMode": "aparte",
     "time": 20,
     "kcal": 250,
     "protein_g": 11,
@@ -7251,26 +7546,31 @@
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
+        "ingredientId": "garbanzos",
         "amount": 100,
         "unit": "g"
       },
       {
         "name": "Tahini",
+        "ingredientId": "tahini",
         "amount": 10,
         "unit": "g"
       },
       {
         "name": "Zanahoria",
+        "ingredientId": "zanahoria",
         "amount": 120,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       },
       {
         "name": "Comino molido",
+        "ingredientId": "comino",
         "amount": 1,
         "unit": "g"
       }
@@ -7337,6 +7637,7 @@
     "name": "Arroz meloso de calabaza y pollo",
     "mainProtein": "pollo",
     "mainBase": "arroz",
+    "baseMode": "dentro",
     "time": 35,
     "kcal": 285,
     "protein_g": 20,
@@ -7350,26 +7651,31 @@
     "ingredients": [
       {
         "name": "Arroz",
+        "ingredientId": "arroz",
         "amount": 60,
         "unit": "g"
       },
       {
         "name": "Calabaza",
+        "ingredientId": "calabaza",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Contramuslo de pollo",
+        "ingredientId": "contramuslos-de-pollo",
         "amount": 80,
         "unit": "g"
       },
       {
         "name": "Cebolla",
+        "ingredientId": "cebolla",
         "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva virgen extra",
+        "ingredientId": "aceite-oliva-virgen",
         "amount": 8,
         "unit": "ml"
       }

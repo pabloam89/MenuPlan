@@ -1,0 +1,22 @@
+{
+  "_": "Juicios de familia y rol decididos a mano, con motivo. Son los casos donde la derivación de scripts/lib/familia.mjs acierta la regla y falla el resultado, y forzar la regla para cubrirlos rompería otros. Mismo patrón que stepPartsLabels.json: se registra la decisión en vez de esconderla dentro del operador. Cada entrada es una excepción que alguien puede discutir leyendo su motivo. Un test comprueba que cada clave existe, que cada una trae motivo, y que ninguna repite lo que la derivación ya diría por su cuenta.",
+
+  "hinojo": {
+    "rol": "basico",
+    "motivo": "Está en el pasillo Especias, que ahora decide el rol, y ahí el pasillo se equivoca solo con este: las recetas usan 150 g de hinojo, veinticinco veces más que la mediana de un condimento (6 g). A 150 g no se condimenta, se come. Lo cazó cruzar el rol contra `medianAmount`, que es un campo que nadie rellenó pensando en esto. Su familia sí sale sola: `verdura_bulbo`."
+  },
+
+  "hoja-de-gelatina": {
+    "familia": "casqueria",
+    "motivo": "La derivación decía `verdura_hoja` porque el nombre empieza por «Hojas». La gelatina es colágeno animal, y el catálogo ya lo sabe: isVegetarian false. De las familias que existen, `casqueria` es la única que no miente sobre su origen. No es apetitoso pero es cierto, y prefiero eso a que un vegetariano la vea agrupada con las espinacas."
+  },
+
+  "hueso-de-jamon": {
+    "familia": "casqueria",
+    "motivo": "Un hueso, igual que «Hueso de ternera», que también cae en casquería. La derivación automática lo mandaba a `embutido` por la palabra «jamón», y el jamón es el alimento del que procede, no lo que es esto."
+  },
+  "cascara-de-marisco": {
+    "familia": "marisco",
+    "motivo": "El exoesqueleto de un crustáceo. La derivación no lo resolvía porque «cáscara» no está en el léxico y el nombre no dice ni gamba ni langostino: es el genérico de los dos."
+  }
+}

@@ -13,6 +13,7 @@
  */
 
 import { valorDe, proyectar } from "./notepad.js";
+import { COCINAS } from "../data/recipeSchema.js";
 
 /** Cuántas se enseñan. Tres o cuatro caben sin scroll y no abruman. */
 export const MAX_SUGERENCIAS = 4;
@@ -161,7 +162,6 @@ const COMODINES = [
     porque: "Echas de menos el puchero.", arte: CUT.legumbres },
 ];
 
-const COCINAS = ["italiana", "asiatica", "mexicana", "arabe", "francesa", "americana", "india", "peruana"];
 
 // Cuatro parejas de color, una por posición en la rejilla. Van por posición y
 // no por contenido a propósito: así la rejilla siempre tiene los mismos cuatro

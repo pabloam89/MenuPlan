@@ -53,6 +53,27 @@ describe("track handler", () => {
     vi.unstubAllEnvs();
   });
 
+  /**
+   * El entorno de Supabase, con la MISMA precedencia que lee el handler.
+   *
+   * Hace falta simular los cuatro nombres, no solo dos. El handler prefiere
+   * `VITE_SUPABASE_URL` sobre `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`
+   * sobre `SUPABASE_SECRET_KEY`, y esta prueba solo pisaba los de menor
+   * prioridad. En integracion continua daba igual, porque alli no hay ninguno
+   * definido y ganaban los simulados; en el portatil de cualquiera que tenga
+   * un `.env.local` de verdad —que define `VITE_SUPABASE_URL`— el handler se
+   * iba al proyecto REAL y la prueba fallaba siempre.
+   *
+   * Vivio meses en rojo por eso, y una prueba que siempre falla deja de
+   * mirarse: es peor que no tenerla.
+   */
+  function stubSupabaseEnv() {
+    vi.stubEnv("VITE_SUPABASE_URL", "https://db.example.co");
+    vi.stubEnv("SUPABASE_URL", "https://db.example.co");
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_abc");
+    vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_abc");
+  }
+
   function mockRes() {
     const res = { statusCode: 200, body: undefined };
     res.status = (c) => ((res.statusCode = c), res);
@@ -63,8 +84,7 @@ describe("track handler", () => {
   }
 
   it("inserts with the secret key only in apikey when it is not a JWT", async () => {
-    vi.stubEnv("SUPABASE_URL", "https://db.example.co");
-    vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_abc");
+    stubSupabaseEnv();
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -80,8 +100,7 @@ describe("track handler", () => {
   });
 
   it("returns 400 for an invalid batch without touching the database", async () => {
-    vi.stubEnv("SUPABASE_URL", "https://db.example.co");
-    vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_abc");
+    stubSupabaseEnv();
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 

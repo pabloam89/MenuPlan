@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { NUTRIENTES, CAMPOS_NUTRICION } from "./nutrientes.js";
+
 import { SHOPPING_AISLES, normalizeName } from "../lib/ingredientCategories.js";
 import { INGREDIENT_CATEGORIES } from "./recipes.js";
 
@@ -29,8 +31,9 @@ export const EU_ALLERGEN_IDS = [
 // "sin lactosa" conserva la proteína láctea y no vale para una alergia.
 export const ADAPTABLE_RESTRICTIONS = ["lactosa_fina", "alcohol_cocina"];
 
-// Mismas tres unidades que RecipeSchema — el catálogo entero se mide en g/ml/ud.
-const UNITS = ["g", "ml", "ud"];
+// Las tres unidades en que se mide el catálogo ENTERO, ingredientes y recetas.
+// RecipeSchema las importa de aquí: estuvieron definidas dos veces.
+export const UNITS = ["g", "ml", "ud"];
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -94,6 +97,9 @@ export const IngredientSchema = z
       .object({
         nombre: z.string().min(1),
         g: z.number().positive(),
+        // Solo cuando el plural no sale de la regla vocal+s / consonante+es
+        // (kitchenUnits.pluralDePieza): "vol-au-vent" → "vol-au-vents".
+        plural: z.string().min(1).optional(),
       })
       .optional(),
 
@@ -118,18 +124,37 @@ export const IngredientSchema = z
     // error, mismo criterio que el resto de campos derivados de una fuente
     // externa. `sugar100g` en particular es sparse incluso dentro de BEDCA
     // (el campo existe pero muchos alimentos no lo tienen relleno).
+    // Misma forma exacta que en alimentoSchema, y por el mismo sitio: la lista
+    // de nutrientes se declara UNA vez, en src/data/nutrientes.js.
     nutrition: z
-      .object({
-        kcal100g: z.number().nonnegative(),
-        protein100g: z.number().nonnegative(),
-        carbs100g: z.number().nonnegative(),
-        fat100g: z.number().nonnegative(),
-        fiber100g: z.number().nonnegative().nullable(),
-        sugar100g: z.number().nonnegative().nullable(),
-        saturatedFat100g: z.number().nonnegative().nullable(),
-        sodium100g: z.number().nonnegative().nullable(),
-      })
+      .object(
+        Object.fromEntries(
+          CAMPOS_NUTRICION.map((campo) => [
+            campo,
+            NUTRIENTES[campo].duro
+              ? z.number().nonnegative()
+              : z.number().nonnegative().nullable().optional(),
+          ]),
+        ),
+      )
       .nullable(),
+
+    /**
+     * La SEGUNDA ficha, cuando la propia deja huecos que otra tabla sí
+     * publica. El invariante deja de ser «una fila, una ficha» y pasa a ser
+     * «un CAMPO, una ficha»: `campos` dice exactamente cuáles vienen
+     * prestados y el resto sigue siendo de la fuente principal. Lo escribe
+     * scripts/apply-complemento.mjs. Ver src/data/complementoChoices.json.
+     */
+    fuenteComplemento: z
+      .object({
+        tabla: z.enum(["bedca", "ciqual", "usda"]),
+        foodId: z.string(),
+        nombre: z.string().nullable().optional(),
+        campos: z.array(z.string()).min(1),
+      })
+      .nullable()
+      .optional(),
   })
   .strict()
   .superRefine((ing, ctx) => {
@@ -156,6 +181,43 @@ export const IngredientSchema = z
         code: z.ZodIssueCode.custom,
         message: "`name` no debe repetirse dentro de `aliases`",
         path: ["aliases"],
+      });
+    }
+
+    // Las banderas de dieta contra los campos que ya las contradicen.
+    //
+    // POR QUÉ ESTÁ AQUÍ Y NO EN UN TEST: sin esta comprobación, `allergens`,
+    // `aisle` e `isVegetarian`/`isVegan` se rellenan por separado y nadie
+    // cruza los tres. Así entraron doce contradicciones, cuatro de ellas de
+    // seguridad alimentaria — pez espada, rabo de toro, navajas y salsa César
+    // marcados aptos para vegetarianos. En el schema es imposible volver a
+    // escribirlas; en un test, solo es posible enterarse.
+    //
+    // La dirección de la regla es deliberada: un alérgeno declarado es una
+    // afirmación positiva y explícita, mientras que un booleano pudo quedarse
+    // en su valor por defecto sin que nadie lo mirase. Gana el alérgeno.
+    const ANIMAL = ["pescado", "crustaceos", "moluscos"];
+    const animales = ing.allergens.filter((a) => ANIMAL.includes(a));
+    if (animales.length > 0 && ing.isVegetarian) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `declara el alérgeno ${animales.join("/")} y a la vez isVegetarian`,
+        path: ["isVegetarian"],
+      });
+    }
+    if (["Carne", "Pescado"].includes(ing.aisle) && ing.isVegetarian) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `está en el pasillo ${ing.aisle} y a la vez isVegetarian`,
+        path: ["isVegetarian"],
+      });
+    }
+    const lacteoHuevo = ing.allergens.filter((a) => a === "leche" || a === "huevos");
+    if (lacteoHuevo.length > 0 && ing.isVegan) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `declara el alérgeno ${lacteoHuevo.join("/")} y a la vez isVegan`,
+        path: ["isVegan"],
       });
     }
   });
