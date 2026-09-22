@@ -193,16 +193,16 @@
     "modelo": "claude-sonnet-5"
   },
   "azucar": {
-    "foodId": 780,
-    "confianza": 0.4,
-    "motivo": "Sólo hay azúcar moreno, variante distinta del azúcar blanco",
-    "modelo": "claude-sonnet-5"
+    "foodId": null,
+    "confianza": 1,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "Anulada el 22 sep 2026. Apuntaba a bedca:780 «Azúcar, MORENO» para un azúcar blanco refinado. Coincidían en macros —los tres azúcares del catálogo son sacarosa— y discrepaban en lo que de verdad los separa: el moreno trae melaza, y con ella hierro, calcio y potasio que el blanco no tiene. Pasa a ciqual:31016 «Sugar, white»."
   },
   "azucar-glas": {
-    "foodId": 780,
-    "confianza": 0.3,
-    "motivo": "Azúcar glas es azúcar molido, moreno es variante distinta",
-    "modelo": "claude-sonnet-5"
+    "foodId": null,
+    "confianza": 1,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "Anulada el 22 sep 2026. Apuntaba a bedca:780 «Azúcar, MORENO» para un azúcar blanco refinado. Coincidían en macros —los tres azúcares del catálogo son sacarosa— y discrepaban en lo que de verdad los separa: el moreno trae melaza, y con ella hierro, calcio y potasio que el blanco no tiene. Pasa a ciqual:31016 «Sugar, white»."
   },
   "bacalao": {
     "foodId": null,

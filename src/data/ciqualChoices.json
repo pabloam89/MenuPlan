@@ -1115,5 +1115,29 @@
     "confianza": 0.9,
     "motivo": "«Harissa (hot spicy sauce), prepacked», 76,4 kcal. Coincidencia exacta de producto, con sodio 1.120, fibra 5,1 y betacaroteno. Era el último hueco de nutrición del catálogo y llevaba marcado «sin dato utilizable»: CIQUAL no publica su energía cuando el balance de materia no cierra, pero el parser del repo la calcula por Atwater desde hace tiempo. El bloqueo no existía — nadie había corrido `fichasUtiles` sobre esta fila.",
     "modelo": "decision-humana-2026-09-22"
+  },
+  "romero-fresco": {
+    "foodId": "11068",
+    "confianza": 0.9,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "«Rosemary, fresh», 121 kcal. Nace el 22 sep 2026 partiendo `romero`, que llevaba la ficha del SECO (343 kcal) para las siete líneas que dicen «Romero fresco»: 2,8 veces de más. BEDCA solo tiene el seco —sus f_id 1834 y 2586 son la misma fila duplicada— así que la única salida era CIQUAL. USDA lo respalda con 131 kcal en su «Rosemary, fresh»."
+  },
+  "azucar": {
+    "foodId": "31016",
+    "confianza": 0.9,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "«Sugar, white», 399 kcal. Llevaba bedca:780 «Azúcar, MORENO», que trae melaza y con ella hierro, calcio y potasio que el azúcar blanco no tiene. Los tres azúcares del catálogo pasaban por macros casi iguales —son sacarosa— y eso es justo lo que ciega al emparejador: la diferencia no está en los macros sino en los minerales."
+  },
+  "azucar-glas": {
+    "foodId": "31016",
+    "confianza": 0.85,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "«Sugar, white», 399 kcal. Misma corrección que `azucar`: llevaba la ficha del moreno. Comparte ficha con el azúcar blanco a propósito y no por descuido — el glas ES azúcar blanco molido con un 2-3 % de almidón antiapelmazante, y ni CIQUAL ni USDA ni BEDCA publican una fila propia. La diferencia cae dentro del ruido de la sacarosa."
+  },
+  "pata-de-ternera": {
+    "foodId": "6580",
+    "confianza": 0.8,
+    "modelo": "decision-humana-2026-09-22",
+    "motivo": "«Calf, foot, raw», 184 kcal. Se había dado por imposible —«no hay pata ni manita de ternera en ninguna tabla»— y sí está, en CIQUAL y con el nombre exacto. Era el único de los siete huecos sin fuente que sí tenía una. Entra en los callos a 300 g con fracción comestible 0,4: el hueso es la mayor parte del peso y esta ficha es de la pieza entera."
   }
 }

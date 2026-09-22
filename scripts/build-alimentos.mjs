@@ -166,12 +166,38 @@ const mismasMacros = (a, b) =>
  *                        línea con `if (grams <= 0) continue;` ANTES de mirar
  *                        la ficha, igual que composicion.js en su línea 183.
  *
- *   ausente_sin_fuente   se ha buscado en BEDCA, CIQUAL y USDA y no está.
- *                        Cochinillo, pata de ternera, açaí, mirin, gochujang,
- *                        colorante y tinta de calamar: cero resultados en las
- *                        tres tablas el 22 sep 2026. Poner una ficha de un
- *                        alimento parecido sería inventar — el sake no es
- *                        mirin, y el pie de cerdo curado no es pata de ternera.
+ *   ausente_sin_fuente   se ha buscado en BEDCA, CIQUAL y USDA y no está. Para
+ *                        que nadie repita la búsqueda, lo que se probó y lo que
+ *                        salió el 22 sep 2026:
+ *
+ *                          medio-cochinillo  `suckling`, `piglet`, `porcelet`,
+ *                            `lechal`, `whole pig`. BEDCA sí tiene cordero y
+ *                            cabrito lechal (f_id 2685-2690, con porción
+ *                            comestible 0,605-0,737) y NINGÚN cochinillo. Y el
+ *                            hueco de verdad aquí es la fracción, no la ficha:
+ *                            son 2,5 kg de medio animal con hueso y piel, y
+ *                            darle nutrición sin fracción empeoraría el plato.
+ *                          gochujang  `chili/chilli paste`, `pepper paste`,
+ *                            `fermented soy`, `korean`, `doenjang`. Solo sale
+ *                            el miso, y no vale: el gochujang lleva arroz
+ *                            glutinoso y por tanto hidratos altos.
+ *                          mirin  solo aparece el sake (ciqual:1026), y el
+ *                            mirin es vino de arroz DULCE, ~40 g de azúcar
+ *                            contra los menos de 5 del sake. Sustituirlo
+ *                            equivocaría justo el campo que lo define.
+ *                          pulpa-de-acai  `acai`, `assai`, `euterpe`,
+ *                            `palm fruit`. USDA solo tiene bebidas de açaí
+ *                            fortificadas, que son otro producto.
+ *                          tinta-de-calamar  `squid ink`, `cuttlefish ink`,
+ *                            `encre`. Están el calamar y la sepia, no su tinta,
+ *                            que no es carne.
+ *                          colorante  `food colouring`, `colorant`, `dye`,
+ *                            `annatto`, `carmine`. Nada.
+ *
+ *                        Poner la ficha de un alimento parecido sería inventar.
+ *                        Lo que SÍ apareció al repasar fue `pata-de-ternera`,
+ *                        que se había dado por imposible y está en CIQUAL como
+ *                        «Calf, foot, raw» (6580): por eso ya no figura aquí.
  *
  *   ausente_resoluble    lo que de verdad está pendiente. Hoy queda la harissa,
  *                        que SÍ tiene ficha exacta (ciqual:11112) y no se puede
@@ -181,7 +207,7 @@ const mismasMacros = (a, b) =>
  *                        regla se cierran los tres.
  */
 const SIN_FUENTE_CONOCIDA = new Set([
-  "medio-cochinillo", "pata-de-ternera", "pulpa-de-acai-congelada",
+  "medio-cochinillo", "pulpa-de-acai-congelada",
   "mirin", "gochujang", "colorante", "tinta-de-calamar",
 ]);
 

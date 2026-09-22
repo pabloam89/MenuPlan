@@ -320,4 +320,31 @@
 // están copiadas del `edible_portion` de BEDCA, y ese campo rellena con 0 y con
 // 1,00 lo que no tiene. El ajo figura ahí con un 0,01. Hoy no ha entrado
 // ninguno; el test es para la próxima pasada, que es cuando entraría.
-export const BUNDLED_CATALOG_VERSION = 34;
+// v35 (2026-09-22): los cuatro que quedaban, y uno que se había dado por
+// imposible sin serlo.
+//
+//   romero → romero + romero-fresco (ciqual:11068, 121 kcal). Llevaba la ficha
+//     del SECO —343 kcal— para las SIETE de sus quince líneas que dicen
+//     «Romero fresco»: 2,8 veces de más. BEDCA solo tiene el seco (y sus dos
+//     fichas son la misma fila duplicada), así que la única salida era CIQUAL.
+//
+//   azucar y azucar-glas → ciqual:31016 «Sugar, white». Los dos cobraban
+//     bedca:780, que es «Azúcar, MORENO». Coincidían en macros —los tres
+//     azúcares son sacarosa— y discrepaban en lo único que los separa: el
+//     moreno trae melaza, y con ella hierro, calcio y potasio. Es el caso de
+//     libro de por qué emparejar por macros no basta. El glas comparte ficha
+//     con el blanco a propósito: es azúcar blanco molido con un 2-3 % de
+//     almidón, y ninguna de las tres tablas le da fila propia.
+//
+//   pata-de-ternera → ciqual:6580 «Calf, foot, raw», 184 kcal. Estaba en la
+//     lista de «no hay fuente en ninguna tabla» y sí la había, con ese nombre
+//     exacto. Los callos pasan de 94 % a 100 % de cobertura. Conviene que
+//     quede escrito: un «no existe» también se revisa.
+//
+// Los otros SEIS huecos siguen sin fuente y ahora el build documenta con qué
+// términos se buscó cada uno —cochinillo, gochujang, mirin, açaí, tinta de
+// calamar y colorante— para que nadie repita el trabajo. El cochinillo se
+// queda con su receta al 16 % de cobertura, que es la señal honrada de que
+// sus números no valen; darle una ficha sin darle antes la fracción comestible
+// lo empeoraría, porque son 2,5 kg de medio animal con hueso y piel.
+export const BUNDLED_CATALOG_VERSION = 35;

@@ -571,7 +571,7 @@
       },
       {
         "name": "Romero fresco",
-        "ingredientId": "romero",
+        "ingredientId": "romero-fresco",
         "amount": 3,
         "unit": "g"
       },
@@ -3156,7 +3156,7 @@
       },
       {
         "name": "Romero fresco",
-        "ingredientId": "romero",
+        "ingredientId": "romero-fresco",
         "amount": 3,
         "unit": "g"
       },
@@ -5702,7 +5702,7 @@
       },
       {
         "name": "Romero fresco",
-        "ingredientId": "romero",
+        "ingredientId": "romero-fresco",
         "amount": 3,
         "unit": "g"
       },

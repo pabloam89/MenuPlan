@@ -5608,8 +5608,23 @@
   {
     "id": "romero",
     "name": "Romero",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 3
+  },
+  {
+    "id": "romero-fresco",
+    "name": "Romero fresco",
     "aliases": [
-      "Romero fresco"
+      "Ramita de romero",
+      "Romero en rama"
     ],
     "aisle": "Especias",
     "category": "Verduras y frutas",
