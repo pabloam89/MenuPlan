@@ -5,7 +5,7 @@ import {
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { formatStockQty } from "../lib/kitchenUnits.js";
-import { medidasDe, enPlural } from "../lib/medidasDeIngrediente.js";
+import { medidasDe, medidaPorId, enPlural, UNIDAD_SUELTA } from "../lib/medidasDeIngrediente.js";
 import { Picker } from "../components/Picker.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
@@ -385,13 +385,10 @@ function CantidadDeLinea({ item, onQty, pool, onEditarFicha }) {
   const [valor, setValor] = useState("");
   const [unidad, setUnidad] = useState(item.unit ?? "ud");
 
-  // Si la línea vino del pool se LEE en su unidad —tres cabezas, no ciento
+  // Si la línea vino del pool se LEE en su medida —tres cabezas, no ciento
   // ochenta gramos— aunque por debajo se guarden los gramos, que es lo que
-  // necesita el cruce con la compra. Y al tocarla se abre su ficha, donde
-  // están las dos magnitudes: los paquetes y el peso.
-  const etiqueta = pool
-    ? `${pool.n} ${pool.n === 1 ? pool.uno : pool.varias}`
-    : formatStockQty(item.qty ?? 1, item.unit ?? "ud");
+  // necesita el cruce con la compra. Y al tocarla se abre su ficha.
+  const etiqueta = pool?.etiqueta ?? formatStockQty(item.qty ?? 1, item.unit ?? "ud");
 
   const guardar = () => {
     setEditando(false);
@@ -476,18 +473,18 @@ function CantidadDeLinea({ item, onQty, pool, onEditarFicha }) {
  * encima sin que te enteres de que lo has dicho.
  */
 const POOL = [
-  { nombre: "Cebolla", n: 2, unidad: "ud", uno: "cebolla", varias: "cebollas" },
-  { nombre: "Ajo", n: 1, unidad: "g", envase: "cabeza", tam: 60 },
-  { nombre: "Patata", n: 1, unidad: "kg", uno: "kilo", varias: "kilos" },
-  { nombre: "Tomate", n: 4, unidad: "ud", uno: "tomate", varias: "tomates" },
-  { nombre: "Zanahoria", n: 3, unidad: "ud", uno: "zanahoria", varias: "zanahorias" },
-  { nombre: "Limón", n: 2, unidad: "ud", uno: "limón", varias: "limones" },
-  { nombre: "Huevos", n: 6, unidad: "ud", uno: "huevo", varias: "huevos" },
-  { nombre: "Leche", n: 1, unidad: "l", envase: "brick", tam: 1 },
-  { nombre: "Arroz", n: 1, unidad: "g", envase: "paquete", tam: 500 },
-  { nombre: "Macarrones", n: 1, unidad: "g", envase: "paquete", tam: 500 },
-  { nombre: "Lentejas", n: 1, unidad: "g", envase: "paquete", tam: 500 },
-  { nombre: "Aceite de oliva", n: 1, unidad: "l", envase: "botella", tam: 1 },
+  { nombre: "Cebolla", n: 2, medida: "ud" },
+  { nombre: "Ajo", n: 1, medida: "cabeza" },
+  { nombre: "Patata", n: 1, medida: "kg" },
+  { nombre: "Tomate", n: 4, medida: "ud" },
+  { nombre: "Zanahoria", n: 3, medida: "ud" },
+  { nombre: "Limón", n: 2, medida: "ud" },
+  { nombre: "Huevos", n: 6, medida: "ud" },
+  { nombre: "Leche", n: 1, medida: "brick" },
+  { nombre: "Arroz", n: 1, medida: "paquete" },
+  { nombre: "Macarrones", n: 1, medida: "paquete" },
+  { nombre: "Lentejas", n: 1, medida: "paquete" },
+  { nombre: "Aceite de oliva", n: 1, medida: "botella" },
 ];
 
 /** La clave con la que un nombre del pool queda guardado en la despensa. */
@@ -501,80 +498,71 @@ function claveDePool(nombre) {
 }
 
 /**
- * Lo que vale UNA de las suyas en lo que se guarda de verdad.
+ * Cómo se lee una línea ya guardada: «3 cabezas», no «180 g».
  *
- * El almacén siempre es g, ml o ud —lo exige el cruce con la compra— así que
- * los kilos y los litros se bajan aquí a gramos y mililitros. Es la misma
- * cuenta que hace `toCanonicalStockQty` al guardar, del revés.
+ * Se guarda en g, ml o ud —lo exige el cruce con la compra— pero eso no es
+ * como se piensa en el ajo. Se busca la medida con la que se metió, y si los
+ * gramos guardados son un múltiplo limpio de lo que vale una, se cuenta en
+ * ellas. Si no lo son, se lee en crudo: 750 g de arroz son 750 g, y decir
+ * «1,5 paquetes» sería redondear un dato que tú diste exacto.
  */
-function medidaDePool(p) {
-  const grande = p.unidad === "kg" || p.unidad === "l";
-  return {
-    unidad: p.unidad === "kg" ? "g" : p.unidad === "l" ? "ml" : p.unidad,
-    porUnidad: (p.envase ? p.tam : 1) * (grande ? 1000 : 1),
-  };
-}
-
-/** Cómo se llama una y cómo se llaman varias. */
-function palabrasDePool(p) {
-  return p.envase
-    ? { uno: p.envase, varias: enPlural(p.envase) }
-    : { uno: p.uno, varias: p.varias };
-}
-
 const POOL_POR_CLAVE = new Map();
-function poolDe(item) {
+function poolDe(item, elegidas = {}) {
   if (POOL_POR_CLAVE.size === 0) {
     for (const p of POOL) POOL_POR_CLAVE.set(claveDePool(p.nombre), p);
   }
   const p = POOL_POR_CLAVE.get(item?.ingredientNormalized);
   if (!p) return null;
-  const { unidad, porUnidad } = medidaDePool(p);
-  // Solo si la línea sigue estando en la unidad en la que la metimos. Si algo
-  // la ha tocado por otro lado —un ticket, la compra— y ahora son mililitros
-  // de una cosa que contábamos en unidades, se lee en crudo y no se inventa.
-  if (item.unit !== unidad) return null;
-  const n = Number(item.qty) / porUnidad;
+  const medidas = medidasDe(p.nombre);
+  const medida = medidaPorId(medidas, elegidas[item.ingredientNormalized] ?? p.medida);
+  // Si algo la ha tocado por otro lado —un ticket, la compra— y ahora son
+  // mililitros de una cosa que contábamos en unidades, se lee en crudo.
+  if (item.unit !== medida.base) return null;
+  const n = Number(item.qty) / medida.por;
   if (!(n > 0) || Math.abs(n - Math.round(n)) > 0.01) return null;
-  return { ...p, ...palabrasDePool(p), n: Math.round(n), porUnidad, unidadBase: unidad };
+  const veces = Math.round(n);
+  return {
+    ...p,
+    medida: medida.id,
+    n: veces,
+    // Las unidades sueltas ya se pintan con `formatStockQty`; esto es para las
+    // que tienen palabra propia.
+    etiqueta: UNIDAD_SUELTA.has(medida.id)
+      ? formatStockQty(item.qty, medida.base)
+      : `${veces} ${veces === 1 ? medida.id : enPlural(medida.id)}`,
+  };
 }
 
-/**
- * «Cuánto tienes?» — las cuatro magnitudes de una despensa, en una fila.
- *
- * Un paquete de arroz son cuatro datos, no uno: CUÁNTOS tienes, DE QUÉ envase,
- * DE CUÁNTO viene y EN QUÉ se mide. Preguntar solo el peso obliga a una cuenta
- * que nadie tiene hecha —¿cuánto pesa lo que me queda?— y preguntar solo los
- * paquetes no deja decir que el tuyo es de kilo.
- *
- * Van en UNA fila porque son una sola frase, «un paquete de medio kilo», que
- * se lee de izquierda a derecha. En dos filas se leían como dos preguntas.
- *
- * Lo que se guarda es el producto, en g/ml/ud, que es lo que necesita el cruce
- * con la compra. Los cuatro campos son la forma de decirlo, no lo dicho.
- */
 function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
-  // Qué se le puede preguntar a ESTE ingrediente. El ajo ofrece cabeza o
-  // diente; el arroz, paquete o bolsa. La lista entera del súper ofrecía
-  // "brick de ajos", que no es improbable sino imposible.
+  // En qué se puede medir ESTO. El ajo en cabezas o dientes; el arroz en
+  // paquetes o a peso. La lista entera del súper ofrecía "brick de ajos".
   const medidas = useMemo(() => medidasDe(item.nombre), [item.nombre]);
-  const conEnvase = medidas.envases.length > 0;
 
-  // Los campos escribibles guardan TEXTO, no números: si guardaran número,
-  // borrar el contenido para teclear otro lo volvería un 0 delante de tus
-  // narices. Se convierte al calcular, no al escribir.
   const [n, setN] = useState(String(inicial ?? item.n));
-  const [envase, setEnvase] = useState(item.envase ?? medidas.envases[0] ?? null);
-  const [tam, setTam] = useState(item.tam != null ? String(item.tam) : "1");
-  const [unidad, setUnidad] = useState(
-    medidas.unidades.includes(item.unidad) ? item.unidad : medidas.unidades[0],
+  const [medidaId, setMedidaId] = useState(
+    medidas.some((m) => m.id === item.medida) ? item.medida : medidas[0].id,
   );
+  const medida = medidaPorId(medidas, medidaId);
+
+  // El contenido solo existe para las medidas ABIERTAS. Se guarda aparte del
+  // id para que cambiar de paquete a bolsa no borre lo que hubieras escrito.
+  const [tam, setTam] = useState(null);
+  const [unidadTam, setUnidadTam] = useState(null);
+
+  const abierta = medida.abierto === true;
+  const unidades = medida.unidades ?? [];
+  // Por defecto, el contenido se enseña en la unidad más pequeña que la
+  // medida admite: un paquete son "500 g", no "0,5 kg".
+  const unidadActual = unidadTam && unidades.includes(unidadTam) ? unidadTam : unidades[0];
+  const porDefecto = unidadActual === "kg" || unidadActual === "l" ? medida.por / 1000 : medida.por;
+  const tamTexto = tam ?? String(porDefecto);
 
   const nNum = Number(n) || 0;
-  const tamNum = Number(String(tam).replace(",", ".")) || 0;
-  const factor = unidad === "kg" || unidad === "l" ? 1000 : 1;
-  const uBase = unidad === "kg" ? "g" : unidad === "l" ? "ml" : unidad;
-  const total = conEnvase ? nNum * tamNum * factor : nNum * factor;
+  const tamNum = Number(String(tamTexto).replace(",", ".")) || 0;
+  const porUnidad = abierta
+    ? tamNum * (unidadActual === "kg" || unidadActual === "l" ? 1000 : 1)
+    : medida.por;
+  const total = nNum * porUnidad;
 
   const campo = {
     ...campoBase, height: 32, padding: "0 4px", textAlign: "center",
@@ -588,8 +576,6 @@ function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
         padding: 12, marginBottom: 14,
       }}
     >
-      {/* Solo el nombre. Aquí iba además un "1 ud" en gris que repetía en
-          pequeño lo que los campos de abajo ya dicen en grande. */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <Miniatura name={item.nombre} size={40} />
         <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 900, color: INK, lineHeight: 1.2 }}>
@@ -609,10 +595,11 @@ function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
         </button>
       </div>
 
-      {/* Con envase son cuatro huecos y la fila se llena entera. Sin él son
-          dos, y se quedan a la izquierda: estirar el desplegable de "ud" hasta
-          el borde promete opciones que no hay. */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+      {/* Dos huecos, o cuatro si la medida no sabe lo que vale. Una cabeza de
+          ajo son 60 g y no hay que preguntarlo; un paquete de arroz es de medio
+          kilo o de kilo según cuál cojas, y ahí sí. Y con dos, el desplegable
+          no se estira hasta el borde: prometería un hueco que no existe. */}
+      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 12 }}>
         <input
           value={n}
           onChange={(e) => setN(e.target.value.replace(/[^0-9]/g, "").slice(0, 2))}
@@ -620,40 +607,46 @@ function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
           aria-label="Cuántos"
           style={{ ...campo, width: 46, fontWeight: 900 }}
         />
-        {conEnvase ? (
+        <Picker
+          value={medidaId}
+          options={medidas.map((m) => ({
+            value: m.id,
+            label: m.id === "l" ? "L" : nNum === 1 ? m.id : enPlural(m.id),
+          }))}
+          onChange={(v) => { setMedidaId(v); setTam(null); setUnidadTam(null); }}
+          ariaLabel="Medida"
+          flex={abierta ? 1 : undefined}
+          minWidth={abierta ? 74 : undefined}
+          width={abierta ? undefined : 104}
+        />
+        {abierta && (
           <>
-            <Picker
-              value={envase}
-              options={medidas.envases}
-              onChange={setEnvase}
-              ariaLabel="Envase"
-              flex={1}
-              minWidth={84}
-            />
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#9ab0a1", flexShrink: 0 }}>de</span>
+            {/* Aquí iba un "de" que leía bonito —"1 paquete DE 500 g"— y se
+                comía 21 px de los 262 que hay: con él, la fila pedía 271 y se
+                salía por la derecha en cuanto la medida tenía nombre largo. Lo
+                que agrupa ya es el espacio. */}
             <input
-              value={tam}
+              value={tamTexto}
               onChange={(e) => setTam(e.target.value)}
               inputMode="decimal"
               aria-label="Contenido"
-              style={{ ...campo, width: 52 }}
+              style={{ ...campo, width: 44 }}
             />
-            <Picker
-              value={unidad}
-              options={medidas.unidades.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
-              onChange={setUnidad}
-              ariaLabel="Unidad"
-              width={56}
-            />
+            {unidades.length > 1 ? (
+              <Picker
+                value={unidadActual}
+                options={unidades.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
+                onChange={setUnidadTam}
+                ariaLabel="Unidad"
+                width={48}
+                align="center"
+              />
+            ) : (
+              <span style={{ fontSize: 12.5, fontWeight: 800, color: "#5a7066", flexShrink: 0, width: 20 }}>
+                {unidadActual === "l" ? "L" : unidadActual}
+              </span>
+            )}
           </>
-        ) : (
-          <Picker
-            value={unidad}
-            options={medidas.unidades.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
-            onChange={setUnidad}
-            ariaLabel="Unidad"
-            width={76}
-          />
         )}
       </div>
 
@@ -661,7 +654,7 @@ function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
         type="button"
         className="mp-press"
         disabled={!(total > 0)}
-        onClick={() => onConfirmar(total, uBase)}
+        onClick={() => onConfirmar(total, medida.base, medidaId)}
         style={{
           width: "100%", height: 36, borderRadius: 11, border: "none",
           background: total > 0 ? VERDE : "#c8d9ce", color: "#fff",
@@ -680,6 +673,10 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
   const [qty, setQty] = useState("1");
   const [unidad, setUnidad] = useState("ud");
   const [pendiente, setPendiente] = useState(null);
+  // La medida en la que cada cosa se declaró, por clave de ingrediente. No va
+  // a la despensa —allí solo caben cantidad y unidad— así que vive aquí para
+  // que la línea siga diciendo «cabezas» y no «180 g».
+  const [medidaElegida, setMedidaElegida] = useState({});
   const ingredientes = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish");
   const escribiendo = texto.trim().length > 0;
 
@@ -778,11 +775,18 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
           item={pendiente}
           inicial={pendiente.editando?.n ?? null}
           onCancelar={() => setPendiente(null)}
-          onConfirmar={(qty, unidadBase) => {
+          onConfirmar={(qty, base, medidaId) => {
             // La MISMA ficha da de alta y corrige. Lo único que cambia es a
             // dónde va el número: a una línea nueva o a la que ya existe.
-            if (pendiente.editando) onQty?.(pendiente.editando.id, qty, unidadBase);
-            else onAnadir(pendiente.nombre, qty, unidadBase);
+            //
+            // La medida elegida viaja en el estado del panel, no en la
+            // despensa: `setPantryItemQty` no guarda más que cantidad y
+            // unidad, así que la palabra («cabezas») se vuelve a deducir al
+            // leer. Recordarla aquí es lo que hace que reabrir la ficha te
+            // devuelva a la medida en la que lo dijiste.
+            setMedidaElegida((m) => ({ ...m, [claveDePool(pendiente.nombre)]: medidaId }));
+            if (pendiente.editando) onQty?.(pendiente.editando.id, qty, base);
+            else onAnadir(pendiente.nombre, qty, base);
             setPendiente(null);
           }}
         />
@@ -848,7 +852,7 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
               <CantidadDeLinea
                 item={i}
                 onQty={onQty}
-                pool={poolDe(i)}
+                pool={poolDe(i, medidaElegida)}
                 onEditarFicha={(p) => setPendiente({ ...p, editando: { id: i.id, n: p.n } })}
               />
               <button

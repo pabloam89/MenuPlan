@@ -1,80 +1,103 @@
 import { describe, expect, it } from "vitest";
-import { medidasDe, enPlural } from "./medidasDeIngrediente.js";
+import { medidasDe, medidaPorId, enPlural, UNIDAD_SUELTA } from "./medidasDeIngrediente.js";
+
+const ids = (nombre) => medidasDe(nombre).map((m) => m.id);
 
 /**
- * La tabla existe para que un desplegable no ofrezca «brick de ajos».
- *
- * Así que lo que se comprueba no es que devuelva algo, sino que NO devuelva lo
- * imposible: cada caso mira a la vez lo que debe estar y lo que no.
+ * La tabla existe para dos cosas, y las dos se comprueban aquí:
+ *   1. que un desplegable no ofrezca «brick de ajos»
+ *   2. que una medida que ya dice cuánto vale no vuelva a preguntarlo
  */
 describe("medidasDe", () => {
   it("el ajo va en cabezas o dientes, no en los envases del súper", () => {
-    const { envases, unidades } = medidasDe("Ajo");
-    expect(envases).toEqual(["cabeza", "diente"]);
-    expect(envases).not.toContain("brick");
-    expect(envases).not.toContain("botella");
-    expect(unidades).toEqual(["g"]);
+    expect(ids("Ajo")).toEqual(["cabeza", "diente", "g"]);
+    expect(ids("Ajo")).not.toContain("brick");
+    expect(ids("Ajo")).not.toContain("botella");
   });
 
-  it("el arroz viene en paquete o bolsa, y se pesa", () => {
-    const { envases, unidades } = medidasDe("Arroz");
-    expect(envases).toEqual(["paquete", "bolsa"]);
-    expect(unidades).toEqual(["g", "kg"]);
+  it("una cabeza ya dice lo que pesa, así que no se pregunta", () => {
+    const cabeza = medidaPorId(medidasDe("Ajo"), "cabeza");
+    expect(cabeza.abierto).toBeFalsy();
+    expect(cabeza.por).toBe(60);
+    expect(cabeza.base).toBe("g");
+  });
+
+  it("un paquete sí se pregunta, porque cambia según cuál cojas", () => {
+    const paquete = medidaPorId(medidasDe("Arroz"), "paquete");
+    expect(paquete.abierto).toBe(true);
+    expect(paquete.por).toBe(500);
+    expect(paquete.unidades).toEqual(["g", "kg"]);
   });
 
   it("la familia se hereda sin estar escrita", () => {
-    // "Espaguetis" no está en ninguna regla por su nombre: entra por la de pasta.
-    expect(medidasDe("Espaguetis").envases).toEqual(["paquete", "bolsa"]);
-    expect(medidasDe("Tallarines").unidades).toEqual(["g", "kg"]);
+    expect(ids("Espaguetis")).toEqual(ids("Arroz"));
+    expect(ids("Tallarines")).toContain("paquete");
   });
 
   it("los líquidos no se cuentan en gramos", () => {
-    expect(medidasDe("Leche").unidades).toEqual(["ml", "l"]);
-    expect(medidasDe("Aceite de oliva").envases).toEqual(["botella", "garrafa"]);
+    for (const m of medidasDe("Leche")) expect(m.base).toBe("ml");
+    expect(ids("Aceite de oliva")).toEqual(["botella", "garrafa", "ml", "l"]);
   });
 
   it("el aceite gana a las conservas aunque comparta pasillo", () => {
-    // Si la regla de conservas fuera antes, el aceite de oliva saldría en lata.
-    expect(medidasDe("Aceite de oliva virgen extra").envases).not.toContain("lata");
+    expect(ids("Aceite de oliva virgen extra")).not.toContain("lata");
   });
 
-  it("lo que se cuenta por pieza no trae envase", () => {
+  it("lo que se cuenta por pieza empieza por unidades y no trae envase", () => {
     for (const n of ["Cebolla", "Tomate", "Limón", "Zanahoria", "Patata", "Huevos"]) {
-      expect(medidasDe(n).envases).toEqual([]);
-      expect(medidasDe(n).unidades[0]).toBe("ud");
+      expect(medidasDe(n)[0].id).toBe("ud");
+      expect(medidasDe(n).every((m) => !m.abierto)).toBe(true);
     }
   });
 
-  it("los huevos se cuentan y no se empaquetan", () => {
-    // Con envase, la ficha pide cuántos envases Y qué trae cada uno, así que
-    // "6 huevos" habría que decirlo como "media docena de 12".
-    expect(medidasDe("Huevos")).toEqual({ envases: [], unidades: ["ud"] });
+  it("los huevos se cuentan y nada más", () => {
+    expect(ids("Huevos")).toEqual(["ud"]);
   });
 
   it("un nombre desconocido ofrece todo, que es mejor que no ofrecer nada", () => {
-    const { envases, unidades } = medidasDe("Cosa rarísima");
-    expect(envases).toEqual([]);
-    expect(unidades).toEqual(["ud", "g", "kg", "ml", "l"]);
+    expect(ids("Cosa rarísima")).toEqual(["ud", "g", "kg", "ml", "l"]);
   });
 
   it("aguanta lo vacío", () => {
-    expect(medidasDe("").unidades.length).toBeGreaterThan(0);
-    expect(medidasDe(undefined).unidades.length).toBeGreaterThan(0);
+    expect(medidasDe("").length).toBeGreaterThan(0);
+    expect(medidasDe(undefined).length).toBeGreaterThan(0);
   });
 
-  it("las unidades salen siempre del vocabulario de kitchenUnits", () => {
-    const legales = new Set(["ud", "g", "kg", "ml", "l"]);
-    for (const n of ["Ajo", "Arroz", "Leche", "Atún en lata", "Pollo", "Yogur", "Huevos"]) {
-      for (const u of medidasDe(n).unidades) expect(legales.has(u)).toBe(true);
+  it("toda medida sabe convertirse a lo que se guarda", () => {
+    const bases = new Set(["ud", "g", "ml"]);
+    const nombres = ["Ajo", "Arroz", "Leche", "Atún en lata", "Pollo", "Yogur", "Huevos", "Cebolla", "Lentejas"];
+    for (const n of nombres) {
+      for (const m of medidasDe(n)) {
+        expect(bases.has(m.base)).toBe(true);
+        expect(m.por).toBeGreaterThan(0);
+        // Una medida abierta tiene que decir en qué se declara su contenido.
+        if (m.abierto) expect(m.unidades.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("no hay ids repetidos dentro de un mismo ingrediente", () => {
+    for (const n of ["Ajo", "Arroz", "Leche", "Lentejas", "Aceite de oliva"]) {
+      const lista = ids(n);
+      expect(new Set(lista).size).toBe(lista.length);
     }
   });
 });
 
+describe("medidaPorId", () => {
+  it("cae en la primera cuando el id no está", () => {
+    expect(medidaPorId(medidasDe("Ajo"), "brick").id).toBe("cabeza");
+  });
+});
+
 describe("enPlural", () => {
-  it("suma una ese, salvo el cartón", () => {
+  it("las unidades no se pluralizan: son abreviaturas", () => {
+    for (const u of UNIDAD_SUELTA) expect(enPlural(u)).toBe(u);
+  });
+
+  it("los envases suman una ese, salvo el cartón", () => {
     expect(enPlural("paquete")).toBe("paquetes");
     expect(enPlural("cabeza")).toBe("cabezas");
     expect(enPlural("cartón")).toBe("cartones");
-    expect(enPlural("pack")).toBe("packs");
   });
 });
