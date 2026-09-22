@@ -122,11 +122,31 @@ const CATEGORY_META = {
 // ninguna receta — se está rellenando aparte, por lotes, en los JSON del
 // catálogo); verano/invierno filtran por `season` (ese campo sí ya tenía
 // datos reales en el catálogo, solo faltaba conectar el chip).
+/**
+ * Qué entra en "Cenas rápidas": lo que se MONTA (tostas, sándwiches,
+ * wraps… `isMontaje`) o lo que se hace en 15 minutos o menos.
+ *
+ * Solo el montaje se quedaba corto —una tortilla francesa no se "monta" y es
+ * la cena rápida por excelencia— y solo el tiempo colaba cualquier cosa. Las
+ * dos juntas dan 94 platos; por separado, 66 y 88 con mucho que no pega.
+ *
+ * Y tiene que ser CENA, con dos filtros que parecen obvios y no lo eran:
+ *   · el rol del plato, o entraban las tostadas de desayuno y las ensaladas
+ *     de primero, que son montaje y de 10 minutos pero no son la cena;
+ *   · fuera los de bebé, que tienen sus dos carpetas propias y llenaban esta
+ *     de papillas de quince minutos.
+ */
+const CENA_RAPIDA_MINUTOS = 15;
+function esCenaRapida(recipe) {
+  if (!recipe || recipe.category === "bebes") return false;
+  const rol = recipe.mealRole ?? [];
+  if (!rol.some((r) => r === "cena" || r === "plato_unico")) return false;
+  return isMontaje(recipe) || (recipe.time ?? 999) <= CENA_RAPIDA_MINUTOS;
+}
+
 const FACET_META = {
   ninos:    { label: "Para peques", img: "/categories/faceta_ninos.webp", wired: true, color: "#d56b9a", Icon: Baby },
-  // "rapido" filtra por `montaje` (isMontaje) — se monta, no se cocina de
-  // verdad (tostas, sándwiches, gazpachos...) — no por tiempo/dificultad
-  // como antes, que colaba cualquier plato rápido aunque requiriera cocinar.
+  // Ver `esCenaRapida`: montaje O 15 minutos o menos.
   rapido:   { label: "Cenas rápidas", img: "/categories/faceta_rapido.webp", wired: true, color: "#cf7833", Icon: Clock },
   gourmet:  { label: "Platos gourmet", img: "/categories/faceta_gourmet.webp", wired: true, color: "#a97e21", Icon: Sparkles },
   verano:   { label: "De verano", img: "/categories/faceta_verano.webp", wired: true, color: "#e0a83a", Icon: Sun },
@@ -578,7 +598,12 @@ export function CatalogBrowserSheet({
     const p = new Set();
     const source = gatePick ? platoCatalog : fullCatalog;
     for (const r of source) {
-      if (r.category && !isGuarnicionRecipe(r)) c.add(catKeyOf(r));
+      // La categoría `cenas_rapidas` está deprecada (ver isMontaje en
+      // recipeSchema.js): sobrevive solo como respaldo de recetas de usuario
+      // ya guardadas. Como teja enseñaba UNA receta al lado de la faceta del
+      // mismo nombre, que tiene sesenta y seis — dos carpetas que se llaman
+      // igual y no contienen lo mismo. La faceta es la buena.
+      if (r.category && r.category !== "cenas_rapidas" && !isGuarnicionRecipe(r)) c.add(catKeyOf(r));
       // Las dos tejas de bebé se ofrecen aunque una esté vacía: es la única
       // forma de que se vea que "sólidos" existe y todavía no tiene recetas.
       if (r.category === "bebes") { c.add("bebes_cremas"); c.add("bebes_solidos"); }
@@ -621,7 +646,7 @@ export function CatalogBrowserSheet({
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
       if (gourmetOnly && !r.apetecible) return false;
-      if (rapidoOnly && !isMontaje(r)) return false;
+      if (rapidoOnly && !esCenaRapida(r)) return false;
       if (seasonFilter && r.season !== seasonFilter) return false;
       if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
       if (cocina && r.cocina !== cocina) return false;
@@ -669,7 +694,7 @@ export function CatalogBrowserSheet({
         if (difficulties.size && !difficulties.has(r.difficulty)) return false;
         if (kidOnly && !r.kidFriendly) return false;
         if (gourmetOnly && !r.apetecible) return false;
-        if (rapidoOnly && !isMontaje(r)) return false;
+        if (rapidoOnly && !esCenaRapida(r)) return false;
         if (seasonFilter && r.season !== seasonFilter) return false;
         if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
         return true;
@@ -703,7 +728,7 @@ export function CatalogBrowserSheet({
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
       if (gourmetOnly && !r.apetecible) return false;
-      if (rapidoOnly && !isMontaje(r)) return false;
+      if (rapidoOnly && !esCenaRapida(r)) return false;
       if (seasonFilter && r.season !== seasonFilter) return false;
       if (sinLactosaOnly && !isCompatibleWith(r, "lactosa_fina")) return false;
       return true;
@@ -869,7 +894,7 @@ export function CatalogBrowserSheet({
     const counts = { ninos: 0, rapido: 0, gourmet: 0, verano: 0, invierno: 0 };
     for (const r of platoCatalog) {
       if (r.kidFriendly) counts.ninos++;
-      if (isMontaje(r)) counts.rapido++;
+      if (esCenaRapida(r)) counts.rapido++;
       if (r.apetecible) counts.gourmet++;
       if (r.season === "verano") counts.verano++;
       if (r.season === "invierno") counts.invierno++;
@@ -1091,8 +1116,14 @@ export function CatalogBrowserSheet({
     .filter((id) => (cocinaCounts[id] ?? 0) > 0)
     .sort((a, b) => (cocinaCounts[b] ?? 0) - (cocinaCounts[a] ?? 0));
 
+  // "Cenas rápidas" entra como TEJA y no solo como faceta escondida en
+  // Filtros. Hasta ahora la única carpeta con ese nombre era la categoría
+  // deprecada, que tenía una receta dentro, mientras el filtro de verdad —con
+  // noventa y pico— vivía a dos toques de profundidad. Va la primera de las
+  // categorías porque es la que más se busca al montar una semana.
   const gridTiles = [
     { kind: "mine", id: "__mine__" },
+    { kind: "facet", id: "rapido" },
     ...allCats.map((catId) => ({ kind: "category", id: catId })),
     ...cocinaTiles.map((id) => ({ kind: "cocina", id })),
   ];
