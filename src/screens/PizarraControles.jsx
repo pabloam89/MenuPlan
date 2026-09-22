@@ -378,15 +378,15 @@ const campoBase = {
  * tocarla, sin salir del panel. Solo escribe al soltar el foco —o con Enter—
  * para no mandar un guardado por cada tecla.
  */
-function CantidadDeLinea({ item, onQty, pool }) {
+function CantidadDeLinea({ item, onQty, pool, onEditarFicha }) {
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState("");
+  const [unidad, setUnidad] = useState(item.unit ?? "ud");
 
-  // Si la línea vino del pool se lee y se edita EN SU UNIDAD —tres cabezas, no
-  // ciento ochenta gramos—, aunque por debajo se guarden los gramos, que es lo
-  // que necesita el cruce con la compra. Preguntar en gramos por algo que
-  // compras en cabezas obliga a una cuenta que nadie tiene hecha.
-  const mostrado = pool ? String(pool.n) : String(item.qty ?? 1);
+  // Si la línea vino del pool se LEE en su unidad —tres cabezas, no ciento
+  // ochenta gramos— aunque por debajo se guarden los gramos, que es lo que
+  // necesita el cruce con la compra. Y al tocarla se abre su ficha, donde
+  // están las dos magnitudes: los paquetes y el peso.
   const etiqueta = pool
     ? `${pool.n} ${pool.n === 1 ? pool.uno : pool.varias}`
     : formatStockQty(item.qty ?? 1, item.unit ?? "ud");
@@ -395,16 +395,21 @@ function CantidadDeLinea({ item, onQty, pool }) {
     setEditando(false);
     const n = Number(String(valor).replace(",", "."));
     if (!(n > 0)) return;
-    const qty = pool ? n * pool.porUnidad : n;
-    const unidad = pool ? pool.unidadBase : (item.unit ?? "ud");
-    if (qty !== Number(item.qty)) onQty?.(item.id, qty, unidad);
+    if (n !== Number(item.qty) || unidad !== item.unit) onQty?.(item.id, n, unidad);
+  };
+
+  const abrir = () => {
+    if (pool && onEditarFicha) { onEditarFicha(pool); return; }
+    setValor(String(item.qty ?? 1));
+    setUnidad(item.unit ?? "ud");
+    setEditando(true);
   };
 
   if (!editando) {
     return (
       <button
         type="button"
-        onClick={() => { setValor(mostrado); setEditando(true); }}
+        onClick={abrir}
         aria-label={`Cambiar la cantidad de ${item.ingredientName ?? item.name}`}
         style={{
           flexShrink: 0, padding: "4px 9px", borderRadius: 999,
@@ -418,17 +423,30 @@ function CantidadDeLinea({ item, onQty, pool }) {
     );
   }
 
+  // Número Y unidad: cambiar "2 kg" por "500 g" son las dos cosas a la vez, y
+  // con solo el número había que borrar la línea y volver a escribirla.
   return (
-    <input
-      autoFocus
-      value={valor}
-      inputMode="decimal"
-      aria-label="Cantidad"
-      onChange={(e) => setValor(e.target.value)}
-      onBlur={guardar}
-      onKeyDown={(e) => { if (e.key === "Enter") guardar(); if (e.key === "Escape") setEditando(false); }}
-      style={{ ...campoBase, width: 58, height: 28, flexShrink: 0, textAlign: "center", fontSize: 16, padding: "0 4px" }}
-    />
+    <span style={{ display: "inline-flex", gap: 4, flexShrink: 0 }} onBlur={(e) => {
+      if (!e.currentTarget.contains(e.relatedTarget)) guardar();
+    }}>
+      <input
+        autoFocus
+        value={valor}
+        inputMode="decimal"
+        aria-label="Cantidad"
+        onChange={(e) => setValor(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") guardar(); if (e.key === "Escape") setEditando(false); }}
+        style={{ ...campoBase, width: 52, height: 28, textAlign: "center", padding: "0 4px" }}
+      />
+      <select
+        value={unidad}
+        onChange={(e) => setUnidad(e.target.value)}
+        aria-label="Unidad"
+        style={{ ...campoBase, width: 54, height: 28, padding: "0 2px", cursor: "pointer" }}
+      >
+        {UNIDADES.map((u) => <option key={u} value={u}>{u === "l" ? "L" : u}</option>)}
+      </select>
+    </span>
   );
 }
 
@@ -520,20 +538,55 @@ function poolDe(item) {
  * ajo se tienen cabezas y del arroz paquetes. Queda una, y se contesta con el
  * pulgar sin abrir el teclado.
  */
-function FichaDelPool({ item, onCancelar, onConfirmar }) {
-  const [n, setN] = useState(item.inicial);
-  const palabra = n === 1 ? item.uno : item.varias;
+function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
+  const { unidad: unidadBase, porUnidad } = medidaDePool(item);
+  // El estado es la cantidad CANÓNICA —lo que se guarda— y no el número de
+  // paquetes. Así los dos mandos son dos vistas del mismo dato en vez de dos
+  // datos que hay que mantener de acuerdo: el contador sube de paquete en
+  // paquete y el campo de abajo escribe gramos, y ninguno puede contradecir
+  // al otro porque no hay otro.
+  const [qty, setQty] = useState((inicial ?? item.inicial) * porUnidad);
+  const [crudo, setCrudo] = useState(null);
+
+  const n = qty / porUnidad;
+  const entero = Math.abs(n - Math.round(n)) < 0.001;
+  // Singular solo con un uno exacto: "0,9 paquete" chirría, "0,9 paquetes" no.
+  const palabra = entero && Math.round(n) === 1 ? item.uno : item.varias;
+  // Con una cantidad que no cae en paquetes enteros —450 g de arroz— el
+  // contador dice la verdad a medias, asi que se escribe el decimal.
+  const enPantalla = entero ? String(Math.round(n)) : n.toFixed(1).replace(".", ",");
+  const conDosCaras = porUnidad !== 1;
+
   const mando = {
     width: 34, height: 34, borderRadius: 10, flexShrink: 0, padding: 0,
     border: "1.5px solid #cfe0d6", background: "#fff", cursor: "pointer",
     color: VERDE, display: "flex", alignItems: "center", justifyContent: "center",
   };
 
+  const paso = (d) => {
+    // Se suelta lo que estuvieras escribiendo a mano: si no, el contador subía
+    // a un paquete y el campo de abajo seguía enseñando los 450 g de antes.
+    setCrudo(null);
+    setQty((v) => {
+      const actual = v / porUnidad;
+      // Desde 450 g, "+1" lleva a un paquete entero, no a 950: el contador
+      // redondea primero y suma después, que es lo que hace quien lo toca.
+      const base = d > 0 ? Math.floor(actual + 0.001) : Math.ceil(actual - 0.001);
+      return Math.max(1, base + d) * porUnidad;
+    });
+  };
+
+  const escribirCanonico = (txt) => {
+    setCrudo(txt);
+    const v = Number(String(txt).replace(",", "."));
+    if (v > 0) setQty(v);
+  };
+
   return (
     <div
       style={{
         background: "#fff", border: `1.5px solid ${VERDE}`, borderRadius: 16,
-        padding: "12px 12px 12px", marginBottom: 14,
+        padding: 12, marginBottom: 14,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 11 }}>
@@ -543,7 +596,7 @@ function FichaDelPool({ item, onCancelar, onConfirmar }) {
             {item.nombre}
           </span>
           <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#9ab0a1", marginTop: 1 }}>
-            ¿Cuántos tienes?
+            {inicial == null ? "¿Cuántos tienes?" : "Cambiar la cantidad"}
           </span>
         </span>
         <button
@@ -560,12 +613,12 @@ function FichaDelPool({ item, onCancelar, onConfirmar }) {
         </button>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 11 }}>
-        <button type="button" className="mp-press" style={mando} onClick={() => setN((v) => Math.max(1, v - 1))} aria-label="Uno menos">
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: conDosCaras ? 8 : 11 }}>
+        <button type="button" className="mp-press" style={mando} onClick={() => paso(-1)} aria-label="Uno menos">
           <Minus size={16} strokeWidth={3} />
         </button>
         <span style={{ flex: 1, textAlign: "center", minWidth: 0 }}>
-          <span style={{ fontSize: 19, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>{n}</span>
+          <span style={{ fontSize: 19, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>{enPantalla}</span>
           <span style={{ fontSize: 12.5, fontWeight: 800, color: "#5a7066", marginLeft: 5 }}>{palabra}</span>
           {item.pie && (
             <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, color: "#9ab0a1", marginTop: -1 }}>
@@ -573,22 +626,45 @@ function FichaDelPool({ item, onCancelar, onConfirmar }) {
             </span>
           )}
         </span>
-        <button type="button" className="mp-press" style={mando} onClick={() => setN((v) => Math.min(99, v + 1))} aria-label="Uno más">
+        <button type="button" className="mp-press" style={mando} onClick={() => paso(1)} aria-label="Uno más">
           <Plus size={16} strokeWidth={3} />
         </button>
       </div>
 
+      {/* La otra magnitud. Un paquete y medio existe, y una balanza no cuenta
+          paquetes: quien quiera decir 450 g lo dice aquí y el contador de
+          arriba se entera. Solo cuando son dos cosas distintas — en las
+          cebollas, que van de una en una, sería el mismo número dos veces. */}
+      {conDosCaras && (
+        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 11, padding: "0 2px" }}>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: "#9ab0a1", flex: 1 }}>
+            o exactamente
+          </span>
+          <input
+            value={crudo ?? String(Math.round(qty))}
+            onChange={(e) => escribirCanonico(e.target.value)}
+            onBlur={() => setCrudo(null)}
+            inputMode="decimal"
+            aria-label={`Cantidad en ${unidadBase}`}
+            style={{ ...campoBase, width: 74, height: 30, textAlign: "center", padding: "0 4px" }}
+          />
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#5a7066", width: 22 }}>
+            {unidadBase}
+          </span>
+        </div>
+      )}
+
       <button
         type="button"
         className="mp-press"
-        onClick={() => onConfirmar(n)}
+        onClick={() => onConfirmar(qty, unidadBase)}
         style={{
           width: "100%", height: 36, borderRadius: 11, border: "none",
           background: VERDE, color: "#fff", cursor: "pointer",
           fontSize: 13, fontWeight: 800, fontFamily: "inherit",
         }}
       >
-        Lo tengo
+        {inicial == null ? "Lo tengo" : "Guardar"}
       </button>
     </div>
   );
@@ -695,9 +771,13 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
       {!escribiendo && pendiente && (
         <FichaDelPool
           item={pendiente}
+          inicial={pendiente.editando?.n ?? null}
           onCancelar={() => setPendiente(null)}
-          onConfirmar={(n) => {
-            onAnadir(pendiente.nombre, n * pendiente.factor, pendiente.canon);
+          onConfirmar={(qty, unidadBase) => {
+            // La MISMA ficha da de alta y corrige. Lo único que cambia es a
+            // dónde va el número: a una línea nueva o a la que ya existe.
+            if (pendiente.editando) onQty?.(pendiente.editando.id, qty, unidadBase);
+            else onAnadir(pendiente.nombre, qty, unidadBase);
             setPendiente(null);
           }}
         />
@@ -756,10 +836,16 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
               <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.25 }}>
                 {i.ingredientName ?? i.name}
               </span>
-              {/* La cantidad se corrige aquí mismo, en el sitio donde la lees:
-                  cambiar "2 kg" por "500 g" no puede obligar a borrar la línea
-                  y volver a escribirla. */}
-              <CantidadDeLinea item={i} onQty={onQty} pool={poolDe(i)} />
+              {/* Lo del pool se corrige en su ficha —la misma del alta, con el
+                  contador de paquetes Y los gramos—. Lo escrito a mano no tiene
+                  ficha, así que se edita en el sitio, en la unidad en la que
+                  esté guardado. */}
+              <CantidadDeLinea
+                item={i}
+                onQty={onQty}
+                pool={poolDe(i)}
+                onEditarFicha={(p) => setPendiente({ ...p, editando: { id: i.id, n: p.n } })}
+              />
               <button
                 type="button"
                 onClick={() => onQuitar(i.id)}
@@ -858,25 +944,16 @@ function PanelTanda({ data, setData, sesion }) {
 
   return (
     <>
-      {/* El inventario va PRIMERO porque trae el deslizador del tiempo, y ese
-          es el mando que hay que ver al abrir. Debajo iba enterrado: era el
-          primero de quince deslizadores y había que bajar para encontrarlo.
+      {/* Los trastos, ANTES de pedir tandas: son la condición, no el detalle.
+          La bechamel son 25 minutos removiendo o 12 sin tocarla, y la legumbre
+          60 o 25, así que lo que tienes en la cocina decide cuántas tandas
+          caben en el rato de abajo. Pedirlas primero y enterarte después de
+          que con airfryer cabía otra es el orden al revés.
 
-          Y no hay un segundo deslizador arriba: son la misma pregunta y el
-          mismo `data.tandaMinutos`, así que dos mandos solo darían dos formas
-          de contestarla sin decir cuál manda.
-
-          Ojo: esto escribe en la libreta de la CASA, no en esta semana. Lo que
-          pidas aquí vale también para los menús que generes. */}
-      <Suspense fallback={null}>
-        <BasesPreferidas data={data} setData={setData} />
-      </Suspense>
-
-      {/* Los trastos no son decoración: la bechamel son 25 minutos removiendo
-          o 12 sin tocarla, y la legumbre 60 o 25. Por eso cada uno dice lo que
-          te quitaría de ESTE domingo en vez de limitarse a estar encendido. */}
-      <Rotulo>QUÉ TIENES EN LA COCINA</Rotulo>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+          Por eso cada uno dice lo que te quitaría de ESTE domingo en vez de
+          limitarse a estar encendido. */}
+      <Rotulo top={0}>QUÉ TIENES EN LA COCINA</Rotulo>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginBottom: 4 }}>
         {KITCHEN_TOOLS.map((t) => (
           <TarjetaTrasto
             key={t.id}
@@ -887,6 +964,17 @@ function PanelTanda({ data, setData, sesion }) {
           />
         ))}
       </div>
+
+      {/* El inventario trae SU deslizador de tiempo —el de `data.tandaMinutos`,
+          que es el que lee `minutosDeTanda`—, así que arriba no hay otro: son
+          la misma pregunta, y dos mandos solo darían dos formas de contestarla
+          sin decir cuál manda.
+
+          Ojo: esto escribe en la libreta de la CASA, no en esta semana. Lo que
+          pidas aquí vale también para los menús que generes. */}
+      <Suspense fallback={null}>
+        <BasesPreferidas data={data} setData={setData} />
+      </Suspense>
     </>
   );
 }
