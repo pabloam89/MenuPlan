@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Check, Coffee, Moon, Sun, UtensilsCrossed, X } from "../components/icons.jsx";
-import { ALL_DAY_MEALS, DAYS, getMeals } from "../lib/planner.js";
+import { CalendarDays, Check, X } from "../components/icons.jsx";
+import { DAYS } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
 import {
@@ -32,18 +32,6 @@ import {
 const VERDE = "#2d5a3d";
 const INK = "#142f1d";
 
-/**
- * Cada comida con SU color y SU icono, los mismos con los que esa franja se
- * pinta en el tablero (`MEAL_EMPTY_ACCENT` y `MEAL_META` en Menu.jsx). Si aquí
- * el desayuno fuera de otro color, lo que enciendes y lo que aparece no se
- * reconocerían como la misma cosa.
- */
-const COMIDAS = [
-  { id: "Desayuno", label: "Desayuno", Icon: Coffee, color: "#9b6a3f" },
-  { id: "Comida", label: "Comida", Icon: Sun, color: "#c98a1e" },
-  { id: "Cena", label: "Cena", Icon: Moon, color: "#4f68b0" },
-];
-
 /** La paleta de grupos (lib/groups.js): ya es el idioma de "cosas distintas
  *  del mismo tipo", así que cuatro semanas se distinguen sin colores nuevos. */
 const COLOR_SEMANA = ["#2d5a3d", "#c67030", "#5a7ea8", "#a85a7e"];
@@ -57,7 +45,6 @@ const MESES = [
 
 const PANELES = [
   { id: "dias", label: "Días", Icon: CalendarDays },
-  { id: "comidas", label: "Comidas", Icon: UtensilsCrossed },
 ];
 
 /**
@@ -134,21 +121,7 @@ export function PizarraControles({ data, onAplicar }) {
     return d;
   }, []);
 
-  const comidas = new Set(getMeals(data));
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
-
-  const toggleComida = (id) => {
-    const next = new Set(comidas);
-    if (next.has(id)) {
-      // Nunca cero: un menú sin ninguna comida no es un tablero vacío, es un
-      // tablero que no existe.
-      if (next.size === 1) return;
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
-    onAplicar({ ...data, meals: ALL_DAY_MEALS.filter((m) => next.has(m)) });
-  };
 
   return (
     <>
@@ -226,7 +199,7 @@ export function PizarraControles({ data, onAplicar }) {
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <p style={{ margin: 0, flex: 1, fontSize: 17, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
-                {abierto === "dias" ? "¿Qué días?" : "¿Qué comidas?"}
+                ¿Qué días?
               </p>
               <button
                 type="button"
@@ -243,27 +216,6 @@ export function PizarraControles({ data, onAplicar }) {
               </button>
             </div>
 
-            {abierto === "comidas" ? (
-              <>
-                <p style={{ margin: "0 0 16px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
-                  Cada una abre su propio hueco cada día.
-                </p>
-                <div style={{ display: "flex", justifyContent: "space-around", gap: 10 }}>
-                  {COMIDAS.map((c, i) => (
-                    <Radial
-                      key={c.id}
-                      label={c.label}
-                      Icon={c.Icon}
-                      color={c.color}
-                      active={comidas.has(c.id)}
-                      onClick={() => toggleComida(c.id)}
-                      delay={i * 70}
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <>
                 <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
                   Toca una semana entera, o afina día a día.
                 </p>
@@ -343,8 +295,6 @@ export function PizarraControles({ data, onAplicar }) {
                     );
                   })}
                 </div>
-              </>
-            )}
           </div>
         </>
       )}

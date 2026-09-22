@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { planVacio, huecosDelPlan, conHuecosAlDia } from "./pizarra.js";
+import { planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./pizarra.js";
 import { DAYS, getDayMeals, slotKey } from "./planner.js";
 
 const ADULTOS = [
@@ -160,5 +160,53 @@ describe("grupos", () => {
     ]);
     expect(plan.adultos["Lun-Comida"].eaters).toBe(2);
     expect(plan.ninos["Lun-Comida"].eaters).toBe(1);
+  });
+});
+
+describe("abrir y cerrar huecos día a día (el `+`)", () => {
+  const grupo = grupoCon(ADULTOS);
+  // Con el postre ya en la lista de la semana, pero sin ninguna clave puesta:
+  // así es como queda `data` después de que el `+` encienda la franja.
+  const conPostre = casaBase(ADULTOS, { extraMeals: { postre: "comida" } });
+
+  it("abre el hueco SOLO en el día pedido", () => {
+    const plan = planVacio(casaBase(), [grupo]);
+    const next = conHuecoAnadido(plan, conPostre, [grupo], { meal: "Postre", dias: ["Jue"] });
+    expect(next.g1["Jue-Postre"]).toBeDefined();
+    expect(next.g1["Lun-Postre"]).toBeUndefined();
+    expect(next.g1["Vie-Postre"]).toBeUndefined();
+  });
+
+  it("o en toda la semana de una vez", () => {
+    const plan = planVacio(casaBase(), [grupo]);
+    const next = conHuecoAnadido(plan, conPostre, [grupo], { meal: "Postre", dias: DAYS });
+    expect(DAYS.every((d) => next.g1[`${d}-Postre`])).toBe(true);
+  });
+
+  it("el hueco añadido es idéntico al que habría puesto el esqueleto", () => {
+    const plan = planVacio(casaBase(), [grupo]);
+    const anadido = conHuecoAnadido(plan, conPostre, [grupo], { meal: "Postre", dias: ["Jue"] });
+    const deEsqueleto = planVacio(conPostre, [grupo]);
+    expect(anadido.g1["Jue-Postre"]).toEqual(deEsqueleto.g1["Jue-Postre"]);
+  });
+
+  it("no pisa un hueco que ya estaba", () => {
+    const plan = planVacio(conPostre, [grupo]);
+    plan.g1["Jue-Postre"] = { ...plan.g1["Jue-Postre"], recipeId: "r-flan", cleared: false };
+    const next = conHuecoAnadido(plan, conPostre, [grupo], { meal: "Postre", dias: DAYS });
+    expect(next.g1["Jue-Postre"].recipeId).toBe("r-flan");
+  });
+
+  it("cerrar un hueco borra su clave y deja las demás", () => {
+    const plan = planVacio(casaBase(), [grupo]);
+    const next = sinHueco(plan, { groupId: "g1", day: "Mar", meal: "Cena" });
+    expect(next.g1["Mar-Cena"]).toBeUndefined();
+    expect(next.g1["Mar-Comida"]).toBeDefined();
+    expect(next.g1["Mié-Cena"]).toBeDefined();
+  });
+
+  it("franjasDelDia dice qué tiene ya ese día", () => {
+    const plan = planVacio(casaBase(), [grupo]);
+    expect([...franjasDelDia(plan, "Lun", [grupo])].sort()).toEqual(["Cena", "Comida"]);
   });
 });

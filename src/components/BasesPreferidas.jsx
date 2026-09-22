@@ -143,9 +143,9 @@ const GRUPOS_PLATO = {
  * no hace falta que el objeto flote.
  */
 const PESTANAS = [
-  { id: "bases", label: "Bases", sub: "Un ingrediente hecho", Icon: CookingPot, arte: "/avatares/cards/tandas/bases.jpg" },
-  { id: "semi", label: "A medias", sub: "Listo para rematar", Icon: RollingPin, arte: "/avatares/cards/tandas/semi.jpg" },
-  { id: "cocinado", label: "Cocinados", sub: "Una olla entera", Icon: Soup, arte: "/avatares/cards/tandas/cocinado.jpg" },
+  { id: "bases", label: "Bases", Icon: CookingPot, arte: "/avatares/cards/tandas/bases.jpg" },
+  { id: "semi", label: "A medias", Icon: RollingPin, arte: "/avatares/cards/tandas/semi.jpg" },
+  { id: "cocinado", label: "Cocinados", Icon: Soup, arte: "/avatares/cards/tandas/cocinado.jpg" },
 ];
 
 /**
@@ -214,12 +214,22 @@ function PatasDeLaSesion({ valor, onChange, cuentas }) {
                 />
               )}
             </span>
-            <span style={{ display: "block", padding: "7px 8px 8px", background: sel ? "#0f766e" : "#fff" }}>
-              <span style={{ display: "block", fontSize: 11.5, fontWeight: 800, color: sel ? "#fff" : "#142f1d" }}>
+            {/* Solo el nombre. Debajo iba una línea explicando la pata ("Un
+                ingrediente hecho"…) y en la más larga se partía en dos, así que
+                una franja quedaba más alta que las otras dos y la fila de tres
+                se torcía. Lo que explica la pata es el párrafo de abajo, que ya
+                cambia al elegirla — decirlo dos veces costaba el alto.
+
+                `flex: 1` para que la franja se estire hasta el fondo de la
+                card: las tres miden lo mismo porque el grid las iguala, pero el
+                texto no llenaba ese alto y asomaba un filo blanco bajo el teal
+                de la elegida. */}
+            <span style={{
+              flex: 1, display: "flex", alignItems: "center",
+              padding: "8px 8px 9px", background: sel ? "#0f766e" : "#fff",
+            }}>
+              <span style={{ fontSize: 11.5, fontWeight: 800, color: sel ? "#fff" : "#142f1d" }}>
                 {p.label}
-              </span>
-              <span style={{ display: "block", fontSize: 9.5, marginTop: 1, lineHeight: 1.2, color: sel ? "#cfe9e5" : "#8aa092" }}>
-                {p.sub}
               </span>
             </span>
           </button>
@@ -408,16 +418,17 @@ export function BasesPreferidas({ data, setData }) {
   // él salen las tandas (una Thermomix hace el caldo en tres vasos) y las
   // manos (una Thermomix también pica, así que el pesto le cuesta menos).
   const comensales = Math.max(1, (data?.members ?? []).length);
-  const manosPedidas = GRUPOS.flatMap((g) => g.claves).reduce((suma, id) => {
-    const veces = vecesDe(id);
-    if (veces <= 0) return suma;
+  const manosDeBase = (id, veces) => {
+    if (veces <= 0) return 0;
     const base = BASES.find((b) => (b.baseKey ?? b.mainBase) === id);
-    if (!base) return suma;
+    if (!base) return 0;
     // Un plato de esa base por cada vez pedida, cada uno para toda la casa.
     const raciones = Array.from({ length: veces }, () => comensales);
     const metodo = selectMethodForRecipe(base, herramientas);
-    return suma + (tiempoDeBase(base, raciones, metodo).minutosActivos ?? 0);
-  }, 0);
+    return tiempoDeBase(base, raciones, metodo).minutosActivos ?? 0;
+  };
+  const manosPedidas = GRUPOS.flatMap((g) => g.claves)
+    .reduce((suma, id) => suma + manosDeBase(id, vecesDe(id)), 0);
   // Y lo que cuesta dejar hechos los PLATOS, que se paga igual de caro: una
   // tanda de croquetas son casi sesenta minutos de manos, mas que cualquier
   // base. Contarlo aparte habria dado dos presupuestos para una sola manana.
@@ -426,6 +437,31 @@ export function BasesPreferidas({ data, setData }) {
   const manosTotales = manosPedidas + manosDePlatos;
   const presupuesto = minutosDeTanda(data);
   const pasado = manosTotales > presupuesto;
+
+  /**
+   * Hasta dónde puede subir una fila sin pasarse del tiempo que has dicho tener.
+   *
+   * Esto sustituye al aviso de "se pasa de lo que dijiste", que llegaba tarde:
+   * te dejaba pedir cuatro horas de domingo y luego te regañaba, y la regañina
+   * no decía qué quitar. El deslizador que no sube lo dice en el sitio y en el
+   * momento — y la barra de arriba, ya llena, dice por qué.
+   *
+   * Se descuenta lo que cuesta ESTA fila y se prueba subiendo: el coste no es
+   * lineal (una olla de arroz para dos tandas no cuesta el doble que para una),
+   * así que no vale dividir el tiempo que queda entre lo que vale una vez.
+   *
+   * `minimoUtil` es para las bases: arrastrar al 1 guarda un 2 —un plato suelto
+   * no es una tanda—, así que lo que hay que ver si cabe es el 2.
+   */
+  const topePorTiempo = (costeDe, valorActual, topeActual, minimoUtil = 0) => {
+    const resto = manosTotales - costeDe(valorActual);
+    let alcanzable = valorActual;
+    for (let v = valorActual + 1; v <= topeActual; v++) {
+      if (resto + costeDe(Math.max(v, minimoUtil)) > presupuesto) break;
+      alcanzable = v;
+    }
+    return alcanzable;
+  };
 
   // ── Lo pedido, de las tres patas juntas ───────────────────────────────────
   // Se arma UNA vez y sirve para dos cosas: las fichas del inventario y la
@@ -467,24 +503,30 @@ export function BasesPreferidas({ data, setData }) {
         sinContar: SIN_CONTAR_POR_BASE[id]?.[clave] ?? 0,
       })),
     });
+    // Dos techos distintos y manda el más bajo: los platos que hay en el
+    // recetario para esa base, y el rato que has dicho tener el día de la tanda.
+    const conTiempo = topePorTiempo((v) => manosDeBase(id, v), n, tope, MIN_POR_SEMANA);
     const sinSitio = tope < MIN_POR_SEMANA;
+    const sinTiempo = conTiempo < MIN_POR_SEMANA && n === 0;
     return {
       id,
       arte: ingredientThumbSrc(ui.foto),
       etiqueta: ui.etiqueta,
       aria: `${ui.etiqueta}: platos por semana`,
       color,
-      max: Math.max(tope, n),
+      max: Math.max(conTiempo, n),
       valor: n,
-      resumen: n > 0 ? `${n}/sem` : (sinSitio ? "—" : "No"),
+      resumen: n > 0 ? `${n}/sem` : (sinSitio || sinTiempo ? "—" : "No"),
       // Lo que está a cero se apaga: es el estado de casi todas las filas, y en
       // color serían catorce etiquetas gritando que no.
       apagado: n === 0,
+      bloqueado: sinTiempo,
     };
   };
 
   const ejeDePlato = (f) => {
     const n = vecesDePlato(f.id);
+    const conTiempo = topePorTiempo((v) => manosDeTanda(f.id, v), n, MAX_PLATOS_SEMANA);
     return {
       id: f.id,
       // La misma ilustración que las bases y por el mismo resolvedor: el id de
@@ -493,13 +535,15 @@ export function BasesPreferidas({ data, setData }) {
       etiqueta: f.etiqueta,
       aria: `${f.etiqueta}: veces por semana`,
       color: COLOR_PATA[pestana],
-      max: MAX_PLATOS_SEMANA,
+      max: Math.max(conTiempo, n),
       valor: n,
-      // El resumen dice los MINUTOS y no solo las veces, porque es lo que
-      // explica la barra de arriba: sin esto, subes croquetas un punto, el
-      // gasto pega un salto de media hora y no se ve por qué.
-      resumen: n > 0 ? `${n}/sem · ${enHoras(aLoGrueso(manosDeTanda(f.id, n)))}` : "No",
+      // Solo las veces, igual que las bases. El resumen llevaba detrás los
+      // minutos ("2/sem · 1 h 20") y en 62px de columna se apretaba contra el
+      // deslizador; además hacía que dos filas de la misma pantalla se leyeran
+      // con gramáticas distintas. Lo que cuesta ya lo dice la barra de arriba.
+      resumen: n > 0 ? `${n}/sem` : (conTiempo < 1 ? "—" : "No"),
       apagado: n === 0,
+      bloqueado: conTiempo < 1 && n === 0,
     };
   };
 
@@ -620,28 +664,59 @@ export function BasesPreferidas({ data, setData }) {
           />
         </span>
 
-        {/* Lo gastado, en la misma escala y sin pulgar: es una lectura. */}
+        {/* Lo gastado, en la misma escala y sin pulgar: es una lectura, no un
+            mando, y un círculo invitaría a arrastrarlo.
+
+            En el mismo negro que la línea de arriba, y no en ámbar al pasarse:
+            el texto se ponía del color de una alarma para decir un número que
+            no tiene nada de malo. Que no quepa más lo dicen los deslizadores,
+            que dejan de subir, y esta barra, que se ve llena. Debajo hubo un
+            aviso ("Se pasa de lo que dijiste. Quita alguna tanda…") y llegaba
+            tarde: te dejaba pedir la mañana entera y luego regañaba sin decir
+            qué quitar. */}
+        {/* Mismo cuerpo y mismo peso que la línea de arriba: iban un punto más
+            pequeñas (12/700 contra 12.5/800) y, una encima de otra, la de abajo
+            parecía un pie de foto de la de arriba en vez de su pareja. */}
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: pasado ? "#b45309" : "#5a7066" }}>
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d" }}>
             Tiempo invertido
           </span>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: pasado ? "#b45309" : "#5a7066" }}>
+          <span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d" }}>
             {manosTotales === 0 ? "nada todavía" : enHoras(aLoGrueso(manosTotales))}
           </span>
         </div>
-        <span style={{ display: "block", height: 7, borderRadius: 4, background: "#e4ede7", overflow: "hidden" }}>
-          <span style={{
-            display: "block", height: "100%", borderRadius: 4,
-            background: pasado ? "#b45309" : "#7bbf93",
-            width: `${gastado * 100}%`,
-            transition: "width .3s ease",
-          }} />
+        <span style={{ position: "relative", height: 16, display: "flex", alignItems: "center" }}>
+          <span style={{ position: "absolute", left: 0, right: 0, height: 7, borderRadius: 4, background: "#e4ede7", overflow: "hidden" }}>
+            <span style={{
+              display: "block", height: "100%", borderRadius: 4,
+              // El ámbar solo queda para lo que ya venía pasado de antes (bajar
+              // el tiempo disponible con tandas ya pedidas): ahí la barra llena
+              // y ámbar es lo único que lo cuenta.
+              background: pasado ? "#b45309" : "#7bbf93",
+              width: `${gastado * 100}%`,
+              transition: "width .3s ease",
+            }} />
+          </span>
+          {/* El círculo del final, para que las dos barras se lean como una
+              pareja y no como una barra y su sombra. Va con la misma medida y
+              el mismo calce de 13px que el de arriba —el que el navegador le da
+              a su pulgar— para que los dos caigan en la misma vertical cuando
+              marcan lo mismo.
+
+              Pinta pero no se toca: sin `input` debajo y con los eventos
+              apagados. Lo que dice es dónde acaba una lectura. */}
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute", width: 20, height: 20, borderRadius: "50%",
+              background: "#fff", border: `2.5px solid ${pasado ? "#b45309" : "#7bbf93"}`,
+              boxShadow: "0 1px 4px rgba(9,18,12,.2)",
+              left: `calc((100% - 13px) * ${gastado})`,
+              transition: "left .3s ease",
+              pointerEvents: "none",
+            }}
+          />
         </span>
-        {pasado && (
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: "#b45309", margin: "8px 0 0", lineHeight: 1.35 }}>
-            Se pasa de lo que dijiste. Quita alguna tanda o date más tiempo.
-          </p>
-        )}
       </div>
 
       {/* Las tres patas de la sesión. Van DEBAJO del tiempo porque el tiempo

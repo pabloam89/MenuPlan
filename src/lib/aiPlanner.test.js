@@ -1734,3 +1734,38 @@ describe("pickCatalogReplacement devuelve las sugerencias del hueco con `candida
     expect(res.frontendRecipe).toBeTruthy();
   });
 });
+
+describe("las franjas de fuera de menú se sirven de su propio pool", () => {
+  // Reportado: un hueco de desayuno proponía platos únicos de comida. La rama
+  // de roles es de comida/cena; desayuno, merienda y postre tienen pools
+  // propios en el catálogo, los mismos que usa el generador.
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+  const hueco = (meal) => ({ [group.id]: { [`Lun-${meal}`]: { recipeId: null, eaters: 2, cleared: true } } });
+
+  for (const [meal, categoria] of [["Desayuno", "desayunos"], ["Merienda", "meriendas"], ["Postre", "postres"]]) {
+    it(`${meal} solo propone recetas de la categoría ${categoria}`, () => {
+      const res = pickCatalogReplacement(data, hueco(meal), {
+        groupId: group.id, day: "Lun", meal, course: "main", candidatos: 10,
+      });
+      expect(res.candidatos.length).toBeGreaterThan(0);
+      for (const r of res.candidatos) expect(r.category).toBe(categoria);
+    });
+  }
+
+  it("y al colocar de verdad también sale de ese pool", () => {
+    const res = pickCatalogReplacement(data, hueco("Desayuno"), {
+      groupId: group.id, day: "Lun", meal: "Desayuno", course: "main",
+    });
+    expect(recipeCatalogById[res.frontendRecipe.baseRecipeId].category).toBe("desayunos");
+  });
+
+  it("la cena sigue yendo por roles, no por pool de franja", () => {
+    const res = pickCatalogReplacement(data, hueco("Cena"), {
+      groupId: group.id, day: "Lun", meal: "Cena", course: "main", candidatos: 10,
+    });
+    for (const r of res.candidatos) {
+      expect(r.mealRole.some((rol) => rol === "cena" || rol === "plato_unico")).toBe(true);
+    }
+  });
+});

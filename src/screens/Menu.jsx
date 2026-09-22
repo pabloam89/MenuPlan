@@ -2080,8 +2080,47 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
   return tiles;
 }
 
+/**
+ * La baldosa del `+`: abre un hueco nuevo en ESE día.
+ *
+ * Va al final de la fila y no en un mando aparte porque lo que se añade es
+ * del día, no de la semana: el sitio donde se decide tiene que ser el sitio
+ * donde se ve. Punteada y sin color, para no competir con los platos — es un
+ * hueco por abrir, no un plato más.
+ */
+function AddSlotTile({ day, onAddSlot, denso = false }) {
+  return (
+    <button
+      type="button"
+      className="mp-press"
+      onClick={() => onAddSlot(day)}
+      aria-label={`Añadir hueco al ${dayLabel(day)}`}
+      style={{
+        width: "100%", height: "100%", minHeight: denso ? 104 : 120,
+        border: "1.5px dashed #cfe0d5", borderRadius: denso ? 14 : 22,
+        background: "transparent", cursor: "pointer", fontFamily: "inherit",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", gap: 6, padding: 0,
+      }}
+    >
+      <span
+        style={{
+          width: denso ? 26 : 32, height: denso ? 26 : 32, borderRadius: 999,
+          background: "#eaf3ed", color: "#2d5a3d",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <Plus size={denso ? 15 : 18} strokeWidth={3} />
+      </span>
+      <span style={{ fontSize: denso ? 10 : 11.5, fontWeight: 800, color: "#8aa394" }}>
+        Añadir hueco
+      </span>
+    </button>
+  );
+}
+
 /** A single photo-forward dish tile. Fills its parent (parent controls size). */
-function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, denso = false, showGroup = false, members = null, invitados = 0 }) {
+function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, denso = false, showGroup = false, members = null, invitados = 0, onRemoveSlot = null }) {
   const { meal, group, slot, dish } = tile;
   const armed = useContext(ArmedContext);
   const clavesTanda = useContext(TandaContext);
@@ -2134,9 +2173,34 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     const accent = MEAL_EMPTY_ACCENT[meal] ?? MEAL_EMPTY_ACCENT._default;
     const badge = compact ? 32 : 46;
     return (
+      <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      {/* Cerrar el hueco. Solo aparece sobre uno VACÍO: el plato se quita antes
+          con "vaciar", que es otro gesto y reversible, así que este toque no
+          puede llevarse por delante nada que hubieras elegido. */}
+      {onRemoveSlot && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={`Quitar el hueco de ${emptyMealLabel}`}
+          onClick={(e) => { e.stopPropagation(); onRemoveSlot(sel); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); onRemoveSlot(sel); } }}
+          style={{
+            position: "absolute", top: 5, right: 5, zIndex: 2,
+            width: 20, height: 20, borderRadius: 999, cursor: "pointer",
+            background: "#fff", border: "1px solid #dbe7df",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <X size={11} color="#9ab0a1" strokeWidth={2.6} />
+        </span>
+      )}
       <button
         type="button"
         {...press}
+        data-slot={`${day}-${meal}`}
+        data-group={group?.id}
+        data-course="main"
         style={{
           position: "relative",
           width: "100%",
@@ -2193,6 +2257,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
         </span>
         <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "#9bb0a4" }}>Toca para añadir</span>
       </button>
+      </div>
     );
   }
   if (!recipe) return null;
@@ -2208,6 +2273,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       className="deck-tile"
       data-coach="menu-dish"
       data-slot={`${day}-${meal}`}
+      data-group={group?.id}
       data-course={dish?.courseKey}
       {...press}
       onPointerDown={onPointerDownPrefetch}
@@ -2539,7 +2605,7 @@ function DayRegenButton({ day, onRegenerateDay, groups = [], compact = false }) 
   );
 }
 
-function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null }) {
+function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, onAddSlot = null, onRemoveSlot = null }) {
   const scrollerRef = useRef(null);
   const rafRef = useRef(0);
 
@@ -2641,9 +2707,14 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
                     key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`}
                     style={many ? { height: 172, flexShrink: 0 } : { flex: 1, minHeight: 0 }}
                   >
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} />
                   </div>
                 ))
+              )}
+              {onAddSlot && (
+                <div style={many ? { height: 96, flexShrink: 0 } : { flex: "0 0 96px" }}>
+                  <AddSlotTile day={day} onAddSlot={onAddSlot} />
+                </div>
               )}
             </div>
           );
@@ -2654,12 +2725,14 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 }
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
-function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false }) {
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: denso ? 12 : 18 }}>
       {days.map((day) => {
         const tiles = getDeckDayTiles(day, data, menuPlan, visibleGroups);
-        if (tiles.length === 0) return null;
+        // Un día sin huecos se sigue pintando cuando hay `+`: si desapareciera,
+        // no habría dónde tocar para volver a abrirle uno.
+        if (tiles.length === 0 && !onAddSlot) return null;
         return (
           <div key={day}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -2672,10 +2745,17 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
               {tiles.map((tile, i) => (
                 <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: denso ? "0 0 33%" : "0 0 46%" }}>
                   <div style={{ height: denso ? 104 : 150 }}>
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={denso ? 14 : 16} compact denso={denso} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={denso ? 14 : 16} compact denso={denso} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} />
                   </div>
                 </div>
               ))}
+              {onAddSlot && (
+                <div style={{ flex: denso ? "0 0 26%" : "0 0 34%" }}>
+                  <div style={{ height: denso ? 104 : 150 }}>
+                    <AddSlotTile day={day} onAddSlot={onAddSlot} denso={denso} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -3885,7 +3965,7 @@ const monthDots = {
   alignItems: "center", gap: 3, maxWidth: 30,
 };
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false }) {
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
@@ -3920,10 +4000,12 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           regenGroups={regenGroups}
           showGroup={showGroup}
           invitadosPorHueco={invitadosPorHueco}
+          onAddSlot={onAddSlot}
+          onRemoveSlot={onRemoveSlot}
         />
       )}
       {deckView === "semana" && (
-        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} />
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} onAddSlot={onAddSlot} onRemoveSlot={onRemoveSlot} />
       )}
       {deckView === "mes" && (
         <DeckMonth
@@ -4784,6 +4866,14 @@ export const MenuScreen = memo(function MenuScreen({
   // quepa de un vistazo, y sin la fila de mandos ni la burbuja del asistente,
   // que App ya no pasa.
   modoPizarra = false,
+  // Abre el menú de "añadir hueco" para ese día. Solo la pizarra lo pasa: en
+  // un menú generado los huecos los pone el motor desde el horario de la casa.
+  onAddSlot = null,
+  // Cierra un hueco vacío. Igual que `onAddSlot`: solo la pizarra lo pasa.
+  onRemoveSlot = null,
+  // Soltar un plato encima de otro hueco del tablero: mueve, o intercambia si
+  // el destino ya tenía algo. Solo la pizarra lo pasa.
+  onSlotDrag = null,
 }) {
   const deckViews = modoPizarra ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
   const [scope, setScope] = useState("all");
@@ -4840,12 +4930,85 @@ export const MenuScreen = memo(function MenuScreen({
   // siguiente, no otra barra.
   const [guestFor, setGuestFor] = useState(null);
 
+  // ── Arrastrar un hueco (solo pizarra) ───────────────────────────────────
+  //
+  // El gesto es el long-press que ya existía, y esa es media solución: como
+  // `useLongPress` cancela en cuanto el dedo se mueve 12px, el scroll de la
+  // fila gana siempre mientras no te hayas parado a propósito. Cuando el
+  // temporizador salta, el plato "se levanta" y a partir de ahí mandan los
+  // listeners de window, no los del tile — el dedo se va a salir de él.
+  //
+  // El destino se busca con `elementFromPoint` y los `data-slot` de las
+  // baldosas, en vez de midiendo rectángulos: así funciona igual en Día y en
+  // Semana, con scroll horizontal por medio y sin que esta pantalla tenga que
+  // saber cómo está maquetada cada vista.
+  const [arrastre, setArrastre] = useState(null);
+  const arrastreRef = useRef(null);
+  useEffect(() => { arrastreRef.current = arrastre; }, [arrastre]);
+
+  const iniciarArrastre = useCallback((sel) => {
+    setArrastre({ source: sel, sobre: null, x: 0, y: 0 });
+  }, []);
+
+  useEffect(() => {
+    if (!arrastre) return undefined;
+
+    const destinoEn = (x, y) => {
+      const el = document.elementFromPoint(x, y)?.closest?.("[data-slot]");
+      if (!el) return null;
+      const bruto = el.getAttribute("data-slot") ?? "";
+      const corte = bruto.indexOf("-");
+      const groupId = el.getAttribute("data-group");
+      if (corte < 0 || !groupId) return null;
+      return {
+        groupId,
+        day: bruto.slice(0, corte),
+        meal: bruto.slice(corte + 1),
+        course: el.getAttribute("data-course") === "first" ? "first" : "main",
+      };
+    };
+
+    const mover = (e) => {
+      const d = destinoEn(e.clientX, e.clientY);
+      const src = arrastreRef.current?.source;
+      const valido = d && src && !(d.groupId === src.groupId && d.day === src.day && d.meal === src.meal && d.course === src.course);
+      setArrastre((a) => (a ? { ...a, sobre: valido ? d : null, x: e.clientX, y: e.clientY } : a));
+    };
+    const soltar = () => {
+      const a = arrastreRef.current;
+      setArrastre(null);
+      if (a?.sobre) onSlotDrag?.(a.source, a.sobre);
+    };
+
+    // Mientras se arrastra no se hace scroll: el dedo está diciendo otra cosa.
+    const prev = document.body.style.touchAction;
+    document.body.style.touchAction = "none";
+    window.addEventListener("pointermove", mover, { passive: true });
+    window.addEventListener("pointerup", soltar);
+    window.addEventListener("pointercancel", soltar);
+    return () => {
+      document.body.style.touchAction = prev;
+      window.removeEventListener("pointermove", mover);
+      window.removeEventListener("pointerup", soltar);
+      window.removeEventListener("pointercancel", soltar);
+    };
+  }, [arrastre, onSlotDrag]);
+
   const handleTileLongPress = useCallback(
     (sel) => {
-      if (readOnly || armed || sel.empty) return;
+      if (readOnly || armed) return;
+      // En la pizarra la pulsación larga LEVANTA el plato. Las acciones
+      // (cambiar, duplicar, vaciar) siguen en el botón de los tres puntos, que
+      // es un gesto explícito: aquí el dedo largo ya significa "lo voy a
+      // mover", y darle dos significados sería pedirle al usuario que adivine.
+      if (modoPizarra && !sel.empty && onSlotDrag) {
+        iniciarArrastre(sel);
+        return;
+      }
+      if (sel.empty) return;
       setDishAction(sel);
     },
-    [armed, readOnly],
+    [armed, readOnly, modoPizarra, onSlotDrag, iniciarArrastre],
   );
 
   // Demo-only autoplay for the value-props carousel: open the quick-actions
@@ -5694,6 +5857,8 @@ export const MenuScreen = memo(function MenuScreen({
             <ArmedContext.Provider value={armed}>
             <MenuDeck
               denso={modoPizarra}
+              onAddSlot={modoPizarra ? onAddSlot : null}
+              onRemoveSlot={modoPizarra ? onRemoveSlot : null}
               deckView={deckView}
               days={activeDays}
               weekDates={weekDates}
@@ -5715,6 +5880,29 @@ export const MenuScreen = memo(function MenuScreen({
               invitadosPorHueco={invitadosPorHueco}
             />
             </ArmedContext.Provider>
+          </div>
+        )}
+
+        {/* La etiqueta que sigue al dedo mientras arrastras. Es la única pista
+            de que el gesto va bien: sin ella el plato levantado no dice a
+            dónde va a caer, y hay que soltarlo para averiguarlo. */}
+        {arrastre && (
+          <div
+            aria-hidden
+            style={{
+              position: "fixed", zIndex: 250, pointerEvents: "none",
+              left: arrastre.x, top: arrastre.y - 46,
+              transform: "translateX(-50%)",
+              padding: "7px 13px", borderRadius: 999,
+              background: arrastre.sobre ? "#2d5a3d" : "#1a3a24",
+              color: "#fff", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap",
+              boxShadow: "0 6px 20px rgba(20,47,29,.35)",
+              opacity: arrastre.x ? 1 : 0,
+            }}
+          >
+            {arrastre.sobre
+              ? `Soltar en ${MEAL_META[arrastre.sobre.meal]?.label ?? arrastre.sobre.meal} · ${dayLabel(arrastre.sobre.day)}`
+              : "Arrastra a otro hueco"}
           </div>
         )}
 

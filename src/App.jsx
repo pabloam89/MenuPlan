@@ -44,6 +44,7 @@ const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ 
 const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
 const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
 const PizarraControles = lazy(() => import("./screens/PizarraControles.jsx").then(m => ({ default: m.PizarraControles })));
+const AnadirHuecoSheet = lazy(() => import("./screens/AnadirHuecoSheet.jsx").then(m => ({ default: m.AnadirHuecoSheet })));
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
@@ -63,7 +64,7 @@ import { FeedScreen } from "./screens/FeedScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { getDayMeals, getMeals, DAYS, weeklySlotBudget } from "./lib/planner.js";
+import { getDayMeals, getMeals, ALL_DAY_MEALS, DAYS, weeklySlotBudget } from "./lib/planner.js";
 import { freqsEfectivos, presupuestoDeTopes } from "./lib/reparto.js";
 import {
   groupsFromModel,
@@ -100,7 +101,7 @@ import {
   orderedWeeks,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
-import { pizarraActiva, planVacio, huecosDelPlan, conHuecosAlDia } from "./lib/pizarra.js";
+import { pizarraActiva, planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
 import { proyectarReglas, reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
   saveMenu as saveMenuRemote,
@@ -1221,6 +1222,8 @@ export default function App() {
   // suelto para que sobreviva a recargar la app: la pizarra que dejaste a
   // medias ayer sigue siendo una pizarra hoy.
   const esPizarra = data.menus?.[data.activeMenuId]?.origin === "pizarra";
+  // El día cuyo "+" está abierto, o null.
+  const [addSlotDay, setAddSlotDay] = useState(null);
   const [toast, setToast] = useState(null);
   const [isGeneratingMenu, setIsGeneratingMenu] = useState(false);
   const [menuError, setMenuError] = useState(null);
@@ -2581,6 +2584,78 @@ export default function App() {
   }, []);
 
   const openMenusScreen = useCallback(() => fwd(() => setScreen("menus")), []);
+
+  /**
+   * Abre un hueco de esa franja desde el `+` de un día.
+   *
+   * Son DOS escrituras y las dos hacen falta: la franja tiene que entrar en la
+   * lista de la semana (`meals` / `extraMeals`), porque el tablero recorre esa
+   * lista, y la clave del hueco solo se crea en los días pedidos. Es la pareja
+   * lo que hace posible "un postre solo el jueves": la lista dice que el postre
+   * existe, y el plan dice en qué días.
+   */
+  const handleAddSlot = useCallback((meal, todaLaSemana) => {
+    setAddSlotDay(null);
+    const day = addSlotDay;
+    if (!day || householdReadOnly) return;
+
+    const base = resolveModeData(data);
+    let nextData = data;
+    if (meal === "Comida" || meal === "Cena") {
+      const puestas = new Set(getMeals(base));
+      if (!puestas.has(meal)) {
+        puestas.add(meal);
+        nextData = { ...nextData, meals: ALL_DAY_MEALS.filter((m) => puestas.has(m)) };
+      }
+    } else {
+      // Los valores son los del generador (ver planExtraMealsForGroup): aquí no
+      // generan nada, pero escribir otros dejaría un `extraMeals` que ese
+      // código no sabría leer el día que se genere sobre esta misma casa.
+      const clave = meal === "Desayuno" ? "desayuno" : meal === "Merienda" ? "merienda" : "postre";
+      const valor = meal === "Desayuno" ? "variado" : meal === "Merienda" ? "semana" : "comida";
+      const em = nextData.extraMeals ?? {};
+      if (!em[clave] || em[clave] === "off") {
+        nextData = { ...nextData, extraMeals: { ...em, [clave]: valor } };
+      }
+    }
+
+    const groups = nextData.groups?.length > 0
+      ? nextData.groups
+      : groupsFromModel(nextData.members, nextData.menuModel);
+    const { activeDays } = getWeekDatesByMenuWeek(nextData.menuWeek);
+    const dias = todaLaSemana ? activeDays : [day];
+
+    let abiertos = 0;
+    setMenuPlan((plan) => {
+      const next = conHuecoAnadido(plan, nextData, groups, { meal, dias });
+      abiertos = next === plan ? 0 : 1;
+      return next;
+    });
+    if (nextData !== data) setData(nextData);
+    // Un hueco que no se abre tiene siempre un motivo de la casa —la merienda
+    // es de niños, o ese día no come nadie—, y callarlo parecería un fallo.
+    if (!abiertos) {
+      showToast(
+        meal === "Merienda"
+          ? "La merienda es para los peques, y no hay ninguno en este menú"
+          : `Ese día no hay nadie en casa para ${meal.toLowerCase()}`,
+      );
+    }
+  }, [addSlotDay, data, householdReadOnly, showToast]);
+
+  /**
+   * Cierra un hueco vacío desde su "×".
+   *
+   * Borra la clave del plan y nada más: la franja sigue en la lista de la
+   * semana, así que el `+` de ese día puede volver a abrirla. No se toca
+   * `data` porque quitar el postre del jueves no significa que la casa deje
+   * de tomar postre.
+   */
+  const handleRemoveSlot = useCallback((sel) => {
+    if (householdReadOnly || !sel) return;
+    setMenuPlan((plan) => sinHueco(plan, { groupId: sel.groupId, day: sel.day, meal: sel.meal }));
+    trackEvent(user, "pizarra_slot_removed", "menu", { meal: sel.meal });
+  }, [householdReadOnly, user]);
 
   /**
    * Las sugerencias del hueco que tiene abierto el recetario.
@@ -4288,6 +4363,55 @@ export default function App() {
    * tuyo: el plato de otra persona no esta en tu plan, asi que no hay origen
    * de donde copiarlo.
    */
+  /**
+   * Soltar un plato en otro hueco (arrastre de la pizarra).
+   *
+   * Mueve si el destino está libre, e intercambia si ya tenía plato — que es
+   * lo que se espera al dejar caer una comida encima de una cena.
+   *
+   * No reutiliza `handleSwapSlots` porque ese exige plato en los DOS lados
+   * ("solo puedes intercambiar platos que ya existen"), y aquí el caso normal
+   * es justo el contrario: arrastrar a un hueco vacío. Cambiarlo allí tocaría
+   * también el "Mover" del menú generado, que no es lo que se ha pedido.
+   *
+   * `eaters` y `mode` NO viajan con el plato: son del hueco —quién come a esa
+   * hora ese día— así que se quedan donde están. Lo que se mueve es la receta.
+   */
+  const handleSlotDrag = useCallback(async (source, target) => {
+    if (householdReadOnly || !source || !target) return;
+    const sKey = `${source.day}-${source.meal}`;
+    const tKey = `${target.day}-${target.meal}`;
+    const sField = source.course === "first" ? "firstRecipeId" : "recipeId";
+    const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
+
+    const sRecipe = menuPlan[source.groupId]?.[sKey]?.[sField] ?? null;
+    if (!sRecipe) return;
+    const tRecipe = menuPlan[target.groupId]?.[tKey]?.[tField] ?? null;
+
+    const groups = data.groups.length > 0
+      ? data.groups
+      : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+
+    setMenuPlan((plan) => {
+      const next = { ...plan };
+      const escribir = (gid, key, field, val) => {
+        const antes = next[gid]?.[key];
+        if (!antes) return;
+        next[gid] = { ...next[gid] };
+        const despues = { ...antes, [field]: val, warnings: [] };
+        despues.cleared = !despues.recipeId && !despues.firstRecipeId;
+        next[gid][key] = despues;
+      };
+      escribir(source.groupId, sKey, sField, tRecipe);
+      escribir(target.groupId, tKey, tField, sRecipe);
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    showToast(tRecipe ? "Platos intercambiados" : "Plato movido");
+    trackEvent(user, "pizarra_slot_dragged", "menu", { intercambio: Boolean(tRecipe) });
+  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor]);
+
   const handlePlaceRecipeInSlot = useCallback(async (recipeId, target) => {
     if (householdReadOnly || !recipeId || !target) return;
     const baseId = String(recipeId).split("__").pop();
@@ -5212,6 +5336,9 @@ export default function App() {
               wizardControls={esPizarra ? null : wizard.controls}
               wizardBubble={esPizarra ? null : wizard.bubble}
               modoPizarra={esPizarra}
+              onAddSlot={esPizarra ? setAddSlotDay : null}
+              onRemoveSlot={esPizarra ? handleRemoveSlot : null}
+              onSlotDrag={esPizarra ? handleSlotDrag : null}
             />
             {/* Los mandos de la pizarra: dos lengüetas en el borde izquierdo.
                 Van AQUÍ y no dentro de MenuScreen para que esa pantalla siga
@@ -5693,6 +5820,17 @@ export default function App() {
       </div>
 
 
+      {addSlotDay && (
+        <Suspense fallback={null}>
+          <AnadirHuecoSheet
+            day={addSlotDay}
+            yaPuestas={franjasDelDia(menuPlan, addSlotDay, data.groups ?? [])}
+            onAdd={handleAddSlot}
+            onClose={() => setAddSlotDay(null)}
+          />
+        </Suspense>
+      )}
+
       {isGeneratingMenu && <GeneratingScreen onStop={stopGeneration} />}
 
       {individualPrompt && (
@@ -5756,7 +5894,10 @@ export default function App() {
       {slotPicker && !slotPicker.kind && (
         <CatalogBrowserSheet
           gatePick
-          gatePickSourceTabs
+          // Sin la fila Mis recetas / Catálogo: la rejilla de carpetas con la
+          // que abre ya lleva "Mis recetas" como primera carpeta, así que era
+          // el mismo destino dos veces — y costaba 74px de alto justo donde
+          // hace falta sitio para las sugerencias de abajo.
           gatePickType="plato"
           selectedPlatoId={null}
           onPickPlato={(id) => { if (id) handleChooseRecipeForSlot(id); }}

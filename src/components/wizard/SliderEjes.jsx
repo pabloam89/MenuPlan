@@ -37,11 +37,18 @@ const CSS = `
   .sl-eje::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: transparent; border: none; margin-top: -7px; }
   .sl-eje::-moz-range-thumb { width: 20px; height: 20px; border: none; border-radius: 50%; background: transparent; }
   .sl-eje:focus-visible { outline: 2px solid #2d5a3d; outline-offset: 2px; border-radius: 4px; }
+  .sl-eje:disabled { cursor: not-allowed; }
 `;
 
 /**
- * @param {object[]} ejes { id, arte, etiqueta, valor, resumen, color, max?, apagado?, aria? }
+ * @param {object[]} ejes { id, arte, etiqueta, valor, resumen, color, max?, apagado?, aria?, bloqueado? }
  * @param {string[]} movidas ids que acaba de mover el bot: esos se animan
+ *
+ * `bloqueado` es una fila que no da más de sí y está a cero: no queda sitio
+ * para ella (en tandas, no cabe en el tiempo que has dicho tener). Distinto de
+ * `apagado`, que es solo "no lo has pedido" y se puede pedir cuando quieras.
+ * Una fila que SÍ tiene valor nunca se bloquea aunque no pueda subir: hay que
+ * poder bajarla, que es justamente cómo se hace sitio.
  */
 export function SliderEjes({ ejes, min = 0, max = 100, step = 1, movidas = [], porQue = null, onChange }) {
   const animando = useAnimacionDelAgente(movidas);
@@ -55,8 +62,13 @@ export function SliderEjes({ ejes, min = 0, max = 100, step = 1, movidas = [], p
         // número distinto de platos por semana. Con un max común, la barra de
         // peruana llegaba a cinco y el valor se recortaba a dos por detrás —
         // el pulgar dejaba de seguir al dedo.
-        const tope = eje.max ?? max;
-        const color = eje.color ?? "#2d5a3d";
+        // Nunca por debajo de `min + 1`: una fila sin recorrido daría un
+        // `parte` de 0/0 y el pulgar se iría a `left: calc(... * NaN)`, que el
+        // navegador descarta y deja el círculo pegado a la izquierda.
+        const topeBruto = eje.max ?? max;
+        const tope = topeBruto > min ? topeBruto : min + 1;
+        const bloqueado = eje.bloqueado === true;
+        const color = bloqueado ? "#c8d9ce" : (eje.color ?? "#2d5a3d");
         const parte = (eje.valor - min) / (tope - min);
         const pct = Math.round(parte * 100);
         // El pulgar no va en `left: pct%` sino metido hacia dentro sus 13px de
@@ -91,14 +103,16 @@ export function SliderEjes({ ejes, min = 0, max = 100, step = 1, movidas = [], p
                 src={eje.arte}
                 alt=""
                 loading="lazy"
-                style={{ width: "88%", height: "88%", objectFit: "contain" }}
+                // La ilustración de una fila bloqueada se atenúa en vez de
+                // desaparecer: sigue diciendo de qué fila se trata.
+                style={{ width: "88%", height: "88%", objectFit: "contain", opacity: bloqueado ? 0.45 : 1 }}
               />
             </span>
 
             <span
               style={{
                 width: 84, flexShrink: 0, fontSize: 12, fontWeight: 700,
-                color: "#3a4a40", lineHeight: 1.2,
+                color: bloqueado ? "#9ab0a1" : "#3a4a40", lineHeight: 1.2,
               }}
             >
               {eje.etiqueta}
@@ -134,7 +148,9 @@ export function SliderEjes({ ejes, min = 0, max = 100, step = 1, movidas = [], p
                 max={tope}
                 step={step}
                 value={eje.valor}
+                disabled={bloqueado}
                 aria-label={eje.aria ?? eje.etiqueta}
+                aria-disabled={bloqueado || undefined}
                 onChange={(e) => onChange(eje.id, +e.target.value)}
               />
             </span>

@@ -3021,6 +3021,16 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
  * Solo tiene sentido sin `forcedRecipe`, que es el camino en que no hay nada
  * que elegir porque el plato ya viene decidido.
  */
+/**
+ * De qué pool del catálogo se sirve cada franja de fuera de menú. Las que no
+ * están aquí (Comida, Cena) van por el pool normal y por `mealRole`.
+ */
+const POOL_DE_FRANJA = {
+  Desayuno: "desayunos",
+  Merienda: "meriendas",
+  Postre: "postres",
+};
+
 export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0 }) {
   const group = (data?.groups ?? []).find((g) => g.id === groupId);
   if (!group) return null;
@@ -3033,6 +3043,47 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // pairing + intolerance-safe scaling in BOTH the auto-pick and the manual
   // "elegir del catálogo" (forcedRecipe) paths, so compute it up front.
   const ctx = buildGroupContext(data, group);
+
+  // ── Las franjas de fuera de menú tienen su propio pool ─────────────────
+  // Desayuno, merienda y postre NO se sirven del catálogo de comida y cena:
+  // salen de `filterOffMenuRecipes`, igual que cuando el menú se genera (ver
+  // planExtraMealsForGroup). Sin esto, pedirle un plato a un hueco de desayuno
+  // caía en la rama de comida y proponía platos únicos — unas lentejas como
+  // sugerencia de desayuno. Los roles (`mealRole`) no pintan nada aquí: en
+  // estos pools la categoría YA es el rol.
+  const poolFranja = POOL_DE_FRANJA[String(meal)];
+  if (poolFranja && !forcedRecipe) {
+    const pool = filterOffMenuRecipes(poolFranja, {
+      allergies: ctx.filterOpts.allergies ?? [],
+      intolerances: ctx.filterOpts.intolerances ?? [],
+      dislikes: ctx.filterOpts.dislikes ?? [],
+      hasKids: ctx.filterOpts.hasKids ?? false,
+    });
+    // Lo ya puesto esta semana baja al final, no se prohíbe: estos pools son
+    // pequeños —un puñado de desayunos— y descartarlos por repetición dejaría
+    // el hueco sin nada que ofrecer.
+    const yaPuestos = new Set();
+    for (const s of Object.values(menuPlan[groupId] ?? {})) {
+      const base = stripGroupPrefix(s?.recipeId);
+      if (base) yaPuestos.add(base);
+    }
+    const frescos = pool.filter((r) => !yaPuestos.has(r.id));
+    const ordenados = [...frescos, ...pool.filter((r) => yaPuestos.has(r.id))];
+    if (ordenados.length === 0) return null;
+    if (candidatos > 0) return { candidatos: ordenados.slice(0, candidatos) };
+
+    const elegido = frescos.length > 0
+      ? frescos[Math.floor(Math.random() * frescos.length)]
+      : pool[Math.floor(Math.random() * pool.length)];
+    const activos = (data.groups ?? []).filter((g) => membersOfGroup(g, data.members).length > 0);
+    const pref = activos.length > 1 ? `${groupId}__` : "";
+    const comensales = currentSlot.eaters ?? 2;
+    const receta = catalogToFrontendRecipe(elegido, comensales, ctx.filterOpts.intolerances ?? []);
+    receta.id = pref + elegido.id;
+    receta.baseRecipeId = elegido.id;
+    // Sin emparejar guarnición: un desayuno no lleva arroz de acompañamiento.
+    return { frontendRecipe: receta, recipeId: receta.id, course, reusedDuplicate: false };
+  }
 
   let picked;
   let reusedDuplicate = false;

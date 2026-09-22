@@ -96,6 +96,47 @@ function franjaAplica(meal, { esMenuDeBebe, hayNinos }) {
 }
 
 /**
+ * UN hueco vacío, o null si ese día y esa franja no tienen hueco para este
+ * grupo. Es el corazón de `planVacio`, extraído porque añadir un hueco suelto
+ * desde el `+` tiene que producir exactamente el mismo objeto: si divergieran,
+ * el hueco puesto a mano escalaría los platos distinto que el de al lado.
+ */
+function huecoDe(data, group, delGrupo, day, meal, contexto) {
+  if (!franjaAplica(meal, contexto)) return null;
+
+  // Mismo criterio que el generador: si ese día no come nadie en casa, no hay
+  // hueco que rellenar. Aquí importa el doble, porque un hueco con cero
+  // comensales escalaría a cero raciones el plato que le pusieras encima.
+  const members = data?.members ?? [];
+  const schedule = data?.schedule ?? {};
+  const mode = modeForGroupSlot(group, members, schedule, day, meal);
+  if (!mode.cook) return null;
+
+  const eaters = delGrupo.filter((m) => {
+    const s = schedule[slotKey(m.id, day, meal)] ?? "casa";
+    return s === "casa" || s === "tupper";
+  }).length;
+  if (eaters === 0) return null;
+
+  return {
+    recipeId: null,
+    firstRecipeId: null,
+    mode: mode.mode,
+    eaters,
+    warnings: [],
+    cleared: true,
+  };
+}
+
+/** El contexto que `huecoDe` necesita para las franjas de fuera de menú. */
+function contextoDeGrupo(group, members, delGrupo) {
+  return {
+    esMenuDeBebe: isBabyMenuGroup(group, members),
+    hayNinos: tieneNinos(delGrupo),
+  };
+}
+
+/**
  * El esqueleto: todos los huecos de la semana, todos vacíos.
  *
  * `cleared: true` es lo que hace que la pantalla del menú pinte el
@@ -111,7 +152,6 @@ function franjaAplica(meal, { esMenuDeBebe, hayNinos }) {
 export function planVacio(data, groups) {
   const plan = { _warnings: [] };
   const members = data?.members ?? [];
-  const schedule = data?.schedule ?? {};
   const comidas = getDayMeals(data);
 
   for (const group of groups ?? []) {
@@ -119,36 +159,12 @@ export function planVacio(data, groups) {
     const delGrupo = membersOfGroup(group, members);
     if (delGrupo.length === 0) continue;
 
-    const contexto = {
-      esMenuDeBebe: isBabyMenuGroup(group, members),
-      hayNinos: tieneNinos(delGrupo),
-    };
+    const contexto = contextoDeGrupo(group, members, delGrupo);
 
     for (const day of DAYS) {
       for (const meal of comidas) {
-        if (!franjaAplica(meal, contexto)) continue;
-
-        // Mismo criterio que el generador: si ese día no come nadie en casa,
-        // no hay hueco que rellenar. Aquí importa el doble, porque un hueco
-        // con cero comensales escalaría a cero raciones el plato que le
-        // pusieras encima.
-        const mode = modeForGroupSlot(group, members, schedule, day, meal);
-        if (!mode.cook) continue;
-
-        const eaters = delGrupo.filter((m) => {
-          const s = schedule[slotKey(m.id, day, meal)] ?? "casa";
-          return s === "casa" || s === "tupper";
-        }).length;
-        if (eaters === 0) continue;
-
-        plan[group.id][`${day}-${meal}`] = {
-          recipeId: null,
-          firstRecipeId: null,
-          mode: mode.mode,
-          eaters,
-          warnings: [],
-          cleared: true,
-        };
+        const hueco = huecoDe(data, group, delGrupo, day, meal, contexto);
+        if (hueco) plan[group.id][`${day}-${meal}`] = hueco;
       }
     }
   }
@@ -197,4 +213,74 @@ export function huecosDelPlan(plan) {
     n += Object.values(slots).filter(Boolean).length;
   }
   return n;
+}
+
+/**
+ * Las franjas que un día puede tener, en el orden natural del día. Es el
+ * vocabulario CERRADO de `mealSlots.js`: el `+` reparte estas cinco y no
+ * inventa ninguna, porque una franja nueva no es UI — son reglas nuevas en
+ * validateMenu.js.
+ */
+export const FRANJAS_DEL_DIA = ["Desayuno", "Comida", "Merienda", "Cena", "Postre"];
+
+/** Qué franjas tiene ya ese día (en cualquiera de los grupos visibles). */
+export function franjasDelDia(plan, day, groups) {
+  const puestas = new Set();
+  for (const g of groups ?? []) {
+    for (const key of Object.keys(plan?.[g.id] ?? {})) {
+      const [d, meal] = [key.slice(0, key.indexOf("-")), key.slice(key.indexOf("-") + 1)];
+      if (d === day) puestas.add(meal);
+    }
+  }
+  return puestas;
+}
+
+/**
+ * Abre un hueco de esa franja en los días indicados.
+ *
+ * No toca `data`: quien llama tiene que haberse asegurado de que la franja
+ * está en la lista de la semana (`data.meals` / `data.extraMeals`), porque el
+ * tablero recorre ESA lista y se salta el día que no tiene la clave. Las dos
+ * cosas juntas son las que hacen posible "un postre solo el jueves".
+ */
+export function conHuecoAnadido(plan, data, groups, { meal, dias }) {
+  const members = data?.members ?? [];
+  const next = { ...plan };
+  let nuevos = 0;
+
+  for (const group of groups ?? []) {
+    const delGrupo = membersOfGroup(group, members);
+    if (delGrupo.length === 0) continue;
+    const contexto = contextoDeGrupo(group, members, delGrupo);
+    const actuales = next[group.id] ?? {};
+    let copia = null;
+
+    for (const day of dias) {
+      const key = `${day}-${meal}`;
+      if (actuales[key]) continue;
+      const hueco = huecoDe(data, group, delGrupo, day, meal, contexto);
+      if (!hueco) continue;
+      copia = copia ?? { ...actuales };
+      copia[key] = hueco;
+      nuevos++;
+    }
+    if (copia) next[group.id] = copia;
+  }
+
+  return nuevos > 0 ? next : plan;
+}
+
+/**
+ * Cierra un hueco. Esto SÍ borra la clave —es lo que pide quien toca "quitar
+ * hueco"— pero solo se ofrece sobre un hueco vacío: el plato se quita antes,
+ * con "vaciar", que es un gesto aparte y reversible. Así ningún toque se lleva
+ * por delante un plato que habías elegido.
+ */
+export function sinHueco(plan, { groupId, day, meal }) {
+  const huecos = plan?.[groupId];
+  const key = `${day}-${meal}`;
+  if (!huecos?.[key]) return plan;
+  const copia = { ...huecos };
+  delete copia[key];
+  return { ...plan, [groupId]: copia };
 }
