@@ -4199,6 +4199,50 @@ function ViewCircle({ Icon, active, color = "#2d5a3d", size = 36 }) {
 }
 
 /** Menu view picker — circular chip that opens a modal with the view options. */
+/**
+ * El selector de vista de la pizarra: un botón, no un menú.
+ *
+ * Con dos vistas, abrir una hoja modal para elegir entre dos es pedir tres
+ * gestos (tocar, leer, elegir) para algo que es un interruptor. Aquí el toque
+ * ya cambia, el chevron sobra —no despliega nada— y la etiqueta baja debajo
+ * del icono, que es donde cabe sin ensanchar la fila.
+ */
+function DeckToggleVista({ value, onChange, options }) {
+  const i = Math.max(0, options.findIndex((o) => o.id === value));
+  const activa = options[i] ?? options[0];
+  const siguiente = options[(i + 1) % options.length];
+  const Icon = DECK_VIEW_ICON[activa?.id] ?? CalendarDays;
+  const color = DECK_VIEW_COLOR[activa?.id] ?? "#2d5a3d";
+
+  return (
+    <button
+      type="button"
+      className="deck-press"
+      onClick={() => onChange(siguiente.id)}
+      aria-label={`Vista: ${activa?.label}. Tocar para ver ${siguiente?.label}`}
+      title={`Ver ${siguiente?.label}`}
+      style={{
+        border: "none", background: "transparent", padding: 0, cursor: "pointer",
+        fontFamily: "inherit", flexShrink: 0,
+        display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 3,
+      }}
+    >
+      <span
+        style={{
+          width: 34, height: 34, borderRadius: 11,
+          background: `${color}14`, border: `1.5px solid ${color}40`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <Icon size={17} color={color} strokeWidth={2.4} />
+      </span>
+      <span style={{ fontSize: 9.5, fontWeight: 800, color, letterSpacing: "-.1px", lineHeight: 1 }}>
+        {activa?.label}
+      </span>
+    </button>
+  );
+}
+
 function DeckNav({ value, onChange, options }) {
   const [open, setOpen] = useState(false);
   const active = options.find((o) => o.id === value) ?? options[0];
@@ -5946,7 +5990,33 @@ export const MenuScreen = memo(function MenuScreen({
                 the far right gets its own step, and a spotlight over the whole
                 row would highlight both at once. */}
             <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
-              <DeckNav value={deckView} onChange={setDeckView} options={deckViews} />
+              {modoPizarra
+                ? <DeckToggleVista value={deckView} onChange={setDeckView} options={deckViews} />
+                : <DeckNav value={deckView} onChange={setDeckView} options={deckViews} />}
+              {/* Rellenar lo que falte. Vivía bajo el tablero y había que
+                  bajar siete días para encontrarlo; aquí está desde el primer
+                  momento, que es cuando la semana está más vacía y más falta
+                  hace. Con el número, porque "rellenar" a secas no dice si va
+                  a tocar un hueco o la semana entera. */}
+              {modoPizarra && onFillSlots && huecosLibres > 0 && (
+                <button
+                  type="button"
+                  className="deck-press"
+                  onClick={() => onFillSlots()}
+                  aria-label={`Rellenar ${huecosLibres} huecos`}
+                  title="Que los elija la app"
+                  style={{
+                    marginLeft: 10, flexShrink: 0, cursor: "pointer", fontFamily: "inherit",
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    height: 34, padding: "0 11px", borderRadius: 11,
+                    border: "1.5px solid #cfe0d5", background: "#fff",
+                    color: "#2d5a3d", fontSize: 12.5, fontWeight: 800,
+                  }}
+                >
+                  <Sparkles size={14} strokeWidth={2.6} />
+                  Rellenar {huecosLibres}
+                </button>
+              )}
             </div>
             {/* Centrado en la FRANJA, no en el hueco que sobra. Con
                 `flex: 1 + center` el paso de semanas se centraba entre el
@@ -6055,28 +6125,6 @@ export const MenuScreen = memo(function MenuScreen({
               onPickMonthDay={handlePickMonthDay}
               invitadosPorHueco={invitadosPorHueco}
             />
-            {/* Rellenar lo que quede. Solo con huecos por llenar, y diciendo
-                cuántos son: "rellenar" sin número no deja claro si va a tocar
-                un hueco o la semana entera. */}
-            {onFillSlots && huecosLibres > 0 && (
-              <div style={{ padding: "4px 16px 0", display: "flex", justifyContent: "center" }}>
-                <button
-                  type="button"
-                  className="mp-press"
-                  onClick={() => onFillSlots()}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: 8,
-                    padding: "11px 18px", borderRadius: 999, cursor: "pointer",
-                    border: "1.5px solid #cfe0d5", background: "#fff",
-                    color: "#2d5a3d", fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
-                    boxShadow: "0 4px 14px -10px rgba(20,47,29,.5)",
-                  }}
-                >
-                  <Sparkles size={16} strokeWidth={2.4} />
-                  {huecosLibres === 1 ? "Rellenar el hueco que queda" : `Rellenar los ${huecosLibres} huecos que quedan`}
-                </button>
-              </div>
-            )}
             </ArmedContext.Provider>
           </div>
         )}

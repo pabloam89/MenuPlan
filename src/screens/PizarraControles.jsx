@@ -380,7 +380,7 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar }) {
                   })}
                 </div>
 
-                <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, padding: "12px 8px" }}>
+                <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, padding: "14px 10px 10px" }}>
                   <div style={{
                     fontSize: 10.5, fontWeight: 800, color: TEAL, letterSpacing: ".8px",
                     textTransform: "uppercase", padding: "0 4px 8px",
@@ -389,22 +389,34 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar }) {
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 2 }}>
                     {DIAS_CORTOS.map((d, i) => (
-                      <div key={i} style={{ textAlign: "center", fontSize: 11, fontWeight: 800, color: "#4a6b55" }}>
+                      <div key={i} style={{ textAlign: "center", fontSize: 10.5, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
                         {d}
                       </div>
                     ))}
                   </div>
-                  {semanas.map((s) => {
+                  {/* Las semanas, separadas de verdad: cuatro filas de
+                      números pegadas se leían como una tabla de treinta
+                      números sin estructura, y lo que hay que ver de un
+                      vistazo es dónde empieza y acaba cada semana. */}
+                  {semanas.map((s, wi) => {
                     const puestos = new Set(diasDe(s.offset));
                     return (
-                      <div key={s.offset} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+                      <div
+                        key={s.offset}
+                        style={{
+                          display: "grid", gridTemplateColumns: "repeat(7, 1fr)",
+                          marginTop: wi === 0 ? 4 : 10,
+                          paddingTop: wi === 0 ? 0 : 10,
+                          borderTop: wi === 0 ? "none" : "1px solid #f1f5f2",
+                        }}
+                      >
                         {s.days.map((fecha, i) => {
                           const esHoy = fecha.getTime() === hoy.getTime();
                           const pasado = fecha < hoy;
                           const code = DAYS[i];
                           const marcado = puestos.has(code);
                           return (
-                            <div key={i} style={{ display: "flex", justifyContent: "center", height: 34 }}>
+                            <div key={i} style={{ display: "flex", justifyContent: "center", height: 38 }}>
                               <button
                                 type="button"
                                 disabled={pasado}
