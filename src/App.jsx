@@ -16,6 +16,7 @@ import {
   OnboardingCooking,
   OnboardingAppliances,
   OnboardingCookTime,
+  OnboardingBatchCooking,
   OnboardingWeek,
   OnboardingBudget,
   IndividualMenuSheet,
@@ -42,6 +43,7 @@ const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => (
 const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.SettingsScreen })));
 const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
 const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
+const PizarraSetup = lazy(() => import("./screens/PizarraSetup.jsx").then(m => ({ default: m.PizarraSetup })));
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
@@ -98,6 +100,7 @@ import {
   orderedWeeks,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
+import { pizarraActiva, planVacio, huecosDelPlan } from "./lib/pizarra.js";
 import { proyectarReglas, reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
   saveMenu as saveMenuRemote,
@@ -167,7 +170,7 @@ import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";
 import { filterOwnCreatedRecipes, filterMyLibraryRecipes } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole, resolveAccountMember, memberIllustratedAvatarSrc } from "./lib/stages.js";
-import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
+import { migrateCookTime, COOK_TIME_DEFAULTS, cocinaEnTanda } from "./lib/cookTime.js";
 import {
   DEFAULT_ROSTER_ID,
   ensureRosters,
@@ -1213,6 +1216,14 @@ export default function App() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   // "Elegir manualmente" (rosco): the slot we're filling from the catalog.
   const [slotPicker, setSlotPicker] = useState(null);
+  // Las dos preguntas previas a la pizarra (comidas y días). Vive fuera de
+  // `screen` porque no es un destino de navegación: es un paso que se abre
+  // encima y que, si lo cierras, te deja donde estabas.
+  const [pizarraSetupOpen, setPizarraSetupOpen] = useState(false);
+  // El menú activo nació en blanco. Se pregunta al menú y no a un estado
+  // suelto para que sobreviva a recargar la app: la pizarra que dejaste a
+  // medias ayer sigue siendo una pizarra hoy.
+  const esPizarra = data.menus?.[data.activeMenuId]?.origin === "pizarra";
   const [toast, setToast] = useState(null);
   const [isGeneratingMenu, setIsGeneratingMenu] = useState(false);
   const [menuError, setMenuError] = useState(null);
@@ -2573,6 +2584,144 @@ export default function App() {
   }, []);
 
   const openMenusScreen = useCallback(() => fwd(() => setScreen("menus")), []);
+
+  /**
+   * La pizarra: crear un menú VACÍO y abrirlo para rellenarlo a mano.
+   *
+   * No genera nada y no llama al modelo: construye el esqueleto de huecos
+   * (ver planVacio en lib/pizarra.js) y lo archiva igual que cualquier otro
+   * menú. A partir de ahí no hay código nuevo — tocar un hueco vacío abre el
+   * catálogo, y colocar un plato pasa por `pickCatalogReplacement`, que es el
+   * mismo camino local que ya usaban "Cambiar plato" y "Elegir a mano".
+   *
+   * Copia la forma de "Repetir → Mismos platos" (el otro sitio que crea un
+   * menú sin generar) en vez de la de `regenerateMenu`: sin despensa, sin
+   * deltas de consumo y sin recetas que registrar, porque un menú en blanco
+   * no compra, no gasta y no tiene platos todavía.
+   *
+   * Lo que sí hereda de allí es la reconciliación al plegar el archivo: a un
+   * invitado (sin sesión) no se le guarda histórico, así que el menú anterior
+   * desaparece y su consumo se quedaría huérfano. Empezar una pizarra no
+   * puede costarte la despensa.
+   */
+  const handleStartPizarra = useCallback((eleccion = null) => {
+    if (householdReadOnly) {
+      showToast("Solo lectura: no puedes editar el menú");
+      return;
+    }
+    // Lo elegido en PizarraSetup pisa lo que tuviera la casa, y se aplica
+    // AQUÍ y no vía `setData` porque el plan se construye en esta misma
+    // vuelta: esperar al re-render dibujaría el tablero con las franjas
+    // viejas. Lo que se guarda en la casa va más abajo, en el mismo setData
+    // que archiva el menú.
+    const working = { ...resolveModeData(data), ...(eleccion ?? {}) };
+    const hasRoster = (gs) => gs.some((g) => membersOfGroup(g, working.members).length > 0);
+    let groups = working.groups ?? [];
+    if (working.members.length > 0 && (groups.length === 0 || !hasRoster(groups))) {
+      groups = groupsFromModel(working.members, working.menuModel);
+    }
+    if (groups.length === 0 || !hasRoster(groups)) {
+      showToast("Añade al menos un miembro antes de empezar el menú");
+      return;
+    }
+
+    // Las mismas semanas que generaría el asistente: si la casa pidió dos
+    // semanas, la pizarra tiene dos semanas en blanco, no una.
+    const weekOffsets = (Array.isArray(working.menuWeekOffsets) && working.menuWeekOffsets.length
+      ? [...new Set(working.menuWeekOffsets)]
+      : [working.menuWeek?.offset ?? 0]
+    ).sort((a, b) => a - b);
+    const baseStartDayIdx = working.menuWeek?.startDayIdx ?? 0;
+    const sameForAllWeeks = working.menuScheduleSameForAllWeeks !== false;
+
+    const weeks = {};
+    let firstWeekPlan = null;
+    weekOffsets.forEach((offset, w) => {
+      const startDayIdx = w === 0 ? baseStartDayIdx : 0;
+      const days = explicitDaysForOffset(working, offset);
+      const { startISO, endISO } = computeWeekRange(offset, startDayIdx, days);
+      const schedule = sameForAllWeeks || w === 0
+        ? working.schedule
+        : (weekEntry(working.menuWeekOverrides, offset) ?? working.schedule);
+      const plan = planVacio({ ...working, groups, schedule }, groups);
+      if (w === 0) firstWeekPlan = plan;
+      weeks[startISO] = {
+        offset, startDayIdx, days, startISO, endISO,
+        plan, shopping: { items: [] }, schedule,
+      };
+    });
+
+    const newMenu = {
+      id: createMenuId(),
+      createdAt: Date.now(),
+      isFavorite: false,
+      isActive: true,
+      activatedAt: user ? null : Date.now(),
+      varietyPref: working.menuVarietyPref ?? "strict",
+      // De dónde salió este menú. Lo lee la pantalla del menú para quitarse
+      // la fila de mandos y dejar solo Día y Semana: los mandos ajustan lo
+      // que el motor va a decidir, y aquí no decide nadie más que tú.
+      origin: "pizarra",
+      weeks,
+    };
+
+    setMenuPlan(firstWeekPlan);
+    setShopping({ items: [] });
+
+    const keepHistory = Boolean(user);
+    const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory });
+    const keepRecipeIds = collectMenuRecipeIds(foldedMenus);
+    setAiRecipes((cur) => pruneAiRecipes(cur, keepRecipeIds));
+    const droppedMenuIds = keepHistory
+      ? []
+      : Object.keys(data.menus ?? {}).filter((id) => id !== newMenu.id && !foldedMenus[id]);
+    const recon = reconcileMenusRemoval(
+      { pantryGenDeltas: data.pantryGenDeltas, pantryDayDeltas: data.pantryDayDeltas, cookedDeltas: data.cookedDeltas },
+      droppedMenuIds,
+    );
+
+    setData((d) => {
+      const base = {
+        ...d,
+        groups,
+        // Lo elegido en el setup se guarda AHORA, no antes: si te salías a
+        // mitad, tus comidas y tus días de siempre seguían intactos.
+        ...(eleccion ?? {}),
+        menus: foldedMenus,
+        activeMenuId: newMenu.id,
+        menuWeek: {
+          offset: weekOffsets[0],
+          startDayIdx: baseStartDayIdx,
+          days: explicitDaysForOffset(working, weekOffsets[0]),
+        },
+        // Sin tocar `menuHistory`: esa lista alimenta la racha y el contador
+        // de "menús generados", y una pizarra recién abierta no tiene ni un
+        // plato. Cuenta cuando el usuario la llena, no cuando la abre.
+      };
+      if (droppedMenuIds.length) {
+        base.pantryGenDeltas = recon.genOut;
+        base.pantryDayDeltas = recon.dayOut;
+        base.cookedDeltas = recon.cookedOut;
+        base.cookedDishes = stripCookedDishesForMenuList(d.cookedDishes, droppedMenuIds);
+      }
+      return base;
+    });
+    if (droppedMenuIds.length && recon.deltas.length) {
+      restoreToPantry(recon.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
+    }
+    // Dual write como el resto (ver regenerateMenu). Sin recetas: todavía no
+    // hay ninguna, y las que se coloquen después viajan por su propio camino.
+    if (user) {
+      saveAndActivateMenu(user.id, newMenu, [], syncHouseholdId);
+    }
+
+    trackEvent(user, "pizarra_started", "menu", {
+      groupCount: groups.length,
+      weekCount: weekOffsets.length,
+      huecos: huecosDelPlan(firstWeekPlan),
+    });
+    fwd(() => setScreen("menu"));
+  }, [data, user, householdReadOnly, showToast, syncHouseholdId]);
 
   // Switches which week of the ACTIVE menú is displayed (menús spanning
   // several weeks) — materializes that week's plan/shopping into the live
@@ -4541,7 +4690,7 @@ export default function App() {
   // Orden de `onbScreens`: 0 Ajustes (picker) · 1 Familia · 2 Alergias · 3 Modelo · 4 Cole ·
   // 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras-Comidas ·
   // 11 Extras-Otros · 12 Tu despensa · 13 Cuánto pesa la despensa ·
-  // 14 Cocina · 15 Electrodomésticos · 16 Tiempos. Los índices de
+  // 14 Cocina · 15 Electrodomésticos · 16 Tiempos · 17 Batch cooking. Los índices de
   // abajo dependen de ese orden — y también los de SCOPE_TOPIC_STEPS, en
   // screens/ScopePickerScreen.jsx, que es lo que decide qué pasos abre cada
   // modo del picker. Mover un paso obliga a tocar los dos sitios.
@@ -4550,7 +4699,7 @@ export default function App() {
   // se entiende mejor mirando la despensa real que a mitad del asistente, así
   // que ahora es un sheet contextual en Compra → En casa (icono de ajustes +
   // primer aviso tras generar un menú), no un paso del wizard.
-  const ONB_STEP_COUNT = 17;
+  const ONB_STEP_COUNT = 18;
   // «¿Cómo coméis en casa?» (mismo/separado) ya no se pregunta cuando hay niños:
   // esa decisión la deriva ahora la pantalla «¿Cómo comen los niños?» (paso 7).
   // Solo sobreviviría para hogares adulto+niño… que es justo cuando hay niños,
@@ -4572,6 +4721,11 @@ export default function App() {
   // anterior (ver `apuntarCuantos` en OnboardingPantryInventory): la despensa
   // no vive en `data`, así que sin ese rastro aquí no hay forma de saberlo.
   const skipPantryMode = data.pantryHasItems !== true;
+  // "¿Qué cocinas en tandas?" (17) solo para quien dijo que cocina en tanda en
+  // el paso anterior. A quien cocina cada día no se le pregunta qué deja hecho
+  // el domingo: no hay domingo. Es la ÚNICA consecuencia de marcar el modo —
+  // lo que el menú mira es lo que se pide aquí dentro (`hayTandasPedidas`).
+  const skipBatchCooking = cocinaEnTanda(data) !== true;
   // El perfil (quién come + qué evitáis) ya está hecho: se rellenó en el alta.
   const profileAlreadySetUp = (data.members?.length ?? 0) > 0;
   // Pasos que ha pedido ajustar el picker (paso 0). Vacío = no ha pedido
@@ -4596,6 +4750,7 @@ export default function App() {
       (i === 4 && skipSchoolMenu) ||
       (i === 6 && skipBudgetStep) ||
       (i === 13 && skipPantryMode) ||
+      (i === 17 && skipBatchCooking) ||
       (i === 8 && (skipKidsDinner || basicMode)) ||
       (basicMode && (i === 9 || i === 10 || i === 11)) ||
       // Avatares (1) y alergias (2) son perfil, no asistente: se rellenan en el
@@ -4607,7 +4762,7 @@ export default function App() {
       // alergias"): ahí el paso 2 ES el destino, y ocultarlo hacía que el
       // normalizador saltase al siguiente visible (la semana del menú).
       (!firstRunOnboarding && !editPreferencesOrigin && profileAlreadySetUp && (i === 1 || i === 2)),
-    [skipMenuModel, skipSchoolMenu, skipKidsDinner, skipPantryMode, quickMenu, basicMode, firstRunOnboarding, profileAlreadySetUp, editPreferencesOrigin, scopeSteps]
+    [skipMenuModel, skipSchoolMenu, skipKidsDinner, skipPantryMode, skipBatchCooking, quickMenu, basicMode, firstRunOnboarding, profileAlreadySetUp, editPreferencesOrigin, scopeSteps]
   );
   const stepNeighbor = useCallback(
     (from, dir) => {
@@ -4870,6 +5025,14 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
+    <OnboardingBatchCooking
+      data={data}
+      setData={setData}
+      onNext={nextOf(17)}
+      onBack={backOf(17)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
   ];
 
   const containerRef = useRef(null);
@@ -5012,8 +5175,13 @@ export default function App() {
               }}
               onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
               shoppingItems={shopping.items}
-              wizardControls={wizard.controls}
+              // En la pizarra no se pinta la fila de mandos: los mandos
+              // ajustan lo que el motor decidirá en la próxima generación, y
+              // en un menú que montas a mano no hay próxima generación que
+              // ajustar. La burbuja del bot se queda: eso sí sigue sirviendo.
+              wizardControls={esPizarra ? null : wizard.controls}
               wizardBubble={wizard.bubble}
+              soloDiaYSemana={esPizarra}
             />
           </div>
         )}
@@ -5183,6 +5351,14 @@ export default function App() {
                 onOpenAccount={() => fwd(() => setScreen("profile"))}
                 onViewMenu={goToMenuFromDashboard}
                 onGenerateMenu={householdReadOnly ? undefined : handleGenerateMenu}
+                // Ausente = la card no se pinta. La pizarra sigue apagada en
+                // producción (ver pizarraActiva), así que Inicio conserva su
+                // único CTA hasta que se decida abrirla.
+                onStartPizarra={
+                  householdReadOnly || !pizarraActiva()
+                    ? undefined
+                    : () => setPizarraSetupOpen(true)
+                }
               />
             </Suspense>
           </div>
@@ -5480,6 +5656,21 @@ export default function App() {
         )}
       </div>
 
+
+      {pizarraSetupOpen && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "#f4f8f5", overflowY: "auto" }}>
+          <Suspense fallback={null}>
+            <PizarraSetup
+              data={data}
+              onCancel={() => setPizarraSetupOpen(false)}
+              onStart={(eleccion) => {
+                setPizarraSetupOpen(false);
+                handleStartPizarra(eleccion);
+              }}
+            />
+          </Suspense>
+        </div>
+      )}
 
       {isGeneratingMenu && <GeneratingScreen onStop={stopGeneration} />}
 

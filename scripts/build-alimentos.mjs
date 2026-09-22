@@ -63,6 +63,12 @@ delete fraccionComestible._;
 const densidad = leerJson(join(ROOT, "src", "data", "densidad.json")) ?? {};
 delete densidad._;
 
+// De qué está hecho lo que no es una sola cosa. Misma convención que los dos
+// de arriba: ausente es el caso normal —el alimento ES su nodo del árbol— y
+// solo aparecen los compuestos cuyas partes juegan en ejes distintos.
+const composicion = leerJson(join(ROOT, "src", "data", "composicion.json")) ?? {};
+delete composicion._;
+
 // Las decisiones de CIQUAL, la segunda tabla de composición. Van aparte de las
 // de BEDCA y no mezcladas en un mismo fichero porque la FUENTE importa: dos
 // tablas nacionales distintas usan laboratorios y métodos distintos, y mezclar
@@ -287,6 +293,10 @@ for (const ing of ingredientes) {
     nutricion: ing.nutrition ?? null,
     densidad: densidad[ing.id]?.valor ?? null,
     fraccionComestible: fraccionComestible[ing.id]?.valor ?? null,
+    // Solo en los compuestos. `taxonomia` sigue diciendo qué es el alimento
+    // PRINCIPALMENTE —y es lo que manda para el hidrato de unos tortellini—;
+    // esto añade lo que el nodo único no cabe: su relleno.
+    ...(composicion[ing.id] ? { composicion: composicion[ing.id].partes } : {}),
     huecos,
   });
   mapaIngredienteAlimento[ing.id] = id;

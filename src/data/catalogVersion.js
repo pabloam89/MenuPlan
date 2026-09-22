@@ -101,4 +101,48 @@
 // `mainBase: patatas` a `boniato` (no llevaban ni un gramo de patata) y el
 // gravlax pasa de `tecnica: sarten` a `crudo`. La nube no tiene ninguno de los
 // dos, así que el bundle tiene que ganar.
-export const BUNDLED_CATALOG_VERSION = 30;
+// v31 (21 sep 2026): el animal correcto en 33 platos, y tres palabras nuevas
+// en `mainProtein` para poder decirlo.
+//
+// El enum tenía diez valores y el recetario once animales, así que trece
+// platos declaraban una proteína que no era la suya: siete de pato salían
+// como "pollo", dos de cordero y el ragú de jabalí como "ternera", la
+// codorniz y la perdiz como lo que tocara. Entran `pato`, `cordero` y `caza`
+// —esta última agrupa jabalí, conejo, codorniz y perdiz, igual que la
+// subclase `carne_caza` del árbol de alimentos—. No es una etiqueta más fina
+// por gusto: quien filtra "pollo" recibía pato, y quien no come cordero lo
+// recibía llamado ternera.
+//
+// Y once líneas de receta pedían un animal y apuntaban al FK de otro, porque
+// el catálogo usaba los ALIAS para dos cosas distintas: escribir el mismo
+// alimento de otra forma, y nombrar uno parecido. «Solomillo de cerdo» era un
+// alias de «Solomillo de ternera», «Carne picada de cerdo» de la de ternera, y
+// «Costillas de cordero» y «Costillas de ternera» lo eran de las de cerdo. Un
+// alias que cambia de animal no es un alias. Nacen `solomillo-de-cerdo`,
+// `carne-picada-de-cerdo` y `costilla-de-ternera`, con su ficha de CIQUAL o
+// USDA, y `carrillada` deja de tomar prestada la nutrición de la carrillera de
+// ternera. Es el mismo defecto que ya apareció con «Hueso de jamón».
+//
+// Seis pescados más, y aquí manda el árbol en las dos direcciones: la trucha
+// y el emperador se declaraban blancos y son azules; el salmonete se
+// declaraba azul y con 3,7 g de grasa es blanco, como el rodaballo. Y
+// «Salmonetes limpios» era un alias de los LOMOS DE SALMÓN, que es otro pez.
+//
+// Campo nuevo, `preparacion` en la línea de ingrediente: en qué se convierte
+// la harina dentro de este plato (`masa_pasta` | `masa_pan`). Son 30 líneas
+// en 7.415 y existe porque la harina es el único ingrediente cuyo papel
+// cambia del todo con la receta — 20 g de rebozado en el pollo crujiente,
+// 300 g que SON el naan— y el árbol de alimentos no puede saberlo. Se
+// intentaron dos operadores (por cantidad y por composición) y los dos fallan;
+// el razonamiento está en IngredientSchema. Lo lee `getCarbType`.
+//
+// Y tres platos que declaraban la proteína que no manda, cada uno contra la
+// convención que el propio catálogo ya sigue: la tortilla de pavo (23 de las
+// 24 tortillas declaran `huevo`, incluidas la de gambas y la de pulpo) y dos
+// purés de bebé de legumbre con carne (el esquema ya dice que ahí manda la
+// legumbre y la carne va en `extraProteins`). En los tres la carne no se
+// pierde: pasa a `extraProteins`.
+//
+// Supabase sigue en 27, así que el bundle ya ganaba. Se sube igual, por el
+// mismo motivo que v29: para que el margen no se cierre.
+export const BUNDLED_CATALOG_VERSION = 31;

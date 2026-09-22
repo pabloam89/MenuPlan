@@ -92,6 +92,7 @@ import { applyFreqWithinBudget } from "../lib/freqBudget.js";
 import { FAMILIA_LABELS } from "../lib/notepadFields.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel, mondayISOForOffset } from "../lib/weekCalendar.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
+import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { StoreBadge } from "./SpendPanel.jsx";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
@@ -9904,6 +9905,36 @@ export function OnboardingCookTime({ data, setData, onNext, onBack, onFinish, on
       finishLabel={finishLabel}
     >
       <CookTimeEditor data={data} setData={setData} simple={!data.expertMode} showIntro={false} />
+    </OnboardingShell>
+  );
+}
+
+/**
+ * Batch cooking, en pantalla propia — solo para quien lo ha marcado en el paso
+ * anterior.
+ *
+ * Vivía DENTRO del paso de tiempo y en su lugar: marcar "cocino en tanda"
+ * borraba las cards de ritmo y las sustituía por esto. Eran dos preguntas
+ * distintas peleándose por el mismo sitio, y la que perdía —cuánto tiempo
+ * tienes un martes— seguía teniendo respuesta y seguía haciendo falta.
+ *
+ * Aquí se pregunta lo otro: qué dejas hecho el día que cocinas, y cuánto rato
+ * quieres estar. Es una pantalla larga (presupuesto + tres patas), que es la
+ * otra razón para sacarla: apretada debajo de cuatro cards ilustradas no se
+ * leía ninguna de las dos.
+ */
+export function OnboardingBatchCooking({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+  return (
+    <OnboardingShell
+      title="¿Qué cocinas en tandas?"
+      subtitle="Lo que dejas hecho el día que te pones"
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+      finishLabel={finishLabel}
+    >
+      <BasesPreferidas data={data} setData={setData} />
     </OnboardingShell>
   );
 }

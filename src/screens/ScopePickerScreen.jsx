@@ -33,7 +33,12 @@ const TOPICS = [
   { id: "despensa",   title: "¿Queréis usar lo que hay en casa?",        steps: [12, 13] },
   { id: "cocina",     title: "¿Cuánto os gusta cocinar?",                steps: [14] },
   { id: "electros",   title: "¿Qué tenéis en la cocina?",                steps: [15] },
-  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [16] },
+  // Dos pasos: el ritmo de cada día (16) y, solo si has dicho que cocinas en
+  // tanda, qué dejas hecho (17). Van bajo el mismo tema —y no como tema nuevo—
+  // porque son la misma pregunta, cómo repartes el tiempo de la semana; y
+  // porque un tema propio se ofrecería en el picker a quien cocina cada día,
+  // que es justo a quien no le aplica. El 17 lo oculta App.jsx.
+  { id: "tiempos",    title: "¿Cuánto tiempo tenéis para cocinar?",      steps: [16, 17] },
 ];
 
 /**

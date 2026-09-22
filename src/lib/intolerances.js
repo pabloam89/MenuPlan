@@ -123,7 +123,8 @@ export const DIET_RULES = {
 };
 
 const MEAT_FISH_PROTEINS = new Set([
-  "pollo", "pavo", "cerdo", "ternera", "pescado_blanco", "pescado_azul", "marisco",
+  "pollo", "pavo", "cerdo", "ternera", "cordero", "pato", "caza",
+  "pescado_blanco", "pescado_azul", "marisco",
 ]);
 
 // Ingredient-level net for meat/fish the structured fields miss (see audit

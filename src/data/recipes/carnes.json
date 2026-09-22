@@ -351,7 +351,7 @@
     "ingredients": [
       {
         "name": "Carne picada de cerdo",
-        "ingredientId": "carne-picada",
+        "ingredientId": "carne-picada-de-cerdo",
         "amount": 300,
         "unit": "g"
       },
@@ -3551,7 +3551,7 @@
     "ingredients": [
       {
         "name": "Solomillo de cerdo",
-        "ingredientId": "solomillo",
+        "ingredientId": "solomillo-de-cerdo",
         "amount": 350,
         "unit": "g"
       },
@@ -7396,7 +7396,7 @@
     "id": "carnes_040",
     "name": "Pato a la naranja con reducción de Cointreau",
     "category": "carnes",
-    "mainProtein": "pollo",
+    "mainProtein": "pato",
     "mealRole": [
       "segundo"
     ],
@@ -7628,7 +7628,7 @@
     "id": "carnes_041",
     "name": "Magret de pato con salsa de frutos rojos",
     "category": "carnes",
-    "mainProtein": "pollo",
+    "mainProtein": "pato",
     "mealRole": [
       "segundo"
     ],
@@ -9866,7 +9866,7 @@
     "id": "carnes_050",
     "name": "Codornices escabechadas",
     "category": "carnes",
-    "mainProtein": "pollo",
+    "mainProtein": "caza",
     "mealRole": [
       "segundo"
     ],
@@ -10637,7 +10637,7 @@
     "id": "carnes_053",
     "name": "Pechuga de pato con puré de boniato y naranja",
     "category": "carnes",
-    "mainProtein": "pollo",
+    "mainProtein": "pato",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -12131,7 +12131,7 @@
     "ingredients": [
       {
         "name": "Solomillo de cerdo",
-        "ingredientId": "solomillo",
+        "ingredientId": "solomillo-de-cerdo",
         "amount": 400,
         "unit": "g"
       },
@@ -15958,7 +15958,7 @@
     "ingredients": [
       {
         "name": "Carrilleras de cerdo",
-        "ingredientId": "carrillera",
+        "ingredientId": "carrillada",
         "amount": 400,
         "unit": "g"
       },
@@ -17147,7 +17147,7 @@
     "id": "carnes_083",
     "name": "Chuletillas de cordero a la brasa con romero",
     "category": "carnes",
-    "mainProtein": "ternera",
+    "mainProtein": "cordero",
     "mealRole": [
       "segundo"
     ],
@@ -17292,7 +17292,7 @@
     "id": "carnes_084",
     "name": "Cordero asado con patatas panadera",
     "category": "carnes",
-    "mainProtein": "ternera",
+    "mainProtein": "cordero",
     "mainBase": "patatas",
     "baseMode": "dentro",
     "mealRole": [
@@ -22186,7 +22186,7 @@
     "id": "carnes_105",
     "name": "Magret de pato con puré de boniato y reducción de frutos rojos",
     "category": "carnes",
-    "mainProtein": "pavo",
+    "mainProtein": "pato",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -23606,7 +23606,7 @@
     "id": "carnes_111",
     "name": "Costillas de cordero con puré de boniato y salsa de menta",
     "category": "carnes",
-    "mainProtein": "ternera",
+    "mainProtein": "cordero",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -23629,7 +23629,7 @@
     "ingredients": [
       {
         "name": "Costillas de cordero (chuletillas)",
-        "ingredientId": "costilla",
+        "ingredientId": "cordero",
         "amount": 400,
         "unit": "g"
       },
@@ -24289,7 +24289,7 @@
     "ingredients": [
       {
         "name": "Costillas de ternera (corte fino estilo galbi)",
-        "ingredientId": "costilla",
+        "ingredientId": "costilla-de-ternera",
         "amount": 600,
         "unit": "g"
       },
@@ -27514,7 +27514,7 @@
     "id": "carnes_130",
     "name": "Tortilla francesa de pavo y queso con ensalada de aguacate, tomate cherry y queso de cabra",
     "category": "carnes",
-    "mainProtein": "pavo",
+    "mainProtein": "huevo",
     "mealRole": [
       "cena"
     ],
@@ -27684,7 +27684,7 @@
     ],
     "tecnica": "sarten",
     "extraProteins": [
-      "huevo"
+      "pavo"
     ]
   },
   {
@@ -30347,7 +30347,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 120,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Huevo",
@@ -30784,7 +30785,7 @@
       },
       {
         "name": "Carne picada de cerdo",
-        "ingredientId": "carne-picada",
+        "ingredientId": "carne-picada-de-cerdo",
         "amount": 250,
         "unit": "g"
       },
@@ -32212,7 +32213,7 @@
     "ingredients": [
       {
         "name": "Solomillo de cerdo",
-        "ingredientId": "solomillo",
+        "ingredientId": "solomillo-de-cerdo",
         "amount": 400,
         "unit": "g"
       },

@@ -6,6 +6,11 @@ import salsas from "../data/recipes/salsas.json";
 const PROTEIN_TAG = {
   ternera: "carne_roja",
   cerdo: "carne_roja",
+  cordero: "carne_roja",
+  // El pato y la caza son ave y monte, pero en la mesa piden la salsa de la
+  // carne roja —reducciones, frutos rojos, vino— no la de la pechuga blanca.
+  pato: "carne_roja",
+  caza: "carne_roja",
   pollo: "carne_blanca",
   pavo: "carne_blanca",
   pescado_blanco: "pescado_blanco",

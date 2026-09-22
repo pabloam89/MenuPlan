@@ -415,9 +415,21 @@
     "modelo": "decision-humana-2026-09-21"
   },
   "carrillada": {
-    "foodId": "6140",
+    "foodId": "28001",
+    "confianza": 0.6,
+    "motivo": "«Pork, shoulder, raw», 178 kcal. La carrillada es de CERDO —sus dos recetas son ibéricas— y tenía la ficha de la carrillera de TERNERA, que es otro animal. Ninguna de las dos tablas publica carrillera de cerdo: los 26 cortes crudos de cerdo de CIQUAL no la traen, y el «jowl» (475 kcal) es la papada, que es grasa, no el músculo del carrillo. Va la paleta: mismo animal y mismo uso, un guiso largo de colágeno. Sobrestima la grasa (11,2 g contra ~7 reales) y por eso la confianza baja — entre el corte exacto del animal equivocado y el animal correcto con el corte de al lado, manda el animal, que es lo que leen `mainProtein` y el árbol.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "costilla-de-ternera": {
+    "foodId": "6122",
     "confianza": 0.9,
-    "motivo": "«Beef, cheek, raw», 136 kcal. Mismo corte que la carrillera.",
+    "motivo": "«Beef, short ribs, raw», 287 kcal. El galbi coreano ES costilla de ternera cortada fina, y el corte y el estado (crudo) coinciden.",
+    "modelo": "decision-humana-2026-09-21"
+  },
+  "solomillo-de-cerdo": {
+    "foodId": "28201",
+    "confianza": 0.9,
+    "motivo": "«Pork tenderloin, lean, raw», 117 kcal. Corte exacto y mismo animal. Estaba tomando prestada la ficha del solomillo de TERNERA (109 kcal) porque era un alias suyo.",
     "modelo": "decision-humana-2026-09-21"
   },
   "entrecot": {

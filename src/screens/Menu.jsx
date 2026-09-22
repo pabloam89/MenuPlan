@@ -112,7 +112,7 @@ import {
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
 import { recetaConBases } from "../lib/recetaConBases.js";
-import { cocinaEnTanda } from "../lib/cookTime.js";
+import { cocinaEnTanda, hayTandasPedidas } from "../lib/cookTime.js";
 import { basesPedidas, claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
@@ -128,6 +128,7 @@ import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScop
 import { CommentThread } from "../components/CommentThread.jsx";
 import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
+import { BasesPreferidas } from "../components/BasesPreferidas.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
@@ -1494,6 +1495,18 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           <CookTimeEditor data={data} setData={wrappedSetData} />
         </AccordionSection>
 
+        {/* ── Batch cooking ──
+            Sección aparte, y solo para quien lo ha marcado arriba. Dentro de
+            "Tiempo disponible" ocupaba el sitio de las cards de ritmo, así que
+            elegir tanda borraba la pregunta de cuánto tiempo tienes un martes.
+            Se entra por la misma puerta que en el asistente —las cards de la
+            sección de arriba— para que no haya dos formas de encenderlo. */}
+        {cocinaEnTanda(data) === true && (
+          <AccordionSection title="Batch cooking" icon={CookingPot}>
+            <BasesPreferidas data={data} setData={wrappedSetData} />
+          </AccordionSection>
+        )}
+
         {/* ── CTA ── */}
         <div style={{ paddingTop: 16 }}>
           <button
@@ -2009,6 +2022,9 @@ const DECK_VIEW_OPTIONS = [
   // misma pregunta hecha desde dos lados.
   { id: "tanda", label: "Tanda" },
 ];
+
+/** Las dos vistas que saben pintar huecos vacíos — ver la prop `soloDiaYSemana`. */
+const DECK_VIEWS_BASICAS = DECK_VIEW_OPTIONS.filter((v) => v.id === "dia" || v.id === "semana");
 
 // Tres formas distintas para tres tramos distintos, y ahí está el cambio: antes
 // Día era un calendario y Mes era OTRO calendario, y en este set de Nucleo los
@@ -3871,11 +3887,12 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
   const showGroup = multiGroup && scope === "all";
   const comidasDeLaSemana = getDayMeals(data);
   const clavesTanda = useMemo(() => {
-    // Solo si esta casa cocina en tanda. El icono salía para todo el mundo,
-    // porque se calculaba de los platos de la semana (dos que comparten olla)
-    // sin mirar si alguien había pedido batch cooking. A quien no lo pidió le
-    // aparecían tandas que no existen.
-    if (cocinaEnTanda(data) !== true) return new Set();
+    // Solo si hay tandas PEDIDAS. El icono salía para todo el mundo, porque se
+    // calculaba de los platos de la semana (dos que comparten olla) sin mirar
+    // si alguien había pedido batch cooking. A quien no lo pidió le aparecían
+    // tandas que no existen — y marcar el modo sin pedir nada es exactamente el
+    // mismo caso: no hay olla que enseñar.
+    if (!hayTandasPedidas(data)) return new Set();
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
     const s = sesionDeBases(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana });
@@ -4756,7 +4773,13 @@ export const MenuScreen = memo(function MenuScreen({
   // exactamente igual que antes de que esto existiera.
   wizardControls = null,
   wizardBubble = null,
+  // La pizarra ofrece solo Día y Semana: son las dos vistas que saben pintar
+  // un hueco vacío (ver getDeckDayTiles), así que en Mes o Tanda un menú sin
+  // platos se vería en blanco y sin nada que tocar — la vista diría "no hay
+  // menú" cuando sí lo hay.
+  soloDiaYSemana = false,
 }) {
+  const deckViews = soloDiaYSemana ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
   const [pdfExportOpen, setPdfExportOpen] = useState(false);
@@ -4919,6 +4942,11 @@ export const MenuScreen = memo(function MenuScreen({
       return "dia";
     }
   }); // "dia" | "semana" | "mes" | "lista"
+  // Una vista guardada que este menú no ofrece (la pizarra solo da Día y
+  // Semana) dejaría el deck en blanco: se cae a la primera disponible.
+  useEffect(() => {
+    if (!deckViews.some((v) => v.id === deckView)) setDeckView(deckViews[0].id);
+  }, [deckViews, deckView]);
   useEffect(() => {
     // In demo mode we must not clobber the real user's saved deck preference.
     if (autoDemo) return;
@@ -5578,7 +5606,7 @@ export const MenuScreen = memo(function MenuScreen({
                 the far right gets its own step, and a spotlight over the whole
                 row would highlight both at once. */}
             <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
-              <DeckNav value={deckView} onChange={setDeckView} options={DECK_VIEW_OPTIONS} />
+              <DeckNav value={deckView} onChange={setDeckView} options={deckViews} />
             </div>
             {/* Centrado en la FRANJA, no en el hueco que sobra. Con
                 `flex: 1 + center` el paso de semanas se centraba entre el
@@ -6278,13 +6306,13 @@ export function DishDetail({
   // su propia pestaña con sus propios pasos, y meter ahí la tanda mezclaría
   // dos cosas que el usuario está mirando por separado.
   const vistaBases = useMemo(() => recetaConBases(recipe), [recipe]);
-  // La pregunta solo tiene sentido si esta casa cocina en tanda. Antes salía
-  // en cualquier plato que TUVIERA bases, que son casi todos, así que a quien
+  // La pregunta solo tiene sentido si hay tandas pedidas. Antes salía en
+  // cualquier plato que TUVIERA bases, que son casi todos, así que a quien
   // nunca pidió batch cooking le preguntaba si tiene cocinado un sofrito que
   // nadie le dijo que cocinara — y de paso hacía parecer que el menú traía
   // tandas que no había pedido.
   const puedeConBases =
-    vistaBases.aplicada && !garnishRecipe && !sauceRecipe && cocinaEnTanda(data) === true;
+    vistaBases.aplicada && !garnishRecipe && !sauceRecipe && hayTandasPedidas(data);
   const usandoBases = puedeConBases && conBases;
   // Los ingredientes de la ficha vienen escalados, así que la marca se cruza
   // por nombre — que es la misma clave con la que se resolvieron.

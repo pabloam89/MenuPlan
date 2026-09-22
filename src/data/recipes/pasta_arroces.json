@@ -1327,7 +1327,7 @@
       },
       {
         "name": "Carne picada de cerdo",
-        "ingredientId": "carne-picada",
+        "ingredientId": "carne-picada-de-cerdo",
         "amount": 200,
         "unit": "g"
       },
@@ -6417,7 +6417,8 @@
         "name": "Harina de trigo",
         "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pasta"
       },
       {
         "name": "Huevo",
@@ -6665,7 +6666,7 @@
     "id": "pasta_arroces_036",
     "name": "Tagliatelle al ragú de jabalí",
     "category": "pasta_arroces",
-    "mainProtein": "ternera",
+    "mainProtein": "caza",
     "mainBase": "pasta",
     "baseMode": "aparte",
     "basesAparte": [
@@ -8500,7 +8501,7 @@
     "id": "pasta_arroces_044",
     "name": "Pappardelle con ragú de pato",
     "category": "pasta_arroces",
-    "mainProtein": "pollo",
+    "mainProtein": "pato",
     "mainBase": "pasta",
     "baseMode": "aparte",
     "basesAparte": [
@@ -9822,7 +9823,8 @@
         "name": "Harina de trigo",
         "ingredientId": "harina",
         "amount": 150,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pasta"
       },
       {
         "name": "Huevo",
@@ -10039,7 +10041,8 @@
         "name": "Harina de trigo",
         "ingredientId": "harina",
         "amount": 80,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pasta"
       },
       {
         "name": "Huevo",
@@ -13587,7 +13590,8 @@
         "name": "Harina de trigo",
         "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pasta"
       },
       {
         "name": "Huevo",
@@ -13877,7 +13881,8 @@
         "name": "Harina de trigo",
         "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pasta"
       },
       {
         "name": "Huevo",
@@ -16269,7 +16274,7 @@
     "id": "pasta_arroces_082",
     "name": "Arroz con pato",
     "category": "pasta_arroces",
-    "mainProtein": "pollo",
+    "mainProtein": "pato",
     "mainBase": "arroz",
     "baseMode": "dentro",
     "basesAparte": [

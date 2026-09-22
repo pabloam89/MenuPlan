@@ -223,7 +223,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Levadura fresca",
@@ -636,7 +637,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Atún en conserva",
@@ -1118,7 +1120,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 100,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Huevo",
@@ -2478,7 +2481,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Levadura fresca",

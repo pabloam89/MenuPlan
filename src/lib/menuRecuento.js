@@ -27,6 +27,7 @@ const FAMILIA_POR_CATEGORIA = {
 
 const FAMILIA_POR_PROTEINA = {
   pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
+  cordero: "carne", pato: "carne", caza: "carne",
   pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
   legumbre: "legumbres",
   huevo: "huevos",

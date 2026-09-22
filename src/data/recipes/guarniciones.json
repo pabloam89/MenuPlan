@@ -5913,7 +5913,8 @@
         "name": "Harina de trigo",
         "ingredientId": "harina",
         "amount": 300,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Yogur natural",

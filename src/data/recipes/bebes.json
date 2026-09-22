@@ -2888,7 +2888,7 @@
     "id": "bebes_021",
     "name": "Puré de garbanzos con pollo y espinacas",
     "category": "bebes",
-    "mainProtein": "pollo",
+    "mainProtein": "legumbre",
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "mealRole": [
@@ -3026,13 +3026,16 @@
         "difficulty": "facil",
         "prepSummary": "Coloca el pollo y las espinacas en la olla express con 100ml de agua y cocina 5 minutos desde que sube la válvula. Despresuriza, añade los garbanzos cocidos y el aceite, y tritura con una batidora de mano hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
+    ],
+    "extraProteins": [
+      "pollo"
     ]
   },
   {
     "id": "bebes_022",
     "name": "Puré de lentejas con ternera y zanahoria",
     "category": "bebes",
-    "mainProtein": "ternera",
+    "mainProtein": "legumbre",
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "mealRole": [
@@ -3170,6 +3173,9 @@
         "difficulty": "facil",
         "prepSummary": "Introduce las lentejas, ternera y zanahoria troceada con agua en la olla express. Cierra y cocina a presión durante 10-12 minutos desde que sube la válvula, luego tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
       }
+    ],
+    "extraProteins": [
+      "ternera"
     ]
   },
   {

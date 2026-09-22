@@ -11,7 +11,6 @@ import {
 } from "../lib/cookTime.js";
 import { cookDayCounts, getMeals } from "../lib/planner.js";
 import { writeCookTimeTanda, cocinaEnTanda } from "../lib/cookTime.js";
-import { BasesPreferidas } from "./BasesPreferidas.jsx";
 
 const PERIODS = [
   { key: "weekday", label: "Entre semana", icon: BriefcaseBusiness },
@@ -433,10 +432,12 @@ export function CookTimeEditor({ data, setData, simple = false, showIntro = true
 
       <ModoDeCocinar valor={enTanda ? "tanda" : "clasico"} onChange={setTanda} />
 
-      {enTanda ? (
-        <BasesPreferidas data={data} setData={setData} />
-      ) : (
-        <>
+      {/* El ritmo se pregunta SIEMPRE, se cocine en tanda o no.
+          Marcar batch cooking escondía esta rejilla y se llevaba por delante
+          una pregunta que seguía teniendo respuesta: aunque dejes medio menú
+          hecho el domingo, el martes tienes los minutos que tienes, y son los
+          que deciden si el plato de ese día cabe. Lo que abre el modo tanda es
+          su propia pantalla (qué dejas hecho), no un sustituto de esta. */}
       {dual && <CookTimeModeToggle mode={cookTime.mode} onChange={setMode} />}
 
       {activePeriods.length > 1 && (
@@ -455,9 +456,7 @@ export function CookTimeEditor({ data, setData, simple = false, showIntro = true
         />
       )}
 
-          <CookLevelChips selected={cookLevelForMinutes(currentMinutes)} onSelect={handleSelect} />
-        </>
-      )}
+      <CookLevelChips selected={cookLevelForMinutes(currentMinutes)} onSelect={handleSelect} />
     </>
   );
 }

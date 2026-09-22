@@ -213,9 +213,34 @@ export function writeCookTimeTanda(data, tanda) {
   };
 }
 
-/** ¿Esta casa cocina en tanda? `undefined` = todavía no lo ha dicho. */
+/**
+ * ¿Ha dicho esta casa que cocina en tanda? `undefined` = todavía no lo ha dicho.
+ *
+ * Es una DECLARACIÓN, y desde que la pantalla de tandas vive aparte (2026-09-21)
+ * eso es todo lo que es: abre el presupuesto del finde y decide si se ve la
+ * pantalla. Quien quiera saber si hay tandas de verdad en juego tiene que
+ * preguntar por lo pedido — ver `hayTandasPedidas`.
+ */
 export function cocinaEnTanda(data) {
   return data?.cookTime?.tanda;
+}
+
+/**
+ * ¿Hay alguna tanda PEDIDA? La pregunta que le importa al menú.
+ *
+ * Marcar "batch cooking" y no pedir nada deja una casa que, sobre el papel,
+ * cocina en tanda pero no tiene nada hecho el martes: el icono de tanda en el
+ * menú y el "¿tienes el sofrito hecho?" de la ficha hablaban entonces de ollas
+ * que nadie iba a cocinar. Y al revés: quien pidió sofrito ×3 tiene ese sofrito
+ * hecho, haya tocado o no la card del modo.
+ *
+ * Lee las PROYECCIONES de la libreta (`tanda` y `tandaPlatos`), que es donde
+ * `BasesPreferidas` deja lo pedido en el mismo gesto de pedirlo. La libreta
+ * sigue siendo la fuente; esto solo la consulta.
+ */
+export function hayTandasPedidas(data) {
+  const pedido = (mapa) => Object.values(mapa ?? {}).some((n) => Number(n) > 0);
+  return pedido(data?.tanda) || pedido(data?.tandaPlatos);
 }
 
 export function writeCookTimeShared(data, period, value) {

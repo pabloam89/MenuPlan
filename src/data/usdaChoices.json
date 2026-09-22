@@ -37,6 +37,12 @@
     "motivo": "«Crustaceans, crab, blue, cooked, moist heat», 83 kcal. El txangurro es centollo y el blue crab no, pero la carne de cangrejo cocida varía poco entre especies: las tres fichas de cangrejo del catálogo están entre 83 y 110. Antes el candidato era «Empanada de carne».",
     "modelo": "decision-humana-2026-09-21"
   },
+  "carne-picada-de-cerdo": {
+    "foodId": "167902",
+    "confianza": 0.9,
+    "motivo": "«Pork, fresh, ground, raw», 263 kcal. Ni BEDCA ni CIQUAL publican carne picada de cerdo —los «minced pork» de USDA que salen antes son fiambre enlatado tipo Spam— y esta es la genérica sin porcentaje de magro declarado, que es como se compra aquí. Encaja con la de ternera de BEDCA (243 kcal), que también es la genérica. Estaba tomando prestada esa misma ficha de ternera porque era un alias suyo.",
+    "modelo": "decision-humana-2026-09-21"
+  },
   "cerveza": {
     "foodId": "168746",
     "confianza": 0.9,

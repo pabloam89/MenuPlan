@@ -1139,7 +1139,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 100,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Nueces",
@@ -1320,7 +1321,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 200,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Mantequilla",
@@ -1917,7 +1919,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 150,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Azúcar moreno",
@@ -2103,7 +2106,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 150,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Huevo",
@@ -2304,7 +2308,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Mantequilla",
@@ -2527,7 +2532,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 280,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Cacao en polvo",
@@ -2786,7 +2792,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 280,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Azúcar moreno",
@@ -3654,7 +3661,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Azúcar",
@@ -3867,7 +3875,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 300,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Mantequilla",
@@ -4061,7 +4070,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 300,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Huevo",

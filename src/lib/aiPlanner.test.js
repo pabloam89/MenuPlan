@@ -35,6 +35,7 @@ import { getCarbType, validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } fr
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
 import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
+import { PROTEIN_GROUP_BY_MAIN_PROTEIN } from "../data/recipeSchema.js";
 
 const SLOTS = [{ slotId: "lun_cena", mealType: "cena", mode: "casa", maxTime: 30 }];
 const CONFIG = { targetKcal: 2000, freqs: {}, cookLevel: "normal", cookTime: {} };
@@ -983,7 +984,7 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     const fixedRecipe = recipeCatalogById.carnes_002;
     expect(fixedRecipe, "fixture depends on carnes_002 existing in the catalog").toBeTruthy();
     expect(fixedRecipe.mealRole).toContain("cena");
-    expect(["pollo", "pavo", "cerdo", "ternera"]).toContain(fixedRecipe.mainProtein);
+    expect(PROTEIN_GROUP_BY_MAIN_PROTEIN[fixedRecipe.mainProtein]).toBe("carne");
 
     const data = {
       members: [{ id: "m1", age: 35, allergies: ["Marisco"] }],
@@ -1014,8 +1015,13 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     // dishes per slot, so the only violations validateMenu should find are
     // the ones this test deliberately set up (fixed-dish placement + school
     // avoidance), not incidental noise from e.g. recipeId_repetido cascades.
+    // La familia sale de PROTEIN_GROUP_BY_MAIN_PROTEIN y no de una lista
+    // escrita aquí: esta era la CUARTA copia a mano de esa tabla, y se
+    // descuadró en cuanto el enum ganó `pato`, `cordero` y `caza` (21 sep
+    // 2026). Un magret dejó de ser "pollo", pasó el filtro como si no fuera
+    // carne, y el menú de la mock cambió entero.
     const notCarneOrFixed = (r) =>
-      r.id !== fixedRecipe.id && !["pollo", "pavo", "cerdo", "ternera"].includes(r.mainProtein);
+      r.id !== fixedRecipe.id && PROTEIN_GROUP_BY_MAIN_PROTEIN[r.mainProtein] !== "carne";
     const used = new Set([fixedRecipe.id]);
     const pickDistinct = (pred) => {
       const r = pool.find((c) => pred(c) && notCarneOrFixed(c) && !used.has(c.id));

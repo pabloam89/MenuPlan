@@ -33,8 +33,16 @@ export const MERCADONA_SEARCH_ALIASES = {
   nabo: ["nabo"],
 };
 
+// «preparado de» lleva un hueco a propósito: Mercadona llama «Preparado de
+// carne picada cerdo» a la carne picada CRUDA, que es exactamente lo que pide
+// la receta, y no un plato cocinado. Sin la excepción, las siete referencias
+// de picada del catálogo quedaban fuera y «Carne picada de cerdo» acababa en
+// «Tocino de cerdo» al 0,57 — el mismo producto que ya se llevaba las manitas
+// y el tocino, o sea un imán de tres ingredientes. Los otros cinco
+// «Preparado de …» del súper (paella, verdura para cocido, coco, medallones
+// marinados) sí son platos y siguen fuera.
 const PREPARED_DISH_RE =
-  /arroz de|pasta con|paella con|guisado|estofado|lasaña|lasana|croqueta|empanadilla|plato preparado|revuelto|al horno|con setas|con verduras|frito con|preparado de|cocinado|ultracongelado.*hacendado.*arroz/i;
+  /arroz de|pasta con|paella con|guisado|estofado|lasaña|lasana|croqueta|empanadilla|plato preparado|revuelto|al horno|con setas|con verduras|frito con|preparado de (?!carne picada)|cocinado|ultracongelado.*hacendado.*arroz/i;
 
 /** Comida para bebés: potitos, papillas, leches de continuación y bolsitas. */
 const ES_INFANTIL =

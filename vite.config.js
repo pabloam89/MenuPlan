@@ -154,10 +154,18 @@ export default defineConfig(({ mode }) => {
   const motor =
     process.env.VITE_MOTOR || env.VITE_MOTOR || (gitRef === 'staging' ? 'solver' : 'modelo')
 
+  // La pizarra: empezar un menú vacío y rellenarlo a mano (ver pizarraActiva
+  // en src/lib/pizarra.js). Mismo trato que el motor —encendida en `staging`,
+  // apagada en producción y en local— porque es lo mismo: una puerta nueva en
+  // Inicio que queremos probar con casas reales antes de abrírsela a todos.
+  const pizarra =
+    process.env.VITE_PIZARRA || env.VITE_PIZARRA || (gitRef === 'staging' ? 'on' : 'off')
+
   return {
     define: {
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
       'import.meta.env.VITE_MOTOR': JSON.stringify(motor),
+      'import.meta.env.VITE_PIZARRA': JSON.stringify(pizarra),
     },
     plugins: [
       react(),

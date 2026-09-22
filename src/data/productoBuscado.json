@@ -19,6 +19,14 @@
     "buscar": ["trozo de vacuno para cocido"],
     "motivo": "El morcillo se vende descrito por su uso y no por su nombre. Antes casaba «Morcilla de cebolla», que es un embutido y ni siquiera es la misma pieza."
   },
+  "carne picada de cerdo": {
+    "buscar": ["preparado de carne picada cerdo"],
+    "motivo": "Mercadona no vende «carne picada»: vende «Preparado de carne picada», y de cerdo, vacuno o mezcla. Sin esto el emparejador la mandaba a «Tocino de cerdo» al 0,57 — el mismo producto que ya se llevaba las manitas y el tocino, y por eso saltó el test del imán."
+  },
+  "carne picada de ternera": {
+    "buscar": ["preparado de carne picada vacuno"],
+    "motivo": "Igual que la de cerdo, y aquí el súper además cambia de palabra: ternera es «vacuno». Sin esto no encontraba NADA, y son 17 recetas."
+  },
   "carne para mechar (morcillo de ternera)": {
     "buscar": ["trozo de vacuno para cocido"],
     "motivo": "El mismo corte que «Morcillo de ternera», escrito de otra manera en el catálogo de recetas."

@@ -1,5 +1,5 @@
 {
-  "_": "Qué fracción de lo que se COMPRA se acaba COMIENDO. 1 = todo; 0,25 = tres cuartas partes van a la basura. Solo aparecen aquí los ingredientes que descartan algo: un ingrediente ausente de este fichero no es un hueco, es que no se tira nada de él (la harina, el aceite, la leche). Por eso `alimentos.fraccionComestible` se queda a null en esos y el consumidor asume 1: null es «no verificado, se supone entero», no cero. POR QUÉ IMPORTA: estas líneas se pesan en crudo y con su descarte. Un consomé con 400 g de hueso de ternera contaba 400 g de comida en un plato de cuatro raciones, y el hueso va a la basura. No es un ingrediente sin nutrición — es un ingrediente que no se come, y darle nutrición habría sido peor que dejarlo vacío.",
+  "_": "Qué fracción de lo que se COMPRA se acaba COMIENDO. 1 = todo; 0,25 = tres cuartas partes van a la basura. Solo aparecen aquí los ingredientes que descartan algo: un ingrediente ausente de este fichero no es un hueco, es que no se tira nada de él (la harina, el aceite, la leche). Por eso `alimentos.fraccionComestible` se queda a null en esos y el consumidor asume 1: null es «no verificado, se supone entero», no cero. POR QUÉ IMPORTA: estas líneas se pesan en crudo y con su descarte. Un consomé con 400 g de hueso de ternera contaba 400 g de comida en un plato de cuatro raciones, y el hueso va a la basura. No es un ingrediente sin nutrición — es un ingrediente que no se come, y darle nutrición habría sido peor que dejarlo vacío. — UNA RETIRADA, 21 sep 2026: `salmon-fresco` tenía 0,67, la merma del pez ENTERO (cabeza, espina y piel). Sus ocho líneas de receta son todas lomo —«para sushi», «calidad sashimi», «lomo con piel»— y ninguna es un salmón entero, así que la merma se estaba restando de pescado que ya viene limpio: en el poke bowl dejaba 200 g de salmón en 134 y le hacía perder el eje de la proteína contra el edamame. Si algún día entra un salmón entero de verdad, será otro ingrediente, como lo son «Lomos de salmón» y «Salmón ahumado».",
 
   "hueso-de-ternera": {
     "valor": 0,
@@ -78,11 +78,6 @@
     "valor": 0.55,
     "confianza": 0.8,
     "motivo": "Cabeza y espina; es un pescado plano de mucho descarte. Porción comestible de BEDCA (ficha «Rodaballo», f_id 2625), que es la misma fuente de la que sale su nutrición."
-  },
-  "salmon-fresco": {
-    "valor": 0.67,
-    "confianza": 0.8,
-    "motivo": "Pieza entera: cabeza, espina y piel. Su hermano «Lomos de salmón» NO lleva fracción porque ya viene limpio. Porción comestible de BEDCA (ficha «Salmón», f_id 2626), que es la misma fuente de la que sale su nutrición."
   },
   "calamar": {
     "valor": 0.7,

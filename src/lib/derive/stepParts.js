@@ -68,6 +68,9 @@ const ID_SALSA = new Set([
 const IDS_POR_PROTEINA = {
   pollo: /pollo|pechuga|contramuslo|muslo|alitas/,
   pavo: /pavo/,
+  pato: /pato|magret/,
+  cordero: /cordero|paletilla|chuletilla/,
+  caza: /jabali|conejo|codorniz|perdiz|venado|corzo/,
   cerdo: /cerdo|lomo|panceta|bacon|chorizo|secreto|presa|costilla|jamon|salchich|guanciale/,
   ternera: /ternera|vacuno|solomillo|entrecot|chuleton|morcillo|carrill|rabo|entrania|jarrete/,
   pescado_blanco: /merluza|bacalao|lenguado|rape|dorada|lubina|rodaballo|corvina|gallo|sepia|calamar/,

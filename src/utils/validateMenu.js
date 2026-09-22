@@ -35,8 +35,17 @@ const CARB_PATTERNS = [
   // Wheat-flour bases all count as "pan": a pizza for lunch and a bocadillo
   // for dinner is the same repetition the rule exists to prevent, but until
   // these were listed the menu could serve both on the same day undetected.
-  // "empanad" (no boundary) catches empanada/empanadilla; "tosta" catches the
-  // common short form used throughout the catalog alongside "tostada".
+  // "empanad(a|illa)" catches las dos y sus plurales, y deja fuera el
+  // EMPANADO, que es rebozado y no masa: unos "Filetes de lomo empanados" y
+  // un "Pollo empanado" no deben chocar con una empanada gallega. Son tres
+  // platos contra seis. "tosta" catches the common short form used throughout
+  // the catalog alongside "tostada".
+  //
+  // `picatoste` SALIÓ de la lista (21 sep 2026): un crouton nunca es la base
+  // de nada, ni cuando lo dice el nombre del plato. Un «Puré de verduras con
+  // picatostes» y una «Sopa de pescado con picatostes» contaban como pan por
+  // el tropezón de encima, y lo que se come es el puré y la sopa. Sigue en
+  // NO_ES_BASE, para el lado de los ingredientes.
   //
   // La masa se detecta por el NOMBRE del plato, no por el ingrediente. Buscar
   // "hojaldre" o "masa quebrada" en la lista de ingredientes metía aquí al
@@ -44,8 +53,34 @@ const CARB_PATTERNS = [
   // y no el hidrato: que un Wellington chocara con una tosta el mismo día no es
   // precisión, es un falso positivo. Una quiche o una tarta salada sí son masa
   // —te comes la porción de masa—, y esas entran por su nombre.
-  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|\btosta\b|bruschetta|rebanada|picatoste|pizza|wrap|burrito|quesadilla|empanad|migas|quiche|\btarta (salada|fina|de puerros|de cebolla)/, "pan"],
+  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|\btosta\b|bruschetta|rebanada|pizza|wrap|burrito|quesadilla|empanad(a|illa)|migas|quiche|\btarta (salada|fina|de puerros|de cebolla)/, "pan"],
   [/avena|porridge/, "avena"],
+];
+
+// ── Ingredientes que llevan la palabra pero NO son la base ───────
+// Mismo principio que el párrafo de arriba sobre el hojaldre, un paso más:
+// allí el problema era la MASA que envuelve, aquí es el rebozado, el
+// condimento y el adjetivo. Medido sobre el catálogo, 41 platos sin
+// `mainBase` los clasificaba un ingrediente que nadie llamaría la base:
+//
+//   30  "Pan rallado"         → pan     un rebozado no es un hidrato: el
+//                                       escalope empanado y las albóndigas
+//                                       no chocan con un bocadillo
+//    5  "Almendra tostada"    → pan     `tostada` como ADJETIVO. Es el mismo
+//       "Avellanas tostadas"          fallo de substring de «Lard» dentro de
+//                                       «Collards», con otra palabra
+//    3  "Vinagre de arroz"    → arroz   un tataki de solomillo no lleva arroz
+//    2  "Pan frito"           → pan     los picatostes del romesco van DENTRO
+//                                       de la salsa, molidos
+//
+// El plato sí se clasifica por su propio NOMBRE: una "Tosta de aguacate"
+// sigue siendo pan, y unas "Almendras al romero" no dejan de ser lo que son.
+const NO_ES_BASE = [
+  /pan rallado|panko/,
+  /vinagre/,
+  /pan frito|picatoste|crouton/,
+  /almendra|avellana|nuez|nueces|pistacho|anacardo|cacahuete|pi[ñn][oó]n|pipa|s[ée]samo/,
+  /harina|maicena|levadura/,
 ];
 
 // The whole carb vocabulary, derived from the patterns instead of retyped —
@@ -59,13 +94,27 @@ export const CARB_TYPES = CARB_PATTERNS.map(([, carbType]) => carbType);
 // school menu's free-text dish names (which have no ingredients array) with
 // the exact same taxonomy used below, instead of a second regex list that
 // could drift out of sync.
+// «Almendras TOSTADAS» no es una tostada: ahí `tostada` es el adjetivo, no la
+// rebanada. Como participio va detrás de su fruto seco, así que la frase
+// entera se quita del texto antes de clasificar — y «Tosta de aguacate» o
+// «Pan tostado», donde sí es lo que parece, siguen entrando. Es el mismo
+// fallo de substring que `^sal` con «salchicha», con otra palabra.
+const FRUTO_SECO_TOSTADO =
+  /\b(almendras?|avellanas?|nueces|nuez|pistachos?|anacardos?|cacahuetes?|pi[ñn]ones?|pipas?|s[ée]samo|semillas?)\s+tostad[oa]s?\b/g;
+
 export function carbTypeFromText(text) {
   const normalized = String(text ?? "")
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
+    .replace(/[̀-ͯ]/g, "")
+    .replace(FRUTO_SECO_TOSTADO, " ");
   for (const [pattern, carbType] of CARB_PATTERNS) {
-    if (pattern.test(normalized)) return carbType;
+    if (!pattern.test(normalized)) continue;
+    // "Mini quiche SIN MASA de brócoli" casaba con `quiche` y salía como pan,
+    // cuando el nombre dice justo lo contrario. Solo desactiva el pan: un
+    // plato puede no llevar masa y seguir siendo de arroz.
+    if (carbType === "pan" && /\bsin masa\b|\bsin pan\b/.test(normalized)) continue;
+    return carbType;
   }
   return null;
 }
@@ -93,11 +142,43 @@ export function carbTypeFromText(text) {
  * mantiene cubiertas las ~500 recetas que no declaran el campo (y las 109 que
  * hoy solo tienen carbType gracias a él).
  */
+// Una línea que declara `preparacion` dice que ESE ingrediente es la base del
+// plato: la harina del naan o de un ravioli no es harina cuando llega a la
+// mesa. Ver IngredientSchema (data/recipeSchema.js) para por qué es un campo
+// declarado y no un operador.
+const CARB_TYPE_BY_PREPARACION = { masa_pasta: "pasta", masa_pan: "pan" };
+
 export function getCarbType(recipe) {
   if (recipe?.mainBase && Object.hasOwn(CARB_TYPE_BY_BASE, recipe.mainBase)) {
     return CARB_TYPE_BY_BASE[recipe.mainBase];
   }
-  return carbTypeFromText([recipe.name, ...recipe.ingredients.map((i) => i.name)].join(" "));
+  // Antes que el regex, y por el mismo motivo que `mainBase`: lo declarado
+  // gana a lo adivinado. Sin esto, el «Crumble de manzana» contaba como
+  // avena por sus 50 g de copos, ignorando los 150 g de harina que son el
+  // crumble — la harina está en NO_ES_BASE, que es la regla correcta para
+  // el ingrediente y la equivocada para esta línea.
+  const declarada = (recipe?.ingredients ?? [])
+    .map((i) => CARB_TYPE_BY_PREPARACION[i.preparacion])
+    .find(Boolean);
+  if (declarada) return declarada;
+  // EL NOMBRE PRIMERO, y solo si calla se mira la despensa.
+  //
+  // Antes se unían nombre e ingredientes en un solo texto y decidía el ORDEN
+  // de CARB_PATTERNS, que es un orden de especificidad y no de autoridad. Así
+  // un "Bocadillo de tortilla" salía `patatas`: el patrón de la patata va
+  // antes que el del pan, y la patata estaba en la lista de ingredientes. El
+  // plato se llama bocadillo.
+  const delNombre = carbTypeFromText(recipe.name);
+  if (delNombre) return delNombre;
+
+  // Los ingredientes, y solo los que pueden SER la base (ver NO_ES_BASE). Se
+  // filtra uno a uno y no sobre el texto ya unido, porque unirlo primero
+  // pierde de quién era cada palabra: "Pan rallado" quedaba indistinguible de
+  // un pan de verdad.
+  const deIngredientes = (recipe.ingredients ?? [])
+    .map((i) => i.name)
+    .filter((nombre) => !NO_ES_BASE.some((re) => re.test(normName(nombre))));
+  return carbTypeFromText(deIngredientes.join(" "));
 }
 
 // ── Meal ordering (chronological across the whole week) ─────────

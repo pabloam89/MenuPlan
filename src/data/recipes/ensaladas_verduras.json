@@ -663,7 +663,7 @@
       },
       {
         "name": "Carne picada de cerdo",
-        "ingredientId": "carne-picada",
+        "ingredientId": "carne-picada-de-cerdo",
         "amount": 200,
         "unit": "g"
       },
@@ -1203,7 +1203,7 @@
       },
       {
         "name": "Carne picada de cerdo",
-        "ingredientId": "carne-picada",
+        "ingredientId": "carne-picada-de-cerdo",
         "amount": 200,
         "unit": "g"
       },
@@ -5660,7 +5660,7 @@
     "id": "ensaladas_verduras_040",
     "name": "Ensalada templada de pato y naranja",
     "category": "ensaladas_verduras",
-    "mainProtein": "pollo",
+    "mainProtein": "pato",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -19530,7 +19530,7 @@
     "id": "ensaladas_verduras_117",
     "name": "Ensalada templada de perdiz escabechada",
     "category": "ensaladas_verduras",
-    "mainProtein": "pollo",
+    "mainProtein": "caza",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -20397,7 +20397,8 @@
         "name": "Harina de fuerza",
         "ingredientId": "harina",
         "amount": 250,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Agua",

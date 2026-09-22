@@ -352,8 +352,11 @@ export function patchUserRecipeClassification(recipe, { usageTags, mealRole, qui
 export const USER_RECIPE_PROTEINS = [
   { id: "pollo", label: "Pollo" },
   { id: "pavo", label: "Pavo" },
+  { id: "pato", label: "Pato" },
   { id: "cerdo", label: "Cerdo" },
   { id: "ternera", label: "Ternera" },
+  { id: "cordero", label: "Cordero" },
+  { id: "caza", label: "Caza" },
   { id: "pescado_blanco", label: "Pescado blanco" },
   { id: "pescado_azul", label: "Pescado azul" },
   { id: "marisco", label: "Marisco" },
@@ -682,8 +685,8 @@ export const UserRecipeDraftSchema = z.object({
     "guarniciones",
   ]),
   mainProtein: z.enum([
-    "pollo", "pavo", "cerdo", "ternera", "pescado_blanco", "pescado_azul",
-    "marisco", "huevo", "legumbre", "none",
+    "pollo", "pavo", "pato", "cerdo", "ternera", "cordero", "caza",
+    "pescado_blanco", "pescado_azul", "marisco", "huevo", "legumbre", "none",
   ]),
   mealRole: z.array(z.enum(["primero", "segundo", "plato_unico", "cena", "guarnicion", "merienda", "postre"])).min(1),
   // How the dish can be served — multi-select. `type` (below) is derived from

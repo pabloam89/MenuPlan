@@ -1972,7 +1972,7 @@
     "id": "pescados_015",
     "name": "Trucha a la navarra",
     "category": "pescados",
-    "mainProtein": "pescado_blanco",
+    "mainProtein": "pescado_azul",
     "extraProteins": [
       "cerdo"
     ],
@@ -2836,7 +2836,7 @@
     "id": "pescados_020",
     "name": "Emperador a la plancha",
     "category": "pescados",
-    "mainProtein": "pescado_blanco",
+    "mainProtein": "pescado_azul",
     "mealRole": [
       "segundo",
       "cena"
@@ -9846,7 +9846,7 @@
     "id": "pescados_057",
     "name": "Emperador a la plancha con salsa rápida de tomate y albahaca",
     "category": "pescados",
-    "mainProtein": "pescado_blanco",
+    "mainProtein": "pescado_azul",
     "mealRole": [
       "segundo",
       "cena"
@@ -12046,7 +12046,7 @@
     "id": "pescados_069",
     "name": "Emperador a la plancha con salsa tártara",
     "category": "pescados",
-    "mainProtein": "pescado_blanco",
+    "mainProtein": "pescado_azul",
     "mealRole": [
       "segundo",
       "cena"
@@ -16096,7 +16096,8 @@
         "name": "Harina de trigo",
         "ingredientId": "harina",
         "amount": 150,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Levadura química",
@@ -17502,7 +17503,7 @@
     "id": "pescados_096",
     "name": "Salmonetes a la plancha con romesco",
     "category": "pescados",
-    "mainProtein": "pescado_azul",
+    "mainProtein": "pescado_blanco",
     "mealRole": [
       "segundo"
     ],
@@ -17525,7 +17526,7 @@
     "ingredients": [
       {
         "name": "Salmonetes limpios",
-        "ingredientId": "salmon",
+        "ingredientId": "salmonete",
         "amount": 400,
         "unit": "g"
       },
@@ -20092,7 +20093,8 @@
         "name": "Harina de fuerza",
         "ingredientId": "harina",
         "amount": 300,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Aceite de oliva",
@@ -20550,7 +20552,8 @@
         "name": "Harina de fuerza",
         "ingredientId": "harina",
         "amount": 350,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Aceite de oliva",
@@ -21036,7 +21039,8 @@
         "name": "Harina",
         "ingredientId": "harina",
         "amount": 120,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Huevo",
@@ -21463,7 +21467,8 @@
         "name": "Harina de fuerza",
         "ingredientId": "harina",
         "amount": 400,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Aceite de oliva",
@@ -21786,7 +21791,8 @@
         "name": "Harina de fuerza",
         "ingredientId": "harina",
         "amount": 400,
-        "unit": "g"
+        "unit": "g",
+        "preparacion": "masa_pan"
       },
       {
         "name": "Aceite de oliva",
@@ -24223,7 +24229,7 @@
     "id": "pescados_128",
     "name": "Trucha a la plancha con almendras tostadas",
     "category": "pescados",
-    "mainProtein": "pescado_blanco",
+    "mainProtein": "pescado_azul",
     "mealRole": [
       "cena",
       "segundo"

@@ -39,9 +39,20 @@ const CATEGORIES = [
 // nuevas; las existentes siguen validando y funcionando.
 const DEPRECATED_CATEGORIES = ["cenas_rapidas", "platos_unicos"];
 
+// `caza`, `cordero` y `pato` entran el 21 sep 2026, y entran porque faltaban:
+// trece platos del recetario declaraban una proteína que no era la suya porque
+// el enum no tenía palabra para la de verdad. El pato salía como "pollo" en
+// siete recetas, el cordero como "ternera" en dos y el jabalí, la codorniz y
+// la perdiz como lo que tocara. Eso no es una etiqueta gruesa: es un filtro
+// que miente —quien pide pollo recibe pato— y una regla de variedad que cree
+// haber servido dos aves iguales cuando no lo eran.
+//
+// `caza` agrupa jabalí, codorniz, perdiz y conejo, igual que la subclase
+// `carne_caza` del árbol de alimentos: la granularidad del enum sigue a la del
+// árbol en vez de inventarse otra.
 const MAIN_PROTEINS = [
-  "cerdo", "huevo", "legumbre", "marisco", "none", "pavo",
-  "pescado_azul", "pescado_blanco", "pollo", "ternera",
+  "caza", "cerdo", "cordero", "huevo", "legumbre", "marisco", "none", "pato",
+  "pavo", "pescado_azul", "pescado_blanco", "pollo", "ternera",
 ];
 
 /**
@@ -57,6 +68,7 @@ const MAIN_PROTEINS = [
  */
 const PROTEIN_GROUP_BY_MAIN_PROTEIN = {
   pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
+  cordero: "carne", pato: "carne", caza: "carne",
   pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
   legumbre: "legumbres", huevo: "huevos",
 };
@@ -256,6 +268,27 @@ const IngredientSchema = z.object({
   // resuelve `name`: si algún día discrepan, que reviente el build y no la
   // lista de la compra. Se rellena con scripts/add-ingredient-ids.mjs.
   ingredientId: z.string().min(1).optional(),
+  // En qué se convierte este ingrediente DENTRO de este plato, cuando lo que
+  // se compra y lo que se come no son la misma cosa (21 sep 2026).
+  //
+  // Existe por la harina, que es el único ingrediente del catálogo cuyo PAPEL
+  // cambia por completo según la receta. En el «Pollo a la naranja crujiente»
+  // son 20 g de rebozado; en el «Pan naan casero» son 300 g que SON el plato.
+  // El árbol de alimentos no puede decidirlo: la harina es harina hasta que
+  // alguien la amasa, y la masa es un nodo del plato, no del alimento.
+  //
+  // POR QUÉ NO ES UN OPERADOR. Se intentaron dos y los dos fallan. Por
+  // CANTIDAD: las 132 recetas con harina separan limpio en 100 g… salvo los
+  // «Gnocchi de ricotta y espinacas» (80 g, y son masa) y la «Fritura de
+  // pescado variado» (100 g, y es rebozado). Por COMPOSICIÓN: levadura → pan,
+  // huevo sin levadura → pasta acierta con los raviolis y los ñoquis, y se
+  // estrella con la «Empanada gallega de atún», que lleva huevo y no lleva
+  // levadura. Distinguir una masa estirada de una horneada es un juicio, y el
+  // juicio se declara donde se puede leer.
+  //
+  // Ausente es el caso normal: el ingrediente es lo que dice ser. Solo se
+  // declara cuando NO lo es, así que son 31 líneas en 7.415.
+  preparacion: z.enum(["masa_pasta", "masa_pan"]).optional(),
 });
 
 const MethodSchema = z.object({

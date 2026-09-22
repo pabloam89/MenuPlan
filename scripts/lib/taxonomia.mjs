@@ -77,14 +77,33 @@ const NO_SON_ESPECIE = new Set([
   "pluma", "secreto", "iberico", "panceta", "tocino", "fiambre", "hoja",
   "brote", "semilla", "pipa",
   "copo", "placa", "lamina", "masa", "salsa", "caldo", "fondo", "fumet",
+  // La casquería entera es corte: un callo y una manita dicen QUÉ pieza es,
+  // nunca de quién. Con estas como especie, «Callos de ternera» y «Manitas de
+  // cerdo» eran dos alimentos sin animal, y el eje de la proteína no podía
+  // derivar ninguno de los dos. El animal lo pone HEREDA_ESPECIE_DE.
+  "callo", "higado", "molleja", "riñon", "seso", "morro", "manita", "oreja",
+  "unto", "tuetano",
+  // «Trigo» es el grano, no la forma en que se come, y por eso es al cereal
+  // lo que «pechuga» al ave: la harina, la sémola, el cuscús, el bulgur, el
+  // pan y la pasta son todos trigo, y tomarlo como especie los hace uno solo.
+  // En concreto dejaba «Sémola de trigo» como `trigo` —el léxico prueba
+  // «trigo» antes que «semola»— y así la sémola no era cuscús para la regla
+  // de variedad, aunque el cuscús sea sémola cocida al vapor.
+  "trigo",
 ]);
 
 /**
- * Sinónimos de especie: distintos nombres del mismo animal según la edad o el
- * sexo, que en la cocina son el mismo alimento. Sin esto, «Rabo de toro» y
- * «Filetes de ternera» salían como especies distintas siendo la misma res.
+ * Sinónimos de especie: distintos nombres del mismo alimento. En los animales
+ * son la edad o el sexo —sin esto, «Rabo de toro» y «Filetes de ternera»
+ * salían como especies distintas siendo la misma res—, y en el trigo es la
+ * forma: el cuscús ES sémola de trigo duro cocida al vapor, así que una crema
+ * con sémola y otra con cuscús repiten el mismo hidrato y la regla de
+ * variedad tiene que verlo.
  */
-const SINONIMO = { toro: "ternera", buey: "ternera", vaca: "ternera", cabrito: "cordero" };
+const SINONIMO = {
+  toro: "ternera", buey: "ternera", vaca: "ternera", cabrito: "cordero",
+  semola: "cuscu",
+};
 
 /**
  * Cuando el nombre entero es un corte y no nombra al animal —«Presa ibérica»,
@@ -100,16 +119,36 @@ const ESPECIE_POR_FAMILIA = {
 };
 
 /**
+ * Familias cuyas claves son CORTES y no animales, y que por tanto tienen que
+ * ir a buscar la especie a las familias de carne.
+ *
+ * La casquería es toda ella cortes —callo, manita, oreja, hígado, unto— así
+ * que su especie salía siempre vacía aunque el nombre dijera el animal a
+ * gritos: «Callos de ternera limpios», «Manitas de cerdo». Sin especie, unos
+ * callos y unas manitas eran el mismo alimento para cualquier regla que mire
+ * el árbol, y ninguno de los dos era ternera ni cerdo.
+ */
+const HEREDA_ESPECIE_DE = {
+  casqueria: ["carne_roja", "carne_cerdo", "carne_ave"],
+};
+
+/**
  * Cuando la palabra que casó no sirve como especie, se busca otra del nombre
  * que sí: «Pechuga de pavo» → pavo. Se prueban las claves de la MISMA familia,
  * que es donde están las especies de ese grupo, y si tampoco hay, se recurre
  * a la especie implícita de la familia.
  */
-function especieDe(nombreStems, claveQueCaso, clavesDeLaFamilia, familia) {
+function especieDe(nombreStems, claveQueCaso, clavesDeLaFamilia, familia, lexico) {
   const limpia = (c) => (c ? (SINONIMO[c] ?? c) : null);
   if (claveQueCaso && !NO_SON_ESPECIE.has(claveQueCaso)) return limpia(claveQueCaso);
   const otra = clavesDeLaFamilia.find((c) => !NO_SON_ESPECIE.has(c) && nombreStems.has(c));
   if (otra) return limpia(otra);
+  // Una familia de cortes va a buscar el animal a las familias de carne.
+  for (const prestada of HEREDA_ESPECIE_DE[familia] ?? []) {
+    const claves = lexico.find(([f]) => f === prestada)?.[1] ?? [];
+    const hit = claves.find((c) => !NO_SON_ESPECIE.has(c) && nombreStems.has(c));
+    if (hit) return limpia(hit);
+  }
   // El nombre no menciona al animal: si la familia lo determina, vale.
   return ESPECIE_POR_FAMILIA[familia] ?? null;
 }
@@ -130,7 +169,7 @@ export function deriveTaxonomia(derivado, nombreStems, lexico) {
     reino: rc[0],
     clase: rc[1],
     subclase: familia,
-    especie: especieDe(nombreStems, derivado.clave, clavesDeLaFamilia, familia),
+    especie: especieDe(nombreStems, derivado.clave, clavesDeLaFamilia, familia, lexico),
     // La variedad (ibérico, arbóreo, virgen extra) se deja para cuando alguien
     // la necesite: hoy no hay consumidor y declararla vacía ya la hace visible.
     variedad: null,
