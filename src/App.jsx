@@ -2750,7 +2750,17 @@ export default function App() {
     // quien quiera abrir una pizarra con una forma concreta; se aplica en esta
     // misma vuelta y no vía `setData` porque el plan se construye ahora, y
     // esperar al re-render lo dibujaría con las franjas viejas.
-    const working = { ...resolveModeData(data), ...(eleccion ?? {}) };
+    const base = resolveModeData(data);
+    // El postre no entra de salida aunque la casa lo tenga puesto: casi nadie
+    // lo usa, y siete baldosas de "Postre libre" son siete huecos que nadie va
+    // a rellenar compitiendo con los que sí. Se apaga SOLO para construir este
+    // esqueleto —no se escribe en la casa— y el `+` de cada día lo puede
+    // abrir donde haga falta.
+    const working = {
+      ...base,
+      extraMeals: { ...(base.extraMeals ?? {}), postre: "off" },
+      ...(eleccion ?? {}),
+    };
     const hasRoster = (gs) => gs.some((g) => membersOfGroup(g, working.members).length > 0);
     let groups = working.groups ?? [];
     if (working.members.length > 0 && (groups.length === 0 || !hasRoster(groups))) {
@@ -4390,6 +4400,90 @@ export default function App() {
    * de donde copiarlo.
    */
   /**
+   * Rellenar huecos vacíos de la pizarra: uno, un día, o todo lo que quede.
+   *
+   * ── Sin llamar al modelo ──────────────────────────────────────────────────
+   * Usa `pickCatalogReplacement`, que es el MISMO camino de "Cambiar plato" y
+   * el mismo pool que las sugerencias: filtra por rol del hueco, tope de
+   * tiempo, alergias, lo ya puesto esta semana, el cole y los sesgos de la
+   * casa. Es instantáneo, gratis y funciona sin cobertura. Generar con el
+   * modelo tiene sentido cuando hay que pensar la semana ENTERA a la vez
+   * (equilibrio, variedad, reparto); para tapar los huecos que tú has dejado,
+   * lo que hace falta es justo esto.
+   *
+   * ── Uno a uno, y sobre el plan que va creciendo ───────────────────────────
+   * Cada hueco se resuelve contra `trabajo`, no contra el plan original: así
+   * el segundo hueco ya sabe lo que acaba de caer en el primero y no repite
+   * plato. Es lo mismo que hace `handleRegenerateDay`.
+   */
+  const handleFillSlots = useCallback(async (ambito) => {
+    if (householdReadOnly) return;
+    const groups = data.groups.length > 0
+      ? data.groups
+      : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+
+    const trabajo = {};
+    for (const gid of Object.keys(menuPlan)) {
+      if (gid === "_warnings") continue;
+      trabajo[gid] = {};
+      for (const k of Object.keys(menuPlan[gid] ?? {})) trabajo[gid][k] = { ...menuPlan[gid][k] };
+    }
+
+    const nuevas = [];
+    let puestos = 0;
+    for (const gid of Object.keys(trabajo)) {
+      for (const key of Object.keys(trabajo[gid])) {
+        const [day, meal] = [key.slice(0, key.indexOf("-")), key.slice(key.indexOf("-") + 1)];
+        if (ambito?.day && ambito.day !== day) continue;
+        if (ambito?.groupId && ambito.groupId !== gid) continue;
+        if (ambito?.meal && ambito.meal !== meal) continue;
+        const slot = trabajo[gid][key];
+        if (!slot) continue;
+
+        // Qué platos le faltan a ESTE hueco: el principal siempre, y el
+        // primero solo si la comida está partida en dos.
+        const cursos = [];
+        if (slot.dosPlatos && !slot.firstRecipeId) cursos.push("first");
+        if (!slot.recipeId) cursos.push("main");
+        if (ambito?.course) {
+          if (!cursos.includes(ambito.course)) continue;
+          cursos.length = 0;
+          cursos.push(ambito.course);
+        }
+
+        for (const course of cursos) {
+          const r = pickCatalogReplacement(data, trabajo, { groupId: gid, day, meal, course });
+          if (!r) continue;
+          nuevas.push(r.frontendRecipe);
+          trabajo[gid][key] = {
+            ...trabajo[gid][key],
+            ...(course === "first" ? { firstRecipeId: r.recipeId } : { recipeId: r.recipeId }),
+            cleared: false,
+            warnings: [],
+          };
+          puestos++;
+        }
+      }
+    }
+
+    if (puestos === 0) { showToast("No queda ningún hueco por rellenar"); return; }
+
+    registerRecipes(nuevas);
+    setAiRecipes((cur) => {
+      const byId = new Map(cur.map((r) => [r.id, r]));
+      for (const r of nuevas) byId.set(r.id, r);
+      return Array.from(byId.values());
+    });
+    setMenuPlan(() => {
+      applyShoppingFor(trabajo, groups, pantryIngredients);
+      return trabajo;
+    });
+    showToast(puestos === 1 ? "Hueco rellenado" : `${puestos} huecos rellenados`);
+    trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
+  }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor]);
+
+  /**
    * Soltar un plato en otro hueco (arrastre de la pizarra).
    *
    * Mueve si el destino está libre, e intercambia si ya tenía plato — que es
@@ -4684,7 +4778,14 @@ export default function App() {
   const handleManualPickSlot = useCallback((sel, { reason = null } = {}) => {
     if (householdReadOnly) return;
     if (reason) applyDiscardReason(sel, reason);
-    setSlotPicker({ groupId: sel.groupId, day: sel.day, meal: sel.meal, course: sel.course ?? "main" });
+    setSlotPicker({
+      groupId: sel.groupId,
+      // Un hueco vacío con el filtro en "Todos" habla por varios menús.
+      groupIds: sel.groupIds ?? null,
+      day: sel.day,
+      meal: sel.meal,
+      course: sel.course ?? "main",
+    });
   }, [applyDiscardReason]);
 
   // Apply the catalog dish the user picked into the pending slot.
@@ -4699,13 +4800,28 @@ export default function App() {
     // Plato único takes over the WHOLE comida (single dish, no primero/segundo),
     // so force it into the main course regardless of which one was long-pressed.
     const placeCourse = kind === "plato_unico" ? "main" : course;
-    const result = pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course: placeCourse, forcedRecipe: catalogRecipe });
-    if (!result) { showToast("No se pudo colocar esa receta aquí"); setSlotPicker(null); return; }
-    const { frontendRecipe, recipeId: newRecipeId } = result;
-    registerRecipes([frontendRecipe]);
+
+    // Con el filtro en "Todos", el hueco vacío que has tocado representa a
+    // TODOS los menús que tienen esa franja ese día, así que el plato entra en
+    // los de todos. Y uno por uno, no copiando el mismo: cada menú tiene sus
+    // comensales y sus intolerancias, así que cada uno necesita su propia
+    // receta escalada y adaptada (y su prefijo de grupo, que es lo que impide
+    // que dos menús compartan por error la misma ficha).
+    const destinos = Array.isArray(slotPicker.groupIds) && slotPicker.groupIds.length > 0
+      ? slotPicker.groupIds
+      : [groupId];
+
+    const colocados = [];
+    for (const gid of destinos) {
+      const r = pickCatalogReplacement(data, menuPlan, { groupId: gid, day, meal, course: placeCourse, forcedRecipe: catalogRecipe });
+      if (r) colocados.push({ gid, ...r });
+    }
+    if (colocados.length === 0) { showToast("No se pudo colocar esa receta aquí"); setSlotPicker(null); return; }
+    const frontendRecipe = colocados[0].frontendRecipe;
+    registerRecipes(colocados.map((c) => c.frontendRecipe));
     setAiRecipes((cur) => {
       const byId = new Map(cur.map((r) => [r.id, r]));
-      byId.set(frontendRecipe.id, frontendRecipe);
+      for (const c of colocados) byId.set(c.frontendRecipe.id, c.frontendRecipe);
       return Array.from(byId.values());
     });
     // Persist the slot-type choice so regeneration keeps honoring it. A manually
@@ -4725,22 +4841,31 @@ export default function App() {
     const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
     setMenuPlan((plan) => {
       const key = `${day}-${meal}`;
-      const prevSlot = plan[groupId]?.[key] ?? {};
-      const nextSlot = {
-        ...prevSlot,
-        ...(placeCourse === "first" ? { firstRecipeId: newRecipeId } : { recipeId: newRecipeId }),
-        // Plato único merges the two courses into one → drop the primero.
-        ...(kind === "plato_unico" ? { firstRecipeId: null } : null),
-        cleared: false,
-        warnings: [],
-      };
-      const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
+      const next = { ...plan };
+      for (const c of colocados) {
+        const prevSlot = plan[c.gid]?.[key] ?? {};
+        next[c.gid] = {
+          ...(next[c.gid] ?? {}),
+          [key]: {
+            ...prevSlot,
+            ...(placeCourse === "first" ? { firstRecipeId: c.recipeId } : { recipeId: c.recipeId }),
+            // Plato único merges the two courses into one → drop the primero.
+            ...(kind === "plato_unico" ? { firstRecipeId: null } : null),
+            cleared: false,
+            warnings: [],
+          },
+        };
+      }
       applyShoppingFor(next, groups, pantryIngredients);
       return next;
     });
     setSlotPicker(null);
-    showToast(`Colocado «${frontendRecipe.name}»`);
-    trackEvent(user, "dish_manual_pick", "menu", { day, meal, newRecipeId, kind });
+    showToast(
+      colocados.length > 1
+        ? `«${frontendRecipe.name}» en los ${colocados.length} menús`
+        : `Colocado «${frontendRecipe.name}»`,
+    );
+    trackEvent(user, "dish_manual_pick", "menu", { day, meal, kind, menus: colocados.length });
   }, [slotPicker, data, menuPlan, showToast, user, applyShoppingFor]);
 
   // Reset intents: "soft" keeps the profile (family, recipes, preferences) and
@@ -5365,6 +5490,7 @@ export default function App() {
               onAddSlot={esPizarra ? setAddSlotDay : null}
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
               onSlotDrag={esPizarra ? handleSlotDrag : null}
+              onFillSlots={esPizarra ? handleFillSlots : null}
             />
             {/* Los mandos de la pizarra: dos lengüetas en el borde izquierdo.
                 Van AQUÍ y no dentro de MenuScreen para que esa pantalla siga

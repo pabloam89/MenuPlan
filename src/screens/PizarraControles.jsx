@@ -32,9 +32,16 @@ import {
 const VERDE = "#2d5a3d";
 const INK = "#142f1d";
 
-/** La paleta de grupos (lib/groups.js): ya es el idioma de "cosas distintas
- *  del mismo tipo", así que cuatro semanas se distinguen sin colores nuevos. */
-const COLOR_SEMANA = ["#2d5a3d", "#c67030", "#5a7ea8", "#a85a7e"];
+/**
+ * Un solo color para las cuatro semanas: el teal de la casa.
+ *
+ * Estaban con la paleta de grupos, cuatro colores distintos, y el color pasaba
+ * a significar "esta semana es otra cosa" cuando lo único que las distingue es
+ * cuándo caen — que ya lo dice la etiqueta. Con cuatro tonos, además, ninguno
+ * destacaba: el que importa es el estado (puesta o no), y eso se lee mejor con
+ * un color y dos intensidades.
+ */
+const TEAL = "#0f766e";
 
 const ETIQUETA_SEMANA = ["Esta", "La próxima", "En 2 sem.", "En 3 sem."];
 const DIAS_CORTOS = ["L", "M", "X", "J", "V", "S", "D"];
@@ -238,7 +245,7 @@ export function PizarraControles({ data, onAplicar }) {
                         key={s.offset}
                         label={ETIQUETA_SEMANA[i] ?? `En ${i} semanas`}
                         texto={n === 0 ? "·" : String(n)}
-                        color={COLOR_SEMANA[i % COLOR_SEMANA.length]}
+                        color={TEAL}
                         active={n > 0}
                         size={44}
                         delay={i * 70}
@@ -250,7 +257,7 @@ export function PizarraControles({ data, onAplicar }) {
 
                 <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, padding: "12px 8px" }}>
                   <div style={{
-                    fontSize: 10.5, fontWeight: 800, color: VERDE, letterSpacing: ".8px",
+                    fontSize: 10.5, fontWeight: 800, color: TEAL, letterSpacing: ".8px",
                     textTransform: "uppercase", padding: "0 4px 8px",
                   }}>
                     {MESES[semanas[0].monday.getMonth()]} {semanas[0].monday.getFullYear()}
@@ -262,11 +269,8 @@ export function PizarraControles({ data, onAplicar }) {
                       </div>
                     ))}
                   </div>
-                  {semanas.map((s, wi) => {
+                  {semanas.map((s) => {
                     const puestos = new Set(diasDe(s.offset));
-                    // Cada fila lleva el color de su círculo: así se ve de qué
-                    // semana son los días marcados sin tener que contar filas.
-                    const colorSemana = COLOR_SEMANA[wi % COLOR_SEMANA.length];
                     return (
                       <div key={s.offset} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
                         {s.days.map((fecha, i) => {
@@ -282,9 +286,9 @@ export function PizarraControles({ data, onAplicar }) {
                                 onClick={() => onAplicar(conDiaMarcado(data, s.offset, code, !marcado, opts))}
                                 style={{
                                   width: 30, height: 30, borderRadius: 999, padding: 0, alignSelf: "center",
-                                  border: marcado ? `1.5px solid ${colorSemana}` : "1.5px solid transparent",
-                                  background: marcado ? `${colorSemana}22` : "transparent",
-                                  color: pasado ? "#ccd6cf" : marcado ? colorSemana : "#3a4a42",
+                                  border: marcado ? `1.5px solid ${TEAL}` : "1.5px solid transparent",
+                                  background: marcado ? `${TEAL}22` : "transparent",
+                                  color: pasado ? "#ccd6cf" : marcado ? TEAL : "#3a4a42",
                                   // Hoy se subraya, no se rellena: el relleno ya
                                   // significa "marcado", y usándolo para las dos
                                   // cosas hoy parecía puesto sin estarlo.
