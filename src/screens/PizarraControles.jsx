@@ -2,7 +2,8 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import {
   BarChart3, CalendarDays, Check, CookingPot, Package, Plus, Salad, Search, Sparkles, X,
 } from "../components/icons.jsx";
-import { ingredientThumbSrc } from "../lib/ingredientImages.js";
+import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
+import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { formatStockQty } from "../lib/kitchenUnits.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -376,10 +377,20 @@ function InterruptorPref({ activo, onChange, titulo, detalle }) {
  * arte del pasillo cuando no conoce el nombre, y solo si esa imagen tampoco
  * carga aparece el icono neutro. Mismo lenguaje que la ficha de la despensa.
  */
-function Miniatura({ name, size = 38 }) {
-  const [roto, setRoto] = useState(false);
-  const src = ingredientThumbSrc(name);
-  if (!src || roto) {
+function Miniatura({ name, size = 38, soloSiSeConoce = false }) {
+  // Se guarda QUÉ imagen falló y no un sí/no: en la barra de búsqueda el
+  // nombre cambia con cada tecla, y un booleano se quedaría pegado en "rota"
+  // desde el primer nombre que no tuviera dibujo.
+  const [fallida, setFallida] = useState(null);
+  // En la barra de búsqueda se usa el resolutor ESTRICTO: `ingredientThumbSrc`
+  // cae al dibujo del pasillo cuando no reconoce el nombre, y ahí eso mentiría
+  // —saldría una foto de verduras para cualquier cosa mal escrita—. Aquí no
+  // salir nada es la respuesta correcta: no te hemos entendido.
+  const src = soloSiSeConoce
+    ? (name?.trim().length >= 3 ? ingredientImageSrc(name) : null)
+    : ingredientThumbSrc(name);
+  if (!src || fallida === src) {
+    if (soloSiSeConoce) return null;
     return (
       <span style={{ width: size, height: size, borderRadius: 10, background: "#eef4ef", flexShrink: 0, display: "grid", placeItems: "center" }}>
         <Salad size={Math.round(size * 0.45)} color={VERDE} />
@@ -391,7 +402,7 @@ function Miniatura({ name, size = 38 }) {
       src={src}
       alt=""
       loading="lazy"
-      onError={() => setRoto(true)}
+      onError={() => setFallida(src)}
       style={{ width: size, height: size, borderRadius: 10, objectFit: "cover", flexShrink: 0, background: "#eef4ef" }}
     />
   );
@@ -454,11 +465,63 @@ function CantidadDeLinea({ item, onQty }) {
   );
 }
 
+/**
+ * Lo que casi todo el mundo tiene en casa, para no tener que escribirlo.
+ *
+ * Una despensa vacía pide quince gestos antes de servir para nada, y los
+ * quince son los mismos en todas las casas: cebolla, ajo, patatas, arroz,
+ * leche. Con el pool son quince TOQUES, y cada uno se lleva su cantidad
+ * razonable puesta — un paquete de arroz son 500 g, un brick de leche un
+ * litro— que luego se corrige en la línea si hace falta.
+ *
+ * Las cantidades van escritas aquí y no salen de `defaultPackFor` porque esto
+ * son quince nombres elegidos a mano: para la cebolla, que no viene en envase,
+ * la función no tiene nada que decir, y "2 unidades" es una decisión, no un
+ * valor por defecto que se pueda deducir.
+ */
+const POOL = [
+  { nombre: "Cebolla", qty: 2, unidad: "ud" },
+  { nombre: "Ajo", qty: 1, unidad: "ud" },
+  { nombre: "Patata", qty: 1, unidad: "kg" },
+  { nombre: "Tomate", qty: 4, unidad: "ud" },
+  { nombre: "Zanahoria", qty: 3, unidad: "ud" },
+  { nombre: "Limón", qty: 2, unidad: "ud" },
+  { nombre: "Huevos", qty: 6, unidad: "ud" },
+  { nombre: "Leche", qty: 1, unidad: "l" },
+  { nombre: "Arroz", qty: 500, unidad: "g" },
+  { nombre: "Macarrones", qty: 500, unidad: "g" },
+  { nombre: "Lentejas", qty: 500, unidad: "g" },
+  { nombre: "Aceite de oliva", qty: 1, unidad: "l" },
+];
+
+/** La clave con la que un nombre del pool queda guardado en la despensa. */
+const CLAVES_POOL = new Map();
+function claveDePool(nombre) {
+  if (!CLAVES_POOL.has(nombre)) {
+    const [p] = normalizePantryInput(nombre);
+    CLAVES_POOL.set(nombre, p?.normalized ?? nombre.toLowerCase());
+  }
+  return CLAVES_POOL.get(nombre);
+}
+
 function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUsarDespensa }) {
   const [texto, setTexto] = useState("");
   const [qty, setQty] = useState("1");
   const [unidad, setUnidad] = useState("ud");
   const ingredientes = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish");
+  const escribiendo = texto.trim().length > 0;
+
+  // Lo que ya está guardado sale del pool: la fila encoge conforme llenas la
+  // despensa, que es la señal de que vas avanzando. Si se quedaran todos,
+  // tocar uno dos veces duplicaría la cantidad sin decirlo.
+  const yaPuesto = useMemo(
+    () => new Set(ingredientes.map((i) => i.ingredientNormalized).filter(Boolean)),
+    [ingredientes],
+  );
+  // Se compara por la clave NORMALIZADA, la misma con la que se guarda: "Aceite
+  // de oliva" se archiva como `aceite_oliva` y "Huevos" como `huevo`, así que
+  // cotejar los nombres tal cual no habría casado ni uno de los dos.
+  const pool = useMemo(() => POOL.filter((p) => !yaPuesto.has(claveDePool(p.nombre))), [yaPuesto]);
 
   const enviar = (e) => {
     e?.preventDefault?.();
@@ -472,19 +535,16 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUs
 
   return (
     <>
-      {/* El buscador y la cantidad, en la misma fila y en el mismo gesto: la
-          cantidad es la mitad del dato —"tengo arroz" no dice si llega para un
-          plato o para cinco— y preguntarla después obligaría a un segundo
-          toque por ingrediente. */}
       <form onSubmit={enviar} style={{ marginBottom: 14 }}>
         <div
           style={{
             display: "flex", alignItems: "center", gap: 8, minWidth: 0,
-            height: 42, padding: "0 12px", borderRadius: 12, marginBottom: 8,
-            background: "#fff", border: "1.5px solid #dbe7df",
+            height: 38, padding: "0 11px", borderRadius: 11,
+            background: "#fff", border: `1.5px solid ${escribiendo ? VERDE : "#dbe7df"}`,
+            transition: "border-color .15s ease",
           }}
         >
-          <Search size={16} color="#9ab0a1" />
+          <Search size={15} color={escribiendo ? VERDE : "#9ab0a1"} style={{ flexShrink: 0 }} />
           {/* El input va a 16px porque por debajo iOS hace zoom al enfocar; lo
               que se encoge es el placeholder, con su propia regla. */}
           <input
@@ -497,40 +557,77 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUs
               fontSize: 16, color: INK, fontFamily: "inherit", minWidth: 0,
             }}
           />
+          <Miniatura name={texto} size={26} soloSiSeConoce />
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input
-            value={qty}
-            onChange={(e) => setQty(e.target.value)}
-            inputMode="decimal"
-            aria-label="Cantidad"
-            style={{ ...campoBase, width: 62, textAlign: "center", fontSize: 16, padding: "0 6px" }}
-          />
-          <select
-            value={unidad}
-            onChange={(e) => setUnidad(e.target.value)}
-            aria-label="Unidad"
-            style={{ ...campoBase, width: 72, fontSize: 16, padding: "0 6px", cursor: "pointer" }}
-          >
-            {UNIDADES.map((u) => <option key={u} value={u}>{u === "l" ? "L" : u}</option>)}
-          </select>
-          <button
-            type="submit"
-            className="mp-press"
-            disabled={!texto.trim()}
-            style={{
-              flex: 1, height: 32, borderRadius: 10, padding: 0,
-              border: "none", cursor: texto.trim() ? "pointer" : "default",
-              background: texto.trim() ? VERDE : "#c8d9ce", color: "#fff",
-              fontSize: 13, fontWeight: 800, fontFamily: "inherit",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-            }}
-          >
-            <Plus size={16} strokeWidth={3} />
-            Añadir
-          </button>
-        </div>
+
+        {/* La cantidad solo cuando hay algo que contar. En blanco eran dos
+            campos pidiendo un dato sobre nada, y encima los primeros que veías
+            al abrir el panel. */}
+        {escribiendo && (
+          <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+            <input
+              value={qty}
+              onChange={(e) => setQty(e.target.value)}
+              inputMode="decimal"
+              aria-label="Cantidad"
+              style={{ ...campoBase, width: 48, textAlign: "center", padding: "0 4px" }}
+            />
+            <select
+              value={unidad}
+              onChange={(e) => setUnidad(e.target.value)}
+              aria-label="Unidad"
+              style={{ ...campoBase, width: 58, padding: "0 4px", cursor: "pointer" }}
+            >
+              {UNIDADES.map((u) => <option key={u} value={u}>{u === "l" ? "L" : u}</option>)}
+            </select>
+            <button
+              type="submit"
+              className="mp-press"
+              style={{
+                flex: 1, height: 30, borderRadius: 9, padding: 0,
+                border: "none", cursor: "pointer", background: VERDE, color: "#fff",
+                fontSize: 12.5, fontWeight: 800, fontFamily: "inherit",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+              }}
+            >
+              <Plus size={15} strokeWidth={3} />
+              Añadir
+            </button>
+          </div>
+        )}
       </form>
+
+      {/* El pool. Desaparece mientras escribes —entonces la respuesta está en
+          la barra, no aquí— y también cuando ya lo tienes todo puesto. */}
+      {!escribiendo && pool.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 900, color: "#9ab0a1", letterSpacing: ".3px", margin: "0 2px 7px" }}>
+            LO DE SIEMPRE
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {pool.map((p) => (
+              <button
+                key={p.nombre}
+                type="button"
+                className="mp-press"
+                onClick={() => onAnadir(p.nombre, p.qty, p.unidad)}
+                aria-label={`Añadir ${p.nombre}`}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "3px 9px 3px 3px", borderRadius: 999,
+                  background: "#fff", border: "1px solid #e0eae3", cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                <Miniatura name={p.nombre} size={24} />
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: INK, whiteSpace: "nowrap" }}>
+                  {p.nombre}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {ingredientes.length === 0 ? (
         <div style={{ textAlign: "center", padding: "32px 20px" }}>
