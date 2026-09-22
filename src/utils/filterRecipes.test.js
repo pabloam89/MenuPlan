@@ -351,19 +351,27 @@ describe("decisionCatalog pantryScore", () => {
 describe("filterRecipes hasKids", () => {
   const baseOpts = { maxTime: 999, cookLevel: "pro" };
 
+  // El regex de esta comprobación EXCLUYE el vinagre a propósito, y antes no
+  // lo hacía: una copia del regex de producción escrita a mano en el test, sin
+  // su normalización, y por tanto con el mismo fallo. Así el test no verificaba
+  // la regla, la congelaba — daba verde mientras 50 recetas estrella se caían
+  // de todo menú infantil por llevar «Vinagre de vino». Un vinagre es vino
+  // fermentado hasta que deja de serlo. Ver src/utils/alcoholParaNinos.test.js.
+  const NOMBRA_ALCOHOL = (nombre) =>
+    /\b(vino|cerveza|sidra|brandy|ron|whisky|vodka|licor|cava|champan)\b/i.test(
+      nombre.replace(/\bvinagres?\b( de \w+)?/gi, " "),
+    );
+
   it("excludes recipes with alcohol ingredients, even if marked kidFriendly", () => {
     const { recipes: all } = filterRecipes(baseOpts);
     const hadAlcohol = all.filter((r) =>
-      (r.ingredients ?? []).some((ing) => /\bvino\b|\bcerveza\b/i.test(ing.name)),
+      (r.ingredients ?? []).some((ing) => NOMBRA_ALCOHOL(ing.name)),
     );
     expect(hadAlcohol.length).toBeGreaterThan(0); // sanity: fixture data has some
 
     const { recipes: kidsPool } = filterRecipes({ ...baseOpts, hasKids: true });
     for (const r of kidsPool) {
-      const hasAlcohol = (r.ingredients ?? []).some((ing) =>
-        /\b(vino|cerveza|sidra|brandy|ron|whisky|vodka|licor|cava|champan)\b/i.test(ing.name),
-      );
-      expect(hasAlcohol).toBe(false);
+      expect((r.ingredients ?? []).some((ing) => NOMBRA_ALCOHOL(ing.name))).toBe(false);
     }
   });
 

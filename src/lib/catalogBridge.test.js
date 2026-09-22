@@ -31,6 +31,12 @@ const CAMPOS_DEL_SCHEMA = Object.keys(shapeOf(RecipeSchema));
  * lo que no pasó las seis veces anteriores.
  */
 const NO_CRUZAN = {
+  // Los ejes 6 y 7 del registro, que `src/lib/derive/formato.js` escribe sobre
+  // el bundle. Estado `sin_lector`: nadie los consulta todavía, así que no
+  // cruzar no pierde nada hoy. El día que la UI los use, el puente tiene que
+  // pasarlos —o derivarlos aquí, que es barato y evita una segunda verdad.
+  formato: "eje 6, sin lector todavía; nada al otro lado lo pide",
+  temperatura: "eje 7, sin lector todavía; nada al otro lado lo pide",
   // El puente los TRADUCE a otro nombre o a otra forma, así que el campo del
   // catálogo no aparece tal cual pero su información sí llega.
   description: "se traduce a prepSummary",

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 
+import { MAIN_PROTEINS } from "../data/recipeSchema.js";
 import {
   ingredientImageSrc,
   ingredientThumbSrc,
@@ -132,10 +133,12 @@ describe("categoryImageSrc", () => {
 describe("proteinImageSrc", () => {
   // Every filterable protein needs a picture, otherwise one row in the filter
   // sheet silently falls back to no icon at all.
-  const REAL_PROTEINS = [
-    "cerdo", "huevo", "legumbre", "marisco", "pavo",
-    "pescado_azul", "pescado_blanco", "pollo", "ternera",
-  ];
+  //
+  // SALE DE MAIN_PROTEINS, no de una lista escrita aquí. Era una copia de nueve
+  // valores, y cuando el esquema creció a trece este test siguió verde mientras
+  // `caza`, `cordero` y `pato` se pintaban sin foto en 13 recetas estrella. Un
+  // test que lleva su propia copia de la verdad no comprueba nada: la congela.
+  const REAL_PROTEINS = MAIN_PROTEINS.filter((p) => p !== "none");
 
   it.each(REAL_PROTEINS)("has an image for %s", (p) => {
     expect(proteinImageSrc(p)).toMatch(/^\/(ingredients|categories)\/.+\.png$/);

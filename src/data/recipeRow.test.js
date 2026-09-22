@@ -50,6 +50,17 @@ const NO_VIAJAN = {
   // septiembre y siguen VACÍAS porque el catálogo no se ha vuelto a subir;
   // añadir la columna antes de tener el dato repetiría eso.
   aporte: "se deriva en runtime (lib/aporte.js); 0 recetas lo declaran todavía",
+  // Los ejes 6 y 7 del registro. Los escribe `src/lib/derive/formato.js` sobre
+  // el bundle (749 y 916 recetas) y hoy su estado es `sin_lector`: nadie los
+  // consulta todavía, así que no viajar no pierde nada, igual que `aporte`.
+  //
+  // Cuando alguien los lea hay dos salidas y conviene elegir a conciencia: o
+  // columna `formato text` / `temperatura text` en `recipes`, o derivarlos al
+  // cargar como se hace con `healthFlags` —son deterministas y salen del
+  // nombre—. La segunda evita una columna que se desincronice del operador,
+  // que es el problema que `mainBase` documenta.
+  formato: "lo deriva derive/formato.js sobre el bundle; sin lector todavía",
+  temperatura: "lo deriva derive/formato.js sobre el bundle; sin lector todavía",
   // Todo lo que sigue solo lo llevan las recetas `type: "base"`, y esas NO se
   // sirven nunca desde Supabase: bases.json se importa directamente en
   // recipeCatalog.js, siempre desde el bundle. Serían columnas muertas.
