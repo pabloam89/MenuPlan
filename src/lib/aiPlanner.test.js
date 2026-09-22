@@ -1684,6 +1684,53 @@ describe("validarNinosConCopias — las cenas de los niños ven sus comidas copi
   });
 });
 
+describe("pickCatalogReplacement no repite la base del día", () => {
+  // Reportado rellenando la semana de golpe: macarrones a mediodía y pasta al
+  // horno de cena. Son dos proteínas distintas, así que la guardia de
+  // proteínas no las veía — y es la misma cena dos veces.
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+
+  it("con pasta en la comida, la cena no propone pasta", () => {
+    const pasta = Object.values(recipeCatalogById).find(
+      (r) => getCarbType(r) === "pasta" && r.mealRole?.includes("plato_unico"),
+    );
+    expect(pasta).toBeTruthy();
+    const plan = {
+      g1: {
+        "Lun-Comida": { recipeId: pasta.id, eaters: 2 },
+        "Lun-Cena": { recipeId: null, eaters: 2, cleared: true },
+      },
+    };
+    for (let i = 0; i < 20; i++) {
+      const res = pickCatalogReplacement(data, plan, {
+        groupId: "g1", day: "Lun", meal: "Cena", course: "main",
+      });
+      expect(res).toBeTruthy();
+      const puesto = recipeCatalogById[res.frontendRecipe.baseRecipeId];
+      expect(getCarbType(puesto)).not.toBe("pasta");
+    }
+  });
+
+  it("la base de OTRO día no estorba", () => {
+    const pasta = Object.values(recipeCatalogById).find(
+      (r) => getCarbType(r) === "pasta" && r.mealRole?.includes("plato_unico"),
+    );
+    const plan = {
+      g1: {
+        "Mar-Comida": { recipeId: pasta.id, eaters: 2 },
+        "Lun-Cena": { recipeId: null, eaters: 2, cleared: true },
+      },
+    };
+    const res = pickCatalogReplacement(data, plan, {
+      groupId: "g1", day: "Lun", meal: "Cena", course: "main", candidatos: 40,
+    });
+    // No es que TENGA que salir pasta, es que no se prohíbe: el pool sigue
+    // teniendo de todo.
+    expect(res.candidatos.length).toBeGreaterThan(1);
+  });
+});
+
 describe("pickCatalogReplacement devuelve las sugerencias del hueco con `candidatos`", () => {
   // Las sugerencias que el recetario enseña abajo tienen que salir del MISMO
   // pool que el "Cambiar plato" de al lado. Si se calcularan por otro camino,

@@ -3234,6 +3234,36 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const relaxed = strict.length > 0 ? strict : candidates.filter(sameDayOk);
   if (relaxed.length > 0) candidates = relaxed;
 
+  // ── La base del día, una vez ────────────────────────────────────────────
+  // La guardia de arriba mira PROTEÍNAS, y con eso no basta: macarrones a
+  // mediodía y pasta al horno de cena son dos proteínas distintas y la misma
+  // cena dos veces. Se veía poco cambiando un plato suelto y se ve muchísimo
+  // al rellenar los huecos de la semana de golpe, que es lo que hace la
+  // pizarra. Mismo criterio que el reparador del generador (`carbOk`): pasta,
+  // arroz, patata o legumbre no repiten día.
+  //
+  // Preferencia, no prohibición: si dejar fuera la pasta vacía el pool, entra
+  // igual. Un día con dos pastas es peor que uno con una repetida, pero
+  // mucho mejor que un hueco sin plato.
+  const basesDelDia = new Set();
+  for (const [k, s] of Object.entries(menuPlan[groupId] ?? {})) {
+    if (!k.startsWith(`${day}-`)) continue;
+    for (const rid of [s?.recipeId, s?.firstRecipeId]) {
+      // El plato que se está sustituyendo no cuenta: se va.
+      const base = stripGroupPrefix(rid);
+      if (!base || base === currentBaseId) continue;
+      const carb = getCarbType(recipeCatalogById[base]);
+      if (carb) basesDelDia.add(carb);
+    }
+  }
+  if (basesDelDia.size > 0) {
+    const sinRepetir = candidates.filter((r) => {
+      const c = getCarbType(r);
+      return !(c && basesDelDia.has(c));
+    });
+    if (sinRepetir.length > 0) candidates = sinRepetir;
+  }
+
   // Subtype variety across the WHOLE week (not just adjacent days), for the
   // two groups coarse enough to hide a repeat from every check above:
   // legumbres (garbanzo/lenteja/alubia all count as one "legumbres" group,

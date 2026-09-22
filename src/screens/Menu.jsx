@@ -25,6 +25,7 @@ import {
   History,
   IceCream,
   Minimize2,
+  MoreHorizontal,
   LayoutGrid,
   Layers,
   Layers2,
@@ -2140,7 +2141,13 @@ function AddSlotTile({ day, onAddSlot, denso = false }) {
 }
 
 /** A single photo-forward dish tile. Fills its parent (parent controls size). */
-function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, denso = false, showGroup = false, members = null, invitados = 0, onRemoveSlot = null, onFillSlot = null }) {
+const mandoStyle = {
+  width: 24, height: 24, borderRadius: 999, cursor: "pointer",
+  background: "rgba(12,22,15,.5)", backdropFilter: "blur(3px)",
+  display: "flex", alignItems: "center", justifyContent: "center",
+};
+
+function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, denso = false, showGroup = false, members = null, invitados = 0, onRemoveSlot = null, onFillSlot = null, onDishActions = null, onDishClear = null }) {
   const { meal, group, slot, dish } = tile;
   const armed = useContext(ArmedContext);
   const clavesTanda = useContext(TandaContext);
@@ -2314,6 +2321,57 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   const courseTxt = dish.course ? `${mealLabel} · ${dish.course}` : mealLabel;
   const showPhoto = optimized && !failed;
   const isArmed = !!armed && !!sel && sameDish(armed.source, sel);
+  // El rosco se ancla a la BALDOSA, no al botón que lo abre: así sale
+  // centrado sobre el plato, igual que con la pulsación larga.
+  const abrirMandos = (e, cb) => {
+    const tile = e.currentTarget.closest(".deck-tile");
+    const tr = tile?.getBoundingClientRect();
+    const rad = tile ? parseFloat(getComputedStyle(tile).borderRadius) || 18 : 18;
+    cb({
+      ...sel,
+      anchor: tr ? { tile: { top: tr.top, left: tr.left, width: tr.width, height: tr.height }, radius: rad } : null,
+    });
+  };
+  // Las acciones de un plato ya colocado. En la pizarra la pulsación larga
+  // levanta el plato para arrastrarlo, así que el rosco y el vaciar necesitan
+  // botón propio — sin ellos, un plato puesto no se podía ni quitar.
+  const mandosDelPlato = (onDishActions || onDishClear) && sel && (
+    <div
+      style={{
+        position: "absolute", top: compact ? 6 : 10, right: compact ? 6 : 10,
+        zIndex: 3, display: "flex", gap: 5,
+      }}
+    >
+      {onDishActions && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={`Acciones de ${recipe.name}`}
+          onClick={(e) => { e.stopPropagation(); abrirMandos(e, onDishActions); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); abrirMandos(e, onDishActions); } }}
+          className="deck-tile-actions"
+          style={mandoStyle}
+        >
+          <MoreHorizontal size={compact ? 13 : 15} color="#fff" strokeWidth={2.6} />
+        </span>
+      )}
+      {onDishClear && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={`Quitar ${recipe.name}`}
+          onClick={(e) => { e.stopPropagation(); onDishClear(sel); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); onDishClear(sel); } }}
+          className="deck-tile-actions"
+          style={mandoStyle}
+        >
+          <X size={compact ? 13 : 15} color="#fff" strokeWidth={2.8} />
+        </span>
+      )}
+    </div>
+  );
   return (
     <button
       type="button"
@@ -2344,6 +2402,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       }}
     >
       {isArmed && <ArmedRing radius={radius} />}
+      {mandosDelPlato}
       {showPhoto ? (
         <img
           src={optimized}
@@ -2652,7 +2711,7 @@ function DayRegenButton({ day, onRegenerateDay, groups = [], compact = false }) 
   );
 }
 
-function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, onAddSlot = null, onRemoveSlot = null, onFillSlot = null }) {
+function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null, onDishClear = null }) {
   const scrollerRef = useRef(null);
   const rafRef = useRef(0);
 
@@ -2754,7 +2813,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
                     key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`}
                     style={many ? { height: 172, flexShrink: 0 } : { flex: 1, minHeight: 0 }}
                   >
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} onDishClear={onDishClear} />
                   </div>
                 ))
               )}
@@ -2772,7 +2831,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 }
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
-function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null }) {
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null, onDishClear = null }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: denso ? 12 : 18 }}>
       {days.map((day) => {
@@ -2792,7 +2851,7 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
               {tiles.map((tile, i) => (
                 <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: denso ? "0 0 33%" : "0 0 46%" }}>
                   <div style={{ height: denso ? 104 : 150 }}>
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={denso ? 14 : 16} compact denso={denso} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={denso ? 14 : 16} compact denso={denso} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} onDishClear={onDishClear} />
                   </div>
                 </div>
               ))}
@@ -4012,7 +4071,7 @@ const monthDots = {
   alignItems: "center", gap: 3, maxWidth: 30,
 };
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null }) {
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null, onDishClear = null }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
@@ -4050,10 +4109,12 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           onAddSlot={onAddSlot}
           onRemoveSlot={onRemoveSlot}
           onFillSlot={onFillSlot}
+          onDishActions={onDishActions}
+          onDishClear={onDishClear}
         />
       )}
       {deckView === "semana" && (
-        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} onAddSlot={onAddSlot} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} />
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} onAddSlot={onAddSlot} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} onDishClear={onDishClear} />
       )}
       {deckView === "mes" && (
         <DeckMonth
@@ -5940,6 +6001,8 @@ export const MenuScreen = memo(function MenuScreen({
               onAddSlot={modoPizarra ? onAddSlot : null}
               onRemoveSlot={modoPizarra ? onRemoveSlot : null}
               onFillSlot={modoPizarra ? onFillSlots : null}
+              onDishActions={modoPizarra && !readOnly ? setDishAction : null}
+              onDishClear={modoPizarra && !readOnly ? onDishClear : null}
               deckView={deckView}
               days={activeDays}
               weekDates={weekDates}
