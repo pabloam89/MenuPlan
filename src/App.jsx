@@ -52,6 +52,7 @@ const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").the
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
+import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
@@ -79,6 +80,7 @@ import {
   adhocReasonLabel,
   resolveMemberAge,
   membersOfGroup,
+  isBabyMenuGroup,
   reconcileGroupsWithMembers,
 } from "./lib/groups.js";
 import { normalizeKidDinnerConfig, deriveKidDinnerMatchesAdultLunch } from "./lib/kidsMenu.js";
@@ -2742,10 +2744,34 @@ export default function App() {
       day: slotPicker.day,
       meal: slotPicker.meal,
       course: slotPicker.course ?? "main",
-      candidatos: 12,
+      // Se piden SESENTA para enseñar doce. El pool sale en el orden del
+      // catálogo, así que con doce salían siete de garbanzos seguidos y
+      // después cuatro de filete con patatas: el orden del fichero asomando.
+      // `sugerenciasDeHueco` reparte por familia y baja lo de ocasión y lo de
+      // otras cocinas, y para repartir hace falta de dónde.
+      candidatos: 60,
     });
-    return r?.candidatos ?? [];
+    return sugerenciasDeHueco(r?.candidatos ?? [], 12);
   }, [slotPicker, data, menuPlan]);
+
+  /**
+   * El hueco, para que el recetario sepa qué carpetas ofrecer.
+   *
+   * Son dos datos: la franja —que decide si tienen sentido «Desayunos»,
+   * «Meriendas», «Postres» o «Cenas rápidas»— y si el menú es de bebé, que es
+   * lo único que justifica las dos carpetas de papillas y sólidos.
+   */
+  const contextoDelHueco = useMemo(() => {
+    if (!slotPicker || slotPicker.kind) return null;
+    const grupos = data.groups?.length > 0
+      ? data.groups
+      : groupsFromModel(data.members, data.menuModel);
+    const grupo = grupos.find((g) => g.id === slotPicker.groupId) ?? null;
+    return {
+      meal: slotPicker.meal,
+      esBebe: grupo ? isBabyMenuGroup(grupo, data.members ?? []) : false,
+    };
+  }, [slotPicker, data.groups, data.members, data.menuModel]);
 
   /**
    * Un cambio desde los mandos de la pizarra (comidas o días).
@@ -6253,6 +6279,7 @@ export default function App() {
           recipeVotes={data.recipeVotes ?? {}}
           extraRecipes={ownUserRecipes}
           sugerencias={sugerenciasDelHueco}
+          contextoHueco={contextoDelHueco}
           onPickSugerencia={(id) => { if (id) handleChooseRecipeForSlot(id); }}
         />
       )}

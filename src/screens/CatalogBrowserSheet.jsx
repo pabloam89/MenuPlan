@@ -57,6 +57,8 @@ import salsasData from "../data/recipes/salsas.json";
 import { dishImageUrl, dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { allFolders, collectionRecipeIds, collectionCounts, DISCARDED_ID } from "../lib/recipeCollections.js";
+import { carpetasDelHueco, facetasDelHueco } from "../lib/carpetasDelHueco.js";
+
 
 // Carpeta virtual: todo lo que has guardado, sin filtrar por carpeta.
 export const ALL_ID = "__all__";
@@ -397,6 +399,10 @@ export function CatalogBrowserSheet({
   // siempre.
   sugerencias = [],
   onPickSugerencia,
+  // El hueco desde el que se abre: { meal, esBebe }. Decide qué carpetas
+  // tienen sentido — ver `carpetasDelHueco`. Sin él no se esconde ninguna,
+  // que es lo que debe pasar cuando el recetario se abre por su cuenta.
+  contextoHueco = null,
   // Cocinada: "«lo que has escrito» es mía". Es la salida cuando lo que has
   // hecho no está en el catálogo, y sin ella no podrías publicar la cena. Solo
   // la pinta quien la pasa (el composer del feed), y siempre DEBAJO de las
@@ -1121,10 +1127,16 @@ export function CatalogBrowserSheet({
   // deprecada, que tenía una receta dentro, mientras el filtro de verdad —con
   // noventa y pico— vivía a dos toques de profundidad. Va la primera de las
   // categorías porque es la que más se busca al montar una semana.
+  //
+  // Y se recortan según el hueco: al rellenar una cena no pinta nada ofrecer
+  // «Desayunos», «Meriendas», «Postres» ni las de bebé — son cuatro carpetas
+  // que hay que leer y descartar cada vez. Las categorías de comida se quedan
+  // todas, porque esconder «Legumbres» en una cena sería decidir por el
+  // usuario qué se cena.
   const gridTiles = [
     { kind: "mine", id: "__mine__" },
-    { kind: "facet", id: "rapido" },
-    ...allCats.map((catId) => ({ kind: "category", id: catId })),
+    ...facetasDelHueco(["rapido"], contextoHueco).map((id) => ({ kind: "facet", id })),
+    ...carpetasDelHueco(allCats, contextoHueco).map((catId) => ({ kind: "category", id: catId })),
     ...cocinaTiles.map((id) => ({ kind: "cocina", id })),
   ];
 
