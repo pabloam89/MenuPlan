@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { BarChart3, CalendarDays, Check, X } from "../components/icons.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
-import { freqsEfectivos } from "../lib/reparto.js";
 import { DAYS } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
@@ -150,92 +149,27 @@ function Radial({ label, Icon, texto, active, onClick, delay = 0, size = 58, col
  * platos para el motor. Si este panel contara por su cuenta, acabaría
  * diciendo "te falta pescado" mientras el generador cree que va sobrado.
  */
-function PanelBalance({ menuPlan, data, groups }) {
-  const { recuento, huecosVacios, objetivo } = useMemo(() => {
+function PanelBalance({ menuPlan, groups }) {
+  const recuento = useMemo(() => {
     const plan = {};
-    let vacios = 0;
     for (const g of groups ?? []) {
-      const slots = menuPlan?.[g.id];
-      if (!slots) continue;
-      plan[g.id] = slots;
-      for (const s of Object.values(slots)) {
-        if (!s) continue;
-        if (s.dosPlatos && !s.firstRecipeId) vacios++;
-        if (!s.recipeId) vacios++;
-      }
+      if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
     }
-    const r = recuentoDelMenu(plan, recipeCatalogById);
-    const obj = data?.reparto && Object.keys(data.reparto).length > 0
-      ? freqsEfectivos({ freqs: data.freqsPedidos ?? {}, reparto: data.reparto }, { presupuesto: r.huecos + vacios })
-      : null;
-    return { recuento: r, huecosVacios: vacios, objetivo: obj };
-  }, [menuPlan, data, groups]);
+    return recuentoDelMenu(plan, recipeCatalogById);
+  }, [menuPlan, groups]);
 
-  const filas = FAMILIAS_BALANCE.map((f) => ({
-    ...f,
-    puestos: recuento.familias[f.id] ?? 0,
-    pedidos: objetivo?.[f.id] ?? null,
-  }));
-  const tope = Math.max(1, ...filas.map((f) => Math.max(f.puestos, f.pedidos ?? 0)));
-  const llenos = recuento.huecos;
-  const totalHuecos = llenos + huecosVacios;
-  const progreso = totalHuecos > 0 ? Math.round((llenos / totalHuecos) * 100) : 0;
-  const RADIO = 23;
-  const VUELTA = 2 * Math.PI * RADIO;
+  const filas = FAMILIAS_BALANCE.map((f) => ({ ...f, puestos: recuento.familias[f.id] ?? 0 }));
 
   return (
     <>
-      {/* ── Cuánto llevas ─────────────────────────────────────────────────
-          El número va dentro de su aro y solo: una barra de progreso aquí
-          arriba competiría con las seis de abajo, que son las que de verdad
-          comparan algo. */}
-      <div
-        style={{
-          display: "flex", alignItems: "center", gap: 14,
-          background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16,
-          padding: 14, marginBottom: 16,
-          boxShadow: "0 1px 3px rgba(20,47,29,.05)",
-        }}
-      >
-        <div style={{ position: "relative", width: 54, height: 54, flexShrink: 0 }}>
-          <svg width="54" height="54" viewBox="0 0 54 54" aria-hidden>
-            <circle cx="27" cy="27" r={RADIO} fill="none" stroke="#eaf0ec" strokeWidth="6" />
-            <circle
-              cx="27" cy="27" r={RADIO} fill="none" stroke={TEAL} strokeWidth="6"
-              strokeLinecap="round"
-              strokeDasharray={`${(progreso / 100) * VUELTA} ${VUELTA}`}
-              transform="rotate(-90 27 27)"
-              style={{ transition: "stroke-dasharray .4s cubic-bezier(.22,1,.36,1)" }}
-            />
-          </svg>
-          <span
-            style={{
-              position: "absolute", inset: 0, display: "flex",
-              alignItems: "center", justifyContent: "center",
-              fontSize: 15, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {llenos}
-          </span>
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: INK, letterSpacing: "-.2px" }}>
-            {huecosVacios === 0 ? "Semana completa" : `Quedan ${huecosVacios}`}
-          </p>
-          <p style={{ margin: "3px 0 0", fontSize: 12, fontWeight: 600, color: "#7a9485", lineHeight: 1.35 }}>
-            {huecosVacios === 0
-              ? `${llenos} ${llenos === 1 ? "plato puesto" : "platos puestos"}`
-              : `${llenos} de ${totalHuecos} huecos llenos`}
-          </p>
-        </div>
-      </div>
-
-      <div style={{ display: "flex", alignItems: "center", gap: 7, margin: "0 2px 9px" }}>
-        <BarChart3 size={15} color={TEAL} strokeWidth={2.4} />
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: TEAL, letterSpacing: "-.2px" }}>
-          Por familia
-        </p>
-      </div>
+      {/* Esto cuenta, y ya está. Sin objetivos ni huecos que faltan: no hay
+          tope que respetar, así que un "0 de 3" pintaba un límite que no
+          existe y convertía el panel en un examen. */}
+      <p style={{ margin: "0 0 16px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
+        {recuento.huecos === 0
+          ? "Todavía no has puesto ningún plato."
+          : `${recuento.huecos} ${recuento.huecos === 1 ? "plato puesto" : "platos puestos"} esta semana.`}
+      </p>
 
       <div
         style={{
@@ -244,24 +178,22 @@ function PanelBalance({ menuPlan, data, groups }) {
         }}
       >
         {filas.map((f, i) => {
-          const anchoPuestos = `${Math.round((f.puestos / tope) * 100)}%`;
-          const falta = f.pedidos != null ? f.pedidos - f.puestos : null;
           const vacia = f.puestos === 0;
           return (
             <div
               key={f.id}
               style={{
-                display: "flex", alignItems: "center", gap: 11, padding: "11px 12px",
+                display: "flex", alignItems: "center", gap: 12, padding: "10px 12px",
                 borderBottom: i === filas.length - 1 ? "none" : "1px solid #eef3f0",
               }}
             >
               {/* La foto de la categoría, la misma que ves en las carpetas del
                   recetario: reconoces la familia antes de leer su nombre. Las
                   que van a cero se quedan en gris — que falte pescado tiene que
-                  verse sin contar barras. */}
+                  verse sin leer números. */}
               <span
                 style={{
-                  width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                  width: 38, height: 38, borderRadius: 12, flexShrink: 0,
                   overflow: "hidden", background: "#f4f8f5",
                   border: "1px solid #eef3f0", display: "block",
                   opacity: vacia ? 0.4 : 1,
@@ -277,68 +209,30 @@ function PanelBalance({ menuPlan, data, groups }) {
                 />
               </span>
 
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: 6 }}>
-                  <span style={{ flex: 1, fontSize: 12.5, fontWeight: 800, color: vacia ? "#9ab0a1" : INK }}>
-                    {f.label}
-                  </span>
-                  <span style={{ fontSize: 14, fontWeight: 900, color: vacia ? "#c2cfc7" : f.color, fontVariantNumeric: "tabular-nums" }}>
-                    {f.puestos}
-                  </span>
-                  {f.pedidos != null && (
-                    <span style={{ fontSize: 11, fontWeight: 700, color: "#9ab0a1", fontVariantNumeric: "tabular-nums" }}>
-                      /{f.pedidos}
-                    </span>
-                  )}
-                </div>
-                <div style={{ position: "relative", height: 7, borderRadius: 99, background: "#eef3f0" }}>
-                  <div
-                    style={{
-                      position: "absolute", top: 0, bottom: 0, left: 0, width: anchoPuestos,
-                      borderRadius: 99, background: f.color,
-                      transition: "width .35s cubic-bezier(.22,1,.36,1)",
-                    }}
-                  />
-                  {/* El objetivo es una MARCA, no otra barra: lo que se compara
-                      es una posición, y dos barras se leen como dos cantidades
-                      compitiendo entre ellas. */}
-                  {f.pedidos != null && f.pedidos > 0 && (
-                    <span
-                      aria-hidden
-                      style={{
-                        position: "absolute", top: -2.5, bottom: -2.5,
-                        left: `calc(${Math.round((f.pedidos / tope) * 100)}% - 1px)`,
-                        width: 2, borderRadius: 2, background: "#5a7066",
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 800, color: vacia ? "#9ab0a1" : INK }}>
+                {f.label}
+              </span>
 
-              {falta != null && falta !== 0 && (
-                <span
-                  title={falta > 0 ? `Te ${falta === 1 ? "falta" : "faltan"} ${falta}` : `${-falta} de más`}
-                  style={{
-                    flexShrink: 0, fontSize: 10.5, fontWeight: 800,
-                    padding: "3px 8px", borderRadius: 999,
-                    background: falta > 0 ? "#fff8e7" : "#f0f4f1",
-                    color: falta > 0 ? "#b45309" : "#5a7066",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {falta > 0 ? `+${falta}` : falta}
-                </span>
-              )}
+              {/* El número en su círculo, del color de la familia. Sustituye a
+                  la barra: una barra mide contra algo, y aquí ya no hay contra
+                  qué — solo cuántos llevas. */}
+              <span
+                style={{
+                  width: 32, height: 32, borderRadius: 999, flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: vacia ? "#f4f7f5" : `${f.color}18`,
+                  border: `1.5px solid ${vacia ? "#e3ebe6" : `${f.color}55`}`,
+                  color: vacia ? "#c2cfc7" : f.color,
+                  fontSize: 14, fontWeight: 900, fontVariantNumeric: "tabular-nums",
+                  transition: "all .25s ease",
+                }}
+              >
+                {f.puestos}
+              </span>
             </div>
           );
         })}
       </div>
-
-      <p style={{ margin: "12px 2px 0", fontSize: 11.5, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.45 }}>
-        {objetivo
-          ? "La marca de cada barra es lo que pediste en el reparto."
-          : "Sin reparto pedido no hay con qué comparar: esto es solo lo que llevas."}
-      </p>
     </>
   );
 }
@@ -460,7 +354,7 @@ export function PizarraControles({ data, menuPlan, groups, onAplicar }) {
             </div>
 
             {abierto === "balance" ? (
-              <PanelBalance menuPlan={menuPlan} data={data} groups={groups} />
+              <PanelBalance menuPlan={menuPlan} groups={groups} />
             ) : (
               <>
                 <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
