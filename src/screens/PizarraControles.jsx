@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import {
-  BarChart3, CalendarDays, Check, CookingPot, Minus, Package, Plus, Salad, Search, Sparkles, X,
+  ArrowRight, BarChart3, Check, CookingPot, Minus, Package, Plus, Salad, Search, Sparkles, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
@@ -1072,18 +1072,15 @@ function TarjetaTrasto({ trasto, activo, ahorro, onClick }) {
   );
 }
 
-const TITULOS = {
-  dias: "¿Qué días?",
-  balance: "Cómo va la semana",
-  despensa: "Lo que tengo en casa",
-  tanda: "Batch Cooking",
-};
-
-export function PizarraControles({
-  data, setData, menuPlan, groups, onAplicar, onRellenar,
-  despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
-}) {
-  const [abierto, setAbierto] = useState(null);
+/**
+ * ¿Qué días pones? — semanas enteras arriba, calendario para afinar debajo.
+ *
+ * Vivía dentro de un panel lateral de la pizarra y ahora es lo PRIMERO que se
+ * pregunta, en la hoja de arranque: no tiene sentido enseñar un tablero de
+ * siete días para que luego te sobren cuatro. Sigue siendo un componente y no
+ * una pantalla porque la respuesta se da tocando, no navegando.
+ */
+export function SelectorDeDias({ data, onAplicar }) {
   const todayIdx = useMemo(() => todayDayIdx(), []);
   const semanas = useMemo(() => buildCalendarWeeks(MAX_MENU_WEEKS), []);
   const allOffsets = useMemo(() => semanas.map((s) => s.offset), [semanas]);
@@ -1093,6 +1090,196 @@ export function PizarraControles({
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
+  const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
+
+  return (
+    <>
+        <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
+          Toca una semana entera, o afina día a día.
+        </p>
+        {/* Las cuatro en UNA fila: partidas en 3+1 se leían como dos
+            grupos de semanas, que no significa nada. */}
+        <div style={{ display: "flex", gap: 6, justifyContent: "space-between", marginBottom: 16 }}>
+          {semanas.map((s, i) => {
+            const n = diasDe(s.offset).length;
+            return (
+              <Radial
+                key={s.offset}
+                label={ETIQUETA_SEMANA[i] ?? `En ${i} semanas`}
+                texto={n === 0 ? "·" : String(n)}
+                color={TEAL}
+                active={n > 0}
+                size={44}
+                delay={i * 70}
+                onClick={() => onAplicar(conSemanaCompleta(data, s.offset, opts))}
+              />
+            );
+          })}
+        </div>
+
+        <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, padding: "14px 10px 10px" }}>
+          <div style={{
+            fontSize: 10.5, fontWeight: 800, color: TEAL, letterSpacing: ".8px",
+            textTransform: "uppercase", padding: "0 4px 8px",
+          }}>
+            {MESES[semanas[0].monday.getMonth()]} {semanas[0].monday.getFullYear()}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 2 }}>
+            {DIAS_CORTOS.map((d, i) => (
+              <div key={i} style={{ textAlign: "center", fontSize: 10.5, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
+                {d}
+              </div>
+            ))}
+          </div>
+          {/* Las semanas, separadas de verdad: cuatro filas de
+              números pegadas se leían como una tabla de treinta
+              números sin estructura, y lo que hay que ver de un
+              vistazo es dónde empieza y acaba cada semana. */}
+          {semanas.map((s, wi) => {
+            const puestos = new Set(diasDe(s.offset));
+            return (
+              <div
+                key={s.offset}
+                style={{
+                  display: "grid", gridTemplateColumns: "repeat(7, 1fr)",
+                  marginTop: wi === 0 ? 4 : 10,
+                  paddingTop: wi === 0 ? 0 : 10,
+                  borderTop: wi === 0 ? "none" : "1px solid #f1f5f2",
+                }}
+              >
+                {s.days.map((fecha, i) => {
+                  const esHoy = fecha.getTime() === hoy.getTime();
+                  const pasado = fecha < hoy;
+                  const code = DAYS[i];
+                  const marcado = puestos.has(code);
+                  return (
+                    <div key={i} style={{ display: "flex", justifyContent: "center", height: 38 }}>
+                      <button
+                        type="button"
+                        disabled={pasado}
+                        onClick={() => onAplicar(conDiaMarcado(data, s.offset, code, !marcado, opts))}
+                        style={{
+                          width: 30, height: 30, borderRadius: 999, padding: 0, alignSelf: "center",
+                          border: marcado ? `1.5px solid ${TEAL}` : "1.5px solid transparent",
+                          background: marcado ? `${TEAL}22` : "transparent",
+                          color: pasado ? "#ccd6cf" : marcado ? TEAL : "#3a4a42",
+                          // Hoy se subraya, no se rellena: el relleno ya
+                          // significa "marcado", y usándolo para las dos
+                          // cosas hoy parecía puesto sin estarlo.
+                          boxShadow: esHoy ? "inset 0 -3px 0 -1px #f59e0b" : "none",
+                          fontSize: 13, fontWeight: esHoy ? 900 : marcado ? 800 : 600,
+                          fontFamily: "inherit",
+                          cursor: pasado ? "default" : "pointer",
+                          transition: "background .12s ease, color .12s ease",
+                        }}
+                      >
+                        {fecha.getDate()}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </>
+  );
+}
+
+/**
+ * La hoja con la que arranca una pizarra: «¿qué días?» y un botón.
+ *
+ * ── Por qué una hoja y no una pantalla ────────────────────────────────────
+ * Detrás ya está el tablero, vacío y quieto. Eso es deliberado: la pregunta
+ * se hace CON lo que vas a montar delante, no antes de verlo, así que se
+ * entiende para qué sirve contestarla. Una pantalla aparte lo habría tapado y
+ * habría vuelto a ser el asistente de dos pasos que esto vino a sustituir.
+ *
+ * ── Y por qué el tablero llega desnudo ────────────────────────────────────
+ * Sin avatares y sin baldosas: mientras esta hoja está delante no hay nada
+ * que ajustar, y una fila de mandos detrás de un velo solo dice «hay cosas
+ * que todavía no puedes tocar». Entran después, con el mismo gesto que cierra
+ * la hoja.
+ */
+export function ArranqueDePizarra({ data, onAplicar, onEmpezar }) {
+  const [saliendo, setSaliendo] = useState(false);
+  const dias = useMemo(() => diasDeSemana(data, 0, todayDayIdx()).length, [data]);
+
+  const empezar = () => {
+    if (saliendo) return;
+    setSaliendo(true);
+    // Se espera a que la hoja termine de irse antes de montar la franja: si
+    // aparecieran a la vez, el tablero daría un salto a mitad de animación.
+    setTimeout(onEmpezar, 260);
+  };
+
+  return (
+    <div
+      className={saliendo ? "mp-arranque-velo-out" : "mp-arranque-velo"}
+      style={{
+        position: "fixed", inset: 0, zIndex: 200,
+        background: "rgba(20,47,29,.38)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 20,
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="¿Qué días pones?"
+        className={saliendo ? "mp-arranque-out" : "mp-arranque-in"}
+        style={{
+          width: "min(340px, 100%)", maxHeight: "calc(100dvh - 40px)", overflowY: "auto",
+          background: "#f4f8f5", borderRadius: 24, padding: 18,
+          boxShadow: "0 28px 70px -20px rgba(20,47,29,.5)",
+          boxSizing: "border-box",
+        }}
+      >
+        <p style={{ margin: "0 0 2px", fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
+          ¿Qué días pones?
+        </p>
+        <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#7a9485" }}>
+          Luego rellenas los huecos a mano.
+        </p>
+
+        <SelectorDeDias data={data} onAplicar={onAplicar} />
+
+        {/* El CTA abajo y fijo al ancho: es la única salida de la hoja, y una
+            salida no se busca. Se apaga sin días porque un tablero de cero
+            huecos no es una pizarra en blanco, es una pantalla en blanco. */}
+        <button
+          type="button"
+          className="mp-press"
+          disabled={dias === 0}
+          onClick={empezar}
+          style={{
+            marginTop: 16, width: "100%", height: 46, borderRadius: 15,
+            border: "none", cursor: dias === 0 ? "default" : "pointer",
+            background: dias === 0 ? "#c8d9ce" : VERDE, color: "#fff",
+            fontSize: 15, fontWeight: 900, fontFamily: "inherit",
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}
+        >
+          Empezar
+          <ArrowRight size={17} strokeWidth={2.8} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const TITULOS = {
+  balance: "Cómo va la semana",
+  despensa: "Lo que tengo en casa",
+  tanda: "Batch Cooking",
+};
+
+export function PizarraControles({
+  data, setData, menuPlan, groups, onRellenar,
+  despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
+}) {
+  const [abierto, setAbierto] = useState(null);
+  const todayIdx = useMemo(() => todayDayIdx(), []);
 
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
 
@@ -1157,13 +1344,9 @@ export function PizarraControles({
           scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
         }}
       >
-        <BaldosaMando
-          Icon={CalendarDays}
-          label="Días"
-          color={TEAL}
-          tinte="#fff"
-          onClick={() => setAbierto("dias")}
-        />
+        {/* Aquí estaba «Días». Se ha ido porque ya no es un mando del
+            tablero: es la PRIMERA pregunta, y se contesta en la hoja de
+            arranque antes de que exista tablero que ajustar. */}
         <BaldosaMando
           Icon={BarChart3}
           label="Balance"
@@ -1260,98 +1443,7 @@ export function PizarraControles({
                 setData={setData}
                 sesion={sesion}
               />
-            ) : (
-              <>
-                <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
-                  Toca una semana entera, o afina día a día.
-                </p>
-                {/* Las cuatro en UNA fila: partidas en 3+1 se leían como dos
-                    grupos de semanas, que no significa nada. */}
-                <div style={{ display: "flex", gap: 6, justifyContent: "space-between", marginBottom: 16 }}>
-                  {semanas.map((s, i) => {
-                    const n = diasDe(s.offset).length;
-                    return (
-                      <Radial
-                        key={s.offset}
-                        label={ETIQUETA_SEMANA[i] ?? `En ${i} semanas`}
-                        texto={n === 0 ? "·" : String(n)}
-                        color={TEAL}
-                        active={n > 0}
-                        size={44}
-                        delay={i * 70}
-                        onClick={() => onAplicar(conSemanaCompleta(data, s.offset, opts))}
-                      />
-                    );
-                  })}
-                </div>
-
-                <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, padding: "14px 10px 10px" }}>
-                  <div style={{
-                    fontSize: 10.5, fontWeight: 800, color: TEAL, letterSpacing: ".8px",
-                    textTransform: "uppercase", padding: "0 4px 8px",
-                  }}>
-                    {MESES[semanas[0].monday.getMonth()]} {semanas[0].monday.getFullYear()}
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 2 }}>
-                    {DIAS_CORTOS.map((d, i) => (
-                      <div key={i} style={{ textAlign: "center", fontSize: 10.5, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
-                        {d}
-                      </div>
-                    ))}
-                  </div>
-                  {/* Las semanas, separadas de verdad: cuatro filas de
-                      números pegadas se leían como una tabla de treinta
-                      números sin estructura, y lo que hay que ver de un
-                      vistazo es dónde empieza y acaba cada semana. */}
-                  {semanas.map((s, wi) => {
-                    const puestos = new Set(diasDe(s.offset));
-                    return (
-                      <div
-                        key={s.offset}
-                        style={{
-                          display: "grid", gridTemplateColumns: "repeat(7, 1fr)",
-                          marginTop: wi === 0 ? 4 : 10,
-                          paddingTop: wi === 0 ? 0 : 10,
-                          borderTop: wi === 0 ? "none" : "1px solid #f1f5f2",
-                        }}
-                      >
-                        {s.days.map((fecha, i) => {
-                          const esHoy = fecha.getTime() === hoy.getTime();
-                          const pasado = fecha < hoy;
-                          const code = DAYS[i];
-                          const marcado = puestos.has(code);
-                          return (
-                            <div key={i} style={{ display: "flex", justifyContent: "center", height: 38 }}>
-                              <button
-                                type="button"
-                                disabled={pasado}
-                                onClick={() => onAplicar(conDiaMarcado(data, s.offset, code, !marcado, opts))}
-                                style={{
-                                  width: 30, height: 30, borderRadius: 999, padding: 0, alignSelf: "center",
-                                  border: marcado ? `1.5px solid ${TEAL}` : "1.5px solid transparent",
-                                  background: marcado ? `${TEAL}22` : "transparent",
-                                  color: pasado ? "#ccd6cf" : marcado ? TEAL : "#3a4a42",
-                                  // Hoy se subraya, no se rellena: el relleno ya
-                                  // significa "marcado", y usándolo para las dos
-                                  // cosas hoy parecía puesto sin estarlo.
-                                  boxShadow: esHoy ? "inset 0 -3px 0 -1px #f59e0b" : "none",
-                                  fontSize: 13, fontWeight: esHoy ? 900 : marcado ? 800 : 600,
-                                  fontFamily: "inherit",
-                                  cursor: pasado ? "default" : "pointer",
-                                  transition: "background .12s ease, color .12s ease",
-                                }}
-                              >
-                                {fecha.getDate()}
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+            ) : null}
           </div>
         </>
       )}

@@ -5992,7 +5992,27 @@ export const MenuScreen = memo(function MenuScreen({
       {/* ── Filter panel: collapsible con animación (solo modo clásico) ── */}
 
       {/* ── Zona de navegación: cabecera clásica (fecha/perfil/chevron) o nav del deck ── */}
-      <div style={{ background: "#fff", padding: "12px 16px 0" }}>
+      {/* En la pizarra esta franja se queda pegada arriba al bajar.
+          Los mandos de aquí no son decoración de cabecera: son con lo que
+          rellenas: el avatar dice para quién estás poniendo platos y las
+          baldosas abren días, balance, despensa, batch y rellenar. Con siete
+          días en pantalla, tocar un hueco del domingo y querer cambiar de
+          comensal obligaba a subir hasta arriba, cambiar y volver a bajar.
+          El que scrollea es el documento (la raíz solo pone minHeight), así
+          que basta con `sticky` — sin contenedor con overflow de por medio.
+          Solo en pizarra: en el modo clásico esta misma franja lleva el paso
+          de semanas y el filtro, que no se usan a media lista. */}
+      <div
+        style={{
+          background: "#fff",
+          padding: "12px 16px 0",
+          ...(hasMenu && modoPizarra
+            // zIndex por encima de las tarjetas y por debajo de las hojas
+            // (160 el panel de la pizarra, 300 las bottom-sheets).
+            ? { position: "sticky", top: 0, zIndex: 20 }
+            : null),
+        }}
+      >
 
         {/* ── Multi-week switcher: solo en clásico (en deck vive dentro del DeckNav) ── */}
 
@@ -6007,7 +6027,11 @@ export const MenuScreen = memo(function MenuScreen({
             llega hasta el borde derecho porque la franja es una zona, no una
             tarjeta: cortarla antes del margen la convertiría en un recuadro
             más de los que hay debajo. */}
-        {hasMenu && modoPizarra && (
+        {/* `pizarraControles` manda: mientras la pizarra arranca llega vacío,
+            y entonces la franja ENTERA se va —avatares incluidos—. Una fila de
+            avatares sola, sin nada que hacer con ella, solo diría «hay cosas
+            que todavía no puedes tocar». */}
+        {hasMenu && modoPizarra && pizarraControles && (
           <div style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}>
             <div style={{ background: "#fff", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
               {(data.groups?.length > 0) && (

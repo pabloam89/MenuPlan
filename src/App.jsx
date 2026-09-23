@@ -44,6 +44,7 @@ const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ 
 const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
 const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
 const PizarraControles = lazy(() => import("./screens/PizarraControles.jsx").then(m => ({ default: m.PizarraControles })));
+const ArranqueDePizarra = lazy(() => import("./screens/PizarraControles.jsx").then(m => ({ default: m.ArranqueDePizarra })));
 const AnadirHuecoSheet = lazy(() => import("./screens/AnadirHuecoSheet.jsx").then(m => ({ default: m.AnadirHuecoSheet })));
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
@@ -2812,6 +2813,10 @@ export default function App() {
    * desaparece y su consumo se quedaría huérfano. Empezar una pizarra no
    * puede costarte la despensa.
    */
+  // Mientras es `true`, la pizarra recién creada enseña el tablero vacío con
+  // la hoja de «¿Qué días?» delante y sin franja de mandos.
+  const [pizarraArrancando, setPizarraArrancando] = useState(false);
+
   const handleStartPizarra = useCallback((eleccion = null) => {
     if (householdReadOnly) {
       showToast("Solo lectura: no puedes editar el menú");
@@ -2939,6 +2944,12 @@ export default function App() {
       weekCount: weekOffsets.length,
       huecos: huecosDelPlan(firstWeekPlan),
     });
+    // El tablero entra DESNUDO —sin avatares ni baldosas— y encima aparece la
+    // hoja de arranque preguntando los días. Los mandos llegan al darle a
+    // «Empezar». Es transitorio a propósito: no es un estado del menú sino un
+    // momento de esta sesión, y guardarlo dejaría una pizarra a medio arrancar
+    // esperándote mañana.
+    setPizarraArrancando(true);
     fwd(() => setScreen("menu"));
   }, [data, user, householdReadOnly, showToast, syncHouseholdId]);
 
@@ -5549,8 +5560,11 @@ export default function App() {
         background: "#fff",
         fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
         position: "relative",
-        overflowX: "hidden",
+        // El recorte horizontal vive en `.mp-shell` (index.css) y no aquí: con
+        // `overflow-x: hidden` el shell se vuelve contenedor de scroll y rompe
+        // todos los `position: sticky` de dentro.
       }}
+      className="mp-shell"
     >
       <style>{`
         @keyframes slideFromRight {
@@ -5688,7 +5702,7 @@ export default function App() {
               // dentro de MenuScreen para que esa pantalla siga sin saber que
               // la pizarra existe: recibe nodos, no modos.
               pizarraControles={
-                esPizarra && !householdReadOnly ? (
+                esPizarra && !householdReadOnly && !pizarraArrancando ? (
                   <Suspense fallback={null}>
                     <PizarraControles
                       data={data}
@@ -5707,6 +5721,19 @@ export default function App() {
               }
             />
           </div>
+        )}
+
+        {/* La hoja de arranque de la pizarra. Va aquí y no dentro de la
+            pantalla del menú porque tapa la pantalla entera: es un velo con
+            una hoja encima, no una pieza del tablero. */}
+        {screen === "menu" && esPizarra && pizarraArrancando && (
+          <Suspense fallback={null}>
+            <ArranqueDePizarra
+              data={data}
+              onAplicar={aplicarCambioPizarra}
+              onEmpezar={() => setPizarraArrancando(false)}
+            />
+          </Suspense>
         )}
 
         {screen === "menu" &&

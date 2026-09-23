@@ -111,6 +111,48 @@ textarea::placeholder {
   animation: mpSheetUp .22s cubic-bezier(.25,.46,.45,.94) both;
 }
 
+/* La hoja con la que arranca la pizarra.
+   Entra DESDE LA IZQUIERDA hasta el centro y con un punto de rebote —no un
+   fade a secas— porque tiene que leerse como algo que llega, no como algo que
+   ya estaba: detrás hay un tablero vacío y quieto, y sin movimiento la hoja
+   parecería parte de él. Los 50 ms de espera son a propósito: dan tiempo a ver
+   el tablero desnudo un instante, que es lo que explica para qué sirve
+   contestar. */
+@keyframes mpArranqueIn {
+  from { opacity: 0; transform: translateX(-54px) scale(.9); }
+  60%  { opacity: 1; transform: translateX(6px) scale(1.015); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes mpArranqueOut {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to   { opacity: 0; transform: translateX(28px) scale(.96); }
+}
+
+.mp-arranque-in  { animation: mpArranqueIn .42s cubic-bezier(.2,.9,.3,1.1) 50ms both; }
+.mp-arranque-out { animation: mpArranqueOut .24s cubic-bezier(.4,0,1,1) both; }
+.mp-arranque-velo     { animation: mpFadeIn .3s ease 50ms both; }
+.mp-arranque-velo-out { animation: mpFadeIn .22s ease reverse both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-arranque-in, .mp-arranque-out,
+  .mp-arranque-velo, .mp-arranque-velo-out {
+    animation: mpFadeIn .12s ease both;
+  }
+}
+
+/* El shell de 420px recorta lo que se sale por los lados (carruseles, tiras
+   que se pasan del margen). Va con `clip` y no con `hidden` porque son
+   distintos en una cosa que importa: `overflow-x: hidden` obliga a que
+   `overflow-y` compute como `auto`, y eso convierte al shell en CONTENEDOR DE
+   SCROLL. Los `position: sticky` de dentro se anclan entonces a él en vez de a
+   la ventana, y como el shell mide exactamente lo que mide su contenido, nunca
+   scrollea — así que nada pega nunca. `clip` recorta igual sin crear
+   contenedor. Con el fallback a `hidden` para Safari anterior al 16. */
+.mp-shell { overflow-x: hidden; }
+@supports (overflow: clip) {
+  .mp-shell { overflow-x: clip; }
+}
+
 /* Los desplegables de la despensa (unidad, envase). Salen desde el borde del
    botón que los abre — de ahí el transform-origin que pone cada uno según
    abra hacia arriba o hacia abajo — en vez de aparecer de golpe. */
