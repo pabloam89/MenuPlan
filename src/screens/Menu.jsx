@@ -6032,7 +6032,13 @@ export const MenuScreen = memo(function MenuScreen({
             avatares sola, sin nada que hacer con ella, solo diría «hay cosas
             que todavía no puedes tocar». */}
         {hasMenu && modoPizarra && pizarraControles && (
-          <div style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}>
+          <div
+            // Baja al montarse. La franja no existía hace un instante —llega
+            // al cerrar la hoja de arranque— y entrar de golpe la haría
+            // parecer algo que ya estaba y no habías visto.
+            className="mp-franja-entra"
+            style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}
+          >
             <div style={{ background: "#fff", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
               {(data.groups?.length > 0) && (
                 <DeckFilter

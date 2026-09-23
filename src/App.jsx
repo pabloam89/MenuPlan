@@ -4921,6 +4921,41 @@ export default function App() {
    * La compra se reconstruye al vuelo porque es justo lo que cambia: los
    * ingredientes de ese plato dejan de hacer falta.
    */
+  /**
+   * Vaciar la pizarra: fuera los platos, los HUECOS se quedan.
+   *
+   * Es lo contrario de «nueva pizarra». Aquí no se toca la forma del tablero
+   * —los días que elegiste, las franjas que abriste— solo lo que hay dentro:
+   * te quedas con el mismo tablero por rellenar. Borrar también los huecos
+   * sería tirar la decisión que acabas de tomar en la hoja de arranque, y para
+   * eso ya está empezar otra.
+   */
+  const handleVaciarPizarra = useCallback(async () => {
+    if (householdReadOnly) return;
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id, syncHouseholdId) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const next = { ...plan };
+      let tocados = 0;
+      for (const gid of Object.keys(plan)) {
+        if (gid === "_warnings") continue;
+        const slots = plan[gid];
+        if (!slots) continue;
+        const copia = {};
+        for (const [key, slot] of Object.entries(slots)) {
+          if (!slot || (!slot.recipeId && !slot.firstRecipeId)) { copia[key] = slot; continue; }
+          copia[key] = { ...slot, recipeId: null, firstRecipeId: null, warnings: [], cleared: true };
+          tocados++;
+        }
+        next[gid] = copia;
+      }
+      if (tocados === 0) return plan;
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    showToast("Pizarra vaciada");
+  }, [data, householdReadOnly, user, syncHouseholdId, showToast, applyShoppingFor]);
+
   const handleClearSlot = useCallback(async (sel) => {
     if (householdReadOnly || !sel) return;
     const { groupId, day, meal, course } = sel;
@@ -5715,6 +5750,10 @@ export default function App() {
                       onAddDespensa={handleAddDespensa}
                       onQuitarDespensa={handleQuitarDespensa}
                       onQtyDespensa={handleQtyDespensa}
+                      onNuevaPizarra={() => handleStartPizarra()}
+                      onVaciar={handleVaciarPizarra}
+                      onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
+                      esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
                     />
                   </Suspense>
                 ) : null

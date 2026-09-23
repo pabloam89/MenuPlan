@@ -119,8 +119,9 @@ textarea::placeholder {
    el tablero desnudo un instante, que es lo que explica para qué sirve
    contestar. */
 @keyframes mpArranqueIn {
-  from { opacity: 0; transform: translateX(-54px) scale(.9); }
-  60%  { opacity: 1; transform: translateX(6px) scale(1.015); }
+  from { opacity: 0; transform: translateX(-130px) scale(.86); }
+  35%  { opacity: 1; }
+  72%  { transform: translateX(10px) scale(1.02); }
   to   { opacity: 1; transform: translateX(0) scale(1); }
 }
 @keyframes mpArranqueOut {
@@ -128,7 +129,7 @@ textarea::placeholder {
   to   { opacity: 0; transform: translateX(28px) scale(.96); }
 }
 
-.mp-arranque-in  { animation: mpArranqueIn .42s cubic-bezier(.2,.9,.3,1.1) 50ms both; }
+.mp-arranque-in  { animation: mpArranqueIn .66s cubic-bezier(.16,.84,.34,1.06) 50ms both; }
 .mp-arranque-out { animation: mpArranqueOut .24s cubic-bezier(.4,0,1,1) both; }
 .mp-arranque-velo     { animation: mpFadeIn .3s ease 50ms both; }
 .mp-arranque-velo-out { animation: mpFadeIn .22s ease reverse both; }
@@ -138,6 +139,41 @@ textarea::placeholder {
   .mp-arranque-velo, .mp-arranque-velo-out {
     animation: mpFadeIn .12s ease both;
   }
+}
+
+/* ── El montaje del tablero ────────────────────────────────────────────────
+   Entre cerrar la hoja y ver los mandos había medio segundo en el que no
+   pasaba nada y el tablero parecía colgado. Ahora ese hueco lo ocupa un
+   montaje: una pastilla que late mientras se arma, y después la franja
+   bajando con sus baldosas entrando una detrás de otra.
+
+   El escalonado no es adorno: cinco baldosas apareciendo a la vez son una fila
+   que ya estaba; entrando en cascada se leen como cinco cosas y da tiempo a
+   ver cuáles son. */
+@keyframes mpMontandoLatido {
+  0%, 100% { opacity: .5; transform: scale(.96); }
+  50%      { opacity: 1;  transform: scale(1); }
+}
+@keyframes mpFranjaEntra {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes mpBaldosaEntra {
+  from { opacity: 0; transform: translateY(10px) scale(.8); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mp-montando { animation: mpMontandoLatido .62s ease-in-out infinite; }
+.mp-franja-entra { animation: mpFranjaEntra .34s cubic-bezier(.2,.9,.3,1) both; }
+.mp-baldosa-entra {
+  animation: mpBaldosaEntra .3s cubic-bezier(.2,.9,.3,1.15) both;
+  animation-delay: var(--d, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-montando { animation: none; opacity: 1; }
+  .mp-franja-entra,
+  .mp-baldosa-entra { animation: mpFadeIn .12s ease both; }
 }
 
 /* El shell de 420px recorta lo que se sale por los lados (carruseles, tiras

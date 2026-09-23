@@ -1,6 +1,7 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useRef, useState } from "react";
 import {
-  ArrowRight, BarChart3, Check, CookingPot, Minus, Package, Plus, Salad, Search, Sparkles, X,
+  ArrowRight, BarChart3, Check, ChevronRight, CookingPot, Eraser, Heart, Minus,
+  Package, Plus, Salad, Search, Sparkles, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
@@ -267,13 +268,16 @@ function PanelBalance({ menuPlan, groups }) {
  * El tinte de la franja los separa de las tarjetas de plato que vienen justo
  * debajo: son otra cosa y hay que verlo sin leer.
  */
-function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null }) {
+function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null, orden = 0 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="mp-press"
+      // Entran en cascada, una detrás de otra. A la vez serían una fila que ya
+      // estaba; así se leen como cinco cosas y da tiempo a ver cuáles son.
+      className="mp-press mp-baldosa-entra"
       style={{
+        "--d": `${orden * 55}ms`,
         // Se reparten el ancho en vez de medir 66 fijos: con cuatro baldosas
         // sobraba sitio y con cinco —la de "Rellenar", que es la que más se
         // usa— la última se quedaba medio fuera del móvil.
@@ -1090,13 +1094,63 @@ export function SelectorDeDias({ data, onAplicar }) {
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
+
+  // ── El arrastre ─────────────────────────────────────────────────────────
+  // Marcar cinco días a toques son cinco toques, y en un calendario lo natural
+  // es barrerlos. Lo que se arrastra se guarda APARTE y se pinta desde ahí:
+  // aplicar día a día mientras el dedo se mueve haría que cada `conDiaMarcado`
+  // partiera del mismo `data` viejo —React no ha repintado todavía— y los
+  // últimos se comerían a los primeros. Al levantar el dedo se pliegan todos
+  // de una sobre el mismo objeto y se aplica una sola vez.
+  const [pendientes, setPendientes] = useState(null);
+  const arrastreRef = useRef(null);
+
+  const clave = (offset, code) => `${offset}|${code}`;
+
+  const pintar = (offset, code, estaMarcado) => {
+    const a = arrastreRef.current;
+    if (!a) return;
+    const k = clave(offset, code);
+    if (a.mapa.get(k) === a.modo) return;
+    a.mapa.set(k, a.modo);
+    void estaMarcado;
+    setPendientes(new Map(a.mapa));
+  };
+
+  const empezarArrastre = (offset, code, estaMarcado) => {
+    // El primer día decide si el barrido pone o quita: si arrancas sobre uno
+    // puesto, arrastrar borra. Es lo que hace cualquier selector de rango.
+    arrastreRef.current = { modo: !estaMarcado, mapa: new Map() };
+    pintar(offset, code, estaMarcado);
+  };
+
+  const soltar = () => {
+    const a = arrastreRef.current;
+    arrastreRef.current = null;
+    if (!a || a.mapa.size === 0) { setPendientes(null); return; }
+    let next = data;
+    for (const [k, on] of a.mapa) {
+      const [off, code] = k.split("|");
+      next = conDiaMarcado(next, Number(off), code, on, opts);
+    }
+    setPendientes(null);
+    onAplicar(next);
+  };
+
+  // El dedo no dispara `pointerover` sobre los hermanos: hay que mirar qué hay
+  // debajo en cada movimiento.
+  const alMover = (e) => {
+    if (!arrastreRef.current) return;
+    const p = e.touches?.[0] ?? e;
+    const el = document.elementFromPoint(p.clientX, p.clientY)?.closest?.("[data-dia]");
+    if (!el || el.dataset.pasado === "1") return;
+    pintar(Number(el.dataset.offset), el.dataset.dia, el.dataset.marcado === "1");
+  };
+
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
 
   return (
     <>
-        <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
-          Toca una semana entera, o afina día a día.
-        </p>
         {/* Las cuatro en UNA fila: partidas en 3+1 se leían como dos
             grupos de semanas, que no significa nada. */}
         <div style={{ display: "flex", gap: 6, justifyContent: "space-between", marginBottom: 16 }}>
@@ -1117,7 +1171,21 @@ export function SelectorDeDias({ data, onAplicar }) {
           })}
         </div>
 
-        <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, padding: "14px 10px 10px" }}>
+        {/* El arrastre se escucha en la REJILLA, no en cada día: con el dedo,
+            un botón no recibe el `pointerover` de sus hermanos, así que el
+            movimiento hay que seguirlo desde arriba y preguntar qué hay
+            debajo. `touch-action: none` para que el navegador no interprete el
+            barrido como un scroll y se lleve el gesto. */}
+        <div
+          onPointerMove={alMover}
+          onPointerUp={soltar}
+          onPointerCancel={soltar}
+          onPointerLeave={soltar}
+          style={{
+            background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16,
+            padding: "14px 10px 10px", touchAction: "none",
+          }}
+        >
           <div style={{
             fontSize: 10.5, fontWeight: 800, color: TEAL, letterSpacing: ".8px",
             textTransform: "uppercase", padding: "0 4px 8px",
@@ -1151,26 +1219,41 @@ export function SelectorDeDias({ data, onAplicar }) {
                   const esHoy = fecha.getTime() === hoy.getTime();
                   const pasado = fecha < hoy;
                   const code = DAYS[i];
-                  const marcado = puestos.has(code);
+                  const k = `${s.offset}|${code}`;
+                  // Lo que se está arrastrando manda sobre lo guardado: así el
+                  // dedo ve el resultado antes de levantarlo.
+                  const marcado = pendientes?.has(k) ? pendientes.get(k) : puestos.has(code);
                   return (
                     <div key={i} style={{ display: "flex", justifyContent: "center", height: 38 }}>
                       <button
                         type="button"
                         disabled={pasado}
-                        onClick={() => onAplicar(conDiaMarcado(data, s.offset, code, !marcado, opts))}
+                        data-dia={code}
+                        data-offset={s.offset}
+                        data-marcado={marcado ? "1" : "0"}
+                        data-pasado={pasado ? "1" : "0"}
+                        onPointerDown={pasado ? undefined : () => empezarArrastre(s.offset, code, marcado)}
                         style={{
                           width: 30, height: 30, borderRadius: 999, padding: 0, alignSelf: "center",
-                          border: marcado ? `1.5px solid ${TEAL}` : "1.5px solid transparent",
-                          background: marcado ? `${TEAL}22` : "transparent",
-                          color: pasado ? "#ccd6cf" : marcado ? TEAL : "#3a4a42",
-                          // Hoy se subraya, no se rellena: el relleno ya
-                          // significa "marcado", y usándolo para las dos
-                          // cosas hoy parecía puesto sin estarlo.
-                          boxShadow: esHoy ? "inset 0 -3px 0 -1px #f59e0b" : "none",
-                          fontSize: 13, fontWeight: esHoy ? 900 : marcado ? 800 : 600,
+                          // Tres estados y tres colores, y ninguno se pisa con
+                          // otro: lo pasado en gris hundido, hoy en ámbar, lo
+                          // puesto en el teal de la casa.
+                          border: marcado
+                            ? `1.5px solid ${TEAL}`
+                            : esHoy ? "1.5px solid #f59e0b" : "1.5px solid transparent",
+                          background: pasado
+                            ? "#eceff0"
+                            : marcado ? `${TEAL}22` : esHoy ? "#fff7e8" : "transparent",
+                          color: pasado
+                            ? "#b8c4bd"
+                            : marcado ? TEAL : esHoy ? "#b45309" : "#3a4a42",
+                          // Hoy, además, lleva su anillo cuando está puesto:
+                          // sin él, marcarlo lo volvía un día más.
+                          boxShadow: esHoy && marcado ? "0 0 0 2px rgba(245,158,11,.45)" : "none",
+                          fontSize: 13, fontWeight: esHoy || marcado ? 800 : 600,
                           fontFamily: "inherit",
                           cursor: pasado ? "default" : "pointer",
-                          transition: "background .12s ease, color .12s ease",
+                          transition: "background .12s ease, color .12s ease, border-color .12s ease",
                         }}
                       >
                         {fecha.getDate()}
@@ -1202,16 +1285,49 @@ export function SelectorDeDias({ data, onAplicar }) {
  * la hoja.
  */
 export function ArranqueDePizarra({ data, onAplicar, onEmpezar }) {
-  const [saliendo, setSaliendo] = useState(false);
+  // Tres momentos: la hoja, la hoja yéndose, y el montaje. El del medio existe
+  // para que no se solapen —la franja entrando mientras la hoja aún está daba
+  // un salto— y el tercero para que el hueco entre una cosa y otra no parezca
+  // que se ha colgado.
+  const [fase, setFase] = useState("hoja");
   const dias = useMemo(() => diasDeSemana(data, 0, todayDayIdx()).length, [data]);
+  const saliendo = fase !== "hoja";
 
   const empezar = () => {
     if (saliendo) return;
-    setSaliendo(true);
-    // Se espera a que la hoja termine de irse antes de montar la franja: si
-    // aparecieran a la vez, el tablero daría un salto a mitad de animación.
-    setTimeout(onEmpezar, 260);
+    setFase("saliendo");
+    setTimeout(() => setFase("montando"), 240);
+    // 240 de salida + 520 montando. Lo que dura el montaje no es un tiempo de
+    // carga —no hay nada que cargar, el tablero ya está debajo— sino el que
+    // hace falta para leer que algo se está armando.
+    setTimeout(onEmpezar, 760);
   };
+
+  if (fase === "montando") {
+    return (
+      <div
+        className="mp-arranque-velo"
+        style={{
+          position: "fixed", inset: 0, zIndex: 200,
+          background: "rgba(20,47,29,.38)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <div
+          className="mp-montando"
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 10,
+            background: "#fff", borderRadius: 999, padding: "12px 20px",
+            boxShadow: "0 18px 44px -14px rgba(20,47,29,.45)",
+            fontSize: 13.5, fontWeight: 800, color: INK, fontFamily: "inherit",
+          }}
+        >
+          <Sparkles size={16} color={VERDE} strokeWidth={2.6} />
+          Montando el tablero
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -1235,11 +1351,15 @@ export function ArranqueDePizarra({ data, onAplicar, onEmpezar }) {
           boxSizing: "border-box",
         }}
       >
-        <p style={{ margin: "0 0 2px", fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
-          ¿Qué días pones?
-        </p>
-        <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#7a9485" }}>
-          Luego rellenas los huecos a mano.
+        {/* Sola y centrada. Debajo iba un «Luego rellenas los huecos a mano»
+            que explicaba la pantalla siguiente a quien todavía no ha salido de
+            esta, y dentro otro «Toca una semana entera, o afina día a día»
+            que contaba cómo funciona un calendario. */}
+        <p style={{
+          margin: "0 0 14px", fontSize: 19, fontWeight: 900, color: INK,
+          letterSpacing: "-.3px", textAlign: "center",
+        }}>
+          ¿Qué días quieres?
         </p>
 
         <SelectorDeDias data={data} onAplicar={onAplicar} />
@@ -1277,8 +1397,13 @@ const TITULOS = {
 export function PizarraControles({
   data, setData, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
+  onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
 }) {
   const [abierto, setAbierto] = useState(null);
+  // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
+  // vive ahí y es lo que más se toca en un tablero recién montado.
+  const [cara, setCara] = useState("acciones");
+  const [confirmarVaciar, setConfirmarVaciar] = useState(false);
   const todayIdx = useMemo(() => todayDayIdx(), []);
 
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
@@ -1337,57 +1462,190 @@ export function PizarraControles({
         .mp-despensa-input::placeholder { font-size: 13px; font-weight: 600; color: #9aa8a0; opacity: 1; }
       `}</style>
 
-      <div
-        style={{
-          display: "flex", gap: 2, overflowX: "auto", width: "100%",
-          padding: "8px 8px 6px",
-          scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
-        }}
-      >
-        {/* Aquí estaba «Días». Se ha ido porque ya no es un mando del
-            tablero: es la PRIMERA pregunta, y se contesta en la hoja de
-            arranque antes de que exista tablero que ajustar. */}
-        <BaldosaMando
-          Icon={BarChart3}
-          label="Balance"
-          color="#7a5aa8"
-          tinte="#fff"
-          onClick={() => setAbierto("balance")}
-        />
-        {/* Las dos que dan de comer al relleno: lo que ya tienes y el tiempo
-            que vas a tener. La chapa cuenta lo que hay dentro, para que se vea
-            que no están vacías sin abrirlas. */}
-        {onAddDespensa && (
-          <BaldosaMando
-            Icon={Package}
-            label="Despensa"
-            color="#3f9656"
-            tinte="#fff"
-            badge={enDespensa > 0 ? enDespensa : null}
-            onClick={() => setAbierto("despensa")}
-          />
-        )}
-        {/* "Batch" y no "Batch Cooking": la etiqueta de baldosa son 55px, y
-            el título entero está en el panel que abre. */}
-        <BaldosaMando
-          Icon={CookingPot}
-          label="Batch"
-          color={NARANJA}
-          tinte="#fff"
-          badge={sesion.bases.length > 0 ? sesion.bases.length : null}
-          onClick={() => setAbierto("tanda")}
-        />
-        {onRellenar && huecosVacios > 0 && (
-          <BaldosaMando
-            Icon={Sparkles}
-            label="Rellenar"
-            color="#c98a1e"
-            tinte="#fff"
-            badge={huecosVacios}
-            onClick={() => onRellenar()}
-          />
-        )}
+      {/* ── Dos caras de la misma fila ───────────────────────────────────
+          Lo que HACES con el tablero (rellenar, empezar otro, vaciarlo,
+          guardarlo) y lo que lo AJUSTA (balance, despensa, batch) nunca se
+          necesitan a la vez: o estás montando la semana o estás haciendo algo
+          con ella. Mismo gesto que la fila del menú generado (ControlRow): una
+          pestaña fija a la izquierda, y al tocarla una cara se pliega mientras
+          la otra crece. Se anima el reparto (`flex-grow`) y NO se desmonta
+          ninguna: montarlas al vuelo daría el salto a mitad de animación. */}
+      <div style={{ display: "flex", alignItems: "stretch", width: "100%", minWidth: 0 }}>
+        <button
+          type="button"
+          onClick={() => setCara((c) => (c === "acciones" ? "controles" : "acciones"))}
+          aria-label={cara === "acciones" ? "Ver los ajustes" : "Ver las acciones"}
+          style={{
+            flexShrink: 0, width: 30, border: "none", padding: 0, cursor: "pointer",
+            background: "transparent", display: "flex", alignItems: "center",
+            justifyContent: "center", fontFamily: "inherit",
+          }}
+        >
+          <span
+            style={{
+              width: 24, height: 24, borderRadius: 999,
+              background: "rgba(45,90,61,.1)", color: VERDE,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              // Gira al cambiar de cara: es la única pieza que se queda
+              // quieta, así que es la que tiene que decir que hay otra.
+              transform: cara === "acciones" ? "none" : "rotate(180deg)",
+              transition: "transform .28s cubic-bezier(.2,.9,.3,1)",
+            }}
+          >
+            <ChevronRight size={15} strokeWidth={2.8} />
+          </span>
+        </button>
+
+        <div
+          style={{
+            flex: 1, minWidth: 0, display: "flex", gap: 2,
+            overflowX: "auto", padding: "8px 8px 6px",
+            scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
+          }}
+        >
+          {cara === "acciones" ? (
+            <>
+              {onRellenar && huecosVacios > 0 && (
+                <BaldosaMando
+                  Icon={Sparkles}
+                  label="Rellenar"
+                  orden={0}
+                  color="#c98a1e"
+                  tinte="#fff"
+                  badge={huecosVacios}
+                  onClick={() => onRellenar()}
+                />
+              )}
+              {onNuevaPizarra && (
+                <BaldosaMando
+                  Icon={Plus}
+                  label="Nueva"
+                  orden={1}
+                  color={TEAL}
+                  tinte="#fff"
+                  onClick={onNuevaPizarra}
+                />
+              )}
+              {onVaciar && (
+                <BaldosaMando
+                  Icon={Eraser}
+                  label="Vaciar"
+                  orden={2}
+                  color="#b45309"
+                  tinte="#fff"
+                  onClick={() => setConfirmarVaciar(true)}
+                />
+              )}
+              {onFavorito && (
+                <BaldosaMando
+                  Icon={Heart}
+                  label={esFavorito ? "Guardada" : "Favorito"}
+                  orden={3}
+                  color="#e0405a"
+                  tinte="#fff"
+                  onClick={onFavorito}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              <BaldosaMando
+                Icon={BarChart3}
+                label="Balance"
+                orden={0}
+                color="#7a5aa8"
+                tinte="#fff"
+                onClick={() => setAbierto("balance")}
+              />
+              {/* Las dos que dan de comer al relleno: lo que ya tienes y el
+                  tiempo que vas a tener. La chapa cuenta lo que hay dentro,
+                  para que se vea que no están vacías sin abrirlas. */}
+              {onAddDespensa && (
+                <BaldosaMando
+                  Icon={Package}
+                  label="Despensa"
+                  orden={1}
+                  color="#3f9656"
+                  tinte="#fff"
+                  badge={enDespensa > 0 ? enDespensa : null}
+                  onClick={() => setAbierto("despensa")}
+                />
+              )}
+              {/* "Batch" y no "Batch Cooking": la etiqueta son 55px, y el
+                  título entero está en el panel que abre. */}
+              <BaldosaMando
+                Icon={CookingPot}
+                label="Batch"
+                orden={2}
+                color={NARANJA}
+                tinte="#fff"
+                badge={sesion.bases.length > 0 ? sesion.bases.length : null}
+                onClick={() => setAbierto("tanda")}
+              />
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Vaciar sí pregunta: se lleva por delante todo lo que has puesto y no
+          hay deshacer. Los huecos NO se tocan —el tablero que decidiste en el
+          arranque se queda— así que lo que se confirma es solo perder los
+          platos. */}
+      {confirmarVaciar && (
+        <div
+          onClick={() => setConfirmarVaciar(false)}
+          className="mp-overlay-in"
+          style={{
+            position: "fixed", inset: 0, zIndex: 300,
+            background: "rgba(20,47,29,.45)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            style={{
+              width: "min(300px, 100%)", background: "#fff", borderRadius: 20,
+              padding: 18, boxSizing: "border-box",
+              boxShadow: "0 24px 60px -18px rgba(20,47,29,.45)",
+            }}
+          >
+            <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 900, color: INK }}>
+              ¿Vaciar la pizarra?
+            </p>
+            <p style={{ margin: "0 0 16px", fontSize: 12.5, fontWeight: 600, color: "#7a9485", lineHeight: 1.45 }}>
+              Se quitan los platos. Los huecos se quedan como están.
+            </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                className="mp-press"
+                onClick={() => setConfirmarVaciar(false)}
+                style={{
+                  flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
+                  border: "1.5px solid #dbe7df", background: "#fff",
+                  color: "#5a7066", fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
+                }}
+              >
+                Déjalo
+              </button>
+              <button
+                type="button"
+                className="mp-press"
+                onClick={() => { setConfirmarVaciar(false); onVaciar?.(); }}
+                style={{
+                  flex: 1, height: 40, borderRadius: 13, cursor: "pointer",
+                  border: "none", background: "#b45309", color: "#fff",
+                  fontSize: 13.5, fontWeight: 800, fontFamily: "inherit",
+                }}
+              >
+                Vaciar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {abierto && (
         <>
