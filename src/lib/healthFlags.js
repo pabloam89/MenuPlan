@@ -27,6 +27,24 @@ const PATTERNS = {
   azucar_anadido: /\b(azucar|miel|chocolate|nocilla|nutella|caramelo|sirope|jarabe|mermelada|leche condensada|galleta|bizcocho|reposteria|flan|natilla|helado|dulce de leche)/,
 };
 
+/**
+ * VRN de hierro: 14 mg. Reglamento (UE) 1169/2011, Anexo XIII, parte A
+ * («Ingestas de referencia de vitaminas y minerales» para adultos).
+ *
+ * NO es una necesidad individual: es el valor único de etiquetado, sin sexo ni
+ * edad. Una mujer en edad fértil necesita más y un hombre menos. Para un «%
+ * de tu hierro» por persona hace falta otra tabla (EFSA publica PRI por edad,
+ * sexo y estado); esta solo sirve para decir si un plato destaca.
+ */
+export const VRN_HIERRO_MG = 14;
+
+/**
+ * 30 % del VRN: el corte de «alto contenido en» del Reglamento (CE) 1924/2006,
+ * Anexo, que es el doble del 15 % de «fuente de». Se guarda como producto y no
+ * como literal para que el número no pueda separarse de su procedencia.
+ */
+export const UMBRAL_RICO_HIERRO_MG = VRN_HIERRO_MG * 0.3;
+
 // alto_sodio and rico_hierro have extra (non-name) signals, handled separately.
 const HIGH_SODIUM_RE = /\b(cubito|pastilla de caldo|caldo concentrado|salsa de soja|anchoa|aceituna|encurtido|conserva|bacalao salado|queso curado|feta|beicon|panceta)/;
 const IRON_RE = /\b(lenteja|garbanzo|alubia|judia blanca|higado|morcilla|espinaca|acelga|berberecho|almeja|mejillon|ternera|solomillo|carne roja|remolacha)/;
@@ -58,16 +76,26 @@ export function deriveHealthFlags(recipe) {
   // palabras nombra. Cuando el hierro esté en toda la tabla, esta función podrá
   // invertirse y la lista pasará a ser el respaldo.
   //
-  // El umbral son 3,5 mg por ración: el 25 % de la ingesta diaria recomendada
-  // para una mujer adulta (14 mg), que es el corte que usa el Reglamento UE
-  // 1169/2011 para poder decir «alto contenido en» en una etiqueta. No es un
-  // número elegido a ojo.
+  // EL UMBRAL SALE DEL VRN, y antes decía salir de otro sitio.
+  //
+  // Aquí ponía «3,5 mg, el 25 % del VRN (14 mg), que es el corte del
+  // Reglamento UE 1169/2011 para decir "alto contenido en"». El VRN es
+  // correcto —Anexo XIII del 1169/2011, hierro 14 mg— pero el 25 % no existe:
+  // los cortes del Reglamento 1924/2006 son el 15 % para «fuente de» y el
+  // doble, 30 %, para «alto contenido en». 3,5 mg no era ninguno de los dos.
+  // El número invocaba una norma que no lo sostenía, y es el único número de
+  // referencia del repo.
+  //
+  // Se sube al corte que el comentario ya decía estar usando: 30 % del VRN.
+  // Y la traslación se declara en vez de esconderse: el Reglamento mide POR
+  // 100 g de producto envasado, no por ración de un plato cocinado. Esto toma
+  // prestado su listón, no aplica la norma — una receta no es una etiqueta.
   const hierroPorRacion = recipe?.macros?.iron_mg ?? recipe?.iron_mg ?? null;
   if (
     IRON_RE.test(hay) ||
     recipe?.mainProtein === "ternera" ||
     recipe?.category === "legumbres" ||
-    (hierroPorRacion != null && hierroPorRacion >= 3.5)
+    (hierroPorRacion != null && hierroPorRacion >= UMBRAL_RICO_HIERRO_MG)
   ) {
     flags.add("rico_hierro");
   }

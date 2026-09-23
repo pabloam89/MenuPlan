@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveHealthFlags, ensureHealthFlags } from "./healthFlags.js";
+import { deriveHealthFlags, ensureHealthFlags, VRN_HIERRO_MG, UMBRAL_RICO_HIERRO_MG } from "./healthFlags.js";
 
 const r = (name, ingredients = [], extra = {}) => ({
   name,
@@ -66,13 +66,32 @@ describe("ensureHealthFlags", () => {
 describe("el hierro medido, ademas de las palabras", () => {
   const receta = (extra) => ({ name: "Bowl de quinoa y semillas", ingredients: ["Quinoa"], ...extra });
 
-  it("marca rico_hierro cuando la racion pasa de 3,5 mg", () => {
+  it("marca rico_hierro cuando la racion llega al 30 % del VRN", () => {
     // Ninguna de las quince palabras de IRON_RE nombra este plato.
     expect(deriveHealthFlags(receta({ macros: { iron_mg: 4.2 } }))).toContain("rico_hierro");
   });
 
   it("no lo marca por debajo del umbral", () => {
     expect(deriveHealthFlags(receta({ macros: { iron_mg: 1.1 } }))).not.toContain("rico_hierro");
+  });
+
+  /**
+   * LA FRANJA QUE SE CERRÓ. El umbral vivía en 3,5 mg diciendo ser el corte de
+   * «alto contenido en» del reglamento, que en realidad es 4,2 (30 % del VRN
+   * de 14 mg). Entre los dos números hay 115 recetas del catálogo, y hasta hoy
+   * se anunciaban con una etiqueta que no les correspondía.
+   *
+   * Esto no comprueba que el umbral valga 4,2 —copiar el número sería
+   * congelarlo—: comprueba que un plato DENTRO de la franja ya no se marca.
+   */
+  it("un plato en la franja vieja (3,5-4,2 mg) ya no se marca", () => {
+    expect(deriveHealthFlags(receta({ macros: { iron_mg: 3.8 } }))).not.toContain("rico_hierro");
+  });
+
+  it("el umbral es el 30 % del VRN, no un numero suelto", () => {
+    expect(UMBRAL_RICO_HIERRO_MG).toBeCloseTo(VRN_HIERRO_MG * 0.3, 10);
+    // Y el VRN es el del Anexo XIII, que es dato legal y no se ajusta a ojo.
+    expect(VRN_HIERRO_MG).toBe(14);
   });
 
   // Lo importante del diseno: el dato SUMA, nunca resta. Con el hierro en solo
