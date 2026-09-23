@@ -6134,6 +6134,12 @@ export const MenuScreen = memo(function MenuScreen({
         )}
         {(
           <div
+            // Mientras la pizarra arranca, el tablero se enseña DESNUDO: los
+            // días y su sitio, pero sin los huecos. La hoja de delante está
+            // decidiendo justo cuántos va a haber, así que enseñarlos antes
+            // sería enseñar una respuesta a la pregunta que estás leyendo. Se
+            // ocultan sin desmontar para que al aparecer no salte el alto.
+            className={modoPizarra && !pizarraControles ? "mp-tablero-desnudo" : undefined}
             style={{
               paddingTop: 14,
               // La lengüeta del calendario ocupa 26px pegada al borde: sin

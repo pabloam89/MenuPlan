@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowRight, BarChart3, Check, ChevronRight, CookingPot, Eraser, Heart, Minus,
   Package, Plus, Salad, Search, Sparkles, X,
@@ -1296,11 +1297,15 @@ export function ArranqueDePizarra({ data, onAplicar, onEmpezar }) {
   const empezar = () => {
     if (saliendo) return;
     setFase("saliendo");
-    setTimeout(() => setFase("montando"), 240);
-    // 240 de salida + 520 montando. Lo que dura el montaje no es un tiempo de
-    // carga —no hay nada que cargar, el tablero ya está debajo— sino el que
-    // hace falta para leer que algo se está armando.
-    setTimeout(onEmpezar, 760);
+    // Anidados y no en paralelo: así el anillo se lleva SIEMPRE sus 1,15 s
+    // completos desde que aparece. Con dos temporizadores sueltos desde el
+    // mismo instante, cualquier retraso en el primero se comía el segundo y el
+    // anillo se iba a mitad de llenarse. No es tiempo de carga —el tablero ya
+    // está montado debajo— sino el corte entre la pregunta y la respuesta.
+    setTimeout(() => {
+      setFase("montando");
+      setTimeout(onEmpezar, 1150);
+    }, 240);
   };
 
   if (fase === "montando") {
@@ -1313,17 +1318,27 @@ export function ArranqueDePizarra({ data, onAplicar, onEmpezar }) {
           display: "flex", alignItems: "center", justifyContent: "center",
         }}
       >
+        {/* Un anillo que se llena, sin texto. Una frase pide leerse y esto
+            dura poco más de un segundo: para cuando la has leído ya no está.
+            El icono de dentro dice lo mismo sin pedir nada. */}
         <div
-          className="mp-montando"
           style={{
-            display: "inline-flex", alignItems: "center", gap: 10,
-            background: "#fff", borderRadius: 999, padding: "12px 20px",
+            width: 64, height: 64, borderRadius: 999, background: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 18px 44px -14px rgba(20,47,29,.45)",
-            fontSize: 13.5, fontWeight: 800, color: INK, fontFamily: "inherit",
+            position: "relative",
           }}
         >
-          <Sparkles size={16} color={VERDE} strokeWidth={2.6} />
-          Montando el tablero
+          <svg width="64" height="64" viewBox="0 0 40 40" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
+            <circle cx="20" cy="20" r="16" fill="none" stroke="#e6efe9" strokeWidth="3" />
+            <circle
+              className="mp-anillo"
+              cx="20" cy="20" r="16" fill="none"
+              stroke={VERDE} strokeWidth="3" strokeLinecap="round"
+              strokeDasharray="100.5"
+            />
+          </svg>
+          <Sparkles size={22} color={VERDE} strokeWidth={2.4} style={{ position: "relative" }} />
         </div>
       </div>
     );
@@ -1476,7 +1491,7 @@ export function PizarraControles({
           onClick={() => setCara((c) => (c === "acciones" ? "controles" : "acciones"))}
           aria-label={cara === "acciones" ? "Ver los ajustes" : "Ver las acciones"}
           style={{
-            flexShrink: 0, width: 30, border: "none", padding: 0, cursor: "pointer",
+            flexShrink: 0, width: 38, border: "none", padding: "0 6px", cursor: "pointer",
             background: "transparent", display: "flex", alignItems: "center",
             justifyContent: "center", fontFamily: "inherit",
           }}
@@ -1591,7 +1606,7 @@ export function PizarraControles({
           hay deshacer. Los huecos NO se tocan —el tablero que decidiste en el
           arranque se queda— así que lo que se confirma es solo perder los
           platos. */}
-      {confirmarVaciar && (
+      {confirmarVaciar && createPortal(
         <div
           onClick={() => setConfirmarVaciar(false)}
           className="mp-overlay-in"
@@ -1644,10 +1659,19 @@ export function PizarraControles({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
-      {abierto && (
+      {/* ── Por PORTAL, y no aquí dentro ──────────────────────────────────
+          Estos paneles son `position: fixed` y viven dentro de la franja, que
+          se anima al entrar. Un ancestro con `transform` —aunque sea el de una
+          animación ya terminada— se convierte en el bloque contenedor de los
+          fixed que lleva dentro: el panel dejaba de medir la ventana y medía
+          los 78px de la franja, así que se abría y no se veía. Colgarlo del
+          `body` lo saca de esa trampa para siempre, y de paso del contexto de
+          apilamiento que crea la franja pegajosa. */}
+      {abierto && createPortal(
         <>
           <div
             onClick={() => setAbierto(null)}
@@ -1703,7 +1727,8 @@ export function PizarraControles({
               />
             ) : null}
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </>
   );

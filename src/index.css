@@ -163,8 +163,32 @@ textarea::placeholder {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* El tablero desnudo del arranque: se ven los días y su sitio, no los huecos.
+   Se ocultan en vez de no montarlos para que al aparecer no salte el alto de
+   la página bajo la hoja. */
+.mp-tablero-desnudo .deck-scroller > * {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Un anillo que se llena, no una frase. El tablero ya está montado debajo —no
+   hay nada que cargar— así que esto no mide trabajo: marca el corte entre la
+   pregunta y el tablero, y por eso dura lo que dura y no espera a nada. */
+@keyframes mpAnilloLlena {
+  from { stroke-dashoffset: 100.5; }
+  to   { stroke-dashoffset: 0; }
+}
+.mp-anillo { animation: mpAnilloLlena 1.1s cubic-bezier(.4,0,.3,1) both; }
+
 .mp-montando { animation: mpMontandoLatido .62s ease-in-out infinite; }
-.mp-franja-entra { animation: mpFranjaEntra .34s cubic-bezier(.2,.9,.3,1) both; }
+
+/* `backwards` y NO `both`, que es el mismo escarmiento que ya está anotado
+   arriba en .mp-nav-fwd: dentro de esta franja viven los paneles de la pizarra,
+   que son `position: fixed`. Con `both`, el `transform: translateY(0)` se
+   queda pinchado al terminar, la franja pasa a ser el bloque contenedor de
+   esos fixed, y el panel —que pide `top: 0; bottom: 0`— dejaba de medir la
+   ventana para medir los 78px de la franja: se abría y no se veía. */
+.mp-franja-entra { animation: mpFranjaEntra .34s cubic-bezier(.2,.9,.3,1) backwards; }
 .mp-baldosa-entra {
   animation: mpBaldosaEntra .3s cubic-bezier(.2,.9,.3,1.15) both;
   animation-delay: var(--d, 0s);
@@ -172,6 +196,7 @@ textarea::placeholder {
 
 @media (prefers-reduced-motion: reduce) {
   .mp-montando { animation: none; opacity: 1; }
+  .mp-anillo { animation: none; stroke-dashoffset: 0; }
   .mp-franja-entra,
   .mp-baldosa-entra { animation: mpFadeIn .12s ease both; }
 }

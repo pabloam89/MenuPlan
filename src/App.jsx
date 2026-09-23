@@ -102,9 +102,11 @@ import {
   pruneMenuHistory,
   planHasDishes,
   orderedWeeks,
+  MAX_MENU_WEEKS,
 } from "./lib/menuArchive.js";
 import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import { pizarraActiva, planVacio, huecosDelPlan, conHuecosAlDia, conHuecoAnadido, sinHueco, franjasDelDia } from "./lib/pizarra.js";
+import { aplicarDiasDeSemana, diasPorDefecto, buildCalendarWeeks } from "./lib/semanaDias.js";
 import { proyectarReglas, reglaDeInvitado, invitadosPorHueco, sinInvitadosDelHueco } from "./lib/reglas.js";
 import {
   saveMenu as saveMenuRemote,
@@ -2834,11 +2836,32 @@ export default function App() {
     // a rellenar compitiendo con los que sí. Se apaga SOLO para construir este
     // esqueleto —no se escribe en la casa— y el `+` de cada día lo puede
     // abrir donde haga falta.
+    // Y arranca SIEMPRE en la semana en curso, aunque la casa tuviera dos o
+    // tres pedidas de la última vez. Heredarlas abría una pizarra de veintiún
+    // días que nadie pidió, y la hoja de arranque existe justo para que esa
+    // decisión se tome aquí.
+    const soloEstaSemana = aplicarDiasDeSemana(
+      { ...base, menuWeekDays: {}, menuWeekOffsets: [], menuWeek: { offset: 0, startDayIdx: 0 } },
+      0,
+      diasPorDefecto(0),
+      { allOffsets: buildCalendarWeeks(MAX_MENU_WEEKS).map((w) => w.offset) },
+    );
     const working = {
-      ...base,
+      ...soloEstaSemana,
       extraMeals: { ...(base.extraMeals ?? {}), postre: "off" },
       ...(eleccion ?? {}),
     };
+    // Lo que decide la forma del tablero va también a `data`: la hoja de
+    // arranque lee de ahí, y `conHuecosAlDia` lo vuelve a leer cada vez que
+    // tocas un día — sin esto, el postre se colaba en el primer toque y las
+    // semanas viejas volvían con él.
+    setData((d) => ({
+      ...d,
+      menuWeekDays: working.menuWeekDays,
+      menuWeekOffsets: working.menuWeekOffsets,
+      menuWeek: working.menuWeek,
+      extraMeals: { ...(d.extraMeals ?? {}), postre: "off" },
+    }));
     const hasRoster = (gs) => gs.some((g) => membersOfGroup(g, working.members).length > 0);
     let groups = working.groups ?? [];
     if (working.members.length > 0 && (groups.length === 0 || !hasRoster(groups))) {
