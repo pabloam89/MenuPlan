@@ -1769,7 +1769,7 @@ export function PizarraControles({
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
-            aria-label="Lo que tienes en casa"
+            aria-label="¿Quieres cocinar sólo con lo que tienes en casa?"
             style={{
               width: "min(380px, 100%)", maxHeight: "calc(100dvh - 32px)",
               background: "#f4f8f5", borderRadius: 24, boxSizing: "border-box",
@@ -1778,11 +1778,11 @@ export function PizarraControles({
             }}
           >
             <div style={{ position: "relative", padding: "20px 48px 12px", textAlign: "center" }}>
-              <p style={{ margin: 0, fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
-                ¿Qué tienes en casa?
-              </p>
-              <p style={{ margin: "4px 0 0", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
-                Rellenamos tirando primero de esto.
+              {/* El título ya dice para qué sirve la pantalla, así que la línea
+                  de debajo —«Rellenamos tirando primero de esto»— repetía en
+                  pequeño lo que la pregunta dice en grande. */}
+              <p style={{ margin: 0, fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.3px", lineHeight: 1.25 }}>
+                ¿Quieres cocinar sólo con lo que tienes en casa?
               </p>
               <button
                 type="button"
