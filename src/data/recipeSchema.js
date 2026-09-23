@@ -954,9 +954,49 @@ export function necesitaVispera(recipe) {
   return (recipe?.stepsRich ?? []).some((s) => (s?.minutes ?? 0) >= MINUTOS_DE_VISPERA);
 }
 
+/**
+ * QUÉ TÉCNICAS OBLIGAN A COCINAR POR TANDAS — el eje 42 del registro.
+ *
+ * Un guiso escala: el doble de ingredientes en la misma olla y el mismo rato.
+ * Doce filetes a la plancha NO escalan: son tres tandas, y la tercera se come
+ * fría mientras se hace la cuarta. La diferencia no está en los ingredientes,
+ * está en si el RECIPIENTE limita.
+ *
+ * Vive aquí, al lado de su único lector, y `derive/ejesDePlato.js` la importa
+ * en vez de tener su propia copia: dos tablas que contestan lo mismo son dos
+ * tablas que se contradicen, y este repo ya tiene la cicatriz.
+ */
+export const ESCALA_POR_TECNICA = {
+  olla: "escala",
+  horno: "escala",
+  crudo: "escala",
+  sarten: "por_tandas",
+  plancha: "por_tandas",
+};
+
+/**
+ * SE DERIVA CUANDO EL CAMPO NO ESTÁ, y eso resucita un eje muerto.
+ *
+ * `scalesWithEaters` era el caso de estudio del registro: esquema, columna en
+ * Supabase, sincronización… y CERO recetas de 1.033. Esta función lo consultaba
+ * en todas y siempre le salía `undefined`, así que devolvía `recipe.time` sin
+ * tocar y el 12 % no se aplicaba jamás. Un lector sin datos no falla: deja de
+ * decidir en silencio.
+ *
+ * No hacía falta curar 1.033 recetas para arreglarlo, porque la respuesta ya
+ * estaba en `tecnica`: «va por tandas» ES «el tiempo crece con los comensales».
+ * El campo curado sigue mandando cuando existe —una receta puede declarar que
+ * escala aunque su técnica diga lo contrario—, y si no, se deriva.
+ */
+export function escalaPorTandas(recipe) {
+  if (typeof recipe?.scalesWithEaters === "boolean") return recipe.scalesWithEaters;
+  const e = ESCALA_POR_TECNICA[recipe?.tecnica];
+  return e === undefined ? null : e === "por_tandas";
+}
+
 export function effectiveRecipeTime(recipe, eaters) {
   if (!recipe) return 0;
-  if (!recipe.scalesWithEaters || !eaters) return recipe.time;
+  if (!escalaPorTandas(recipe) || !eaters) return recipe.time;
   const base = recipe.baseServings || 2;
   const extra = Math.max(0, eaters - base);
   return recipe.time * (1 + 0.12 * extra);

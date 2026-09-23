@@ -290,9 +290,9 @@ export const EJES = [
   },
   {
     n: 29, id: "escalabilidadTanda", nombre: "Escalabilidad por tanda",
-    ambito: AMBITO.RECETA, tipo: "booleano", estado: "sin_datos",
-    campo: "scalesWithEaters", vocabulario: null, consumidores: ["filterRecipes"], cobertura: 0,
-    nota: "El caso de estudio del campo muerto: tiene esquema, columna y sincronización, y está a CERO en las 1.033.",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
+    campo: "scalesWithEaters", vocabulario: null, consumidores: ["filterRecipes", "recipeSchema"], cobertura: 0.883,
+    nota: "ERA el caso de estudio del campo muerto —esquema, columna, sincronización y CERO recetas de 1.033—, y dejó de serlo sin curar ni una. `effectiveRecipeTime` lo consultaba en las 1.033 y siempre le salía `undefined`, así que el 12 % por comensal extra no se aplicaba jamás: un lector sin datos no falla, deja de decidir en silencio. La respuesta ya estaba en `tecnica`, porque «va por tandas» ES «el tiempo crece con los comensales»: `escalaPorTandas` (recipeSchema.js) usa el campo curado cuando existe y lo deriva del eje 42 cuando no. Cobertura 88,3 %. Queda como recordatorio de que un campo muerto no siempre necesita curación: a veces necesita que alguien mire si el dato ya estaba en otro sitio.",
   },
   {
     n: 42, id: "escalabilidadReal", nombre: "Escalabilidad real",
@@ -342,7 +342,7 @@ export const EJES = [
     n: 40, id: "perecibilidad", nombre: "Perecibilidad y orden en la semana",
     ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
     campo: null, vocabulario: null, consumidores: [], cobertura: 1,
-    nota: "Restricción DE POSICIÓN, no de selección: el pescado fresco va al principio de la semana, y eso no descarta la receta — la coloca. Es el único eje de posición de la lista, y un planificador que no lo sepa arma menús correctos e imposibles de comprar. DERIVADO por `perecibilidadDe` al 100 % de la clase del alimento: pez, marisco y cefalópodo mandan 2 días (208 recetas), carne y lácteo 4 (578), y 161 no tienen nada que caduque. La conserva, el congelado y el ahumado NO cuentan: un «Atún en conserva» es pez y aguanta un año, y tratarlo como fresco adelantaría platos sin motivo.",
+    nota: "Restricción DE POSICIÓN, no de selección: el pescado fresco va al principio de la semana, y eso no descarta la receta — la coloca. Es el único eje de posición de la lista. DERIVADO por `perecibilidadDe` al 100 % de la clase del alimento: pez, marisco y cefalópodo mandan 2 días (208 recetas), carne y lácteo 4 (578), y 161 no tienen nada que caduque. La conserva, el congelado y el ahumado NO cuentan: un «Atún en conserva» es pez y aguanta un año. — DE POCO USO HOY, y conviene que esté escrito para no sobrevalorarlo: la compra de MenuPlan va al congelador de partida, así que el orden de la semana no aprieta. El eje vale el día que haya compra fresca o lista diaria; mientras tanto es correcto y ocioso, que es distinto de estar mal.",
   },
 
   // ── Economía y sostenibilidad (34-36) ────────────────────────────────────
@@ -382,9 +382,9 @@ export const EJES = [
   },
   {
     n: 39, id: "contextoPeticion", nombre: "Contexto de la petición",
-    ambito: AMBITO.HOGAR, tipo: "tags", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "Disperso entre `data`, `ctx` y el wizard.",
+    ambito: AMBITO.HOGAR, tipo: "tags", estado: "sin_lector",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 1,
+    nota: "NO FALTABA: estaba disperso. Es el único eje que no describe un plato ni un alimento sino la situación desde la que alguien pide de comer — «es martes, somos cuatro, hay niños y no tengo ganas» no es propiedad de ninguna receta. Y ya se recoge entero: `filterRecipes` declara quince argumentos sueltos (hasKids, maxTime, cookLevel, eaters, kitchenTools, pantryIngredients…) y cada consumidor los vuelve a pasar uno a uno, lo cual funciona mientras haya UN consumidor — con el modo chat serán dos, y quince parámetros sueltos entre dos sitios se desincronizan. `contextoDe` (src/lib/derive/contextoPeticion.js) los recoge y los traduce una vez: 20 minutos pasa a `prisa: mucha`. Declara sus huecos en vez de rellenarlos con un defecto que luego se lea como respuesta. Y `admiteOcasion` saca fuera la regla `plato_ocasion_entre_semana`, que hoy vive dentro de validateMenu y es este eje escrito allí: así se puede preguntar antes de armar el menú en vez de reprochar después.",
   },
   {
     n: 41, id: "protocoloDietetico", nombre: "Protocolo dietético (FODMAP, keto, mediterránea, DASH)",

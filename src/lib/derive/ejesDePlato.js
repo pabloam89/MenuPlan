@@ -18,6 +18,7 @@
  */
 
 import { composicionDe, ejeProteina, ejeHidrato } from "./composicion.js";
+import { ESCALA_POR_TECNICA } from "../../data/recipeSchema.js";
 import alimentos from "../../data/alimentos.json";
 import alimentoPorIngrediente from "../../data/alimentoPorIngrediente.json";
 
@@ -446,7 +447,9 @@ export function llevaMasaDe(receta) {
  * fría mientras se hace la cuarta. La diferencia no está en los ingredientes,
  * está en si el RECIPIENTE limita.
  *
- * Sale de `tecnica`, que es donde vive esa limitación:
+ * La tabla vive en `recipeSchema.js`, al lado de `effectiveRecipeTime`, que es
+ * su lector: dos copias que contesten lo mismo son dos copias que se
+ * contradicen. Sale de `tecnica`, que es donde vive esa limitación:
  *
  *   olla, horno   escalan — cabe más en la misma cazuela o bandeja
  *   crudo         escala — no hay recipiente que limite
@@ -457,14 +460,6 @@ export function llevaMasaDe(receta) {
  * en vez de quedarse igual, y eso es justo lo que alguien necesita saber antes
  * de invitar a gente.
  */
-const ESCALA_POR_TECNICA = {
-  olla: "escala",
-  horno: "escala",
-  crudo: "escala",
-  sarten: "por_tandas",
-  plancha: "por_tandas",
-};
-
 export function escalabilidadDe(receta) {
   const e = ESCALA_POR_TECNICA[receta?.tecnica];
   if (!e) return { valor: null, via: "SIN DECIDIR", duda: `«${receta?.name}» no declara técnica` };

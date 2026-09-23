@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import alimentos from "./alimentos.json";
 import { EJES, EJE_POR_ID, cobertura, puedeResponder, valorValido } from "./axisRegistry.js";
+import { escalaPorTandas } from "./recipeSchema.js";
 import { composicionDe } from "../lib/derive/composicion.js";
 import {
   densidadDe, completitudDe, sinCerdoDe, aptoVigiliaDe, tiempoActivoDe,
@@ -58,7 +59,8 @@ const MEDIDORES = {
   congelabilidad: () => recetas.filter((r) => r.freezable != null).length / recetas.length,
   curacionEditorial: () => recetas.filter((r) => r.estrella != null).length / recetas.length,
   fotogenia: () => recetas.filter((r) => r.apetecible != null).length / recetas.length,
-  escalabilidadTanda: () => recetas.filter((r) => r.scalesWithEaters != null).length / recetas.length,
+  escalabilidadTanda: () => recetas.filter((r) => escalaPorTandas(r) !== null).length / recetas.length,
+  contextoPeticion: () => 1,
   sabor: () => recetas.filter((r) => (r.healthFlags ?? []).length > 0).length / recetas.length,
   montaje: () => recetas.filter((r) => r.montaje != null).length / recetas.length,
   formato: () => recetas.filter((r) => r.formato).length / recetas.length,
@@ -198,7 +200,12 @@ describe("el registro de ejes", () => {
    * lea sin nombrarlo no existe.
    */
   const FUENTES = (() => {
-    const IGNORA = new Set(["node_modules", "dist", "data", "assets"]);
+    // IGNORA los DATOS, no el directorio que los contiene. La primera versión
+    // ponía "data" entero y con eso se saltaba `recipeSchema.js`, `model.js` y
+    // el resto del código que vive en src/data: un consumidor declarado ahí
+    // salía como mentira aunque leyera el campo en la línea de al lado. Lo que
+    // había que evitar eran los JSON del catálogo, que son megas de recetas.
+    const IGNORA = new Set(["node_modules", "dist", "recipes", "derived", "assets"]);
     const raiz = fileURLToPath(new URL("..", import.meta.url));
     const rec = (dir) => readdirSync(dir).flatMap((e) => {
       if (IGNORA.has(e)) return [];
