@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ArrowRight, BarChart3, Check, ChevronRight, CookingPot, Eraser, Heart, Minus,
@@ -14,17 +14,10 @@ import { recuentoDelMenu } from "../lib/menuRecuento.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
-import { sesionDeBases } from "../lib/bases.js";
-import { KITCHEN_TOOLS, selectMethodForRecipe } from "../lib/applianceMethods.js";
-
-/**
- * El selector de tandas del wizard, tal cual. Va en diferido porque arrastra
- * el catálogo entero para repartir las recetas por familia, y la mayoría de
- * quien abre la pizarra no llega a abrir esta baldosa.
- */
-const BasesPreferidas = lazy(() =>
-  import("../components/BasesPreferidas.jsx").then((m) => ({ default: m.BasesPreferidas })),
-);
+import { tandaDelMenu } from "../lib/tandaDelPlato.js";
+import { APPLIANCE_COLORS, REQUIRED_APPLIANCE_ICONS, selectMethodForRecipe } from "../lib/applianceMethods.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
+import { enHoras } from "../lib/cookTime.js";
 import {
   buildCalendarWeeks,
   conDiaMarcado,
@@ -269,11 +262,13 @@ function PanelBalance({ menuPlan, groups }) {
  * El tinte de la franja los separa de las tarjetas de plato que vienen justo
  * debajo: son otra cosa y hay que verlo sin leer.
  */
-function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null, orden = 0 }) {
+function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null, orden = 0, apagada = false }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={apagada}
+      aria-disabled={apagada}
       // Entran en cascada, una detrás de otra. A la vez serían una fila que ya
       // estaba; así se leen como cinco cosas y da tiempo a ver cuáles son.
       className="mp-press mp-baldosa-entra"
@@ -285,7 +280,11 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null, orden 
         flex: "1 1 0", minWidth: 0, maxWidth: 70,
         display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
         background: "none", border: "none", padding: 0,
-        cursor: "pointer", fontFamily: "inherit",
+        cursor: apagada ? "default" : "pointer", fontFamily: "inherit",
+        // Apagada se ve, pero en gris: dice que el Batch está ahí para cuando
+        // pongas dos platos que compartan olla o uno que se deje hecho.
+        opacity: apagada ? 0.42 : 1,
+        filter: apagada ? "grayscale(1)" : "none",
       }}
     >
       <span
@@ -909,171 +908,217 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
  * legumbre son nueve horas de fuego y veinte minutos tuyos, y lo que decide si
  * el domingo sale es lo segundo.
  */
-/** Un rótulo de sección. Tres palabras en mayúscula, sin párrafo debajo. */
-function Rotulo({ children, top = 18 }) {
+/**
+ * El Batch Cooking de la pizarra: de consulta, y nada más.
+ *
+ * Antes era un panel de mandos —agrupar al rellenar, qué trastos tienes, qué
+ * bases quieres dejar hechas— y se leía como una tarea más antes de poder
+ * cocinar. Lo que la gente quiere saber es la respuesta: con lo que he puesto,
+ * ¿qué dejo hecho el domingo y cuánto me lleva? Así que esto solo enseña el
+ * inventario que sale del tablero. Los trastos se preguntan al empezar (ver
+ * `PopupInicio`), que es cuando cambian los tiempos de todo.
+ */
+function PanelTanda({ sesion }) {
+  const bases = sesion?.bases ?? [];
+  const platos = sesion?.platos ?? [];
+  const usados = sesion?.minutosActivosTotales ?? 0;
+  const ahorro = sesion?.ahorroTotal ?? 0;
+  const cabecera = (texto, derecha = null) => (
+    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "0 2px 9px" }}>
+      <span style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px" }}>{texto}</span>
+      {derecha && (
+        <span style={{ fontSize: 12, fontWeight: 800, color: NARANJA, fontVariantNumeric: "tabular-nums" }}>{derecha}</span>
+      )}
+    </div>
+  );
+
   return (
-    <div style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px", margin: `${top}px 2px 9px` }}>
-      {children}
+    <>
+      <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
+        Sale solo de los platos que has puesto: lo que se cocina una vez y se come varias, y lo que se deja hecho.
+      </p>
+      {bases.length > 0 && (
+        <>
+          {cabecera(
+            `${bases.length} ${bases.length === 1 ? "BASE" : "BASES"}`,
+            `${enHoras(usados)}${ahorro > 0 ? ` · ahorras ${enHoras(ahorro)}` : ""}`,
+          )}
+          <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
+            {bases.map((b, i) => (
+              <BaseDeTanda key={b.base.id} entrada={b} ultima={i === bases.length - 1} />
+            ))}
+          </div>
+        </>
+      )}
+      {/* Los platos que se dejan hechos: a medio hacer (se remata el día que
+          toca) o enteros (solo calentar). Cuentan aunque haya uno. */}
+      {platos.length > 0 && (
+        <>
+          {cabecera("PLATOS QUE DEJAS HECHOS")}
+          <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden" }}>
+            {platos.map((p, i) => (
+              <div
+                key={p.familia.id}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
+                  borderBottom: i === platos.length - 1 ? "none" : "1px solid #eef3f0",
+                }}
+              >
+                <span style={{
+                  width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+                  background: `${NARANJA}18`, color: NARANJA,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <CookingPot size={17} strokeWidth={2.2} />
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.25 }}>
+                    {p.platos.map((x) => x.nombre).join(" · ")}
+                  </span>
+                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#9ab0a1", marginTop: 1 }}>
+                    {p.familia.tipo === "semi" ? "A medio hacer: el día que toca, solo rematar" : "Hecho entero: el día que toca, solo calentar"}
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+/** Una base de la sesión, con su foto — la misma que la pestaña de Cocina. */
+function BaseDeTanda({ entrada, ultima }) {
+  const [roto, setRoto] = useState(false);
+  const foto = dishImageForRecipe(entrada.base);
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
+        borderBottom: ultima ? "none" : "1px solid #eef3f0",
+      }}
+    >
+      <span
+        style={{
+          width: 38, height: 38, borderRadius: 10, flexShrink: 0, overflow: "hidden",
+          background: `${NARANJA}18`, color: NARANJA,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        {foto && !roto
+          ? <img src={foto} alt="" loading="lazy" onError={() => setRoto(true)} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          : <CookingPot size={17} strokeWidth={2.2} />}
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.25 }}>
+          {entrada.base.name}
+        </span>
+        <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#9ab0a1", marginTop: 1 }}>
+          {entrada.huecos.length} platos
+        </span>
+      </span>
+      <span style={{
+        flexShrink: 0, padding: "4px 9px", borderRadius: 999,
+        background: `${NARANJA}12`, border: `1px solid ${NARANJA}2e`,
+        fontSize: 11.5, fontWeight: 900, color: NARANJA, fontVariantNumeric: "tabular-nums",
+      }}>
+        {enHoras(entrada.minutosActivos)}
+      </span>
     </div>
   );
 }
 
 /**
- * Cuántos minutos de MANOS te quitaría cada aparato en la tanda de esta semana.
+ * Las seis de serie, con el icono de Núcleo que ya las representa en la app
+ * (`REQUIRED_APPLIANCE_ICONS`, el de "¿Cómo se prepara?") y el color de su
+ * método (`APPLIANCE_COLORS`). Solo estas seis: son las que el generador sabe
+ * aprovechar, y lo que la casa tuviera en `customKitchenTools` se respeta sin
+ * editarse aquí, igual que en el onboarding.
  *
- * No es una promesa del folleto: se recalcula la sesión entera dos veces —con
- * el aparato y sin él— y se resta. Si esta semana no hay ninguna base que ese
- * cacharro sepa acortar, el número es cero y no se enseña nada, que es la
- * verdad; el mismo aparato puede valer veinte minutos la semana que viene.
- *
- * Se mide lo ACTIVO y no el reloj: una olla de legumbre son nueve horas de
- * fuego y veinte minutos tuyos, y lo que decide si el domingo sale es lo
- * segundo.
+ * La olla rápida va en verde y no en el gris de su método: en una rejilla de
+ * colores, la única gris se leía como apagada antes de tocarla.
  */
-function ahorroPorTrasto(sesion, data) {
-  const out = {};
-  const plan = sesion?._plan;
-  if (!plan) return out;
-  const base = sesion?.minutosActivosTotales ?? 0;
-  const puestos = data?.kitchenTools ?? [];
-  for (const t of KITCHEN_TOOLS) {
-    // Con el aparato ya encendido la comparación es al revés: lo que enseña
-    // es lo que PERDERÍAS al apagarlo, que es el mismo número y la misma
-    // razón para dejarlo puesto.
-    const otros = puestos.includes(t.id)
-      ? puestos.filter((x) => x !== t.id)
-      : [...puestos, t.id];
-    const alt = sesionDeBases(plan, recipeCatalogById, {
-      ...sesion._opts,
-      metodoDeBase: (b) => selectMethodForRecipe(b, otros),
-    });
-    const diff = Math.round(Math.abs((alt.minutosActivosTotales ?? 0) - base));
-    if (diff > 0) out[t.id] = diff;
-  }
-  return out;
-}
+const ELECTRODOMESTICOS = [
+  { id: "Airfryer", color: APPLIANCE_COLORS.airfryer },
+  { id: "Horno", color: APPLIANCE_COLORS.horno },
+  { id: "Microondas", color: APPLIANCE_COLORS.microondas },
+  { id: "Olla rápida", color: "#16a34a" },
+  { id: "Thermomix", color: APPLIANCE_COLORS.thermomix },
+  { id: "Vaporera", color: APPLIANCE_COLORS.vaporera },
+];
 
-function PanelTanda({ data, setData, sesion }) {
+/**
+ * Qué hay en la cocina. Escribe en `data.kitchenTools`, lo mismo que el perfil
+ * y el onboarding: con olla rápida la legumbre son 25 minutos y no 60, y eso
+ * cambia la receta que ves y lo que dura el Batch.
+ *
+ * Iconos y no ilustraciones: seis fotos grandes hacían del paso una pantalla
+ * entera, y aquí es una pregunta rápida dentro de un pop-up.
+ */
+function Electrodomesticos({ data, setData }) {
   const trastos = data?.kitchenTools ?? [];
-  const ahorro = ahorroPorTrasto(sesion, data);
-
-  const alternarTrasto = (t) => setData?.((d) => ({
+  const alternar = (t) => setData?.((d) => ({
     ...d,
     kitchenTools: (d.kitchenTools ?? []).includes(t)
       ? (d.kitchenTools ?? []).filter((v) => v !== t)
       : [...(d.kitchenTools ?? []), t],
   }));
-
-  if (!setData) return null;
-
-  // Los trastos van DENTRO del selector de tandas, en el hueco que deja justo
-  // debajo de "Dejarás hecho": primero lo que vas a dejar cocinado, luego con
-  // qué lo cocinas, y solo entonces el rato que tienes. Van ahí y no antes
-  // porque son la condición de lo de arriba —la bechamel son 25 minutos
-  // removiendo o 12 sin tocarla— y por eso cada uno dice lo que te quitaría de
-  // ESTE domingo en vez de limitarse a estar encendido.
-  const trastosDeLaCocina = (
-    <>
-      <Rotulo top={0}>QUÉ TIENES EN LA COCINA</Rotulo>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginBottom: 14 }}>
-        {KITCHEN_TOOLS.map((t) => (
-          <TarjetaTrasto
-            key={t.id}
-            trasto={t}
-            activo={trastos.includes(t.id)}
-            ahorro={ahorro[t.id] ?? 0}
-            onClick={() => alternarTrasto(t.id)}
-          />
-        ))}
-      </div>
-    </>
-  );
-
-  // El inventario trae SU deslizador de tiempo —el de `data.tandaMinutos`, que
-  // es el que lee `minutosDeTanda`—, así que no hay otro: son la misma
-  // pregunta, y dos mandos solo darían dos formas de contestarla sin decir
-  // cuál manda.
-  //
-  // Ojo: esto escribe en la libreta de la CASA, no en esta semana. Lo que
-  // pidas aquí vale también para los menús que generes.
   return (
-    <Suspense fallback={null}>
-      <BasesPreferidas data={data} setData={setData} trasInventario={trastosDeLaCocina} />
-    </Suspense>
-  );
-}
-
-/**
- * Un electrodoméstico, con la misma ilustración que el asistente.
- *
- * La foto no es adorno: "Vaporera" es una palabra y el cacharro es una cosa,
- * y en una rejilla de seis nombres en gris no se distingue lo que tienes de
- * lo que te falta hasta leerlos todos.
- */
-function TarjetaTrasto({ trasto, activo, ahorro, onClick }) {
-  const [roto, setRoto] = useState(false);
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={activo}
-      className="mp-press"
-      style={{
-        position: "relative", padding: 0, borderRadius: 14, overflow: "hidden",
-        border: `2px solid ${activo ? VERDE : "#e3ebe6"}`,
-        background: "#fff", cursor: "pointer", fontFamily: "inherit",
-        boxShadow: activo ? "0 2px 10px -4px rgba(45,90,61,.45)" : "none",
-        transition: "border-color .15s ease, box-shadow .15s ease",
-      }}
-    >
-      <span style={{ display: "block", aspectRatio: "1 / 1", background: "#f4f8f5" }}>
-        {trasto.img && !roto && (
-          <img
-            src={trasto.img}
-            alt=""
-            loading="lazy"
-            onError={() => setRoto(true)}
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+      {ELECTRODOMESTICOS.map((a, i) => {
+        const sel = trastos.includes(a.id);
+        const Icono = REQUIRED_APPLIANCE_ICONS[a.id] ?? CookingPot;
+        return (
+          <button
+            key={a.id}
+            type="button"
+            className="mp-rise mp-press"
+            onClick={() => alternar(a.id)}
+            aria-pressed={sel}
             style={{
-              width: "100%", height: "100%", objectFit: "cover", display: "block",
-              filter: activo ? "none" : "saturate(.35)",
-              opacity: activo ? 1 : 0.65,
-              transition: "filter .2s ease, opacity .2s ease",
+              "--d": `${i * 35}ms`,
+              position: "relative",
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 7,
+              height: 88, padding: "0 4px", borderRadius: 16, cursor: "pointer", fontFamily: "inherit",
+              border: `1.5px solid ${sel ? a.color : "#e3ebe6"}`,
+              background: sel ? `${a.color}14` : "#fff",
+              boxShadow: sel ? `0 6px 16px -8px ${a.color}88` : "0 1px 2px rgba(20,47,29,.04)",
+              transition: "background .16s ease, border-color .16s ease, box-shadow .16s ease",
             }}
-          />
-        )}
-      </span>
-      <span
-        style={{
-          position: "absolute", left: 0, right: 0, bottom: 0,
-          padding: "12px 5px 5px",
-          background: "linear-gradient(to top, rgba(10,24,15,.82), rgba(10,24,15,0))",
-          color: "#fff", fontSize: 10.5, fontWeight: 800, lineHeight: 1.15,
-          display: "block", textAlign: "center",
-        }}
-      >
-        {trasto.id}
-        {/* Solo cuando de verdad quita minutos de esta semana. Un "-0 min"
-            constante ensuciaría las seis y no diría nada. */}
-        {ahorro > 0 && (
-          <span style={{ display: "block", fontSize: 9.5, fontWeight: 900, color: "#ffd9a8", marginTop: 1 }}>
-            -{ahorro} min
-          </span>
-        )}
-      </span>
-      {activo && (
-        <span
-          aria-hidden
-          style={{
-            position: "absolute", top: 5, right: 5,
-            width: 18, height: 18, borderRadius: 999, background: VERDE,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            border: "1.5px solid #fff",
-          }}
-        >
-          <Check size={10} color="#fff" strokeWidth={3.4} />
-        </span>
-      )}
-    </button>
+          >
+            <span
+              style={{
+                width: 42, height: 42, borderRadius: 14,
+                background: sel ? a.color : `${a.color}1c`,
+                color: sel ? "#fff" : a.color,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "background .16s ease, color .16s ease",
+              }}
+            >
+              <Icono size={21} strokeWidth={2.2} />
+            </span>
+            <span style={{
+              fontSize: 11.5, fontWeight: 800, lineHeight: 1.1,
+              color: sel ? INK : "#3a4a42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%",
+            }}>
+              {a.id}
+            </span>
+            {sel && (
+              <span
+                style={{
+                  position: "absolute", top: 6, right: 6,
+                  width: 17, height: 17, borderRadius: "50%", background: a.color,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <Check size={10} color="#fff" strokeWidth={3.2} />
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -1285,7 +1330,20 @@ export function SelectorDeDias({ data, onAplicar }) {
  * que todavía no puedes tocar». Entran después, con el mismo gesto que cierra
  * la hoja.
  */
-export function ArranqueDePizarra({ data, onAplicar, onEmpezar }) {
+const PASOS_ARRANQUE = [
+  { id: "dias", titulo: "¿Qué días quieres?" },
+  { id: "cocina", titulo: "¿Qué tienes en la cocina?", detalle: "Ajusta las recetas y lo que tarda el Batch." },
+];
+
+export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
+  // Dos pasos, deslizando: los días y luego los electrodomésticos, que
+  // cambian las recetas y los minutos del Batch. Mientras desliza se ven los
+  // dos; al terminar, el que se fue se pliega para que la hoja mida lo suyo.
+  const [paso, setPaso] = useState(0);
+  const [deslizando, setDeslizando] = useState(false);
+  const irA = (n) => { setDeslizando(true); setPaso(n); };
+  const ultimo = paso === PASOS_ARRANQUE.length - 1;
+  const actual = PASOS_ARRANQUE[paso];
   // Tres momentos: la hoja, la hoja yéndose, y el montaje. El del medio existe
   // para que no se solapen —la franja entrando mientras la hoja aún está daba
   // un salto— y el tercero para que el hueco entre una cosa y otra no parezca
@@ -1368,36 +1426,81 @@ export function ArranqueDePizarra({ data, onAplicar, onEmpezar }) {
       >
         {/* Sola y centrada. Debajo iba un «Luego rellenas los huecos a mano»
             que explicaba la pantalla siguiente a quien todavía no ha salido de
-            esta, y dentro otro «Toca una semana entera, o afina día a día»
-            que contaba cómo funciona un calendario. */}
-        <p style={{
-          margin: "0 0 14px", fontSize: 19, fontWeight: 900, color: INK,
-          letterSpacing: "-.3px", textAlign: "center",
-        }}>
-          ¿Qué días quieres?
-        </p>
+            esta. El título viaja con su paso (key) y entra deslizando igual. */}
+        <div key={actual.id} className="mp-arranque-paso" style={{ textAlign: "center", margin: "0 0 14px" }}>
+          <p style={{ margin: 0, fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
+            {actual.titulo}
+          </p>
+          {actual.detalle && (
+            <p style={{ margin: "4px 0 0", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
+              {actual.detalle}
+            </p>
+          )}
+        </div>
 
-        <SelectorDeDias data={data} onAplicar={onAplicar} />
+        <div style={{ overflow: "hidden", margin: "0 -18px" }}>
+          <div
+            style={{
+              display: "flex", width: `${PASOS_ARRANQUE.length * 100}%`, alignItems: "flex-start",
+              transform: `translateX(-${(paso * 100) / PASOS_ARRANQUE.length}%)`,
+              transition: "transform .38s cubic-bezier(.22,1,.36,1)",
+            }}
+            onTransitionEnd={(e) => { if (e.target === e.currentTarget) setDeslizando(false); }}
+          >
+            {[
+              <SelectorDeDias key="dias" data={data} onAplicar={onAplicar} />,
+              <Electrodomesticos key="cocina" data={data} setData={setData} />,
+            ].map((contenido, i) => (
+              <div
+                key={PASOS_ARRANQUE[i].id}
+                aria-hidden={paso !== i}
+                style={{
+                  width: `${100 / PASOS_ARRANQUE.length}%`, boxSizing: "border-box",
+                  paddingLeft: 18, paddingRight: 18,
+                  ...(paso !== i && !deslizando ? { height: 0, overflow: "hidden" } : null),
+                }}
+              >
+                {(paso === i || deslizando) && contenido}
+              </div>
+            ))}
+          </div>
+        </div>
 
-        {/* El CTA abajo y fijo al ancho: es la única salida de la hoja, y una
-            salida no se busca. Se apaga sin días porque un tablero de cero
-            huecos no es una pizarra en blanco, es una pantalla en blanco. */}
-        <button
-          type="button"
-          className="mp-press"
-          disabled={dias === 0}
-          onClick={empezar}
-          style={{
-            marginTop: 16, width: "100%", height: 46, borderRadius: 15,
-            border: "none", cursor: dias === 0 ? "default" : "pointer",
-            background: dias === 0 ? "#c8d9ce" : VERDE, color: "#fff",
-            fontSize: 15, fontWeight: 900, fontFamily: "inherit",
-            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-          }}
-        >
-          Empezar
-          <ArrowRight size={17} strokeWidth={2.8} />
-        </button>
+        {/* Los botones a lo ancho: en el primer paso Siguiente ocupa la fila
+            (y se apaga sin días: un tablero de cero huecos es una pantalla en
+            blanco); en el segundo, Atrás vacío y Empezar lleno a partes iguales. */}
+        <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+          {paso > 0 && (
+            <button
+              type="button"
+              className="mp-press"
+              onClick={() => irA(paso - 1)}
+              style={{
+                flex: 1, height: 46, borderRadius: 15, cursor: "pointer",
+                background: "#fff", border: "1.5px solid #cfe0d6", color: VERDE,
+                fontSize: 15, fontWeight: 900, fontFamily: "inherit",
+              }}
+            >
+              Atrás
+            </button>
+          )}
+          <button
+            type="button"
+            className="mp-press"
+            disabled={dias === 0}
+            onClick={() => (ultimo ? empezar() : irA(paso + 1))}
+            style={{
+              flex: 1, height: 46, borderRadius: 15,
+              border: "none", cursor: dias === 0 ? "default" : "pointer",
+              background: dias === 0 ? "#c8d9ce" : VERDE, color: "#fff",
+              fontSize: 15, fontWeight: 900, fontFamily: "inherit",
+              display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}
+          >
+            {ultimo ? "Empezar" : "Siguiente"}
+            {!ultimo && <ArrowRight size={17} strokeWidth={2.8} />}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1410,7 +1513,7 @@ const TITULOS = {
 };
 
 export function PizarraControles({
-  data, setData, menuPlan, groups, onRellenar,
+  data, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
   onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
   tema = "claro", onTema,
@@ -1456,12 +1559,14 @@ export function PizarraControles({
       comidas: getDayMeals(data),
       metodoDeBase: (b) => selectMethodForRecipe(b, data?.kitchenTools ?? []),
     };
-    // El plan y las opciones viajan con el resultado para poder repetir el
-    // cálculo cambiando UNA cosa —quitar o poner un aparato— sin tener que
-    // volver a montar el plan fuera y arriesgarse a montarlo distinto.
-    return { ...sesionDeBases(plan, recipeCatalogById, opts), _plan: plan, _opts: opts };
+    // Deducido del tablero: las bases que comparten dos platos y los platos
+    // que se dejan hechos (ver `tandaDelMenu`). Nadie lo pide con deslizadores.
+    return tandaDelMenu(plan, recipeCatalogById, opts);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [menuPlan, groups, data]);
+
+  const piezasTanda = sesion.bases.length + sesion.platos.length;
+  const hayTanda = piezasTanda > 0;
 
   const enDespensa = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish").length;
 
@@ -1609,8 +1714,9 @@ export function PizarraControles({
                 orden={2}
                 color={NARANJA}
                 tinte="#fff"
-                badge={sesion.bases.length > 0 ? sesion.bases.length : null}
-                onClick={() => setAbierto("tanda")}
+                apagada={!hayTanda}
+                badge={hayTanda ? piezasTanda : null}
+                onClick={() => hayTanda && setAbierto("tanda")}
               />
             </>
           )}
@@ -1735,11 +1841,7 @@ export function PizarraControles({
                 onQty={onQtyDespensa}
               />
             ) : abierto === "tanda" ? (
-              <PanelTanda
-                data={data}
-                setData={setData}
-                sesion={sesion}
-              />
+              <PanelTanda sesion={sesion} />
             ) : null}
           </div>
         </>,

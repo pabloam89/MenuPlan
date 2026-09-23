@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { blocked } from "./_guard.js";
+import { blocked, cors } from "./_guard.js";
 import { disambiguationClause } from "../src/lib/photoDisambiguation.js";
 
 // Generates a single dish photo on demand for the recipe-creation wizard
@@ -88,6 +88,7 @@ function buildBabyMashPrompt(dishName) {
 }
 
 export default async function handler(req, res) {
+  if (cors(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

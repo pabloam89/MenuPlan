@@ -131,11 +131,17 @@ textarea::placeholder {
 
 .mp-arranque-in  { animation: mpArranqueIn .66s cubic-bezier(.16,.84,.34,1.06) 50ms both; }
 .mp-arranque-out { animation: mpArranqueOut .24s cubic-bezier(.4,0,1,1) both; }
+/* El título de cada paso de la hoja entra deslizando, igual que su contenido. */
+@keyframes mpArranquePaso {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: none; }
+}
+.mp-arranque-paso { animation: mpArranquePaso .38s cubic-bezier(.22,1,.36,1) both; }
 .mp-arranque-velo     { animation: mpFadeIn .3s ease 50ms both; }
 .mp-arranque-velo-out { animation: mpFadeIn .22s ease reverse both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .mp-arranque-in, .mp-arranque-out,
+  .mp-arranque-in, .mp-arranque-out, .mp-arranque-paso,
   .mp-arranque-velo, .mp-arranque-velo-out {
     animation: mpFadeIn .12s ease both;
   }

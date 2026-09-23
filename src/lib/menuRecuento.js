@@ -34,7 +34,7 @@ const FAMILIA_POR_PROTEINA = {
 };
 
 /** Las familias que consume un plato. Puede ser más de una, y eso importa. */
-function familiasDe(receta) {
+export function familiasDe(receta) {
   const familias = new Set();
   const porCategoria = FAMILIA_POR_CATEGORIA[receta?.category];
   if (porCategoria) familias.add(porCategoria);
