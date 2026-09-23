@@ -1665,7 +1665,7 @@ export function CatalogBrowserSheet({
           {showCategoryGrid ? categoryGrid : cards}
         </div>
 
-        <SugerenciasDelHueco sugerencias={sugerencias} onPick={onPickSugerencia} cuantosHuecos={contextoHueco?.cuantos ?? 1} />
+        <SugerenciasDelHueco sugerencias={sugerencias} onPick={onPickSugerencia} />
       </div>
 
       {overlays}
@@ -1684,7 +1684,7 @@ export function CatalogBrowserSheet({
  * teniendo el catálogo entero justo encima, sin nada tapado: la tira se queda
  * fuera del scroll, no encima de él.
  */
-function SugerenciasDelHueco({ sugerencias, onPick, cuantosHuecos = 1 }) {
+function SugerenciasDelHueco({ sugerencias, onPick }) {
   if (!sugerencias || sugerencias.length === 0) return null;
   return (
     <div
@@ -1700,7 +1700,7 @@ function SugerenciasDelHueco({ sugerencias, onPick, cuantosHuecos = 1 }) {
         fontSize: 10, fontWeight: 800, letterSpacing: ".9px",
         textTransform: "uppercase", color: "#7a9485",
       }}>
-        {cuantosHuecos > 1 ? `Para los ${cuantosHuecos} huecos` : "Para este hueco"}
+        Para este hueco
       </p>
       <div
         className="deck-scroller"

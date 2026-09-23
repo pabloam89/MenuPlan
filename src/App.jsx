@@ -2779,10 +2779,6 @@ export default function App() {
     return {
       meal: slotPicker.meal,
       esBebe: grupo ? isBabyMenuGroup(grupo, data.members ?? []) : false,
-      // Cuántos huecos va a llenar lo que elijas. Solo para el rótulo: el
-      // recetario no decide nada con esto, pero «Para este hueco» encima de
-      // una elección que va a caer en cinco sitios es mentira.
-      cuantos: Array.isArray(slotPicker.huecos) ? slotPicker.huecos.length : 1,
     };
   }, [slotPicker, data.groups, data.members, data.menuModel]);
 
@@ -5193,16 +5189,8 @@ export default function App() {
     // comensales y sus intolerancias, así que cada uno necesita su propia
     // receta escalada y adaptada (y su prefijo de grupo, que es lo que impide
     // que dos menús compartan por error la misma ficha).
-    // Tres formas de tener más de un destino, y las tres acaban en la misma
-    // lista: una selección de varios huecos (`huecos`), el filtro en "Todos"
-    // (`groupIds`), o el hueco suelto de siempre.
-    const destinos = Array.isArray(slotPicker.huecos) && slotPicker.huecos.length > 0
-      ? slotPicker.huecos.map((h) => ({
-          gid: h.groupId, day: h.day, meal: h.meal,
-          course: kind === "plato_unico" ? "main" : (h.course ?? "main"),
-        }))
-      : (Array.isArray(slotPicker.groupIds) && slotPicker.groupIds.length > 0 ? slotPicker.groupIds : [groupId])
-          .map((gid) => ({ gid, day, meal, course: placeCourse }));
+    const destinos = (Array.isArray(slotPicker.groupIds) && slotPicker.groupIds.length > 0 ? slotPicker.groupIds : [groupId])
+      .map((gid) => ({ gid, day, meal, course: placeCourse }));
 
     const colocados = [];
     for (const d of destinos) {
@@ -5257,11 +5245,9 @@ export default function App() {
     });
     setSlotPicker(null);
     showToast(
-      colocados.length === 1
-        ? `Colocado «${frontendRecipe.name}»`
-        : slotPicker.huecos
-          ? `«${frontendRecipe.name}» en ${colocados.length} huecos`
-          : `«${frontendRecipe.name}» en los ${colocados.length} menús`,
+      colocados.length > 1
+        ? `«${frontendRecipe.name}» en los ${colocados.length} menús`
+        : `Colocado «${frontendRecipe.name}»`,
     );
     trackEvent(user, "dish_manual_pick", "menu", { day, meal, kind, menus: colocados.length });
   }, [slotPicker, data, menuPlan, showToast, user, applyShoppingFor]);
@@ -5896,12 +5882,6 @@ export default function App() {
               modoPizarra={esPizarra}
               temaPizarra={esPizarra ? temaPizarra : "claro"}
               repartoKey={esPizarra ? repartoKey : 0}
-              // Un plato para TODOS los marcados: se abre el recetario una vez
-              // con la lista pegada, y al elegir cae en los que haya.
-              onElegirParaVarios={householdReadOnly ? null : ((huecos) => {
-                if (!huecos?.length) return;
-                setSlotPicker({ ...huecos[0], huecos });
-              })}
               onAddSlot={esPizarra ? setAddSlotDay : null}
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
               onSlotDrag={esPizarra ? handleSlotDrag : null}

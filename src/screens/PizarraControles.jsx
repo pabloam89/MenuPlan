@@ -276,10 +276,14 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null, orden 
       className="mp-press mp-baldosa-entra"
       style={{
         "--d": `${orden * 55}ms`,
-        // Se reparten el ancho en vez de medir 66 fijos: con cuatro baldosas
-        // sobraba sitio y con cinco —la de "Rellenar", que es la que más se
-        // usa— la última se quedaba medio fuera del móvil.
-        flex: "1 1 0", minWidth: 0, maxWidth: 70,
+        // Caben CUATRO, siempre cuatro. Antes se repartían el ancho que
+        // hubiera, así que cada baldosa que se añadía encogía a todas las
+        // demás y con cinco ya se leían apretadas. Ahora la quinta no encoge
+        // a nadie: se sale por el borde y la fila hace scroll, que además
+        // asoma media baldosa y dice que hay más.
+        //
+        // El gap de 2px entre cuatro son 6px que hay que descontar.
+        flex: "0 0 auto", width: "calc((100% - 6px) / 4)", minWidth: 0,
         display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
         background: "none", border: "none", padding: 0,
         cursor: apagada ? "default" : "pointer", fontFamily: "inherit",

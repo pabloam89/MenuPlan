@@ -251,7 +251,27 @@ textarea::placeholder {
 }
 .mp-asienta { animation: mpAsienta .34s cubic-bezier(.3,.9,.4,1.2) backwards; }
 
+/* ── El hueco marcado tiembla ──────────────────────────────────────────────
+   Marcar es un estado, no un instante, y un estado tiene que verse todo el
+   rato que dura. Un borde de color se confunde con los otros bordes del
+   tablero; temblar no se confunde con nada, y además dice "esto está cogido,
+   puedes coger más". Es el mismo gesto que llevan los iconos del móvil
+   cuando los mantienes pulsados.
+
+   El giro es de menos de un grado a propósito: lo justo para que el ojo lo
+   pille por el rabillo sin que el texto de dentro se lea peor. Y va sin
+   `both`, así que al desmarcar no queda transform pegado —que atraparía a los
+   `position: fixed` de dentro, ver .mp-nav-fwd. */
+@keyframes mpTiembla {
+  0%   { transform: rotate(-.7deg) translateX(-.5px); }
+  50%  { transform: rotate(.7deg) translateX(.5px); }
+  100% { transform: rotate(-.7deg) translateX(-.5px); }
+}
+.mp-tiembla { animation: mpTiembla .22s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
+  /* Sin temblor: el aro y el sello ya dicen cuál está marcado. */
+  .mp-tiembla { animation: none; }
   .mp-montando { animation: none; opacity: 1; }
   .mp-anillo { animation: none; stroke-dashoffset: 0; }
   .mp-asienta { animation: none; }
