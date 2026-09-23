@@ -11643,57 +11643,68 @@
       {
         "text": "Picar {{Perejil fresco}} muy fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Rallar la piel de {{Limón}} sobre un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar el perejil picado y el ajo picado con la ralladura de limón hasta obtener la gremolata.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Filete de ternera}} por ambos lados con {{Sal|gusto}} y {{Pimienta negra|pizca}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} con {{Aceite de oliva|chorrito}} a fuego fuerte hasta que humee ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los filetes en {{@Plancha}} y cocinar 2 min sin moverlos, hasta que se despeguen solos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a los filetes y cocinar 2 min más, hasta alcanzar el punto deseado.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los filetes de la plancha y dejar reposar 2 min en un plato para que los jugos se redistribuyan.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Exprimir un poco de zumo del limón ya rallado sobre los filetes.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir la gremolata sobre los filetes y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -13242,62 +13253,74 @@
       {
         "text": "Cortar {{Contramuslos de pollo deshuesados}} en trozos de unos 4 cm.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Harina de trigo}}, {{Maicena}}, {{Pimentón dulce}}, {{Ajo en polvo}} y {{Sal}} en un bol hasta integrar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Batir {{Huevo}} con {{Leche}} en otro bol hasta obtener una mezcla homogénea.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pasar cada trozo de pollo por la mezcla de harina, luego por el huevo batido y de nuevo por la harina.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Presionar bien el rebozado sobre cada trozo para que se adhiera y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de girasol}} en una sartén honda a fuego fuerte hasta alcanzar 180 °C.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír el pollo rebozado por tandas a 180 °C durante 5 min, hasta que esté dorado y crujiente.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir el pollo frito sobre papel absorbente y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Miel}}, {{Salsa de soja}}, {{Copos de guindilla}} y {{Zumo de lima}} en un cazo a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Remover la salsa sin parar durante 2 min hasta que espese ligeramente y retirar del fuego.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter la salsa caliente sobre el pollo frito y remover para que quede bien cubierto.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir de inmediato para conservar el crujiente del rebozado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -14128,52 +14151,62 @@
       {
         "text": "Envolver {{Solomillo de ternera}} en film transparente bien prieto y congelar hasta que esté firme pero no duro.",
         "minutes": 60,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Laminar el solomillo semicongelado en láminas lo más finas posible con un cuchillo bien afilado.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer las láminas de carne en un plato grande, superponiéndolas ligeramente hasta cubrir toda la superficie.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Lavar y escurrir {{Rúcula}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Queso parmesano}} en virutas con un pelador.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}} con {{Zumo de limón}} en un bol pequeño hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir la rúcula sobre la carne.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir las virutas de queso parmesano por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar con la mezcla de aceite de oliva virgen extra y zumo de limón.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con {{Sal en escamas}} y {{Pimienta negra}} recién molida al gusto, y servir enseguida.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -16471,73 +16504,87 @@
       {
         "text": "Cortar {{Pechuga de pollo}} en trozos de bocado de unos 3 cm.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Batir {{Huevo}} en un bol y añadir los trozos de pollo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Dejar marinar el pollo en el huevo batido durante 5 min.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Jengibre fresco}} y {{Ajo}} finamente. Reservar.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Escurrir el exceso de huevo de los trozos de pollo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rebozar los trozos de pollo en {{Maicena}} hasta cubrirlos bien. Sacudir el exceso.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de girasol}} en una sartén honda a fuego fuerte hasta alcanzar 180 °C.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír el pollo rebozado por tandas en el aceite caliente durante 4 min, hasta que esté dorado y crujiente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir el pollo frito sobre papel absorbente. Reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un cazo {{Zumo de limón}}, {{Azúcar}}, {{Salsa de soja}} y {{Caldo de pollo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Añadir el jengibre y el ajo rallados al cazo con la mezcla de limón.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Calentar la salsa a fuego medio, removiendo, hasta que espese ligeramente, unos 4 min.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter la salsa caliente sobre el pollo frito y remover para que quede bien impregnado.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Sésamo tostado}} por encima y servir enseguida.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -18888,57 +18935,68 @@
       {
         "text": "Laminar {{Champiñones}} en láminas de unos 3 mm.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Escalopines de ternera}} por ambas caras con {{Sal|gusto}} y {{Pimienta negra|pizca}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Enharinar los escalopines con {{Harina de trigo}}, sacudiendo el exceso.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} y la mitad de {{Mantequilla}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dorar los escalopines 1 min por cada cara hasta que estén dorados. Reservar en un plato.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir el resto de la mantequilla a la misma sartén a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Saltear los champiñones laminados hasta que estén dorados y hayan soltado su agua.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter {{Cava}} y llevar a ebullición a fuego fuerte hasta que reduzca a la mitad.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Nata para cocinar}} y cocer a fuego medio hasta que la salsa espese ligeramente.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Incorporar los escalopines reservados a la sartén y calentar a fuego suave, napando con la salsa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir enseguida, bien caliente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -20984,72 +21042,86 @@
       {
         "text": "Retirar {{Solomillo de ternera}} de la nevera y dejar atemperar a temperatura ambiente.",
         "minutes": 20,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Picar finamente {{Perejil fresco}}, {{Cebollino}}, {{Ajo}} y {{Chalota}}.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Ablandar {{Mantequilla}} a temperatura ambiente hasta que esté cremosa.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar la mantequilla con el perejil, el cebollino, el ajo y la chalota picados.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Mostaza de Dijon}}, {{Brandy}}, {{Pimentón dulce}}, {{Curry en polvo}} y {{Zumo de limón}} a la mezcla de mantequilla.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar bien hasta obtener una mantequilla compuesta homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Formar un cilindro con la mantequilla compuesta enrollándola en film transparente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Enfriar el cilindro de mantequilla en el congelador hasta que esté firme.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar el solomillo de ternera por ambos lados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Marcar el solomillo de ternera 2 min por cada lado hasta que esté dorado por fuera y rosado por dentro.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el solomillo de la sartén y dejar reposar fuera del fuego.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cortar la mantequilla compuesta en rodajas de 1 cm.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Colocar 2 o 3 rodajas de mantequilla compuesta sobre cada medallón caliente y servir enseguida.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 0,
@@ -26679,62 +26751,74 @@
       {
         "text": "Cortar {{Pan de molde}} en dados de 1 cm aproximadamente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Tostar los dados de pan de molde en la sartén hasta que estén dorados y crujientes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los picatostes de la sartén y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Lavar y secar {{Lechuga romana}}, luego trocearla en tiras de tamaño de bocado.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Desmenuzar {{Pollo asado de bolsa}} en tiras con las manos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Anchoas en aceite}} en trozos pequeños.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Queso parmesano}} en lascas finas con un pelador o rallador.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer la lechuga en un bol grande y aliñar con {{Salsa César}}, mezclando bien hasta que quede repartida.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir el pollo desmenuzado y las anchoas picadas al bol y mezclar de nuevo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir los picatostes y el queso parmesano rallado por encima de la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir inmediatamente para que los picatostes conserven el punto crujiente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,

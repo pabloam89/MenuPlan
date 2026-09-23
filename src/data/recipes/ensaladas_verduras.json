@@ -3913,77 +3913,92 @@
       {
         "text": "Cortar {{Pan}} en dados de 1 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Queso parmesano}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Limón}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Lavar {{Lechuga romana}} y trocear en hojas grandes.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar {{Pechuga de pollo}} hasta que esté dorada, 4 min por cada lado.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar la pechuga de pollo de la plancha y dejar reposar.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio con el resto del aceite de oliva.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir el ajo picado y los dados de pan hasta que estén dorados y crujientes.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Mayonesa}} con el zumo de limón y el queso parmesano rallado en un bol hasta obtener una salsa homogénea.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Cortar la pechuga de pollo reposada en tiras de 1 cm.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer la lechuga romana en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir las tiras de pollo y los picatostes sobre la lechuga.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir la salsa por encima y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -5197,73 +5212,87 @@
       {
         "text": "Llevar agua a ebullición en un cazo a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Introducir {{Huevo}} con cuidado y cocer a fuego medio.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pan}} en dados pequeños para los picatostes.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Retirar los huevos del cazo y sumergir en agua fría hasta que estén templados.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar los huevos y cortar en cuartos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio sin aceite y añadir {{Bacon en tiras}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dorar el bacon hasta que quede crujiente, retirar y reservar sobre papel absorbente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír los dados de pan en la misma sartén con la grasa del bacon hasta que se doren.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar la sartén del fuego y añadir {{Vinagre de Jerez}} y {{Mostaza de Dijon}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Remover para ligar una vinagreta templada con los jugos de la sartén.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Repartir {{Espinacas baby}} en una ensaladera.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar las espinacas con la vinagreta templada de la sartén.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir el bacon crujiente, los picatostes y los huevos en cuartos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con {{Aceite de oliva|chorrito}} y servir enseguida antes de que la hoja se ablande.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -5641,47 +5670,56 @@
       {
         "text": "Cortar {{Remolacha cocida}} en dados de unos 2 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Queso de cabra}} en rodajas de aproximadamente 1 cm.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Trocear {{Nueces}} groseramente con el cuchillo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}}, {{Vinagre balsámico}} y {{Miel}} en un bol pequeño hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir {{Rúcula}} en la base de 2 platos formando una cama uniforme.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir la remolacha en dados sobre la rúcula.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar las rodajas de queso de cabra repartidas por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Esparcir las nueces troceadas sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar con la vinagreta justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -5810,77 +5848,92 @@
       {
         "text": "Laminar {{Cebolla morada}} en aros muy finos y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Naranja}} a vivo, separar los gajos y recoger el jugo que suelte en un bol.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Marcar la piel de {{Magret de pato}} en forma de rejilla con un cuchillo, sin llegar a la carne.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar {{Magret de pato}} por ambos lados con {{Sal|gusto}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar el magret con la piel hacia abajo en {{@Sartén}} fría, sin aceite, y encender el fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar sin mover hasta que la piel esté dorada y haya soltado su grasa, unos 7 min.",
         "minutes": 7,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar el exceso de grasa de la sartén con una cuchara.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Subir el fuego a fuerte y dorar el magret por el lado de la carne durante 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el magret a una tabla y dejar reposar 5 min antes de cortar.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Añadir el jugo de naranja reservado, {{Vinagre de Jerez}} y {{Miel}} a la misma sartén.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Reducir a fuego medio hasta que la salsa espese ligeramente, unos 3 min. Retirar del fuego.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Cortar el magret reposado en láminas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer {{Canónigos}} y la cebolla morada laminada en una fuente amplia.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir los gajos de naranja y las láminas de magret sobre los canónigos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar con {{Aceite de oliva virgen extra|chorrito}} y la reducción templada. Servir enseguida.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -6005,67 +6058,80 @@
       {
         "text": "Lavar {{Lechuga}} y {{Tomate}} bajo el grifo con agua fría.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cilantro fresco}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Cortar el tomate en dados pequeños y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} por la mitad, retirar el hueso y cortar la pulpa en dados.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Trocear la lechuga en piezas medianas y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición agua con {{Sal|gusto}} en un cazo a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer {{Langostinos pelados}} en el agua hirviendo hasta que cambien de color, unos 2 min.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los langostinos y enfriar en un bol con agua y hielo durante 2 min.",
         "minutes": 2,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Escurrir los langostinos del agua con hielo y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}} con {{Lima}} y el cilantro picado en un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir la lechuga troceada en la base de 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir los dados de aguacate y de tomate sobre la lechuga.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar los langostinos encima y regar con el aliño de lima y cilantro justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -6190,42 +6256,50 @@
       {
         "text": "Lavar {{Canónigos}} bajo agua fría y escurrir bien.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Pera}} en rodajas finas sin pelar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}}, {{Vinagre balsámico}} y {{Miel}} en un bol pequeño hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir los canónigos escurridos en la base de 2 platos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Distribuir las láminas de pera sobre los canónigos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Desmigar {{Queso roquefort}} por encima de la pera.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Trocear {{Nueces}} en trozos gruesos y esparcir sobre la ensalada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Regar la ensalada con la vinagreta justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -8299,96 +8373,114 @@
         "text": "Llevar a ebullición una olla con agua y sal a fuego fuerte.",
         "minutes": 3,
         "kind": "activo",
-        "base": "patatas"
+        "base": "patatas",
+        "part": "principal"
       },
       {
         "text": "Cocer {{Patata}} con piel en el agua hirviendo a fuego medio hasta que estén tiernas.",
         "minutes": 20,
         "kind": "pasivo",
-        "base": "patatas"
+        "base": "patatas",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición un cazo con agua a fuego fuerte para cocer los huevos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Cocer {{Huevo}} en el agua hirviendo a fuego medio durante 10 min.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Escurrir los huevos y sumergirlos en agua fría hasta que estén templados.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición otro cazo con agua y sal a fuego fuerte para las judías.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Escaldar {{Judías verdes}} en el agua hirviendo a fuego medio.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las judías verdes y pasar por agua fría hasta que estén frías para cortar la cocción.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las patatas y dejar templar hasta que se puedan manipular.",
         "minutes": 5,
         "kind": "espera",
-        "base": "patatas"
+        "base": "patatas",
+        "part": "principal"
       },
       {
         "text": "Pelar las patatas y cortar en rodajas.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar los huevos y cortar en cuartos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Tomate}} en gajos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva}}, {{Vinagre de vino}} y {{Mostaza de Dijon}} en un bol pequeño hasta emulsionar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Lavar {{Lechuga o mezclum}} y repartir en la base de 2 platos o una fuente.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Distribuir encima las rodajas de patata, las judías verdes y los gajos de tomate.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir {{Atún en aceite}} desmigado, {{Anchoas}} y {{Aceitunas negras}} repartidos por la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar los cuartos de huevo por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar la ensalada con la vinagreta justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -9747,37 +9839,44 @@
       {
         "text": "Lavar {{Canónigos}} bajo agua fría y escurrir bien.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Desgranar {{Granada (arilos)}} retirando toda la piel blanca.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Queso de cabra}} en rodajas.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva|chorrito}}, {{Vinagre de Módena}} y {{Miel}} en un bol hasta emulsionar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Repartir los canónigos escurridos en una fuente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer sobre los canónigos los arilos de granada, las rodajas de queso de cabra y {{Nueces}}.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar con el vinagre de Módena emulsionado justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -10370,62 +10469,74 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Calabaza}} y cortar en dados de 2 cm.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer los dados de calabaza en una bandeja y rociar con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Salpimentar los dados de calabaza y hornear a 200 °C hasta que estén tiernos y dorados.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Miel}} y {{Vinagre balsámico}} con el resto del aceite de oliva en un bol hasta emulsionar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Trocear {{Nueces}} en trozos gruesos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Retirar la calabaza del horno y dejar templar.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Repartir {{Rúcula}} en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer los dados de calabaza templada sobre la rúcula.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Desmenuzar {{Queso de cabra}} por encima de la calabaza.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir las nueces troceadas sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar la ensalada con la vinagreta de miel y vinagre balsámico justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -12423,52 +12534,62 @@
       {
         "text": "Escurrir {{Espárragos blancos en conserva}} y secarlos con papel de cocina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Rúcula}} y secarla con papel de cocina.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva virgen extra}}, {{Zumo de limón}}, {{Mostaza de Dijon}} y {{Sal|gusto}} en un bol pequeño hasta emulsionar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Salmón ahumado}} en lonchas del tamaño de un bocado.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Eneldo fresco}} finamente.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir la rúcula como base en 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar los espárragos sobre la rúcula, distribuyéndolos de forma uniforme entre los 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer el salmón entre los espárragos en cada plato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar cada plato con el aliño justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear el eneldo picado sobre cada plato y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -13318,42 +13439,50 @@
       {
         "text": "Separar las hojas de {{Endivias}}, lavarlas bajo agua fría y secarlas bien con papel de cocina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio sin aceite y tostar {{Nueces}} hasta que estén doradas, sin dejar de remover.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar las nueces de la sartén y trocearlas groseramente con un cuchillo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva}}, {{Vinagre de jerez}}, {{Miel}} y {{Sal|gusto}} en un bol pequeño hasta emulsionar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Disponer las hojas de endivias en forma de barco en una fuente o plato.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Desmenuzar {{Queso roquefort}} en trozos irregulares sobre las hojas de endivias.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir las nueces troceadas sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar la ensalada con el aliño justo antes de servir y servir enseguida para conservar la textura crujiente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,
@@ -13985,75 +14114,89 @@
       {
         "text": "Salpimentar {{Pechuga de pollo}} por ambas caras con {{Sal|gusto}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocinar la pechuga de pollo 6 min por cada lado hasta que esté bien hecha.",
         "minutes": 12,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Mango}} y cortarlo en dados.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Laminar {{Cebolla morada}} muy fina.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Zumo de lima}}, {{Salsa de soja}}, {{Miel}} y el aceite de oliva restante en un bol hasta integrar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "salsa"
       },
       {
         "text": "Retirar la pechuga de la plancha y dejar reposar 3 min.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cortar la pechuga en tiras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} por la mitad, deshuesar y laminar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rociar las láminas de aguacate con un poco del zumo de lima del aliño para evitar que se oxide.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir {{Mezclum de lechugas}} como base en 2 platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer sobre la base las tiras de pollo, el mango y el aguacate.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir la cebolla morada laminada sobre la ensalada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar con el aliño justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -15044,70 +15187,83 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar las hojas exteriores de {{Coliflor entera}}, dejando el tallo intacto para que se sostenga.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva}}, {{Comino molido}}, {{Pimentón dulce}}, {{Cúrcuma}} y {{Sal|gusto}} en un bol pequeño.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pincelar toda la coliflor con la mezcla de especias, cubriendo bien las hendiduras entre los ramilletes.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar la coliflor en una bandeja de horno y tapar con papel de aluminio.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear tapada a 200 °C durante 30 min.",
         "minutes": 30,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Tahini}}, {{Zumo de limón}}, {{Agua}} y el ajo picado en un bol hasta obtener una salsa cremosa y homogénea.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Perejil fresco}} fino y reservar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "salsa"
       },
       {
         "text": "Retirar el papel de aluminio y hornear 25 min más, hasta que la coliflor esté tierna por dentro y dorada por fuera.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Sacar la coliflor del horno y trasladarla a una fuente de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar la coliflor generosamente con la salsa de tahini.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir {{Granada (arilos)}} y el perejil picado por encima y servir entera para trocear en la mesa.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -16090,76 +16246,90 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Zanahoria}} bajo el grifo y secar con papel de cocina.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar las zanahorias en mitades a lo largo si son gruesas; dejarlas enteras si son finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol {{Aceite de oliva}}, {{Comino molido}}, {{Miel}} y {{Sal|gusto}} hasta integrar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer las zanahorias en una bandeja de horno y verter la mezcla de aceite y especias por encima.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Remover las zanahorias en la bandeja hasta que queden bien impregnadas de la mezcla.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear las zanahorias durante 25 min, dándoles la vuelta a los 12 min, hasta que estén tiernas y caramelizadas.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Rallar {{Ajo}} muy fino sobre un bol pequeño.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Yogur griego}}, {{Zumo de limón}} y {{Sal|gusto}} al bol con el ajo rallado.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Mezclar el yogur, el ajo, el zumo de limón y la sal hasta obtener una salsa homogénea.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Perejil fresco}} fino y reservar.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 6
+        "during": 6,
+        "part": "salsa"
       },
       {
         "text": "Extender la salsa de yogur en la base de una fuente de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar las zanahorias asadas encima de la salsa de yogur.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con el perejil picado por encima y servir templado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -16832,58 +17002,69 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Limpiar {{Coles de Bruselas}} y cortar cada una por la mitad.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Ajo}} muy fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Colocar las coles en una bandeja, añadir {{Aceite de oliva|chorrito}} y {{Sal|gusto}} y mezclar hasta que queden bien impregnadas.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Hornear las coles a 200 °C durante 22 min hasta que estén doradas y crujientes por fuera.",
         "minutes": 22,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Mezclar en un bol el ajo picado, {{Miel}}, {{Guindilla en copos|pizca}} y {{Zumo de limón}}.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Remover la bandeja a mitad de la cocción para que las coles se doren de forma uniforme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar la mezcla de miel en una {{@Sartén}} a fuego medio durante 2 min hasta que espese ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter el laqueado sobre las coles recién salidas del horno.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Remover bien para que las coles queden cubiertas con el laqueado.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Servir las coles calientes de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -18607,69 +18788,82 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Remolacha}} bajo el grifo frotando bien la piel.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Envolver cada remolacha entera, con piel, en papel de aluminio formando un paquete cerrado.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear los paquetes en la bandeja central durante 50 min, hasta que estén tiernas al pincharlas.",
         "minutes": 50,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Aceite de oliva|chorrito}}, {{Vinagre balsámico}} y {{Miel}} en un bol pequeño hasta emulsionar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "salsa"
       },
       {
         "text": "Picar {{Avellanas tostadas}} groseramente con el cuchillo.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "principal"
       },
       {
         "text": "Retirar los paquetes del horno y dejar templar sin abrir durante 10 min.",
         "minutes": 10,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Abrir el papel de aluminio y pelar las remolachas frotando la piel con un paño de cocina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar las remolachas en gajos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Disponer {{Rúcula}} en una fuente formando una base uniforme.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar los gajos de remolacha sobre la rúcula.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Desmenuzar {{Queso de cabra}} sobre la remolacha y repartir las avellanas picadas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar con la mezcla de aceite, vinagre balsámico y miel justo antes de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,

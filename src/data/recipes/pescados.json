@@ -745,52 +745,62 @@
       {
         "text": "Pelar {{Patata}} y {{Cebolla}}, y laminarlas en rodajas de unos 3 mm de grosor.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Limón}} en rodajas finas.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Perejil}} finamente y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Extender las rodajas de patata y cebolla en una bandeja de horno, regar con {{Aceite de oliva|chorrito}} y salpimentar al gusto.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Hornear las verduras durante 15 min a 200 °C hasta que comiencen a estar tiernas.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar la bandeja del horno y colocar {{Lubina entera}} encima de la cama de verduras.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Disponer las rodajas de limón sobre la lubina y espolvorear el perejil picado.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear el conjunto 18 min a 200 °C hasta que la lubina esté cocinada y la piel ligeramente dorada.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar del horno y servir la lubina sobre la cama de verduras, con el jugo de cocción por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -4200,92 +4210,108 @@
         "text": "Lavar {{Arroz sushi}} bajo el grifo hasta que el agua salga clara.",
         "minutes": 2,
         "kind": "prep",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Cocer el arroz en un cazo con el doble de agua fría; llevar a ebullición a fuego fuerte.",
         "minutes": 2,
         "kind": "activo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Tapar el cazo, bajar a fuego suave y cocer hasta que el arroz absorba toda el agua.",
         "minutes": 12,
         "kind": "pasivo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Aguacate}} en láminas finas.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Rallar {{Zanahoria}} o cortar en bastones finos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Pepino}} en bastones finos.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Salmón fresco para sushi}} en dados de bocado de unos 2 cm.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Hervir {{Edamame desvainado}} en agua con sal durante 3 min y escurrir.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 2
+        "during": 2,
+        "part": "principal"
       },
       {
         "text": "Retirar el cazo del fuego y dejar reposar el arroz tapado 5 min.",
         "minutes": 5,
         "kind": "espera",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Extender el arroz en una fuente y aliñar con {{Vinagre de arroz}}; mezclar con suavidad.",
         "minutes": 2,
         "kind": "activo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Dejar templar el arroz extendido hasta que pierda el exceso de calor.",
         "minutes": 5,
         "kind": "espera",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Salsa de soja}} con {{Aceite de sésamo}} en un cuenco pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir el arroz templado en 2 boles.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer el salmón, el aguacate, el edamame, la zanahoria y el pepino en montones sobre el arroz.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Aliñar cada bol con la mezcla de salsa de soja y aceite de sésamo.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Semillas de sésamo}} y cortar {{Alga nori}} en tiras finas para terminar.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 7,
@@ -4572,68 +4598,80 @@
         "text": "Cocer {{Arroz blanco}} en abundante agua con sal según el paquete.",
         "minutes": 15,
         "kind": "pasivo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Exprimir {{Lima}} y reservar el zumo.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Atún fresco para sushi}} en dados regulares de unos 2 cm.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Aguacate}} en dados del mismo tamaño que el atún.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Cortar {{Mango}} en dados del mismo tamaño que el aguacate.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Laminar {{Cebolleta}} en aros finos.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Escurrir el arroz cocido y dejar templar 3 min fuera del fuego.",
         "minutes": 3,
         "kind": "espera",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Salsa de soja}}, {{Aceite de sésamo}} y el zumo de lima en un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Repartir el arroz templado en 2 boles como base.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Disponer el atún, el aguacate y el mango en montones separados sobre el arroz.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir la cebolleta laminada y {{Semillas de sésamo}} por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar con la mezcla de salsa de soja, aceite de sésamo y zumo de lima al gusto.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -10366,67 +10404,80 @@
       {
         "text": "Congelar {{Salmón fresco calidad sashimi}} un mínimo de 48 h antes si no viene certificado apto para consumo en crudo.",
         "minutes": 2880,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Descongelar el salmón en la nevera hasta que esté firme pero manejable, sin llegar a temperatura ambiente.",
         "minutes": 240,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Laminar el salmón en láminas muy finas con un cuchillo afilado, trabajando en frío.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Naranja}} a lo vivo con un cuchillo, eliminando piel y membrana blanca por completo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Separar los gajos de naranja retirando las membranas que los envuelven y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Pelar {{Pomelo}} a lo vivo del mismo modo, separar los gajos y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Exprimir {{Limón}} y verter el zumo en un bol pequeño.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Aceite de oliva virgen extra}} al zumo de limón y mezclar hasta emulsionar la vinagreta.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Eneldo fresco}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Disponer las láminas de salmón extendidas y sin solaparse sobre un plato frío.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir los gajos de naranja y pomelo sobre las láminas de salmón.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar con la vinagreta de limón y aceite de oliva virgen extra.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con el eneldo picado y servir de inmediato muy frío.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -11305,62 +11356,74 @@
       {
         "text": "Picar {{Perejil}} finamente y reservar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Exprimir {{Limón}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Salpimentar {{Filetes de lubina}} por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Plancha}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colocar los filetes de lubina con la piel hacia abajo y cocinar hasta que la piel esté dorada y crujiente.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dar la vuelta a los filetes de lubina y cocinar 2 min más hasta que estén hechos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar los filetes de lubina y reservar en los platos.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego a medio y fundir {{Mantequilla}} en la misma plancha hasta que se dore ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Alcaparras}} y el zumo de limón reservado.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Remover para ligar la salsa con los jugos de la plancha hasta que esté homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Verter la salsa de mantequilla y alcaparras sobre los filetes de lubina en los platos.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear el perejil picado sobre los filetes y servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -16729,74 +16792,88 @@
       {
         "text": "Descongelar {{Pulpo congelado limpio}} en la nevera hasta que esté completamente blando.",
         "minutes": 720,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Llevar una olla grande con agua abundante a ebullición fuerte.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Asustar el pulpo sumergiéndolo y sacándolo del agua hirviendo 3 veces sujetándolo por la cabeza.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer el pulpo a fuego medio 45 min, hasta que al pinchar en la parte más gruesa con un palillo entre con facilidad.",
         "minutes": 45,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y cortar en rodajas gruesas de unos 2 cm.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar el pulpo del agua y reservar en un plato; dejar el agua de cocción en la olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Reposar el pulpo 5 min fuera del agua antes de cortarlo.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cocer las patatas en el agua de cocción del pulpo a fuego medio, hasta que estén tiernas.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar el pulpo en rodajas con unas tijeras empezando por los tentáculos.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 7
+        "during": 7,
+        "part": "principal"
       },
       {
         "text": "Escurrir las patatas y colocarlas como base en una tabla de madera o plato de servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir las rodajas de pulpo por encima de las patatas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Sal gorda|gusto}} de manera uniforme sobre el pulpo y las patatas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Pimentón dulce|gusto}} y {{Pimentón picante|pizca}} por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Regar con {{Aceite de oliva virgen extra|chorrito}} en crudo y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -17996,77 +18073,92 @@
       {
         "text": "Cortar {{Filetes de merluza o abadejo}} en tiras de unos 2 cm de ancho.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Repollo morado}} en juliana muy fina.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Exprimir {{Lima}} y reservar el zumo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Cilantro fresco}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Yogur natural}}, {{Mayonesa}}, la mitad del zumo de lima y el cilantro picado hasta obtener una salsa homogénea.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "salsa"
       },
       {
         "text": "Mezclar {{Harina de trigo}} con {{Cerveza fría}} hasta obtener una masa de rebozado ligera y sin grumos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de girasol}} en una sartén honda a fuego fuerte hasta que alcance unos 180 °C.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Pasar las tiras de merluza por la masa de rebozado, cubriendo bien cada pieza.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír las tiras rebozadas en tandas, sin amontonarlas, hasta que estén doradas y crujientes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escurrir las tiras fritas sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Tortillas de trigo pequeñas}} en {{@Sartén}} seca a fuego medio, 30 segundos por cada lado, hasta que estén flexibles.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir el repollo en juliana sobre cada tortilla caliente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar 2 o 3 tiras de merluza rebozada sobre el repollo en cada tortilla.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir un poco de salsa cremosa encima y unas gotas del zumo de lima restante.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -18210,72 +18302,85 @@
         "text": "Cocer {{Arroz blanco}} en agua con sal según el tiempo del paquete.",
         "minutes": 15,
         "kind": "pasivo",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Mezclar {{Mayonesa}} con {{Sriracha}} y {{Salsa de soja}} hasta obtener una crema homogénea.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "salsa"
       },
       {
         "text": "Cortar {{Pepino}} en bastones finos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Laminar {{Aguacate}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebollino}} fino.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Escurrir el arroz cocido y reservar templado.",
         "minutes": 1,
         "kind": "prep",
-        "base": "arroz"
+        "base": "arroz",
+        "part": "principal"
       },
       {
         "text": "Salpimentar {{Salmón (lomos)}} por ambas caras.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego fuerte y dorar los lomos de salmón 2 min por cada lado, hasta que estén dorados por fuera y jugosos por dentro.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar el salmón del fuego y desmenuzarlo en lascas grandes con un tenedor.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir el arroz templado en 2 boles.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar encima las lascas de salmón, el aguacate laminado, el pepino en bastones y {{Edamame}} por zonas.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Rociar la crema de mayonesa y sriracha sobre el bowl.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear {{Sésamo tostado}} y el cebollino picado, y servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
@@ -24557,53 +24662,62 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Calabacín}}, {{Pimiento rojo}}, {{Berenjena}} y {{Cebolla}} en tiras de grosor similar.",
         "minutes": 8,
         "kind": "paralelo",
         "during": 0,
-        "base": "verdura_asada"
+        "base": "verdura_asada",
+        "part": "guarnicion"
       },
       {
         "text": "Disponer las verduras cortadas en una bandeja de horno en una sola capa.",
         "minutes": 1,
         "kind": "prep",
-        "base": "verdura_asada"
+        "base": "verdura_asada",
+        "part": "guarnicion"
       },
       {
         "text": "Regar las verduras con {{Aceite de oliva|chorrito}} y salpimentar al gusto.",
         "minutes": 1,
         "kind": "prep",
-        "base": "verdura_asada"
+        "base": "verdura_asada",
+        "part": "guarnicion"
       },
       {
         "text": "Hornear las verduras en el horno a 200 °C durante 15 min hasta que estén tiernas y ligeramente doradas.",
         "minutes": 15,
         "kind": "pasivo",
-        "base": "verdura_asada"
+        "base": "verdura_asada",
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar {{Lomos de salmón}} por ambos lados.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "principal"
       },
       {
         "text": "Colocar los lomos de salmón sobre las verduras y regar con un chorrito de aceite de oliva.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Hornear a 200 °C durante 12 min hasta que el salmón esté opaco y se desmenuce con facilidad.",
         "minutes": 12,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar la bandeja del horno y servir los lomos de salmón sobre la cama de verduras.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "basesAparte": [

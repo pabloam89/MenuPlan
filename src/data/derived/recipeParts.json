@@ -826,8 +826,34 @@
     }
   },
   "carnes_057": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 4,
+        "pasos": 5,
+        "minutos": 9,
+        "masa_g": 380,
+        "cobertura": 1,
+        "kcal": 727,
+        "protein_g": 75,
+        "carbs_g": 1,
+        "fat_g": 48,
+        "fraccion": 0.717
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 4,
+        "minutos": 5,
+        "masa_g": 150,
+        "cobertura": 1,
+        "kcal": 52,
+        "protein_g": 1,
+        "carbs_g": 5,
+        "fat_g": 1,
+        "fraccion": 0.283
+      }
+    }
   },
   "carnes_058": {
     "origen": "curado",
@@ -1038,8 +1064,34 @@
     "partes": null
   },
   "carnes_065": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 9,
+        "pasos": 8,
+        "minutos": 25,
+        "masa_g": 889,
+        "cobertura": 1,
+        "kcal": 3410,
+        "protein_g": 94,
+        "carbs_g": 78,
+        "fat_g": 301,
+        "fraccion": 0.926
+      },
+      "salsa": {
+        "ingredientes": 4,
+        "pasos": 2,
+        "minutos": 3,
+        "masa_g": 71,
+        "cobertura": 1,
+        "kcal": 142,
+        "protein_g": 2,
+        "carbs_g": 32,
+        "fat_g": 0,
+        "fraccion": 0.074
+      }
+    }
   },
   "carnes_066": {
     "origen": "curado",
@@ -1132,8 +1184,46 @@
     }
   },
   "carnes_069": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 5,
+        "minutos": 69,
+        "masa_g": 320,
+        "cobertura": 1,
+        "kcal": 407,
+        "protein_g": 61,
+        "carbs_g": 1,
+        "fat_g": 17,
+        "fraccion": 0.872
+      },
+      "salsa": {
+        "ingredientes": 2,
+        "pasos": 1,
+        "minutos": 1,
+        "masa_g": 43,
+        "cobertura": 1,
+        "kcal": 252,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 28,
+        "fraccion": 0.117
+      },
+      "combinado": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 4,
+        "masa_g": 4,
+        "cobertura": 1,
+        "kcal": 7,
+        "protein_g": 0,
+        "carbs_g": 1,
+        "fat_g": 0,
+        "fraccion": 0.011
+      }
+    }
   },
   "carnes_070": {
     "origen": "sin_senal",
@@ -1274,8 +1364,46 @@
     "partes": null
   },
   "carnes_079": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 4,
+        "pasos": 8,
+        "minutos": 21,
+        "masa_g": 726,
+        "cobertura": 1,
+        "kcal": 3105,
+        "protein_g": 90,
+        "carbs_g": 37,
+        "fat_g": 287,
+        "fraccion": 0.764
+      },
+      "salsa": {
+        "ingredientes": 6,
+        "pasos": 4,
+        "minutos": 9,
+        "masa_g": 219,
+        "cobertura": 1,
+        "kcal": 209,
+        "protein_g": 3,
+        "carbs_g": 46,
+        "fat_g": 0,
+        "fraccion": 0.231
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 2,
+        "masa_g": 5,
+        "cobertura": 1,
+        "kcal": 28,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 3,
+        "fraccion": 0.005
+      }
+    }
   },
   "carnes_080": {
     "origen": "sin_senal",
@@ -1408,8 +1536,34 @@
     }
   },
   "carnes_090": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 4,
+        "minutos": 5,
+        "masa_g": 410,
+        "cobertura": 1,
+        "kcal": 867,
+        "protein_g": 77,
+        "carbs_g": 16,
+        "fat_g": 55,
+        "fraccion": 0.506
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 5,
+        "minutos": 14,
+        "masa_g": 400,
+        "cobertura": 1,
+        "kcal": 288,
+        "protein_g": 7,
+        "carbs_g": 9,
+        "fat_g": 14,
+        "fraccion": 0.494
+      }
+    }
   },
   "carnes_091": {
     "origen": "sin_senal",
@@ -1508,8 +1662,34 @@
     "partes": null
   },
   "carnes_099": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 2,
+        "pasos": 5,
+        "minutos": 30,
+        "masa_g": 364,
+        "cobertura": 1,
+        "kcal": 503,
+        "protein_g": 71,
+        "carbs_g": 0,
+        "fat_g": 24,
+        "fraccion": 0.704
+      },
+      "salsa": {
+        "ingredientes": 10,
+        "pasos": 8,
+        "minutos": 29,
+        "masa_g": 153,
+        "cobertura": 1,
+        "kcal": 685,
+        "protein_g": 3,
+        "carbs_g": 7,
+        "fat_g": 68,
+        "fraccion": 0.296
+      }
+    }
   },
   "carnes_100": {
     "origen": "curado",
@@ -2138,8 +2318,34 @@
     "partes": null
   },
   "carnes_123": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 6,
+        "minutos": 7,
+        "masa_g": 500,
+        "cobertura": 1,
+        "kcal": 725,
+        "protein_g": 56,
+        "carbs_g": 5,
+        "fat_g": 54,
+        "fraccion": 0.879
+      },
+      "guarnicion": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 7,
+        "masa_g": 69,
+        "cobertura": 1,
+        "kcal": 241,
+        "protein_g": 5,
+        "carbs_g": 30,
+        "fat_g": 11,
+        "fraccion": 0.121
+      }
+    }
   },
   "carnes_124": {
     "origen": "curado",
@@ -2956,24 +3162,116 @@
     "partes": null
   },
   "cenas_rapidas_012": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 7,
+        "pasos": 8,
+        "minutos": 11,
+        "masa_g": 567,
+        "cobertura": 1,
+        "kcal": 382,
+        "protein_g": 7,
+        "carbs_g": 33,
+        "fat_g": 24,
+        "fraccion": 1
+      }
+    }
   },
   "cenas_rapidas_013": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 7,
+        "minutos": 13,
+        "masa_g": 250,
+        "cobertura": 1,
+        "kcal": 489,
+        "protein_g": 25,
+        "carbs_g": 63,
+        "fat_g": 14,
+        "fraccion": 0.476
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 5,
+        "minutos": 5,
+        "masa_g": 275,
+        "cobertura": 1,
+        "kcal": 302,
+        "protein_g": 4,
+        "carbs_g": 3,
+        "fat_g": 24,
+        "fraccion": 0.524
+      }
+    }
   },
   "cenas_rapidas_014": {
     "origen": "sin_senal",
     "partes": null
   },
   "cenas_rapidas_015": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 4,
+        "pasos": 4,
+        "minutos": 36,
+        "masa_g": 492,
+        "cobertura": 1,
+        "kcal": 384,
+        "protein_g": 7,
+        "carbs_g": 62,
+        "fat_g": 13,
+        "fraccion": 0.925
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 1,
+        "minutos": 1,
+        "masa_g": 40,
+        "cobertura": 1,
+        "kcal": 127,
+        "protein_g": 12,
+        "carbs_g": 0,
+        "fat_g": 9,
+        "fraccion": 0.075
+      }
+    }
   },
   "cenas_rapidas_061": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 5,
+        "minutos": 49,
+        "masa_g": 726,
+        "cobertura": 1,
+        "kcal": 714,
+        "protein_g": 15,
+        "carbs_g": 88,
+        "fat_g": 33,
+        "fraccion": 0.94
+      },
+      "salsa": {
+        "ingredientes": 2,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 46,
+        "cobertura": 1,
+        "kcal": 290,
+        "protein_g": 1,
+        "carbs_g": 2,
+        "fat_g": 32,
+        "fraccion": 0.06
+      }
+    }
   },
   "desayunos_001": {
     "origen": "monocomponente",
@@ -3136,8 +3434,34 @@
     "partes": null
   },
   "ensaladas_verduras_024": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 9,
+        "minutos": 22,
+        "masa_g": 458,
+        "cobertura": 1,
+        "kcal": 484,
+        "protein_g": 52,
+        "carbs_g": 25,
+        "fat_g": 19,
+        "fraccion": 0.729
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 3,
+        "minutos": 3,
+        "masa_g": 170,
+        "cobertura": 1,
+        "kcal": 326,
+        "protein_g": 7,
+        "carbs_g": 2,
+        "fat_g": 30,
+        "fraccion": 0.271
+      }
+    }
   },
   "ensaladas_verduras_025": {
     "origen": "sin_senal",
@@ -3242,8 +3566,46 @@
     "partes": null
   },
   "ensaladas_verduras_036": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "combinado": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 4,
+        "masa_g": 159,
+        "cobertura": 1,
+        "kcal": 124,
+        "protein_g": 4,
+        "carbs_g": 3,
+        "fat_g": 10,
+        "fraccion": 0.398
+      },
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 8,
+        "minutos": 27,
+        "masa_g": 220,
+        "cobertura": 1,
+        "kcal": 682,
+        "protein_g": 23,
+        "carbs_g": 21,
+        "fat_g": 57,
+        "fraccion": 0.551
+      },
+      "salsa": {
+        "ingredientes": 2,
+        "pasos": 2,
+        "minutos": 2,
+        "masa_g": 20,
+        "cobertura": 1,
+        "kcal": 7,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 1,
+        "fraccion": 0.05
+      }
+    }
   },
   "ensaladas_verduras_037": {
     "origen": "sin_senal",
@@ -3254,20 +3616,148 @@
     "partes": null
   },
   "ensaladas_verduras_039": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 3,
+        "minutos": 4,
+        "masa_g": 330,
+        "cobertura": 1,
+        "kcal": 565,
+        "protein_g": 26,
+        "carbs_g": 14,
+        "fat_g": 45,
+        "fraccion": 0.778
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 5,
+        "minutos": 5,
+        "masa_g": 60,
+        "cobertura": 1,
+        "kcal": 19,
+        "protein_g": 2,
+        "carbs_g": 2,
+        "fat_g": 0,
+        "fraccion": 0.142
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 1,
+        "minutos": 1,
+        "masa_g": 34,
+        "cobertura": 1,
+        "kcal": 162,
+        "protein_g": 0,
+        "carbs_g": 9,
+        "fat_g": 14,
+        "fraccion": 0.08
+      }
+    }
   },
   "ensaladas_verduras_040": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 4,
+        "pasos": 10,
+        "minutos": 26,
+        "masa_g": 532,
+        "cobertura": 1,
+        "kcal": 514,
+        "protein_g": 61,
+        "carbs_g": 18,
+        "fat_g": 20,
+        "fraccion": 0.817
+      },
+      "combinado": {
+        "ingredientes": 2,
+        "pasos": 3,
+        "minutos": 3,
+        "masa_g": 94,
+        "cobertura": 1,
+        "kcal": 135,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 14,
+        "fraccion": 0.144
+      },
+      "salsa": {
+        "ingredientes": 2,
+        "pasos": 2,
+        "minutos": 4,
+        "masa_g": 25,
+        "cobertura": 1,
+        "kcal": 32,
+        "protein_g": 0,
+        "carbs_g": 8,
+        "fat_g": 0,
+        "fraccion": 0.038
+      }
+    }
   },
   "ensaladas_verduras_041": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 8,
+        "minutos": 15,
+        "masa_g": 562,
+        "cobertura": 1,
+        "kcal": 524,
+        "protein_g": 53,
+        "carbs_g": 8,
+        "fat_g": 26,
+        "fraccion": 0.935
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 2,
+        "minutos": 2,
+        "masa_g": 39,
+        "cobertura": 1,
+        "kcal": 133,
+        "protein_g": 0,
+        "carbs_g": 1,
+        "fat_g": 14,
+        "fraccion": 0.065
+      }
+    }
   },
   "ensaladas_verduras_042": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 4,
+        "pasos": 6,
+        "minutos": 7,
+        "masa_g": 390,
+        "cobertura": 1,
+        "kcal": 634,
+        "protein_g": 22,
+        "carbs_g": 25,
+        "fat_g": 48,
+        "fraccion": 0.92
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 1,
+        "minutos": 1,
+        "masa_g": 34,
+        "cobertura": 1,
+        "kcal": 162,
+        "protein_g": 0,
+        "carbs_g": 9,
+        "fat_g": 14,
+        "fraccion": 0.08
+      }
+    }
   },
   "ensaladas_verduras_043": {
     "origen": "sin_senal",
@@ -3352,8 +3842,46 @@
     }
   },
   "ensaladas_verduras_054": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "combinado": {
+        "ingredientes": 4,
+        "pasos": 5,
+        "minutos": 7,
+        "masa_g": 280,
+        "cobertura": 1,
+        "kcal": 365,
+        "protein_g": 36,
+        "carbs_g": 3,
+        "fat_g": 23,
+        "fraccion": 0.295
+      },
+      "principal": {
+        "ingredientes": 4,
+        "pasos": 12,
+        "minutos": 61,
+        "masa_g": 620,
+        "cobertura": 1,
+        "kcal": 389,
+        "protein_g": 24,
+        "carbs_g": 42,
+        "fat_g": 13,
+        "fraccion": 0.654
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 48,
+        "cobertura": 1,
+        "kcal": 259,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 29,
+        "fraccion": 0.051
+      }
+    }
   },
   "ensaladas_verduras_055": {
     "origen": "curado",
@@ -3448,8 +3976,46 @@
     "partes": null
   },
   "ensaladas_verduras_062": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 3,
+        "minutos": 6,
+        "masa_g": 280,
+        "cobertura": 1,
+        "kcal": 313,
+        "protein_g": 19,
+        "carbs_g": 15,
+        "fat_g": 20,
+        "fraccion": 0.816
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 3,
+        "masa_g": 20,
+        "cobertura": 1,
+        "kcal": 140,
+        "protein_g": 3,
+        "carbs_g": 1,
+        "fat_g": 13,
+        "fraccion": 0.058
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 43,
+        "cobertura": 1,
+        "kcal": 204,
+        "protein_g": 0,
+        "carbs_g": 10,
+        "fat_g": 18,
+        "fraccion": 0.125
+      }
+    }
   },
   "ensaladas_verduras_063": {
     "origen": "monocomponente_juzgado",
@@ -3464,8 +4030,46 @@
     "partes": null
   },
   "ensaladas_verduras_066": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 6,
+        "minutos": 47,
+        "masa_g": 448,
+        "cobertura": 1,
+        "kcal": 501,
+        "protein_g": 9,
+        "carbs_g": 24,
+        "fat_g": 41,
+        "fraccion": 0.681
+      },
+      "combinado": {
+        "ingredientes": 2,
+        "pasos": 5,
+        "minutos": 5,
+        "masa_g": 180,
+        "cobertura": 1,
+        "kcal": 321,
+        "protein_g": 22,
+        "carbs_g": 4,
+        "fat_g": 24,
+        "fraccion": 0.274
+      },
+      "salsa": {
+        "ingredientes": 2,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 30,
+        "cobertura": 1,
+        "kcal": 70,
+        "protein_g": 0,
+        "carbs_g": 17,
+        "fat_g": 0,
+        "fraccion": 0.046
+      }
+    }
   },
   "ensaladas_verduras_067": {
     "origen": "curado",
@@ -3602,8 +4206,34 @@
     }
   },
   "ensaladas_verduras_078": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 4,
+        "pasos": 4,
+        "minutos": 5,
+        "masa_g": 445,
+        "cobertura": 1,
+        "kcal": 268,
+        "protein_g": 32,
+        "carbs_g": 12,
+        "fat_g": 10,
+        "fraccion": 0.916
+      },
+      "salsa": {
+        "ingredientes": 4,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 41,
+        "cobertura": 1,
+        "kcal": 176,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 19,
+        "fraccion": 0.084
+      }
+    }
   },
   "ensaladas_verduras_079": {
     "origen": "curado",
@@ -3660,8 +4290,46 @@
     "partes": null
   },
   "ensaladas_verduras_083": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 2,
+        "pasos": 3,
+        "minutos": 7,
+        "masa_g": 340,
+        "cobertura": 1,
+        "kcal": 341,
+        "protein_g": 9,
+        "carbs_g": 11,
+        "fat_g": 28,
+        "fraccion": 0.773
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 4,
+        "minutos": 5,
+        "masa_g": 60,
+        "cobertura": 1,
+        "kcal": 230,
+        "protein_g": 12,
+        "carbs_g": 0,
+        "fat_g": 20,
+        "fraccion": 0.136
+      },
+      "salsa": {
+        "ingredientes": 4,
+        "pasos": 1,
+        "minutos": 1,
+        "masa_g": 40,
+        "cobertura": 1,
+        "kcal": 194,
+        "protein_g": 0,
+        "carbs_g": 8,
+        "fat_g": 18,
+        "fraccion": 0.091
+      }
+    }
   },
   "ensaladas_verduras_084": {
     "origen": "curado",
@@ -3752,8 +4420,46 @@
     "partes": null
   },
   "ensaladas_verduras_087": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 9,
+        "minutos": 26,
+        "masa_g": 646,
+        "cobertura": 1,
+        "kcal": 729,
+        "protein_g": 62,
+        "carbs_g": 29,
+        "fat_g": 36,
+        "fraccion": 0.835
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 4,
+        "minutos": 4,
+        "masa_g": 80,
+        "cobertura": 1,
+        "kcal": 14,
+        "protein_g": 1,
+        "carbs_g": 2,
+        "fat_g": 0,
+        "fraccion": 0.103
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 48,
+        "cobertura": 1,
+        "kcal": 51,
+        "protein_g": 2,
+        "carbs_g": 9,
+        "fat_g": 0,
+        "fraccion": 0.062
+      }
+    }
   },
   "ensaladas_verduras_088": {
     "origen": "sin_senal",
@@ -3798,8 +4504,46 @@
     }
   },
   "ensaladas_verduras_092": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 7,
+        "minutos": 74,
+        "masa_g": 1055,
+        "cobertura": 1,
+        "kcal": 632,
+        "protein_g": 20,
+        "carbs_g": 27,
+        "fat_g": 45,
+        "fraccion": 0.809
+      },
+      "salsa": {
+        "ingredientes": 5,
+        "pasos": 3,
+        "minutos": 7,
+        "masa_g": 149,
+        "cobertura": 1,
+        "kcal": 376,
+        "protein_g": 12,
+        "carbs_g": 3,
+        "fat_g": 35,
+        "fraccion": 0.114
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 3,
+        "masa_g": 100,
+        "cobertura": 1,
+        "kcal": 62,
+        "protein_g": 1,
+        "carbs_g": 14,
+        "fat_g": 0,
+        "fraccion": 0.077
+      }
+    }
   },
   "ensaladas_verduras_093": {
     "origen": "monocomponente_juzgado",
@@ -3844,8 +4588,34 @@
     "partes": null
   },
   "ensaladas_verduras_097": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 7,
+        "minutos": 42,
+        "masa_g": 434,
+        "cobertura": 1,
+        "kcal": 343,
+        "protein_g": 4,
+        "carbs_g": 37,
+        "fat_g": 20,
+        "fraccion": 0.783
+      },
+      "salsa": {
+        "ingredientes": 4,
+        "pasos": 4,
+        "minutos": 4,
+        "masa_g": 120,
+        "cobertura": 1,
+        "kcal": 74,
+        "protein_g": 4,
+        "carbs_g": 5,
+        "fat_g": 4,
+        "fraccion": 0.217
+      }
+    }
   },
   "ensaladas_verduras_098": {
     "origen": "curado",
@@ -3936,8 +4706,34 @@
     "partes": null
   },
   "ensaladas_verduras_101": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 5,
+        "minutos": 38,
+        "masa_g": 425,
+        "cobertura": 1,
+        "kcal": 342,
+        "protein_g": 16,
+        "carbs_g": 14,
+        "fat_g": 25,
+        "fraccion": 0.882
+      },
+      "salsa": {
+        "ingredientes": 4,
+        "pasos": 3,
+        "minutos": 5,
+        "masa_g": 57,
+        "cobertura": 1,
+        "kcal": 111,
+        "protein_g": 1,
+        "carbs_g": 26,
+        "fat_g": 0,
+        "fraccion": 0.118
+      }
+    }
   },
   "ensaladas_verduras_102": {
     "origen": "monocomponente_juzgado",
@@ -4010,8 +4806,46 @@
     "partes": null
   },
   "ensaladas_verduras_110": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 2,
+        "pasos": 8,
+        "minutos": 82,
+        "masa_g": 430,
+        "cobertura": 1,
+        "kcal": 325,
+        "protein_g": 9,
+        "carbs_g": 24,
+        "fat_g": 21,
+        "fraccion": 0.696
+      },
+      "combinado": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 4,
+        "masa_g": 140,
+        "cobertura": 1,
+        "kcal": 309,
+        "protein_g": 21,
+        "carbs_g": 3,
+        "fat_g": 24,
+        "fraccion": 0.227
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 48,
+        "cobertura": 1,
+        "kcal": 245,
+        "protein_g": 0,
+        "carbs_g": 10,
+        "fat_g": 23,
+        "fraccion": 0.078
+      }
+    }
   },
   "ensaladas_verduras_111": {
     "origen": "curado",
@@ -4968,12 +5802,88 @@
     "partes": null
   },
   "huevos_044": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 7,
+        "minutos": 11,
+        "masa_g": 255,
+        "cobertura": 1,
+        "kcal": 341,
+        "protein_g": 31,
+        "carbs_g": 1,
+        "fat_g": 24,
+        "fraccion": 0.527
+      },
+      "combinado": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 4,
+        "masa_g": 109,
+        "cobertura": 1,
+        "kcal": 261,
+        "protein_g": 25,
+        "carbs_g": 0,
+        "fat_g": 18,
+        "fraccion": 0.225
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 4,
+        "masa_g": 120,
+        "cobertura": 1,
+        "kcal": 319,
+        "protein_g": 9,
+        "carbs_g": 62,
+        "fat_g": 2,
+        "fraccion": 0.248
+      }
+    }
   },
   "huevos_045": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 2,
+        "pasos": 7,
+        "minutos": 26,
+        "masa_g": 520,
+        "cobertura": 1,
+        "kcal": 682,
+        "protein_g": 89,
+        "carbs_g": 1,
+        "fat_g": 36,
+        "fraccion": 0.698
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 3,
+        "minutos": 6,
+        "masa_g": 185,
+        "cobertura": 1,
+        "kcal": 266,
+        "protein_g": 7,
+        "carbs_g": 19,
+        "fat_g": 18,
+        "fraccion": 0.248
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 10,
+        "masa_g": 40,
+        "cobertura": 1,
+        "kcal": 147,
+        "protein_g": 11,
+        "carbs_g": 0,
+        "fat_g": 11,
+        "fraccion": 0.054
+      }
+    }
   },
   "huevos_046": {
     "origen": "sin_senal",
@@ -5218,8 +6128,58 @@
     }
   },
   "huevos_065": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 3,
+        "minutos": 6,
+        "masa_g": 365,
+        "cobertura": 1,
+        "kcal": 713,
+        "protein_g": 41,
+        "carbs_g": 66,
+        "fat_g": 31,
+        "fraccion": 0.463
+      },
+      "salsa": {
+        "ingredientes": 5,
+        "pasos": 6,
+        "minutos": 20,
+        "masa_g": 284,
+        "cobertura": 1,
+        "kcal": 206,
+        "protein_g": 3,
+        "carbs_g": 13,
+        "fat_g": 15,
+        "fraccion": 0.36
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 1,
+        "minutos": 3,
+        "masa_g": 100,
+        "cobertura": 1,
+        "kcal": 116,
+        "protein_g": 10,
+        "carbs_g": 12,
+        "fat_g": 1,
+        "fraccion": 0.127
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 4,
+        "minutos": 4,
+        "masa_g": 40,
+        "cobertura": 1,
+        "kcal": 147,
+        "protein_g": 11,
+        "carbs_g": 0,
+        "fat_g": 11,
+        "fraccion": 0.051
+      }
+    }
   },
   "huevos_066": {
     "origen": "sin_senal",
@@ -5734,8 +6694,46 @@
     "partes": null
   },
   "legumbres_022": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 8,
+        "pasos": 5,
+        "minutos": 8,
+        "masa_g": 468,
+        "cobertura": 1,
+        "kcal": 1068,
+        "protein_g": 38,
+        "carbs_g": 128,
+        "fat_g": 39,
+        "fraccion": 0.745
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 150,
+        "cobertura": 1,
+        "kcal": 18,
+        "protein_g": 1,
+        "carbs_g": 3,
+        "fat_g": 0,
+        "fraccion": 0.239
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 3,
+        "masa_g": 10,
+        "cobertura": 1,
+        "kcal": 56,
+        "protein_g": 2,
+        "carbs_g": 1,
+        "fat_g": 5,
+        "fraccion": 0.016
+      }
+    }
   },
   "legumbres_023": {
     "origen": "monocomponente_juzgado",
@@ -5796,12 +6794,64 @@
     }
   },
   "legumbres_025": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 10,
+        "pasos": 13,
+        "minutos": 54,
+        "masa_g": 633,
+        "cobertura": 1,
+        "kcal": 1186,
+        "protein_g": 81,
+        "carbs_g": 120,
+        "fat_g": 41,
+        "fraccion": 0.83
+      },
+      "guarnicion": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 8,
+        "masa_g": 130,
+        "cobertura": 1,
+        "kcal": 170,
+        "protein_g": 15,
+        "carbs_g": 0,
+        "fat_g": 12,
+        "fraccion": 0.17
+      }
+    }
   },
   "legumbres_026": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 8,
+        "pasos": 6,
+        "minutos": 7,
+        "masa_g": 528,
+        "cobertura": 1,
+        "kcal": 844,
+        "protein_g": 33,
+        "carbs_g": 64,
+        "fat_g": 45,
+        "fraccion": 0.964
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 4,
+        "masa_g": 20,
+        "cobertura": 1,
+        "kcal": 136,
+        "protein_g": 3,
+        "carbs_g": 1,
+        "fat_g": 13,
+        "fraccion": 0.036
+      }
+    }
   },
   "legumbres_027": {
     "origen": "monocomponente_juzgado",
@@ -5926,16 +6976,68 @@
     "partes": null
   },
   "legumbres_038": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 8,
+        "pasos": 13,
+        "minutos": 27,
+        "masa_g": 638,
+        "cobertura": 1,
+        "kcal": 929,
+        "protein_g": 39,
+        "carbs_g": 94,
+        "fat_g": 37,
+        "fraccion": 0.831
+      },
+      "guarnicion": {
+        "ingredientes": 2,
+        "pasos": 3,
+        "minutos": 7,
+        "masa_g": 130,
+        "cobertura": 1,
+        "kcal": 170,
+        "protein_g": 15,
+        "carbs_g": 0,
+        "fat_g": 12,
+        "fraccion": 0.169
+      }
+    }
   },
   "legumbres_039": {
     "origen": "sin_senal",
     "partes": null
   },
   "legumbres_040": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 10,
+        "pasos": 13,
+        "minutos": 840,
+        "masa_g": 925,
+        "cobertura": 1,
+        "kcal": 2843,
+        "protein_g": 166,
+        "carbs_g": 262,
+        "fat_g": 131,
+        "fraccion": 0.985
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 7,
+        "masa_g": 14,
+        "cobertura": 1,
+        "kcal": 122,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 14,
+        "fraccion": 0.015
+      }
+    }
   },
   "legumbres_041": {
     "origen": "sin_senal",
@@ -6120,8 +7222,58 @@
     "partes": null
   },
   "legumbres_067": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 7,
+        "minutos": 45,
+        "masa_g": 624,
+        "cobertura": 1,
+        "kcal": 964,
+        "protein_g": 30,
+        "carbs_g": 102,
+        "fat_g": 41,
+        "fraccion": 0.757
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 20,
+        "masa_g": 100,
+        "cobertura": 1,
+        "kcal": 305,
+        "protein_g": 14,
+        "carbs_g": 49,
+        "fat_g": 6,
+        "fraccion": 0.121
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 3,
+        "masa_g": 60,
+        "cobertura": 1,
+        "kcal": 19,
+        "protein_g": 2,
+        "carbs_g": 2,
+        "fat_g": 0,
+        "fraccion": 0.073
+      },
+      "salsa": {
+        "ingredientes": 2,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 40,
+        "cobertura": 1,
+        "kcal": 152,
+        "protein_g": 5,
+        "carbs_g": 0,
+        "fat_g": 15,
+        "fraccion": 0.049
+      }
+    }
   },
   "legumbres_068": {
     "origen": "monocomponente_juzgado",
@@ -6246,8 +7398,34 @@
     "partes": null
   },
   "pasta_arroces_002": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 14,
+        "masa_g": 200,
+        "cobertura": 1,
+        "kcal": 703,
+        "protein_g": 25,
+        "carbs_g": 142,
+        "fat_g": 3,
+        "fraccion": 0.23
+      },
+      "salsa": {
+        "ingredientes": 7,
+        "pasos": 9,
+        "minutos": 33,
+        "masa_g": 669,
+        "cobertura": 1,
+        "kcal": 806,
+        "protein_g": 35,
+        "carbs_g": 21,
+        "fat_g": 61,
+        "fraccion": 0.77
+      }
+    }
   },
   "pasta_arroces_003": {
     "origen": "monocomponente_juzgado",
@@ -6262,8 +7440,34 @@
     "partes": null
   },
   "pasta_arroces_006": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 13,
+        "masa_g": 200,
+        "cobertura": 1,
+        "kcal": 703,
+        "protein_g": 25,
+        "carbs_g": 142,
+        "fat_g": 3,
+        "fraccion": 0.327
+      },
+      "salsa": {
+        "ingredientes": 6,
+        "pasos": 8,
+        "minutos": 18,
+        "masa_g": 412,
+        "cobertura": 1,
+        "kcal": 348,
+        "protein_g": 36,
+        "carbs_g": 14,
+        "fat_g": 15,
+        "fraccion": 0.673
+      }
+    }
   },
   "pasta_arroces_007": {
     "origen": "sin_senal",
@@ -6274,12 +7478,76 @@
     "partes": null
   },
   "pasta_arroces_009": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 24,
+        "masa_g": 300,
+        "cobertura": 1,
+        "kcal": 862,
+        "protein_g": 28,
+        "carbs_g": 155,
+        "fat_g": 13,
+        "fraccion": 0.452
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 4,
+        "minutos": 12,
+        "masa_g": 244,
+        "cobertura": 1,
+        "kcal": 305,
+        "protein_g": 3,
+        "carbs_g": 9,
+        "fat_g": 28,
+        "fraccion": 0.367
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 6,
+        "masa_g": 120,
+        "cobertura": 1,
+        "kcal": 158,
+        "protein_g": 2,
+        "carbs_g": 36,
+        "fat_g": 0,
+        "fraccion": 0.181
+      }
+    }
   },
   "pasta_arroces_010": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 1,
+        "pasos": 4,
+        "minutos": 15,
+        "masa_g": 200,
+        "cobertura": 1,
+        "kcal": 703,
+        "protein_g": 25,
+        "carbs_g": 142,
+        "fat_g": 3,
+        "fraccion": 0.619
+      },
+      "salsa": {
+        "ingredientes": 5,
+        "pasos": 3,
+        "minutos": 4,
+        "masa_g": 123,
+        "cobertura": 1,
+        "kcal": 600,
+        "protein_g": 13,
+        "carbs_g": 3,
+        "fat_g": 59,
+        "fraccion": 0.381
+      }
+    }
   },
   "pasta_arroces_011": {
     "origen": "monocomponente_juzgado",
@@ -6798,8 +8066,46 @@
     }
   },
   "pasta_arroces_085": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 1,
+        "pasos": 4,
+        "minutos": 19,
+        "masa_g": 200,
+        "cobertura": 1,
+        "kcal": 703,
+        "protein_g": 25,
+        "carbs_g": 142,
+        "fat_g": 3,
+        "fraccion": 0.235
+      },
+      "salsa": {
+        "ingredientes": 7,
+        "pasos": 8,
+        "minutos": 32,
+        "masa_g": 591,
+        "cobertura": 1,
+        "kcal": 886,
+        "protein_g": 42,
+        "carbs_g": 19,
+        "fat_g": 71,
+        "fraccion": 0.694
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 4,
+        "minutos": 13,
+        "masa_g": 60,
+        "cobertura": 1,
+        "kcal": 133,
+        "protein_g": 12,
+        "carbs_g": 0,
+        "fat_g": 10,
+        "fraccion": 0.071
+      }
+    }
   },
   "pasta_arroces_086": {
     "origen": "monocomponente_juzgado",
@@ -7078,12 +8384,88 @@
     "partes": null
   },
   "pasta_arroces_107": {
-    "origen": "monocomponente_juzgado",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "salsa": {
+        "ingredientes": 5,
+        "pasos": 2,
+        "minutos": 9,
+        "masa_g": 127,
+        "cobertura": 1,
+        "kcal": 558,
+        "protein_g": 14,
+        "carbs_g": 3,
+        "fat_g": 53,
+        "fraccion": 0.227
+      },
+      "principal": {
+        "ingredientes": 2,
+        "pasos": 2,
+        "minutos": 21,
+        "masa_g": 163,
+        "cobertura": 1,
+        "kcal": 617,
+        "protein_g": 11,
+        "carbs_g": 138,
+        "fat_g": 1,
+        "fraccion": 0.291
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 1,
+        "minutos": 4,
+        "masa_g": 120,
+        "cobertura": 1,
+        "kcal": 90,
+        "protein_g": 7,
+        "carbs_g": 11,
+        "fat_g": 1,
+        "fraccion": 0.214
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 5,
+        "masa_g": 150,
+        "cobertura": 1,
+        "kcal": 28,
+        "protein_g": 1,
+        "carbs_g": 5,
+        "fat_g": 0,
+        "fraccion": 0.268
+      }
+    }
   },
   "pasta_arroces_108": {
-    "origen": "monocomponente_juzgado",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "salsa": {
+        "ingredientes": 5,
+        "pasos": 2,
+        "minutos": 9,
+        "masa_g": 127,
+        "cobertura": 1,
+        "kcal": 558,
+        "protein_g": 14,
+        "carbs_g": 3,
+        "fat_g": 53,
+        "fraccion": 0.192
+      },
+      "principal": {
+        "ingredientes": 4,
+        "pasos": 5,
+        "minutos": 30,
+        "masa_g": 533,
+        "cobertura": 1,
+        "kcal": 797,
+        "protein_g": 28,
+        "carbs_g": 155,
+        "fat_g": 4,
+        "fraccion": 0.808
+      }
+    }
   },
   "pescados_001": {
     "origen": "sin_senal",
@@ -7102,8 +8484,34 @@
     "partes": null
   },
   "pescados_005": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 3,
+        "pasos": 6,
+        "minutos": 27,
+        "masa_g": 625,
+        "cobertura": 1,
+        "kcal": 458,
+        "protein_g": 90,
+        "carbs_g": 2,
+        "fat_g": 7,
+        "fraccion": 0.712
+      },
+      "guarnicion": {
+        "ingredientes": 3,
+        "pasos": 3,
+        "minutos": 22,
+        "masa_g": 253,
+        "cobertura": 1,
+        "kcal": 342,
+        "protein_g": 4,
+        "carbs_g": 28,
+        "fat_g": 24,
+        "fraccion": 0.288
+      }
+    }
   },
   "pescados_006": {
     "origen": "sin_senal",
@@ -7216,16 +8624,104 @@
     "partes": null
   },
   "pescados_027": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 9,
+        "minutos": 35,
+        "masa_g": 625,
+        "cobertura": 1,
+        "kcal": 1345,
+        "protein_g": 63,
+        "carbs_g": 149,
+        "fat_g": 50,
+        "fraccion": 0.765
+      },
+      "guarnicion": {
+        "ingredientes": 2,
+        "pasos": 2,
+        "minutos": 3,
+        "masa_g": 140,
+        "cobertura": 1,
+        "kcal": 30,
+        "protein_g": 1,
+        "carbs_g": 6,
+        "fat_g": 0,
+        "fraccion": 0.171
+      },
+      "salsa": {
+        "ingredientes": 2,
+        "pasos": 1,
+        "minutos": 1,
+        "masa_g": 44,
+        "cobertura": 1,
+        "kcal": 105,
+        "protein_g": 3,
+        "carbs_g": 2,
+        "fat_g": 9,
+        "fraccion": 0.054
+      },
+      "combinado": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 5,
+        "masa_g": 8,
+        "cobertura": 1,
+        "kcal": 34,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 3,
+        "fraccion": 0.01
+      }
+    }
   },
   "pescados_028": {
     "origen": "sin_senal",
     "partes": null
   },
   "pescados_029": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 6,
+        "minutos": 23,
+        "masa_g": 660,
+        "cobertura": 1,
+        "kcal": 1208,
+        "protein_g": 67,
+        "carbs_g": 154,
+        "fat_g": 32,
+        "fraccion": 0.853
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 2,
+        "minutos": 2,
+        "masa_g": 108,
+        "cobertura": 1,
+        "kcal": 129,
+        "protein_g": 3,
+        "carbs_g": 4,
+        "fat_g": 9,
+        "fraccion": 0.14
+      },
+      "combinado": {
+        "ingredientes": 1,
+        "pasos": 4,
+        "minutos": 4,
+        "masa_g": 6,
+        "cobertura": 1,
+        "kcal": 34,
+        "protein_g": 1,
+        "carbs_g": 1,
+        "fat_g": 3,
+        "fraccion": 0.008
+      }
+    }
   },
   "pescados_030": {
     "origen": "sin_senal",
@@ -7668,8 +9164,46 @@
     "partes": null
   },
   "pescados_059": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 3125,
+        "masa_g": 240,
+        "cobertura": 1,
+        "kcal": 434,
+        "protein_g": 44,
+        "carbs_g": 0,
+        "fat_g": 29,
+        "fraccion": 0.272
+      },
+      "guarnicion": {
+        "ingredientes": 3,
+        "pasos": 4,
+        "minutos": 6,
+        "masa_g": 505,
+        "cobertura": 1,
+        "kcal": 171,
+        "protein_g": 4,
+        "carbs_g": 32,
+        "fat_g": 1,
+        "fraccion": 0.572
+      },
+      "salsa": {
+        "ingredientes": 2,
+        "pasos": 2,
+        "minutos": 2,
+        "masa_g": 138,
+        "cobertura": 1,
+        "kcal": 198,
+        "protein_g": 0,
+        "carbs_g": 2,
+        "fat_g": 19,
+        "fraccion": 0.156
+      }
+    }
   },
   "pescados_060": {
     "origen": "sin_senal",
@@ -7790,8 +9324,34 @@
     }
   },
   "pescados_064": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 2,
+        "pasos": 5,
+        "minutos": 9,
+        "masa_g": 334,
+        "cobertura": 1,
+        "kcal": 392,
+        "protein_g": 58,
+        "carbs_g": 0,
+        "fat_g": 18,
+        "fraccion": 0.652
+      },
+      "salsa": {
+        "ingredientes": 4,
+        "pasos": 5,
+        "minutos": 7,
+        "masa_g": 178,
+        "cobertura": 1,
+        "kcal": 267,
+        "protein_g": 1,
+        "carbs_g": 3,
+        "fat_g": 25,
+        "fraccion": 0.348
+      }
+    }
   },
   "pescados_065": {
     "origen": "monocomponente_juzgado",
@@ -8130,8 +9690,46 @@
     "partes": null
   },
   "pescados_091": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 1,
+        "pasos": 7,
+        "minutos": 786,
+        "masa_g": 1200,
+        "cobertura": 1,
+        "kcal": 823,
+        "protein_g": 161,
+        "carbs_g": 17,
+        "fat_g": 11,
+        "fraccion": 0.682
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 23,
+        "masa_g": 500,
+        "cobertura": 1,
+        "kcal": 363,
+        "protein_g": 11,
+        "carbs_g": 76,
+        "fat_g": 1,
+        "fraccion": 0.284
+      },
+      "combinado": {
+        "ingredientes": 4,
+        "pasos": 5,
+        "minutos": 5,
+        "masa_g": 60,
+        "cobertura": 1,
+        "kcal": 373,
+        "protein_g": 2,
+        "carbs_g": 5,
+        "fat_g": 38,
+        "fraccion": 0.034
+      }
+    }
   },
   "pescados_092": {
     "origen": "sin_senal",
@@ -8180,12 +9778,88 @@
     }
   },
   "pescados_097": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 7,
+        "minutos": 17,
+        "masa_g": 916,
+        "cobertura": 1,
+        "kcal": 3561,
+        "protein_g": 76,
+        "carbs_g": 142,
+        "fat_g": 293,
+        "fraccion": 0.776
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 1,
+        "minutos": 3,
+        "masa_g": 100,
+        "cobertura": 1,
+        "kcal": 26,
+        "protein_g": 2,
+        "carbs_g": 4,
+        "fat_g": 0,
+        "fraccion": 0.085
+      },
+      "salsa": {
+        "ingredientes": 4,
+        "pasos": 3,
+        "minutos": 4,
+        "masa_g": 165,
+        "cobertura": 1,
+        "kcal": 279,
+        "protein_g": 3,
+        "carbs_g": 5,
+        "fat_g": 26,
+        "fraccion": 0.14
+      }
+    }
   },
   "pescados_098": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 8,
+        "minutos": 26,
+        "masa_g": 605,
+        "cobertura": 1,
+        "kcal": 1194,
+        "protein_g": 64,
+        "carbs_g": 122,
+        "fat_g": 47,
+        "fraccion": 0.821
+      },
+      "combinado": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 5,
+        "masa_g": 65,
+        "cobertura": 1,
+        "kcal": 123,
+        "protein_g": 9,
+        "carbs_g": 7,
+        "fat_g": 7,
+        "fraccion": 0.088
+      },
+      "salsa": {
+        "ingredientes": 3,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 67,
+        "cobertura": 1,
+        "kcal": 304,
+        "protein_g": 2,
+        "carbs_g": 4,
+        "fat_g": 32,
+        "fraccion": 0.091
+      }
+    }
   },
   "pescados_099": {
     "origen": "curado",
@@ -8750,8 +10424,34 @@
     }
   },
   "pescados_125": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 14,
+        "masa_g": 400,
+        "cobertura": 1,
+        "kcal": 724,
+        "protein_g": 74,
+        "carbs_g": 0,
+        "fat_g": 48,
+        "fraccion": 0.282
+      },
+      "guarnicion": {
+        "ingredientes": 5,
+        "pasos": 5,
+        "minutos": 35,
+        "masa_g": 1017,
+        "cobertura": 1,
+        "kcal": 555,
+        "protein_g": 12,
+        "carbs_g": 36,
+        "fat_g": 40,
+        "fraccion": 0.718
+      }
+    }
   },
   "pescados_126": {
     "origen": "monocomponente_juzgado",
@@ -8856,8 +10556,34 @@
     "partes": null
   },
   "platos_unicos_015": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 8,
+        "minutos": 29,
+        "masa_g": 561,
+        "cobertura": 1,
+        "kcal": 743,
+        "protein_g": 11,
+        "carbs_g": 68,
+        "fat_g": 47,
+        "fraccion": 0.824
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 3,
+        "masa_g": 120,
+        "cobertura": 1,
+        "kcal": 168,
+        "protein_g": 15,
+        "carbs_g": 0,
+        "fat_g": 12,
+        "fraccion": 0.176
+      }
+    }
   },
   "platos_unicos_016": {
     "origen": "sin_senal",
@@ -9142,8 +10868,34 @@
     "partes": null
   },
   "sopas_cremas_005": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 5,
+        "minutos": 66,
+        "masa_g": 642,
+        "cobertura": 1,
+        "kcal": 720,
+        "protein_g": 11,
+        "carbs_g": 61,
+        "fat_g": 48,
+        "fraccion": 0.889
+      },
+      "guarnicion": {
+        "ingredientes": 2,
+        "pasos": 2,
+        "minutos": 2,
+        "masa_g": 80,
+        "cobertura": 1,
+        "kcal": 148,
+        "protein_g": 13,
+        "carbs_g": 0,
+        "fat_g": 10,
+        "fraccion": 0.111
+      }
+    }
   },
   "sopas_cremas_006": {
     "origen": "sin_senal",
@@ -9182,8 +10934,34 @@
     "partes": null
   },
   "sopas_cremas_015": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 9,
+        "minutos": 43,
+        "masa_g": 218,
+        "cobertura": 1,
+        "kcal": 1105,
+        "protein_g": 26,
+        "carbs_g": 42,
+        "fat_g": 90,
+        "fraccion": 0.784
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 1,
+        "minutos": 3,
+        "masa_g": 60,
+        "cobertura": 1,
+        "kcal": 41,
+        "protein_g": 0,
+        "carbs_g": 9,
+        "fat_g": 0,
+        "fraccion": 0.216
+      }
+    }
   },
   "sopas_cremas_016": {
     "origen": "sin_senal",
@@ -9206,16 +10984,94 @@
     "partes": null
   },
   "sopas_cremas_021": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 1,
+        "pasos": 1,
+        "minutos": 1,
+        "masa_g": 500,
+        "cobertura": 1,
+        "kcal": 169,
+        "protein_g": 3,
+        "carbs_g": 8,
+        "fat_g": 14,
+        "fraccion": 0.736
+      },
+      "guarnicion": {
+        "ingredientes": 5,
+        "pasos": 9,
+        "minutos": 25,
+        "masa_g": 179,
+        "cobertura": 1,
+        "kcal": 348,
+        "protein_g": 19,
+        "carbs_g": 17,
+        "fat_g": 22,
+        "fraccion": 0.264
+      }
+    }
   },
   "sopas_cremas_022": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 8,
+        "pasos": 11,
+        "minutos": 43,
+        "masa_g": 1214,
+        "cobertura": 1,
+        "kcal": 676,
+        "protein_g": 15,
+        "carbs_g": 49,
+        "fat_g": 46,
+        "fraccion": 0.988
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 4,
+        "minutos": 4,
+        "masa_g": 15,
+        "cobertura": 1,
+        "kcal": 5,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 0,
+        "fraccion": 0.012
+      }
+    }
   },
   "sopas_cremas_023": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 13,
+        "pasos": 11,
+        "minutos": 58,
+        "masa_g": 1730,
+        "cobertura": 0.827,
+        "kcal": 776,
+        "protein_g": 10,
+        "carbs_g": 52,
+        "fat_g": 43,
+        "fraccion": 0.92
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 5,
+        "masa_g": 150,
+        "cobertura": 1,
+        "kcal": 168,
+        "protein_g": 36,
+        "carbs_g": 2,
+        "fat_g": 1,
+        "fraccion": 0.08
+      }
+    }
   },
   "sopas_cremas_024": {
     "origen": "sin_senal",
@@ -9226,12 +11082,64 @@
     "partes": null
   },
   "sopas_cremas_026": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 7,
+        "minutos": 78,
+        "masa_g": 677,
+        "cobertura": 1,
+        "kcal": 865,
+        "protein_g": 13,
+        "carbs_g": 72,
+        "fat_g": 58,
+        "fraccion": 0.871
+      },
+      "guarnicion": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 16,
+        "masa_g": 100,
+        "cobertura": 1,
+        "kcal": 211,
+        "protein_g": 19,
+        "carbs_g": 0,
+        "fat_g": 15,
+        "fraccion": 0.129
+      }
+    }
   },
   "sopas_cremas_027": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 8,
+        "minutos": 40,
+        "masa_g": 1144,
+        "cobertura": 1,
+        "kcal": 507,
+        "protein_g": 15,
+        "carbs_g": 51,
+        "fat_g": 27,
+        "fraccion": 0.95
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 4,
+        "minutos": 7,
+        "masa_g": 60,
+        "cobertura": 1,
+        "kcal": 327,
+        "protein_g": 5,
+        "carbs_g": 0,
+        "fat_g": 35,
+        "fraccion": 0.05
+      }
+    }
   },
   "sopas_cremas_028": {
     "origen": "sin_senal",
@@ -9250,8 +11158,34 @@
     "partes": null
   },
   "sopas_cremas_032": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 11,
+        "minutos": 37,
+        "masa_g": 978,
+        "cobertura": 1,
+        "kcal": 439,
+        "protein_g": 15,
+        "carbs_g": 28,
+        "fat_g": 27,
+        "fraccion": 0.867
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 2,
+        "minutos": 4,
+        "masa_g": 150,
+        "cobertura": 1,
+        "kcal": 168,
+        "protein_g": 36,
+        "carbs_g": 2,
+        "fat_g": 1,
+        "fraccion": 0.133
+      }
+    }
   },
   "sopas_cremas_033": {
     "origen": "sin_senal",
@@ -9346,8 +11280,34 @@
     "partes": null
   },
   "sopas_cremas_056": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 4,
+        "minutos": 68,
+        "masa_g": 617,
+        "cobertura": 1,
+        "kcal": 502,
+        "protein_g": 9,
+        "carbs_g": 78,
+        "fat_g": 19,
+        "fraccion": 0.932
+      },
+      "guarnicion": {
+        "ingredientes": 2,
+        "pasos": 2,
+        "minutos": 3,
+        "masa_g": 45,
+        "cobertura": 1,
+        "kcal": 129,
+        "protein_g": 12,
+        "carbs_g": 0,
+        "fat_g": 9,
+        "fraccion": 0.068
+      }
+    }
   },
   "sopas_cremas_057": {
     "origen": "sin_senal",
@@ -9358,8 +11318,22 @@
     "partes": null
   },
   "sopas_cremas_059": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 11,
+        "pasos": 14,
+        "minutos": 60,
+        "masa_g": 1236,
+        "cobertura": 1,
+        "kcal": 981,
+        "protein_g": 106,
+        "carbs_g": 28,
+        "fat_g": 41,
+        "fraccion": 1
+      }
+    }
   },
   "sopas_cremas_060": {
     "origen": "sin_senal",
@@ -9454,16 +11428,68 @@
     "partes": null
   },
   "sopas_cremas_070": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 5,
+        "pasos": 9,
+        "minutos": 81,
+        "masa_g": 645,
+        "cobertura": 1,
+        "kcal": 300,
+        "protein_g": 22,
+        "carbs_g": 33,
+        "fat_g": 5,
+        "fraccion": 0.797
+      },
+      "guarnicion": {
+        "ingredientes": 2,
+        "pasos": 3,
+        "minutos": 5,
+        "masa_g": 164,
+        "cobertura": 1,
+        "kcal": 289,
+        "protein_g": 36,
+        "carbs_g": 2,
+        "fat_g": 15,
+        "fraccion": 0.203
+      }
+    }
   },
   "sopas_cremas_071": {
     "origen": "sin_senal",
     "partes": null
   },
   "sopas_cremas_072": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 13,
+        "minutos": 71,
+        "masa_g": 967,
+        "cobertura": 1,
+        "kcal": 604,
+        "protein_g": 9,
+        "carbs_g": 39,
+        "fat_g": 46,
+        "fraccion": 0.99
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 3,
+        "masa_g": 10,
+        "cobertura": 1,
+        "kcal": 4,
+        "protein_g": 0,
+        "carbs_g": 0,
+        "fat_g": 0,
+        "fraccion": 0.01
+      }
+    }
   },
   "sopas_cremas_073": {
     "origen": "monocomponente_juzgado",
@@ -9554,8 +11580,34 @@
     "partes": null
   },
   "sopas_cremas_082": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 4,
+        "pasos": 7,
+        "minutos": 31,
+        "masa_g": 450,
+        "cobertura": 1,
+        "kcal": 184,
+        "protein_g": 8,
+        "carbs_g": 36,
+        "fat_g": 1,
+        "fraccion": 0.893
+      },
+      "guarnicion": {
+        "ingredientes": 2,
+        "pasos": 4,
+        "minutos": 8,
+        "masa_g": 54,
+        "cobertura": 1,
+        "kcal": 228,
+        "protein_g": 4,
+        "carbs_g": 20,
+        "fat_g": 15,
+        "fraccion": 0.107
+      }
+    }
   },
   "sopas_cremas_083": {
     "origen": "sin_senal",
@@ -9566,8 +11618,34 @@
     "partes": null
   },
   "sopas_cremas_085": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 6,
+        "pasos": 9,
+        "minutos": 28,
+        "masa_g": 902,
+        "cobertura": 1,
+        "kcal": 540,
+        "protein_g": 44,
+        "carbs_g": 45,
+        "fat_g": 20,
+        "fraccion": 0.968
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 3,
+        "minutos": 5,
+        "masa_g": 30,
+        "cobertura": 1,
+        "kcal": 80,
+        "protein_g": 3,
+        "carbs_g": 15,
+        "fat_g": 1,
+        "fraccion": 0.032
+      }
+    }
   },
   "sopas_cremas_086": {
     "origen": "sin_senal",
@@ -9616,8 +11694,34 @@
     }
   },
   "sopas_cremas_088": {
-    "origen": "sin_senal",
-    "partes": null
+    "origen": "curado",
+    "operador": "ingredientsByPart",
+    "partes": {
+      "principal": {
+        "ingredientes": 7,
+        "pasos": 11,
+        "minutos": 46,
+        "masa_g": 1236,
+        "cobertura": 1,
+        "kcal": 434,
+        "protein_g": 10,
+        "carbs_g": 46,
+        "fat_g": 23,
+        "fraccion": 0.969
+      },
+      "guarnicion": {
+        "ingredientes": 1,
+        "pasos": 1,
+        "minutos": 2,
+        "masa_g": 40,
+        "cobertura": 1,
+        "kcal": 247,
+        "protein_g": 9,
+        "carbs_g": 6,
+        "fat_g": 20,
+        "fraccion": 0.031
+      }
+    }
   },
   "sopas_cremas_089": {
     "origen": "sin_senal",

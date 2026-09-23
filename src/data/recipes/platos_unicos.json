@@ -2925,57 +2925,68 @@
       {
         "text": "Pelar {{Patata}} y cortar en dados de unos 2 cm.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Ajo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír los dados de patata en el aceite caliente hasta que estén dorados y crujientes por fuera.",
         "minutes": 12,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar las patatas con una espumadera y escurrir sobre papel absorbente. Reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Sofreír el ajo laminado en el aceite restante de la {{@Sartén}} a fuego suave hasta que se dore ligeramente.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Pimentón picante}} al sofrito de ajo y remover durante 20 segundos para que no se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Tomate triturado}}, remover bien y cocer a fuego medio hasta que la salsa espese y reduzca.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar un chorrito de aceite en otra {{@Sartén}} a fuego medio hasta que esté caliente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Freír {{Huevo}} de uno en uno en el aceite caliente hasta que la clara cuaje pero la yema quede líquida.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Disponer las patatas en el plato, cubrir con la salsa brava y colocar un huevo frito encima de cada ración. Servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,

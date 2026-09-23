@@ -774,42 +774,50 @@
       {
         "text": "Cortar {{Tomate maduro}} en trozos grandes y reservar en el vaso de la batidora.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pan del día anterior}} en trozos y añadir al vaso junto con los tomates.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Ajo}}, {{Vinagre de Jerez}} y triturar a máxima potencia hasta que la mezcla esté completamente lisa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva|chorrito}} en hilo fino y continuo mientras la batidora sigue funcionando a velocidad media, hasta que emulsione.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Refrigerar el salmorejo en la nevera hasta que esté bien frío.",
         "minutes": 60,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Picar {{Jamón serrano}} en trozos pequeños y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Huevo cocido}} en trozos pequeños y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Servir el salmorejo en cuencos y repartir por encima el jamón picado y el huevo cocido picado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -2599,57 +2607,68 @@
       {
         "text": "Cubrir {{Pan del día anterior}} con agua fría y dejar reposar hasta que esté completamente empapado.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Escurrir el pan remojado y reservar el agua de remojo.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Ajo}} y retirar el germen central para suavizar el sabor.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Uvas}}, pelarlas y reservarlas en frío hasta el momento de servir.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Introducir {{Almendras crudas}}, el pan escurrido y el ajo en el vaso de la batidora.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar a máxima potencia durante 2 min hasta obtener una pasta muy fina y homogénea.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva|chorrito}} en hilo fino mientras sigue triturando, hasta que emulsione.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Vinagre de Jerez}} y triturar 30 segundos más hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Agregar agua fría del remojo poco a poco y triturar hasta lograr la consistencia deseada.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Refrigerar el ajoblanco en la nevera hasta que esté muy frío, mínimo 30 min.",
         "minutes": 30,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Servir el ajoblanco en boles fríos y repartir las uvas peladas por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -3628,62 +3647,74 @@
       {
         "text": "Cocer {{Huevo}} en agua hirviendo durante 10 min.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar {{Pan}} en dados pequeños de 1 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Pepino}} en dados pequeños para el topping.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Jamón serrano}} en taquitos finos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Enfriar el huevo cocido en agua fría hasta que esté templado.",
         "minutes": 3,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "guarnicion"
       },
       {
         "text": "Pelar el huevo y picarlo en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego fuerte con {{Aceite de oliva virgen extra}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Freír los dados de pan hasta que estén dorados y crujientes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir los picatostes sobre papel absorbente y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Verter {{Gazpacho de bote}} en una jarra o bol grande y remover.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Servir el gazpacho bien frío en boles individuales.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir por encima el huevo picado, el jamón serrano, los picatostes y el pepino.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -3826,83 +3857,99 @@
       {
         "text": "Limpiar {{Boletus}} con un paño húmedo y laminar, reservando unas pocas láminas para el perejil frito.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y picar {{Cebolla}} finamente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Limpiar y picar {{Puerro}} finamente.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y cortar en dados pequeños.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Mantequilla}} y {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que la mantequilla se funda.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír el puerro picado y la cebolla picada a fuego medio hasta que estén blandos y transparentes.",
         "minutes": 6,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir los boletus laminados y sofreír hasta que suelten el agua y se doren ligeramente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar los dados de patata y {{Caldo de verduras}} y llevar a ebullición.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego medio hasta que la patata esté tierna.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Separar las hojas de {{Perejil fresco}} reservadas para el perejil frito.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 8
+        "during": 8,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar la olla del fuego y triturar con la batidora hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Nata para cocinar}} y triturar de nuevo hasta integrar por completo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar aceite abundante en {{@Sartén}} a fuego fuerte hasta que humee.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Freír las hojas de perejil en el aceite caliente unos segundos hasta que estén crujientes.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir el perejil frito sobre papel absorbente y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Servir la crema caliente en boles y coronar con el perejil frito crujiente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,
@@ -4092,72 +4139,86 @@
       {
         "text": "Picar {{Cebolla}}, {{Zanahoria}}, {{Puerro}} y {{Ajo}} en trozos pequeños.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Cáscaras y cabezas de langostinos}} y saltear 5 min, aplastándolas con una cuchara hasta que estén bien tostadas.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Verter {{Brandy}} sobre las cáscaras y flambear con cuidado hasta que se apague la llama.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir la verdura picada a la olla y sofreír a fuego medio hasta que esté blanda.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar {{Tomate triturado}} y {{Pimentón dulce}} y remover hasta integrar.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Verter {{Vino blanco}} y remover hasta que se evapore el alcohol.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Arroz}} y {{Agua}}, llevar a ebullición y cocer a fuego medio hasta que el arroz esté tierno.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Triturar todo el conjunto, incluidas las cáscaras, con un túrmix hasta obtener una crema muy fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colar la crema apretando con una cuchara para extraer todo el líquido y sabor.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Devolver la crema colada a la olla, añadir {{Nata para cocinar}} y calentar a fuego suave sin que llegue a hervir.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar un chorrito del aceite de oliva restante en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Saltear {{Langostinos pelados}} 2 min por cada lado hasta que estén dorados y rosas.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir la bisque en boles y repartir los langostinos salteados por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -4669,62 +4730,74 @@
       {
         "text": "Lavar {{Tomate maduro}} y cortar en trozos grandes, retirando el pedúnculo.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Trocear {{Pan del día anterior}} y sumergir en agua fría hasta que se ablande.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cocer {{Huevo}} en agua hirviendo hasta que esté duro.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir el pan y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Enfriar el huevo cocido en agua fría hasta que esté templado, pelar y reservar.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Triturar el tomate troceado, el pan escurrido y {{Ajo}} hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva virgen extra}} en hilo fino mientras se sigue triturando hasta que la crema sea homogénea.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Vinagre de jerez}} y {{Sal|gusto}}, triturar de nuevo hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Enfriar el salmorejo en la nevera hasta que esté bien frío.",
         "minutes": 60,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Jamón serrano}} en taquitos pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cortar el huevo cocido en taquitos pequeños.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Servir el salmorejo bien frío con el jamón y el huevo repartidos por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -4845,68 +4918,81 @@
       {
         "text": "Limpiar {{Puerro}} retirando la capa exterior y las raíces, y cortar en rodajas finas usando la parte blanca y la verde clara.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y {{Cebolla}}, y cortar ambas en dados medianos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla y el puerro en la olla hasta que estén blandos y ligeramente dorados.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir la patata y {{Caldo de pollo}} a la olla y llevar a ebullición a fuego fuerte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer la olla tapada a fuego medio hasta que la patata esté tierna.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego fuerte sin aceite y disponer {{Beicon en lonchas}} en una sola capa.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "guarnicion"
       },
       {
         "text": "Dorar el beicon hasta que quede crujiente, dándole la vuelta a mitad.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar el beicon de la sartén y escurrir sobre papel absorbente.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar la olla del fuego y triturar la sopa con la batidora hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Nata para cocinar}} a la crema y triturar de nuevo hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cortar el beicon crujiente en trozos pequeños.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Servir la crema caliente en boles y repartir el beicon troceado por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 3,
@@ -5880,74 +5966,88 @@
       {
         "text": "Lavar {{Espárragos verdes}}, retirar la parte leñosa del tallo y reservar las puntas para decorar.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar los espárragos (sin las puntas reservadas) en trozos de unos 3 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Limpiar {{Puerro}} y picar fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Patata}} y cortar en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar la mitad de {{Aceite de oliva}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír el puerro picado a fuego medio hasta que esté blando y transparente.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir los trozos de espárragos y la patata en dados, y sofreír removiendo 3 min.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Verter {{Caldo de verduras}} hasta cubrir las verduras y llevar a ebullición a fuego fuerte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego medio-suave hasta que las verduras estén tiernas.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar el resto del aceite de oliva en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 8
+        "during": 8,
+        "part": "guarnicion"
       },
       {
         "text": "Saltear las puntas de espárrago reservadas y {{Langostinos pelados}} hasta que los langostinos estén rosados.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 8
+        "during": 8,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar la olla del fuego y triturar la sopa con la batidora hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Nata para cocinar}} a la crema y triturar de nuevo hasta integrar por completo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir la crema caliente repartida en boles, con los langostinos y las puntas de espárrago por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,
@@ -10985,44 +11085,52 @@
       {
         "text": "Pelar {{Melón}}, retirar las semillas y cortar la pulpa en trozos grandes.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar los trozos de melón con {{Yogur griego}}, {{Aceite de oliva|chorrito}} y {{Sal|gusto}} hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Pimienta negra|pizca}} y triturar de nuevo unos segundos hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Refrigerar la crema tapada hasta que esté bien fría.",
         "minutes": 60,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Jamón serrano}} en virutas finas.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Separar unas hojas de {{Menta fresca}} para decorar.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Repartir la sopa fría en boles individuales.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Decorar cada bol con las virutas de jamón serrano y las hojas de menta fresca. Servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 1,
@@ -11640,87 +11748,104 @@
       {
         "text": "Pelar {{Langostinos}}, reservando cáscaras y cabezas por separado. Guardar la carne en la nevera.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cebolla}}, {{Zanahoria}} y {{Puerro}} en trozos pequeños.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego fuerte hasta que humee.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír las cáscaras y cabezas de langostino a fuego fuerte 5 min, presionándolas para que suelten todo su jugo.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir la cebolla, la zanahoria y el puerro picados a la olla.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír las verduras a fuego medio hasta que estén blandas, unos 8 min.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Tomate triturado}} y {{Pimentón dulce|pizca}} y cocinar a fuego medio 3 min hasta que el tomate pierda el agua.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Brandy}} y flambear acercando una llama, o subir el fuego fuerte, hasta que el alcohol se evapore por completo.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Fumet de pescado}} y llevar a ebullición a fuego fuerte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego medio 20 min hasta que las cáscaras hayan cedido todo su sabor.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Triturar todo el conjunto, incluidas las cáscaras, con el túrmix o en batidora hasta obtener una pasta fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colar la crema por un chino fino sobre la olla, presionando bien con una cuchara para extraer todo el sabor.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar la crema colada a fuego suave, añadir {{Nata para cocinar}} y remover hasta integrar sin que llegue a hervir.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Salpimentar con {{Sal|gusto}} y remover.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar un chorrito de aceite de oliva en {{@Sartén}} a fuego fuerte hasta que humee.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Saltear la carne de los langostinos reservada 2 min hasta que estén rosados y ligeramente dorados.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir la crema caliente en boles y colocar los langostinos salteados por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 2,
@@ -13991,69 +14116,82 @@
       {
         "text": "Pelar {{Ajo}} y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición {{Caldo de verduras}} en un cazo a fuego fuerte.",
         "minutes": 3,
         "kind": "activo",
-        "base": "caldo"
+        "base": "caldo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Guisantes congelados}} y el ajo pelado al caldo cuando rompa a hervir.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer los guisantes y el ajo a fuego medio hasta que estén tiernos.",
         "minutes": 6,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Saltear {{Langostinos pelados}} en la sartén caliente hasta que estén rosados.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los langostinos de la sartén y reservar en la nevera.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir los guisantes y el ajo cocidos, reservando el caldo de cocción.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Dejar enfriar los guisantes escurridos y el caldo reservado a temperatura ambiente.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Triturar los guisantes con el caldo reservado, {{Menta fresca}}, {{Yogur natural}} y el aceite de oliva hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Colar la crema por un colador fino para lograr una textura más sedosa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Refrigerar la crema en la nevera hasta que esté bien fría.",
         "minutes": 60,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Servir la crema fría en boles con los langostinos reservados repartidos por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 6,
@@ -14416,87 +14554,104 @@
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Calabaza}} y retirar las semillas.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar la calabaza en dados de 3 cm.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Cebolla}} en cuartos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Colocar la calabaza y la cebolla en una bandeja de horno junto con {{Ajo}} sin pelar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rociar con {{Aceite de oliva|chorrito}} y repartir bien por la bandeja.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Hornear a 200 °C durante 35 min hasta que la calabaza esté tierna y ligeramente dorada.",
         "minutes": 35,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar la bandeja del horno y dejar templar 5 min.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar los dientes de ajo asados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Poner la calabaza, la cebolla y el ajo en una olla.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Caldo de verduras}} y llevar a ebullición a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego medio durante 5 min.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Nata para cocinar}} y triturar con la batidora hasta obtener una crema fina.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar el aceite de oliva restante en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Freír {{Hojas de salvia fresca}} durante 1 min hasta que estén crujientes.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar las hojas de salvia frita sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir la crema caliente con las hojas de salvia frita por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 4,
@@ -16505,65 +16660,77 @@
       {
         "text": "Pelar {{Patata}} y {{Zanahoria}}, luego cortar en trozos medianos.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Puerro}} en rodajas y {{Calabacín}} en trozos medianos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición una olla con agua y sal, añadir todas las verduras troceadas.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer las verduras a fuego medio durante 20 min, hasta que estén tiernas.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pan de molde}} en dados pequeños de aproximadamente 1 cm.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Dorar los dados de pan en el aceite caliente, removiendo, hasta que estén dorados.",
         "minutes": 4,
         "kind": "paralelo",
-        "during": 3
+        "during": 3,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los picatostes de la sartén y reservar sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir las verduras cocidas, reservando un poco del agua de cocción.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Triturar las verduras escurridas hasta obtener una crema fina y homogénea.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir agua de cocción reservada si el puré ha quedado demasiado espeso, y remover.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir el puré en boles y repartir los picatostes por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "formato": "cremoso",
@@ -16968,69 +17135,82 @@
       {
         "text": "Picar {{Cebolla}} en trozos finos.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Merluza o pescado blanco}} en trozos de bocado.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pan de molde}} en dados pequeños y uniformes.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla picada hasta que esté transparente.",
         "minutes": 5,
         "kind": "activo",
-        "base": "sofrito"
+        "base": "sofrito",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca.",
         "minutes": 5,
         "kind": "activo",
-        "base": "sofrito"
+        "base": "sofrito",
+        "part": "principal"
       },
       {
         "text": "Verter {{Caldo de pescado}} y llevar a ebullición a fuego fuerte.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Fideos finos}} y cocer a fuego medio hasta que estén tiernos.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar el pescado troceado y cocer hasta que esté hecho.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Retirar la olla del fuego y tapar para mantener el calor.",
         "minutes": 1,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Calentar un chorrito de aceite de oliva en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Dorar los dados de pan en la sartén hasta que estén crujientes y dorados.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir la sopa en boles y colocar los picatostes por encima en el momento.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "basesAparte": [
@@ -17549,69 +17729,82 @@
       {
         "text": "Pelar {{Cebolla}} y {{Ajo}}, y picar ambos fino.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Retirar las semillas de {{Chile fresco}} y picarlo fino.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Calabaza}} y cortarla en dados de unos 3 cm.",
         "minutes": 4,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla y el ajo picados hasta que estén transparentes.",
         "minutes": 5,
         "kind": "activo",
-        "base": "sofrito"
+        "base": "sofrito",
+        "part": "principal"
       },
       {
         "text": "Añadir la calabaza en dados y el chile picado a la olla.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la calabaza y el chile durante 5 min, removiendo a menudo.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Caldo de verduras}} y llevar a ebullición a fuego fuerte.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego suave hasta que la calabaza esté muy tierna.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cacahuetes tostados}} fino.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 8
+        "during": 8,
+        "part": "guarnicion"
       },
       {
         "text": "Triturar la sopa con un túrmix hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Sal|gusto}} y remover para integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir la crema en boles y repartir los cacahuetes picados por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "basesAparte": [

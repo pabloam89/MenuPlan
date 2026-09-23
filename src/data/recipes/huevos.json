@@ -6891,67 +6891,80 @@
       {
         "text": "Cortar {{Pan de masa madre}} en rebanadas de unos 2 cm de grosor.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Tostar las rebanadas en una tostadora o sartén a fuego medio hasta que estén doradas y crujientes.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Llevar agua abundante a ebullición en una cazuela ancha; añadir {{Vinagre}} y bajar a fuego suave.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cascar {{Huevo}} de uno en uno en una taza pequeña antes de deslizarlos al agua.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Remover el agua con una cuchara para formar un remolino suave y deslizar el primer huevo al centro.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repetir con los 3 huevos restantes, deslizando cada uno con cuidado al agua.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Escalfar los huevos 3 min hasta que la clara esté cuajada y la yema líquida.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar los huevos con una espumadera y reservar sobre papel absorbente.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Picar {{Eneldo fresco}} fino y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Repartir {{Aceite de oliva|chorrito}} sobre las tostadas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir {{Salmón ahumado}} sobre las tostadas.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar un huevo escalfado sobre cada tostada.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Espolvorear el eneldo picado por encima y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -7066,70 +7079,83 @@
       {
         "text": "Cocer {{Huevo}} en agua abundante durante 10 min desde que rompa a hervir.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Retirar los huevos y sumergirlos en agua fría hasta que estén templados.",
         "minutes": 5,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar los huevos y cortarlos por la mitad a lo largo.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Retirar las yemas con cuidado y reservarlas en un bol; reservar las claras en una fuente de horno.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Escurrir {{Atún en conserva}} y añadirlo al bol con las yemas.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Machacar las yemas con el atún escurrido hasta obtener una pasta homogénea.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Rellenar cada clara con la pasta de yema y atún y colocarlas en la fuente de horno.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Fundir {{Mantequilla}} en un cazo a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "base": "bechamel"
+        "base": "bechamel",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Harina}} de golpe y remover sin parar durante 1 min hasta que se forme una pasta dorada.",
         "minutes": 1,
         "kind": "activo",
-        "base": "bechamel"
+        "base": "bechamel",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Leche}} poco a poco sin dejar de remover hasta obtener una bechamel fina y sin grumos.",
         "minutes": 4,
         "kind": "activo",
-        "base": "bechamel"
+        "base": "bechamel",
+        "part": "salsa"
       },
       {
         "text": "Cubrir los huevos rellenos con la bechamel y espolvorear {{Queso rallado}} por encima.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Gratinar en el horno a 220 °C durante 8 min hasta que la superficie esté dorada.",
         "minutes": 8,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "combinado"
       },
       {
         "text": "Servir templado directamente desde la fuente.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -10870,77 +10896,91 @@
         "text": "Picar {{Cebolla}} y {{Ajo}} muy finos.",
         "minutes": 2,
         "kind": "prep",
-        "base": "sofrito"
+        "base": "sofrito",
+        "part": "salsa"
       },
       {
         "text": "Picar {{Chile jalapeño}} muy fino.",
         "minutes": 1,
         "kind": "prep",
-        "base": "sofrito"
+        "base": "sofrito",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
         "kind": "activo",
-        "base": "sofrito"
+        "base": "sofrito",
+        "part": "salsa"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el chile jalapeño hasta que la cebolla esté transparente.",
         "minutes": 5,
         "kind": "activo",
-        "base": "sofrito"
+        "base": "sofrito",
+        "part": "salsa"
       },
       {
         "text": "Añadir {{Tomate triturado}} y salpimentar.",
         "minutes": 1,
         "kind": "activo",
-        "base": "sofrito"
+        "base": "sofrito",
+        "part": "salsa"
       },
       {
         "text": "Cocer la salsa a fuego medio hasta que espese, removiendo de vez en cuando.",
         "minutes": 10,
         "kind": "pasivo",
-        "base": "sofrito"
+        "base": "sofrito",
+        "part": "salsa"
       },
       {
         "text": "Calentar {{Judías negras cocidas}} en un cazo a fuego suave, aplastando ligeramente con un tenedor.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Tortilla de maíz}} en {{@Sartén}} seca a fuego medio, 30 segundos por cada lado.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Picar {{Cilantro fresco}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Freír {{Huevo}} en {{@Sartén}} con el resto del aceite de oliva a fuego medio, hasta que la clara esté cuajada y la yema líquida.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir las tortillas de maíz en los platos y distribuir las judías negras encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Verter la salsa ranchera sobre las judías negras.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Colocar 2 huevos fritos sobre cada tortilla y espolvorear {{Queso rallado}} por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con el cilantro fresco picado y servir de inmediato.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,

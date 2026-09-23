@@ -2,7 +2,7 @@
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
     "ingredientes": "e7596e2067cea067",
-    "recetas": "d4b859167b27b0ce"
+    "recetas": "0dd6383539c02815"
   },
   "recetas": 1033,
   "recipeNutrition": {
@@ -165,14 +165,14 @@
     "filas": 1033,
     "por_origen": {
       "monocomponente": 195,
-      "monocomponente_juzgado": 129,
-      "sin_senal": 529,
-      "curado": 180
+      "monocomponente_juzgado": 127,
+      "sin_senal": 463,
+      "curado": 248
     },
     "operador_determinista": {
       "modulo": "src/lib/derive/stepParts.js",
-      "concordancia_con_curado": 0.591,
-      "pasos_medidos": 2478,
+      "concordancia_con_curado": 0.545,
+      "pasos_medidos": 3313,
       "promocionable": false,
       "motivo": "la parte es propiedad del plato, no del ingrediente: el mismo ingrediente cambia de parte segun la receta"
     }

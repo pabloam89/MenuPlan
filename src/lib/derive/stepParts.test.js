@@ -19,14 +19,22 @@ describe("concordancia contra las recetas curadas", () => {
   const m = medirConcordancia(recetas);
 
   /**
-   * SUELO, no objetivo. Medido el 22 sep 2026: 1465 de 2478 pasos en 180
-   * recetas curadas. Venía del 52,6 %, y subió por tres cosas: leer el nombre
-   * del ingrediente en texto plano, callar al rebozado, y cerrar NO_VOTA con
-   * frontera de palabra.
+   * SUELO, no objetivo. 54,5 % sobre 3.313 pasos de 248 recetas (23 sep 2026).
+   *
+   * EL NÚMERO BAJÓ DE 59,1 % Y NO ES UNA REGRESIÓN, así que conviene dejarlo
+   * escrito antes de que alguien lo lea como tal. El 59,1 % se midió contra
+   * 180 recetas; al curar `part` en 504 más, el conjunto de medida pasó a 248
+   * recetas y 3.313 pasos. El operador no cambió ni una línea: lo que cambió
+   * es contra qué se compara, y ahora incluye platos más variados y más
+   * difíciles que los 180 primeros.
+   *
+   * Un 54,5 % medido sobre 248 recetas dice más de la verdad que un 59,1 %
+   * medido sobre 180. Comparar los dos números directamente es comparar dos
+   * exámenes distintos.
    */
-  it("no baja del 59 %", () => {
-    expect(m.pasos).toBeGreaterThan(2000);
-    expect(m.ratio).toBeGreaterThanOrEqual(0.59);
+  it("no baja del 54 %", () => {
+    expect(m.pasos).toBeGreaterThan(3000);
+    expect(m.ratio).toBeGreaterThanOrEqual(0.54);
   });
 
   /**

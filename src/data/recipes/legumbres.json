@@ -4413,47 +4413,56 @@
       {
         "text": "Escurrir {{Garbanzos cocidos}} bajo el grifo con un colador.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Ajo}} y partir en trozos.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Triturar los garbanzos escurridos con {{Tahini}}, {{Zumo de limón}}, el ajo, {{Comino molido}} y {{Sal|gusto}} hasta obtener una crema lisa.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva|chorrito}} y triturar de nuevo hasta integrar. Añadir un chorrito de agua si la crema ha quedado muy espesa.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Laminar {{Pepino}} en rodajas finas.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Tostar {{Pan de pueblo}} en una tostadora o bajo el grill hasta que esté dorado y crujiente.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Untar cada tosta generosamente con el hummus.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir las láminas de pepino sobre el hummus.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar con {{Sésamo tostado}} y un chorrito de aceite de oliva por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "montaje": true,
@@ -5048,93 +5057,111 @@
       {
         "text": "Lavar {{Lentejas pardinas}} bajo el grifo y escurrir.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y picar {{Cebolla}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Picar {{Ajo}} fino.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pimiento verde}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y cortar {{Zanahoria}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Chorizo}} en rodajas.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla, el ajo y el pimiento verde hasta que ablanden.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir la zanahoria y el chorizo y sofreír hasta que el chorizo suelte su color.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Pimentón dulce|pizca}} y {{Tomate triturado}} y remover durante 1 min.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir las lentejas pardinas y {{Laurel}} y cubrir con agua hasta 3 cm por encima.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición a fuego fuerte.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego, tapar y cocer hasta que las lentejas estén tiernas.",
         "minutes": 30,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Llevar agua a ebullición en un cazo a fuego suave y añadir {{Vinagre}}.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 12
+        "during": 12,
+        "part": "guarnicion"
       },
       {
         "text": "Remover el agua para crear un remolino y cascar {{Huevo}} de uno en uno en el centro.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Cocer cada huevo hasta que la clara esté cuajada y la yema aún líquida.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los huevos con espumadera y reservar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Servir las lentejas en platos hondos y coronar cada uno con un huevo poché.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -5260,52 +5287,62 @@
         "text": "Escurrir {{Garbanzos cocidos}} y enjuagarlos bajo el grifo.",
         "minutes": 1,
         "kind": "prep",
-        "base": "legumbre"
+        "base": "legumbre",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Remolacha cocida}} en dados.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Ajo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Tostar {{Piñones}} en {{@Sartén}} sin aceite a fuego medio hasta que estén dorados, removiendo para que no se quemen.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Retirar los piñones de la sartén y reservar.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Triturar los garbanzos, la remolacha, {{Tahini}}, {{Zumo de limón}}, el ajo y {{Comino molido}} hasta obtener una crema fina.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Aceite de oliva|chorrito}} poco a poco sin dejar de triturar hasta ligar la crema.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Sal|gusto}} y triturar un instante más hasta integrar.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Extender el hummus en un plato haciendo un hueco en el centro con el dorso de una cuchara.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Repartir los piñones tostados por encima y servir.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "montaje": true,
@@ -7955,88 +7992,105 @@
         "text": "Escurrir {{Garbanzos cocidos}} bajo agua fría y reservar.",
         "minutes": 2,
         "kind": "prep",
-        "base": "legumbre"
+        "base": "legumbre",
+        "part": "principal"
       },
       {
         "text": "Lavar {{Espinacas frescas}} con abundante agua fría y escurrir bien.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Cortar {{Pan del día anterior}} en dados pequeños.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Pelar y laminar {{Ajo}}.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír el pan en dados hasta que esté dorado. Retirar y reservar en un mortero o vaso triturador.",
         "minutes": 3,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Freír el ajo laminado en la misma sartén hasta que se dore. Retirar y añadir al pan.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Comino molido}} y un chorrito de agua al mortero y triturar hasta obtener un majado homogéneo.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Calentar el resto del aceite en una cazuela a fuego suave.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Pimentón dulce}} y remover durante 10 segundos hasta que empiece a soltar aroma, sin dejar que se queme.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar los garbanzos escurridos y las espinacas. Saltear a fuego medio hasta que las espinacas se reduzcan.",
         "minutes": 4,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir el majado y un chorrito de agua. Remover y cocer a fuego suave hasta que la mezcla ligue.",
         "minutes": 5,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición agua en un cazo. Añadir {{Vinagre}} y reducir a fuego suave.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 11
+        "during": 11,
+        "part": "guarnicion"
       },
       {
         "text": "Cascar {{Huevo}} uno a uno en un cuenco y deslizar cada uno con cuidado en el agua con vinagre.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Cocer los huevos 3 min hasta que la clara esté cuajada y la yema aún líquida. Retirar con espumadera.",
         "minutes": 3,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Salpimentar los garbanzos con {{Sal|gusto}} y remover.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir los garbanzos en platos hondos y coronar cada uno con un huevo escalfado.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -8481,92 +8535,109 @@
       {
         "text": "Cubrir {{Fabes de la granja secas}} con agua fría abundante y dejar en remojo 12 h.",
         "minutes": 720,
-        "kind": "espera"
+        "kind": "espera",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Cebolla}} y dejarla entera. Pelar {{Ajo}} y dejar los dientes enteros.",
         "minutes": 3,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Escurrir las fabes y colocarlas en una olla grande. Cubrir con agua fría.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Añadir la cebolla entera, el ajo, {{Laurel}}, {{Chorizo asturiano}} y {{Panceta}} a la olla.",
         "minutes": 1,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición a fuego fuerte. Retirar la espuma que suba a la superficie con una espumadera.",
         "minutes": 10,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Bajar el fuego al mínimo y tapar la olla. Cocer 75 min, añadiendo un chorro de agua fría cada vez que rompa a hervir fuerte.",
         "minutes": 75,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Calentar un poco de caldo de cocción en un cazo pequeño a fuego suave.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Disolver {{Azafrán en hebras}} y {{Pimentón dulce}} en el caldo caliente del cazo. Remover hasta integrar.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 5
+        "during": 5,
+        "part": "principal"
       },
       {
         "text": "Verter el caldo con el azafrán y el pimentón en la olla. Remover con suavidad.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Morcilla asturiana}} entera a la olla. Cocer a fuego mínimo tapado 20 min.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Cortar el chorizo asturiano en rodajas de 1 cm de grosor.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Dorar las rodajas de chorizo en la sartén a fuego fuerte hasta que estén crujientes. Reservar.",
         "minutes": 4,
         "kind": "paralelo",
-        "during": 9
+        "during": 9,
+        "part": "guarnicion"
       },
       {
         "text": "Retirar la cebolla, el ajo y el laurel de la olla.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sacar el chorizo, la morcilla y la panceta de la olla. Cortar en trozos.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Sal|gusto}} a las fabes y remover con suavidad.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Servir las fabes con el compango troceado encima y las rodajas de chorizo crujiente por encima.",
         "minutes": 2,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,
@@ -14357,76 +14428,89 @@
       {
         "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Pelar {{Boniato}} y cortar en dados de 2 cm.",
         "minutes": 4,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Escurrir {{Garbanzos cocidos}} y secar con papel de cocina hasta que estén bien secos.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Mezclar el boniato y los garbanzos con {{Aceite de oliva|chorrito}}, {{Comino molido|pizca}} y {{Pimentón ahumado|pizca}} en una bandeja.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 0
+        "during": 0,
+        "part": "principal"
       },
       {
         "text": "Hornear 25 min hasta que el boniato esté tierno y los garbanzos crujientes.",
         "minutes": 25,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Llevar a ebullición agua con sal en un cazo y cocer {{Quinoa}} según el tiempo del envase.",
         "minutes": 15,
         "kind": "paralelo",
         "during": 4,
-        "base": "quinoa"
+        "base": "quinoa",
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir la quinoa y dejar templar.",
         "minutes": 5,
         "kind": "paralelo",
         "during": 4,
-        "base": "quinoa"
+        "base": "quinoa",
+        "part": "guarnicion"
       },
       {
         "text": "Mezclar {{Tahini}}, {{Zumo de limón}} y el resto del aceite de oliva con 2 cucharadas de agua hasta que el aliño esté fluido.",
         "minutes": 2,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "salsa"
       },
       {
         "text": "Laminar {{Aguacate}}.",
         "minutes": 1,
         "kind": "paralelo",
-        "during": 4
+        "during": 4,
+        "part": "principal"
       },
       {
         "text": "Retirar la bandeja del horno cuando el boniato esté tierno y los garbanzos crujientes.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Repartir la quinoa en 2 boles y añadir {{Rúcula}} encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Añadir el boniato asado, los garbanzos crujientes y el aguacate laminado sobre cada bol.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       },
       {
         "text": "Terminar cada bol con un chorrito del aliño de tahini por encima.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "estrella": true,

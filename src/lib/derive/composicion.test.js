@@ -111,10 +111,18 @@ describe("acuerdo con la curación humana", () => {
       .toBeGreaterThanOrEqual(0.99);
   });
 
-  it("proteína, sobre las 529 que nunca se usaron para afinarlo", () => {
+  it("proteína, sobre las que nunca se usaron para afinarlo", () => {
     // Es la cifra honrada: estas recetas no se miraron al construir el modelo.
+    //
+    // EL CONJUNTO CIEGO SE ENCOGE, y es una buena noticia, no una pérdida: son
+    // las de origen `sin_senal`, y eran 529 cuando se escribió este test. Al
+    // curar `part` en 504 recetas más, 66 de ellas pasaron a tener reparto y
+    // dejaron de ser ciegas — el conjunto bajó a 463, de las que 323 traen
+    // `mainProtein` curada que comparar. Seguirá encogiendo cada vez que se
+    // cure una tanda, así que el suelo es del ACUERDO; el tamaño solo vigila
+    // que siga habiendo muestra suficiente para que el número signifique algo.
     const m = medirAcuerdo(ciegas, "proteina", proteinaCurada);
-    expect(m.total).toBeGreaterThan(340);
+    expect(m.total).toBeGreaterThan(300);
     expect(m.acuerdo, `${m.ok}/${m.total}`).toBeGreaterThanOrEqual(0.96);
   });
 
