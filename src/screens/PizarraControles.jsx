@@ -10,7 +10,7 @@ import { recuentoDelMenu } from "../lib/menuRecuento.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
-import { sesionDeBases } from "../lib/bases.js";
+import { tandaDelMenu } from "../lib/tandaDelPlato.js";
 import { enHoras } from "../lib/cookTime.js";
 import { APPLIANCE_COLORS, REQUIRED_APPLIANCE_ICONS, selectMethodForRecipe } from "../lib/applianceMethods.js";
 
@@ -608,27 +608,70 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty, usarDespensa, onUs
  */
 function PanelTanda({ sesion }) {
   const bases = sesion?.bases ?? [];
+  const platos = sesion?.platos ?? [];
   const usados = sesion?.minutosActivosTotales ?? 0;
   const ahorro = sesion?.ahorroTotal ?? 0;
+  const cabecera = (texto, derecha = null) => (
+    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "0 2px 9px" }}>
+      <span style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px" }}>{texto}</span>
+      {derecha && (
+        <span style={{ fontSize: 12, fontWeight: 800, color: NARANJA, fontVariantNumeric: "tabular-nums" }}>{derecha}</span>
+      )}
+    </div>
+  );
 
   return (
     <>
       <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
-        Sale solo de los platos que has puesto: lo que se cocina una vez y se come varias.
+        Sale solo de los platos que has puesto: lo que se cocina una vez y se come varias, y lo que se deja hecho.
       </p>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "0 2px 9px" }}>
-        <span style={{ fontSize: 11, fontWeight: 900, color: "#7a9485", letterSpacing: ".3px" }}>
-          {bases.length} {bases.length === 1 ? "BASE" : "BASES"}
-        </span>
-        <span style={{ fontSize: 12, fontWeight: 800, color: NARANJA, fontVariantNumeric: "tabular-nums" }}>
-          {enHoras(usados)}{ahorro > 0 ? ` · ahorras ${enHoras(ahorro)}` : ""}
-        </span>
-      </div>
-      <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden" }}>
-        {bases.map((b, i) => (
-          <BaseDeTanda key={b.base.id} entrada={b} ultima={i === bases.length - 1} />
-        ))}
-      </div>
+      {bases.length > 0 && (
+        <>
+          {cabecera(
+            `${bases.length} ${bases.length === 1 ? "BASE" : "BASES"}`,
+            `${enHoras(usados)}${ahorro > 0 ? ` · ahorras ${enHoras(ahorro)}` : ""}`,
+          )}
+          <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden", marginBottom: 16 }}>
+            {bases.map((b, i) => (
+              <BaseDeTanda key={b.base.id} entrada={b} ultima={i === bases.length - 1} />
+            ))}
+          </div>
+        </>
+      )}
+      {/* Los platos que se dejan hechos: a medio hacer (se remata el día que
+          toca) o enteros (solo calentar). Cuentan aunque haya uno. */}
+      {platos.length > 0 && (
+        <>
+          {cabecera("PLATOS QUE DEJAS HECHOS")}
+          <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden" }}>
+            {platos.map((p, i) => (
+              <div
+                key={p.familia.id}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
+                  borderBottom: i === platos.length - 1 ? "none" : "1px solid #eef3f0",
+                }}
+              >
+                <span style={{
+                  width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+                  background: `${NARANJA}18`, color: NARANJA,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <CookingPot size={17} strokeWidth={2.2} />
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.25 }}>
+                    {p.platos.map((x) => x.nombre).join(" · ")}
+                  </span>
+                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#9ab0a1", marginTop: 1 }}>
+                    {p.familia.tipo === "semi" ? "A medio hacer: el día que toca, solo rematar" : "Hecho entero: el día que toca, solo calentar"}
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -1151,13 +1194,14 @@ export function PizarraControles({
     for (const g of groups ?? []) {
       if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
     }
-    return sesionDeBases(plan, recipeCatalogById, {
+    return tandaDelMenu(plan, recipeCatalogById, {
       dias: diasDeSemana(data, 0, todayIdx),
       comidas: getDayMeals(data),
       metodoDeBase: (b) => selectMethodForRecipe(b, utensilios ?? []),
     });
   }, [menuPlan, groups, data, todayIdx, utensilios]);
-  const hayTanda = sesion.bases.length > 0;
+  const piezasTanda = sesion.bases.length + sesion.platos.length;
+  const hayTanda = piezasTanda > 0;
 
   const enDespensa = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish").length;
 
@@ -1246,7 +1290,7 @@ export function PizarraControles({
           color={NARANJA}
           tinte="#fff"
           apagada={!hayTanda}
-          badge={hayTanda ? sesion.bases.length : null}
+          badge={hayTanda ? piezasTanda : null}
           onClick={() => hayTanda && setAbierto("tanda")}
         />
         {onRellenar && huecosVacios > 0 && (

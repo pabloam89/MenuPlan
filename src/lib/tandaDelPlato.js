@@ -19,6 +19,7 @@
  */
 
 import { recetaConBases } from "./recetaConBases.js";
+import { claveDeBase, sesionDeBases } from "./bases.js";
 import { partirReceta } from "./adelanto.js";
 import { familiasPlato } from "./tandaFamilias.js";
 
@@ -83,14 +84,19 @@ export function componentesDeTanda(receta, delCatalogo = receta) {
  * @param {object} receta
  * @param {object} delCatalogo
  * @param {Iterable<string>} faltan  las claves que has dicho que NO tienes
+ * @param {Set<string>|null} [enLaTanda]  las piezas de la tanda de la semana
+ *   (`tandaDelMenu(...).claves`); sin ella, todas las del plato.
  * @returns {{
  *   aplicada: boolean, platoHecho: boolean, incluidas: Set<string>,
  *   pasos: object[], ingredientes: object[], minutos: number, minutosActivos: number,
  * }}
  */
-export function vistaConTanda(receta, delCatalogo, faltan = []) {
+export function vistaConTanda(receta, delCatalogo, faltan = [], enLaTanda = null) {
   const no = new Set(faltan);
-  const piezas = componentesDeTanda(receta, delCatalogo);
+  // Lo que no está en la tanda de la semana no se da por hecho: nadie ha
+  // cocinado aparte un sofrito que solo lleva este plato.
+  const piezas = componentesDeTanda(receta, delCatalogo)
+    .filter((p) => !enLaTanda || enLaTanda.has(p.clave));
   const plato = piezas.find((p) => p.tipo !== "base");
   const bases = piezas.filter((p) => p.tipo === "base");
 
@@ -114,4 +120,48 @@ export function vistaConTanda(receta, delCatalogo, faltan = []) {
   const listas = bases.map((b) => b.clave).filter((c) => !no.has(c));
   const v = recetaConBases(receta, listas);
   return { ...v, platoHecho: false, incluidas: new Set() };
+}
+
+/**
+ * El Batch Cooking de una semana, DEDUCIDO de los platos que tiene. Nadie lo
+ * pide con deslizadores: montas el menú como quieras y de ahí sale qué se
+ * puede dejar hecho.
+ *
+ *   bases   las que comparten dos o más platos (`sesionDeBases`): una base
+ *           que solo usa un plato no se cocina aparte, se cocina en él.
+ *   platos  cada plato puesto que se deja a medio hacer o hecho entero, por
+ *           familia. Esos cuentan aunque haya uno solo: la lasaña se monta el
+ *           domingo tenga o no compañía.
+ *
+ * `claves` junta las dos cosas con el mismo vocabulario que la ficha
+ * (`componentesDeTanda`): la clave de la base, o `plato:<familia>`.
+ *
+ * @param {object} plan  `{ [groupId]: { "Lun-Comida": slot } }`
+ * @param {Map|object} recetasPorId
+ * @param {{dias: string[], comidas: string[], metodoDeBase?: Function}} opts
+ */
+export function tandaDelMenu(plan, recetasPorId, opts) {
+  const sesion = sesionDeBases(plan, recetasPorId, opts);
+  const claves = new Set(sesion.bases.map((b) => claveDeBase(b.base)).filter(Boolean));
+  const huecos = new Set(opts.dias.flatMap((d) => opts.comidas.map((c) => `${d}-${c}`)));
+  const get = (id) => (recetasPorId instanceof Map ? recetasPorId.get(id) : recetasPorId?.[id]);
+
+  const porFamilia = new Map();
+  for (const slots of Object.values(plan ?? {})) {
+    if (!slots || Array.isArray(slots)) continue;
+    for (const [clave, slot] of Object.entries(slots)) {
+      if (!huecos.has(clave)) continue;
+      for (const rid of [slot?.firstRecipeId, slot?.recipeId]) {
+        if (!rid) continue;
+        const familia = familiaDeReceta(rid);
+        if (!familia) continue;
+        const receta = get(rid) ?? get(String(rid).split("__").pop());
+        const e = porFamilia.get(familia.id) ?? { familia, platos: [] };
+        e.platos.push({ clave, recipeId: rid, nombre: receta?.name ?? familia.etiqueta });
+        porFamilia.set(familia.id, e);
+        claves.add(`plato:${familia.id}`);
+      }
+    }
+  }
+  return { ...sesion, platos: [...porFamilia.values()], claves };
 }

@@ -37,6 +37,7 @@ import { ScopePickerScreen, SCOPE_TOPIC_STEPS } from "./screens/ScopePickerScree
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { CatalogBrowserSheet } from "./screens/CatalogBrowserSheet.jsx";
 import { recipeCatalogById } from "./data/recipeCatalog.js";
+import { tandaDelMenu } from "./lib/tandaDelPlato.js";
 const ValuePropsCarousel = lazy(() => import("./screens/ValueProps.jsx").then(m => ({ default: m.ValuePropsCarousel })));
 const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ default: m.ShoppingScreen })));
 const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
@@ -4682,6 +4683,19 @@ export default function App() {
    * "Deshacer" lo devuelva entero de un toque.
    */
   const deshacerPizarra = useRef(null);
+
+  /**
+   * El Batch Cooking de la semana, deducido de los platos puestos (ver
+   * `tandaDelMenu`). La ficha de un plato lo usa para preguntar solo por lo
+   * que de verdad se deja hecho, sin que nadie lo haya pedido con deslizadores.
+   */
+  const tandaSemana = useMemo(() => {
+    const plan = {};
+    for (const [gid, slots] of Object.entries(menuPlan ?? {})) if (gid !== "_warnings") plan[gid] = slots;
+    const recetas = new Map(Object.entries(RECIPES_BY_ID));
+    for (const [id, r] of Object.entries(recipeCatalogById)) recetas.set(id, r);
+    return tandaDelMenu(plan, recetas, { dias: DAYS, comidas: getDayMeals(data) }).claves;
+  }, [menuPlan, data]);
   const handleOrdenPizarra = useCallback(async (frase) => {
     if (householdReadOnly) return { reply: "Solo lectura: no puedes editar el menú", hechos: 0, noHechos: [] };
     const { contextoDelTablero, interpretarOrden, validarOrden, aplicarOrden } = await import("./lib/pizarraIA.js");
@@ -6285,6 +6299,7 @@ export default function App() {
           allMembers={data.members}
           kitchenTools={data.kitchenTools ?? []}
           browse={Boolean(selectedSlot.browse)}
+          tandaSemana={selectedSlot.browse || !selectedSlot.day ? null : tandaSemana}
           initialCourse={selectedSlot.initialCourse ?? "principal"}
           initialAppliance={
             selectedSlot.initialAppliance

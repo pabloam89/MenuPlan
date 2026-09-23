@@ -113,8 +113,7 @@ import {
   splitSlotPortions,
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
-import { componentesDeTanda, vistaConTanda } from "../lib/tandaDelPlato.js";
-import { hayTandasPedidas } from "../lib/cookTime.js";
+import { componentesDeTanda, familiaDeReceta, tandaDelMenu, vistaConTanda } from "../lib/tandaDelPlato.js";
 import { basesPedidas, claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
 import { BASES_UI } from "../lib/basesUI.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
@@ -2228,9 +2227,11 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   // mismo que `lookupDeTanda`: una semana generada antes de que el puente
   // copiara `basesAparte` la trae vacía, y el icono no aparecería nunca.
   const delCatalogo = recipe ? (recipeCatalogById[String(recipe.id).split("__").pop()] ?? recipe) : null;
+  const familiaTanda = delCatalogo ? familiaDeReceta(delCatalogo.id) : null;
   const deTanda = Boolean(
     delCatalogo && clavesTanda?.size
-    && clavesDeReceta(delCatalogo).some((c) => clavesTanda.has(c)),
+    && (clavesDeReceta(delCatalogo).some((c) => clavesTanda.has(c))
+      || (familiaTanda && clavesTanda.has(`plato:${familiaTanda.id}`))),
   );
   // `slot.mode` lo pone modeForGroupSlot: "tupper" cuando alguien de este grupo
   // se lleva esa comida fuera y hay que cocinarla igual.
@@ -4149,17 +4150,13 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
   const showGroup = multiGroup && scope === "all";
   const comidasDeLaSemana = getDayMeals(data);
   const clavesTanda = useMemo(() => {
-    // Solo si hay tandas PEDIDAS. El icono salía para todo el mundo, porque se
-    // calculaba de los platos de la semana (dos que comparten olla) sin mirar
-    // si alguien había pedido batch cooking. A quien no lo pidió le aparecían
-    // tandas que no existen — y marcar el modo sin pedir nada es exactamente el
-    // mismo caso: no hay olla que enseñar.
-    if (!hayTandasPedidas(data)) return new Set();
+    // Deducido de los platos, no pedido: dos platos que comparten olla, o un
+    // plato que se deja hecho (la lasaña montada, la crema entera). Nadie
+    // tiene que declarar tandas con deslizadores para que el tablero las vea.
     const plan = {};
     for (const g of visibleGroups) if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
-    const s = sesionDeBases(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana });
-    return new Set(s.bases.map((b) => claveDeBase(b.base)).filter(Boolean));
-  }, [days, comidasDeLaSemana, menuPlan, visibleGroups, data]);
+    return tandaDelMenu(plan, lookupDeTanda(), { dias: days, comidas: comidasDeLaSemana }).claves;
+  }, [days, comidasDeLaSemana, menuPlan, visibleGroups]);
   return (
     <TandaContext.Provider value={clavesTanda}>
     <div key={deckView} className="deck-view-swap">
@@ -6563,6 +6560,10 @@ function EmptyState({ readOnly = false }) {
 
 export function DishDetail({
   recipe, slot, kitchenTools = [], onClose, onReject,
+  // Las piezas de Batch Cooking de la semana de este plato, deducidas del menú
+  // (`tandaDelMenu(...).claves`). Null fuera de un menú —recetario, histórico—:
+  // sin semana no hay nada que se haya dejado hecho.
+  tandaSemana = null,
   browse = false,
   // Group context — only present when opened from the weekly menu (not when
   // browsing the catalog). Used solely to resolve which "menú más cuidado"
@@ -6822,21 +6823,24 @@ export function DishDetail({
   // Una pieza por pregunta: el plato si se puede dejar hecho (semi o entero) y
   // cada base por separado. `vistaBases` es la receta con lo que SÍ tienes.
   const delCatalogoTanda = catalogId ? (recipeCatalogById[catalogId] ?? recipe) : recipe;
+  // Solo las piezas que la semana deduce: una base que no comparte nadie no
+  // se cocina aparte, así que no se pregunta por ella.
   const piezasTanda = useMemo(
-    () => componentesDeTanda(recipe, delCatalogoTanda),
-    [recipe, delCatalogoTanda],
+    () => (tandaSemana
+      ? componentesDeTanda(recipe, delCatalogoTanda).filter((p) => tandaSemana.has(p.clave))
+      : []),
+    [recipe, delCatalogoTanda, tandaSemana],
   );
   const vistaBases = useMemo(
-    () => vistaConTanda(recipe, delCatalogoTanda, faltanDeTanda),
-    [recipe, delCatalogoTanda, faltanDeTanda],
+    () => vistaConTanda(recipe, delCatalogoTanda, faltanDeTanda, tandaSemana ?? new Set()),
+    [recipe, delCatalogoTanda, faltanDeTanda, tandaSemana],
   );
   // La pregunta solo tiene sentido si hay tandas pedidas. Antes salía en
   // cualquier plato que TUVIERA bases, que son casi todos, así que a quien
   // nunca pidió batch cooking le preguntaba si tiene cocinado un sofrito que
   // nadie le dijo que cocinara — y de paso hacía parecer que el menú traía
   // tandas que no había pedido.
-  const puedeConBases =
-    piezasTanda.length > 0 && !garnishRecipe && !sauceRecipe && hayTandasPedidas(data);
+  const puedeConBases = piezasTanda.length > 0 && !garnishRecipe && !sauceRecipe;
   const usandoBases = puedeConBases && vistaBases.aplicada;
   const alternarPieza = (clave, tengo) => setFaltanDeTanda((prev) => {
     const next = new Set(prev);

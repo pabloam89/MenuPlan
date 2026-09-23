@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { recipeCatalog } from "../data/recipeCatalog.js";
-import { componentesDeTanda, vistaConTanda } from "./tandaDelPlato.js";
+import { componentesDeTanda, tandaDelMenu, vistaConTanda } from "./tandaDelPlato.js";
+import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { clavesDeReceta } from "./bases.js";
 
 const porNombre = (re) => recipeCatalog.find((r) => re.test(r.name));
 
@@ -66,5 +68,37 @@ describe("vistaConTanda", () => {
     expect(v.platoHecho).toBe(true);
     expect(v.pasos[0].deReactivacion).toBe(true);
     expect(v.minutos).toBeLessThanOrEqual(10);
+  });
+});
+
+describe("tandaDelMenu", () => {
+  const dias = ["Lun", "Mar", "Mié"];
+  const comidas = ["Comida", "Cena"];
+  const plan = (ids) => ({ g1: Object.fromEntries(ids.map((id, i) => [`${dias[Math.floor(i / 2)]}-${comidas[i % 2]}`, { recipeId: id, eaters: 2 }])) });
+
+  it("se deduce de los platos: sin nada pedido, dos que comparten base ya son tanda", () => {
+    const conSofrito = recipeCatalog.filter((r) => clavesDeReceta(r).includes("sofrito")).slice(0, 2);
+    const t = tandaDelMenu(plan(conSofrito.map((r) => r.id)), recipeCatalogById, { dias, comidas });
+    expect(t.claves.has("sofrito")).toBe(true);
+  });
+
+  it("una base que solo lleva un plato no es tanda", () => {
+    const r = recipeCatalog.find((x) => clavesDeReceta(x).length === 1 && !componentesDeTanda(x, x).some((p) => p.tipo !== "base"));
+    const t = tandaDelMenu(plan([r.id]), recipeCatalogById, { dias, comidas });
+    expect(t.claves.size).toBe(0);
+  });
+
+  it("un plato que se deja hecho cuenta aunque esté solo", () => {
+    const r = porNombre(/^Lasaña boloñesa clásica/);
+    const t = tandaDelMenu(plan([r.id]), recipeCatalogById, { dias, comidas });
+    expect(t.platos).toHaveLength(1);
+    expect([...t.claves].some((c) => c.startsWith("plato:"))).toBe(true);
+  });
+
+  it("la ficha solo pregunta por lo que la semana deduce", () => {
+    const r = porNombre(/^Lasaña boloñesa clásica/);
+    const [plato] = componentesDeTanda(r, r);
+    const v = vistaConTanda(r, r, [plato.clave], new Set());
+    expect(v.aplicada).toBe(false);
   });
 });
