@@ -19776,7 +19776,27 @@
     "estrella": true,
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara las patatas panadera en cazuela a 180°C durante 25 min, luego sube a 200°C y añade el rape en medallones los últimos 12-15 min. Prepara la salsa verde en paralelo en fogón para que esté lista al servir."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas panadera cortadas en rodajas a 190°C durante 20 min, luego añade los medallones de rape los últimos 10-12 min a 200°C. La salsa verde se prepara aparte en fogón para mantener su frescura."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas panadera en la olla a presión durante 8-10 min, luego termina el rape a la plancha en sartén aparte para conseguir el dorado. La salsa verde se prepara en paralelo en fogón."
+      }
+    ]
   },
   {
     "id": "pescados_105",
@@ -20016,7 +20036,27 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Dispón la dorada sobre las patatas panadera en una bandeja, rocía con aceite y hornea 35-40 min hasta que el pescado esté cocido y las patatas doradas. Prepara la salsa romesco en paralelo con thermomix o mortero."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 190°C. Cocina la dorada 18-20 min en la canasta principal, mientras en la bandeja inferior van las patatas panadera (cortadas finas). Rocía con aceite y voltea a mitad del tiempo para cocción uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Utiliza el thermomix para preparar la salsa romesco (tritura pimiento choricero, almendra, ajo, pan y vinagre en 20 seg). La dorada y patatas se cocinan en horno convencional a 200°C durante 40 min en paralelo."
+      }
+    ]
   },
   {
     "id": "pescados_106",
@@ -20261,7 +20301,33 @@
     "cocina": "asiatica",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina el atún 8-10 min dándole la vuelta a mitad. Mientras, cuece las patatas en agua hirviendo aparte (12 min) y prepara la salsa teriyaki en un bol. Monta el plato al final."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina el atún en bandeja 12-14 min. Cuece las patatas en agua hirviendo aparte (12 min), prepara la salsa teriyaki en cazuela pequeña a fuego lento. Monta todo junto."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas al vapor 15 min, el atún necesita sellarse en sartén aparte 6-8 min para no perder textura. Prepara la salsa teriyaki en cazuela. La vaporera solo es viable para las patatas, no para el atún que requiere plancha."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas en olla express 8 min a presión (muy rápido). Mientras, sella el atún en sartén aparte 6-8 min. Prepara la salsa teriyaki en cazuela. La olla express acelera las patatas significativamente."
+      }
+    ]
   },
   {
     "id": "pescados_107",
@@ -20494,7 +20560,27 @@
       "verdura_asada"
     ],
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa en thermomix, deja reposar 60 min, extiende en bandeja, cubre con verduras salteadas y sardinas, hornea a 200°C durante 25-30 min hasta dorar. Es la técnica tradicional de la coca de recapte."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza el thermomix solo para amasar la masa base (harina, levadura, aceite, agua) en 5 minutos a velocidad progresiva. El resto de la preparación (reposo, montaje y horneado) requiere horno convencional."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa y deja reposar 30 min, extiende en la canasta, cubre con verduras y sardinas, cocina a 180°C durante 12-15 min. Resulta más crujiente pero con menos volumen que el horno tradicional."
+      }
+    ]
   },
   {
     "id": "pescados_108",
@@ -20721,7 +20807,27 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Carameliza la cebolla en sartén (30 min), extiende el hojaldre en bandeja, añade la cebolla, anchoas y aceitunas, hornea 25-30 min hasta que el hojaldre esté dorado y crujiente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Carameliza la cebolla en sartén convencional (30 min), monta la tarta en bandeja compatible con airfryer, cocina a 190°C durante 12-15 min hasta que el hojaldre esté crujiente y dorado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para caramelizar la cebolla a 100°C, velocidad 1, durante 25-30 min con la mariposa. Luego monta la tarta y termina en horno a 200°C durante 20 min para obtener el hojaldre crujiente."
+      }
+    ]
   },
   {
     "id": "pescados_109",
@@ -21033,7 +21139,27 @@
       "dias": 30
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa con thermomix o a mano, deja reposar 45 min. Rellena con el sofrito de verduras y mariscos, hornea a 200°C durante 35-40 min hasta dorar. Es el método tradicional y da los mejores resultados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 95,
+        "difficulty": "normal",
+        "prepSummary": "Usa el thermomix para amasar la masa (5 min a velocidad progresiva) y para picar/sofreír las verduras (10 min, 100°C, velocidad 2). Luego hornea la empanada rellena a 200°C durante 35-40 min."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa y relleno convencionalmente. Cocina la empanada en airfryer a 180°C durante 25-30 min, dándole la vuelta a mitad del proceso. Resulta crujiente y reduce significativamente el tiempo total."
+      }
+    ]
   },
   {
     "id": "pescados_110",
@@ -21208,7 +21334,21 @@
     ],
     "tecnica": "crudo",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C y tuesta el pan de payés 3-4 minutos hasta que esté crujiente. Mientras, prepara el tartar de atún y aguacate a temperatura ambiente, monta la tosta y sirve inmediatamente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C y tuesta el pan de payés 4-5 minutos hasta conseguir textura crujiente. Prepara el tartar frío simultáneamente y monta la tosta al finalizar."
+      }
+    ]
   },
   {
     "id": "pescados_111",
@@ -21418,7 +21558,27 @@
       "dias": 1
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 190°C, introduce los buñuelos en la cesta sin amontonar y cocina 12-14 min agitando a mitad del proceso. Quedan crujientes con menos aceite que en sartén tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, coloca los buñuelos en bandeja con papel de horno y hornea 15-18 min hasta dorar. Resulta más ligero que frito pero pierde algo de textura crujiente característica."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la masa (mezcla ingredientes secos, luego húmedos) y el alioli (emulsiona mayonesa con ajo). La cocción final requiere sartén o airfryer, por lo que es auxiliar en la receta."
+      }
+    ]
   },
   {
     "id": "pescados_112",
@@ -21646,7 +21806,27 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara un molde con la mezcla de pescado, gambas, huevo y nata; cubre con tomate frito y mayonesa. Hornea a 180°C durante 60-70 min hasta que cuaje y dore ligeramente la superficie."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "elaborada",
+        "prepSummary": "Tritura el cabracho y gambas con huevo y nata en el vaso; vierte en molde con tomate y mayonesa. Cuece al vapor usando el accesorio de cocción a 100°C durante 35-40 min hasta que cuaje perfectamente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la mezcla de pescado, gambas, huevo y nata en un molde apto para vapor; cubre con tomate y mayonesa. Cuece al vapor a fuego medio durante 45-50 min hasta que esté firme y bien hecho."
+      }
+    ]
   },
   {
     "id": "pescados_113",
@@ -21972,7 +22152,27 @@
       "dias": 30
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa con thermomix o a mano, deja reposar 60 min. Rellena con sofrito de verduras y bonito, hornea a 200°C durante 35-40 min hasta dorar. Método tradicional y resultado óptimo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 95,
+        "difficulty": "normal",
+        "prepSummary": "Usa el thermomix para amasar la masa (3 min, velocidad progresiva) y para preparar el sofrito de verduras (5 min, temperatura 100°C). Luego hornea la empanada 35-40 min a 200°C. Ahorra tiempo en preparación."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Prepara masa y relleno convencionalmente, cocina en airfryer a 180°C durante 25-30 min. Resulta más crujiente y reduce tiempo total, aunque la masa no desarrolla la misma esponjosidad que el horno."
+      }
+    ]
   },
   {
     "id": "pescados_114",
@@ -22278,7 +22478,27 @@
       "dias": 30
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa con thermomix o a mano, deja reposar 60 min. Rellena con sofrito de verduras y atún, hornea a 200°C durante 35-40 min hasta dorar. Es el método tradicional y garantiza mejor resultado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Prepara masa y relleno como en horno. Divide en porciones individuales, cocina a 180°C durante 20-25 min. Más rápido que horno convencional, aunque la empanada grande requeriría hacerla en dos tandas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Usa el thermomix solo para amasar (3 min, vel. 6) y para picar/sofreír las verduras (5 min). La cocción final se hace en horno a 200°C durante 35-40 min. Ahorra tiempo en preparación."
+      }
+    ]
   },
   {
     "id": "pescados_115",
@@ -22492,7 +22712,27 @@
       "bechamel"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la salsa de marisco en la cocina, rellena los vol-au-vent y gratina en horno a 180°C durante 12-15 min hasta dorar. Es el método tradicional que respeta la textura crujiente del hojaldre."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para elaborar la salsa béchamel (mantequilla, harina, leche) en modo cocción a 90°C, luego incorpora el marisco y vino. Finaliza gratinando los vol-au-vent en horno convencional 12 min."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la salsa en cocina convencional, rellena los vol-au-vent y cocina en airfryer a 180°C durante 10-12 min. Resulta crujiente y más rápido que el horno, aunque requiere vigilancia para evitar quemaduras."
+      }
+    ]
   },
   {
     "id": "pescados_116",
@@ -22737,7 +22977,33 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Cuece las patatas, mezcla con bacalao, cebolla, nata, huevo y queso en un molde, hornea 35-40 min hasta que cuaje y dore. El timbal queda cremoso y bien estructurado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la mezcla igual que en horno. Vierte en molde apto para airfryer, programa a 180°C durante 25-30 min. Cocina más rápido que el horno tradicional manteniendo la textura cremosa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa Thermomix para picar cebolla y perejil, luego cuece patatas al vapor. Mezcla todos ingredientes con la función pulso. Vierte en molde y termina en horno a 180°C durante 35 min para gratinar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas en olla express 8 min a presión. Prepara la mezcla, vierte en molde apto para horno y gratina 20 min a 180°C. Ahorra tiempo en la cocción de patatas."
+      }
+    ]
   },
   {
     "id": "pescados_117",
@@ -22943,7 +23209,33 @@
     ],
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Prepara la mezcla de puerros salteados, salmón y crema en un molde, cubre con queso y hornea 45-50 min hasta que cuaje y dore. Es la técnica original y garantiza cocción uniforme."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Vierte la mezcla en un molde apto para airfryer y cocina 25-30 min hasta que cuaje. Reduce significativamente el tiempo respecto al horno tradicional manteniendo excelentes resultados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para picar y saltear los puerros (varoma), luego mezcla con salmón, huevos y nata. Vierte en molde y termina la cocción en horno a 180°C durante 40 min. Ahorra tiempo en preparación."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Cuece los puerros al vapor 15 min, luego prepara la mezcla en un molde apto para vaporera y cocina al vapor 35-40 min. Resulta más delicado y ligero, aunque menos dorado que al horno."
+      }
+    ]
   },
   {
     "id": "pescados_118",
@@ -23182,7 +23474,27 @@
       "dias": 60
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, rellena las obleas y cocina 12-15 min a 200°C dando la vuelta a mitad. Quedan crujientes y doradas sin necesidad de freír en aceite abundante."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca las empanadillas rellenas en bandeja, pincela con huevo batido y hornea 20-25 min hasta dorar. Resultado clásico y uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para picar y mezclar rápidamente los pimientos, cebolla y bonito (5 min), luego rellena y cocina en sartén o horno. Ahorra tiempo en la preparación del relleno."
+      }
+    ]
   },
   {
     "id": "pescados_119",
@@ -23391,7 +23703,27 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, dispón el salmón y patatas en bandeja con la mezcla de soja-miel-ajo-jengibre, hornea 25-30 min hasta que el salmón esté cocido y las patatas doradas. Resultado clásico y equilibrado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina las patatas cortadas en dados 12 min, luego añade el salmón con la marinada de soja-miel y continúa 10-12 min más. Queda crujiente y jugoso en menos tiempo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas al vapor 15-18 min, luego coloca el salmón con la marinada en el nivel superior 10-12 min. Resultado más ligero y saludable, aunque menos caramelizado que el horno."
+      }
+    ]
   },
   {
     "id": "pescados_120",
@@ -23567,7 +23899,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, reboza la merluza en huevo y harina, cocina 12-14 min a 200°C dando la vuelta a mitad. Queda crujiente y dorada sin necesidad de freír en aceite abundante."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C, reboza la merluza, coloca en bandeja con aceite y hornea 12-15 min hasta dorar. Obtiene una textura crujiente similar a la plancha tradicional."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la merluza al vapor 10-12 min sin rebozar para mantener humedad, luego dórala rápidamente en sartén con aceite. Resulta más saludable aunque pierde algo de la textura romana."
+      }
+    ]
   },
   {
     "id": "pescados_121",
@@ -23680,7 +24032,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca el salmón en una bandeja con aceite, limón y eneldo, hornea 12-15 min hasta que esté opaco. Resultado jugoso y perfectamente cocido."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C, coloca el salmón en la cesta con limón y eneldo, cocina 10-12 min. Queda dorado, crujiente por fuera y tierno por dentro."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Coloca el salmón sobre papel de horno con limón, ajo y eneldo en la bandeja de vapor, cocina 12-15 min a fuego medio-alto. Conserva toda la humedad y sabor delicado."
+      }
+    ]
   },
   {
     "id": "pescados_122",
@@ -23800,7 +24172,27 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla en una cazuela apta para horno a 180°C durante 5 min, añade el atún y tomate, cubre y hornea 20 min. El resultado es jugoso y bien integrado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla con el atún en modo rápido, añade tomate y vino, cierra y cocina a presión 8 min. Se obtiene un guiso concentrado y tierno en menos tiempo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el atún a 190°C durante 10 min, retira y prepara la cebolla y tomate en la bandeja con el atún, continúa 8 min más. Queda bien caramelizado aunque menos jugoso que en sartén."
+      }
+    ]
   },
   {
     "id": "pescados_123",
@@ -24061,7 +24453,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca los filetes con aceite y cocina 10-12 min. Prepara la ajada aparte en sartén tradicional y vierte sobre el pescado al servir."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca filetes en bandeja con aceite y hornea 12-15 min hasta que se opaque. Prepara la ajada en sartén y vierte caliente sobre el pescado."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "normal",
+        "prepSummary": "Cuece los filetes al vapor 10-12 min a fuego medio-alto hasta que se desmenucen fácilmente. Prepara la ajada en sartén aparte y vierte sobre el pescado cocido para darle sabor."
+      }
+    ]
   },
   {
     "id": "pescados_125",
@@ -24198,7 +24610,27 @@
       "verdura_asada"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca el salmón y verduras en una bandeja con aceite de oliva, y hornea 20-25 min hasta que el salmón esté cocido y las verduras doradas. El resultado es jugoso y las verduras se asan perfectamente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca salmón y verduras cortadas en la cesta con aceite de oliva, y cocina 15-18 min removiendo las verduras a mitad del proceso. Queda crujiente por fuera y tierno por dentro sin perder jugosidad."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza el salmón y verduras durante 15-18 min a fuego medio-alto, luego saltea brevemente en sartén con aceite para dorar. Mantiene la humedad del pescado aunque requiere un paso adicional para conseguir color."
+      }
+    ]
   },
   {
     "id": "pescados_126",
@@ -24324,7 +24756,21 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el pil pil en una cazuela a fuego suave (ajo y guindilla en aceite), luego introduce el bacalao en el horno a 180°C durante 12-15 minutos. El resultado es similar al tradicional, aunque pierde algo de la emulsión característica."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza el bacalao a 100°C durante 10-12 minutos para cocerlo sin aceite, luego prepara el pil pil aparte en una sartén y vierte sobre el bacalao cocido. Mantiene la textura del pescado pero requiere dos pasos."
+      }
+    ]
   },
   {
     "id": "pescados_127",
@@ -24465,7 +24911,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Dispón las patatas en cazuela, coloca la lubina encima con cebolla y limón, rocía con aceite y hornea 35-40 min hasta que el pescado esté opaco y las patatas tiernas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C. Cocina las patatas laminadas 12 min, luego añade la lubina con cebolla y limón, rocía con aceite y continúa 10-12 min más hasta que el pescado esté cocido."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas al vapor 15 min hasta que estén casi tiernas, luego coloca la lubina con cebolla y limón en el nivel superior y continúa 12-15 min más. Termina en sartén con aceite para dorar si se desea."
+      }
+    ]
   },
   {
     "id": "pescados_128",
@@ -24606,7 +25072,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca la trucha con aceite y ajo, cocina 10-12 min. Tuesta las almendras aparte en sartén y espolvorea al final para mantener su crujencia."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca la trucha en bandeja con aceite y ajo, hornea 12-14 min. Tuesta las almendras en sartén aparte y añade al plato terminado."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la trucha al vapor 10-12 min con ajo y perejil, luego saltéala brevemente en sartén con aceite para dorarla. Tuesta las almendras en sartén y espolvorea al servir."
+      }
+    ]
   },
   {
     "type": "principal",
@@ -24770,7 +25256,27 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la salsa de tomate, cebolla y ajo en una cazuela, añade la merluza con aceitunas y alcaparras, cubre con papel de aluminio y hornea a 200°C durante 20 minutos. El resultado es jugoso y los sabores se integran perfectamente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Cocina primero la salsa en una cazuelita apta para airfryer a 180°C durante 8 minutos, añade la merluza con aceitunas y alcaparras, y continúa 10-12 minutos más. El pescado queda tierno aunque pierde algo de jugosidad respecto al horno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 2 minutos a fuego fuerte, añade tomate, merluza, aceitunas y alcaparras, cierra y cocina a presión 8 minutos. Rápido y con excelente concentración de sabores, aunque el pescado puede desmenuzarse ligeramente."
+      }
+    ]
   },
   {
     "id": "pescados_130",

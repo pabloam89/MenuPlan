@@ -107,7 +107,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Tritura los copos de avena en la Thermomix a velocidad 8 durante 20 segundos para obtener una textura más fina, luego monta el bol con yogur, frutas picadas y miel. Opcional: calienta la miel 30 segundos a 60°C para que sea más fluida."
+      },
+      {
+        "appliance": "microondas",
+        "time": 3,
+        "difficulty": "facil",
+        "prepSummary": "Calienta la miel en el microondas 20-30 segundos a potencia media para que fluya mejor, luego monta el bol con yogur frío, frutas y avena. El contraste de temperaturas realza los sabores."
+      }
+    ]
   },
   {
     "id": "desayunos_008",
@@ -199,7 +213,27 @@
     ],
     "tecnica": "sarten",
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "microondas",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla avena y leche en un bol apto para microondas, calienta 3-4 min a potencia media removiendo a mitad del tiempo. Añade plátano y miel al final."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Vierte leche y avena, programa 8 min a 60°C velocidad 1 con función calor. Sirve con plátano cortado y miel por encima."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 10,
+        "difficulty": "normal",
+        "prepSummary": "Añade avena y leche, cierra y cocina 3 min a presión. Deja despresurizarse naturalmente 2 min y remueve bien para evitar grumos."
+      }
+    ]
   },
   {
     "id": "desayunos_009",
@@ -302,7 +336,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Introduce plátano troceado, leche, avena, canela y miel. Programa a velocidad 5-6 durante 45 segundos hasta obtener una textura suave y homogénea. El resultado es un batido cremoso y bien emulsionado."
+      },
+      {
+        "appliance": "microondas",
+        "time": 3,
+        "difficulty": "facil",
+        "prepSummary": "Calienta la leche 1-2 minutos a potencia media, luego mezcla con plátano aplastado, avena, canela y miel en un vaso. Remueve bien hasta integrar todos los ingredientes. Sirve inmediatamente."
+      }
+    ]
   },
   {
     "id": "desayunos_010",
@@ -414,7 +462,15 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes en el vaso y programa a velocidad progresiva (vel. 5-7) durante 45-60 segundos hasta obtener una textura homogénea y cremosa. El resultado es un smoothie perfectamente batido sin grumos."
+      }
+    ]
   },
   {
     "id": "desayunos_011",
@@ -504,7 +560,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Vierte los frutos rojos congelados, yogur, leche y miel en el vaso. Programa a velocidad 4-5 durante 30-40 segundos hasta obtener una textura homogénea y cremosa. El resultado es un smoothie perfecto sin grumos."
+      },
+      {
+        "appliance": "microondas",
+        "time": 3,
+        "difficulty": "facil",
+        "prepSummary": "Calienta los frutos rojos congelados 1-2 minutos a potencia media para descongelarlos parcialmente, luego mezcla con yogur, leche y miel en un vaso o batidora. Obtendrás un smoothie más fluido y fácil de batir."
+      }
+    ]
   },
   {
     "id": "desayunos_012",
@@ -608,7 +678,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Introduce plátano troceado, leche, cacao en polvo, avellanas y miel. Programa a velocidad 6-7 durante 45-60 segundos hasta obtener una textura homogénea y cremosa. El resultado es un batido perfecto sin necesidad de licuadora."
+      },
+      {
+        "appliance": "microondas",
+        "time": 3,
+        "difficulty": "facil",
+        "prepSummary": "Calienta la leche en microondas 1-2 minutos a potencia media. Vierte en vaso con plátano troceado, cacao, avellanas molidas y miel, mezcla bien con batidor o tenedor. Obtiene un batido tibio y reconfortante."
+      }
+    ]
   },
   {
     "id": "desayunos_013",
@@ -703,7 +787,15 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el mango y plátano congelados con la leche de coco en el vaso y tritura a velocidad progresiva hasta obtener una textura cremosa y homogénea. Vierte en un bol y decora con coco rallado y zumo de lima."
+      }
+    ]
   },
   {
     "id": "desayunos_014",
@@ -795,7 +887,21 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Usa el vaso para mezclar suavemente el yogur griego con la miel a velocidad baja, luego sirve en un bol y añade granola y frutos rojos. Mantiene la textura cremosa sin desvirtuarla."
+      },
+      {
+        "appliance": "microondas",
+        "time": 3,
+        "difficulty": "facil",
+        "prepSummary": "Calienta ligeramente la miel 20 segundos para que sea más fluida y fácil de mezclar, luego monta el bowl con yogur frío, granola y frutos rojos. El microondas solo sirve para la miel, no afecta el resultado final."
+      }
+    ]
   },
   {
     "id": "desayunos_015",
@@ -911,7 +1017,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Tritura la manzana pelada en 5 segundos, mezcla con avena, leche, yogur y canela a velocidad 3 durante 2 minutos. Reposa en nevera toda la noche."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla avena, leche, yogur y canela en un bol, calienta 2 minutos a potencia media. Añade manzana rallada y miel, deja reposar en frío toda la noche."
+      }
+    ]
   },
   {
     "id": "desayunos_016",
@@ -1009,7 +1129,27 @@
     ],
     "tecnica": "sarten",
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "microondas",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla avena y leche en un bol apto para microondas, calienta 3-4 minutos a máxima potencia removiendo a mitad del proceso. Añade plátano y miel al final para obtener un porridge cremoso."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Vierte leche y avena en el vaso, programa 8 minutos a 60°C velocidad 2 para cocinar lentamente sin grumos. Tritura el plátano aparte y mezcla con miel al servir."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "normal",
+        "prepSummary": "Vierte avena y leche, cierra y cocina a presión 3 minutos. Despresurizador rápido y remueve bien para evitar grumos. Decora con plátano y miel al servir."
+      }
+    ]
   },
   {
     "id": "desayunos_017",
@@ -1122,7 +1262,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Tritura la pulpa de açaí congelada con el plátano congelado a velocidad progresiva hasta obtener una textura cremosa tipo sorbete. Vierte en un bowl y añade los toppings (frutos rojos, coco y granola)."
+      },
+      {
+        "appliance": "microondas",
+        "time": 3,
+        "difficulty": "facil",
+        "prepSummary": "Descongela la pulpa de açaí y el plátano en microondas a potencia media durante 1-2 minutos. Mezcla hasta obtener una crema suave y completa con los toppings fríos."
+      }
+    ]
   },
   {
     "id": "desayunos_018",
@@ -1247,7 +1401,21 @@
       "huevo"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C, sumerge el pan en la mezcla de huevo, leche y canela, y cocina 10-12 min hasta dorar. Sirve con sirope de arce caliente."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca las tostadas en bandeja con mantequilla, hornea 12-15 min hasta dorar. Espolvorea canela antes de hornear y añade sirope al servir."
+      }
+    ]
   },
   {
     "id": "desayunos_019",
@@ -1347,7 +1515,27 @@
     ],
     "tecnica": "crudo",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca el pan en la bandeja y tuesta 3-4 minutos hasta que esté crujiente. Retira, unta con mantequilla de cacahuete, añade plátano en rodajas y rocía con miel."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 7,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C durante 2 minutos, coloca el pan y tuesta 3-4 minutos hasta que esté crujiente. Retira y monta con mantequilla de cacahuete, plátano y miel."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta el pan en microondas a potencia alta 1-2 minutos (depende del grosor). Retira, unta con mantequilla de cacahuete, añade plátano en rodajas y rocía con miel."
+      }
+    ]
   },
   {
     "id": "desayunos_020",
@@ -1465,7 +1653,21 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, tuesta el pan 3-4 min, frota con ajo y tomate, rocía con aceite y gratina 2-3 min más. Sirve con jamón serrano encima."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, tuesta el pan 4-5 min, retira y frota con ajo y tomate, rocía con aceite y calienta 2 min más. Acompaña con jamón serrano."
+      }
+    ]
   },
   {
     "id": "desayunos_021",
@@ -1610,7 +1812,27 @@
     ],
     "cocina": "americana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la masa, vierte en bandeja engrasada y hornea a 200°C durante 12-15 min hasta que suban y doren. Sirve calientes con sirope y frutos rojos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, vierte la masa en pequeñas porciones en la canasta y cocina 8-10 min hasta dorar. Voltea a mitad del tiempo para cocción uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Usa el Thermomix solo para preparar la masa (mezcla todos ingredientes en 30 seg), luego cocina las tortitas en sartén o plancha tradicional 3-4 min por lado."
+      }
+    ]
   },
   {
     "id": "desayunos_022",
@@ -1794,7 +2016,27 @@
       "huevo"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C, vierte la masa en la canasta y cocina 8-10 min hasta dorar. Los gofres quedan crujientes por fuera y esponjosos por dentro, similar a la gofrera tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C y vierte la masa en moldes de gofres engrasados, hornea 12-15 min hasta dorar. Requiere moldes especiales pero ofrece buenos resultados con cocción uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la masa en 5 min mezclando todos los ingredientes (velocidad progresiva), luego vierte en gofrera tradicional y cocina según indicaciones. Ahorra tiempo en la preparación de la mezcla."
+      }
+    ]
   },
   {
     "id": "desayunos_023",
@@ -1905,7 +2147,21 @@
     "estrella": true,
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Programa a 60°C, velocidad 2, durante 8 minutos con la mantequilla y nata. Añade los huevos batidos y el cebollino al final, removiendo manualmente para obtener una textura cremosa y controlada."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Bate los huevos con mantequilla y nata, cocina a potencia media (50%) en intervalos de 30 segundos, removiendo entre cada uno hasta conseguir la cremosidad deseada. Añade el cebollino al final."
+      }
+    ]
   },
   {
     "id": "desayunos_024",
@@ -2002,7 +2258,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Coloca el requesón en el vaso y mezcla a velocidad baja 30 segundos para airear ligeramente. Sirve en un bol y añade miel, nueces y canela por encima sin procesar más."
+      },
+      {
+        "appliance": "microondas",
+        "time": 3,
+        "difficulty": "facil",
+        "prepSummary": "Calienta la miel 20 segundos a potencia media para que fluya mejor. Monta el bol con requesón frío, vierte la miel templada y espolvorea nueces y canela."
+      }
+    ]
   },
   {
     "id": "desayunos_025",
@@ -2130,6 +2400,26 @@
     ],
     "tecnica": "crudo",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C durante 3 min. Tuesta el pan 3 min, retira y monta con aguacate. Fríe los huevos a 180°C durante 8 min hasta que la clara cuaje. Aliña con limón y sal."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Tuesta el pan 3-4 min, monta con aguacate y coloca los huevos sobre una bandeja engrasada. Hornea 8-10 min hasta que la clara cuaje y la yema quede al punto deseado."
+      },
+      {
+        "appliance": "microondas",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta el pan en microondas 2 min a potencia alta. Calienta aceite en un recipiente apto 1 min, añade huevos y cocina 3-4 min a potencia media hasta que cuajen. Monta con aguacate, limón y sal."
+      }
+    ]
   }
 ]

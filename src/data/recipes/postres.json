@@ -123,7 +123,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Pela y trocea las frutas, introduce en el vaso y programa a velocidad 3-4 durante 20-30 segundos para picar sin triturar completamente. Añade zumo de limón al final para evitar oxidación."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Prepara las frutas peladas y troceadas en un bol apto para microondas. Calienta 30 segundos a potencia media si deseas servir templada, o sirve fría directamente sin necesidad de microondas."
+      }
+    ]
   },
   {
     "id": "postres_002",
@@ -211,7 +225,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Vierte el yogur en el vaso, programa a velocidad 1 durante 1 minuto para homogeneizar, luego sirve en un bol y añade miel y nueces tostadas previamente. El Thermomix facilita mezclar el yogur con la miel de forma uniforme."
+      },
+      {
+        "appliance": "microondas",
+        "time": 2,
+        "difficulty": "facil",
+        "prepSummary": "Calienta la miel 30 segundos a potencia media para que fluya mejor, luego vierte sobre el yogur en un bol y añade las nueces. El microondas templa la miel sin afectar la textura del yogur."
+      }
+    ]
   },
   {
     "id": "postres_003",
@@ -288,7 +316,27 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, corta la manzana en rodajas y la naranja en gajos, cocina 10 min. Queda caramelizada y jugosa sin perder sus propiedades."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca la fruta cortada en una bandeja, hornea 12-15 min hasta que se dore ligeramente. Se carameliza de forma natural y uniforme."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Corta la manzana y naranja en trozos, coloca en un plato apto, calienta 3-4 min a potencia media. La fruta se ablanda manteniendo su esencia."
+      }
+    ]
   },
   {
     "id": "postres_007",
@@ -465,7 +513,15 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Vierte el yogur natural en el vaso y programa a temperatura ambiente sin calor durante unos minutos para homogeneizar. El resultado es un yogur bien mezclado y cremoso sin necesidad de cocción."
+      }
+    ]
   },
   {
     "id": "postres_009",
@@ -552,7 +608,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Tritura el plátano y las fresas en el Thermomix a velocidad 4 durante 20 segundos, luego mezcla manualmente con el yogur. Resultado: yogur con frutas batidas homogéneo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Calienta el yogur a baño maría en la vaporera a 60°C durante 3 minutos para templarlo ligeramente, luego corta las frutas y mezcla. Mantiene la textura cremosa del yogur."
+      }
+    ]
   },
   {
     "id": "postres_013",
@@ -606,7 +676,15 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Vierte el yogur en el vaso y programa a velocidad 1 durante 2-3 minutos para mezclar y airear, creando una textura más ligera y homogénea. El truco es no exceder el tiempo para mantener la consistencia."
+      }
+    ]
   },
   {
     "id": "postres_014",
@@ -734,7 +812,27 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las manzanas, añade azúcar, canela y zumo de limón. Programa a 100°C, velocidad 1, durante 15-18 minutos removiendo ocasionalmente. Obtiene una compota homogénea y suave."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las manzanas, añade ingredientes y 50ml de agua. Cierra la olla y cocina a presión 8 minutos. Abre y remueve hasta conseguir la consistencia deseada. Muy rápido y eficiente."
+      },
+      {
+        "appliance": "microondas",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las manzanas en un recipiente apto, añade azúcar, canela y zumo de limón. Cubre y calienta a máxima potencia 10 minutos, removiendo cada 3 minutos. Remueve hasta obtener compota."
+      }
+    ]
   },
   {
     "id": "postres_019",
@@ -900,7 +998,27 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Vierte la mezcla en molde y hornea 50-55 min hasta que cuaje pero mantenga el centro ligeramente trémolo. El truco es no sobrecocinar para lograr la textura característica cremosa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Usa Thermomix para mezclar y emulsionar los ingredientes (velocidad progresiva 3-4, 2 min), luego vierte en molde y hornea a 200°C durante 50-55 min. Ahorra tiempo en la preparación de la masa."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "elaborada",
+        "prepSummary": "Precalienta a 160°C y cocina en molde apto para airfryer durante 35-40 min. Requiere vigilancia constante y posible ajuste de temperatura, ya que el calor concentrado puede resecar los bordes antes de cuajar el centro."
+      }
+    ]
   },
   {
     "id": "postres_020",
@@ -1101,7 +1219,21 @@
     "tecnica": "horno",
     "cocina": "francesa",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "elaborada",
+        "prepSummary": "Carameliza el azúcar y mantequilla en molde apto horno a fuego directo, dispón las manzanas, cubre con hojaldre y hornea a 200°C durante 35-40 min hasta que el hojaldre esté dorado. El truco clave es el volteo rápido al desmoldar para que el caramelo quede en la superficie."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara el caramelo en una sartén tradicional, coloca en molde apto airfryer con manzanas y hojaldre, cocina a 180°C durante 25-30 min. El resultado es similar al horno convencional con tiempo reducido, aunque requiere un molde específico que quepa en la canasta."
+      }
+    ]
   },
   {
     "id": "postres_021",
@@ -1310,7 +1442,27 @@
     "tecnica": "horno",
     "cocina": "americana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, vierte la masa en molde engrasado y hornea 35-40 min hasta que esté firme pero jugoso en el centro. El truco es no sobrecocinar para mantener la textura característica del brownie."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 160°C, vierte la masa en molde apto para airfryer y cocina 20-22 min. El calor circulante acelera la cocción respecto al horno tradicional, resultando en un brownie más denso y fudgy."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para mezclar y emulsionar los ingredientes (chocolate, mantequilla, huevos y azúcar) en 5-7 min a velocidad progresiva, luego hornea la masa resultante 35-40 min a 180°C. Garantiza una mezcla homogénea y esponjosa."
+      }
+    ]
   },
   {
     "id": "postres_022",
@@ -1591,7 +1743,21 @@
     "estrella": true,
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la masa en thermomix, hornea a 180°C durante 15 min. Luego vierte el relleno de limón y cuece 25 min más. Finalmente, monta el merengue y gratina a 200°C hasta dorar (10-15 min)."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 90,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el thermomix para preparar la masa (amasado rápido) y emulsionar el relleno de limón (velocidad progresiva). El horneado se completa en horno convencional, pero la preparación se optimiza significativamente con este electrodoméstico."
+      }
+    ]
   },
   {
     "id": "postres_023",
@@ -1768,7 +1934,21 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Usa el Thermomix para emulsionar el mascarpone con yemas y azúcar a velocidad 4 durante 2 minutos, luego monta las claras en punto de nieve. Mezcla manualmente y monta el tiramisú de forma tradicional."
+      },
+      {
+        "appliance": "microondas",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Calienta el café espresso en microondas 2-3 minutos, luego procede con la mezcla de mascarpone y huevos de forma tradicional. El microondas solo acelera el calentamiento del café, el resto es montaje manual."
+      }
+    ]
   },
   {
     "id": "postres_024",
@@ -1890,7 +2070,21 @@
     ],
     "cocina": "francesa",
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Funde el chocolate a 50°C con la función de calor, luego mezcla los huevos y la sal a velocidad media hasta obtener una mousse aireada y esponjosa. El resultado es más homogéneo y rápido que a mano."
+      },
+      {
+        "appliance": "microondas",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Funde el chocolate en intervalos de 30 segundos a potencia media hasta que esté líquido, luego bate los huevos con sal e incorpora el chocolate fundido. Rápido y eficaz para la fusión inicial."
+      }
+    ]
   },
   {
     "id": "postres_025",
@@ -2089,7 +2283,27 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, coloca las manzanas en la base y cubre con la mezcla de crumble. Hornea 40-45 min hasta que la cobertura esté dorada y crujiente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, coloca las manzanas en el cesto con la mezcla de crumble encima. Cocina 25-28 min hasta que esté dorado; el resultado es más crujiente y rápido que el horno."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para picar las manzanas (3 seg, vel. 4) y mezclar los ingredientes del crumble (10 seg, vel. 4). Luego hornea la preparación a 180°C durante 40 min en bandeja convencional."
+      }
+    ]
   },
   {
     "id": "postres_026",
@@ -2306,7 +2520,27 @@
     "tecnica": "horno",
     "cocina": "francesa",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "elaborada",
+        "prepSummary": "Precalienta a 200°C. Cuece la masa en baño maría en el horno 25-30 min hasta que suban los profiteroles, luego derrite el chocolate a baño maría y monta la nata. Tiempo total incluyendo reposo y montaje final."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para preparar la masa (mezcla agua, mantequilla, harina y huevos en modo progresivo), luego cuécela en horno a 200°C. También sirve para montar la nata y derretir el chocolate de forma controlada. Reduce tiempo de preparación manual."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 60,
+        "difficulty": "elaborada",
+        "prepSummary": "Precalienta a 190°C y cuece los profiteroles en tandas de 12-15 min hasta que suban y doren. El aire circulante los infla perfectamente. Luego monta con nata y chocolate como en horno, pero más rápido."
+      }
+    ]
   },
   {
     "id": "postres_027",
@@ -2532,7 +2766,27 @@
     "tecnica": "horno",
     "cocina": "americana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Mezcla ingredientes secos, incorpora mantequilla y huevo, rellena con chocolate y hornea 12-15 min hasta que los bordes estén dorados pero el centro aún ceda ligeramente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Prepara las cookies igual que en horno, coloca en canasta sin solapar y cocina 10-12 min, agitando a mitad del proceso. Queda crujiente fuera y tierna dentro."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Usa el Thermomix para mezclar mantequilla, azúcares y huevo (velocidad 4, 20 seg), luego añade harina y bicarbonato. Forma cookies, rellena con chocolate y hornea a 180°C durante 12-15 min."
+      }
+    ]
   },
   {
     "id": "postres_028",
@@ -2787,7 +3041,27 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 80,
+        "difficulty": "elaborada",
+        "prepSummary": "Precalienta a 180°C. Mezcla ingredientes secos, crema mantequilla con azúcar, incorpora huevos y líquidos alternadamente. Hornea 35-40 min hasta que un palillo salga limpio. Prepara glaseado batiendo queso crema con azúcar glas y cubre cuando esté frío."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa Thermomix para cremar mantequilla y azúcar (vel. 4, 20 seg), incorpora huevos y líquidos. Mezcla ingredientes secos aparte. Combina todo y vierte en molde. Hornea a 180°C 35-40 min. Prepara glaseado en Thermomix batiendo queso crema con azúcar glas (vel. 3, 30 seg)."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la masa igual que en horno. Vierte en molde apto para airfryer y cocina a 160°C durante 25-30 min. Tiempo total menor por circulación de aire. Glaseado se prepara igual, aplicar cuando esté completamente frío."
+      }
+    ]
   },
   {
     "id": "postres_029",
@@ -3043,7 +3317,27 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C, vierte la masa en molde engrasado y hornea 45-50 min hasta que un palillo salga limpio. Prepara el glaseado mientras se enfría y aplica cuando esté templada."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 85,
+        "difficulty": "normal",
+        "prepSummary": "Usa el thermomix para rallar zanahorias, mezclar ingredientes secos y preparar la masa en 15 min. Vierte en molde y hornea 50 min a 180°C; luego prepara el glaseado batiendo queso, mantequilla y azúcar glas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "elaborada",
+        "prepSummary": "Programa a 160°C durante 35-40 min en lotes o molde compatible, verificando cocción a mitad del tiempo. Requiere vigilancia constante y posible ajuste de temperatura según el modelo, pero es viable para porciones individuales."
+      }
+    ]
   },
   {
     "id": "postres_030",
@@ -3213,7 +3507,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Calienta nata y leche a 60°C, disuelve la gelatina previamente hidratada, mezcla con azúcar y vainilla. Vierte en moldes y refrigera 4 horas (tiempo no incluido en los 20 min de preparación activa)."
+      },
+      {
+        "appliance": "microondas",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Calienta nata y leche en microondas 2-3 min hasta 60°C, disuelve gelatina hidratada en el líquido caliente, mezcla con azúcar y vainilla. Vierte en moldes y refrigera 4 horas."
+      }
+    ]
   },
   {
     "id": "postres_031",
@@ -3346,7 +3654,21 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Vierte todos los ingredientes en el Thermomix y mezcla a velocidad 4 durante 3-4 minutos hasta obtener una crema homogénea y aireada. Congela en recipiente durante 20 minutos, removiendo cada 5 minutos para evitar cristales de hielo."
+      },
+      {
+        "appliance": "microondas",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Calienta la nata 30 segundos a potencia media para que monte mejor, luego mezcla manualmente con leche condensada y vainilla. Congela en recipiente removiendo cada 5-7 minutos durante 25 minutos hasta obtener textura de helado."
+      }
+    ]
   },
   {
     "id": "postres_032",
@@ -3491,7 +3813,21 @@
     "estrella": true,
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Programa el Thermomix a 37°C durante 15 minutos con todos los ingredientes para disolver el azúcar perfectamente, luego enfría en congelador. El resultado es un sorbete cremoso y homogéneo sin necesidad de batir manualmente."
+      },
+      {
+        "appliance": "microondas",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Calienta agua y azúcar en microondas 3 minutos a máxima potencia hasta disolver el azúcar completamente, añade zumo y ralladura, enfría en congelador. Es la forma más rápida de preparar el almíbar base."
+      }
+    ]
   },
   {
     "id": "postres_033",
@@ -3673,7 +4009,27 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Vierte la masa en moldes individuales y hornea 12-14 minutos hasta que los bordes estén firmes pero el centro tiemble ligeramente, consiguiendo ese interior fundido característico."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Cocina los moldes individuales 10-12 minutos hasta que los bordes se endurezcan pero el centro permanezca líquido. El resultado es más rápido que el horno tradicional."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Usa el Thermomix para mezclar chocolate, mantequilla y azúcar a temperatura controlada, luego incorpora huevos y harina. Vierte en moldes y termina la cocción en horno o airfryer a 180°C durante 12 minutos."
+      }
+    ]
   },
   {
     "id": "postres_034",
@@ -3889,7 +4245,27 @@
     "estrella": true,
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Mezcla ingredientes secos, incorpora huevos y mantequilla derretida, vierte en molde y hornea 50-55 min. Prepara almíbar con agua, ron y azúcar para empapar la tarta caliente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Usa Thermomix para mezclar ingredientes secos y húmedos (velocidad 4, 20 seg), vierte en molde y hornea en horno convencional a 180°C durante 50-55 min. El robot ahorra tiempo en la preparación de la masa."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 160°C. Vierte la masa en molde apto para airfryer y cocina 35-40 min hasta que esté dorado. Empapar con almíbar de ron tras sacar del electrodoméstico."
+      }
+    ]
   },
   {
     "id": "postres_035",
@@ -4068,7 +4444,27 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C. Mezcla ingredientes, forma galletas y hornea 12-15 min hasta dorar ligeramente. Decora con glaseado de azúcar glas y clara de huevo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 160°C. Cocina las galletas en tandas de 10-12 min, sin necesidad de voltear. Resulta más rápido que el horno tradicional con textura crujiente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Usa el Thermomix para mezclar y amasar la masa (velocidad 4, 20 seg). Luego hornea en horno convencional a 180°C durante 12-15 min. Ahorra tiempo en la preparación de la masa."
+      }
+    ]
   },
   {
     "id": "postres_036",
@@ -4272,7 +4668,27 @@
     "estrella": true,
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, vierte la masa en molde engrasado y hornea 50-55 min hasta que un palillo salga limpio. Es el método tradicional y garantiza un bizcocho esponjoso y bien cocido."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 160°C, vierte la masa en molde apto para airfryer y cocina 30-35 min. El resultado es similar al horno convencional pero más rápido gracias a la circulación de aire caliente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para mezclar todos los ingredientes (velocidad progresiva 3-5, 20 seg), luego vierte en molde y hornea a 180°C durante 50 min. Ahorra tiempo en la preparación de la masa."
+      }
+    ]
   },
   {
     "id": "postres_037",
@@ -4354,6 +4770,20 @@
       "Verter el almíbar caliente en hilo sobre las claras sin dejar de batir hasta obtener un merengue brillante.",
       "Cubrir las copas con el merengue y espolvorear canela por encima."
     ],
-    "description": "Manjar blanco denso coronado con un merengue al oporto y canela. Dulce, muy dulce, y el postre peruano por excelencia."
+    "description": "Manjar blanco denso coronado con un merengue al oporto y canela. Dulce, muy dulce, y el postre peruano por excelencia.",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la mezcla de leche condensada, leche, yemas y vainilla en una fuente refractaria. Hornea a 180°C en baño maría durante 30-35 min hasta que cuaje, luego monta las claras con azúcar y canela, coloca encima y gratina 5-8 min más a 200°C."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para emulsionar la leche condensada, leche, yemas, vainilla y vino blanco a velocidad suave durante 2 min. Vierte en fuente refractaria y hornea en baño maría a 180°C durante 30-35 min, luego monta las claras en el Thermomix y gratina en horno 5-8 min."
+      }
+    ]
   }
 ]

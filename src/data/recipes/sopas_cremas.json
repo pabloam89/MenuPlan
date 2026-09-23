@@ -5546,7 +5546,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Cocina la cebolla en cazuela a fuego suave 30 min, añade caldo y vino, gratina en horno a 200°C durante 15-20 min con pan y queso hasta dorar. Método tradicional que preserva la receta original."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Pica la cebolla con Thermomix (3 seg), sofríe 15 min a 100°C velocidad 1, añade caldo y vino, cuece 20 min a 100°C. Termina gratinando en horno 8-10 min con pan y queso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla 5 min a presión natural, añade caldo y vino, cocina 8 min a presión. Vierte en cazuela refractaria, gratina en horno 10 min a 200°C con pan y queso."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_031",
@@ -5731,7 +5751,33 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Asa la coliflor a 200°C durante 25-30 min hasta que esté dorada, luego sofríe cebolla y ajo, añade el caldo y la coliflor asada, cuece 10 min y tritura hasta obtener una crema suave."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Asa la coliflor a 190°C durante 20 min hasta dorarla, luego en una olla convencional sofríe cebolla y ajo, añade caldo y coliflor asada, cuece 10 min y tritura la crema."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Asa la coliflor en horno a 200°C durante 25 min, luego con Thermomix sofríe cebolla y ajo (varoma 5 min), añade coliflor asada y caldo, cuece 5 min a 100°C y tritura 30 seg a velocidad progresiva."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y ajo a fuego normal, añade coliflor cruda cortada, caldo y aceite, cierra y cocina a presión 8 min, despresurizando rápido, luego tritura hasta obtener crema suave."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_032",
@@ -5907,7 +5953,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe puerro y patata 5 min en modo mariposa, añade espárragos y caldo, cuece 15 min a 100°C. Tritura, incorpora nata y langostinos, cuece 3 min más. Resultado cremoso y homogéneo sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe puerro y patata 3 min sin presión, añade espárragos y caldo, cierra y cuece 8 min a presión. Tritura con batidora, incorpora nata y langostinos, calienta 2 min sin presión. Gana tiempo manteniendo sabor."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 32,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza espárragos, puerro y patata 15 min, luego cuécelos en caldo aparte 10 min. Tritura, añade nata y langostinos vaporizados 2 min. Resultado más ligero y saludable que la versión tradicional."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_033",
@@ -6072,7 +6138,21 @@
     ],
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Trocea los ingredientes y procesa a velocidad 4-5 durante 30-40 segundos hasta obtener una textura cremosa. Añade vinagre y aceite al final pulsando brevemente para emulsionar."
+      },
+      {
+        "appliance": "microondas",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Calienta la remolacha cocida 1-2 minutos a potencia media. Tritura manualmente o con batidora los ingredientes fríos y mezcla con la remolacha templada para potenciar sabores sin perder frescura."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_034",
@@ -6232,7 +6312,15 @@
     "tecnica": "crudo",
     "llevaSalsa": true,
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Trocea el pepino y ajo, introduce en el vaso con yogur, limón y sal. Tritura a velocidad 4-5 durante 30-40 segundos hasta obtener una crema suave. Añade menta y aceite al final sin triturar."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_035",
@@ -6401,7 +6489,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe puerro y cebolla 5 min en modo mariposa a 100°C, añade castañas y caldo, cuece 15 min a 100°C, luego tritura 1 min y agrega nata. Resultado cremoso y homogéneo sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe puerro y cebolla 3 min, añade castañas y caldo, cierra y cuece a presión 8 min, después tritura con batidora. Reduce tiempo significativamente manteniendo sabor intenso."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cuece puerro y cebolla al vapor 10 min, sofríe brevemente en sartén aparte con mantequilla, calienta caldo en vaporera 10 min más, mezcla todo y tritura. Resultado más ligero y delicado."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_036",
@@ -6536,7 +6644,21 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Introduce aguacate, pepino, caldo y zumo de lima en el vaso. Tritura a velocidad 4-5 durante 30-40 segundos hasta obtener una crema suave y homogénea. Añade cilantro, aceite y sal al final sin triturar para mantener su aroma."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Calienta el caldo 2-3 minutos a máxima potencia. Mezcla en un bol el aguacate triturado, pepino picado, caldo templado y zumo de lima. Refresca en nevera 5 minutos antes de servir con cilantro y aceite."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_037",
@@ -6705,7 +6827,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y jengibre 5 min a 100°C, añade zanahoria y patata troceadas con caldo, cuece 15 min a 100°C, luego tritura 1 min hasta obtener crema lisa. Finaliza con zumo de naranja."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y jengibre 3 min sin presión, añade zanahoria, patata y caldo, cierra y cuece a presión 8 min. Tritura con batidora inmersión y agrega zumo de naranja."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza zanahoria y patata troceadas 15 min, sofríe aparte cebolla y jengibre en sartén, mezcla todo con caldo caliente y tritura. Añade zumo de naranja al final."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_038",
@@ -6896,7 +7038,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y patata 5 min en modo mariposa, añade brócoli y caldo, cuece 15 min a 100°C. Tritura todo, agrega queso azul y nata, mezcla 1 min hasta obtener crema homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y patata 3 min, añade brócoli y caldo, cierra y cuece a presión 8 min. Abre, tritura con batidora, incorpora queso azul y nata, calienta 2 min sin presión."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza brócoli y patata 12 min, sofríe cebolla aparte en sartén. Mezcla todo con caldo caliente, tritura, agrega queso azul y nata, calienta 3 min sin que hierva."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_039",
@@ -7111,7 +7273,27 @@
     "mainBase": "patatas",
     "baseMode": "dentro",
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el lacón y chorizo en la olla abierta, añade patatas, grelos y judías con agua. Cierra y cocina a presión 20 min. El caldo queda concentrado y sabroso en menos tiempo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Programa la función cocción a 100°C durante 40 min con vaso cerrado para cocer todos los ingredientes juntos. Sofríe previamente el lacón y chorizo en modo turbo para extraer sabores."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 65,
+        "difficulty": "elaborada",
+        "prepSummary": "Cuece al vapor los ingredientes en bandejas separadas según tiempo de cocción (patatas y grelos 25 min, carnes precocidas 10 min). Prepara el caldo aparte hirviendo agua con el unto y ajo, luego mezcla todo al final."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_040",
@@ -7296,7 +7478,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y calabacín a 100°C durante 5 min, añade patata y caldo, cuece a 100°C 12 min, tritura hasta obtener textura cremosa y termina con menta y queso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla en modo tradicional 2 min, añade calabacín, patata y caldo, cierra y cuece a presión 8 min, abre y tritura con batidora hasta cremosidad, termina con menta y queso."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza calabacín y patata 15 min hasta que estén tiernos, sofríe cebolla aparte en sartén, mezcla todo con caldo caliente y tritura hasta obtener crema, añade menta y queso."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_041",
@@ -7513,7 +7715,21 @@
       "sofrito"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla, ajo y pimiento en modo varoma a 120°C, añade tomate y vino, luego incorpora el fumet y los mariscos en modo cocción lenta a 90°C durante 20 min. Mantiene la textura del marisco y emulsiona perfectamente la sopa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe los aromáticos en modo rápido, añade tomate y vino, luego fumet y mariscos. Cierra y cocina a presión 12 minutos. Reduce significativamente el tiempo manteniendo sabores intensos y mariscos tiernos."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_042",
@@ -7720,7 +7936,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Asa los tomates partidos a 200°C durante 30 min hasta que se caramelicen, luego tritura con cebolla y ajo sofrito, caldo y condimentos. Cocina 20 min más a fuego suave para integrar sabores."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 5 min a 120°C, añade tomates asados previamente en horno 20 min, caldo y condimentos. Tritura 1 min a velocidad progresiva hasta obtener textura cremosa sin colar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 3 min, añade tomates asados, caldo y condimentos. Cierra y cocina a presión 8 min, después tritura con batidora inmersión. Rápido y concentra sabores intensamente."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_043",
@@ -7935,7 +8171,27 @@
     ],
     "tecnica": "olla",
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa la varoma para cocinar patata y puerro (15 min), luego tritura con caldo y nata en el vaso (5 min). Añade los quesos al final sin triturar para mantener textura cremosa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe patata y puerro 2 min, añade caldo y cierra 8 min a presión. Despresurizas, añades nata y quesos, cueces 2 min más sin cerrar hasta obtener consistencia cremosa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza patata y puerro 15 min en el primer nivel. Tritura con caldo caliente aparte, reintegra en la vaporera con nata y quesos los últimos 3 min removiendo constantemente."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_044",
@@ -8189,7 +8445,21 @@
     "tecnica": "olla",
     "occasion": "especial",
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Programa la función sofrito para cebolla, ajo y pimiento (5 min), añade tomate y fumet, luego cocina 20 min a 100°C. Incorpora el pescado y marisco los últimos 8 min para mantener texturas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe ingredientes base en modo tradicional (5 min), añade fumet, vino y patata, cierra y cocina a presión 12 min. Incorpora pescado y marisco al final para evitar que se deshagan."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_045",
@@ -8392,7 +8662,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y zanahoria 5 min a 100°C, añade tomate y caldo, cuece 15 min a 100°C, tritura 1 min, incorpora nata y albahaca al final. Resultado cremoso y homogéneo sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe verduras 3 min en modo normal, añade tomate y caldo, cierra y cuece a presión 8 min. Abre, tritura con batidora, incorpora nata y albahaca. Muy rápido y eficiente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza tomate, cebolla y zanahoria 20 min, luego tritura con caldo y nata en thermomix o batidora. Resultado más ligero pero requiere paso adicional de trituración."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_046",
@@ -8576,7 +8866,15 @@
     ],
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes en el vaso y tritura a velocidad progresiva (vel. 5-7) durante 2-3 minutos hasta obtener una textura suave y homogénea. El resultado es más rápido y uniforme que picado manual."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_047",
@@ -8780,7 +9078,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla, puerro y patata a 100°C durante 5 min, añade alcachofas y caldo, cuece 20 min a 100°C, luego tritura a velocidad progresiva hasta obtener textura cremosa e incorpora nata al final."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe verduras en modo tradicional 3 min, añade alcachofas y caldo, cierra y cuece a presión 12 min, después tritura con batidora de mano e incorpora nata para obtener cremosidad."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Cuece alcachofas, patata y puerro al vapor 25 min, sofríe cebolla aparte en sartén, mezcla todo con caldo caliente, tritura y termina con nata para lograr la cremosidad deseada."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_048",
@@ -8951,7 +9269,27 @@
     ],
     "tecnica": "olla",
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Programa a 100°C, velocidad 1 durante 10 min para calentar el agua con miso disuelto. Añade verduras picadas y tofu, continúa 5 min más. Resultado homogéneo y perfectamente emulsionado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Calienta con presión a máximo 5 min tras hervir. El tiempo de presurización acelera la cocción de verduras y fusiona sabores. Despresurizador natural al final."
+      },
+      {
+        "appliance": "microondas",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Calienta agua 5 min a máxima potencia, disuelve miso fuera del microondas, añade ingredientes y calienta 3-4 min más a potencia media. Evita hervir violentamente para preservar propiedades del miso."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_049",
@@ -9147,7 +9485,21 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla, ajo y zanahoria a 100°C, 5 min. Añade garbanzos, especias y caldo; tritura 15 min a velocidad progresiva hasta lograr textura cremosa. El resultado es homogéneo y sedoso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo en modo tradicional 3 min, añade zanahoria, garbanzos, especias y caldo. Cierra y cocina a presión 10 min. Tritura al final con batidora para obtener cremosidad perfecta."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_050",
@@ -9336,7 +9688,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa la función sofrito a 100°C durante 8 min para las verduras, luego añade caldo y jamón, cocina 15 min a 100°C. Resultado uniforme y bien integrado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras 3 min a fuego fuerte, añade caldo y jamón, cierra y cocina 10 min a presión. Reduce tiempo significativamente manteniendo sabor y textura."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las verduras al vapor 12 min, luego calienta el caldo con jamón en la base y mezcla todo. Resultado más ligero pero pierde el sofrito tradicional."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_051",
@@ -9540,7 +9912,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y patata a 100°C 5 min, añade espinacas y caldo, cuece 10 min a 100°C, tritura 30 seg a velocidad progresiva, incorpora nata y condimenta. Resultado cremoso y homogéneo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y patata 3 min sin presión, añade espinacas y caldo, cierra y cuece 8 min a presión. Tritura con batidora, incorpora nata y condimenta. Ganancia de tiempo significativa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza espinacas y patata troceada 12 min, sofríe cebolla aparte en sartén, mezcla todo con caldo caliente, tritura, añade nata y condimenta. Más saludable pero requiere paso adicional."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_052",
@@ -9764,7 +10156,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 3 min a 100°C, añade tomate y caldo, cuece 12 min a 100°C. Tritura hasta conseguir textura cremosa y añade albahaca al final sin procesar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 2 min sin presión, añade tomate y caldo, cierra y cuece 8 min a presión. Tritura o deja según textura deseada, albahaca al servir."
+      },
+      {
+        "appliance": "microondas",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y ajo 2 min a potencia alta, añade tomate y caldo, cuece 15 min a potencia media-alta removiendo a mitad. Tritura o aplasta con cuchara, albahaca fresca al final."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_053",
@@ -9998,7 +10410,21 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 5 min a 100°C, añade setas y patata 8 min, vierte caldo y cuece 12 min a 100°C. Tritura hasta obtener textura cremosa, añade nata y condimenta."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla, ajo y setas 5 min a fuego fuerte, añade patata y caldo, cierra y cocina 8 min a presión. Tritura, añade nata y condimenta al final."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_054",
@@ -10206,7 +10632,27 @@
     "llevaSalsa": true,
     "cocina": "francesa",
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe puerro y cebolla 5 min a 100°C, añade patata y manzana troceadas con caldo, cuece 20 min a 100°C. Tritura todo hasta obtener textura cremosa, añade nata y condimenta."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe puerro en mantequilla 3 min a fuego normal, añade patata, manzana y caldo. Cierra y cuece a presión 12 min. Abre, tritura con batidora de mano, incorpora nata y condimenta."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza puerro, patata y manzana troceadas 25 min. Sofríe el puerro cocido en mantequilla 2 min, tritura con caldo caliente y nata hasta obtener crema suave y homogénea."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_055",
@@ -10420,7 +10866,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y puerro 5 min en modo mariposa a 100°C, añade calabaza y caldo, cuece 20 min a 100°C, luego tritura 15 seg con castañas y nata. Resultado cremoso y homogéneo sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y puerro 3 min, añade calabaza, caldo y castañas, cierra y cuece 10 min a presión. Tritura con batidora inmersión e incorpora nata al final. Muy rápido y eficiente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza calabaza 25 min, sofríe cebolla y puerro aparte en sartén, mezcla todo con caldo y castañas, cuece 10 min más, tritura e incorpora nata. Resultado ligero y nutritivo."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_056",
@@ -10560,7 +11026,21 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Trocea el melón frío, añade yogur griego y menta, tritura a velocidad media 30 segundos hasta obtener una crema suave. Sirve fría con jamón serrano crujiente por encima."
+      },
+      {
+        "appliance": "microondas",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Calienta el melón troceado 2 minutos a potencia media para intensificar sabor, enfría rápidamente con hielo, mezcla con yogur y menta. Sirve con jamón serrano."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_057",
@@ -10762,7 +11242,33 @@
       "verdura_asada"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Asa los pimientos a 200°C durante 30-35 min hasta que la piel se queme, luego pela y tritura con el resto de ingredientes. La técnica original se mantiene intacta."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Asa los pimientos en horno 25 min, pela y trocea. Introduce en Thermomix con caldo y verduras, programa 8 min a 90°C velocidad progresiva. Resultado cremoso y homogéneo sin esfuerzo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Asa los pimientos a 200°C durante 20-22 min en airfryer, removiendo a mitad del proceso. Más rápido que horno convencional, luego tritura con el caldo y verduras."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Saltea cebolla y tomate 3 min, añade pimientos troceados y caldo, cierra y cocina 12 min a presión. Tritura al final para obtener cremosidad sin asar previamente."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_058",
@@ -10987,7 +11493,21 @@
     "occasion": "especial",
     "tecnica": "olla",
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras 5 min, añade huesos y caldo, cierra y cocina 60 min a presión. Cuela, añade jerez y clarifica con clara de huevo para obtener un consomé transparente y concentrado en menos tiempo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 120,
+        "difficulty": "elaborada",
+        "prepSummary": "Programa la cocción lenta a 90°C durante 100 min con los huesos, verduras y agua para extraer sabor sin ebullición. Luego cuela y clarifica con clara de huevo batida para conseguir un consomé cristalino y refinado."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_059",
@@ -11227,7 +11747,21 @@
       "salsa_tomate"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla, zanahoria y puerro a 100°C, 5 min. Añade langostinos, brandy y tomate, cocina 15 min a 100°C. Vierte fumet y nata, tritura 8 min a velocidad progresiva hasta obtener crema homogénea y sedosa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe verduras y langostinos en modo tradicional 5 min, flamea con brandy. Añade fumet y tomate, cierra y cocina a presión 12 min. Tritura con batidora, incorpora nata al final sin hervir."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_060",
@@ -11382,7 +11916,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo en aceite 2 min, añade pan y pimentón, vierte caldo y cierra. Cocina a presión 8 min. Al final, escalfa los huevos en el caldo caliente sin presión."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Programa velocidad 1, 100°C, 15 min para cocinar el caldo con ajo, pan y pimentón. Vierte en cazuela y escalfa los huevos aparte en el caldo caliente."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe ajo y pan en cazuela a fuego, añade caldo y pimentón. Introduce en horno a 180°C durante 15 min. Calienta bien y escalfa los huevos en el caldo hirviendo."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_061",
@@ -11657,7 +12211,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 3 min a 100°C, añade tomate y caldo, cuece 15 min a 100°C, tritura 20 seg y añade nata. El grilled cheese se prepara aparte en sartén tradicional."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 2 min sin presión, añade tomate y caldo, cierra y cuece 8 min a presión. Despresuriz, añade nata y tritura. El grilled cheese en sartén aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la sopa en cazuela a 180°C durante 20 min (sofríe antes en sartén los aromáticos). Tuesta el grilled cheese en bandeja a 200°C los últimos 5-8 min hasta que el queso funda y el pan dore."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_062",
@@ -11844,7 +12418,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y calabacín 5 min a 100°C, añade patata y caldo, cuece 15 min a 100°C, tritura hasta obtener textura cremosa y agrega queso azul y nata al final sin calentar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y calabacín 3 min sin presión, añade patata y caldo, cierra y cuece 8 min a presión, tritura y termina con queso azul y nata fuera del fuego."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza calabacín y patata 15 min, sofríe cebolla aparte en sartén, mezcla todo con caldo caliente, tritura y añade queso azul y nata para obtener una crema suave."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_063",
@@ -12034,7 +12628,27 @@
       "sofrito"
     ],
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe puerro y cebolla 5 min a 100°C, añade coliflor y patata troceadas con caldo, cuece 15 min a 100°C, luego tritura con nata hasta obtener crema lisa y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe puerro y cebolla en modo tradicional 3 min, añade coliflor y patata con caldo, cierra y cuece a presión 8 min, después tritura con nata hasta conseguir textura cremosa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza coliflor y patata troceadas 20 min, sofríe puerro y cebolla aparte, mezcla todo con caldo caliente y tritura con nata para obtener la crema final."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_064",
@@ -12219,7 +12833,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa la cocción a 100°C durante 20 min con el boniato, cebolla, ajo y caldo. Luego añade leche de coco y jengibre, tritura a velocidad progresiva hasta obtener una crema suave y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe brevemente la cebolla y ajo, añade boniato troceado con caldo y jengibre. Cierra y cocina a presión 12 min. Abre, vierte leche de coco y tritura con batidora hasta conseguir textura cremosa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza el boniato troceado durante 20 min hasta que esté tierno. Sofríe aparte cebolla y ajo en sartén, mezcla con boniato cocido, caldo y leche de coco, luego tritura hasta obtener una crema fina."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_065",
@@ -12397,7 +13031,15 @@
     ],
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Trocea los ingredientes, introduce pepino, aguacate, pimiento, cebolleta y ajo en el vaso. Programa velocidad progresiva 3-5 durante 8-10 segundos, añade yogur, zumo de lima, vinagre y aceite, mezcla 5 segundos más. Sirve inmediatamente con agua fría ajustando consistencia."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_066",
@@ -12600,7 +13242,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y puerro a 100°C, añade patata y guisantes, vierte caldo y cuece 15 min a 100°C. Tritura hasta obtener crema suave y sirve con jamón crujiente tostado en sartén aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y puerro en modo tradicional, añade patata, guisantes y caldo. Cierra y cuece a presión 8 minutos. Tritura la mezcla y completa con jamón crujiente hecho en sartén."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Cuece patata y puerro al vapor 12 minutos, sofríe cebolla en sartén aparte con aceite, mezcla todo con guisantes y caldo caliente, tritura y sirve con jamón tostado en sartén."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_067",
@@ -12758,7 +13420,21 @@
       "salsa_tomate"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa la función cocción a 100°C durante 20 min con el tomate, ajo y caldo. Añade el pan troceado en los últimos 5 min y tritura suavemente para obtener una textura rústica. Finaliza con albahaca y aceite de oliva."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo en aceite 2 min, añade tomate y caldo, cierra y cocina a presión 8 min. Despresurizad, incorpora el pan troceado y deja reposar 5 min para que absorba el caldo. Termina con albahaca fresca."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_068",
@@ -12931,7 +13607,27 @@
       "sofrito"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe puerro y cebolla 5 min a 100°C, añade patata y caldo, cuece 15 min a 100°C. Tritura todo junto con almendras tostadas y nata hasta lograr textura cremosa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe puerro y cebolla 3 min sin presión, añade patata y caldo, cierra y cuece 8 min a presión. Tritura manualmente o con batidora, incorpora almendras y nata al final."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza puerro y patata 15 min, sofríe la cebolla aparte en sartén. Tritura verduras cocidas con caldo, almendras y nata para obtener la crema final."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_069",
@@ -13179,7 +13875,21 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Programa la Thermomix a 37°C para sofreír cebolla, puerro y zanahoria con mantequilla (5 min, velocidad 1). Añade gambas y brandy, calienta 3 min. Incorpora harina, fumet y tomate, cocina 20 min a 90°C velocidad 2."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe en la olla abierta cebolla, puerro y zanahoria con mantequilla 3 min. Añade gambas, brandy y harina, cocina 2 min. Vierte fumet y tomate, cierra la olla y cocina 12 min a presión. Abre, agrega nata y tritura con batidora de mano para lograr velouté cremoso."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_070",
@@ -13349,7 +14059,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece los guisantes congelados con caldo 8 min a 100°C, luego tritura con menta y yogur hasta obtener textura cremosa. Saltea los langostinos aparte en sartén y añade al final frío."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Cuece los guisantes al vapor 10 min, luego tritúralos con caldo templado, menta y yogur. Vaporiza los langostinos 4-5 min y sirve la crema fría con los langostinos encima."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cuece los guisantes congelados con caldo a presión 5 min, luego tritúra con menta y yogur. Saltea los langostinos en sartén aparte y termina enfriando la crema en nevera."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_071",
@@ -13560,7 +14290,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la sopa en cazuela refractaria a fuego previo, luego gratina a 200°C durante 10-12 min hasta que el queso se dore. Es el método tradicional y más efectivo para esta receta."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Programa 20 min a 100°C velocidad progresiva para caramelizar cebolla, luego añade caldo y cocina 10 min más. Finaliza gratinando en horno convencional 5 min para dorar el queso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla en modo rápido, añade caldo y cocina 8 min a presión. Vierte en cazuela refractaria y gratina en horno a 200°C durante 8-10 min para obtener el toque final crujiente."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_072",
@@ -13774,7 +14524,33 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Asa la calabaza a 200°C durante 40 min hasta que esté tierna, luego tritura con caldo y nata. Fríe la salvia aparte en aceite caliente para el acabado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Asa la calabaza en horno 30 min a 200°C, luego tritúrala en Thermomix con caldo, nata y ajo a velocidad progresiva. Calienta 5 min a 60°C sin acelerar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Saltea cebolla y ajo, añade calabaza troceada con caldo, cierra y cocina 12 min a presión. Tritura con nata y sirve con salvia frita en aceite aparte."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza calabaza troceada 25 min hasta que esté muy tierna, luego tritúrala con caldo caliente y nata. Fríe la salvia en aceite para decorar."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_073",
@@ -13927,7 +14703,15 @@
     ],
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes fríos en el vaso y tritura a velocidad progresiva (vel. 5-7) durante 30-40 segundos hasta obtener una textura suave y homogénea. El resultado es un gazpacho cremoso y bien emulsionado."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_074",
@@ -14103,7 +14887,27 @@
       "sofrito"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla en modo mariposa 3 min a 100°C, añade apionabo y patata troceados, caldo y nata. Cuece 15 min a 100°C, luego tritura 1 min hasta obtener crema lisa. Sirve con avellanas tostadas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla en modo tradicional 2 min, añade apionabo y patata troceados con caldo. Cierra y cuece a presión 8 min. Abre, añade nata y tritura con batidora. Decora con avellanas."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza apionabo y patata troceados 20 min. Sofríe cebolla aparte en sartén, mezcla con verdura cocida, añade nata y caldo, tritura hasta obtener crema. Sirve con avellanas tostadas."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_075",
@@ -14299,7 +15103,33 @@
     ],
     "tecnica": "horno",
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Asa los tomates, cebolla y ajo a 200°C durante 30 min hasta que estén caramelizados. Tritura, calienta y sirve con burrata y albahaca fresca."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Asa los tomates, cebolla y ajo a 190°C durante 20 min en la canasta del airfryer. Tritura la mezcla, calienta brevemente y termina con burrata y albahaca."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Asa previamente los tomates en horno 20 min, luego tritúralos en Thermomix con cebolla y ajo a velocidad progresiva. Calienta a 60°C durante 5 min y sirve con burrata."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Saltea cebolla y ajo, añade tomates troceados y cocina a presión 8 min. Tritura con la función de batidora si la tiene, o con batidora externa, y sirve con burrata fresca."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_076",
@@ -14495,7 +15325,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y patata a 100°C durante 5 min, añade espárragos y caldo, cuece 10 min a 100°C, luego tritura a velocidad progresiva hasta obtener textura cremosa. Sirve con parmesano al final."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza espárragos y patata troceada 12 min, sofríe la cebolla aparte en sartén, mezcla todo con caldo caliente y tritura con batidora de mano hasta cremificar. Termina con parmesano."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y patata 3 min a fuego normal, añade espárragos y caldo, cierra y cuece 8 min a presión. Tritura con batidora de mano hasta obtener cremosidad deseada y sirve con parmesano."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_077",
@@ -14685,7 +15535,33 @@
     ],
     "cocina": "francesa",
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Programa la cocción a 100°C durante 20 min con puerro, patata y cebolla. Luego tritura a velocidad progresiva y añade nata. El jamón se crujiente aparte en sartén."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina puerro, patata y cebolla a presión durante 8 min. Tritura el resultado, incorpora nata y sirve con jamón crujiente hecho en sartén aparte."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza puerro y patata durante 20 min, luego tritura con cebolla cocida en sartén y nata. El jamón se crujiente en sartén al final para mantener textura."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el jamón en lonchas a 180°C durante 8-10 min hasta crujiente. Las verduras se cocinan en sartén tradicional, se trituras y se mezclan con nata."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_078",
@@ -14876,7 +15752,21 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y puerro a 120°C durante 5 min, añade setas y cocina 8 min más. Incorpora caldo y castañas, cuece 10 min a 100°C, luego tritura con la nata. Resultado cremoso y homogéneo sin esfuerzo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y puerro en modo normal 3 min, añade setas, caldo y castañas. Cierra y cocina a presión 8 min. Abre, incorpora nata y tritura con batidora. Ganancia de tiempo significativa respecto a método tradicional."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_079",
@@ -15029,7 +15919,21 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "sopa",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Tritura tomate, sandía y pepino en la Thermomix a velocidad 4 durante 20 segundos, luego añade ajo, vinagre y aceite con velocidad 2 durante 10 segundos. Enfría en nevera y sirve con albahaca fresca."
+      },
+      {
+        "appliance": "microondas",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Calienta tomate y sandía troceados 2 minutos a potencia media para ablandarlos, luego tritura manualmente o con batidora. Añade ingredientes fríos y enfría en nevera antes de servir."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_080",
@@ -15217,7 +16121,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y jengibre 5 min a 100°C, añade zanahoria y patata troceadas, caldo y zumo de naranja. Cuece 15 min a 100°C y tritura hasta obtener crema lisa y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y jengibre en modo tradicional 3 min, añade zanahoria, patata, caldo y zumo. Cierra y cuece a presión 8 min, luego tritura con batidora hasta conseguir textura cremosa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza zanahoria y patata troceadas 18 min, sofríe cebolla y jengibre aparte, mezcla todo con caldo y zumo de naranja, y tritura hasta obtener crema. Requiere un paso extra de sofrito."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_081",
@@ -15461,7 +16385,27 @@
       "sofrito"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Programa la función sofrito para cebolla, puerro, ajo e hinojo (8 min, vel. 4, 100°C). Añade tomate y fumet, cocina 15 min a 100°C. Incorpora pescado y marisco en los últimos 10 min a 80°C para mantener texturas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe verduras 3 min en modo tradicional, añade tomate, fumet y pescado. Cierra y cocina 8 min a presión. Desglasea con vino blanco y azafrán al final sin presión para evitar que se desmoronen los mariscos."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Sofríe verduras en cazuela a fuego previo, añade tomate y fumet. Introduce en horno a 180°C durante 20 min. Agrega pescado y marisco, cocina 10 min más. El calor envolvente mantiene la delicadeza del caldo y los ingredientes."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_082",
@@ -15611,7 +16555,33 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las verduras troceadas a 100°C durante 15 min con agua, luego tritura hasta obtener puré suave. Mientras, tuesta el pan en sartén para los picatostes."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Vaporiza las verduras troceadas durante 15-18 min hasta que estén tiernas, luego tritura con aceite de oliva. Prepara los picatostes en sartén aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las verduras troceadas con agua a presión durante 8 min, después tritura hasta lograr consistencia de puré. Tuesta el pan en sartén para los picatostes."
+      },
+      {
+        "appliance": "microondas",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las verduras troceadas con agua en recipiente apto a máxima potencia durante 12-14 min, luego tritura con aceite. Tuesta el pan en sartén para los picatostes."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_083",
@@ -15719,7 +16689,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Calienta el caldo a 100°C durante 5 min, añade los fideos y cuece 8 min más. Incorpora el jamón, sirve en boles y corona con huevo duro picado y perejil."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Calienta el caldo a presión durante 3 min, añade fideos y cuece 6 min más. Despresurizad, incorpora jamón y termina con huevo duro y perejil."
+      },
+      {
+        "appliance": "microondas",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Calienta el caldo en recipiente apto 8 min a máxima potencia, añade fideos y cuece 5 min más. Termina con jamón, huevo duro picado y perejil fresco."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_084",
@@ -15854,7 +16844,27 @@
       }
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el pollo y verduras 3 min, añade agua y fideos, cierra y cocina a presión 12 min. Rápido y concentra bien los sabores."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa varoma para cocinar pollo y verduras 20 min, luego añade fideos en el vaso a 100°C 5 min más. Resultado limpio y controlado."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cuece el pollo y verduras al vapor 20 min, prepara el caldo aparte en cazuela con los fideos 10 min, luego mezcla. Mantiene sabores delicados."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_085",
@@ -16016,7 +17026,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y tomate en modo mariposa a 100°C, añade caldo y pescado, cuece 15 min a 100°C, incorpora fideos y finaliza 8 min. Los picatostes se preparan aparte en el horno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y tomate a fuego normal, añade caldo y pescado, cierra y cuece 8 min a presión. Abre, agrega fideos y cuece 5 min más sin presión. Los picatostes se hacen en el horno."
+      },
+      {
+        "appliance": "microondas",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y tomate en recipiente apto 3 min a máxima potencia, añade caldo y pescado, cuece 10 min cubierto, incorpora fideos y finaliza 5 min más. Los picatostes se preparan en el horno."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_086",
@@ -16139,7 +17169,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa la Thermomix a 100°C, velocidad 1 durante 20 min con las verduras troceadas y caldo. Añade pasta y jamón en los últimos 5 minutos. Resultado: sopa homogénea y bien integrada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Saltea las verduras 2 min, añade caldo y pasta. Cierra y cocina a presión 8 minutos. Incorpora jamón al final. Ganancia de tiempo significativa manteniendo sabor y textura."
+      },
+      {
+        "appliance": "microondas",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "En recipiente apto microondas, cuece verduras troceadas con caldo a máxima potencia 10 min, remueve, añade pasta y jamón, continúa 8 min más. Requiere supervisión para evitar desbordamientos."
+      }
+    ]
   },
   {
     "type": "completo",
@@ -16372,7 +17422,21 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa la Thermomix a 37°C velocidad 1 para sofreír cebolla y ajo (5 min), luego sube a 100°C velocidad 2 para cocinar tomate y caldo (15 min). Tritura parcialmente para textura de crema manteniendo algunos trozos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo en modo tradicional (3 min), añade tomate y caldo, cierra y cocina a presión 8 minutos. Abre, tritura parcialmente y sirve con tortillas crujientes y aguacate."
+      }
+    ]
   },
   {
     "type": "completo",
@@ -16543,7 +17607,27 @@
       "caldo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 5 min a 100°C, añade calabaza troceada y caldo, cuece 15 min a 100°C, tritura hasta obtener textura cremosa. Sirve con cacahuetes tostados."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo sin presión 3 min, añade calabaza y caldo, cierra y cuece 8 min a presión. Tritura con batidora de mano hasta cremosidad deseada."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza calabaza troceada 15 min, sofríe cebolla y ajo aparte en sartén, mezcla con caldo caliente y tritura. Menos sabor que en sartén, requiere sofrito previo para compensar."
+      }
+    ]
   },
   {
     "type": "completo",
@@ -16671,7 +17755,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Calienta el caldo a 90°C durante 5 min, disuelve el miso en un bol aparte con agua caliente, luego vierte en el vaso con el caldo y mezcla suavemente. Añade el tofu cortado y cebolleta al final sin triturar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Vierte el caldo, lleva a presión durante 3 min, despresurizas y añades el miso disuelto en agua fría fuera del fuego para preservar sus propiedades. Incorpora tofu y cebolleta al final."
+      },
+      {
+        "appliance": "microondas",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Calienta el caldo en un bol apto para microondas a máxima potencia durante 4-5 min, disuelve el miso en agua templada y mezcla con el caldo caliente. Añade tofu y cebolleta sin cocción adicional."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_090",
@@ -16789,6 +17893,26 @@
     "description": "Sopa espesa y potente de gambas con patata, arroz, leche y huevo escalfado. El plato más reconocible de Arequipa.",
     "basesAparte": [
       "sofrito"
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla, ajo y ají amarillo 3 min, añade gambas, patata, arroz y caldo. Cierra y cocina 12 min a presión. Finaliza con leche, huevo batido y queso fuera del fuego para emulsionar sin cortar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito (cebolla, ajo, ají) a 100°C vel. 1 durante 5 min. Añade patata, arroz, caldo y gambas; cocina 15 min a 100°C vel. 1. Termina incorporando leche y huevo a temperatura baja para obtener una crema homogénea sin grumos."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "elaborada",
+        "prepSummary": "Cuece patata y arroz al vapor 20 min en bandejas separadas. Prepara un sofrito aparte en sartén tradicional con cebolla, ajo y ají. Combina todo en cazuela, añade caldo, gambas y finaliza con leche y huevo fuera del fuego para mantener texturas diferenciadas."
+      }
     ]
   }
 ]

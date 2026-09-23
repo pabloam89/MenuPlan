@@ -31487,7 +31487,21 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca el pollo empanado y cocina 12-15 min dando la vuelta a mitad. Queda crujiente sin necesidad de aceite abundante. Mientras, prepara la ensalada."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca el pollo empanado en bandeja con poco aceite y hornea 15-18 min hasta dorar. Resulta más ligero que en sartén manteniendo la textura crujiente."
+      }
+    ]
   },
   {
     "id": "carnes_147",
@@ -31625,7 +31639,27 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C durante 3 min. Cocina los filetes 8-10 min y los pimientos asados 10 min aparte, ambos con un toque de aceite. Queda dorado y jugoso sin necesidad de sartén."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C. Asa los pimientos 15 min, luego añade los filetes con cebolla y ajo otros 10 min. Se obtiene un resultado jugoso y los pimientos bien asados."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Sella los filetes 2 min a presión máxima con aceite caliente, retira y cocina pimientos y cebolla 5 min. Reintegra los filetes 1 min. Mantiene la jugosidad de la carne."
+      }
+    ]
   },
   {
     "id": "carnes_148",
@@ -31758,7 +31792,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca los muslos con patatas, ajo y romero en una cazuela, rocía con aceite y limón. Hornea 45-50 min hasta que el pollo esté dorado y las patatas tiernas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los muslos 20 min, añade las patatas cortadas y continúa 12-15 min más. Queda crujiente por fuera y jugoso por dentro, más rápido que el horno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sella los muslos en la olla abierta con aceite, añade patatas, ajo, romero y limón. Cierra y cocina a presión 12-15 min. Resultado tierno y jugoso en menos tiempo, aunque pierde algo de dorado."
+      }
+    ]
   },
   {
     "id": "carnes_149",
@@ -31887,7 +31941,27 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes 12-14 min dándoles la vuelta a mitad. Aparte, carameliza la cebolla en sartén tradicional con azúcar y vino, luego combina. Queda jugoso y dorado."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sella los filetes en sartén 2 min por lado, luego hornea a 180°C durante 12-15 min. Carameliza la cebolla en sartén aparte con azúcar y vino, después mezcla. Resultado tierno y jugoso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sella los filetes en la olla abierta 2 min por lado, retira. Carameliza cebolla con azúcar y vino, devuelve los filetes, cierra y cocina 8 min a presión. Carne muy tierna con salsa concentrada."
+      }
+    ]
   },
   {
     "id": "carnes_150",
@@ -32039,7 +32113,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina la pechuga 12 min dando la vuelta a mitad. Mientras, saltea los champiñones con ajo en la bandeja adicional los últimos 6 min. Queda dorado y jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Sella la pechuga en una cazuela 2 min por lado, luego hornea 12 min. Saltea los champiñones al ajillo en paralelo en la placa. Resultado jugoso y bien hecho."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza la pechuga 15 min a fuego medio-alto para mantener jugosidad. Saltea los champiñones con ajo en sartén aparte los últimos 5 min. Resultado más ligero pero tierno."
+      }
+    ]
   },
   {
     "id": "carnes_151",
@@ -32182,7 +32276,39 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes 12-14 min dándoles la vuelta a mitad. Mientras, cuece las patatas en microondas y prepara el puré con mantequilla y leche."
+      },
+      {
+        "appliance": "horno",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes en bandeja 15-18 min. Paralelamente cuece patatas en olla y prepara el puré con mantequilla y leche caliente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas troceadas con agua 20 min en función cocción. Luego prepara el puré con mantequilla y leche en 5 min. Los filetes se cocinan aparte en sartén tradicional."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza los filetes y patatas troceadas simultáneamente 15-18 min. Luego prepara el puré con mantequilla y leche. Resulta más saludable aunque menos dorado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas troceadas a presión 8 min. Mientras, cocina los filetes en sartén. Prepara el puré rápidamente con mantequilla y leche caliente."
+      }
+    ]
   },
   {
     "id": "carnes_152",
@@ -32325,7 +32451,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Dora las costillas en sartén, luego coloca en cazuela con patatas en rodajas, cebolla y ajo. Hornea 50-60 min cubierto, destapando los últimos 10 min para dorar. El pimentón se añade al inicio para que perfume todo el conjunto."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Cocina las costillas 20 min, luego añade las patatas cortadas en bastones con cebolla y ajo. Continúa 12-15 min más hasta que todo esté dorado y crujiente. Espolvorea pimentón antes de servir."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Dora las costillas en la olla con aceite. Añade patatas en rodajas, cebolla, ajo y pimentón. Cierra y cocina a presión 20 min. El resultado es más tierno y jugoso, aunque menos crujiente que al horno."
+      }
+    ]
   },
   {
     "id": "carnes_153",
@@ -32468,7 +32614,21 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C durante 3 minutos, coloca las chuletas y cocina 12-15 minutos girando a mitad del tiempo. Se obtiene un resultado dorado y jugoso similar a la plancha tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C, sella las chuletas 2 minutos en sartén caliente y termina en horno 10-12 minutos. Mantiene la jugosidad interior con un exterior bien dorado."
+      }
+    ]
   },
   {
     "id": "carnes_154",
@@ -32616,7 +32776,27 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina el solomillo 12-14 min dándole la vuelta a mitad. Saltea los pimientos y cebolla aparte en sartén, luego combina con el vino blanco para hacer la salsa."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sella el solomillo en sartén 2 min por lado, luego termina en horno a 200°C durante 12-15 min. Prepara la salsa de pimientos y cebolla en paralelo en la sartén con el vino blanco."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo a fuego fuerte sin presión, añade pimientos, cebolla y vino blanco, cierra y cocina 8 min a presión. Queda tierno y la salsa concentrada."
+      }
+    ]
   },
   {
     "id": "carnes_155",
@@ -32837,7 +33017,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, cocina las pechugas rellenas 18-20 min dándoles la vuelta a mitad. Mientras, cuece las judías en agua hirviendo y prepara la ensalada. Resultado crujiente y jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 32,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, hornea las pechugas rellenas 20-22 min hasta dorar. Paralelamente cuece judías y prepara ensalada. Cocción uniforme y sin vigilancia constante."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza las pechugas rellenas 20-22 min a fuego medio-alto para cocción húmeda y jugosa. Simultáneamente cuece judías en agua y prepara ensalada. Resultado más saludable pero menos dorado."
+      }
+    ]
   },
   {
     "id": "carnes_156",
@@ -32988,7 +33188,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes 8-10 min y los champiñones salteados 5-7 min en dos tandas. La ensalada se prepara aparte. Resultado crujiente y jugoso sin aceite excesivo."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sella los filetes en sartén 2 min por lado, luego al horno a 200°C durante 10-12 min. Los champiñones se saltean en paralelo en sartén. La ensalada se prepara fría aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Sella los filetes a fuego fuerte 2 min por lado, añade champiñones y vino blanco, cierra 8 min a presión. Rápido y jugoso, aunque pierde algo de textura en la carne respecto a sartén."
+      }
+    ]
   },
   {
     "type": "principal",
@@ -33185,7 +33405,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 150,
+        "difficulty": "normal",
+        "prepSummary": "Marina el lomo con pasta de ajo, pimentón, orégano y cítricos durante 30 min, luego hornea a 160°C durante 90-100 min cubierto con papel de aluminio para mantener la humedad. Sirve con la cebolla encurtida en vinagre."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Sella el lomo marinado en la olla a fuego alto 3 min por lado, luego cocina a presión 45-50 min con los jugos de cítricos. Reduce tiempo total a la mitad respecto al horno manteniendo la ternura característica."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Marina el lomo 30 min, cocina a 180°C durante 25-30 min en la canasta, dando la vuelta a mitad del proceso. Queda jugoso si no excedes la temperatura y lo cubres con papel de aluminio los primeros 15 min."
+      }
+    ]
   },
   {
     "type": "completo",
@@ -33376,7 +33616,21 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, cocina los filetes 8-10 min dándoles la vuelta a mitad. Saltea los pimientos y cebolla aparte en sartén. Monta las fajitas con los ingredientes cocinados."
+      },
+      {
+        "appliance": "horno",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C, cocina los filetes en bandeja 10-12 min. Saltea pimientos y cebolla en sartén aparte. Calienta tortillas en el horno los últimos 2 min. Monta las fajitas."
+      }
+    ]
   },
   {
     "type": "principal",
@@ -33550,7 +33804,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, marina los filetes 5 min con la salsa, luego cocina 12-13 min a 200°C dando la vuelta a mitad. Termina con sésamo tostado y jugo de naranja."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Sella los filetes en sartén 2 min por lado, vierte la salsa de naranja-soja-miel-jengibre, introduce a 200°C durante 12-15 min. Espolvorea sésamo al final."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la salsa en Thermomix (naranja, soja, miel, jengibre, ajo) en 3 min. Sella los filetes en sartén aparte 4 min, vierte la salsa y termina 10 min a fuego suave. Añade sésamo tostado."
+      }
+    ]
   },
   {
     "type": "principal",
@@ -33712,7 +33986,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Saltea la ternera 6-8 min, retira y cocina el brócoli con jengibre y ajo 8-10 min. Mezcla todo con salsas al final para mantener texturas crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Saltea ternera y verduras en bandeja a 220°C durante 12-15 min removiendo a mitad de cocción. Termina con aceite de sésamo y soja para no perder aroma en el horno."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza brócoli y jengibre 8-10 min, luego saltea la ternera en sartén aparte 6-8 min y mezcla. Pierde algo de caramelización pero mantiene nutrientes y texturas."
+      }
+    ]
   },
   {
     "id": "carnes_161",
@@ -33822,7 +34116,27 @@
       "Devolver la ternera a la sartén, añadir las patatas fritas y saltear todo junto 30 segundos.",
       "Espolvorear cilantro fresco picado y servir con el arroz al lado."
     ],
-    "description": "El plato bandera del Perú: tiras de ternera salteadas a fuego vivo con cebolla y tomate, salsa de soja y vinagre, servidas con patatas fritas y arroz blanco."
+    "description": "El plato bandera del Perú: tiras de ternera salteadas a fuego vivo con cebolla y tomate, salsa de soja y vinagre, servidas con patatas fritas y arroz blanco.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el solomillo a 200°C durante 12-14 min (según grosor) y reserva. Saltea cebolla y tomate a 180°C durante 8 min, luego añade la carne con salsa de soja y vinagre. El resultado es jugoso y caramelizado sin aceite excesivo."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo en una cazuela a fuego fuerte, luego introduce al horno a 200°C durante 10-12 min. Saltea verduras aparte en sartén y combina todo con los condimentos. Mantiene la jugosidad de la carne perfectamente."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo en modo rápido sin presión, añade verduras y condimentos, cierra y cocina a presión 5 min. Libera presión rápidamente para evitar sobrecocción. Acelera el proceso manteniendo sabor y textura."
+      }
+    ]
   },
   {
     "id": "carnes_162",
@@ -33943,7 +34257,27 @@
       "Incorporar el pollo deshilachado y el queso parmesano rallado, y calentar 3 min.",
       "Servir sobre las rodajas de patata, con el arroz al lado y el huevo duro por encima."
     ],
-    "description": "Pollo deshilachado en una crema suave y amarilla de ají, pan y leche, con nueces molidas. Se sirve con arroz blanco, patata cocida y huevo duro."
+    "description": "Pollo deshilachado en una crema suave y amarilla de ají, pan y leche, con nueces molidas. Se sirve con arroz blanco, patata cocida y huevo duro.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para triturar el ají amarillo, cebolla, ajo y nueces con la leche formando una pasta suave. Luego cocina el pollo en la cazuela tradicional y vierte la crema preparada para que se integre perfectamente."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el pollo troceado con cebolla y ajo a presión durante 12 minutos. Luego abre, añade la crema de ají amarillo y nueces (preparada aparte), y termina 5 minutos más sin presión para que se integren los sabores."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza el pollo troceado durante 20 minutos hasta cocción completa. Prepara la salsa de ají amarillo en sartén aparte y combina al final, manteniendo la jugosidad de la carne sin perder la cremosidad de la salsa."
+      }
+    ]
   },
   {
     "id": "carnes_163",
@@ -34030,7 +34364,27 @@
       "Dorar también las rodajas de patata en la misma parrilla.",
       "Servir las brochetas sobre las patatas, muy calientes."
     ],
-    "description": "Brochetas de ternera maceradas en ají panca, vinagre y comino, asadas a la parrilla. El clásico de la calle limeña."
+    "description": "Brochetas de ternera maceradas en ají panca, vinagre y comino, asadas a la parrilla. El clásico de la calle limeña.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, marina la ternera 10 min, cocina los anticuchos 12-15 min a 200°C dando la vuelta a mitad. Las patatas se cocinan aparte en microondas o hervidas previamente."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 220°C, marina la ternera, coloca los anticuchos en bandeja y hornea 15-18 min hasta dorar. Las patatas se cocinan aparte hervidas o al horno simultáneamente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la marinada (ají, ajo, especias, aceite, vinagre) en 5 min, marina la ternera, luego cocina los anticuchos en sartén/plancha tradicional. El electrodoméstico optimiza la emulsión de la marinada."
+      }
+    ]
   },
   {
     "id": "carnes_164",
@@ -34133,7 +34487,27 @@
       "Cocer el arroz en agua con sal.",
       "Servir el guiso con las alubias y el arroz al lado."
     ],
-    "description": "Guiso lento de ternera en una base verde de cilantro y ají, servido con frijoles canarios y arroz. Plato de domingo del norte del Perú."
+    "description": "Guiso lento de ternera en una base verde de cilantro y ají, servido con frijoles canarios y arroz. Plato de domingo del norte del Perú.",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la carne, cebolla y ajo a presión 3 min, añade el resto de ingredientes y cocina 35 min más. La olla express acelera la cocción de la carne y las alubias manteniendo la jugosidad."
+      },
+      {
+        "appliance": "horno",
+        "time": 120,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carne en cazuela a fuego fuerte, añade verduras y caldo, tapa y hornea a 160°C durante 90 min. El horno distribuye el calor uniformemente para un guiso jugoso y bien integrado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "elaborada",
+        "prepSummary": "Pica verduras con la función picadora, sofríe la carne en modo cocción 5 min a 120°C, añade ingredientes y cocina 60 min a 100°C con giro lento. Requiere supervisión pero logra texturas perfectas."
+      }
+    ]
   },
   {
     "id": "carnes_165",
@@ -34243,7 +34617,27 @@
       "Sacar el pollo y dejarlo reposar 10 min antes de trincharlo.",
       "Servir con las patatas y la salsa de ají aparte."
     ],
-    "description": "Pollo entero macerado en soja, comino y ají panca, asado al horno hasta que la piel queda lacada. Con patatas y salsa de ají verde."
+    "description": "Pollo entero macerado en soja, comino y ají panca, asado al horno hasta que la piel queda lacada. Con patatas y salsa de ají verde.",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 75,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, marina el pollo 15 min con salsa de soja, ají y especias, luego asa 50-55 min hasta dorar. Las patatas se cocinan simultáneamente en bandeja inferior."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 60,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C, cocina el pollo troceado o en cuartos 35-40 min dándole la vuelta a mitad, previamente marinado. Las patatas se hacen en paralelo o después. Queda crujiente y jugoso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Dora el pollo marinado en aceite 5 min, añade patatas y líquido de marinada, cierra y cocina a presión 20 min. Abre y gratina brevemente en horno o airfryer para obtener la brasa final."
+      }
+    ]
   },
   {
     "id": "carnes_166",
@@ -34367,7 +34761,33 @@
       "Incorporar el pollo asado con sus jugos y dar un hervor de 5 min.",
       "Cocer el arroz basmati y servirlo al lado, con cilantro fresco por encima."
     ],
-    "description": "Tacos de pollo macerados en yogur y especias, asados y terminados en una salsa cremosa de tomate. El curry más pedido del mundo."
+    "description": "Tacos de pollo macerados en yogur y especias, asados y terminados en una salsa cremosa de tomate. El curry más pedido del mundo.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Marina el pollo en yogur y especias 15 min, luego cocina a 200°C durante 18-20 min. Prepara la salsa aparte en sartén y combina al final para obtener un tikka masala crujiente y sabroso."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Asa el pollo marinado a 200°C durante 25 min, luego prepara la salsa de tomate y nata en cazuela en horno a 180°C otros 15 min. Combina pollo y salsa al final para un resultado jugoso y aromático."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Tritura yogur, especias y aromáticos para la marinada (5 min), marina el pollo 15 min, cocina en modo vapor-cocción 20 min a 100°C. Prepara la salsa con tomate y nata en la misma máquina para máxima comodidad."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Dora el pollo marinado 5 min a presión natural, añade salsa de tomate y nata, cierra y cocina 12 min a presión máxima. Despresurizas y tienes un tikka masala tierno y concentrado en tiempo récord."
+      }
+    ]
   },
   {
     "id": "carnes_167",
@@ -34472,7 +34892,27 @@
       "Cortar la cebolla roja en aros finos y aliñarla con el resto del limón.",
       "Servir el pollo con los aros de cebolla encurtida por encima."
     ],
-    "description": "Pollo macerado en yogur especiado y asado a horno fuerte, con la superficie tostada y el interior jugoso. Sin freír y con muy poca grasa."
+    "description": "Pollo macerado en yogur especiado y asado a horno fuerte, con la superficie tostada y el interior jugoso. Sin freír y con muy poca grasa.",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Marina el pollo 15 min en yogur y especias, coloca en bandeja a 200°C durante 35 min. Queda tierno, jugoso y con sabor tandoori auténtico."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Marina el pollo 15 min, cocina a 190°C durante 20 min dando la vuelta a mitad. Resulta crujiente por fuera y jugoso por dentro con menos tiempo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la marinada (yogur, especias, ajo, jengibre) en 5 min, luego cocina el pollo en horno o sartén. Ahorra tiempo en preparación de ingredientes."
+      }
+    ]
   },
   {
     "id": "carnes_168",
@@ -34590,7 +35030,21 @@
       "Retirar del fuego, añadir el yogur natural y la nata líquida y remover fuera del calor para que no se corte.",
       "Cocer el arroz basmati y servirlo al lado."
     ],
-    "description": "Curry cremoso de almendra y yogur, sin nada de picante. Es la puerta de entrada a la cocina india para los niños de la casa."
+    "description": "Curry cremoso de almendra y yogur, sin nada de picante. Es la puerta de entrada a la cocina india para los niños de la casa.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Tritura almendras, sofríe cebolla/ajo/jengibre a 100°C 5 min, añade pollo y especias a 90°C 15 min, luego yogur y nata a 60°C 5 min. Cocina arroz aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla/ajo/jengibre sin presión 3 min, añade pollo y especias, cierra y cocina a presión 12 min. Abre, añade yogur/nata y almendras molidas, cuece 2 min más."
+      }
+    ]
   },
   {
     "id": "carnes_169",
@@ -34708,6 +35162,20 @@
     "description": "Ternera guisada durante horas en vino tinto de Borgoña con bacon, cebollitas y champiñones. El guiso francés por antonomasia.",
     "basesAparte": [
       "sofrito"
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 180,
+        "difficulty": "elaborada",
+        "prepSummary": "Sella la carne en cazuela a fuego fuerte, añade verduras y vino, cubre y cuece a 160°C durante 2,5-3 horas. El calor envolvente del horno garantiza una cocción uniforme y un guiso jugoso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carne y sofríe verduras en la olla a fuego fuerte, añade vino y caldo, cierra y cuece a presión 50 minutos. Reduce el tiempo a la mitad manteniendo la ternura de la carne."
+      }
     ]
   },
   {

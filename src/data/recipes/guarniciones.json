@@ -2751,6 +2751,32 @@
     "estrella": true,
     "basesAparte": [
       "bechamel"
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la coliflor en agua salada, prepara la bechamel en la cocina, monta en bandeja, cubre con queso y gratina a 200°C durante 15-20 min hasta dorar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la coliflor con vapor, prepara la bechamel en el Thermomix (mantequilla, harina, leche a 60°C, 3 min), monta y gratina en horno convencional 15 min a 200°C."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 38,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la coliflor al vapor 12-15 min hasta tierna, prepara bechamel en cocina tradicional, monta en bandeja y gratina en horno a 200°C durante 15 min."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la coliflor previamente al vapor o hervida, prepara bechamel, monta en recipiente apto para airfryer, calienta a 180°C durante 12-15 min hasta gratinar bien."
+      }
     ]
   },
   {
@@ -5888,7 +5914,15 @@
       "Salar y añadir unas gotas de limón.",
       "Enfriar en la nevera al menos 20 min antes de servir."
     ],
-    "description": "Yogur batido con pepino rallado, comino y menta. Es el apagafuegos de la mesa india: refresca cualquier plato especiado."
+    "description": "Yogur batido con pepino rallado, comino y menta. Es el apagafuegos de la mesa india: refresca cualquier plato especiado.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Pica el pepino y las hierbas aromáticas en la Thermomix usando la función picadora a velocidad 4-5 durante 5 segundos. Mezcla manualmente con el yogur, comino y limón para obtener una raita homogénea y fresca."
+      }
+    ]
   },
   {
     "id": "guarniciones_065",
@@ -5978,7 +6012,27 @@
       "Derretir la mantequilla con el ajo picado.",
       "Pintar los panes recién hechos con la mantequilla de ajo y espolvorear cilantro fresco."
     ],
-    "description": "Pan plano de sartén, tierno y con burbujas tostadas, para mojar en cualquier curry. Sin horno: se hace en una sartén bien caliente."
+    "description": "Pan plano de sartén, tierno y con burbujas tostadas, para mojar en cualquier curry. Sin horno: se hace en una sartén bien caliente.",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa con thermomix o a mano, deja reposar 60 min, forma discos y hornea a 220°C durante 8-10 min hasta que inflen y se doren. Pincela con mantequilla y ajo al sacar del horno."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa tradicional y deja reposar 60 min, forma discos pequeños y cocina a 200°C durante 6-8 min por tandas. Resulta crujiente por fuera y esponjoso por dentro sin necesidad de horno."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 90,
+        "difficulty": "facil",
+        "prepSummary": "Usa el thermomix solo para amasar los ingredientes (3 min, velocidad progresiva), luego deja reposar 60 min y cocina en horno o airfryer. Ahorra tiempo en el amasado manual."
+      }
+    ]
   },
   {
     "id": "guarniciones_066",

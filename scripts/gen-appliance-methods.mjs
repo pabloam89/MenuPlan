@@ -10,6 +10,7 @@
 // version (stovetop / its own technique). `methods[]` only lists the variants.
 //
 // Usage:
+//   node --env-file=.env.local scripts/gen-appliance-methods.mjs --proveedor anthropic --file carnes.json --ids carnes_001,carnes_002
 //   node --env-file=.env.local scripts/gen-appliance-methods.mjs --pilot
 //   node --env-file=.env.local scripts/gen-appliance-methods.mjs --file carnes.json
 //   node --env-file=.env.local scripts/gen-appliance-methods.mjs --limit 20
@@ -29,14 +30,45 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RECIPES_DIR = join(__dirname, "../src/data/recipes");
 
-const GEMINI_KEY = process.env.GEMINI_AI_STUDIO_KEY;
-if (!GEMINI_KEY) {
-  console.error("❌  GEMINI_AI_STUDIO_KEY not found. Check .env.local");
+/**
+ * DOS PROVEEDORES, UN SOLO PROMPT.
+ *
+ * El 23 sep 2026 el crédito de prepago de AI Studio se agotó a mitad de una
+ * tanda y devolvió 402 con las 263 recetas estrella que quedaban sin procesar.
+ * El fallo además no es limpio: las peticiones se quedan colgadas ~20 minutos
+ * antes de devolver el error, así que el script parece estar trabajando.
+ *
+ * `--proveedor anthropic` usa ANTHROPIC_API_KEY, que el repo ya usa por fetch
+ * directo en scripts/bedca-select.mjs. Lo que NO cambia es nada de lo que
+ * decide: el mismo prompt (incluido el de bebés con sus reglas de seguridad),
+ * el mismo vocabulario de aparatos y el mismo `sanitizeMethods`. Solo cambia
+ * el transporte, que es lo único que estaba roto.
+ *
+ * Los `methods[]` del catálogo quedan por tanto escritos por dos modelos
+ * distintos. Es asumible porque la salida está acotada por el vocabulario y
+ * validada por el mismo sanitizador, pero conviene saberlo.
+ */
+const PROVEEDOR = getOptEarly("--proveedor") || "gemini";
+if (!["gemini", "anthropic"].includes(PROVEEDOR)) {
+  console.error(`❌  --proveedor tiene que ser "gemini" o "anthropic", no "${PROVEEDOR}".`);
   process.exit(1);
 }
 
-const ai = new GoogleGenAI({ apiKey: GEMINI_KEY });
-const MODEL = getOptEarly("--model") || "gemini-2.5-flash";
+const GEMINI_KEY = process.env.GEMINI_AI_STUDIO_KEY;
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+if (PROVEEDOR === "gemini" && !GEMINI_KEY) {
+  console.error("❌  GEMINI_AI_STUDIO_KEY not found. Check .env.local");
+  process.exit(1);
+}
+if (PROVEEDOR === "anthropic" && !ANTHROPIC_KEY) {
+  console.error("❌  ANTHROPIC_API_KEY not found. Check .env.local");
+  process.exit(1);
+}
+
+const ai = GEMINI_KEY ? new GoogleGenAI({ apiKey: GEMINI_KEY }) : null;
+const MODEL =
+  getOptEarly("--model") ||
+  (PROVEEDOR === "anthropic" ? "claude-haiku-4-5-20251001" : "gemini-2.5-flash");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function getOptEarly(f) {
@@ -210,8 +242,7 @@ function sanitizeMethods(raw) {
   return out;
 }
 
-async function generateMethods(recipe) {
-  const prompt = buildPrompt(recipe);
+async function pedirAGemini(prompt) {
   const resp = await ai.models.generateContent({
     model: MODEL,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -221,7 +252,46 @@ async function generateMethods(recipe) {
       httpOptions: { timeout: 60000 },
     },
   });
-  const text = resp?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ?? "";
+  return resp?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ?? "";
+}
+
+/**
+ * Mismo prompt por fetch directo, como scripts/bedca-select.mjs.
+ *
+ * Con AbortController y no solo con el timeout del SDK: lo que dejó la tanda
+ * anterior colgada 20 minutos fue precisamente una petición que no cortaba.
+ * Un fallo rápido se reintenta; uno que no vuelve, no.
+ */
+async function pedirAAnthropic(prompt) {
+  const corte = new AbortController();
+  const reloj = setTimeout(() => corte.abort(), 60000);
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 2000,
+        temperature: 0.4,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: corte.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || `Anthropic HTTP ${res.status}`);
+    return data?.content?.map((b) => b.text ?? "").join("") ?? "";
+  } finally {
+    clearTimeout(reloj);
+  }
+}
+
+async function generateMethods(recipe) {
+  const prompt = buildPrompt(recipe);
+  const text = PROVEEDOR === "anthropic" ? await pedirAAnthropic(prompt) : await pedirAGemini(prompt);
   return sanitizeMethods(extractJsonArray(text));
 }
 

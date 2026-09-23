@@ -94,7 +94,15 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Vierte el kéfir, plátano troceado y fresas en el vaso. Programa a velocidad 4-5 durante 30-40 segundos hasta obtener una textura homogénea y cremosa. Añade miel al final y mezcla brevemente."
+      }
+    ]
   },
   {
     "id": "meriendas_002",
@@ -450,7 +458,27 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, corta la manzana y plátano en rodajas, cocina 5-6 min hasta que se caramelicen ligeramente. Sirve con los frutos secos tostados al final para mantener su textura crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, coloca la fruta cortada en una bandeja y hornea 8-10 min hasta que se ablande ligeramente y se caramelice. Añade los frutos secos al final para que no pierdan su textura."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Corta la fruta en trozos, calienta en microondas a máxima potencia durante 2-3 min hasta que se ablande. Sirve inmediatamente con los frutos secos crudos o tostados para contrastar texturas."
+      }
+    ]
   },
   {
     "id": "meriendas_006",

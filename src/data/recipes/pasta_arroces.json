@@ -7136,7 +7136,27 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe el sofrito 5 min en modo normal, añade la carne y sella 3 min. Incorpora tomate, vino y caldo, cierra y cocina 45 min a presión. El ragú queda concentrado y sabroso en la mitad de tiempo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 95,
+        "difficulty": "normal",
+        "prepSummary": "Pica sofrito con función turbo, sofríe en modo Varoma 5 min a 120°C. Añade carne y sella 3 min, luego cocina 60 min a 100°C con giro lento. Resultado homogéneo y bien integrado."
+      },
+      {
+        "appliance": "horno",
+        "time": 150,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe en cazuela 10 min en vitrocerámica, luego introduce en horno a 160°C durante 120 min tapado. El ragú se cocina lentamente desarrollando sabores profundos sin riesgo de quemar."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_037",
@@ -7343,7 +7363,27 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Programa la calabaza 20 seg/vel.5, sofríe cebolla y calabaza 5 min/100°C/vel.1, añade arroz y vino, luego caldo en 3 tandas de 8 min/100°C/vel.1 removiendo entre ellas. Termina con mantequilla y parmesano."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y calabaza 3 min a fuego fuerte, añade arroz y vino, luego caldo. Cierra y cocina 12 min a presión. Abre, remueve y termina con mantequilla y queso parmesano."
+      },
+      {
+        "appliance": "microondas",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y calabaza 4 min a máxima potencia, añade arroz y vino, luego caldo caliente. Cocina 18 min a 70% potencia removiendo cada 4 min. Termina con mantequilla y parmesano."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_038",
@@ -7516,7 +7556,27 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta en el vaso con agua hirviendo (varoma), mientras cuece el brócoli al vapor en la bandeja varoma. Luego sofríe ajo y anchoas a 100°C con aceite, mezcla todo al final."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta en la base inferior con agua hirviendo y el brócoli en el nivel superior al vapor simultáneamente. Sofríe ajo y anchoas en sartén aparte y mezcla al final."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta y brócoli juntos a presión con agua (8 min), despresurizando rápido. Sofríe ajo y anchoas en sartén aparte y mezcla todo al final."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_039",
@@ -7704,7 +7764,21 @@
     "occasion": "especial",
     "tecnica": "olla",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe el bogavante, cebolla, pimiento y ajo a presión durante 2 min, añade tomate y arroz, luego vierte el caldo y cocina 12 min a presión. El resultado es un caldoso concentrado y sabroso en menos tiempo."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Sofríe los ingredientes en cazuela refractaria a fuego fuerte 5 min, añade arroz y caldo, cubre con papel aluminio y hornea a 180°C durante 25-30 min. Se obtiene un arroz caldoso bien integrado con sabores profundos."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_040",
@@ -8074,7 +8148,27 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 240,
+        "difficulty": "elaborada",
+        "prepSummary": "Cocina el rabo de toro en cazuela a 160°C durante 180 min para obtener carne tierna, prepara la bechamel aparte, rellena y gratina los canelones a 200°C durante 30-40 min hasta dorar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 150,
+        "difficulty": "elaborada",
+        "prepSummary": "Cuece el rabo de toro en olla express a presión durante 60 min para ablandarlo rápidamente, luego deshebra y procede con el relleno y gratinado en horno convencional 40 min a 200°C."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 180,
+        "difficulty": "elaborada",
+        "prepSummary": "Utiliza el Thermomix para picar sofrito (cebolla, zanahoria, puerro, ajo) y preparar la bechamel de forma rápida y homogénea; cocina el rabo de toro en olla convencional o express, luego gratina en horno."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_041",
@@ -8263,7 +8357,21 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe ajo y guindilla a presión sin tapa, añade almejas y vino, cierra y cocina 3 min. Mientras, cuece la pasta en agua con sal y mezcla todo al final con aceite y perejil."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito de ajo y guindilla a 100°C, 3 min. Añade almejas y vino, cocina a 100°C 8 min. Cuece pasta aparte y termina mezclando con aceite y perejil en el vaso a velocidad baja."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_042",
@@ -8483,7 +8591,21 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y ajo a presión normal, añade calamar y tinta, luego arroz y caldo. Cierra y cocina 12 min a presión alta. El risotto queda cremoso y el tiempo se reduce significativamente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito de cebolla y ajo (vel. 5, 3 min), añade calamar y tinta, luego arroz con caldo caliente. Cocina 20 min a 100°C, velocidad progresiva. Mantiene la cremosidad característica del risotto."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_043",
@@ -8721,7 +8843,27 @@
     "estrella": true,
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito y caldo en cazuela, añade arroz y carnes, lleva a horno a 180°C durante 45-50 min hasta que el arroz absorba el líquido. Vierte huevo batido encima y gratina 10-15 min más hasta formar la costra dorada característica."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe carnes y ajo en la olla, añade arroz, caldo y azafrán, cierra y cocina a presión 18-20 min. Después vierte huevo batido, abre la olla y gratina bajo el grill del horno 10 min para conseguir la costra."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para picar y sofreír ajo y carnes (varoma), prepara el caldo con azafrán. Luego transfiere a cazuela de horno con arroz y caldo, cocina en horno a 180°C 45 min y gratina con huevo 10 min para la costra final."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_044",
@@ -8974,7 +9116,27 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 85,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe el mirepoix y el pato 5 min en modo normal, añade tomate y vino, cierra y cocina 60 min a presión. El ragú queda concentrado y el pato tierno en la mitad de tiempo."
+      },
+      {
+        "appliance": "horno",
+        "time": 150,
+        "difficulty": "elaborada",
+        "prepSummary": "Sofríe en cazuela los ingredientes, añade tomate y vino, tapa y cocina en horno a 160°C durante 120 min. La cocción lenta y envolvente desarrolla sabores profundos sin desvirtuarla."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 95,
+        "difficulty": "normal",
+        "prepSummary": "Pica el mirepoix con la función picadora, sofríe el pato en modo mariposa 5 min a 120°C, añade tomate y vino, cocina 70 min a 100°C sin tapa. Resultado homogéneo y ragú bien integrado."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_045",
@@ -9132,7 +9294,27 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cuece los macarrones a presión con agua y sal durante 6-7 minutos. Después saltea la salvia en mantequilla y mezcla con el queso y pasta cocida para obtener una textura cremosa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece los macarrones en el vaso con agua y sal a 100°C durante 10 minutos. Luego programa la salvia crujiente a 120°C con mantequilla, mezcla con pasta y parmesano al final."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 16,
+        "difficulty": "normal",
+        "prepSummary": "Cuece previamente los macarrones en agua hirviendo (10 min). Saltea la salvia en mantequilla en el airfryer a 180°C durante 3-4 minutos hasta crujir, luego mezcla con pasta y queso."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_046",
@@ -9274,7 +9456,21 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cuece los espaguetis a presión con agua y sal durante 8 minutos. Mientras, tuesta la pimienta en seco y ralla el pecorino; mezcla todo fuera del fuego con la pasta caliente y su almidón para emulsionar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Cuece los espaguetis en agua con sal usando la función cocción a 100°C durante 10 minutos. Tritura la pimienta en grano, ralla el queso, y emulsiona todo en frío con la pasta caliente fuera del vaso para obtener la cremosidad característica."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_047",
@@ -9460,7 +9656,21 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la pasta a presión con agua y sal durante 8-10 minutos. Mientras, fríe el guanciale en la sartén y prepara la mezcla de huevo y queso; al final mezcla todo rápidamente fuera del fuego para lograr la cremosidad característica."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para picar el guanciale finamente y emulsionar la salsa de huevo y queso a temperatura controlada (65°C, 3 min). Cuece la pasta en agua hirviendo aparte y mezcla todo al final para obtener una cremosidad perfecta sin que se corten los huevos."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_048",
@@ -9641,7 +9851,21 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta a presión durante 6-7 minutos con agua y sal. Después, en la misma olla a fuego normal, prepara la salsa con mantequilla, nata, limón y parmesano en 3-4 minutos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta en agua hirviendo (externa). Luego usa el Thermomix para emulsionar mantequilla, nata, zumo de limón y parmesano a 60°C durante 5 minutos, creando una salsa cremosa y homogénea."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_049",
@@ -9860,7 +10084,27 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cocina la berenjena cortada en dados a 200°C durante 15 min removiendo a mitad del proceso. Mientras, cuece la pasta en agua hirviendo (10 min) y prepara el sofrito de tomate y ajo en sartén (5 min). Mezcla todo al final con ricotta y albahaca."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Asa la berenjena cortada en dados a 220°C durante 20 min hasta dorarla. Simultáneamente cuece la pasta en agua hirviendo (10 min) y prepara el sofrito de tomate y ajo en sartén (5 min). Mezcla todo al final con ricotta y albahaca."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe ajo y berenjena en la olla abierta 3 min, añade tomate triturado y pasta con agua (proporción 1:2), cierra y cocina a presión 8 min. Termina con ricotta y albahaca fresca al servir."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_050",
@@ -10016,7 +10260,21 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cuece los espaguetis a presión con agua y sal durante 8 minutos. Mientras, infusiona el aceite con ajo y guindilla a fuego bajo antes de mezclar con la pasta escurrida."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Programa el vaso a 100°C, velocidad 1 para cocer los espaguetis en agua con sal. Prepara aparte el aceite infusionado con ajo y guindilla a baja temperatura, luego mezcla con la pasta."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_051",
@@ -10231,7 +10489,27 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas en vapor (25 min), luego procesa con harina y huevo hasta formar masa homogénea. Moldea los gnocchi y cuécelos en agua hirviendo hasta que floten (5-7 min), después saltea en sartén con mantequilla y salvia."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas al vapor (25-30 min) hasta que estén tiernas, luego procesa con harina, huevo y condimentos. Forma los gnocchi y cuécelos en agua hirviendo (5-7 min), finalizando con un salteado en sartén con mantequilla y salvia."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las patatas en la olla express a presión (12 min desde que silba), luego procesa con harina y huevo. Forma los gnocchi y cuécelos en agua hirviendo en olla normal (5-7 min), terminando con mantequilla y salvia en sartén."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_052",
@@ -10431,7 +10709,27 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Usa el thermomix para picar las espinacas (5 seg, velocidad 5) y mezclar todos los ingredientes en modo amasado suave. Luego cuece los gnocchi en agua hirviendo en olla convencional y saltea en sartén con mantequilla."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa manualmente, forma los gnocchi y cuécelos al vapor durante 8-10 minutos hasta que floten. Luego saltea brevemente en sartén con mantequilla y parmesano para dorar."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Forma los gnocchi, cuécelos en agua hirviendo hasta que floten, luego colócalos en bandeja con mantequilla derretida y parmesano. Gratina en horno a 200°C durante 10-12 minutos hasta dorar."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_053",
@@ -10627,7 +10925,21 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe ajo y guindilla 2 min, añade almejas con vino blanco y cocina 5 min a presión. Cuece la pasta aparte y mezcla todo con perejil. Gana tiempo sin perder sabor."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el vaso para sofrito de ajo y guindilla (3 min, 100°C), luego añade almejas y vino (8 min, 100°C). Cuece pasta aparte y termina en el Thermomix con perejil. Requiere coordinación pero resulta preciso."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_054",
@@ -10755,7 +11067,27 @@
       "caldo"
     ],
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Vierte el caldo, lleva a presión durante 8 minutos desde que silba, añade los tortellini frescos y cuece 4 minutos más. Termina con parmesano y perejil."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Calienta el caldo a 100°C durante 8 minutos, añade los tortellini y cuece 10 minutos más a temperatura de cocción. Sirve con parmesano y perejil fresco."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Calienta el caldo en la base de la vaporera, coloca los tortellini en la bandeja superior durante 12 minutos hasta que floten y estén al dente. Sirve en el caldo caliente con parmesano."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_055",
@@ -10971,7 +11303,27 @@
     "cocina": "italiana",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta, prepara la bechamel en la cocina, mezcla con queso, vierte en bandeja y gratina a 200°C durante 15-20 min hasta dorar. Es el método tradicional y da el mejor resultado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la bechamel directamente en el Thermomix (mantequilla, harina, leche a 90°C, 5 min) mientras cueces la pasta aparte, luego mezcla todo y gratina en horno convencional 15 min. Ahorra tiempo en la salsa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la pasta en la olla express a presión (8 min desde válvula), prepara la bechamel aparte, mezcla y termina gratinando en horno 15 min. Reduce tiempo de cocción de la pasta significativamente."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_056",
@@ -11288,7 +11640,27 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Prepara las verduras salteadas, monta capas alternando pasta, verduras y bechamel. Hornea a 180°C durante 40-45 min hasta gratinar. Es el método tradicional y da el mejor resultado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Usa Thermomix para picar verduras (5 min) y preparar la bechamel (8 min a 70°C). Luego monta en bandeja y termina en horno a 180°C por 40 min. Ahorra tiempo en preparación."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 55,
+        "difficulty": "elaborada",
+        "prepSummary": "Saltea verduras en la olla abierta, prepara bechamel aparte. Monta lasaña en bandeja refractaria, introduce en olla express con agua (baño maría) a presión 15 min. Requiere bandeja compatible y cuidado extra."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_057",
@@ -11612,7 +11984,33 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C, rellena los canelones con la mezcla de espinacas y piñones, cubre con bechamel y queso, hornea 35-40 min hasta gratinar. Método tradicional y resultado óptimo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la bechamel (5 min a 90°C) y picar/mezclar espinacas con piñones. Luego rellena y gratina en horno convencional 35 min. Ahorra tiempo en preparación."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 55,
+        "difficulty": "elaborada",
+        "prepSummary": "Cuece las espinacas al vapor (8 min), prepara bechamel aparte, rellena canelones y cuécelos al vapor en capas con bechamel (25-30 min). Resultado más ligero pero requiere más atención."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C, coloca canelones rellenos en capas con bechamel, cocina 20-25 min hasta dorar. Más rápido que horno tradicional y resultado crujiente."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_058",
@@ -11922,7 +12320,27 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C, rellena los canelones, coloca en bandeja con bechamel, cubre con queso y hornea 35-40 min hasta gratinar. Es el método tradicional y garantiza cocción uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la bechamel (5 min a 90°C) y picar/mezclar el relleno de pollo y jamón. Luego termina en horno convencional 35-40 min para gratinar."
+      },
+      {
+        "appliance": "microondas",
+        "time": 55,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la bechamel en microondas (8 min en intervalos), rellena canelones y cocina en recipiente apto microondas a potencia media 20-25 min cubierto. Resultado menos gratinado pero viable."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_059",
@@ -12232,7 +12650,27 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la salsa boloñesa en fogón, la bechamel en cazuela, monta capas en bandeja y hornea a 180°C durante 40-45 min hasta gratinar. Es el método clásico y más efectivo para esta receta."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para picar verduras (5 seg) y cocinar la salsa boloñesa a 100°C, 25 min, giro izquierda. Prepara la bechamel de forma rápida y monta en horno convencional para gratinar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Cocina la salsa boloñesa en olla express a presión durante 15 min tras dorar la carne, ganando tiempo significativo. Prepara bechamel aparte y termina en horno a 180°C para gratinar 20 min."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_060",
@@ -12387,7 +12825,27 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta a presión durante 8 minutos (tiempo reducido respecto a cocción normal). Enfría rápidamente bajo agua fría y mezcla con los ingredientes frescos ya preparados."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta al vapor durante 15-18 minutos hasta al dente. Enfría inmediatamente y mezcla con tomate, mozzarella, albahaca y aliño para obtener una textura perfecta sin apelmazamiento."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta en el vaso a 100°C durante 12 minutos con agua y sal. Enfría rápidamente y prepara el aliño emulsionando aceite y vinagre antes de mezclar con los ingredientes frescos."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_061",
@@ -12551,7 +13009,27 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta a presión durante 8 minutos con agua y sal. Mientras, pica los ingredientes frescos y mezcla con el atún, aceitunas, aceite y vinagre para una ensalada fresca y rápida."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Usa el vaso para picar uniformemente tomate, pimiento y cebolla en modo turbo. Cuece la pasta en agua hirviendo aparte y mezcla todo con atún, aceitunas y aliño para una ensalada bien integrada."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta al vapor durante 12-14 minutos hasta al dente. Pica los ingredientes frescos y mezcla con el atún, aceitunas, aceite y vinagre para obtener una ensalada ligera y saludable."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_062",
@@ -12743,7 +13221,27 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Usa el vaso para preparar el pesto triturando albahaca, piñones, ajo, parmesano y aceite a velocidad 5-6 durante 30 segundos. Cuece la pasta, patata y judías en agua hirviendo aparte (15 min) y mezcla con el pesto."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Vaporiza patata y judías verdes durante 12 minutos en el primer nivel. Cuece la pasta en agua hirviendo aparte (10 min) y mezcla todo con el pesto preparado manualmente. Resultado ligero y saludable."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Cuece patata y judías a presión durante 5 minutos, libera presión rápidamente. Agrega la pasta y agua, cierra 3 minutos más. Mezcla con pesto fresco al final para conservar su sabor."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_063",
@@ -12930,7 +13428,27 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la salchicha, cebolla y ajo a presión durante 2 min, añade tomate y vino, luego incorpora la pasta y cuece 8 min a presión. Rápido y concentrado de sabores."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito con salchicha, cebolla y ajo (vel. 4, 5 min), añade tomate y vino, cocina 15 min a 100°C. Cuece la pasta aparte e integra al final para mejor textura."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe en cazuela los ingredientes en vitrocerámica, añade pasta cruda con caldo, cubre y hornea a 180°C durante 20 min hasta que la pasta absorba el líquido. Resultado cremoso y homogéneo."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_064",
@@ -13097,7 +13615,21 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Programa la función sofrito a 100°C durante 5 min con ajo y guindilla, luego añade tomate y cuece 10 min a 90°C. Cocina la pasta en agua hirviendo aparte e integra con la salsa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe ajo y guindilla en modo tradicional 2 min, añade tomate y pasta con agua, cierra y cuece a presión 8 min. Rápido y concentra bien los sabores."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_065",
@@ -13291,7 +13823,21 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y ajo 2 min, añade boletus 3 min, luego pasta con agua/caldo a presión 8 min. Al final agrega nata y mantequilla fuera del fuego para una salsa cremosa sin que se corte."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Pica boletus, cebolla y ajo con la función picadora. Sofríe en modo mariposa a 100°C 5 min, añade nata y cocina 3 min más. Cuece la pasta aparte y mezcla al final para una salsa homogénea y sedosa."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_066",
@@ -13471,7 +14017,21 @@
     ],
     "tecnica": "olla",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y salmón a presión durante 2 min, añade pasta y caldo, cierra y cocina 8 min más. Al final agrega nata y eneldo sin presión para mantener texturas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Programa la cebolla en picado (vel. 5, 5 seg), sofríe en modo varoma 3 min, añade salmón troceado y pasta cocida aparte, termina con nata y eneldo en frío para integrar sin desnaturalizar."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_067",
@@ -13628,7 +14188,21 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la pasta 6 min a presión con agua y sal, luego sofríe las gambas con ajo y guindilla en el mismo recipiente sin presión. Rápido y concentra sabores."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito de ajo y guindilla a 100°C, 3 min. Cocina pasta en agua hirviendo (recipiente externo), luego integra gambas en Thermomix a temperatura baja para emulsionar con aceite."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_068",
@@ -13814,7 +14388,21 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Saltea ajo y guindilla en modo tradicional, añade almejas y vino, cierra y cuece 3 min a presión. Mientras, cuece espaguetis en agua hirviendo aparte y mezcla al final con las almejas y su caldo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito de ajo y guindilla a 100°C, 3 min. Añade almejas y vino, cuece 8 min a 100°C sin tapa. Cuece espaguetis aparte y termina la emulsión en el Thermomix con aceite y perejil."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_069",
@@ -14105,7 +14693,27 @@
       "guarda": "congelador",
       "dias": 30
     },
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Usa el thermomix para amasar la masa (3 min, vel. 6) y procesar las espinacas con ricotta (5 seg, vel. 4). Luego estira, rellena y cuece los ravioli en agua hirviendo tradicional (3-4 min). Termina con mantequilla y salvia en sartén."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa y relleno manualmente. Cuece los ravioli al vapor (8-10 min) en lugar de agua hirviendo, resultando más delicados y sin pegarse. Saltea después con mantequilla y salvia en sartén."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara masa y relleno convencionalmente. Cuece los ravioli en agua a presión (2-3 min desde válvula) ganando tiempo sin perder calidad. Termina con mantequilla y salvia en sartén."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_070",
@@ -14398,7 +15006,27 @@
       "dias": 30
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Usa el thermomix para amasar la masa (3 min, velocidad progresiva) y para triturar la calabaza cocida con parmesano y especias (5 min). Luego estira, rellena y cuece la pasta en agua hirviendo tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Hornea la calabaza a 200°C durante 25 min, luego prepara la masa y el relleno manualmente. Cuece los ravioli en agua hirviendo y termina gratinándolos en horno a 180°C con mantequilla y salvia durante 8-10 min."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza la calabaza durante 20 min para cocerla sin perder nutrientes, luego prepara masa y relleno convencionalmente. Cuece los ravioli en agua hirviendo y termina con mantequilla y salvia tostada en sartén."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_071",
@@ -14552,7 +15180,21 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta en el vaso con agua hirviendo (varoma o función cocción), luego prepara la salsa Alfredo mezclando mantequilla, nata y parmesano a velocidad baja. Combina todo al final para una textura cremosa perfecta."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta en la olla express con agua y sal durante 8-10 minutos (tiempo reducido respecto a cocción normal). Prepara la salsa en una sartén aparte y mezcla al final para obtener un resultado cremoso sin desvirtuarla."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_072",
@@ -14730,7 +15372,27 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la pasta con agua y sal a presión durante 6-7 min, luego sofríe el brócoli, ajo y anchoas en la misma olla sin presión. Termina con parmesano y aceite de oliva."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Vaporiza el brócoli durante 8-10 min mientras cueces la pasta en agua hirviendo aparte. Sofríe ajo y anchoas en sartén y mezcla todo al final con parmesano."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la pasta en el vaso con agua y sal (varoma 100°C, 8 min), vaporiza el brócoli en la bandeja. Luego tritura ajo y anchoas con aceite para hacer la emulsión y mezcla todo."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_073",
@@ -14925,7 +15587,27 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "cocina": "india",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el pollo y aromáticos a presión durante 3 min, añade arroz, caldo y leche de coco, cierra y cocina 12 min más. Gana tiempo significativo respecto a cazuela tradicional manteniendo texturas y sabores."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Pica aromáticos con función turbo, sofríe pollo en modo temperatura 120°C, añade arroz y líquidos, cocina 20 min en temperatura 100°C. Requiere más atención que otros métodos pero garantiza uniformidad."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe pollo y aromáticos en cazuela apta horno, añade arroz, caldo y leche de coco, cubre y hornea a 180°C durante 25 min. Cocción homogénea sin remover, resultado cremoso y bien integrado."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_074",
@@ -15140,7 +15822,21 @@
       "seta"
     ],
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe setas, cebolla y ajo a presión normal (3 min), añade arroz y vino, luego caldo. Cierra y cuece 12 min a presión. El resultado es meloso y concentrado en sabor."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito de setas y aromáticos (varoma, 5 min), añade arroz y vino, luego caldo caliente. Cocina a 100°C sin tapa 20 min removiendo ocasionalmente hasta obtener la textura melosa deseada."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_075",
@@ -15335,7 +16031,27 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las costillas y verduras 5 min, añade arroz, tomate y caldo. Cierra y cocina a presión 15 min. Queda cremoso y los tiempos se reducen significativamente."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe en cazuela de barro los ingredientes 10 min, añade arroz y caldo, tapa y hornea a 180°C durante 35-40 min. Resulta un arroz meloso con costillas tiernas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "elaborada",
+        "prepSummary": "Programa sofrito de verduras y ajo (varoma), cocina costillas 15 min a 100°C, añade arroz y caldo, programa 18 min a 100°C sin tapa. Requiere más atención pero resulta muy controlado."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_076",
@@ -15535,7 +16251,21 @@
     "tecnica": "olla",
     "occasion": "especial",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y ajo a presión normal (2 min), añade tomate y marisco, luego caldo y arroz. Cierra y cocina a presión 12-15 min hasta que el arroz absorba el líquido manteniendo la textura caldosa."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe ingredientes en cazuela apta para horno a fuego medio, añade caldo y arroz, luego introduce en horno a 180°C durante 20-25 min hasta que el arroz esté tierno y el caldo parcialmente absorbido."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_077",
@@ -15784,7 +16514,21 @@
     "estrella": true,
     "tecnica": "olla",
     "occasion": "especial",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe los ingredientes en modo tradicional (5 min), añade caldo y arroz, cierra y cocina a presión 15 min. El resultado es paella jugosa aunque pierde algo de la textura de socarrat característica."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Sofríe en cazuela de barro a fuego fuerte (5 min), añade caldo y arroz, introduce en horno a 200°C durante 40 min sin tapar. Se consigue excelente socarrat y distribución uniforme del calor."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_078",
@@ -15982,7 +16726,27 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C, sofríe los ingredientes en cazuela apta para horno, añade arroz, caldo y condimentos, tapa y hornea 45-50 min hasta que el arroz absorba el líquido. El resultado es auténtico y con texturas bien definidas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe costillas y aromáticos a fuego fuerte, añade arroz, tomate, garbanzos y caldo, cierra y cocina a presión 12-15 min. Gana tiempo significativo manteniendo la jugosidad y la absorción del caldo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el programa de cocción a 100°C con vaso cerrado: sofríe costillas picadas (varoma), prepara sofrito con tomate y ajos, integra arroz y caldo, cocina 25-30 min. Requiere más atención pero logra buen resultado."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_079",
@@ -16172,7 +16936,21 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 32,
+        "difficulty": "normal",
+        "prepSummary": "Programa la cebolla picada a velocidad 5 durante 5 seg, luego sofríe a 120°C 3 min. Añade arroz, tuesta 2 min, vierte vino y caldo gradualmente en ciclos de cocción a 100°C 18 min removiendo. Incorpora espárragos los últimos 5 min, termina con mantequilla y parmesano."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla en modo tradicional 2 min, añade arroz y tuesta 1 min, vierte vino y caldo. Cierra y cocina a presión 12 min. Abre, incorpora espárragos cortados, mantequilla y queso, remueve 2 min hasta cremosidad."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_080",
@@ -16361,7 +17139,21 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 32,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla 3 min a 100°C, añade arroz 1 min, vino y caldo progresivamente con función de cocción a 100°C durante 18 min removiendo ocasionalmente. Incorpora gambas los últimos 3 min con limón y mantequilla al final."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y arroz 2 min a fuego alto, deglasa con vino, añade caldo y gambas. Cierra y cocina a presión 8 min. Despresuriz rápidamente, termina con mantequilla y limón."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_081",
@@ -16542,7 +17334,27 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe verduras y jamón 2 min, añade arroz y caldo (1:2), cierra y cocina 12 min a presión. Abre, mezcla con salsa de soja y huevo batido al final."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Programa sofrito de verduras y jamón 5 min a 100°C, añade arroz y caldo, cocina 15 min a 100°C sin tapa. Termina con huevo y salsa de soja mezclando manualmente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cuece arroz en bandeja inferior 18 min con caldo, mientras vaporiza verduras y jamón en bandeja superior. Mezcla todo al final con huevo y salsa de soja."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_082",
@@ -16761,7 +17573,21 @@
     "estrella": true,
     "occasion": "especial",
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Dora el pato en la olla a fuego fuerte, sofríe las verduras, añade vino y tomate, luego caldo y arroz. Cierra y cocina 18-20 min a presión. El arroz queda cremoso y el pato tierno."
+      },
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "elaborada",
+        "prepSummary": "Dora el pato y sofríe verduras en cazuela a fuego, añade vino, tomate, caldo y arroz. Introduce en horno a 180°C durante 35-40 min sin tapar. El arroz absorbe los jugos y queda con textura ideal."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_083",
@@ -16982,7 +17808,27 @@
     "estrella": true,
     "tecnica": "olla",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la costilla, cebolla y ajo a presión durante 2 min, añade tomate y caldo, luego los fideos. Cocina 12 min a presión total. Gana 15 min respecto a cazuela tradicional manteniendo sabor y textura."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe ingredientes en cazuela a fuego, añade fideos y caldo, luego al horno a 180°C durante 25-30 min tapado. Permite cocción uniforme y evita que se pegue el fondo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "elaborada",
+        "prepSummary": "Programa sofrito (cebolla, ajo, pimiento) en función mariposa 5 min a 120°C, añade costilla y tomate, cocina 20 min a 100°C, luego fideos y caldo 12 min a 100°C. Requiere supervisión pero resultado excelente."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_084",
@@ -17152,7 +17998,21 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta en agua hirviendo (10 min), luego tritura tomates secos, piñones, ajo, parmesano y albahaca con aceite en la Thermomix (velocidad progresiva 5-7) hasta obtener una pasta homogénea. Mezcla con la pasta cocida."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta en la olla express a presión con agua (6 min desde presión), ahorrando tiempo respecto a cocción tradicional. Prepara el pesto en paralelo y mezcla al final."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_085",
@@ -17362,7 +18222,33 @@
     "cocina": "italiana",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la boloñesa en sartén, monta los nidos en bandeja refractaria, vierte la salsa encima, gratina a 200°C durante 20-25 min hasta que el queso se dore. Es el método tradicional y garantiza un resultado óptimo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la boloñesa en sartén convencional, monta los nidos en la cesta del airfryer, vierte la salsa y queso, cocina a 180°C durante 15-18 min. Más rápido que el horno y resultado crujiente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la boloñesa (sofrito y cocción en 25 min), luego monta en bandeja y gratina en horno convencional 15 min a 200°C. Ahorra tiempo en la preparación de la salsa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cocina la boloñesa en olla express a presión durante 12-15 min (sofrito + cocción), luego monta los nidos en bandeja y gratina en horno 12-15 min a 200°C. Reduce significativamente el tiempo total."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_086",
@@ -17614,7 +18500,33 @@
     "cocina": "italiana",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Cuece la pasta, prepara la bechamel, mezcla con atún y tomate, vierte en bandeja, cubre con queso y hornea 25-30 min hasta gratinar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Usa el thermomix para preparar la bechamel (mantequilla, harina, leche a 60°C, 4 min) y picar la cebolla. Cuece la pasta aparte, mezcla todo y termina gratinando en horno 25 min a 180°C."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la pasta en olla express (8 min a presión). Prepara la bechamel en paralelo, mezcla ingredientes y gratina en horno 20 min a 180°C para obtener el mismo resultado final."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la mezcla de pasta, bechamel y atún en un molde apto para airfryer. Cocina a 180°C durante 20-25 min hasta que gratine. Resulta más rápido que el horno tradicional."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_087",
@@ -17797,7 +18709,21 @@
     "estrella": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe ajo y guindilla a presión natural (2 min), añade almejas, vino y espaguetis crudos con agua. Cierra y cocina a presión 8 min. Las almejas se cocinan al vapor mientras la pasta absorbe el caldo con sabor."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "elaborada",
+        "prepSummary": "Programa sofrito de ajo y guindilla (varoma, 3 min), añade almejas y vino (cocción 5 min), luego espaguetis cocidos aparte se mezclan en el vaso con la salsa (2 min, velocidad baja). Requiere cocinar pasta previamente en agua."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_088",
@@ -17971,7 +18897,21 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la sepia, cebolla y ajo a presión durante 2 min, añade tomate y arroz, luego caldo e tinta. Cocina a presión 12 min hasta que el arroz absorba el líquido. El resultado es cremoso y los tiempos se reducen significativamente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe sepia, cebolla y ajo con la función de temperatura controlada (varoma), añade tomate e tinta, luego arroz y caldo. Cocina a 100°C durante 18 min con giro lento. Obtiene un arroz bien integrado aunque con menos textura de grano que en cazuela."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_089",
@@ -18147,7 +19087,27 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la pasta 6 min a presión, luego sofríe el calabacín y las gambas con ajo en el modo tradicional 3 min. Rápido y eficiente, aunque pierdes algo del control del sofrito."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Pica el ajo y calabacín con la función picadora, luego usa el vaso para sofreír a 100°C 5 min. Cocina la pasta aparte y termina en el vaso con las gambas 2 min. Requiere combinar con cocción externa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza el calabacín 8 min y las gambas 4 min para cocción suave. Cocina la pasta aparte y sofríe todo junto con ajo y aceite en sartén 3 min final. Resultado más ligero pero menos sabor al ajillo."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_090",
@@ -18342,7 +19302,27 @@
     "tecnica": "horno",
     "cocina": "italiana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, mezcla pasta cocida con tomates, ajo, aceite y orégano en una bandeja, cubre con feta y hornea 25-30 min hasta que el queso se dore. El resultado es cremoso y gratinado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 190°C, coloca la pasta mezclada con ingredientes en el cesto del airfryer en porciones, cocina 18-20 min removiendo a mitad del proceso. Queda gratinada y con textura similar al horno convencional."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Cocina la pasta 2 min menos de lo indicado en la olla express, luego mezcla con tomates, ajo y aceite, cubre con feta y termina 5 min a presión baja. Gana tiempo manteniendo la cremosidad del plato."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_091",
@@ -18519,7 +19499,21 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe panceta y cebolla a presión abierta (3 min), añade tomate y vodka, cierra y cocina 8 min a presión. Abre, agrega nata y pasta cocida previamente, mezcla 2 min. Resulta más rápido que en sartén tradicional."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Programa la panceta 5 seg a velocidad 5, sofríe en modo Varoma 5 min a 100°C. Añade cebolla, tomate y vodka, cocina 10 min a 90°C. Incorpora nata y pasta cocida, mezcla suave 2 min. Salsa cremosa y homogénea garantizada."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_092",
@@ -18875,7 +19869,27 @@
     ],
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe ajo y cebolla 2 min, añade tomate, caldo y pasta sin cocinar previamente. Cierra y cocina a presión 8 min. Abre, remueve y termina con albahaca y parmesano."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Pica ajo y cebolla con la función turbo, sofríe 3 min a 100°C. Añade tomate, caldo y pasta, cocina 12 min a 100°C removiendo ocasionalmente. Termina con albahaca y queso."
+      },
+      {
+        "appliance": "microondas",
+        "time": 16,
+        "difficulty": "normal",
+        "prepSummary": "En recipiente apto, mezcla todos los ingredientes con caldo hirviendo. Cubre y cocina a potencia máxima 14 min en intervalos de 3-4 min, removiendo entre cada uno. Reposa 1 min antes de servir."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_094",
@@ -19051,7 +20065,27 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 2 min, añade tomate y macarrones crudos con agua, cierra y cocina 8 min a presión. Al final agrega queso y deja reposar 1 min."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Programa sofrito de cebolla y ajo (5 min, 100°C, vel. 1), añade tomate y macarrones cocidos aparte, mezcla 2 min. Termina con queso rallado."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina macarrones en agua hirviendo, prepara salsa de tomate con cebolla y ajo, mezcla todo en cazuela refractaria, cubre con queso y gratina 8 min a 200°C hasta dorar."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_095",
@@ -19205,7 +20239,21 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Saltea bacon y ajo 2 min a fuego fuerte, añade champiñones 3 min, luego pasta con agua y nata. Cierra y cuece 5 min a presión. Rápido y concentra sabores."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Programa turbo para picar bacon y champiñones, luego sofrito con ajo en 5 min a 100°C. Cuece pasta aparte y mezcla con nata en el vaso a temperatura suave. Requiere cocción paralela de pasta."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_096",
@@ -19384,7 +20432,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz a presión durante 8-10 minutos con caldo. Mientras, fríe el huevo y plátano en sartén aparte, y calienta el tomate frito. Monta todo junto al final."
+      },
+      {
+        "appliance": "microondas",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el arroz en microondas con agua/caldo durante 15-18 minutos en recipiente apto. Fríe huevo y plátano en sartén convencional aparte, calienta tomate frito y monta el plato."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Programa el arroz en modo cocción lenta (varoma o función cocción) durante 12-15 minutos. Fríe huevo y plátano en sartén aparte, calienta tomate frito y ensambla el plato final."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_097",
@@ -19560,7 +20628,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la pasta en agua hirviendo, prepara la salsa con chorizo y tomate en una cazuela, mezcla todo, vierte en bandeja refractaria, cubre con queso y gratina a 200°C durante 10-12 minutos hasta dorar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el chorizo y cebolla con aceite, añade tomate y pasta cruda con agua, cierra y cocina a presión 8 minutos. Abre, mezcla con queso y gratina bajo el grill 2-3 minutos si es necesario."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Pica chorizo y cebolla con la función turbo, sofríe en el vaso a 120°C 5 min, añade tomate y pasta cocida previamente, mezcla 2 min. Vierte en bandeja, cubre con queso y gratina en horno convencional 8-10 minutos."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_098",
@@ -19725,7 +20813,21 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa el Thermomix a 100°C, velocidad 1 durante 15 min para cocinar los espaguetis en agua con sal. Luego sofríe el ajo a 120°C, añade el tomate triturado y cocina 5 min más. Mezcla con la pasta y termina con albahaca y parmesano."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Calienta aceite, sofríe el ajo 1 min, añade tomate y espaguetis con agua. Cierra la olla y cocina a presión 8 min (tiempo de pasta menos 2 min). Despresurizad y termina con albahaca y parmesano."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_099",
@@ -19868,7 +20970,27 @@
         "kind": "emplatado"
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras 3 min a fuego alto, añade arroz y caldo, cierra y cocina 12 min a presión. Deja reposar 2 min antes de abrir para obtener un arroz meloso perfecto."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Programa el sofrito de verduras a 100°C, velocidad 1, luego añade arroz y caldo, cocina a 100°C velocidad 1 durante 18 min. Resulta un arroz cremoso y bien integrado."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras y arroz en cazuela apta para horno 3 min, añade caldo caliente, cubre con papel de aluminio y hornea a 180°C durante 25 min. El arroz queda meloso y uniforme."
+      }
+    ]
   },
   {
     "type": "completo",
@@ -20095,7 +21217,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 2 min, añade pollo y tomate, cierra y cocina 12 min a presión. El pollo se deshilacha perfecto y la salsa concentra sabor rápidamente."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la tinga en cazuela de barro: sofríe ingredientes 5 min en fogón, luego al horno a 180°C durante 25 min. Obtiene una cocción uniforme y presentación rústica auténtica."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Cuece el pollo al vapor 20 min, luego deshilachado se rehoga con la salsa de tomate-cebolla 10 min en la bandeja inferior. Resulta más ligero sin perder sabor."
+      }
+    ]
   },
   {
     "type": "completo",
@@ -20301,7 +21443,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el pollo a 200°C durante 12 min, retíralo y rehoga verduras a 180°C por 8 min, luego añade salsa y pollo 8 min más. El arroz se prepara aparte en hervidor convencional."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Dora el pollo en cazuela a fuego fuerte 5 min, añade verduras y salsa agridulce, hornea a 200°C durante 20 min tapado. El arroz se cuece simultáneamente en olla aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Dora pollo y verduras en modo rápido 3 min, añade salsa agridulce y arroz con caldo, cierra y cuece a presión 12 min. Desahoga naturalmente 5 min para que el arroz absorba bien los sabores."
+      }
+    ]
   },
   {
     "type": "completo",
@@ -20475,7 +21637,27 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe verduras y jamón 2 min, añade arroz y caldo (1:2), cierra y cocina 8 min a presión. Al final agrega huevo batido y guisantes, removiendo hasta cuajar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito de verduras y jamón (varoma 5 min), añade arroz tostado y caldo, cuece 10 min a 100°C. Finaliza con huevo batido en modo manual removiendo hasta integrar."
+      },
+      {
+        "appliance": "microondas",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe ingredientes en recipiente apto 3 min a máxima potencia, añade arroz y caldo (1:2), cubre y cocina 15 min removiendo cada 5 min. Termina con huevo batido 2 min más."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_103",
@@ -20582,7 +21764,27 @@
       "Saltear los tallarines en la crema, aflojando con agua de cocción hasta que napen.",
       "Servir los tallarines con el filete cortado en tiras por encima."
     ],
-    "description": "La versión peruana del pesto: albahaca y espinaca trituradas con queso y leche, muy cremosa, sobre tallarines y con un filete a la plancha encima."
+    "description": "La versión peruana del pesto: albahaca y espinaca trituradas con queso y leche, muy cremosa, sobre tallarines y con un filete a la plancha encima.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Usa el Thermomix para preparar la salsa verde: tritura albahaca, espinacas, nueces, queso y ajo con aceite (5 min). Cocina los tallarines en agua hirviendo aparte (10 min) y el filete en sartén convencional (8 min), luego mezcla todo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el filete en airfryer a 200°C durante 10-12 min (según grosor), dándole la vuelta a mitad. Los tallarines se cocinan en agua hirviendo aparte (10 min) y la salsa verde se prepara triturando ingredientes manualmente o con batidora."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina los tallarines en la olla express con agua a presión durante 6-7 min (reduce tiempo de cocción). El filete se prepara en sartén convencional (8 min) y la salsa verde se tritura manualmente o con batidora."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_104",
@@ -20687,7 +21889,21 @@
       "Devolver el pollo y las tiras de tortilla, y regar con la salsa de soja y el aceite de sésamo.",
       "Añadir la cebolleta picada, saltear 1 min más y servir enseguida."
     ],
-    "description": "El arroz frito peruano-chino: arroz salteado a fuego vivo con pollo, tortilla en tiras, cebolleta y soja. Resuelve una cena en 25 minutos."
+    "description": "El arroz frito peruano-chino: arroz salteado a fuego vivo con pollo, tortilla en tiras, cebolleta y soja. Resuelve una cena en 25 minutos.",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz a presión 8-10 min con el caldo. Mientras, saltea el pollo y verduras en la tapa abierta, luego mezcla todo con los huevos batidos y salsa de soja al final."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Pica verduras y ajo con la función picadora, cocina el pollo en modo temperatura 20 min a 90°C. Cuece el arroz previamente y termina el salteado manual para mantener la textura del chaufa."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_105",
@@ -20808,7 +22024,27 @@
       "Tapar herméticamente y cocer a fuego muy suave 20 min sin destapar.",
       "Dejar reposar 5 min, remover desde el fondo y servir con almendras y cilantro fresco."
     ],
-    "description": "Arroz basmati y pollo especiado cocinados en capas y tapados, para que el arroz se perfume con el vapor del guiso. Plato de fiesta."
+    "description": "Arroz basmati y pollo especiado cocinados en capas y tapados, para que el arroz se perfume con el vapor del guiso. Plato de fiesta.",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla, ajo y jengibre en la olla abierta, añade pollo con especias y yogur, luego cierra y cocina 15 min a presión. Incorpora el arroz basmati con caldo caliente y termina en presión otros 8-10 min hasta que el arroz absorba el líquido."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara el sofrito de cebolla, ajo y jengibre en cazuela refractaria, añade pollo marinado en yogur y especias, cubre con arroz basmati y caldo caliente. Tapa con papel de aluminio y hornea a 180°C durante 40 min hasta que el arroz esté tierno y haya absorbido el líquido."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para picar cebolla, ajo y jengibre (5 seg), luego sofríe en modo mariposa a 120°C 5 min. Añade pollo troceado, especias y yogur, cocina 20 min a 100°C. Incorpora arroz y caldo, termina 15 min a 100°C hasta absorción completa del líquido."
+      }
+    ]
   },
   {
     "id": "pasta_arroces_106",

@@ -206,7 +206,20 @@ export default defineConfig(({ mode }) => {
           // por defecto de 2 MiB de workbox — sin esto, el build falla al
           // generar el service worker en vez de simplemente dejar ese chunk
           // fuera del precache.
-          maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+          //
+          // SEGUNDA SUBIDA, y conviene que la tercera no exista. Estaba en 6
+          // MiB y el chunk llegó a 6,45 MB al completar `methods[]` en las 747
+          // recetas estrella: el build dejó de pasar por 0,16 MB. Subirlo otra
+          // vez es la tirita, no la cura — cada subida hace que la primera
+          // visita descargue más.
+          //
+          // Lo que pesa, medido: el catálogo serializado son 4,18 MB, de los
+          // que `methods[]` es 0,59 MB (14 %), y aparte va
+          // `recipeStepsByAppliance.json`, que son 1,7 MB él solo. Ese último
+          // es el candidato obvio a salir del precache: solo hace falta cuando
+          // el usuario ELIGE un método, así que no tiene por qué viajar en la
+          // primera carga ni ocupar cuota de caché de quien nunca lo abre.
+          maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         },
         devOptions: {
           enabled: false,

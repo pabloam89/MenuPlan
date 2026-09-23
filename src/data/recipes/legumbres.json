@@ -14568,7 +14568,27 @@
         "kind": "emplatado"
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras y jamón 5 min a fuego alto, añade las alubias cocidas con caldo, cierra y cocina 15 min a presión. Gana tiempo respecto a cazuela tradicional manteniendo texturas y sabores."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Programa sofrito de verduras a 100°C, velocidad 1, 8 min; añade alubias, jamón y caldo, cocina 15 min a 90°C. Resultado homogéneo y bien integrado, aunque pierde algo del carácter rústico."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe verduras y jamón en cazuela 5 min en vitrocerámica, añade alubias y caldo, termina en horno a 180°C durante 30 min. Cocción lenta y uniforme que realza sabores."
+      }
+    ]
   },
   {
     "id": "legumbres_069",
@@ -14730,7 +14750,27 @@
       }
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla, zanahoria y acelgas 3 min, añade garbanzos cocidos y patata troceada con caldo, cierra y cocina 12 min a presión. Termina con pimentón y aceite de oliva."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Programa sofrito con cebolla, zanahoria y acelgas (varoma 3 min), luego añade garbanzos, patata y caldo, cocina 20 min a 100°C. Finaliza con pimentón y aceite."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Cuece patata y zanahoria al vapor 20 min, sofríe cebolla y acelgas en bandeja inferior con aceite, mezcla todo con garbanzos cocidos y pimentón. Cocina 10 min más al vapor para integrar sabores."
+      }
+    ]
   },
   {
     "id": "legumbres_070",
@@ -14879,7 +14919,27 @@
         "kind": "emplatado"
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y chorizo a presión durante 2 min, añade arroz, judías y tomate, cierra y cocina 15 min a presión. Despresuriz y listo en menos tiempo que en cazuela tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y chorizo en cazuela refractaria, añade arroz, judías y tomate, cubre con caldo y hornea a 180°C durante 25 min hasta que el arroz absorba el líquido."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito (cebolla y chorizo a 100°C, vel. 1, 5 min), añade arroz y tomate, luego judías con caldo, y cocina a 100°C vel. 1 durante 18 min hasta que el arroz esté tierno."
+      }
+    ]
   },
   {
     "id": "legumbres_071",
@@ -15036,7 +15096,27 @@
       }
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla y ajo 2 min, añade patatas cortadas, garbanzos, tomate y pimentón. Cierra y cocina a presión 12 min. Rápido y con excelente textura."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe en cazuela a fuego fuerte 5 min, luego introduce en horno a 180°C durante 25-30 min hasta que las patatas estén tiernas. Obtiene un guiso jugoso y bien integrado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito 5 seg/vel.5 con cebolla y ajo, añade patatas cortadas, garbanzos y tomate. Cocina 25 min a 100°C con cesta de vapor o varoma. Resultado homogéneo y bien emulsionado."
+      }
+    ]
   },
   {
     "id": "legumbres_072",
@@ -15198,7 +15278,27 @@
         "kind": "emplatado"
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la costilla y verduras 5 min, añade alubias cocidas y caldo, cierra y cocina 25 min a presión. Resulta más rápido que la cazuela tradicional manteniendo el sabor."
+      },
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe costilla y verduras en cazuela 10 min, añade alubias, tapa y hornea a 180°C durante 50 min. El calor envolvente integra perfectamente los sabores."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Cuece costilla y verduras al vapor 40 min, luego sofríe brevemente en sartén con las alubias calentadas. Resulta más ligero pero requiere un paso extra de cocción."
+      }
+    ]
   },
   {
     "id": "legumbres_073",
@@ -15355,7 +15455,33 @@
         "part": "combinado"
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, saltea las verduras picadas 8 min, añade garbanzos y arroz cocido, mezcla bien y cocina 12 min más removiendo a mitad del proceso. Queda crujiente y bien integrado."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "En una cazuela de horno, saltea las verduras 5 min en la encimera, añade garbanzos y arroz cocido con un poco de caldo, cubre y hornea a 180°C durante 20 min. Resulta jugoso y bien amalgamado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Programa 5 seg velocidad 5 para picar las verduras, saltea en el vaso 8 min a 100°C velocidad cuchara, añade garbanzos y arroz cocido, cocina 5 min más a 90°C. Queda bien mezclado aunque pierde algo de textura crujiente."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Saltea las verduras picadas 3 min sin presión, añade garbanzos y arroz cocido con 50ml de caldo, cierra y cocina a presión 5 min. Despresurizador rápido y sirve. Resultado tierno y bien integrado."
+      }
+    ]
   },
   {
     "type": "completo",
@@ -15533,7 +15659,27 @@
         "kind": "emplatado"
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe chorizo y bacon 3 min, añade cebolla y ajo 2 min, luego frijoles, tomate y caldo. Cierra y cocina a presión 10 min. Termina con cilantro fresco."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe en cazuela los ingredientes 5 min en vitrocerámica, luego introduce en horno a 180°C durante 20 min. El calor envolvente integra sabores perfectamente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito (cebolla, ajo, tomate) 5 min a 100°C, velocidad 1. Añade chorizo, bacon y frijoles, cocina 15 min a 90°C. Termina con cilantro manual."
+      }
+    ]
   },
   {
     "type": "completo",
@@ -15720,7 +15866,27 @@
       }
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Programa sofrito de cebolla, ajo y jengibre a 37°C velocidad progresiva, luego añade curry y calabaza picada, cocina 15 min a 100°C con giro lento. Incorpora garbanzos y leche de coco, finaliza 5 min más."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla, ajo y jengibre en modo tradicional 3 min, añade curry y calabaza, cocina a presión 8 min. Abre, incorpora garbanzos y leche de coco, cuece 2 min más sin presión para integrar sabores."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe ingredientes base en cazuela a fuego fuerte 5 min, añade calabaza, garbanzos y leche de coco. Introduce en horno a 180°C durante 30 min tapado, removiendo a mitad de cocción para cocción uniforme."
+      }
+    ]
   },
   {
     "id": "legumbres_076",
@@ -17236,6 +17402,26 @@
     "description": "Lentejas negras guisadas muy lentamente con tomate, mantequilla y nata hasta quedar sedosas. El guiso vegetariano más goloso de la India.",
     "basesAparte": [
       "sofrito"
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla, ajo y jengibre 3 min, añade especias y tomate, luego lentejas y alubias. Cierra y cocina 15 min a presión. Al final incorpora mantequilla y nata fuera del fuego."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito de cebolla, ajo y jengibre (5 min, 100°C, vel. 1). Añade especias y tomate, cocina 20 min a 100°C. Incorpora lentejas y alubias previamente cocidas, mantequilla y nata al final."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe en cazuela los aromáticos con especias, añade tomate, lentejas y alubias. Introduce en horno a 180°C durante 35-40 min cubierto. Finaliza con mantequilla y nata fuera del horno."
+      }
     ]
   },
   {
@@ -17342,6 +17528,20 @@
     "description": "Garbanzos guisados en salsa de tomate y cebolla con especias tostadas y un golpe de limón al final. Vegano, de bote y listo en media hora.",
     "basesAparte": [
       "sofrito"
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pica cebolla, ajo y jengibre con la función picadora, luego sofríe en modo mariposa a 100°C. Añade especias, tomate y garbanzos, cocina 15 min a 100°C. Termina con cilantro y limón al final."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe cebolla, ajo y jengibre en modo tradicional 3 min, añade especias y tomate. Incorpora garbanzos cocidos, cierra y cocina a presión 10 min. Finaliza con cilantro y limón."
+      }
     ]
   }
 ]
