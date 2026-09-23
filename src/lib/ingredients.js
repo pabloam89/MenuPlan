@@ -427,6 +427,19 @@ export function computeRecipeNutrition(recipe, servings) {
     salida[nombre] = cobertura[nombre] > 0 ? perServing(totals[c], NUTRIENTES[c].decimales) : null;
   }
   salida.coverage = totalGrams > 0 ? Math.round((coveredGrams / totalGrams) * 1000) / 1000 : 0;
+  // LA MASA, QUE HASTA HOY NO SALÍA. `coverage` publicaba la FRACCIÓN de masa
+  // con ficha y se guardaba el denominador para sí, así que quien quisiera
+  // saber cuánta comida hay tenía que recalcularla entera.
+  //
+  // Es la masa de la RECETA COMPLETA, no la de una ración: los gramos se
+  // acumulan antes de dividir por `servings`, igual que `masaTotal` del
+  // vector de composición. Para la ración, entre `baseServings`.
+  //
+  // Hace falta para ponderar coberturas al fundir dos platos (ver
+  // `applyGarnishToRecipe`): sin masa, la cobertura de la suma solo se puede
+  // aproximar por el valor aportado, y esa aproximación es ciega justo en el
+  // caso que importa —un campo con cobertura 0 aporta 0 y no baja nada—.
+  salida.totalGrams = Math.round(totalGrams);
   // Qué parte de la receta sostiene cada campo secundario. Un 0,31 en
   // `sugar_g` dice que ese azúcar es el de un tercio del plato.
   salida.coberturaPorCampo = cobertura;

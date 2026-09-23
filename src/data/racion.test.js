@@ -147,6 +147,19 @@ describe("la masa por ración", () => {
     }
     // El vector hidrata (la pasta seca pesa más cocida) y el de kcal no, así
     // que una diferencia hay siempre. Lo que se vigila es que no crezca.
-    expect(divergen.length).toBeLessThanOrEqual(260);
+    //
+    // ESTE TEST NO MEDÍA NADA HASTA HOY. La guarda de arriba lee
+    // `n.totalGrams`, y `computeRecipeNutrition` no lo devolvía: era
+    // `undefined`, el `continue` se disparaba en las 1.033 recetas y `divergen`
+    // terminaba vacío SIEMPRE. El tope decía 260 y el número real es 178, así
+    // que ni siquiera habría saltado — pero pasaba por estar vacío, no por
+    // estar bien.
+    //
+    // Es la tercera vez que un test de este repo se queda mirando al vacío
+    // (el regex del vinagre, la lista de PROTEIN_IMAGE). El patrón es el mismo
+    // y no es un descuido: un test que sale verde el primer día no se vuelve a
+    // mirar. Cuando la guarda de un test depende de un campo, hay que verlo
+    // fallar una vez antes de fiarse de que pasa.
+    expect(divergen.length).toBeLessThanOrEqual(190);
   });
 });

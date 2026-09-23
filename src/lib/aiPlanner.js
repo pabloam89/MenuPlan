@@ -43,6 +43,8 @@ import { legumeSubtypeOf, mariscoSubtypeOf } from "./dishSubtype.js";
 import { normalizeKidDinnerConfig, schoolAvoidCategories, householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 import { lowerFirst } from "./dishNaming.js";
+import { aporteDe, fundirMicros } from "./derive/aporteAcompanamiento.js";
+import { computeRecipeNutrition } from "./ingredients.js";
 
 /**
  * Los nombres por ración de los 24 micronutrientes. Los cuatro macros
@@ -1869,6 +1871,24 @@ export const CATEGORY_ICON = {
   cenas_rapidas: "chef",
 };
 
+/**
+ * Gramos por ración de una receta de catálogo, memoizados por id.
+ *
+ * Sale del mismo operador que la nutrición para que las dos no puedan
+ * discrepar, y no de la tabla derivada: un artefacto sin regenerar no avisa de
+ * que está viejo, devuelve un número plausible.
+ */
+const masaCache = new Map();
+function masaDeRacion(r) {
+  if (!r?.id) return null;
+  if (masaCache.has(r.id)) return masaCache.get(r.id);
+  const raciones = r.baseServings || 2;
+  const n = computeRecipeNutrition(r, raciones);
+  const masa = n?.totalGrams > 0 ? n.totalGrams / raciones : null;
+  masaCache.set(r.id, masa);
+  return masa;
+}
+
 export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []) {
   const r = applySeasonalFruit(catalogRecipe);
   const servings = Math.max(1, eaters);
@@ -1949,8 +1969,17 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
       ...Object.fromEntries(
         MICRONUTRIENTES_RACION.filter((c) => r[c] != null).map((c) => [c, r[c]]),
       ),
-      ...(r.micronutrientesCobertura ? { cobertura: r.micronutrientesCobertura } : {}),
+      // La cobertura se COPIA, no se referencia: al fundir una guarnición se
+      // repondera campo a campo, y mutar el objeto del catálogo contaminaría
+      // la receta para todos los huecos siguientes.
+      ...(r.micronutrientesCobertura ? { cobertura: { ...r.micronutrientesCobertura } } : {}),
     },
+    // La masa por ración, que solo tiene un lector: ponderar la cobertura
+    // cuando se le funde una guarnición o una salsa (ver
+    // derive/aporteAcompanamiento.js). Sin ella la fusión conserva la
+    // cobertura del plato en vez de rebajarla, que es lo honesto pero no lo
+    // exacto. `masaDeRacion` memoiza, así que esto no recorre el catálogo.
+    masaPorRacion: masaDeRacion(r),
     // Heuristic flags (see lib/healthFlags.js) carried through so the menu/
     // dish detail can show a "menú más cuidado" badge (lib/healthProfileMatch.js).
     healthFlags: r.healthFlags ?? [],
@@ -2676,23 +2705,36 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   // Time: dishes are cooked in parallel, show the longest
   fr.time = Math.max(fr.time, garnish.time);
 
-  // Macros: garnish values are stored per baseServings
-  const gPerServing = garnish.baseServings ?? 1;
-  fr.kcal = fr.kcal + Math.round(garnish.kcal / gPerServing);
+  // MACROS: LOS DE LA GUARNICIÓN YA ESTÁN POR RACIÓN, y aquí se dividían otra
+  // vez entre `baseServings` — así que cada guarnición aportaba la mitad de lo
+  // suyo. Lo que está por receta entera son los INGREDIENTES, y de eso se
+  // ocupa `scaleSideIngredients`, que sí hace bien la división. El porqué del
+  // equívoco y las dos comprobaciones que lo cierran, en derive/aporteAcompanamiento.js.
+  fr.kcal = fr.kcal + Math.round(garnish.kcal ?? 0);
   fr.macros = {
-    protein: (fr.macros.protein ?? 0) + Math.round(garnish.protein_g / gPerServing),
-    carbs: (fr.macros.carbs ?? 0) + Math.round(garnish.carbs_g / gPerServing),
-    fat: (fr.macros.fat ?? 0) + Math.round(garnish.fat_g / gPerServing),
+    // EL SPREAD, QUE FALTABA. El objeto se reconstruía campo a campo con solo
+    // proteína, hidratos, grasa, fibra y sodio, así que aplicar una guarnición
+    // no es que no sumara los micros: los BORRABA, junto con su cobertura. Un
+    // plato emparejado llegaba a la ficha con cinco números donde antes había
+    // veintinueve. Es el mismo fallo que se documenta en `catalogToFrontendRecipe`
+    // sobre los campos que se caen en un puente, y van siete.
+    ...fr.macros,
+    protein: (fr.macros.protein ?? 0) + Math.round(garnish.protein_g ?? 0),
+    carbs: (fr.macros.carbs ?? 0) + Math.round(garnish.carbs_g ?? 0),
+    fat: (fr.macros.fat ?? 0) + Math.round(garnish.fat_g ?? 0),
     // Fibra y sodio se cargaban en el plato pero NO se sumaban aquí, así que un
     // plato con guarnición declaraba la fibra del plato solo. Con unas judías
     // verdes al lado eso no es un redondeo: es la mitad. Las 40 guarniciones y
     // las 28 salsas traen los dos datos, pero se suma con `?? 0` para que una
     // guarnición futura sin ellos reste precisión en vez de borrar el campo.
     ...(fr.macros.fiber != null
-      ? { fiber: fr.macros.fiber + Math.round((garnish.fiber_g ?? 0) / gPerServing) } : {}),
+      ? { fiber: fr.macros.fiber + Math.round(garnish.fiber_g ?? 0) } : {}),
     ...(fr.macros.sodium != null
-      ? { sodium: fr.macros.sodium + Math.round((garnish.sodium_mg ?? 0) / gPerServing) } : {}),
+      ? { sodium: fr.macros.sodium + Math.round(garnish.sodium_mg ?? 0) } : {}),
   };
+  // Y los 24 micros, que no se sumaban en absoluto. Se hace después de
+  // reconstruir `fr.macros` porque funde sobre el objeto ya montado.
+  fundirMicros(fr.macros, fr.masaPorRacion, aporteDe(garnish));
 
   // Ingredients: scale garnish to actual number of eaters. Compute the swap
   // the same way the main dish does (buildAdaptationMap against the group's
@@ -2738,20 +2780,23 @@ export function applySauceToRecipe(fr, sauce, eaters, restrictions = []) {
   // Time: se hace en paralelo o justo antes de servir, se muestra la más larga.
   fr.time = Math.max(fr.time, sauce.time);
 
-  // Macros: los valores de la salsa están guardados por baseServings.
-  const sPerServing = sauce.baseServings ?? 1;
-  fr.kcal = fr.kcal + Math.round(sauce.kcal / sPerServing);
+  // Macros: por ración, igual que la guarnición, y aquí se dividían entre
+  // `baseServings: 4` — la salsa entraba a la cuarta parte. Ver el porqué en
+  // derive/aporteAcompanamiento.js.
+  fr.kcal = fr.kcal + Math.round(sauce.kcal ?? 0);
   fr.macros = {
-    protein: (fr.macros.protein ?? 0) + Math.round(sauce.protein_g / sPerServing),
-    carbs: (fr.macros.carbs ?? 0) + Math.round(sauce.carbs_g / sPerServing),
-    fat: (fr.macros.fat ?? 0) + Math.round(sauce.fat_g / sPerServing),
+    ...fr.macros,
+    protein: (fr.macros.protein ?? 0) + Math.round(sauce.protein_g ?? 0),
+    carbs: (fr.macros.carbs ?? 0) + Math.round(sauce.carbs_g ?? 0),
+    fat: (fr.macros.fat ?? 0) + Math.round(sauce.fat_g ?? 0),
     // Mismo arreglo que en la guarnición: el sodio de una salsa no es un
     // detalle — es justo donde está.
     ...(fr.macros.fiber != null
-      ? { fiber: fr.macros.fiber + Math.round((sauce.fiber_g ?? 0) / sPerServing) } : {}),
+      ? { fiber: fr.macros.fiber + Math.round(sauce.fiber_g ?? 0) } : {}),
     ...(fr.macros.sodium != null
-      ? { sodium: fr.macros.sodium + Math.round((sauce.sodium_mg ?? 0) / sPerServing) } : {}),
+      ? { sodium: fr.macros.sodium + Math.round(sauce.sodium_mg ?? 0) } : {}),
   };
+  fundirMicros(fr.macros, fr.masaPorRacion, aporteDe(sauce));
 
   // Ingredientes: misma lógica de escalado + adaptaciones que la guarnición.
   const { renameByName, adaptations: sauceAdaptations } = buildAdaptationMap(sauce, restrictions);
