@@ -21,7 +21,7 @@
 
 import ingredientsJson from "../data/ingredients.json";
 import substitutionsJson from "../data/ingredientSubstitutions.json";
-import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, seFrie } from "./derive/masaServida.js";
+import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, seFrie, esCostra, ES_SAL, SAL_A_GRANEL } from "./derive/masaServida.js";
 // LA COMPOSICIÓN SE LEE DE LA TABLA MAESTRA, no de una copia en el catálogo.
 // `alimentos.json` es el output maestro del embudo de alimentos —el número y su
 // procedencia viven juntos— y esto es su proyección para el cliente, sellada
@@ -301,9 +301,12 @@ export function deriveRecipeAllergens(recipe) {
  * contarla entera se pasaba por un factor de 500. La regla viene de
  * scripts/audit-catalog.mjs, donde lleva tiempo, y aquí se aplica igual.
  */
-const SAL_A_GRANEL = 50;
-const ES_SAL = /^sal\b|sal gruesa|sal gorda|sal marina/i;
-const ES_AZUCAR = /^azucar/i;
+// Las tres viven ahora en derive/masaServida.js, que es el módulo que contesta
+// «de lo que se compra, cuánto llega al plato», al lado de la fracción
+// comestible y del aceite absorbido. Estaban AQUÍ, y por eso el vector de
+// composición no las conocía: la «Lubina entera a la sal» salía bien en kcal y
+// con 1.084 g por ración en masa, porque un carril descartaba la costra y el
+// otro la contaba como comida.
 
 // El tope del aceite de freír vive en derive/masaServida.js, que es el módulo
 // que contesta a «de lo que se compra, cuánto llega al plato». Aquí estaba una
@@ -377,8 +380,7 @@ export function computeRecipeNutrition(recipe, servings) {
 
   for (const { line, grams: brutos, esAceite, nombre } of lineas) {
     // La costra y el curado, fuera: ni su masa ni su sodio llegan al plato.
-    if (ES_SAL.test(nombre) && brutos >= SAL_A_GRANEL) continue;
-    if (hayCurado && ES_AZUCAR.test(nombre) && brutos >= SAL_A_GRANEL) continue;
+    if (esCostra(nombre, brutos, hayCurado)) continue;
     const grams = esAceite ? brutos * tajadaDeAceite : brutos;
     if (grams <= 0) continue;
 

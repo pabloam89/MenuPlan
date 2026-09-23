@@ -43,7 +43,7 @@ import { gramsForRecipeQuantity } from "../kitchenUnits.js";
 // cerrar un ciclo de imports). Sin esta línea `4 ud` de huevo valen null, el
 // huevo desaparece del vector y con él todas las tortillas y los revueltos.
 import "../ingredients.js";
-import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, factorHidratacion, seFrie } from "./masaServida.js";
+import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, factorHidratacion, seFrie, hayCostra, esCostra } from "./masaServida.js";
 
 const porId = new Map(alimentos.map((a) => [a.id, a]));
 const alimentoDe = (ingredientId) => porId.get(alimentoPorIngrediente[ingredientId] ?? ingredientId);
@@ -155,10 +155,21 @@ export function composicionDe(receta) {
   // y hidratar aquí le daría a un plato de pasta el doble de aceite.
   let solidoGramos = 0;
   let aceiteBruto = 0;
+  // LA COSTRA SE DECIDE MIRANDO TODAS LAS LÍNEAS, antes de contar nada: el
+  // azúcar de un gravlax solo se tira si hay sal con él. Y se decide AQUÍ
+  // porque este carril no la conocía —la regla vivía dentro de ingredients.js—
+  // y por eso la «Lubina entera a la sal» daba 1.084 g por ración: sus 1.500 g
+  // de sal gruesa contaban como comida en el vector y no en las kcal.
+  const lineasParaCostra = Object.values(porParte).flat().map((l) => ({
+    name: l.name,
+    gramos: gramsForRecipeQuantity(l.name, l.amount, l.unit) ?? 0,
+  }));
+  const conCostra = hayCostra(lineasParaCostra);
   for (const linea of Object.values(porParte).flat()) {
     const id = linea.ingredientId ?? null;
     const cruda = gramsForRecipeQuantity(linea.name, linea.amount, linea.unit);
     if (cruda == null || cruda <= 0) continue;
+    if (esCostra(linea.name, cruda, conCostra)) continue;
     const g = cruda * fraccionServida(linea.name, id, alimentoDe(id)).factor;
     if (id && ES_ACEITE_DE_FREIR.test(id)) aceiteBruto += g;
     else solidoGramos += g;
@@ -176,6 +187,8 @@ export function composicionDe(receta) {
       const t = al?.taxonomia;
       let cruda = gramsForRecipeQuantity(linea.name, linea.amount, linea.unit);
       if (cruda == null || cruda <= 0) continue;
+      // Ni su masa ni su composición llegan al plato.
+      if (esCostra(linea.name, cruda, conCostra)) continue;
       if (id && ES_ACEITE_DE_FREIR.test(id)) cruda *= tajadaDeAceite;
 
       const h = factorHidratacion(linea.name, al);

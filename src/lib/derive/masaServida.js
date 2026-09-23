@@ -347,3 +347,58 @@ export function factorHidratacion(nombreLinea, alimento) {
     duda: `ni la ficha «${alimento?.fuenteNombre ?? "—"}» ni sus ${kcal == null ? "?" : Math.round(kcal)} kcal dicen el estado`,
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// La costra que se tira
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * LA SAL DE UNA COSTRA NO SE COME, y hasta hoy eso lo sabía un solo carril.
+ *
+ * `computeRecipeNutrition` descartaba la costra desde hace tiempo; el vector de
+ * composición no, porque la regla vivía dentro de ingredients.js en vez de
+ * aquí. Resultado medido: la «Lubina entera a la sal» declara 1.500 g de sal
+ * gruesa sobre 800 g de pescado, y el vector le daba 1.084 g por ración —tres
+ * veces y media la mediana de su categoría— porque contaba la costra como
+ * comida. La misma receta salía bien en kcal y mal en masa.
+ *
+ * Es el fallo que este repo persigue: dos carriles que contestan a la misma
+ * pregunta y una regla que solo está en uno. Por eso se muda al módulo que ya
+ * responde «de lo que se compra, cuánto llega al plato», al lado de la fracción
+ * comestible y del aceite absorbido.
+ *
+ * EL AZÚCAR SOLO SI HAY SAL: un gravlax cura con sal y azúcar a partes iguales
+ * y las dos se retiran, pero el azúcar de un bizcocho se come. La condición es
+ * que haya costra, no que haya azúcar.
+ *
+ * LO QUE NO MODELA: de la costra algo se absorbe — un pescado a la sal sale
+ * salado. Descartarla entera se queda corto, igual que contarla entera se
+ * pasaba por un factor de 500.
+ */
+export const SAL_A_GRANEL = 50;
+export const ES_SAL = /^sal\b|sal gruesa|sal gorda|sal marina/i;
+export const ES_AZUCAR = /^azucar/i;
+
+/**
+ * ¿Hay una costra en esta receta? Se decide mirando TODAS las líneas antes de
+ * contar nada, porque el azúcar del gravlax solo se tira si hay sal con él.
+ *
+ * @param {{name?: string, gramos: number}[]} lineas
+ */
+/**
+ * SE NORMALIZA ANTES DE PREGUNTAR, y eso arregla un regex que nunca funcionó:
+ * `/^azucar/i` NO casa «Azúcar», porque la tilde está en medio de la palabra.
+ * El azúcar de un gravlax —que se cura con sal y azúcar a partes iguales y las
+ * dos se retiran— llevaba contándose como comida desde siempre, y nadie lo vio
+ * porque el caso es raro y el número resultante seguía siendo plausible.
+ */
+export function hayCostra(lineas) {
+  return (lineas ?? []).some((l) => ES_SAL.test(norm(l?.name)) && (l?.gramos ?? 0) >= SAL_A_GRANEL);
+}
+
+/** Si esta línea es costra y por tanto no llega al plato. */
+export function esCostra(nombre, gramos, conCostra) {
+  const n = norm(nombre);
+  if (ES_SAL.test(n) && gramos >= SAL_A_GRANEL) return true;
+  return Boolean(conCostra) && ES_AZUCAR.test(n) && gramos >= SAL_A_GRANEL;
+}
