@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { BASES, MAX_POR_SEMANA, MIN_POR_SEMANA, clavesDeReceta, tiempoDeBase, topeDeBase } from "../lib/bases.js";
 import { selectMethodForRecipe } from "../lib/applianceMethods.js";
-import { TANDA_MAX, TANDA_MIN, TANDA_PASO, aLoGrueso, abrirFindeParaTanda, enHoras, hayTandasPedidas, minutosDeTanda } from "../lib/cookTime.js";
+import { abrirFindeParaTanda, hayTandasPedidas, minutosDeTanda } from "../lib/cookTime.js";
+import { TiempoDeTanda } from "./TiempoDeTanda.jsx";
 import { weeklySlotBudget } from "../lib/planner.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
@@ -52,15 +53,6 @@ import { familiasCocinado, familiasPlato, familiasSemi, manosDeTanda } from "../
 // SliderEjes, y por lo mismo: el pulgar visible es un div con su transición y
 // el input nativo va encima transparente, que es lo único que hace bien —
 // recoger el arrastre y el toque en cualquier punto de la barra.
-const CSS_TIEMPO = `
-  .sl-tiempo { -webkit-appearance: none; appearance: none; width: 100%; height: 16px; background: transparent; outline: none; cursor: pointer; position: relative; z-index: 1; margin: 0; padding: 0; touch-action: none; }
-  .sl-tiempo::-webkit-slider-runnable-track { background: transparent; height: 7px; }
-  .sl-tiempo::-moz-range-track { background: transparent; height: 7px; border: none; }
-  .sl-tiempo::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: transparent; border: none; margin-top: -7px; }
-  .sl-tiempo::-moz-range-thumb { width: 20px; height: 20px; border: none; border-radius: 50%; background: transparent; }
-  .sl-tiempo:focus-visible { outline: 2px solid #2d5a3d; outline-offset: 2px; border-radius: 4px; }
-`;
-
 /**
  * Los bloques, y por qué estos tres.
  *
@@ -434,7 +426,6 @@ export function BasesPreferidas({ data, setData, trasInventario = null }) {
     .reduce((suma, f) => suma + manosDeTanda(f.id, vecesDePlato(f.id)), 0);
   const manosTotales = manosPedidas + manosDePlatos;
   const presupuesto = minutosDeTanda(data);
-  const pasado = manosTotales > presupuesto;
 
   /**
    * Hasta dónde puede subir una fila sin pasarse del tiempo que has dicho tener.
@@ -565,17 +556,6 @@ export function BasesPreferidas({ data, setData, trasInventario = null }) {
     ? GRUPOS.map((g) => ({ titulo: g.titulo, ejes: g.claves.map((id) => ejeDeBase(id, g.color)) }))
     : bloquesDePlato(pestana);
 
-  /**
-   * Dónde cae un número de minutos en la barra. La MISMA para las dos, y ese
-   * es el arreglo: la de arriba iba por el recorrido del deslizador y la de
-   * abajo por el máximo, así que con hora y media disponible y media hora
-   * gastada, lo gastado se pintaba más largo que lo que tenías.
-   */
-  const posicion = (min) => Math.max(0, Math.min(1, (min - TANDA_MIN) / (TANDA_MAX - TANDA_MIN)));
-  // Y topada en el pulgar: lo invertido no puede dibujarse más allá de lo
-  // disponible. Que te hayas pasado lo dice el color y el aviso, no una barra
-  // que se sale, porque una barra que se sale no dice cuánto te has pasado.
-  const gastado = Math.min(posicion(manosTotales), posicion(presupuesto));
 
   const escribir = (ruta, n) => setData((d) => {
     const actual = normalizarLibreta(d?.notepad);
@@ -632,97 +612,11 @@ export function BasesPreferidas({ data, setData, trasInventario = null }) {
           Lo que se cuenta son MANOS, no reloj. El domingo se solapa —mientras
           el caldo hierve estás picando otra cosa— así que sumar relojes diría
           que dos guisos te comen la mañana cuando en realidad estás leyendo. */}
-      <div style={{ background: "#fff", border: "1px solid #eef2ef", borderRadius: 16, padding: "12px 14px", marginBottom: 12 }}>
-        <style>{CSS_TIEMPO}</style>
-
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d" }}>Tiempo disponible</span>
-          <span style={{ fontSize: 13, fontWeight: 900, color: "#2d5a3d" }}>{enHoras(presupuesto)}</span>
-        </div>
-
-        <span style={{ position: "relative", height: 16, display: "flex", alignItems: "center", marginBottom: 10 }}>
-          <span style={{ position: "absolute", left: 0, right: 0, height: 7, borderRadius: 4, background: "#e4ede7", overflow: "hidden", pointerEvents: "none" }}>
-            <span style={{
-              display: "block", height: "100%", borderRadius: 4, background: "#2d5a3d",
-              width: `${posicion(presupuesto) * 100}%`,
-              transition: "width .3s ease",
-            }} />
-          </span>
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute", width: 20, height: 20, borderRadius: "50%",
-              background: "#fff", border: "2.5px solid #2d5a3d", boxShadow: "0 1px 4px rgba(9,18,12,.2)",
-              left: `calc((100% - 13px) * ${(presupuesto - TANDA_MIN) / (TANDA_MAX - TANDA_MIN)})`,
-              pointerEvents: "none",
-            }}
-          />
-          <input
-            className="sl-tiempo"
-            type="range"
-            min={TANDA_MIN}
-            max={TANDA_MAX}
-            step={TANDA_PASO}
-            value={presupuesto}
-            aria-label="Tiempo que quieres dedicar a cocinar de antes"
-            onChange={(e) => setData((d) => ({ ...d, tandaMinutos: Number(e.target.value) }))}
-          />
-        </span>
-
-        {/* Lo gastado, en la misma escala y sin pulgar: es una lectura, no un
-            mando, y un círculo invitaría a arrastrarlo.
-
-            En el mismo negro que la línea de arriba, y no en ámbar al pasarse:
-            el texto se ponía del color de una alarma para decir un número que
-            no tiene nada de malo. Que no quepa más lo dicen los deslizadores,
-            que dejan de subir, y esta barra, que se ve llena. Debajo hubo un
-            aviso ("Se pasa de lo que dijiste. Quita alguna tanda…") y llegaba
-            tarde: te dejaba pedir la mañana entera y luego regañaba sin decir
-            qué quitar. */}
-        {/* Mismo cuerpo y mismo peso que la línea de arriba: iban un punto más
-            pequeñas (12/700 contra 12.5/800) y, una encima de otra, la de abajo
-            parecía un pie de foto de la de arriba en vez de su pareja. */}
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d" }}>
-            Tiempo invertido
-          </span>
-          <span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d" }}>
-            {manosTotales === 0 ? "nada todavía" : enHoras(aLoGrueso(manosTotales))}
-          </span>
-        </div>
-        <span style={{ position: "relative", height: 16, display: "flex", alignItems: "center" }}>
-          <span style={{ position: "absolute", left: 0, right: 0, height: 7, borderRadius: 4, background: "#e4ede7", overflow: "hidden" }}>
-            <span style={{
-              display: "block", height: "100%", borderRadius: 4,
-              // El ámbar solo queda para lo que ya venía pasado de antes (bajar
-              // el tiempo disponible con tandas ya pedidas): ahí la barra llena
-              // y ámbar es lo único que lo cuenta.
-              background: pasado ? "#b45309" : "#7bbf93",
-              width: `${gastado * 100}%`,
-              transition: "width .3s ease",
-            }} />
-          </span>
-          {/* El círculo del final, para que las dos barras se lean como una
-              pareja y no como una barra y su sombra. Va con la misma medida y
-              el mismo calce de 13px que el de arriba —el que el navegador le da
-              a su pulgar— para que los dos caigan en la misma vertical cuando
-              marcan lo mismo.
-
-              Pinta pero no se toca: sin `input` debajo y con los eventos
-              apagados. Lo que dice es dónde acaba una lectura. */}
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute", width: 20, height: 20, borderRadius: "50%",
-              background: "#fff", border: `2.5px solid ${pasado ? "#b45309" : "#7bbf93"}`,
-              boxShadow: "0 1px 4px rgba(9,18,12,.2)",
-              left: `calc((100% - 13px) * ${gastado})`,
-              transition: "left .3s ease",
-              pointerEvents: "none",
-            }}
-          />
-        </span>
-      </div>
+      <TiempoDeTanda
+        presupuesto={presupuesto}
+        invertido={manosTotales}
+        onPresupuesto={(v) => setData((d) => ({ ...d, tandaMinutos: v }))}
+      />
 
       {/* Las tres patas de la sesión. Van DEBAJO del tiempo porque el tiempo
           manda sobre las tres: primero dices cuánto tienes y luego en qué te lo
