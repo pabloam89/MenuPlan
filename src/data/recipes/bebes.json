@@ -184,22 +184,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 22,
-        "difficulty": "facil",
-        "prepSummary": "Introduce todos los ingredientes en el vaso, cocina a 100°C durante 18 minutos a velocidad cuchara. Después, tritura a velocidad progresiva 5-10 durante 1 minuto hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
-      },
-      {
         "appliance": "vaporera",
-        "time": 23,
-        "difficulty": "normal",
-        "prepSummary": "Cocina el calabacín y el pollo al vapor durante unos 18-20 minutos hasta que estén muy tiernos. Mientras, prepara el cuscús con el caldo casero y, una vez cocidos, tritura todos los ingredientes con el aceite de oliva hasta conseguir una crema lisa que se aplaste sin esfuerzo."
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cuece el calabacín troceado a lo largo y la pechuga de pollo en vaporera durante 15 minutos hasta que se aplaste sin esfuerzo. Cuece el cuscús aparte en caldo casero sin sal. Mezcla todo y tritura con batidora de mano hasta obtener un puré fino y sin grumos."
       },
       {
-        "appliance": "olla_express",
-        "time": 14,
+        "appliance": "thermomix",
+        "time": 16,
         "difficulty": "facil",
-        "prepSummary": "Introduce el calabacín, el pollo, el cuscús y el caldo en la olla a presión y cocina durante 7 minutos desde que sube la válvula. Una vez despresurizada, añade el aceite de oliva y tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+        "prepSummary": "Programa 15 minutos a 100°C, velocidad 1, con el cuscús, calabacín troceado a lo largo, pechuga de pollo y caldo casero sin sal. Tritura después a velocidad progresiva hasta obtener un puré fino y sin grumos que se aplaste entre dos dedos."
       }
     ],
     "formato": "cremoso",
@@ -345,22 +339,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 22,
-        "difficulty": "facil",
-        "prepSummary": "Corta la zanahoria y la patata a lo largo. Revisa la merluza para asegurarte de que no tiene espinas. Coloca todos los ingredientes en el recipiente Varoma con 500ml de agua en el vaso y cocina al vapor durante 20 minutos a velocidad Varoma."
-      },
-      {
         "appliance": "vaporera",
-        "time": 27,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Corta la zanahoria y la patata a lo largo. Revisa la merluza para asegurarte de que no tiene espinas. Coloca todos los ingredientes en la cesta de la vaporera y cocina al vapor durante 25 minutos."
+        "prepSummary": "Corta la zanahoria y patata a lo largo en bastones finos, coloca junto con la merluza en la vaporera a 100°C durante 15 minutos hasta que se ablanden completamente. Después tritura todo hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
-        "time": 9,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Corta la zanahoria y la patata a lo largo. Revisa la merluza para asegurarte de que no tiene espinas. Coloca todos los ingredientes en la olla express con 150ml de agua y cocina durante 7 minutos desde que sube la válvula."
+        "prepSummary": "Corta la zanahoria y patata a lo largo en bastones finos, coloca en la olla con 200ml de agua junto con la merluza y cocina a presión durante 8 minutos. Después tritura todo hasta obtener un puré fino y sin grumos."
       }
     ],
     "formato": "cremoso",
@@ -516,22 +504,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Introduce la calabaza, el boniato y el pavo troceados junto con el aceite de oliva en el vaso. Cocina a 100°C, velocidad 1, durante unos 18-20 minutos o hasta que estén muy tiernos."
-      },
-      {
         "appliance": "vaporera",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Corta la calabaza, el boniato y el pavo en trozos pequeños. Cocínalos al vapor durante unos 18-20 minutos, o hasta que estén muy tiernos y se aplasten sin esfuerzo."
+        "prepSummary": "Corta la calabaza y el boniato a lo largo en trozos de unos 2cm, coloca junto con la pechuga de pavo en la vaporera y cocina 18 minutos hasta que todo esté muy tierno y se aplaste sin esfuerzo. Después tritura todo hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
         "time": 15,
         "difficulty": "normal",
-        "prepSummary": "Introduce la calabaza, el boniato y el pavo troceados en la olla express con un chorrito de agua. Cierra y cocina a presión durante 5-7 minutos desde que sube la válvula."
+        "prepSummary": "Coloca la calabaza y el boniato cortados a lo largo con la pechuga de pavo en la olla exprés con agua, cierra y cocina a presión 8 minutos hasta que todo esté muy tierno y se aplaste sin esfuerzo. Después tritura todo hasta obtener un puré fino y sin grumos."
       }
     ],
     "formato": "cremoso",
@@ -674,22 +656,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
+        "appliance": "vaporera",
         "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Corta las judías y la patata en trozos pequeños, y la ternera en dados. Cocina todos los ingredientes en el vaso con un poco de agua (100-150 ml) a 100°C, velocidad cuchara, durante 20-25 minutos hasta que se aplasten sin esfuerzo."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 30,
-        "difficulty": "facil",
-        "prepSummary": "Corta las judías y la patata en trozos pequeños, y la ternera en dados. Cocina todos los ingredientes en la vaporera durante 25-30 minutos hasta que se aplasten sin esfuerzo. Retira, añade el aceite de oliva y tritura con una batidora hasta obtener una crema lisa y homogénea."
+        "prepSummary": "Corta la patata y la ternera a lo largo en tiras finas, coloca todo junto con las judías verdes en la vaporera a fuego medio durante 20 minutos hasta que todo esté muy tierno y se aplaste sin esfuerzo. Después tritura todo hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
         "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Corta las judías y la patata en trozos pequeños, y la ternera en dados. Cocina todos los ingredientes en la olla express con un poco de agua (100-150 ml) durante 8-10 minutos desde que sube la válvula, hasta que se aplasten sin esfuerzo."
+        "prepSummary": "Corta la patata y la ternera a lo largo en tiras finas, cubre todo con agua en la olla exprés y cocina a presión durante 8-10 minutos hasta que esté muy blando y se aplaste sin esfuerzo. Después tritura todo hasta obtener un puré fino y sin grumos."
       }
     ],
     "formato": "cremoso",
@@ -826,22 +802,22 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 23,
-        "difficulty": "facil",
-        "prepSummary": "Introduce el pollo troceado, los guisantes, el arroz y 200 ml de agua junto con el aceite en el vaso. Cocina a 100°C, velocidad 1, durante 22 minutos. Luego tritura a velocidad progresiva 5-10 hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
-      },
-      {
         "appliance": "vaporera",
-        "time": 30,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Corta el pollo en trozos pequeños. Coloca el pollo, los guisantes y el arroz en la vaporera. Cocina al vapor durante 30 minutos, hasta que todos los ingredientes estén muy tiernos y se aplasten sin esfuerzo."
+        "prepSummary": "Cuece el arroz 12 minutos al vapor, añade los guisantes y el pollo troceado a lo largo durante 8 minutos más. Tritura todo junto con el aceite de oliva hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
-        "time": 20,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Introduce el pollo troceado, los guisantes, el arroz y 200 ml de agua en la olla express. Cierra y cocina a presión durante 10 minutos. Deja que se libere la presión, añade el aceite y tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+        "prepSummary": "Introduce el arroz, guisantes y pollo troceado a lo largo con 100ml de agua. Cierra y cuece a presión 8 minutos. Tritura el resultado con el aceite de oliva hasta lograr una crema lisa y homogénea sin grumos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "normal",
+        "prepSummary": "Cuece el arroz, guisantes y pollo troceado a lo largo en el vaso a 100°C, 15 minutos, velocidad 1. Luego tritura a velocidad progresiva hasta obtener un puré fino y sin grumos, añadiendo el aceite de oliva."
       }
     ],
     "formato": "cremoso",
@@ -1004,16 +980,22 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 25,
+        "appliance": "vaporera",
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Cocina el arroz en el vaso con 150ml de agua mientras cueces al vapor el brócoli y la merluza en el Varoma durante 18 minutos a temperatura Varoma. Retira las espinas del pescado, añade el aceite y tritura todo hasta obtener una crema lisa que se aplaste sin esfuerzo."
+        "prepSummary": "Cuece el arroz 12 minutos, luego añade el brócoli en ramilletes pequeños y la merluza en tiras finas a lo largo durante 8 minutos más. Tritura todo junto con el aceite de oliva hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
-        "time": 18,
+        "time": 12,
         "difficulty": "normal",
-        "prepSummary": "Introduce el brócoli, la merluza y el arroz con 150ml de agua en la olla a presión. Cierra y cocina durante 8 minutos desde que sube la válvula."
+        "prepSummary": "Cuece a presión durante 8 minutos el arroz con el brócoli en ramilletes pequeños y la merluza en tiras finas a lo largo. Tritura todo junto con el aceite de oliva hasta obtener un puré fino y homogéneo sin grumos. Está listo cuando se aplasta completamente entre dos dedos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece el arroz 12 minutos en agua, añade el brócoli en ramilletes pequeños y la merluza en tiras finas a lo largo, cocina 6 minutos más. Tritura en el Thermomix con el aceite de oliva a velocidad progresiva hasta obtener un puré fino y sin grumos."
       }
     ],
     "formato": "cremoso",
@@ -1165,22 +1147,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 22,
-        "difficulty": "facil",
-        "prepSummary": "Introduce el arroz, el pollo troceado a lo largo y la zanahoria en el vaso con 200 ml de agua. Cocina a 100°C, velocidad cuchara, durante 20 minutos y luego tritura a velocidad progresiva 5-10 hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
-      },
-      {
         "appliance": "vaporera",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Cocina el arroz por separado en agua hirviendo hasta que esté muy tierno y, simultáneamente, cocina al vapor el pollo troceado a lo largo y la zanahoria durante 18 minutos hasta que se aplasten sin esfuerzo."
+        "prepSummary": "Cuece el arroz, el pollo troceado a lo largo y la zanahoria en tiras en la vaporera a 100°C durante 15 minutos hasta que todo esté muy blando y se aplaste sin esfuerzo. Tritura todos los ingredientes con el aceite de oliva hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
-        "time": 18,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Introduce el arroz, el pollo troceado a lo largo y la zanahoria en la olla express con 200 ml de agua, cierra y cocina durante 8 minutos desde que sube la válvula."
+        "prepSummary": "Cuece el arroz, el pollo troceado a lo largo y la zanahoria en tiras en la olla exprés a presión durante 6 minutos hasta que todo esté muy blando y se aplaste sin esfuerzo. Tritura todos los ingredientes con el aceite de oliva hasta obtener un puré fino y sin grumos."
       }
     ],
     "formato": "cremoso",
@@ -1328,22 +1304,22 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 28,
-        "difficulty": "facil",
-        "prepSummary": "Introduce las lentejas rojas bien lavadas, la zanahoria y el calabacín troceados a lo largo en el vaso junto con 200ml de agua. Cocina a 100°C, velocidad cuchara, durante 25 minutos."
-      },
-      {
         "appliance": "vaporera",
-        "time": 32,
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Lava bien las lentejas rojas y trocea la zanahoria y el calabacín a lo largo. Coloca las lentejas y las verduras en la cesta de la vaporera y cocina durante 30 minutos, hasta que todos los ingredientes estén muy tiernos."
+        "prepSummary": "Corta la zanahoria y calabacín a lo largo en bastones, coloca todos los ingredientes en la vaporera a fuego medio durante 20 minutos hasta que se ablanden completamente. Después tritura todo hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
-        "time": 18,
+        "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Lava bien las lentejas rojas y trocea la zanahoria y el calabacín a lo largo. Introduce todos los ingredientes en la olla express junto con 200ml de agua. Cierra la olla y cocina durante 7 minutos desde que sube la válvula. Deja que pierda la presión de forma natural."
+        "prepSummary": "Corta la zanahoria y calabacín a lo largo en bastones, coloca todos los ingredientes con 100ml de agua en la olla express. Cierra y cocina a presión durante 8 minutos. Después tritura todo hasta obtener un puré fino y sin grumos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta la zanahoria y calabacín a lo largo en bastones. Programa el Thermomix a 100°C, velocidad 1, durante 18 minutos con la cesta de vapor. Tritura después a velocidad 6 durante 30 segundos hasta obtener un puré fino y sin grumos, añadiendo el aceite de oliva."
       }
     ],
     "formato": "cremoso",
@@ -1504,22 +1480,22 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Coloca el boniato, pavo y calabacín troceados a lo largo en el vaso con 200ml de agua. Cocina al vapor a 100°C, velocidad 1, durante 20-25 minutos, hasta que se aplasten sin esfuerzo."
-      },
-      {
         "appliance": "vaporera",
-        "time": 25,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Trocea el boniato, pavo y calabacín a lo largo y colócalos en la vaporera. Cocina al vapor durante 20-25 minutos, hasta que estén muy tiernos y se aplasten sin esfuerzo. Pasa a un recipiente, añade el aceite de oliva y tritura hasta obtener una crema lisa y homogénea."
+        "prepSummary": "Trocea el boniato y calabacín a lo largo en tiras finas, coloca junto con la pechuga de pavo en la vaporera durante 15 minutos hasta que todo esté muy tierno. Tritura con batidora o robot de cocina hasta obtener un puré fino y sin grumos, añade el aceite de oliva y mezcla bien."
       },
       {
         "appliance": "olla_express",
-        "time": 20,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Introduce el boniato, pavo y calabacín troceados a lo largo en la olla express con un vaso de agua. Cierra y cocina a fuego medio durante 8-10 minutos desde que suba la válvula. Libera la presión, y tritura con el aceite de oliva hasta obtener una crema lisa y homogénea."
+        "prepSummary": "Trocea el boniato y calabacín a lo largo en tiras finas, coloca con la pechuga de pavo en la olla express con un poco de agua durante 6 minutos desde que sube la presión. Tritura con batidora o robot de cocina hasta obtener un puré fino y sin grumos, incorpora el aceite de oliva."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Trocea el boniato y calabacín a lo largo en tiras finas, coloca con la pechuga de pavo y 100ml de agua en el Thermomix, programa 18 minutos a 100°C velocidad 1. Tritura después a velocidad progresiva hasta obtener un puré fino y homogéneo, añade el aceite de oliva y mezcla."
       }
     ],
     "formato": "cremoso",
@@ -1696,22 +1672,22 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Introduce el puerro troceado, el salmón sin espinas ni piel, el arroz, el aceite de oliva y un poco de agua en el vaso. Cocina a 100°C durante unos 18-20 minutos hasta que todo esté muy tierno. Luego, tritura a velocidad alta hasta obtener una crema lisa y homogénea."
-      },
-      {
         "appliance": "vaporera",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Cocina el arroz en agua hasta que esté muy tierno. Mientras tanto, cocina al vapor el puerro troceado y el salmón sin espinas ni piel durante unos 12-15 minutos."
+        "prepSummary": "Cuece el arroz 12 minutos en agua, añade el puerro cortado a lo largo en tiras finas y el salmón en filetes sin espinas otros 6 minutos al vapor. Tritura todo junto con el aceite de oliva hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
-        "time": 15,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Introduce el puerro troceado, el salmón sin espinas ni piel, el arroz, el aceite de oliva y un poco de agua en la olla a presión. Cocina durante 5-7 minutos desde que sube la válvula, luego despresuriza y tritura hasta obtener una crema lisa y homogénea."
+        "prepSummary": "Calienta el aceite, sofríe el puerro cortado a lo largo 2 minutos, añade el arroz y el salmón sin espinas en filetes, cubre con agua y cierra. Cocina a presión 8 minutos. Tritura todo hasta obtener un puré fino y sin grumos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el arroz 12 minutos en el vaso con agua a 100°C, añade el puerro cortado a lo largo y el salmón sin espinas otros 5 minutos. Tritura todo con el aceite de oliva a velocidad progresiva hasta obtener un puré fino y sin grumos."
       }
     ],
     "formato": "cremoso",
@@ -1860,34 +1836,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "horno",
-        "time": 35,
-        "difficulty": "facil",
-        "prepSummary": "Corta la calabaza y la zanahoria a lo largo. Colócalas en una bandeja de horno con el aceite de oliva y asa a 180°C durante unos 30-35 minutos, o hasta que estén muy tiernas y se aplasten sin esfuerzo. Después, tritura con los garbanzos cocidos hasta obtener una crema lisa."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 22,
-        "difficulty": "facil",
-        "prepSummary": "Introduce la calabaza y la zanahoria troceadas a lo largo en el vaso. Añade los garbanzos cocidos y un poco de agua si es necesario. Cocina a 100°C, velocidad cuchara, durante unos 15-20 minutos, o hasta que las verduras estén muy tiernas."
-      },
-      {
         "appliance": "vaporera",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Corta la calabaza y la zanahoria a lo largo. Cuécelas al vapor durante unos 15-20 minutos, o hasta que estén muy tiernas y se aplasten sin esfuerzo. Después, tritura junto con los garbanzos cocidos y el aceite de oliva hasta obtener una crema lisa."
+        "prepSummary": "Coloca los garbanzos, calabaza y zanahoria en la vaporera y cocina a vapor durante 20 minutos hasta que estén muy tiernos. Tritura con batidora de mano o robot de cocina hasta conseguir un puré liso y homogéneo, incorpora el aceite de oliva."
       },
       {
         "appliance": "olla_express",
         "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Corta la calabaza y la zanahoria a lo largo y ponlas en la olla express con un poco de agua. Cierra y cocina a fuego medio-alto durante 5-7 minutos desde que sube la válvula."
-      },
-      {
-        "appliance": "microondas",
-        "time": 7,
-        "difficulty": "facil",
-        "prepSummary": "Corta la calabaza y la zanahoria a lo largo. Colócalas en un recipiente apto para microondas con un chorrito de agua, tapa y cocina a máxima potencia durante 5-7 minutos, o hasta que estén muy tiernas y se aplasten sin esfuerzo."
+        "prepSummary": "Introduce los garbanzos, calabaza y zanahoria en la olla express con agua y cocina a presión durante 8 minutos. Tritura con batidora de mano o robot de cocina hasta obtener un puré fino sin grumos, añade el aceite de oliva y remueve."
       }
     ],
     "formato": "cremoso",
@@ -2049,28 +2007,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Corta el boniato y el tomate, cocínalos al vapor en el Thermomix hasta que estén muy tiernos (unos 15 minutos)."
-      },
-      {
         "appliance": "vaporera",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Corta el boniato y el tomate, cuécelos al vapor hasta que estén muy tiernos (unos 15-18 minutos)."
-      },
-      {
-        "appliance": "olla_express",
         "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Corta el boniato y el tomate, cocínalos en la olla express con un poco de agua hasta que estén muy blandos (unos 5-7 minutos desde que sube la válvula)."
+        "prepSummary": "Vaporiza el boniato troceado a lo largo durante 10 minutos hasta que esté muy tierno. Cuece el huevo batido en la misma vaporera 3 minutos más junto con el tomate natural."
       },
       {
-        "appliance": "microondas",
-        "time": 12,
+        "appliance": "thermomix",
+        "time": 10,
         "difficulty": "facil",
-        "prepSummary": "Corta el boniato y el tomate, cocínalos en un recipiente apto para microondas con un poco de agua hasta que estén muy tiernos (unos 8-10 minutos)."
+        "prepSummary": "Cuece el boniato troceado a lo largo en agua a 100°C durante 8 minutos en el Thermomix, añade el tomate y el huevo batido, cocina 2 minutos más. Tritura a velocidad progresiva hasta obtener un puré fino y homogéneo sin grumos, añade el aceite de oliva."
       }
     ],
     "temperatura": "caliente"
@@ -2217,16 +2163,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
+        "appliance": "vaporera",
+        "time": 22,
         "difficulty": "facil",
-        "prepSummary": "Introduce la ternera cortada a lo largo y las espinacas con el caldo y el aceite en el vaso. Cocina a 90°C durante 15 minutos a velocidad cuchara. Añade los copos de avena y cocina 3 minutos más a la misma temperatura y velocidad."
+        "prepSummary": "Vaporiza la ternera troceada a lo largo durante 12 minutos hasta que esté muy tierna; en los últimos 5 minutos añade las espinacas. Cuece la avena en el caldo caliente 5 minutos aparte. Después tritura todo hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
         "time": 15,
         "difficulty": "facil",
-        "prepSummary": "En la olla exprés, cocina la ternera cortada a lo largo y las espinacas con el caldo y el aceite durante 7 minutos desde que sube la válvula. Despresuriza, añade los copos de avena y cocina 3 minutos más sin tapa a fuego medio."
+        "prepSummary": "Calienta el caldo en la olla exprés, añade la ternera troceada a lo largo, cierra y cuece a presión 6 minutos; libera presión, incorpora espinacas y avena, cuece 3 minutos más. Tritura con batidora de mano hasta obtener un puré fino y sin grumos, añade el aceite de oliva."
       }
     ],
     "formato": "cremoso",
@@ -2379,16 +2325,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 25,
+        "appliance": "vaporera",
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Trocea el calabacín y cuécelo en el vaso con un poco de agua durante 15 minutos a 100°C, velocidad cuchara. Incorpora la sémola y el huevo, y cocina 5 minutos más a la misma temperatura. Tritura a velocidad progresiva hasta obtener una crema lisa y homogénea."
+        "prepSummary": "Cuece el calabacín cortado a lo largo en vaporera durante 12-15 minutos hasta que esté muy tierno. Cuece el huevo aparte 10 minutos. Mezcla el calabacín cocido, el huevo y la sémola, añade el aceite de oliva y tritura con batidora hasta obtener un puré fino y sin grumos."
       },
       {
-        "appliance": "olla_express",
-        "time": 18,
+        "appliance": "thermomix",
+        "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Corta el calabacín y cuécelo en la olla express con un poco de agua durante 5 minutos desde que sube la válvula. Despresuriza, añade la sémola y el huevo, y cocina a fuego suave 5 minutos más. Tritura con una batidora de mano hasta obtener una crema lisa y homogénea."
+        "prepSummary": "Cuece el calabacín cortado a lo largo en el Thermomix a 100°C durante 12 minutos. Cuece el huevo aparte 10 minutos. Introduce el calabacín cocido, el huevo, la sémola y el aceite en el Thermomix y tritura 30-40 segundos hasta obtener un puré fino y homogéneo sin grumos."
       }
     ],
     "formato": "cremoso",
@@ -2552,22 +2498,22 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 22,
-        "difficulty": "facil",
-        "prepSummary": "Introduce la coliflor, la patata y el pollo troceados en el vaso con 100ml de agua. Cocina 20 minutos a 100°C, velocidad 1. Después, añade el aceite de oliva y tritura a velocidad progresiva 5-10 hasta obtener una crema lisa. Estará listo cuando se aplaste sin esfuerzo."
-      },
-      {
         "appliance": "vaporera",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Corta la coliflor, la patata y el pollo en trozos pequeños. Cuécelos al vapor durante unos 18 minutos hasta que estén muy tiernos. Tritura con un poco del agua de cocción y el aceite de oliva hasta conseguir una crema lisa. Estará listo cuando se aplaste sin esfuerzo."
+        "prepSummary": "Corta la patata y coliflor a lo largo en trozos pequeños, coloca junto con la pechuga de pollo troceada en la vaporera y cocina 15 minutos hasta que todo esté muy tierno y se aplaste sin esfuerzo. Después tritura todo hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
-        "time": 15,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Corta la coliflor, la patata y el pollo en trozos pequeños. Ponlos en la olla express con 100ml de agua. Cierra y cocina 6 minutos desde que sube la válvula. Libera la presión, añade el aceite de oliva y tritura hasta obtener una crema lisa."
+        "prepSummary": "Corta la patata y coliflor a lo largo en trozos pequeños, coloca en la olla exprés con la pechuga troceada y 100ml de agua, cierra y cocina a presión 5 minutos. Abre cuando baje la presión y comprueba que todo se aplasta sin esfuerzo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Corta la patata y coliflor a lo largo en trozos pequeños y la pechuga en tiras. Coloca en el vaso con 150ml de agua, programa 18 minutos a 100°C, velocidad 1. Cuando termine, comprueba que todo se aplasta sin esfuerzo."
       }
     ],
     "formato": "cremoso",
@@ -2716,22 +2662,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Corta la patata y el pavo en trozos pequeños. Cocínalos en el vaso de la Thermomix junto con la remolacha cocida y el aceite de oliva a 100°C durante unos 15-20 minutos, hasta que todos los ingredientes se aplasten sin esfuerzo."
-      },
-      {
         "appliance": "vaporera",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Corta la patata y el pavo en trozos pequeños. Cuécelos al vapor durante unos 15-20 minutos, hasta que estén tan blandos que se aplasten sin esfuerzo. Después, tritura junto con la remolacha cocida y el aceite de oliva hasta obtener una crema lisa y homogénea."
+        "prepSummary": "Corta la pechuga de pavo a lo largo en tiras finas, la patata en bastones largos y coloca todo junto con la remolacha cocida en la vaporera a fuego medio durante 15 minutos. Después tritura todo hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
         "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Corta la patata y el pavo en trozos pequeños. Cuécelos en la olla express con un poco de agua durante 5-7 minutos desde que sube la válvula, hasta que estén tan blandos que se aplasten sin esfuerzo."
+        "prepSummary": "Corta la pechuga de pavo a lo largo en tiras finas y la patata en bastones largos. Coloca todo con la remolacha cocida en la olla exprés con un poco de agua, cierra y cocina a presión durante 8 minutos. Después tritura todo hasta obtener un puré fino y sin grumos."
       }
     ],
     "formato": "cremoso",
@@ -2890,28 +2830,22 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Corta el boniato a lo largo y colócalo con el salmón (revisa espinas) y las espinacas en el recipiente Varoma. Cocina al vapor a 100°C, velocidad 1, durante 15-18 minutos, hasta que todo se aplaste sin esfuerzo."
-      },
-      {
         "appliance": "vaporera",
-        "time": 20,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Corta el boniato a lo largo y colócalo con el salmón (revisa espinas) y las espinacas en la cesta de la vaporera. Cocina al vapor durante 15-18 minutos, hasta que el boniato y el salmón se aplasten sin esfuerzo."
+        "prepSummary": "Corta el boniato a lo largo en bastones finos, el salmón en trozos pequeños y coloca las espinacas en la vaporera a 100°C durante 12-15 minutos hasta que todo esté muy tierno. Después tritura todo hasta obtener un puré fino y sin grumos."
       },
       {
         "appliance": "olla_express",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Corta el boniato a lo largo y colócalo en la cesta de vapor de la olla express con un poco de agua en el fondo. Añade el salmón (revisa espinas) y las espinacas. Cierra la olla y cocina a presión durante 5-7 minutos."
-      },
-      {
-        "appliance": "microondas",
         "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Corta el boniato a lo largo y colócalo en un recipiente apto para microondas con un chorrito de agua. Cocina a máxima potencia durante 5-7 minutos, hasta que esté muy tierno."
+        "prepSummary": "Corta el boniato a lo largo en bastones finos y el salmón en trozos pequeños; añade 100ml de agua, cierra la olla y cocina a presión durante 6-7 minutos desde que silba. Añade las espinacas en los últimos 2 minutos. Después tritura todo hasta obtener un puré fino y sin grumos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "normal",
+        "prepSummary": "Corta el boniato a lo largo en bastones finos y el salmón en trozos pequeños. Programa 15 minutos a 100°C, velocidad 1, con la cesta de vapor: coloca boniato y salmón abajo, espinacas arriba. Después tritura todo hasta obtener un puré fino y sin grumos."
       }
     ],
     "formato": "cremoso",
@@ -3048,16 +2982,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
+        "appliance": "vaporera",
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Introduce el pollo y las espinacas en el vaso con 100ml de agua y cocina al vapor 15 minutos a 100°C, velocidad 1. Añade los garbanzos cocidos y el aceite, y tritura 1 minuto a velocidad progresiva 5-10 hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+        "prepSummary": "Cuece el pollo troceado a lo largo y las espinacas al vapor durante 15 minutos junto con los garbanzos cocidos. Tritura todo junto con el aceite de oliva hasta obtener un puré fino y sin grumos. Está listo cuando la mezcla es completamente homogénea y se aplasta sin esfuerzo."
       },
       {
-        "appliance": "olla_express",
-        "time": 15,
+        "appliance": "thermomix",
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Coloca el pollo y las espinacas en la olla express con 100ml de agua y cocina 5 minutos desde que sube la válvula. Despresuriza, añade los garbanzos cocidos y el aceite, y tritura con una batidora de mano hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+        "prepSummary": "Cuece el pollo troceado a lo largo con los garbanzos y espinacas en agua caliente durante 12 minutos. Vierte todo en el Thermomix con el aceite de oliva y tritura hasta obtener un puré fino y sin grumos."
       }
     ],
     "extraProteins": [
@@ -3197,16 +3131,16 @@
     "etapaBebe": "cremas",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 30,
+        "appliance": "vaporera",
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Introduce las lentejas, ternera y zanahoria troceada con agua en el vaso. Cocina a 100°C durante unos 25 minutos a velocidad cuchara, luego tritura a velocidad progresiva hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+        "prepSummary": "Cuece al vapor durante 20 minutos las lentejas rojas, la ternera en tiras largas y la zanahoria en tiras largas hasta que todo esté muy tierno. Tritura con batidora de mano o robot de cocina hasta conseguir un puré fino y sin grumos, incorpora el aceite de oliva y mezcla."
       },
       {
         "appliance": "olla_express",
-        "time": 20,
+        "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Introduce las lentejas, ternera y zanahoria troceada con agua en la olla express. Cierra y cocina a presión durante 10-12 minutos desde que sube la válvula, luego tritura hasta obtener una crema lisa y homogénea que se aplaste sin esfuerzo."
+        "prepSummary": "Introduce las lentejas rojas, la ternera troceada a lo largo y la zanahoria en tiras largas con agua; cierra y cuece a presión durante 8 minutos. Tritura con batidora de mano o robot de cocina hasta lograr un puré fino y homogéneo, añade el aceite de oliva y remueve."
       }
     ],
     "extraProteins": [

@@ -128,7 +128,15 @@ if (PILOT) files = ["huevos.json"]; // small, varied category for a quick smoke 
 function buildBabyPrompt(recipe, ingredients) {
   const cremas = (recipe.etapaBebe ?? "cremas") === "cremas";
   const formato = cremas
-    ? `Es un PURÉ/CREMA para bebé: el resultado tiene que seguir siendo una crema lisa y homogénea. Un electrodoméstico que deje trozos NO vale.`
+    ? `Es un PURÉ/CREMA para bebé: el resultado tiene que seguir siendo una crema lisa y homogénea. Un electrodoméstico que deje trozos NO vale.
+
+EL prepSummary TIENE QUE TERMINAR TRITURANDO, y esto no es una preferencia de
+estilo. La primera versión de este prompt decía solo lo de arriba, y 29 de 56
+métodos de puré acabaron en «cocina al vapor 25 minutos» y ahí se paraban: un
+padre que lo sigue al pie de la letra le pone trozos de patata y de merluza
+delante a un bebé de seis meses. Di SIEMPRE, con estas palabras o parecidas,
+que se tritura hasta que quede un puré fino y sin grumos, aunque el aparato sea
+solo para la cocción y haya que triturar después con otra cosa.`
     : `Es comida SÓLIDA en piezas que el bebé coge con la mano. El formato de "${recipe.name}" (tortita, bastón, tira, albóndiga, porción…) tiene que salir IGUAL del otro electrodoméstico. Si un aparato obliga a cambiar la forma, no lo propongas.`;
 
   return `Eres un chef especializado en alimentación infantil de 6 a 12 meses. Analiza esta receta.
@@ -227,6 +235,40 @@ function recortar(texto, max) {
   return cabe.slice(0, max - 1).trimEnd() + "…";
 }
 
+/**
+ * EL TRITURADO DE UN PURÉ DE BEBÉ NO SE LE PIDE AL MODELO: SE GARANTIZA.
+ *
+ * El prompt de bebés lo exige con todas las letras, y aun así 29 de 56 métodos
+ * de puré terminaban en «cocina al vapor 25 minutos» y ahí se paraban. Se
+ * reforzó la instrucción y bajó a 15, que para esto no es bajar: es seguir
+ * teniendo quince resúmenes que un padre puede leer y seguir al pie de la
+ * letra para acabar poniéndole trozos de patata y de merluza delante a un bebé
+ * de seis meses.
+ *
+ * Falla sobre todo con vaporera y olla exprés, y se entiende: esos dos aparatos
+ * NO trituran, así que el modelo describe honestamente lo que hacen y se calla
+ * lo que viene después. El error no es suyo, es de quien esperaba que se
+ * acordara.
+ *
+ * Así que el triturado se añade por código cuando falta. Es determinista, no
+ * depende de ninguna pasada y no puede volver a olvidarse. Una regla de
+ * seguridad que se le pide a un modelo es una regla que se cumple casi siempre,
+ * y «casi siempre» aquí no vale.
+ */
+const MENCIONA_TRITURADO = /tritur|bat[ie]|chafa|aplasta|machaca|homogene|sin grumos|pur[eé] fino/i;
+const COLETILLA_TRITURAR = " Después tritura todo hasta obtener un puré fino y sin grumos.";
+
+function garantizarTriturado(metodos, receta) {
+  if (receta?.etapaBebe !== "cremas") return metodos;
+  return metodos.map((m) => {
+    if (MENCIONA_TRITURADO.test(m.prepSummary)) return m;
+    // Se recorta el resumen lo justo para que la coletilla quepa en los 280.
+    const hueco = 280 - COLETILLA_TRITURAR.length;
+    const base = m.prepSummary.length > hueco ? recortar(m.prepSummary, hueco) : m.prepSummary;
+    return { ...m, prepSummary: base.trimEnd() + COLETILLA_TRITURAR };
+  });
+}
+
 function sanitizeMethods(raw) {
   if (!Array.isArray(raw)) return [];
   const seen = new Set();
@@ -297,7 +339,7 @@ async function pedirAAnthropic(prompt) {
 async function generateMethods(recipe) {
   const prompt = buildPrompt(recipe);
   const text = PROVEEDOR === "anthropic" ? await pedirAAnthropic(prompt) : await pedirAGemini(prompt);
-  return sanitizeMethods(extractJsonArray(text));
+  return garantizarTriturado(sanitizeMethods(extractJsonArray(text)), recipe);
 }
 
 // ---- Main loop ----

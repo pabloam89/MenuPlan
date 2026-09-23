@@ -2,7 +2,7 @@
   "generado_por": "scripts/build-derived.mjs",
   "hash_fuentes": {
     "ingredientes": "e7596e2067cea067",
-    "recetas": "8bc2cb8154b869bd"
+    "recetas": "4ceac9ca2c8a420c"
   },
   "recetas": 1033,
   "recipeNutrition": {
@@ -165,9 +165,9 @@
     "filas": 1033,
     "por_origen": {
       "monocomponente": 195,
-      "monocomponente_juzgado": 126,
-      "sin_senal": 463,
-      "curado": 249
+      "monocomponente_juzgado": 568,
+      "curado": 249,
+      "sin_senal": 21
     },
     "operador_determinista": {
       "modulo": "src/lib/derive/stepParts.js",

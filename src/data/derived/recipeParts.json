@@ -300,23 +300,23 @@
     "partes": null
   },
   "carnes_002": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_003": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_004": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_005": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_006": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_007": {
@@ -328,7 +328,7 @@
     "partes": null
   },
   "carnes_009": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_010": {
@@ -336,27 +336,27 @@
     "partes": null
   },
   "carnes_011": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_012": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_013": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_014": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_015": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_016": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_017": {
@@ -364,15 +364,15 @@
     "partes": null
   },
   "carnes_018": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_019": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_020": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_021": {
@@ -380,27 +380,27 @@
     "partes": null
   },
   "carnes_022": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_023": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_024": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_025": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_026": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_027": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_028": {
@@ -412,11 +412,11 @@
     "partes": null
   },
   "carnes_030": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_031": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_032": {
@@ -424,15 +424,15 @@
     "partes": null
   },
   "carnes_033": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_034": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_035": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_037": {
@@ -466,7 +466,7 @@
     }
   },
   "carnes_038": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_039": {
@@ -564,7 +564,7 @@
     }
   },
   "carnes_043": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_044": {
@@ -754,7 +754,7 @@
     "partes": null
   },
   "carnes_052": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_053": {
@@ -788,11 +788,11 @@
     }
   },
   "carnes_054": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_055": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_056": {
@@ -1060,7 +1060,7 @@
     }
   },
   "carnes_064": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_065": {
@@ -1226,11 +1226,11 @@
     }
   },
   "carnes_070": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_071": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_072": {
@@ -1238,7 +1238,7 @@
     "partes": null
   },
   "carnes_073": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_074": {
@@ -1326,7 +1326,7 @@
     }
   },
   "carnes_076": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_077": {
@@ -1406,11 +1406,11 @@
     }
   },
   "carnes_080": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_081": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_082": {
@@ -1456,7 +1456,7 @@
     }
   },
   "carnes_083": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_084": {
@@ -1464,11 +1464,11 @@
     "partes": null
   },
   "carnes_085": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_086": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_087": {
@@ -1566,7 +1566,7 @@
     }
   },
   "carnes_091": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_092": {
@@ -1616,7 +1616,7 @@
     }
   },
   "carnes_094": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_095": {
@@ -1692,7 +1692,7 @@
     }
   },
   "carnes_097": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_098": {
@@ -2238,27 +2238,27 @@
     "partes": null
   },
   "carnes_113": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_114": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_115": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_116": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_117": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_118": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_119": {
@@ -2352,7 +2352,7 @@
     }
   },
   "carnes_122": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_123": {
@@ -2416,23 +2416,23 @@
     }
   },
   "carnes_125": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_126": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_127": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_128": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_129": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_130": {
@@ -2640,39 +2640,39 @@
     }
   },
   "carnes_136": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_137": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_138": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_139": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_140": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_141": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_142": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_143": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_144": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_145": {
@@ -3018,11 +3018,11 @@
     }
   },
   "carnes_159": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_160": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "carnes_161": {
@@ -3108,19 +3108,19 @@
     }
   },
   "cenas_rapidas_001": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "cenas_rapidas_002": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "cenas_rapidas_003": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "cenas_rapidas_004": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "cenas_rapidas_005": {
@@ -3188,11 +3188,11 @@
     }
   },
   "cenas_rapidas_008": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "cenas_rapidas_009": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "cenas_rapidas_010": {
@@ -3248,7 +3248,7 @@
     }
   },
   "cenas_rapidas_014": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "cenas_rapidas_015": {
@@ -3388,87 +3388,87 @@
     "partes": null
   },
   "ensaladas_verduras_001": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_002": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_003": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_004": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_005": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_006": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_007": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_008": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_009": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_010": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_011": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_012": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_013": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_015": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_016": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_017": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_018": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_020": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_021": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_022": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_023": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_024": {
@@ -3502,7 +3502,7 @@
     }
   },
   "ensaladas_verduras_025": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_031": {
@@ -3600,7 +3600,7 @@
     }
   },
   "ensaladas_verduras_035": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_036": {
@@ -3646,11 +3646,11 @@
     }
   },
   "ensaladas_verduras_037": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_038": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_039": {
@@ -3798,39 +3798,39 @@
     }
   },
   "ensaladas_verduras_043": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_044": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_045": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_046": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_047": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_048": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_049": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_050": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_051": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_052": {
@@ -3994,7 +3994,7 @@
     }
   },
   "ensaladas_verduras_057": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_058": {
@@ -4002,15 +4002,15 @@
     "partes": null
   },
   "ensaladas_verduras_059": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_060": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_061": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_062": {
@@ -4060,7 +4060,7 @@
     "partes": null
   },
   "ensaladas_verduras_064": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_065": {
@@ -4152,7 +4152,7 @@
     }
   },
   "ensaladas_verduras_068": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_069": {
@@ -4190,27 +4190,27 @@
     "partes": null
   },
   "ensaladas_verduras_071": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_072": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_073": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_074": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_075": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_076": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_077": {
@@ -4320,11 +4320,11 @@
     "partes": null
   },
   "ensaladas_verduras_081": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_082": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_083": {
@@ -4454,7 +4454,7 @@
     }
   },
   "ensaladas_verduras_086": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_087": {
@@ -4500,15 +4500,15 @@
     }
   },
   "ensaladas_verduras_088": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_089": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_090": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_091": {
@@ -4588,7 +4588,7 @@
     "partes": null
   },
   "ensaladas_verduras_094": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_095": {
@@ -4622,7 +4622,7 @@
     }
   },
   "ensaladas_verduras_096": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_097": {
@@ -4740,7 +4740,7 @@
     }
   },
   "ensaladas_verduras_100": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_101": {
@@ -4782,7 +4782,7 @@
     "partes": null
   },
   "ensaladas_verduras_104": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_105": {
@@ -4828,19 +4828,19 @@
     }
   },
   "ensaladas_verduras_106": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_107": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_108": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_109": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_110": {
@@ -4916,11 +4916,11 @@
     }
   },
   "ensaladas_verduras_112": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_113": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_114": {
@@ -4928,39 +4928,39 @@
     "partes": null
   },
   "ensaladas_verduras_115": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_116": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_117": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_118": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_119": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_120": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_121": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_122": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_123": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_124": {
@@ -5000,15 +5000,15 @@
     "partes": null
   },
   "ensaladas_verduras_133": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_134": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "ensaladas_verduras_135": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "guarniciones_024": {
@@ -5210,39 +5210,39 @@
     "partes": null
   },
   "huevos_001": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_002": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_003": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_004": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_005": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_006": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_007": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_008": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_009": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_010": {
@@ -5250,15 +5250,15 @@
     "partes": null
   },
   "huevos_011": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_012": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_013": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_014": {
@@ -5292,7 +5292,7 @@
     }
   },
   "huevos_015": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_017": {
@@ -5326,15 +5326,15 @@
     }
   },
   "huevos_018": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_019": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_020": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_021": {
@@ -5758,23 +5758,23 @@
     }
   },
   "huevos_033": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_034": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_035": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_036": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_037": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_038": {
@@ -5820,7 +5820,7 @@
     }
   },
   "huevos_039": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_040": {
@@ -5828,15 +5828,15 @@
     "partes": null
   },
   "huevos_041": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_042": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_043": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_044": {
@@ -5924,7 +5924,7 @@
     }
   },
   "huevos_046": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_047": {
@@ -5932,11 +5932,11 @@
     "partes": null
   },
   "huevos_048": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_049": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_050": {
@@ -5982,7 +5982,7 @@
     }
   },
   "huevos_051": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_052": {
@@ -6028,11 +6028,11 @@
     }
   },
   "huevos_053": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_054": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_055": {
@@ -6078,11 +6078,11 @@
     }
   },
   "huevos_056": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_057": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_058": {
@@ -6116,11 +6116,11 @@
     }
   },
   "huevos_059": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_060": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_061": {
@@ -6128,11 +6128,11 @@
     "partes": null
   },
   "huevos_062": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_063": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_064": {
@@ -6220,19 +6220,19 @@
     }
   },
   "huevos_066": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_067": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_068": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_069": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_070": {
@@ -6342,7 +6342,7 @@
     }
   },
   "huevos_074": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_075": {
@@ -6458,11 +6458,11 @@
     }
   },
   "huevos_081": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_082": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_083": {
@@ -6470,7 +6470,7 @@
     "partes": null
   },
   "huevos_084": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_085": {
@@ -6504,7 +6504,7 @@
     }
   },
   "huevos_086": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_087": {
@@ -6602,11 +6602,11 @@
     }
   },
   "huevos_091": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "huevos_092": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_001": {
@@ -6614,31 +6614,31 @@
     "partes": null
   },
   "legumbres_002": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_003": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_004": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_005": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_006": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_007": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_008": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_009": {
@@ -6646,19 +6646,19 @@
     "partes": null
   },
   "legumbres_010": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_011": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_012": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_013": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_014": {
@@ -6666,15 +6666,15 @@
     "partes": null
   },
   "legumbres_015": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_016": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_017": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_018": {
@@ -6682,7 +6682,7 @@
     "partes": null
   },
   "legumbres_019": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_020": {
@@ -6926,7 +6926,7 @@
     }
   },
   "legumbres_029": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_030": {
@@ -6960,11 +6960,11 @@
     }
   },
   "legumbres_031": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_032": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_033": {
@@ -7006,11 +7006,11 @@
     "partes": null
   },
   "legumbres_036": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_037": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_038": {
@@ -7044,7 +7044,7 @@
     }
   },
   "legumbres_039": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_040": {
@@ -7078,7 +7078,7 @@
     }
   },
   "legumbres_041": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_042": {
@@ -7090,27 +7090,27 @@
     "partes": null
   },
   "legumbres_044": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_045": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_046": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_047": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_048": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_049": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_050": {
@@ -7118,15 +7118,15 @@
     "partes": null
   },
   "legumbres_051": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_052": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_053": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_054": {
@@ -7134,11 +7134,11 @@
     "partes": null
   },
   "legumbres_055": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_056": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_057": {
@@ -7172,15 +7172,15 @@
     }
   },
   "legumbres_058": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_059": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_060": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_061": {
@@ -7248,15 +7248,15 @@
     }
   },
   "legumbres_064": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_065": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_066": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_067": {
@@ -7318,7 +7318,7 @@
     "partes": null
   },
   "legumbres_069": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_070": {
@@ -7364,11 +7364,11 @@
     }
   },
   "legumbres_074": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_075": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_076": {
@@ -7376,19 +7376,19 @@
     "partes": null
   },
   "legumbres_077": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_078": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_079": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_080": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_081": {
@@ -7396,7 +7396,7 @@
     "partes": null
   },
   "legumbres_082": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "legumbres_083": {
@@ -7470,11 +7470,11 @@
     "partes": null
   },
   "pasta_arroces_004": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_005": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_006": {
@@ -7508,11 +7508,11 @@
     }
   },
   "pasta_arroces_007": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_008": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_009": {
@@ -7592,11 +7592,11 @@
     "partes": null
   },
   "pasta_arroces_012": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_013": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_014": {
@@ -7604,23 +7604,23 @@
     "partes": null
   },
   "pasta_arroces_015": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_016": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_017": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_018": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_019": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_020": {
@@ -7658,11 +7658,11 @@
     }
   },
   "pasta_arroces_022": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_023": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_024": {
@@ -7670,7 +7670,7 @@
     "partes": null
   },
   "pasta_arroces_025": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_026": {
@@ -7678,7 +7678,7 @@
     "partes": null
   },
   "pasta_arroces_027": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_028": {
@@ -7686,11 +7686,11 @@
     "partes": null
   },
   "pasta_arroces_029": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_030": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_031": {
@@ -7698,7 +7698,7 @@
     "partes": null
   },
   "pasta_arroces_032": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_033": {
@@ -7706,7 +7706,7 @@
     "partes": null
   },
   "pasta_arroces_034": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_035": {
@@ -7782,15 +7782,15 @@
     }
   },
   "pasta_arroces_037": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_038": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_039": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_040": {
@@ -7824,19 +7824,19 @@
     }
   },
   "pasta_arroces_041": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_042": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_043": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_044": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_045": {
@@ -7844,23 +7844,23 @@
     "partes": null
   },
   "pasta_arroces_046": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_047": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_048": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_049": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_050": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_051": {
@@ -7868,11 +7868,11 @@
     "partes": null
   },
   "pasta_arroces_052": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_053": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_054": {
@@ -7892,11 +7892,11 @@
     "partes": null
   },
   "pasta_arroces_058": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_059": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_060": {
@@ -7942,23 +7942,23 @@
     "partes": null
   },
   "pasta_arroces_064": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_065": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_066": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_067": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_068": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_069": {
@@ -8022,19 +8022,19 @@
     }
   },
   "pasta_arroces_071": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_072": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_073": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_074": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_075": {
@@ -8042,35 +8042,35 @@
     "partes": null
   },
   "pasta_arroces_076": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_077": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_078": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_079": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_080": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_081": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_082": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_083": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_084": {
@@ -8150,15 +8150,15 @@
     "partes": null
   },
   "pasta_arroces_087": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_088": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_089": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_090": {
@@ -8196,7 +8196,7 @@
     "partes": null
   },
   "pasta_arroces_092": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_093": {
@@ -8292,7 +8292,7 @@
     }
   },
   "pasta_arroces_097": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pasta_arroces_098": {
@@ -8506,7 +8506,7 @@
     }
   },
   "pescados_001": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_002": {
@@ -8552,7 +8552,7 @@
     }
   },
   "pescados_006": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_007": {
@@ -8560,11 +8560,11 @@
     "partes": null
   },
   "pescados_008": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_009": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_010": {
@@ -8576,7 +8576,7 @@
     "partes": null
   },
   "pescados_012": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_013": {
@@ -8592,19 +8592,19 @@
     "partes": null
   },
   "pescados_016": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_017": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_018": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_019": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_020": {
@@ -8638,15 +8638,15 @@
     }
   },
   "pescados_021": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_022": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_023": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_024": {
@@ -8654,11 +8654,11 @@
     "partes": null
   },
   "pescados_025": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_026": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_027": {
@@ -8716,7 +8716,7 @@
     }
   },
   "pescados_028": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_029": {
@@ -8762,11 +8762,11 @@
     }
   },
   "pescados_030": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_031": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_032": {
@@ -8890,7 +8890,7 @@
     }
   },
   "pescados_036": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_037": {
@@ -8924,11 +8924,11 @@
     }
   },
   "pescados_038": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_039": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_040": {
@@ -8962,11 +8962,11 @@
     }
   },
   "pescados_041": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_042": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_043": {
@@ -9000,7 +9000,7 @@
     }
   },
   "pescados_044": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_045": {
@@ -9034,15 +9034,15 @@
     }
   },
   "pescados_046": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_047": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_048": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_049": {
@@ -9050,19 +9050,19 @@
     "partes": null
   },
   "pescados_050": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_051": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_052": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_053": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_054": {
@@ -9198,7 +9198,7 @@
     }
   },
   "pescados_058": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_059": {
@@ -9244,7 +9244,7 @@
     }
   },
   "pescados_060": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_061": {
@@ -9396,7 +9396,7 @@
     "partes": null
   },
   "pescados_066": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_067": {
@@ -9476,23 +9476,23 @@
     }
   },
   "pescados_070": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_071": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_072": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_073": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_074": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_075": {
@@ -9530,7 +9530,7 @@
     }
   },
   "pescados_077": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_078": {
@@ -9564,19 +9564,19 @@
     }
   },
   "pescados_079": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_080": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_081": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_082": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_083": {
@@ -9720,11 +9720,11 @@
     }
   },
   "pescados_089": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_090": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_091": {
@@ -9770,19 +9770,19 @@
     }
   },
   "pescados_092": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_093": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_094": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_095": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_096": {
@@ -10248,19 +10248,19 @@
     }
   },
   "pescados_107": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_108": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_109": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_110": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_111": {
@@ -10294,11 +10294,11 @@
     }
   },
   "pescados_112": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_113": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_114": {
@@ -10306,15 +10306,15 @@
     "partes": null
   },
   "pescados_115": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_116": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_117": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_118": {
@@ -10394,7 +10394,7 @@
     }
   },
   "pescados_121": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_122": {
@@ -10500,11 +10500,11 @@
     "partes": null
   },
   "pescados_128": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_129": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "pescados_130": {
@@ -10512,43 +10512,43 @@
     "partes": null
   },
   "platos_unicos_001": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_002": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_003": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_004": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_005": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_006": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_007": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_008": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_009": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_010": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_011": {
@@ -10582,15 +10582,15 @@
     }
   },
   "platos_unicos_012": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_013": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_014": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_015": {
@@ -10624,23 +10624,23 @@
     }
   },
   "platos_unicos_016": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_017": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_018": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_019": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "platos_unicos_020": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "postres_001": {
@@ -10890,19 +10890,19 @@
     "partes": null
   },
   "sopas_cremas_001": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_002": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_003": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_004": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_005": {
@@ -10936,39 +10936,39 @@
     }
   },
   "sopas_cremas_006": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_007": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_008": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_009": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_010": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_011": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_012": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_013": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_014": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_015": {
@@ -11002,23 +11002,23 @@
     }
   },
   "sopas_cremas_016": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_017": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_018": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_019": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_020": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_021": {
@@ -11112,11 +11112,11 @@
     }
   },
   "sopas_cremas_024": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_025": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_026": {
@@ -11180,15 +11180,15 @@
     }
   },
   "sopas_cremas_028": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_029": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_030": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_031": {
@@ -11226,63 +11226,63 @@
     }
   },
   "sopas_cremas_033": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_034": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_035": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_036": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_037": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_038": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_039": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_040": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_041": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_042": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_043": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_044": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_045": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_046": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_047": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_048": {
@@ -11290,23 +11290,23 @@
     "partes": null
   },
   "sopas_cremas_049": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_050": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_051": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_052": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_053": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_054": {
@@ -11314,7 +11314,7 @@
     "partes": null
   },
   "sopas_cremas_055": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_056": {
@@ -11348,11 +11348,11 @@
     }
   },
   "sopas_cremas_057": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_058": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_059": {
@@ -11374,7 +11374,7 @@
     }
   },
   "sopas_cremas_060": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_061": {
@@ -11408,19 +11408,19 @@
     }
   },
   "sopas_cremas_062": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_063": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_064": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_065": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_066": {
@@ -11458,11 +11458,11 @@
     "partes": null
   },
   "sopas_cremas_068": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_069": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_070": {
@@ -11496,7 +11496,7 @@
     }
   },
   "sopas_cremas_071": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_072": {
@@ -11534,11 +11534,11 @@
     "partes": null
   },
   "sopas_cremas_074": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_075": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_076": {
@@ -11602,19 +11602,19 @@
     }
   },
   "sopas_cremas_078": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_079": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_080": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_081": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_082": {
@@ -11648,7 +11648,7 @@
     }
   },
   "sopas_cremas_083": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_084": {
@@ -11686,7 +11686,7 @@
     }
   },
   "sopas_cremas_086": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_087": {
@@ -11762,7 +11762,7 @@
     }
   },
   "sopas_cremas_089": {
-    "origen": "sin_senal",
+    "origen": "monocomponente_juzgado",
     "partes": null
   },
   "sopas_cremas_090": {

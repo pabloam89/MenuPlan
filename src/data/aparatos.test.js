@@ -74,13 +74,47 @@ describe("cobertura de methods[] en estrella", () => {
    * sal, sin azúcar ni miel, y sin «crujiente» ni «al dente»: a esta edad se
    * cocina de más a propósito, todo tiene que aplastarse entre dos dedos.
    */
+  /**
+   * UN PURÉ TIENE QUE SEGUIR SIENDO UN PURÉ, y este es el test que más importa
+   * de este fichero.
+   *
+   * 29 de los 56 métodos de recetas `etapaBebe: "cremas"` terminaban en «cocina
+   * al vapor durante 25 minutos» y ahí se paraban. La receta base sí decía
+   * «triturar hasta obtener un puré fino», pero el método es lo que el usuario
+   * lee cuando elige hacerlo con otro aparato: un padre que lo sigue al pie de
+   * la letra le pone trozos de patata y de merluza delante a un bebé de seis
+   * meses, que es riesgo de atragantamiento.
+   *
+   * Falla sobre todo con vaporera y olla exprés, porque esos aparatos no
+   * trituran y el modelo describe honestamente lo que hacen. Reforzar el prompt
+   * lo bajó de 29 a 15, y para esto 15 no es bajar. Ahora el triturado lo añade
+   * `garantizarTriturado` en el propio generador, que es determinista.
+   */
+  it("todo método de puré de bebé acaba triturando", () => {
+    const MENCIONA = /tritur|bat[ie]|chafa|aplasta|machaca|homogene|sin grumos|pur[eé] fino/i;
+    const mudos = recetas
+      .filter((r) => r.etapaBebe === "cremas")
+      .flatMap((r) =>
+        (r.methods ?? [])
+          .filter((m) => !MENCIONA.test(m.prepSummary))
+          .map((m) => `${r.id}/${m.appliance}`),
+      );
+    expect(mudos).toEqual([]);
+  });
+
   it("ninguna receta de bebé propone sal, azúcar ni texturas duras", () => {
     const PROHIBIDO = /\bsal\b|salpimentar|sazonar|pastilla de caldo|caldo de brik|az[uú]car|\bmiel\b|crujiente|bien dorado|al dente|queso rallado/i;
+    // «SIN SAL» CONTIENE «SAL», y la frontera de palabra no salva de eso: es el
+    // mismo error que casaba «Vinagre de vino» con `\bvino\b`. «Caldo casero sin
+    // sal» es un ingrediente REAL de estas recetas y justo lo que la regla
+    // permite, así que se recorta la negación antes de preguntar en vez de
+    // meterle una excepción al regex.
+    const sinNegaciones = (s) => s.replace(/\bsin (sal|az[uú]car|miel)\b/gi, " ");
     const malas = recetas
       .filter((r) => r.category === "bebes")
       .flatMap((r) =>
         (r.methods ?? [])
-          .filter((m) => PROHIBIDO.test(m.prepSummary))
+          .filter((m) => PROHIBIDO.test(sinNegaciones(m.prepSummary)))
           .map((m) => `${r.id}/${m.appliance}: ${m.prepSummary.slice(0, 80)}`),
       );
     expect(malas).toEqual([]);
