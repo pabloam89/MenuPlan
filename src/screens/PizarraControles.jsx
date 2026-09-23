@@ -12,7 +12,7 @@ import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
 import { sesionDeBases } from "../lib/bases.js";
 import { enHoras } from "../lib/cookTime.js";
-import { KITCHEN_TOOLS, selectMethodForRecipe } from "../lib/applianceMethods.js";
+import { selectMethodForRecipe } from "../lib/applianceMethods.js";
 
 import {
   buildCalendarWeeks,
@@ -789,13 +789,32 @@ function CalendarioDias({ data, onAplicar }) {
 }
 
 /**
+ * Las seis de serie, con las ilustraciones del onboarding. Son las mismas
+ * rutas que `APPLIANCES` (Onboarding.jsx) y no se importan de allí para no
+ * arrastrar el onboarding entero a la pizarra; si una cambia, cambian las dos.
+ * Solo estas seis: son las que el generador sabe aprovechar, y lo que la casa
+ * tuviera en `customKitchenTools` se respeta sin editarse aquí, igual que allí.
+ */
+const ELECTRODOMESTICOS = [
+  { id: "Airfryer", img: "/avatares/cards/electrodomesticos/airfryer.webp" },
+  { id: "Horno", img: "/avatares/cards/electrodomesticos/horno.webp" },
+  { id: "Microondas", img: "/avatares/cards/electrodomesticos/microondas.webp" },
+  { id: "Olla rápida", img: "/avatares/cards/electrodomesticos/olla_rapida.webp" },
+  { id: "Thermomix", img: "/avatares/cards/electrodomesticos/thermomix.webp" },
+  { id: "Vaporera", img: "/avatares/cards/electrodomesticos/vaporera.webp" },
+];
+
+/**
  * Qué hay en la cocina. Escribe en `data.kitchenTools`, lo mismo que el perfil
- * y el wizard: con olla rápida la legumbre son 25 minutos y no 60, y eso cambia
- * la receta que ves y lo que dura el Batch.
+ * y el onboarding: con olla rápida la legumbre son 25 minutos y no 60, y eso
+ * cambia la receta que ves y lo que dura el Batch.
+ *
+ * La tarjeta es la del onboarding (RestrictionTabCard con `textOverlay`): la
+ * ilustración a sangre, el nombre encima y el teal al marcar. El mismo
+ * aparato tiene que verse igual en los dos sitios donde se pregunta.
  */
 function Electrodomesticos({ data, setData }) {
   const trastos = data?.kitchenTools ?? [];
-  const todos = [...KITCHEN_TOOLS, ...(data?.customKitchenTools ?? [])];
   const alternar = (t) => setData?.((d) => ({
     ...d,
     kitchenTools: (d.kitchenTools ?? []).includes(t)
@@ -804,28 +823,54 @@ function Electrodomesticos({ data, setData }) {
   }));
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
-      {todos.map((t, i) => {
-        const sel = trastos.includes(t);
+      {ELECTRODOMESTICOS.map((a, i) => {
+        const sel = trastos.includes(a.id);
         return (
           <button
-            key={t}
+            key={a.id}
             type="button"
             className="mp-rise mp-press"
-            onClick={() => alternar(t)}
+            onClick={() => alternar(a.id)}
             aria-pressed={sel}
+            aria-label={a.id}
             style={{
               "--d": `${i * 40}ms`,
-              height: 46, borderRadius: 14, padding: "0 12px",
-              border: `1.5px solid ${sel ? VERDE : "#dde8e0"}`,
-              background: sel ? VERDE : "#fff",
-              color: sel ? "#fff" : "#3a4a42",
-              fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6,
-              transition: "background .15s ease, color .15s ease, border-color .15s ease",
+              position: "relative", padding: 0, overflow: "hidden",
+              aspectRatio: "4 / 3", borderRadius: 15,
+              border: `2px solid ${sel ? TEAL : "#e0eae3"}`,
+              background: "#f4f7f5", cursor: "pointer", fontFamily: "inherit",
+              boxShadow: sel ? `0 6px 18px ${TEAL}33` : "0 1px 2px rgba(0,0,0,.04)",
+              transition: "border-color .16s ease, box-shadow .16s ease",
             }}
           >
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t}</span>
-            {sel && <Check size={15} strokeWidth={3} />}
+            <img
+              src={a.img}
+              alt=""
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+            <span
+              style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.22) 50%, transparent 100%)",
+                display: "flex", alignItems: "flex-end", justifyContent: "center",
+                padding: "0 7px 8px",
+                fontSize: 12, fontWeight: 800, color: "#fff", lineHeight: 1.2,
+              }}
+            >
+              {a.id}
+            </span>
+            {sel && (
+              <span
+                style={{
+                  position: "absolute", top: 8, right: 8,
+                  width: 20, height: 20, borderRadius: "50%", background: TEAL,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 1px 4px rgba(20,47,29,.3)",
+                }}
+              >
+                <Check size={12} color="#fff" strokeWidth={3} />
+              </span>
+            )}
           </button>
         );
       })}
@@ -973,8 +1018,13 @@ function PopupInicio({ data, setData, onAplicar, primeraVez, onTerminar }) {
               key={PASOS_INICIO[i].id}
               aria-hidden={paso !== i}
               style={{
-                width: `${100 / PASOS_INICIO.length}%`, padding: "16px 20px 4px", boxSizing: "border-box",
-                ...(paso !== i && !deslizando ? { height: 0, overflow: "hidden", paddingTop: 0, paddingBottom: 0 } : null),
+                // Sin el atajo `padding`: al plegarse y desplegarse, React borra
+                // `paddingTop` y con él se llevaba el de la regla abreviada.
+                width: `${100 / PASOS_INICIO.length}%`, boxSizing: "border-box",
+                paddingLeft: 20, paddingRight: 20,
+                ...(paso !== i && !deslizando
+                  ? { height: 0, overflow: "hidden", paddingTop: 0, paddingBottom: 0 }
+                  : { paddingTop: 16, paddingBottom: 4 }),
               }}
             >
               {(paso === i || deslizando) && contenido}
