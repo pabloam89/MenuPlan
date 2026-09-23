@@ -4855,22 +4855,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "horno",
-        "time": 25,
+        "appliance": "olla_express",
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Combina los espaguetis, tomates cherry, ajo, aceite, sal y suficiente agua caliente en una fuente apta para horno. Hornea a 200°C durante 20-25 minutos o hasta que la pasta esté al dente, removiendo a mitad. Añade albahaca y parmesano al servir."
+        "prepSummary": "Cocina la pasta a presión durante 6-7 minutos (tiempo de cocción reducido), luego sofríe los tomates cherry con ajo en la misma olla sin presión. Termina con albahaca y parmesano."
       },
       {
         "appliance": "thermomix",
-        "time": 20,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo y los tomates cherry con aceite. Añade el agua y los espaguetis, y cocina a temperatura Varoma, velocidad cuchara, giro inverso, el tiempo indicado en el paquete de la pasta. Incorpora la albahaca y el parmesano al final."
+        "prepSummary": "Programa el vaso a 100°C durante 8 minutos para cocinar la pasta con agua y sal, luego sofríe tomates y ajo a 120°C sin tapa. Agrega albahaca y parmesano al final."
       },
       {
-        "appliance": "olla_express",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo y los tomates cherry en la olla con aceite. Añade los espaguetis y el agua (la justa para cubrir), cierra y cocina 5-7 minutos desde que sube la válvula. Libera la presión, remueve y añade la albahaca y el parmesano."
+        "appliance": "microondas",
+        "time": 16,
+        "difficulty": "normal",
+        "prepSummary": "Cuece la pasta en recipiente apto con agua hirviendo durante 10-12 minutos, luego sofríe tomates cherry con ajo en otro recipiente a máxima potencia durante 3-4 minutos. Mezcla y termina con albahaca."
       }
     ]
   },
@@ -5042,16 +5042,16 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 25,
+        "appliance": "olla_express",
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Sofríe el bacon en el vaso a temperatura Varoma. Luego, cocina los espaguetis. Con la pasta caliente, añade el bacon, los huevos y el queso, mezclando a baja velocidad para emulsionar la salsa sin cuajarla."
+        "prepSummary": "Cocina los espaguetis a presión durante 6-7 minutos con agua y sal. Mientras, sofríe el bacon en una sartén; luego mezcla la pasta caliente con huevo, queso y bacon fuera del fuego para que cuaje sin que se corten los huevos."
       },
       {
-        "appliance": "olla_express",
+        "appliance": "thermomix",
         "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Sofríe el bacon en la olla usando la función saltear (si es eléctrica). Luego, cocina los espaguetis en el mismo recipiente a presión. Una vez listos, retira del fuego y mezcla rápidamente con los huevos y el queso para crear la salsa cremosa con el calor residual."
+        "prepSummary": "Cuece los espaguetis en agua hirviendo con sal (programa varoma o cocción manual). Prepara la salsa triturando huevo, yema y queso en el vaso; mezcla con la pasta caliente y bacon tostado para obtener una cremosa carbonara."
       }
     ]
   },
@@ -5202,22 +5202,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
+        "appliance": "olla_express",
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Cocina la pasta en el vaso con agua y sal a la temperatura y tiempo indicados para el tipo de pasta. Una vez cocida y escurrida, añade el pesto, los tomates cherry, el parmesano y los piñones, mezclando suavemente a velocidad baja."
+        "prepSummary": "Cuece la pasta a presión con agua salada durante 6-7 minutos (según marca), luego desglasa con el pesto y tomates cherry. Rápido y eficiente, mantiene la textura al dente."
       },
       {
-        "appliance": "olla_express",
-        "time": 15,
+        "appliance": "thermomix",
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Cocina la pasta con agua y sal a presión durante 3-5 minutos, según las indicaciones del fabricante y el tipo de pasta. Una vez despresurizada, escurre ligeramente y mezcla con el pesto, los tomates cherry, el parmesano y los piñones."
+        "prepSummary": "Cuece la pasta en el vaso con agua salada (función cocción 100°C, 10 min), luego mezcla el pesto y tomates cherry a velocidad baja. Resultado homogéneo y sin suciedad de cacharros."
       },
       {
         "appliance": "microondas",
-        "time": 18,
+        "time": 16,
         "difficulty": "facil",
-        "prepSummary": "Cocina la pasta en un recipiente apto para microondas con agua y sal hasta que esté al dente (aprox. 10-15 minutos). Luego, escurre y mezcla con el pesto, los tomates cherry, el parmesano y los piñones, calentando brevemente si es necesario."
+        "prepSummary": "Cuece la pasta en recipiente apto con agua salada a máxima potencia durante 12-13 minutos, removiendo a mitad. Finaliza con pesto y tomates cherry fríos para mantener su frescura."
       }
     ]
   },
@@ -5394,13 +5394,19 @@
         "appliance": "thermomix",
         "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Cocina la pasta directamente en el vaso con agua y sal (aprox. 12 min/100°C/giro inverso/velocidad cuchara). Sofríe el ajo y calienta el tomate en el mismo vaso. Luego, incorpora el atún y las aceitunas, mezclando suavemente."
+        "prepSummary": "Programa la cocción a 100°C durante 12 minutos con los ingredientes (excepto pasta cocida). Cuece la pasta aparte en agua hirviendo 8 minutos y mezcla al final. El Thermomix integra perfectamente los sabores del sofrito de ajo, tomate y atún."
       },
       {
         "appliance": "olla_express",
-        "time": 15,
+        "time": 16,
         "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo en la olla abierta. Añade el tomate triturado, la pasta y el agua justa para cubrir. Cierra la olla y cocina a presión durante 3-5 minutos. Despresuriza, incorpora el atún y las aceitunas, y mezcla."
+        "prepSummary": "Saltea el ajo 1 minuto a fuego fuerte, añade tomate, atún y aceitunas. Cierra la olla y cocina 8 minutos a presión. Cuece la pasta aparte y mezcla. Reduce tiempo total respecto a sartén convencional."
+      },
+      {
+        "appliance": "microondas",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "En recipiente apto microondas, calienta el tomate con ajo 3 minutos a máxima potencia, añade atún y aceitunas, cocina 2 minutos más. Cuece la pasta en agua hirviendo aparte 8 minutos y mezcla. Resulta práctico y rápido para una ración."
       }
     ]
   },
@@ -5622,15 +5628,15 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 35,
-        "difficulty": "facil",
-        "prepSummary": "Pica la cebolla y sofríe con aceite. Añade el arroz y el vino, luego el caldo caliente y las setas. Cocina a velocidad cuchara con giro inverso hasta que el arroz esté en su punto. Finaliza con la mantequilla, el parmesano y la trufa para la mantecatura."
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Programa la Thermomix para sofreír cebolla y setas (varoma 3, 5 min), luego añade arroz y vino (varoma 3, 2 min). Incorpora caldo caliente y cocina 20 min a 100°C con giro lento, removiendo manualmente cada 5 min para conseguir la cremosidad característica del risotto."
       },
       {
         "appliance": "olla_express",
         "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y las setas en la olla. Tuesta el arroz, desglasa con vino y añade todo el caldo caliente. Cierra la olla y cocina a presión alta durante 6-7 minutos. Despresuriza, remueve vigorosamente e incorpora la mantequilla, el parmesano y la trufa para la mantecatura."
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y setas en la olla abierta (3 min), añade arroz y vino (2 min), luego caldo. Cierra y cocina a presión 10 min. Al abrir, remueve constantemente 2-3 min para emulsionar con mantequilla y queso, logrando la textura cremosa del risotto en menos tiempo."
       }
     ]
   },
@@ -5836,22 +5842,16 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "horno",
-        "time": 60,
+        "appliance": "olla_express",
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Prepara el sofrito y dora el calamar en una cazuela apta para horno en la encimera. Añade el arroz, el caldo y la tinta, lleva a ebullición y hornea a 190°C durante 20-25 minutos hasta que el arroz esté cocido y el líquido absorbido."
+        "prepSummary": "Sofríe cebolla, ajo y pimiento en modo normal, añade calamar, tinta y tomate, luego arroz y caldo. Cierra y cocina a presión 12 minutos. El arroz queda cremoso y la tinta bien integrada."
       },
       {
-        "appliance": "thermomix",
+        "appliance": "horno",
         "time": 45,
         "difficulty": "normal",
-        "prepSummary": "Prepara el sofrito y sofríe el calamar en el vaso. Incorpora el arroz, el caldo y la tinta, y cocina a 100°C, giro inverso, velocidad cuchara durante unos 18-20 minutos, o hasta que el arroz esté en su punto. La clave es el giro inverso para un arroz suelto y bien cocido."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 35,
-        "difficulty": "normal",
-        "prepSummary": "Sofríe la cebolla, pimiento, ajo y tomate en la olla abierta. Añade el calamar, el arroz, el caldo y la tinta. Cierra la olla y cocina a presión durante 6-7 minutos. Deja despresurizar de forma natural para un arroz jugoso y lleno de sabor."
+        "prepSummary": "Sofríe ingredientes en cazuela apta horno, añade arroz, caldo y tinta. Introduce a 180°C durante 25-30 minutos tapado. Consigue una cocción uniforme y un arroz con textura ideal."
       }
     ]
   },
@@ -6104,10 +6104,22 @@
     "temperatura": "caliente",
     "methods": [
       {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe los aromáticos en modo tradicional (5 min), añade arroz y caldo, cierra y cocina a presión 18 min. El marisco se añade al final para evitar sobrecocción, manteniendo texturas firmes."
+      },
+      {
         "appliance": "horno",
-        "time": 65,
+        "time": 50,
         "difficulty": "elaborada",
-        "prepSummary": "Prepara el sofrito en una paellera o sartén apta para horno. Incorpora el arroz y el caldo caliente, luego termina la cocción en el horno precalentado a 200°C durante 18-20 minutos, añadiendo el marisco a mitad para que no se reseque y buscando un ligero socarrat."
+        "prepSummary": "Prepara el sofrito en cazuela apta horno a fuego, añade arroz y caldo, luego introduce en horno a 180°C durante 25-30 min sin remover. El marisco se incorpora en los últimos 8 min para cocción uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Usa el vaso para picar aromáticos (2 min), luego sofríe con función calor. Añade arroz y caldo, programa cocción lenta 25 min. Finaliza con marisco en los últimos 5 min sin tapa para evitar condensación."
       }
     ]
   },
@@ -6326,22 +6338,16 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "horno",
-        "time": 50,
+        "appliance": "olla_express",
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Prepara el sofrito en una cazuela apta para horno en la encimera. Añade el caldo y los fideos, lleva a ebullición y luego hornea a 200°C durante 15-20 minutos hasta que los fideos absorban el líquido y se doren ligeramente por encima."
+        "prepSummary": "Sofríe cebolla y ajo a fuego fuerte, añade fideos, tomate y tinta, vierte caldo y cocina a presión 8-10 minutos. El calamar y gambas se cocinan al final en los últimos 2 minutos para mantener su textura."
       },
       {
         "appliance": "thermomix",
-        "time": 40,
-        "difficulty": "normal",
-        "prepSummary": "Sofríe la cebolla y el ajo, luego añade el calamar y el tomate. Incorpora el caldo y los fideos, cocinando a 100°C, giro inverso, velocidad cuchara, hasta que los fideos estén en su punto y hayan absorbido el líquido."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 30,
-        "difficulty": "normal",
-        "prepSummary": "Realiza el sofrito en la olla abierta. Añade el calamar, tomate, caldo y fideos. Cierra la olla y cocina a presión alta durante 5-7 minutos. Libera la presión, abre y si es necesario, reduce el líquido a fuego vivo para espesar."
+        "time": 35,
+        "difficulty": "elaborada",
+        "prepSummary": "Programa sofrito con cebolla y ajo (vel. 4, 3 min), añade fideos tostados, tomate y tinta, luego caldo caliente a 100°C 12 minutos. Incorpora calamar y gambas en los últimos 3 minutos de cocción para un resultado óptimo."
       }
     ]
   },
@@ -6567,16 +6573,16 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "horno",
-        "time": 210,
+        "appliance": "olla_express",
+        "time": 95,
         "difficulty": "elaborada",
-        "prepSummary": "El rabo se sella y el sofrito se prepara en una cazuela apta para horno. Luego se brasea cubierto a 150°C durante 2.5-3 horas hasta que el rabo esté muy tierno."
+        "prepSummary": "Sofríe el rabo de toro y verduras en la olla abierta (15 min), añade el arroz y caldo, cierra y cocina a presión 25 min. El resultado es meloso y los tiempos se reducen significativamente respecto a la cazuela tradicional."
       },
       {
-        "appliance": "olla_express",
-        "time": 100,
-        "difficulty": "normal",
-        "prepSummary": "Se sella el rabo y se sofríen las verduras directamente en la olla express. Se añaden líquidos y se cocina a presión durante 45-60 minutos."
+        "appliance": "horno",
+        "time": 180,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara el sofrito en cazuela de barro en horno a 180°C durante 30 min, añade arroz y caldo, y continúa en horno otros 30-35 min hasta que el arroz absorba el líquido. Mantiene el calor uniforme y evita que se pegue."
       }
     ]
   },
@@ -6866,13 +6872,13 @@
         "appliance": "thermomix",
         "time": 90,
         "difficulty": "elaborada",
-        "prepSummary": "La Thermomix es ideal para amasar la pasta fresca y preparar el relleno de boletus. Los raviolis se pueden cocinar al vapor en el Varoma a 100°C durante unos 12-15 minutos por tanda, asegurando una cocción delicada y uniforme."
+        "prepSummary": "Usa el Thermomix para amasar la pasta (3 min, vel. 6) y para preparar el relleno triturando boletus rehidratados con ricotta y parmesano. Luego estira y rellena manualmente, cocina en agua hirviendo y termina con mantequilla de salvia en sartén."
       },
       {
-        "appliance": "vaporera",
-        "time": 90,
+        "appliance": "olla_express",
+        "time": 75,
         "difficulty": "elaborada",
-        "prepSummary": "La vaporera es excelente para cocinar los raviolis, cociéndolos suavemente al vapor durante 10-15 minutos hasta que estén tiernos. Este método preserva la textura delicada de la pasta y el sabor del relleno, evitando que se rompan."
+        "prepSummary": "Prepara el relleno de forma tradicional. Usa la olla express para rehidratar rápidamente los boletus (8 min a presión) y luego cuece los ravioli en agua hirviendo en olla convencional. Finaliza con mantequilla de salvia en sartén."
       }
     ]
   },

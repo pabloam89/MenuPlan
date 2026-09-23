@@ -3699,33 +3699,27 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 15,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Corta el pan en dados, rocíalos con aceite y cocínalos en la airfryer a 180°C durante 8-10 minutos hasta que estén dorados y crujientes, removiendo a mitad. Puedes cocinar el huevo en un molde con un poco de agua."
+        "prepSummary": "Precalienta a 180°C durante 3 min. Cocina el huevo 8-9 min hasta que quede en su punto, y tuesta el pan 2 min aparte. Monta el gazpacho con los toppings crujientes al final."
       },
       {
         "appliance": "horno",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 180°C. Corta el pan en dados, rocíalos con aceite y hornéalos durante 10-15 minutos hasta que estén dorados y crujientes, dándoles la vuelta a mitad."
-      },
-      {
-        "appliance": "thermomix",
         "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Cocina el huevo en el cestillo con 500ml de agua a 100°C, velocidad 1, durante 13-15 minutos para obtener un huevo duro perfecto. Puedes usarla también para picar el pepino rápidamente."
+        "prepSummary": "Precalienta a 200°C. Tuesta el pan 5 min y cuece el huevo en cazuela 10 min. Sirve el gazpacho frío con los toppings calientes para contraste de temperaturas."
+      },
+      {
+        "appliance": "microondas",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Calienta el gazpacho 2 min a potencia media. Cuece el huevo en taza con agua 3-4 min. Tuesta el pan en seco 1 min. Monta rápidamente con los toppings."
       },
       {
         "appliance": "vaporera",
-        "time": 15,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Cocina el huevo en la vaporera durante 10-12 minutos para obtener un huevo duro con la yema en su punto. Es una forma sencilla y precisa de prepararlo."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 10,
-        "difficulty": "facil",
-        "prepSummary": "Para el huevo duro, ponlo en la olla express con agua que lo cubra. Cocina 5-7 minutos desde que sube la válvula, luego despresuriza y enfría."
+        "prepSummary": "Cuece el huevo al vapor 10 min. Mientras, calienta el gazpacho en recipiente aparte. Tuesta el pan en seco. Monta con todos los componentes listos."
       }
     ]
   },
@@ -3956,13 +3950,13 @@
         "appliance": "thermomix",
         "time": 30,
         "difficulty": "facil",
-        "prepSummary": "Sofríe las verduras y boletus con aceite y mantequilla, añade la patata y el caldo, cocina a 100°C y luego tritura a velocidad progresiva hasta obtener una crema fina. El perejil se fríe en sartén aparte."
+        "prepSummary": "Sofríe cebolla y puerro 5 min a 100°C, añade boletus y patata troceados, vierte caldo y cocina 20 min a 100°C. Tritura hasta obtener crema suave, incorpora nata y mantequilla. Fríe el perejil aparte en sartén."
       },
       {
         "appliance": "olla_express",
         "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Sofríe las verduras y boletus en la olla con aceite y mantequilla. Incorpora la patata y el caldo, cierra y cocina a presión durante 5-7 minutos. Despresuriza, tritura y añade la nata, friendo el perejil en una sartén aparte."
+        "prepSummary": "Sofríe verduras en la olla abierta 3 min, añade boletus, patata y caldo. Cierra y cocina 12 min a presión. Tritura la mezcla, incorpora nata y mantequilla. Perejil frito en sartén aparte."
       }
     ]
   },
@@ -4207,14 +4201,14 @@
       {
         "appliance": "thermomix",
         "time": 65,
-        "difficulty": "normal",
-        "prepSummary": "Ideal para el bisque, permite sofreír las cáscaras y verduras (120°C, vel. cuchara), cocinar y triturar a máxima velocidad para una textura fina. El truco es un buen colado para una crema sedosa."
+        "difficulty": "elaborada",
+        "prepSummary": "Sofríe cebolla, zanahoria y ajo en modo mariposa a 120°C, añade cáscaras y langostinos, flambea con brandy, incorpora tomate y caldo, cuece 45 min a 100°C. Tritura, cuela y termina con nata."
       },
       {
         "appliance": "olla_express",
-        "time": 50,
-        "difficulty": "normal",
-        "prepSummary": "Perfecta para extraer el máximo sabor de las cáscaras y verduras en menos tiempo. Sofríe los ingredientes, añade el líquido y cocina a alta presión unos 20 minutos. Luego, tritura y cuela para una base intensa."
+        "time": 40,
+        "difficulty": "elaborada",
+        "prepSummary": "Sofríe verduras y cáscaras en modo tradicional, flambea con brandy y vino, añade caldo y arroz, cierra y cuece a presión 20 min. Tritura, cuela y finaliza con nata."
       }
     ]
   },
@@ -4403,28 +4397,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "horno",
-        "time": 40,
-        "difficulty": "facil",
-        "prepSummary": "Asa la calabaza, patata y cebolla troceadas con un chorrito de aceite a 190°C durante 25-30 minutos hasta que estén tiernas y ligeramente doradas. Luego, tritura con el caldo caliente, el jengibre y la nata hasta obtener una crema suave y aromática."
-      },
-      {
         "appliance": "thermomix",
-        "time": 30,
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y el jengibre picados con aceite unos minutos. Añade la calabaza y patata, el caldo y cocina 20-25 minutos a 100°C, velocidad cuchara. Finalmente, incorpora la nata y tritura a velocidad progresiva hasta obtener una crema fina."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 35,
-        "difficulty": "facil",
-        "prepSummary": "Cuece al vapor la calabaza, patata y cebolla troceadas junto al jengibre hasta que estén muy tiernas (unos 20-25 minutos). Una vez cocidas, tritura con el caldo caliente, un chorrito de aceite de oliva y la nata hasta conseguir una crema ligera y saludable."
+        "prepSummary": "Sofríe cebolla y jengibre 5 min a 100°C, añade calabaza, patata y caldo, cuece 15 min a 100°C, tritura 3 min y termina con nata. Resultado cremoso y homogéneo sin esfuerzo."
       },
       {
         "appliance": "olla_express",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y el jengibre con aceite en la olla. Añade la calabaza, patata y el caldo. Cierra la olla y cocina 5-7 minutos desde que sube la válvula. Despresuriza, añade la nata y tritura hasta obtener una crema muy rápida y sabrosa."
+        "prepSummary": "Sofríe cebolla y jengibre 3 min, añade calabaza, patata y caldo, cierra y cuece 8 min a presión, tritura con batidora. Gana tiempo respecto a cazuela tradicional."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza calabaza y patata 15 min, sofríe cebolla y jengibre en sartén aparte, mezcla todo con caldo caliente y tritura. Resultado más ligero pero requiere pasos adicionales."
       }
     ]
   },
@@ -4577,9 +4565,9 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 15,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Introduce todos los ingredientes en el vaso de la Thermomix y tritura a velocidad progresiva (30 segundos/velocidad 10) hasta obtener una crema fina y homogénea. Refrigera bien antes de servir para potenciar su sabor."
+        "prepSummary": "Trocea los ingredientes y procesa en la Thermomix a velocidad 4-5 durante 30-40 segundos hasta obtener la textura deseada. Añade aliño final y enfría en nevera antes de servir."
       }
     ]
   },
@@ -4757,7 +4745,13 @@
         "appliance": "thermomix",
         "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Introduce todos los ingredientes principales (tomate, pan, ajo, aceite, vinagre, sal) en el vaso y tritura a velocidad progresiva hasta obtener una crema muy fina. Puedes cocer el huevo en el cestillo o Varoma mientras tanto."
+        "prepSummary": "Tritura tomates, pan, ajo y aceite a velocidad progresiva hasta obtener una crema homogénea, luego añade vinagre y sal. El resultado es más fino y uniforme que a mano, perfectamente emulsionado."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta el pan a 180°C durante 5-7 min hasta que esté crujiente, luego procesa con tomates, ajo y aceite. El pan tostado en horno potencia el sabor respecto al pan del día anterior."
       }
     ]
   },
@@ -4961,13 +4955,19 @@
         "appliance": "thermomix",
         "time": 30,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y el puerro con aceite. Añade patata y caldo, cocina 20 min a 100°C, velocidad cuchara. Incorpora la nata y tritura hasta obtener una crema fina. Sirve con el beicon crujiente hecho aparte."
+        "prepSummary": "Sofríe puerro, cebolla y patata a 100°C durante 10 min, añade caldo y cuece 15 min a 100°C, luego tritura 20 seg. Termina con nata y beicon crujiente hecho aparte en sartén."
       },
       {
         "appliance": "olla_express",
-        "time": 25,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y el puerro en la olla. Añade la patata y el caldo, cierra y cocina 8 minutos desde que sube la válvula. Despresuriza, tritura y añade la nata. El beicon se hace aparte."
+        "prepSummary": "Sofríe verduras 3 min a fuego normal, añade caldo y patata, cierra y cuece 8 min a presión. Abre, tritura con batidora, añade nata y beicon crujiente preparado en sartén."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el beicon a 180°C durante 8-10 min hasta crujiente. Mientras, prepara la crema en sartén tradicional (15 min) con los ingredientes base, luego tritura y sirve con el beicon del airfryer."
       }
     ]
   },
@@ -5143,15 +5143,21 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 20,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla con aceite, luego añade la patata, los guisantes y el caldo. Cocina a 100°C, velocidad cuchara, durante 15-18 minutos. Tritura a velocidad progresiva hasta obtener una crema fina y termina incorporando la nata y la menta."
+        "prepSummary": "Sofríe cebolla y patata en modo mariposa 3 min a 100°C, añade guisantes y caldo, cuece 12 min a 100°C, tritura 20 seg, incorpora nata y menta al final. Resultado cremoso y homogéneo."
       },
       {
         "appliance": "olla_express",
-        "time": 18,
+        "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla en la olla a presión. Incorpora la patata, los guisantes y el caldo de verduras. Cierra la olla y cocina a presión durante 5-7 minutos. Libera la presión, tritura la mezcla hasta lograr una crema homogénea y añade la nata y la menta."
+        "prepSummary": "Sofríe cebolla y patata 2 min sin presión, añade guisantes y caldo, cierra y cuece 8 min a presión, tritura con batidora, incorpora nata y menta. Muy rápido y eficiente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Cuece patata y guisantes al vapor 12 min, sofríe cebolla aparte en sartén, mezcla todo con caldo caliente, tritura, añade nata y menta. Requiere más pasos pero resultado ligero."
       }
     ]
   },
@@ -5360,7 +5366,13 @@
         "appliance": "thermomix",
         "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Pica la cebolla y los champiñones en el vaso. Sofríelos con mantequilla. Añade la harina, el caldo y cocina a 100°C, velocidad 2-3, durante unos 15-20 minutos. Incorpora la nata y el zumo de limón, y tritura a velocidad progresiva hasta obtener una crema fina y homogénea."
+        "prepSummary": "Pica cebolla y champiñones con la función picadora, sofríe con mantequilla a 100°C 5 min, añade harina y caldo, cuece 15 min a 100°C, tritura, incorpora nata y limón. Resultado cremoso y homogéneo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe cebolla y champiñones picados en la olla abierta 3 min, añade harina, caldo y nata, cierra y cuece a presión 8 min, despresurizador natural 5 min, tritura con batidora y termina con limón. Gana tiempo sin perder cremosidad."
       }
     ]
   },

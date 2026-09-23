@@ -2315,33 +2315,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 15,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Mezcla los huevos batidos con espinacas previamente salteadas y queso. Vierte en un molde pequeño apto para airfryer y cocina a 170°C durante 12-15 minutos hasta que cuaje. El truco es no llenar demasiado el molde para una cocción uniforme."
+        "prepSummary": "Precalienta a 180°C, vierte los huevos batidos con espinacas y queso en el recipiente, cocina 10-12 min hasta que cuaje. Dobla al final para darle forma de tortilla."
       },
       {
         "appliance": "horno",
-        "time": 20,
+        "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 180°C. Mezcla los huevos batidos con espinacas salteadas y queso, vierte en un molde apto para horno y hornea 15-20 minutos hasta que cuaje. Para un resultado más esponjoso, no batas demasiado los huevos."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Bate los huevos y mezcla con espinacas previamente cocidas al vapor y queso. Vierte en un molde engrasado apto para Varoma y cocina al vapor durante 15-20 minutos a temperatura Varoma. Asegúrate de que el molde esté bien cubierto para evitar que entre agua."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Combina los huevos batidos con las espinacas y el queso. Vierte la mezcla en un recipiente apto para vaporera y cocina al vapor durante 15-20 minutos hasta que esté firme. Es una opción muy saludable y ligera."
+        "prepSummary": "Precalienta a 200°C, vierte los huevos batidos con espinacas y queso en una bandeja, hornea 12-15 min hasta que cuaje completamente. Dobla al sacar del horno."
       },
       {
         "appliance": "microondas",
         "time": 8,
-        "difficulty": "facil",
-        "prepSummary": "Bate los huevos y mezcla con las espinacas (previamente cocidas) y el queso. Vierte en un recipiente apto para microondas y cocina a máxima potencia durante 2-4 minutos, vigilando para que no se reseque. El truco es cocinar en intervalos cortos."
+        "difficulty": "normal",
+        "prepSummary": "Bate los huevos con espinacas y queso, vierte en un plato apto microondas, cocina a máxima potencia 3-4 min revolviendo cada minuto hasta que cuaje. Dobla para formar la tortilla."
       }
     ]
   },
@@ -2489,13 +2477,13 @@
         "appliance": "thermomix",
         "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo con aceite, añade las gambas y cocina unos minutos. Incorpora los huevos batidos con la mariposa y cocina a temperatura controlada hasta obtener un revuelto cremoso y jugoso."
+        "prepSummary": "Programa el vaso a temperatura media (60°C) con velocidad 2, añade aceite y ajo picado 1 min, luego gambas 2 min, vierte los huevos batidos y cocina 3-4 min removiendo ocasionalmente hasta cuajar. Termina con perejil fresco."
       },
       {
         "appliance": "microondas",
-        "time": 6,
+        "time": 8,
         "difficulty": "facil",
-        "prepSummary": "En un recipiente apto para microondas, cocina el ajo y las gambas con aceite por un par de minutos. Luego, añade los huevos batidos y cocina en intervalos de 30 segundos, removiendo bien entre cada uno para lograr una textura uniforme."
+        "prepSummary": "En un recipiente apto, calienta aceite con ajo 1 min a máxima potencia, añade gambas 2 min, vierte huevos batidos y cocina 2-3 min en intervalos de 30 segundos removiendo entre cada uno hasta obtener una textura cremosa."
       }
     ]
   },
@@ -2629,15 +2617,15 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 15,
+        "time": 10,
         "difficulty": "facil",
-        "prepSummary": "La Thermomix es ideal para unos huevos revueltos cremosos. Se cocinan los huevos con la nata y mantequilla a baja temperatura (aprox. 85°C) con la mariposa y velocidad cuchara durante unos 10-12 minutos, añadiendo el salmón y cebollino al final."
+        "prepSummary": "Programa a 60°C durante 8 minutos con las cuchillas lentas, añadiendo huevos batidos, nata y mantequilla. Incorpora el salmón al final para evitar que se desmenuce demasiado."
       },
       {
         "appliance": "microondas",
-        "time": 8,
+        "time": 6,
         "difficulty": "facil",
-        "prepSummary": "Para una versión exprés, bate los huevos con la nata y la mantequilla en un bol apto para microondas. Cocina en intervalos de 30 segundos, removiendo bien entre cada uno, hasta obtener la textura deseada (unos 3-4 minutos). Añade el salmón y el cebollino al final."
+        "prepSummary": "Bate los huevos con nata y mantequilla, cocina a potencia media (50%) durante 3-4 minutos removiendo cada 30 segundos. Añade el salmón en los últimos segundos para mantener su textura."
       }
     ]
   },
@@ -2837,15 +2825,15 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 15,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Para el revuelto, bate los huevos con sal y pimienta, añade el jamón y queso, y cocina en la Thermomix a 90°C, velocidad 1-2, durante 6-8 minutos, removiendo ocasionalmente. La ensalada se prepara aparte mientras el revuelto se cocina, picando los ingredientes y aliñando."
+        "prepSummary": "Usa la función de cocción a 70°C durante 8-10 minutos con las cuchillas en movimiento lento para revolver los huevos con jamón y queso, logrando una textura cremosa y homogénea. Prepara la ensalada en paralelo con la función pulsado."
       },
       {
         "appliance": "microondas",
         "time": 10,
         "difficulty": "facil",
-        "prepSummary": "Para el revuelto, mezcla los huevos batidos con el jamón y queso picados en un bol apto para microondas. Cocina a máxima potencia en intervalos de 30-45 segundos, removiendo bien entre cada uno, hasta obtener la cremosidad deseada. La ensalada se prepara aparte."
+        "prepSummary": "Bate los huevos con jamón y queso, cocina en potencia media (50%) durante 4-5 minutos revolviendo cada minuto para evitar que se endurezcan. Obtiene un revuelto cremoso sin usar sartén."
       }
     ]
   },
@@ -3024,28 +3012,16 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "airfryer",
+        "appliance": "horno",
         "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Prepara la mezcla de huevo, queso y espinacas en un molde apto para airfryer. Cocina a 180°C durante 10-12 minutos, o hasta que esté cuajada y ligeramente dorada por encima. Sirve con la ensalada fresca."
+        "prepSummary": "Precalienta a 200°C, vierte los huevos batidos con queso y espinacas en una bandeja y cuece 12-14 min hasta que cuaje. La tortilla quedará esponjosa y uniforme."
       },
       {
-        "appliance": "horno",
-        "time": 22,
+        "appliance": "airfryer",
+        "time": 16,
         "difficulty": "facil",
-        "prepSummary": "Vierte la mezcla de huevo, queso y espinacas en una fuente de horno pequeña. Hornea a 180°C (con calor arriba y abajo) durante 12-15 minutos, hasta que esté cuajada y ligeramente dorada. Acompaña con la ensalada."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 17,
-        "difficulty": "facil",
-        "prepSummary": "Bate los huevos y mezcla con el queso de cabra y las espinacas en el vaso. Vierte la mezcla en un recipiente apto para Varoma y cocina al vapor durante 12-15 minutos, velocidad cuchara, temperatura Varoma, hasta que esté cuajada. Sirve con la ensalada."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Prepara la mezcla de huevo, queso y espinacas en un molde resistente al calor. Cocina al vapor en la vaporera durante 12-15 minutos, hasta que la tortilla esté completamente cuajada. Acompaña con la ensalada de tomate y albahaca."
+        "prepSummary": "Precalienta a 180°C, vierte la mezcla de huevos, queso y espinacas en molde apto y cocina 10-12 min. Resulta una tortilla ligera y bien cuajada."
       }
     ]
   },
@@ -3211,15 +3187,15 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 15,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Para los huevos, usa un ramekin engrasado con un poco de aceite y cocina a 180°C durante 8-10 minutos para un resultado tipo 'huevo al plato'. El jamón se puede tostar ligeramente en la airfryer por 2-3 minutos a 180°C para que quede crujiente."
+        "prepSummary": "Precalienta a 180°C durante 3 min, coloca los huevos en la canasta con jamón serrano alrededor y cocina 8-9 min hasta que las claras cuajen. La ensalada se prepara aparte mientras se cocinan los huevos."
       },
       {
         "appliance": "horno",
-        "time": 20,
+        "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Prepara los huevos en cazuelitas individuales con un chorrito de aceite y hornea a 180°C durante 10-12 minutos para obtener unos 'huevos al plato' perfectos. El jamón se puede tostar en la misma bandeja del horno por unos minutos hasta que esté crujiente."
+        "prepSummary": "Precalienta a 200°C, vierte los huevos en una fuente refractaria con jamón serrano y hornea 10-12 min hasta que las claras cuajen. La ensalada se prepara simultáneamente en frío."
       }
     ]
   },
@@ -3402,7 +3378,13 @@
         "appliance": "thermomix",
         "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Para el revuelto, se pueden saltear las gambas con un poco de aceite y luego añadir los huevos, programando temperatura y velocidad suave con la mariposa para lograr una textura cremosa. La ensalada se prepara aparte."
+        "prepSummary": "Usa la función de cocción a 70°C durante 8-10 minutos para hacer el revuelto de gambas y huevo con movimiento lento, obteniendo una textura cremosa. Prepara la ensalada en el vaso con picado rápido."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Cuece las gambas al vapor 4-5 minutos a 100°C, luego en un recipiente aparte cocina los huevos batidos al vapor 6-7 minutos revolviendo ocasionalmente. La ensalada se prepara cruda al final."
       }
     ]
   },
@@ -3581,16 +3563,16 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "airfryer",
-        "time": 15,
+        "appliance": "horno",
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Bate los huevos con sal y pimienta, incorpora el brie troceado y las nueces picadas. Vierte en un molde individual apto para airfryer y cocina a 170°C durante 10-12 minutos hasta que cuaje y dore ligeramente."
+        "prepSummary": "Precalienta a 200°C, vierte los huevos batidos con brie y nueces en una bandeja engrasada, cocina 12-14 min hasta que cuaje. Sirve con la ensalada fría de canónigos y pera aliñada."
       },
       {
-        "appliance": "horno",
-        "time": 20,
+        "appliance": "airfryer",
+        "time": 16,
         "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 180°C. Bate los huevos, añade el brie y las nueces, y vierte en una fuente pequeña o moldes individuales. Hornea durante 15-20 minutos hasta que la 'tortilla' esté cuajada y dorada."
+        "prepSummary": "Precalienta a 190°C, vierte los huevos batidos con brie y nueces en molde apto, cocina 10-12 min hasta que cuaje sin dorarse excesivamente. Acompaña con ensalada fresca."
       }
     ]
   },
@@ -3735,7 +3717,20 @@
     "tecnica": "sarten",
     "formato": "plato_seco",
     "temperatura": "caliente",
-    "methods": []
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C durante 3 min. Coloca el bacon 5-6 min hasta crujiente, retira y fríe los huevos 4-5 min. Mientras, prepara la ensalada con aguacate y rúcula aliñada."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Coloca el bacon en bandeja 8-10 min hasta crujiente, luego añade los huevos en cazuelitas y hornea 4-5 min hasta cuajar. Prepara la ensalada mientras."
+      }
+    ]
   },
   {
     "id": "huevos_027",
@@ -3923,15 +3918,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 20,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Sofríe el calabacín brevemente. Mezcla con huevo y feta, vierte en un molde apto y cocina en la airfryer a 180°C durante 15-20 minutos hasta que esté cuajada y ligeramente dorada."
+        "prepSummary": "Precalienta a 190°C, vierte la mezcla de huevo y calabacín en molde apto, cocina 12-14 min hasta que cuaje. La tortilla queda esponjosa y el feta se integra perfectamente."
       },
       {
         "appliance": "horno",
-        "time": 25,
+        "time": 22,
         "difficulty": "facil",
-        "prepSummary": "Sofríe el calabacín en una sartén. Mezcla con huevo y feta, vierte en un molde apto para horno y hornea a 180°C durante 20-25 minutos hasta que esté cuajada y dorada."
+        "prepSummary": "Precalienta a 200°C, vierte la mezcla en bandeja refractaria, hornea 15-18 min hasta que cuaje. Método clásico que garantiza cocción uniforme y textura jugosa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Vierte la mezcla en molde apto para vapor, cocina 12-15 min a fuego medio-alto. La tortilla queda más delicada y húmeda, ideal para una versión más ligera."
       }
     ]
   },
@@ -4097,16 +4098,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 15,
+        "appliance": "airfryer",
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Sofríe los champiñones en el vaso con aceite. Añade los huevos batidos y cocina a temperatura y velocidad controladas para unos revueltos cremosos. La ensalada se prepara aparte."
+        "prepSummary": "Precalienta a 180°C, saltea los champiñones 5 min, añade los huevos batidos y cocina 4-5 min removiendo ocasionalmente. La circulación de aire evita que se peguen y quedan esponjosos."
       },
       {
-        "appliance": "microondas",
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Saltea los champiñones en una cazuela apta para horno a fuego medio, vierte los huevos batidos y termina en horno a 180°C durante 6-8 min hasta cuajar. Requiere vigilancia para no secar los huevos."
+      },
+      {
+        "appliance": "thermomix",
         "time": 10,
         "difficulty": "facil",
-        "prepSummary": "Cocina los champiñones picados en un bol apto para microondas. Añade los huevos batidos y cocina en intervalos cortos, removiendo cada vez, hasta obtener la textura deseada. La ensalada se monta aparte."
+        "prepSummary": "Pica los champiñones con la función picadora, saltea en modo cocción suave, añade huevos batidos y cocina a 60°C durante 4-5 min removiendo. Resulta cremoso y controlado."
       }
     ]
   },
@@ -4275,13 +4282,13 @@
         "appliance": "thermomix",
         "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Los huevos revueltos se preparan en el vaso con la mariposa, a temperatura y velocidad controladas para una textura cremosa perfecta. El eneldo se pica fácilmente y la vinagreta se emulsiona para la ensalada."
+        "prepSummary": "Usa la función de cocción a 70°C durante 8 minutos para revolver los huevos con mantequilla, obteniendo una textura cremosa y controlada. Prepara la ensalada de aguacate con eneldo en la jarra antes de servir."
       },
       {
         "appliance": "microondas",
-        "time": 8,
+        "time": 10,
         "difficulty": "facil",
-        "prepSummary": "Los huevos se baten con la mantequilla y se cocinan en un recipiente apto para microondas en intervalos cortos de 30 segundos, removiendo entre medias para lograr una cocción uniforme y rápida."
+        "prepSummary": "Cocina los huevos batidos con mantequilla en potencia media (50%) durante 3-4 minutos, removiendo cada 30 segundos para conseguir una textura revuelta suave. Rápido y sin necesidad de sartén."
       }
     ]
   },
@@ -4479,10 +4486,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
+        "appliance": "horno",
         "time": 30,
         "difficulty": "normal",
-        "prepSummary": "Prepara la salsa holandesa en el vaso con temperatura y velocidad controladas para una emulsión perfecta. Pocha los huevos en el recipiente Varoma, logrando una cocción uniforme y delicada."
+        "prepSummary": "Precalienta a 200°C y tuesta los muffins 5 min. Cuece los huevos en agua con vinagre a fuego aparte, monta la salsa holandesa en baño maría del horno a 60°C. Monta el plato final con jamón, muffin, huevo y salsa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para emulsionar la salsa holandesa (mantequilla, yema, limón) a 65°C en 8 min con precisión. Los huevos se cocinan en agua hirviendo aparte. Monta el plato con muffin tostado, jamón, huevo poché y salsa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Vaporiza los huevos en moldes 12 min a 100°C para obtener una textura suave y uniforme. Prepara la salsa holandesa en baño maría aparte. Tuesta los muffins en sartén y monta con jamón, huevo al vapor y salsa."
       }
     ]
   },
@@ -4620,15 +4639,15 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 30,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Corta las patatas en bastones, rocíalas con poco aceite y sal. Cocínalas en la airfryer a 190°C durante 20-25 minutos, agitándolas a mitad para un dorado uniforme. Mientras, fríe los huevos en una sartén aparte y monta el plato con el jamón sobre las patatas crujientes."
+        "prepSummary": "Precalienta a 200°C, cocina las patatas cortadas en bastones 15 min agitando a mitad de cocción hasta que estén doradas y crujientes. Aparte, fríe los huevos en una sartén tradicional y añade el jamón al final."
       },
       {
         "appliance": "horno",
-        "time": 50,
-        "difficulty": "facil",
-        "prepSummary": "Corta las patatas en bastones, mézclalas con aceite y sal. Ásalas en el horno precalentado a 200°C durante 35-40 minutos, dándoles la vuelta a mitad para que queden doradas. Fríe los huevos en una sartén aparte y sirve con el jamón sobre las patatas asadas."
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Hornea las patatas cortadas a 220°C durante 20-25 min hasta que estén crujientes. Mientras, prepara los huevos rotos en sartén tradicional con el jamón serrano para mantener la textura característica del plato."
       }
     ]
   },
@@ -4810,15 +4829,15 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 25,
+        "time": 20,
         "difficulty": "normal",
-        "prepSummary": "Corta las patatas en dados y cocínalas en la airfryer a 190°C durante 15-20 min hasta dorar. Añade los huevos sobre las patatas los últimos 5-7 min para que la yema quede líquida, sellando el foie aparte y sirviendo con el jamón."
+        "prepSummary": "Precalienta a 190°C y cocina las patatas cortadas en bastones 15 min hasta dorarlas. Calienta el foie 1 min a 160°C y termina con los huevos rotos sobre las patatas calientes en sartén tradicional para mantener la textura."
       },
       {
         "appliance": "horno",
-        "time": 35,
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Asa las patatas cortadas en rodajas o dados con aceite a 200°C durante 20-25 min hasta que estén tiernas y doradas. Rompe los huevos directamente sobre las patatas en la bandeja los últimos 5-7 min para que las yemas queden líquidas, y completa con el foie sellado y el jamón."
+        "prepSummary": "Cocina las patatas en bandeja a 200°C durante 20 min hasta dorarlas. Calienta el foie 2 min a 180°C en otra bandeja, luego termina los huevos rotos en sartén sobre las patatas calientes para conseguir la textura crujiente característica."
       }
     ]
   },
@@ -4999,15 +5018,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 35,
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Las patatas y cebolla se cortan finas, se rocían con aceite y se cocinan en la airfryer a 180°C por 15-20 min hasta tiernas."
+        "prepSummary": "Cocina las patatas cortadas a 180°C durante 12 min, luego vierte la mezcla de huevo y queso y continúa 10 min más hasta cuajar. Queda esponjosa y dorada sin necesidad de voltear."
       },
       {
         "appliance": "horno",
-        "time": 45,
+        "time": 30,
         "difficulty": "normal",
-        "prepSummary": "Las patatas y cebolla se asan en el horno a 190°C con un poco de aceite por 20-25 min hasta que estén blandas."
+        "prepSummary": "Prepara la tortilla en una fuente apta para horno, cocina a 190°C durante 20-25 min hasta que cuaje completamente. Resulta uniforme y bien cocida en toda la superficie."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el vaso para picar patatas y cebolla, luego bate los huevos con queso. Finaliza la cocción en sartén tradicional ya que Thermomix no cocina directamente. Requiere combinación de técnicas."
       }
     ]
   },
@@ -5146,16 +5171,16 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "airfryer",
-        "time": 17,
-        "difficulty": "normal",
-        "prepSummary": "Sofríe los boletus y el ajo en una sartén. Mezcla con los huevos batidos, perejil y sal. Vierte en un molde apto para airfryer y cocina a 180°C durante 12-15 minutos hasta que cuaje, logrando una tortilla jugosa y con un ligero dorado."
-      },
-      {
         "appliance": "horno",
         "time": 20,
         "difficulty": "normal",
-        "prepSummary": "Sofríe los boletus y el ajo en una sartén apta para horno. Vierte la mezcla de huevos batidos con perejil y sal por encima y hornea a 190°C durante 15-20 minutos hasta que esté cuajada y ligeramente dorada por la superficie."
+        "prepSummary": "Saltea los boletus con ajo en sartén, vierte los huevos batidos en una cazuela apta para horno y termina la cocción a 180°C durante 8-10 minutos hasta que cuaje. Obtendrás una tortilla abierta esponjosa y bien hecha."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Saltea previamente los boletus con ajo, vierte la mezcla de huevo en un molde apto para airfryer y cocina a 160°C durante 12-14 minutos. El resultado es una tortilla abierta jugosa con textura uniforme."
       }
     ]
   },
@@ -5332,16 +5357,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "horno",
-        "time": 70,
+        "appliance": "airfryer",
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Para una versión más ligera y tipo pastel, cuece las patatas y carameliza la cebolla por separado. Luego mezcla con los huevos batidos y hornea todo en un molde a 180°C durante unos 30-35 minutos hasta que cuaje."
+        "prepSummary": "Cocina las patatas cortadas a 180°C durante 15 min, luego añade la cebolla caramelizada previamente hecha en sartén y vierte los huevos batidos. Termina a 160°C durante 10 min hasta cuajar."
       },
       {
-        "appliance": "thermomix",
-        "time": 60,
-        "difficulty": "facil",
-        "prepSummary": "La Thermomix es excelente para pochar las patatas y la cebolla (con el azúcar para caramelizar) de forma controlada y con menos aceite."
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la tortilla en una cazuela apta para horno con patatas y cebolla caramelizada, vierte los huevos batidos y cocina a 180°C durante 20-25 min hasta que cuaje completamente."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "elaborada",
+        "prepSummary": "Cocina las patatas troceadas a presión durante 5 min, luego abre y saltea con la cebolla caramelizada. Vierte los huevos batidos y termina a fuego lento sin presión durante 10 min hasta cuajar bien."
       }
     ]
   },
@@ -5487,15 +5518,15 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 18,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Pica el ajo, sofríe las setas con aceite a 120°C durante 10 min. Añade los huevos batidos y cocina a 90°C, velocidad cuchara, 5-7 min, removiendo suavemente hasta obtener la textura cremosa característica del revuelto."
+        "prepSummary": "Pica setas y ajo con la función picadora (5 seg), sofríe a 100°C velocidad 1 con mariposa (4 min), añade huevos batidos y cocina a 80°C velocidad 2 (3 min) removiendo ocasionalmente hasta cuajar."
       },
       {
-        "appliance": "horno",
-        "time": 30,
+        "appliance": "airfryer",
+        "time": 14,
         "difficulty": "normal",
-        "prepSummary": "En una fuente apta para horno, mezcla las setas, ajo y aceite. Hornea a 180°C durante 15-20 min hasta que las setas estén tiernas. Retira, vierte los huevos batidos y hornea a 150°C unos 10-12 min, removiendo cada pocos minutos para una textura cremosa y cuajada."
+        "prepSummary": "Precalienta a 180°C, sofríe setas y ajo en la cesta 5 min, añade huevos batidos y cocina 6-7 min removiendo cada 2 minutos hasta obtener una textura cremosa."
       }
     ]
   },
@@ -5617,9 +5648,15 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 18,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Sofríe los ajetes y las gambas con el aceite en el vaso. Luego, añade los huevos y programa para cocinar y remover suavemente con la mariposa hasta obtener la textura cremosa característica del revuelto."
+        "prepSummary": "Programa el Thermomix a temperatura baja (60°C) con velocidad 1 para cocinar los ajetes picados 3 min, luego añade las gambas 2 min más. Finalmente sube a velocidad 2 sin temperatura y vierte los huevos batidos, removiendo cada 30 seg hasta cuajar (5-6 min)."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Saltea ajetes y gambas en una cazuela apta para horno 4 min en la base, vierte los huevos batidos y termina en el horno 8-10 min hasta cuajar. Requiere vigilancia pero logra una textura uniforme y cremosa sin riesgo de quemar."
       }
     ]
   },
@@ -5814,16 +5851,16 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
+        "appliance": "vaporera",
         "time": 20,
         "difficulty": "normal",
-        "prepSummary": "La Thermomix es ideal para esta receta. Permite pochar los huevos y cocer los espárragos al vapor en el Varoma, mientras que la salsa holandesa se emulsiona perfectamente en el vaso gracias a su control de temperatura y velocidad, asegurando una textura impecable."
+        "prepSummary": "Cuece los espárragos al vapor 8-10 min hasta que estén tiernos. Mientras, prepara la holandesa en otro recipiente y pocha los huevos en agua con vinagre caliente (80-85°C) durante 3-4 min."
       },
       {
-        "appliance": "microondas",
-        "time": 15,
-        "difficulty": "normal",
-        "prepSummary": "El microondas permite una preparación rápida."
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para emulsionar la holandesa (mantequilla, yema y limón a 60°C, velocidad 4) de forma perfecta y segura. Los espárragos y huevos poché se preparan en paralelo con métodos tradicionales."
       }
     ]
   },
@@ -5931,7 +5968,20 @@
     "tecnica": "sarten",
     "formato": "plato_seco",
     "temperatura": "caliente",
-    "methods": []
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C durante 3 minutos. Coloca los huevos en la canasta con jamón alrededor y cocina 8-9 minutos hasta que las claras cuajen. Añade parmesano al final para que no se queme."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C. Vierte aceite en una fuente refractaria, distribuye jamón y rompe los huevos encima. Hornea 10-12 minutos hasta que las claras cuajen y añade parmesano en los últimos 2 minutos."
+      }
+    ]
   },
   {
     "id": "huevos_040",
@@ -6119,13 +6169,19 @@
         "appliance": "horno",
         "time": 30,
         "difficulty": "facil",
-        "prepSummary": "Es la técnica original y la que mejor respeta la esencia del plato. Prepara un sofrito con las verduras y el chorizo en una sartén. Distribúyelo en cazuelitas individuales, haz un hueco y casca los huevos."
+        "prepSummary": "Precalienta a 200°C, sofríe los ingredientes en una bandeja refractaria 10 min, añade los huevos y hornea 15-20 min hasta que cuajen. Método tradicional y resultado óptimo."
       },
       {
         "appliance": "airfryer",
-        "time": 22,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Se puede adaptar usando cazuelitas aptas para airfryer. Prepara el sofrito de verduras y chorizo en una sartén o en la propia airfryer con un recipiente adecuado. Luego, distribúyelo, casca los huevos y cocina a 170-180°C durante 8-12 minutos, vigilando el punto de las yemas."
+        "prepSummary": "Precalienta a 180°C, sofríe chorizo y verduras 8 min en la cesta, añade huevos y cocina 10-12 min más. Resultado similar al horno con menor tiempo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Usa el vaso para picar y sofreír verduras y chorizo (varoma o función sofrito), luego transfiere a bandeja refractaria y termina en horno 15 min. Prepara la base de forma rápida y eficiente."
       }
     ]
   },
@@ -6278,15 +6334,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 18,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Prepara la mezcla de huevo y gambas. Vierte en un molde apto para airfryer (tipo ramekin o pequeño). Cocina a 180°C durante 15-20 minutos, o hasta que esté cuajada y dorada. Un truco es precalentar la airfryer para una cocción más uniforme."
+        "prepSummary": "Precalienta a 180°C, vierte la mezcla de huevo y gambas en la canasta, cocina 10-12 min hasta que cuaje. Queda esponjosa y bien cocida sin necesidad de voltear."
       },
       {
         "appliance": "horno",
-        "time": 22,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Sofríe las gambas con ajo y perejil. Mezcla con los huevos batidos. Vierte en un molde o sartén apta para horno y hornea a 190°C durante 20-25 minutos, hasta que esté cuajada y ligeramente dorada. Para un acabado perfecto, usa un molde de cerámica o hierro fundido."
+        "prepSummary": "Precalienta a 200°C, vierte la tortilla en una fuente apta para horno, cocina 12-15 min hasta que cuaje completamente. Resulta uniforme y sin riesgo de quemar la base."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Bate los huevos con gambas, ajo y perejil en el vaso, vierte en sartén precalentada y finaliza la cocción en sartén tradicional. El Thermomix prepara la mezcla perfectamente emulsionada."
       }
     ]
   },
@@ -6501,13 +6563,19 @@
         "appliance": "horno",
         "time": 55,
         "difficulty": "normal",
-        "prepSummary": "Precalienta el horno a 180°C. Hornea la masa quebrada unos minutos, luego rellena con la mezcla de huevos, nata, panceta y queso. Hornea durante 40-45 minutos hasta que esté cuajada y dorada."
+        "prepSummary": "Precalienta a 200°C, vierte el relleno en la masa y hornea 35-40 min hasta que cuaje. El método tradicional que garantiza una quiche perfecta con base crujiente y relleno cremoso."
       },
       {
         "appliance": "airfryer",
         "time": 30,
         "difficulty": "normal",
-        "prepSummary": "Precalienta la airfryer a 160-170°C. Pre-hornea la masa en un molde pequeño 5 min, rellena y cocina 20-25 minutos, cubriendo con papel de aluminio si se dora en exceso."
+        "prepSummary": "Precalienta a 180°C, coloca la quiche en la canasta y cocina 25-28 min. Cocción más rápida que el horno convencional con resultados similares, ideal para porciones individuales."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el thermomix para preparar la masa (5 min) y emulsionar el relleno (3 min a vel. 4), luego hornea a 200°C durante 35-40 min. Acelera la preparación de ingredientes pero requiere horno para la cocción final."
       }
     ]
   },
@@ -6714,13 +6782,19 @@
         "appliance": "horno",
         "time": 55,
         "difficulty": "normal",
-        "prepSummary": "Precalienta el horno a 180-190°C. Hornea la quiche con la masa y el relleno durante 45-55 minutos o hasta que el centro esté cuajado y la superficie dorada."
+        "prepSummary": "Precalienta a 180°C, vierte la mezcla de huevo y nata sobre la masa con puerros y queso, y hornea 35-40 min hasta que cuaje. Es el método tradicional y garantiza una cocción uniforme."
       },
       {
         "appliance": "airfryer",
-        "time": 40,
+        "time": 35,
         "difficulty": "normal",
-        "prepSummary": "Precalienta la airfryer a 160-170°C. Cocina la quiche en un molde adecuado durante 35-40 minutos, revisando que el relleno cuaje y la masa se dore sin quemarse."
+        "prepSummary": "Precalienta a 180°C, coloca la quiche en el cesto y cocina 25-30 min hasta que el relleno cuaje. Se reduce tiempo significativamente y queda con textura crujiente en los bordes."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el thermomix para picar y saltear los puerros (varoma 5 min), luego prepara la mezcla de huevo y nata. Vierte en molde y termina la cocción en horno convencional 35 min a 180°C."
       }
     ]
   },
@@ -6886,22 +6960,16 @@
     "temperatura": "frio",
     "methods": [
       {
-        "appliance": "thermomix",
+        "appliance": "horno",
         "time": 18,
         "difficulty": "normal",
-        "prepSummary": "Para los huevos escalfados, calienta 500ml de agua en el vaso (5 min/Varoma/vel 1), luego coloca los huevos en moldes en el recipiente Varoma y cocina 10-12 min/Varoma/vel 1. Tuesta el pan por separado y monta el plato."
+        "prepSummary": "Precalienta a 180°C. Coloca los huevos en una fuente con agua caliente y vinagre, introduce en el horno 12-14 min hasta que las claras cuajen. El resultado es similar al escalfado tradicional."
       },
       {
         "appliance": "vaporera",
-        "time": 15,
-        "difficulty": "normal",
-        "prepSummary": "Escalfa los huevos en la vaporera usando pequeños cuencos o moldes de silicona, cocinándolos al vapor durante 8-10 minutos hasta que la clara esté firme y la yema líquida. Tuesta el pan aparte y sirve con el salmón."
-      },
-      {
-        "appliance": "microondas",
-        "time": 12,
+        "time": 16,
         "difficulty": "facil",
-        "prepSummary": "Para los huevos, llena un bol apto para microondas con agua y un chorrito de vinagre, casca un huevo con cuidado y cocina por 1-2 minutos a potencia media-alta. Tuesta el pan por separado para la base crujiente."
+        "prepSummary": "Calienta agua con vinagre en la vaporera. Coloca los huevos en recipientes individuales sobre la bandeja de vapor durante 10-12 min. Consigues huevos escalfados tiernos sin que se rompan."
       }
     ]
   },
@@ -7082,15 +7150,27 @@
     "methods": [
       {
         "appliance": "horno",
-        "time": 40,
+        "time": 30,
         "difficulty": "facil",
-        "prepSummary": "Prepara los huevos duros y la salsa bechamel por separado. Monta los huevos rellenos en una fuente apta para horno, cubre con la bechamel y el queso, y gratina a 200°C durante 15-20 minutos hasta que estén dorados y burbujeantes."
+        "prepSummary": "Cuece los huevos, prepara la salsa bechamel tradicional, rellena y gratina a 200°C durante 10-12 minutos hasta dorar. Es el método original y más efectivo."
       },
       {
         "appliance": "airfryer",
-        "time": 35,
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Hierve los huevos y elabora la bechamel de forma tradicional. Rellena los huevos y colócalos en un recipiente apto para airfryer, cúbrelos con la bechamel y el queso. Gratina a 190°C durante 10-12 minutos, vigilando para un dorado perfecto."
+        "prepSummary": "Prepara los huevos rellenos con bechamel y queso, cocina a 180°C durante 8-10 minutos hasta gratinar. Resulta más rápido que el horno convencional con excelente dorado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Usa la Thermomix para preparar la bechamel (mantequilla, harina y leche en 5 min a 60°C), luego rellena y gratina en horno o airfryer. Ahorra tiempo en la salsa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Cuece los huevos al vapor (8 min), prepara la bechamel aparte, rellena y termina el gratinado en horno o airfryer 10 minutos. Los huevos quedan perfectos sin sobrecocciones."
       }
     ]
   },
@@ -7248,27 +7328,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 25,
+        "time": 20,
         "difficulty": "normal",
-        "prepSummary": "Sofríe la cebolla y el bacalao en una sartén. Mezcla con los huevos y vierte en un molde apto para airfryer. Cocina a 180°C durante 15-20 minutos, hasta que esté cuajada y ligeramente dorada."
+        "prepSummary": "Precalienta a 180°C. Vierte la mezcla de huevo, bacalao y cebolla en el cestillo y cocina 15-18 min hasta que cuaje, dándole la vuelta a mitad del proceso para que se dore uniformemente."
       },
       {
         "appliance": "horno",
-        "time": 30,
+        "time": 22,
         "difficulty": "normal",
-        "prepSummary": "Sofríe la cebolla y el bacalao. Mezcla con los huevos batidos y vierte en un molde refractario. Hornea a 190°C durante 20-25 minutos, hasta que esté dorada y cuajada."
+        "prepSummary": "Precalienta a 200°C. Prepara la mezcla en una bandeja apta para horno y cocina 18-20 min hasta que cuaje y se dore ligeramente. Más fácil que en sartén pues no requiere volteo."
       },
       {
         "appliance": "thermomix",
-        "time": 35,
-        "difficulty": "normal",
-        "prepSummary": "Pica la cebolla y sofríela con el aceite y el bacalao. Mezcla con los huevos y vierte en un molde apto para Varoma. Cocina al vapor en el Varoma durante 20-25 minutos, obteniendo una textura tipo flan."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 30,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y el bacalao por separado. Mezcla con los huevos y vierte en un molde resistente al vapor. Cocina en la vaporera durante 15-20 minutos hasta que cuaje, resultando en una tortilla suave y sin dorar."
+        "time": 25,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el thermomix para picar cebolla y bacalao, luego bate los huevos. Vierte en sartén tradicional para cuajar, ya que el thermomix no cocina directamente. Requiere finalizar en cocción convencional."
       }
     ]
   },
@@ -7447,7 +7521,19 @@
         "appliance": "horno",
         "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Precalienta el horno a 180°C. Saltea los champiñones con ajo y mantequilla, luego distribúyelos en ramequines individuales. Añade la nata, rompe un huevo en cada uno y hornea al baño maría durante 12-15 minutos, hasta que la clara esté cuajada y la yema líquida."
+        "prepSummary": "Precalienta a 180°C. Saltea champiñones con ajo en sartén, distribuye en moldes individuales, añade nata y huevo, hornea 15-20 min hasta que la clara cuaje pero la yema quede cremosa."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 160°C. Prepara los moldes con champiñones salteados, nata y huevo, cocina 12-15 min hasta que la clara esté cuajada y la yema tierna. Más rápido que horno convencional."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Saltea champiñones previamente, distribuye en moldes con nata y huevo, vaporiza a temperatura media 15-18 min. Resultado muy cremoso y delicado, aunque menos dorado."
       }
     ]
   },
@@ -7595,34 +7681,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "airfryer",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Cocina los huevos en la airfryer a 135°C durante 15 minutos. Una vez fríos, pélalos y procede con el resto de la receta para el relleno."
-      },
-      {
-        "appliance": "horno",
-        "time": 30,
-        "difficulty": "facil",
-        "prepSummary": "Hornea los huevos a 160°C durante 25-30 minutos. Tras enfriar, pélalos bajo agua fría y continúa con la preparación de la mayonesa y el relleno."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Cocina los huevos al vapor en el Varoma durante 13-16 minutos a velocidad Varoma. Luego, pélalos y puedes usar el Thermomix para picar el cebollino y mezclar el relleno si lo deseas."
-      },
-      {
         "appliance": "vaporera",
-        "time": 20,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Cuece los huevos al vapor en la vaporera durante 12-15 minutos para que queden duros y fáciles de pelar. Después, sigue los pasos para el relleno y montaje."
+        "prepSummary": "Cuece los huevos al vapor a 100°C durante 12-13 minutos hasta que estén duros. Pela, corta por la mitad y prepara la mezcla de mayonesa, mostaza y cebollino para rellenar."
       },
       {
         "appliance": "olla_express",
         "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Cocina los huevos en la olla express con un poco de agua durante 5-7 minutos a presión. Despresuriza, enfría y pélalos fácilmente para rellenar."
+        "prepSummary": "Vierte agua, coloca la rejilla y los huevos, cierra y cuece a presión 8 minutos. Enfría rápidamente con agua fría, pela y prepara el relleno de mayonesa y mostaza."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Cuece los huevos en agua hirviendo usando el vaso (12 min a 100°C). Luego utiliza el Thermomix para emulsionar la mayonesa y mezclar con mostaza y cebollino antes de rellenar."
       }
     ]
   },
@@ -7802,7 +7876,19 @@
         "appliance": "horno",
         "time": 45,
         "difficulty": "elaborada",
-        "prepSummary": "Prepara una bechamel con la mantequilla, harina y leche, añade el queso y las yemas. Incorpora suavemente las claras a punto de nieve. Hornea en un horno precalentado a 180-190°C durante unos 45 minutos hasta que esté bien subido y dorado."
+        "prepSummary": "Prepara la bechamel en vitrocerámica, monta el soufflé con claras a punto de nieve, vierte en molde mantequillado y hornea a 190°C durante 35-40 min sin abrir la puerta hasta el final para evitar que baje."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la bechamel previamente, monta el soufflé y cocina en molde apto para airfryer a 180°C durante 20-22 min. Se cocina más rápido que en horno convencional manteniendo la esponjosidad característica."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Usa Thermomix para preparar la bechamel (leche, mantequilla, harina) en 8 min a 90°C, luego monta manualmente con huevos y queso, y termina la cocción en horno a 190°C durante 35-40 min."
       }
     ]
   },
@@ -8009,13 +8095,19 @@
         "appliance": "horno",
         "time": 35,
         "difficulty": "normal",
-        "prepSummary": "Prepara la bechamel y fríe los huevos. Monta en una fuente apta para horno con los huevos, jamón, cubre con bechamel y queso. Gratina a 200°C durante 15-20 minutos o hasta dorar."
+        "prepSummary": "Prepara la bechamel en la cocina, vierte en fuente con huevos y jamón, gratina a 200°C durante 20-25 min hasta dorar. Es el método tradicional y garantiza un gratinado perfecto."
       },
       {
         "appliance": "airfryer",
-        "time": 30,
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Prepara la bechamel y los huevos fritos aparte. Monta en ramequines o un molde pequeño apto para airfryer. Cubre con bechamel y queso, y gratina a 180-190°C durante 10-15 minutos hasta que el queso esté burbujeante y dorado."
+        "prepSummary": "Prepara la bechamel previamente, monta en recipiente apto para airfryer, cocina a 180°C durante 15-18 min hasta gratinar. Más rápido que el horno convencional con resultado similar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Usa el Thermomix para hacer la bechamel en 5 min (mantequilla, harina, leche), luego monta en fuente y gratina en horno o airfryer. Ahorra tiempo en la preparación de la salsa."
       }
     ]
   },
@@ -8241,15 +8333,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 35,
-        "difficulty": "normal",
-        "prepSummary": "Pre-cocina las patatas y verduras en la airfryer a 180°C durante 15-20 min hasta que estén tiernas. Luego, mezcla con el huevo y jamón, vierte en un molde apto y cocina a 180°C por 15-20 min hasta que cuaje y dore."
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C. Cocina los ingredientes picados 8-10 min, vierte los huevos batidos y continúa 12-15 min hasta que cuaje. La tortilla queda esponjosa y dorada sin necesidad de voltear."
       },
       {
         "appliance": "horno",
-        "time": 45,
+        "time": 30,
         "difficulty": "facil",
-        "prepSummary": "Asa las patatas y verduras en el horno a 200°C durante 20-25 min hasta que estén tiernas. Después, mezcla con el huevo batido y jamón, vierte en un molde refractario y hornea a 190°C por 20-25 min hasta que esté cuajada y ligeramente dorada."
+        "prepSummary": "Saltea los ingredientes en una sartén apta para horno, vierte los huevos batidos y termina la cocción en horno a 180°C durante 15-18 min hasta que cuaje completamente. Resultado uniforme y sin necesidad de voltear."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Saltea los ingredientes en el fondo de la olla, vierte los huevos batidos y cierra. Cocina a presión 8-10 min con válvula lenta. Despresuriz y deja reposar 2 min para que cuaje perfectamente."
       }
     ]
   },
@@ -8434,22 +8532,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Pocha los huevos en el Varoma o en el vaso a 80-90°C durante 5-7 minutos. Mientras, pica el ajo y mézclalo con el yogur, y derrite la mantequilla con el pimentón en el vaso."
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C. Coloca los huevos en una cazuela refractaria sobre yogur con ajo, hornea 12-14 min hasta que las claras cuajen pero la yema quede líquida. Calienta la mantequilla con pimentón y vierte sobre los huevos al sacar."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 16,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 180°C. Coloca los huevos en una cazuela pequeña apta para airfryer sobre yogur con ajo, cocina 10-12 min hasta que las claras cuajen. Calienta aparte la mantequilla con pimentón y vierte al final."
       },
       {
         "appliance": "vaporera",
         "time": 20,
-        "difficulty": "normal",
-        "prepSummary": "Cocina los huevos al vapor en moldes o ramequines ligeramente engrasados durante 5-7 minutos para que la yema quede líquida. Prepara la mantequilla de pimentón en una sartén aparte y el yogur con ajo picado."
-      },
-      {
-        "appliance": "microondas",
-        "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Pocha los huevos individualmente en un bol con agua en el microondas durante 45-60 segundos cada uno. Derrite la mantequilla con el pimentón en otro recipiente y mezcla el ajo picado con el yogur."
+        "prepSummary": "Coloca los huevos en una cazuela sobre yogur con ajo dentro de la vaporera a fuego medio-alto durante 12-15 min hasta que cuajen las claras. Calienta la mantequilla con pimentón y sirve caliente sobre los huevos."
       }
     ]
   },
@@ -8608,22 +8706,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 15,
+        "appliance": "horno",
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Prepara los huevos poché en el Varoma con film transparente o moldes, cocinándolos al vapor sobre el agua hirviendo en el vaso durante unos 10-12 minutos hasta que estén a tu gusto."
+        "prepSummary": "Tuesta el pan a 200°C durante 3-4 min. Mientras, calienta agua con vinagre en una cazuela aparte a fuego fuerte y cuece los huevos poché 3-4 min. Monta el plato con aguacate, tostada y huevo."
       },
       {
         "appliance": "vaporera",
-        "time": 15,
+        "time": 16,
         "difficulty": "facil",
-        "prepSummary": "Cocina los huevos poché en la vaporera usando moldes individuales o film transparente, asegurando que el agua hierva suavemente para una cocción uniforme y delicada durante unos 10-12 minutos."
+        "prepSummary": "Cuece los huevos poché al vapor en agua con vinagre durante 4-5 min en la vaporera. Tuesta el pan en horno o tostador aparte. Monta el plato final con los ingredientes."
       },
       {
-        "appliance": "microondas",
-        "time": 10,
+        "appliance": "airfryer",
+        "time": 14,
         "difficulty": "facil",
-        "prepSummary": "Pocha los huevos individualmente en un cuenco con un poco de agua y vinagre, perforando la yema. Cocina en el microondas en ráfagas de 45-60 segundos a media potencia hasta alcanzar el punto deseado."
+        "prepSummary": "Precalienta a 180°C y tuesta el pan 3-4 min hasta dorar. Cuece los huevos poché en agua con vinagre en una cazuela pequeña a fuego fuerte (4 min). Ensambla el plato con aguacate y huevo."
       }
     ]
   },
@@ -8762,7 +8860,26 @@
     "kidFavourite": true,
     "tecnica": "olla",
     "temperatura": "caliente",
-    "methods": []
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, vierte los huevos batidos con jamón y queso en el recipiente, cocina 10-12 min hasta que cuaje. Dobla al final para servir como tortilla francesa."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, vierte los huevos batidos con relleno en una bandeja engrasada, hornea 12-14 min hasta que cuaje completamente. Dobla y sirve."
+      },
+      {
+        "appliance": "microondas",
+        "time": 8,
+        "difficulty": "normal",
+        "prepSummary": "Bate los huevos con jamón y queso, vierte en un plato apto microondas, cocina a máxima potencia 3-4 min removiendo cada minuto hasta cuajar. Dobla al servir."
+      }
+    ]
   },
   {
     "id": "huevos_055",
@@ -8910,15 +9027,15 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 25,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Las patatas paja se cocinan en la airfryer a 190°C durante 18-20 minutos, rociadas con poco aceite, hasta quedar crujientes. Los huevos se hacen en moldes individuales a 170°C durante 5-7 minutos para una yema líquida."
+        "prepSummary": "Precalienta a 200°C, cocina las patatas cortadas en paja 12-14 min agitando a mitad de cocción, luego añade los huevos en la bandeja superior 3-4 min. Espolvorea pimentón al final."
       },
       {
         "appliance": "horno",
-        "time": 35,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 200°C. Las patatas paja se hornean con un chorrito de aceite durante 25-30 minutos hasta dorar. Los huevos se cocinan en ramequines individuales a 180°C durante 10-12 minutos para lograr una yema tierna."
+        "prepSummary": "Precalienta a 200°C, cocina las patatas en bandeja 15 min, haz un hueco y añade los huevos 5 min más hasta que cuajen. Rocía con aceite y pimentón antes de servir."
       }
     ]
   },
@@ -9049,9 +9166,15 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 18,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la morcilla desmenuzada y los piñones en el vaso con un poco de aceite. Luego, añade los huevos y cocina a baja temperatura (aprox. 80°C) con giro inverso y velocidad cuchara hasta obtener un revuelto cremoso y perfectamente integrado."
+        "prepSummary": "Programa a 80°C durante 8-10 minutos con la morcilla troceada y los piñones, removiendo manualmente cada 2 minutos. Añade los huevos batidos al final y remueve hasta obtener la textura deseada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 14,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 160°C, coloca la morcilla y piñones en el cesto 4 minutos, añade los huevos batidos y continúa 8-10 minutos removiendo a mitad del tiempo. Requiere más atención que en sartén."
       }
     ]
   },
@@ -9198,10 +9321,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 18,
+        "appliance": "airfryer",
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Pica el ajo y sofríelo con el aceite. Añade los espárragos troceados y el jamón, cocina unos minutos a temperatura Varoma. Incorpora los huevos batidos y programa a 90°C, velocidad cuchara, giro inverso, hasta obtener la cremosidad deseada."
+        "prepSummary": "Precalienta a 180°C, cocina los espárragos 5 min, añade jamón y ajo, luego vierte los huevos batidos y cocina 5-6 min más removiendo ocasionalmente. Queda esponjoso y bien cocido."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Pica espárragos y jamón con la función picadora, sofríe en modo mariposa a 100°C 3 min, añade huevos batidos y cocina a 80°C 5-6 min removiendo. Resultado cremoso y controlado."
+      },
+      {
+        "appliance": "microondas",
+        "time": 8,
+        "difficulty": "normal",
+        "prepSummary": "En recipiente apto, cocina espárragos 2 min a máxima potencia, añade jamón y ajo, vierte huevos batidos y cocina 3-4 min en potencia media removiendo cada minuto. Requiere atención para evitar sobrecocción."
       }
     ]
   },
@@ -9395,27 +9530,21 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 40,
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Prepara el puré cocinando las patatas al vapor en el Varoma y luego triturándolas con la leche y mantequilla. Escalfa los huevos en el Varoma con agua en el vaso, logrando una cocción perfecta y sin complicaciones."
+        "prepSummary": "Cuece las patatas en el vaso con agua (varoma 20 min), luego tritura con leche y mantequilla. Los huevos se escalfan aparte en agua con vinagre en una sartén tradicional."
       },
       {
         "appliance": "vaporera",
-        "time": 40,
+        "time": 28,
         "difficulty": "normal",
-        "prepSummary": "Cocina las patatas al vapor hasta que estén tiernas para el puré. Para los huevos, utiliza pequeños cuencos o moldes aptos para vaporera, cociéndolos suavemente hasta que la clara esté firme y la yema líquida."
+        "prepSummary": "Cuece las patatas al vapor (20 min), tritúralas con leche y mantequilla. Escalfa los huevos en agua con vinagre en una cazuela aparte sobre la base de la vaporera."
       },
       {
         "appliance": "olla_express",
-        "time": 25,
-        "difficulty": "normal",
-        "prepSummary": "Cuece las patatas en la olla a presión hasta que estén muy tiernas para un puré rápido. Para los huevos, colócalos en pequeños recipientes con un poco de agua sobre una rejilla y cocina a presión mínima por muy poco tiempo para escalfarlos suavemente."
-      },
-      {
-        "appliance": "microondas",
-        "time": 20,
-        "difficulty": "normal",
-        "prepSummary": "Cocina las patatas en el microondas hasta que estén blandas para el puré. Para los huevos escalfados, calienta cada huevo en un cuenco con agua y un poco de vinagre en el microondas en intervalos cortos, vigilando para que la yema quede líquida."
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas a presión (8 min), despresurizando rápido. Tritúralas con leche y mantequilla, mientras escalfas los huevos en agua con vinagre en una sartén."
       }
     ]
   },
@@ -9593,21 +9722,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 30,
-        "difficulty": "normal",
-        "prepSummary": "Sofríe la cebolla y el calabacín en la airfryer a 180°C durante 10-12 min hasta que estén tiernos. Mezcla con huevo y queso, vierte en un molde apto para airfryer y cocina a 170°C durante 15-18 min hasta que cuaje y dore ligeramente."
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, vierte la mezcla de huevo y calabacín en el recipiente y cocina 15-18 min hasta que cuaje. Gira a mitad de cocción para que se dore uniformemente."
       },
       {
         "appliance": "horno",
-        "time": 35,
+        "time": 22,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y el calabacín en una sartén apta para horno hasta que estén tiernos. Vierte la mezcla de huevo y queso sobre las verduras y hornea a 190°C durante 20-25 min hasta que la tortilla esté cuajada y dorada."
+        "prepSummary": "Precalienta a 190°C, vierte la mezcla en una fuente apta para horno y cocina 18-20 min hasta que cuaje y dore ligeramente. Ideal para obtener una tortilla esponjosa y uniforme."
       },
       {
         "appliance": "thermomix",
-        "time": 38,
-        "difficulty": "facil",
-        "prepSummary": "Trocea y sofríe la cebolla y el calabacín en el vaso de la Thermomix. Añade el huevo y el queso, mezcla bien y vierte en un molde. Cocina al vapor en el Varoma durante 20-25 min para una tortilla jugosa y ligera."
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Pica calabacín y cebolla con la función picadora, saltea en el vaso a 100°C 5 min, añade huevo batido y queso, cocina a 90°C 12-15 min en modo mariposa. Requiere terminar en sartén 2-3 min para dorar."
       }
     ]
   },
@@ -9806,25 +9935,19 @@
         "appliance": "horno",
         "time": 40,
         "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 180°C. Sofríe las verduras, mézclalas con los huevos batidos, leche y queso. Vierte en un molde y hornea durante 35-40 minutos hasta que esté cuajada y dorada."
+        "prepSummary": "Precalienta a 180°C, vierte la mezcla de huevo batido con verduras en una bandeja engrasada y hornea 25-30 min hasta que cuaje. El resultado es esponjoso y bien cocido."
       },
       {
         "appliance": "airfryer",
         "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Precalienta la airfryer a 180°C. Sofríe las verduras, mézclalas con los huevos, leche y queso. Vierte en un molde apto para airfryer y cocina por 20-25 minutos hasta que esté cuajada y ligeramente dorada."
+        "prepSummary": "Precalienta a 180°C, vierte la mezcla en un molde apto para airfryer y cocina 18-20 min. Queda más rápido que el horno tradicional con textura similar."
       },
       {
         "appliance": "thermomix",
-        "time": 30,
-        "difficulty": "facil",
-        "prepSummary": "Trocea y sofríe las verduras en el vaso. Mezcla con los huevos, leche y queso. Vierte en un molde apto para Varoma y cocina al vapor en el Varoma durante 20-25 minutos, hasta que esté cuajada."
-      },
-      {
-        "appliance": "vaporera",
         "time": 35,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe las verduras en una sartén. Mézclalas con los huevos, leche y queso. Vierte en un molde resistente al calor y cocina al vapor en la vaporera durante 25-30 minutos hasta que esté firme y cuajada."
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para picar y mezclar las verduras (3 min), bate los huevos con leche, combina todo y vierte en molde para hornear a 180°C durante 25 min. Ahorra tiempo en preparación."
       }
     ]
   },
@@ -9994,13 +10117,13 @@
         "appliance": "horno",
         "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 180°C. En un recipiente apto para horno, vierte la base de tomate con ajo y orégano, casca los huevos encima y cubre con queso. Hornea durante 15-20 minutos hasta que las claras estén cuajadas y el queso dorado."
+        "prepSummary": "Precalienta a 200°C, vierte la salsa de tomate con ajo en una bandeja, crea 4 huecos y casca los huevos, espolvorea queso y hornea 20-25 min hasta que las claras cuajen pero las yemas queden cremosas."
       },
       {
         "appliance": "airfryer",
         "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Precalienta la airfryer a 170°C. En ramequines o un molde pequeño apto, distribuye el tomate con ajo y orégano, añade los huevos y el queso. Cocina en la airfryer durante 12-15 minutos hasta que las claras estén firmes y el queso fundido."
+        "prepSummary": "Precalienta a 180°C, prepara la mezcla de tomate y ajo en un recipiente apto para airfryer, casca los huevos, añade queso y cocina 15-18 min hasta que las claras estén firmes. Resultado similar al horno pero más rápido."
       }
     ]
   },
@@ -10195,28 +10318,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "airfryer",
-        "time": 23,
-        "difficulty": "normal",
-        "prepSummary": "Pre-saltea la cebolla y espinacas. Mezcla con los huevos batidos y piñones, y vierte en un molde apto para airfryer. Cocina a 180°C durante 15-18 minutos, o hasta que esté cuajada y ligeramente dorada."
-      },
-      {
         "appliance": "horno",
         "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y espinacas en una sartén apta para horno. Vierte la mezcla de huevo y piñones, y hornea a 180°C durante 15-20 minutos hasta que esté cuajada y ligeramente dorada."
+        "prepSummary": "Sofríe cebolla y ajo en sartén, añade espinacas y piñones, vierte los huevos batidos. Cocina en horno a 180°C durante 12-15 minutos hasta que cuaje. Queda esponjosa y uniforme."
       },
       {
         "appliance": "thermomix",
-        "time": 30,
+        "time": 20,
         "difficulty": "normal",
-        "prepSummary": "Sofríe la cebolla y espinacas en el vaso de la Thermomix. Mezcla con los huevos batidos y piñones. Vierte en un molde apto para Varoma y cocina al vapor durante 20-25 minutos (Varoma, vel. 1) hasta que cuaje."
+        "prepSummary": "Programa turbo para picar cebolla y ajo, luego sofríe con mariposa a 100°C. Añade espinacas y piñones, vierte huevos batidos y cocina a 90°C con giro lento hasta cuajar. Requiere terminar en sartén 2-3 minutos."
       },
       {
-        "appliance": "vaporera",
-        "time": 25,
-        "difficulty": "normal",
-        "prepSummary": "Prepara un sofrito de cebolla y espinacas por separado. Mezcla con los huevos y piñones, vierte en un molde apto para vapor y cocina al vapor durante 15-20 minutos hasta que esté cuajada."
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la mezcla de huevo, espinacas, piñones y aromáticos en molde apto. Cocina a 180°C durante 12-15 minutos hasta que cuaje completamente. Queda dorada y bien hecha."
       }
     ]
   },
@@ -10394,16 +10511,16 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "horno",
-        "time": 25,
-        "difficulty": "normal",
-        "prepSummary": "Precalienta el horno a 180°C. Tuesta el pan y hornea los huevos en ramequines individuales con un poco de aceite hasta que la clara esté cuajada y la yema líquida (unos 8-10 min)."
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, coloca los huevos en cazuelita refractaria con jamón y trufa, cocina 10-12 min hasta que cuajen. El resultado es similar al de sartén con mejor control de temperatura."
       },
       {
-        "appliance": "thermomix",
+        "appliance": "horno",
         "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Prepara unos huevos revueltos cremosos en la Thermomix (unos 8-10 min a 90°C, velocidad 4 con mariposa). Mientras, tuesta el pan y atempera el jamón ibérico. El truco es añadir la trufa rallada justo antes de servir para preservar su intenso aroma."
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 190°C, prepara los huevos en cazuela refractaria con jamón y trufa, hornea 12-15 min hasta cuajar. Permite cocción uniforme y presentación elegante en la misma cazuela."
       }
     ]
   },
@@ -10621,15 +10738,21 @@
     "methods": [
       {
         "appliance": "horno",
-        "time": 40,
+        "time": 30,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla, pimiento y ajo en una sartén apta para horno. Añade el tomate triturado y especias, cocina unos minutos. Haz huecos, casca los huevos y hornea a 180°C durante 10-15 minutos hasta que las claras estén cuajadas y las yemas a tu gusto."
+        "prepSummary": "Sofríe verduras en cazuela apta horno a 180°C durante 10 min, añade tomate y especias, luego crea pozos para los huevos y hornea 12-15 min hasta que cuajen. El pan se sirve aparte tostado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe verduras en modo sauté, añade tomate y especias, cierra y cocina a presión 5 min. Despresuriz, crea pozos para huevos y cocina sin presión 3-4 min más hasta que cuajen."
       },
       {
         "appliance": "thermomix",
-        "time": 35,
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Trocea la cebolla, pimiento y ajo en el vaso y sofríe con aceite. Añade el tomate triturado y especias, y cocina la salsa. Al final, haz huecos en la salsa, casca los huevos y cocina a baja temperatura (ej. 90°C) y velocidad cuchara, hasta que los huevos estén escalfados."
+        "prepSummary": "Pica verduras con función turbo, sofríe en cazuela externa, luego usa el Thermomix para triturar tomate con especias (vel. 5, 20 seg). Vierte sobre verduras y termina la cocción en cazuela tradicional con los huevos poché."
       }
     ]
   },
@@ -10836,7 +10959,19 @@
         "appliance": "horno",
         "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Prepara la salsa sofriendo cebolla, ajo y jalapeño, luego añade el tomate triturado y cocina unos minutos. En un molde apto para horno, coloca las tortillas, la salsa, las judías y rompe los huevos encima. Hornea a 180°C durante 10-15 minutos hasta que las claras estén cuajadas."
+        "prepSummary": "Prepara la salsa de tomate con cebolla y ajo a 180°C durante 10 min, luego coloca las tortillas con huevos y salsa, gratina con queso a 200°C durante 8-10 min hasta que los huevos cuajen. El resultado es muy similar al tradicional."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, coloca las tortillas con salsa de tomate y huevos en la canasta, cocina 12-15 min hasta que los huevos cuajen. Añade queso en los últimos 2 min. Queda crujiente y bien cocido."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la salsa base (tomate, cebolla, ajo, chile) en 8 min a velocidad 4, luego termina la cocción de huevos y montaje en sartén tradicional. Ahorra tiempo en la preparación de ingredientes."
       }
     ]
   },
@@ -11014,15 +11149,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 40,
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Las patatas y cebolla se cocinan en la airfryer con un poco de aceite hasta que estén tiernas. Se mezclan con el chorizo y el huevo batido, y se hornea la mezcla en un molde apto para airfryer hasta que cuaje, obteniendo una tortilla más ligera y con textura de horneado."
+        "prepSummary": "Precalienta a 180°C. Cocina las patatas y chorizo 12 min, vierte los huevos batidos y continúa 10-12 min más hasta cuajar. Queda esponjosa y dorada."
       },
       {
         "appliance": "horno",
-        "time": 50,
+        "time": 30,
         "difficulty": "normal",
-        "prepSummary": "Las patatas y cebolla se asan en el horno con un chorrito de aceite hasta que estén tiernas. Se mezclan con el chorizo y el huevo batido, y se hornea la mezcla en un molde hasta que cuaje, resultando una tortilla más ligera y con una cocción uniforme."
+        "prepSummary": "Saltea patatas y chorizo en sartén, vierte huevos batidos y cocina 2 min en fuego. Introduce en horno a 200°C durante 15-18 min hasta que cuaje. Resultado similar a la tradicional."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "elaborada",
+        "prepSummary": "Saltea patatas y chorizo con la olla abierta 5 min, vierte huevos batidos y cierra 8-10 min a presión media. Requiere precisión para no sobrecocinar."
       }
     ]
   },
@@ -11245,15 +11386,15 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 30,
-        "difficulty": "facil",
-        "prepSummary": "Prepara el sofrito y el risotto en el vaso con la función de giro inverso y velocidad cuchara, añadiendo el caldo gradualmente para una textura perfecta. Los huevos se fríen en una sartén aparte mientras el risotto termina."
+        "time": 32,
+        "difficulty": "normal",
+        "prepSummary": "Programa sofrito de cebolla y ajo (5 min, vel. 4), añade setas y arroz (3 min, vel. 1), vierte vino y caldo, cocina 20 min a 100°C vel. 1 sin tapa. Termina con mantequilla y parmesano. Los huevos se fríen aparte en sartén."
       },
       {
         "appliance": "olla_express",
-        "time": 25,
+        "time": 20,
         "difficulty": "normal",
-        "prepSummary": "Sofríe la cebolla y setas en la olla, añade el arroz, vino y caldo (en menor proporción), cierra y cocina a presión por 7-8 minutos. Despresuriza, manteca y sirve con los huevos fritos en sartén."
+        "prepSummary": "Sofríe cebolla, ajo y setas a fuego fuerte (3 min), añade arroz y vino, cubre con caldo. Cierra y cocina a presión 12 min. Despresurizas, añades queso y mantequilla. Los huevos se fríen en sartén al final."
       }
     ]
   },
@@ -11445,22 +11586,22 @@
     "temperatura": "templado",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 40,
-        "difficulty": "facil",
-        "prepSummary": "Cuece las patatas y zanahorias troceadas al vapor en el Varoma (20-25 min) y los huevos en el cestillo (13-15 min). Las gambas se pueden cocinar brevemente al vapor en el Varoma. Luego, mezcla todos los ingredientes en el vaso."
-      },
-      {
         "appliance": "vaporera",
-        "time": 35,
+        "time": 30,
         "difficulty": "facil",
-        "prepSummary": "Cocina al vapor las patatas y zanahorias troceadas (20-30 min), los huevos (12-15 min) y las gambas (5-7 min) en los distintos niveles de la vaporera. Este método asegura una cocción uniforme y conserva la textura."
+        "prepSummary": "Cuece las patatas y zanahorias al vapor durante 20 min hasta que estén tiernas, luego cuece los huevos 8 min en agua hirviendo aparte. Mezcla todos los ingredientes con mayonesa y guisantes."
       },
       {
         "appliance": "olla_express",
-        "time": 25,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Cuece las patatas y zanahorias troceadas con un poco de agua en la olla express (5-7 min desde que sube la presión). Los huevos se pueden añadir al mismo tiempo. Las gambas se cocinan en un minuto al final para evitar que queden gomosas."
+        "prepSummary": "Cuece patatas y zanahorias troceadas a presión durante 8 min, después cuece los huevos 5 min en agua hirviendo. Mezcla con mayonesa, guisantes y gambas crudas o cocidas previamente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza el vaso para picar finamente patatas y zanahorias cocidas previamente, luego mezcla todos los ingredientes con la mayonesa en modo pulso suave para no desmenuzar demasiado."
       }
     ]
   },
@@ -11707,22 +11848,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 50,
-        "difficulty": "facil",
-        "prepSummary": "La Thermomix es ideal para cocer los huevos al vapor (13-15 min), picar la cebolla, preparar el sofrito y la carne de txangurro, y elaborar una bechamel perfecta de forma rápida y sin grumos. El gratinado final se realizaría en un horno convencional."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 55,
-        "difficulty": "normal",
-        "prepSummary": "La olla express permite cocer los huevos muy rápidamente (5-7 min en presión). Usándola como cazuela, se puede pochar la cebolla, cocinar el txangurro y preparar la bechamel. El gratinado final se realizaría en un horno o grill."
-      },
-      {
         "appliance": "horno",
-        "time": 55,
+        "time": 35,
         "difficulty": "normal",
-        "prepSummary": "El horno es fundamental para el gratinado final de los huevos rellenos con queso, dándoles un acabado dorado y crujiente a 200°C durante 10-15 minutos. Los pasos previos de cocción de huevos, sofrito y bechamel se realizarían de forma convencional en la cocina."
+        "prepSummary": "Prepara la salsa de txangurro en la cocina, rellena los huevos cocidos, colócalos en una bandeja con la salsa y gratina a 180°C durante 12-15 minutos hasta dorar. El horno gratina perfectamente el queso y calienta el relleno uniformemente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Utiliza el Thermomix para preparar la salsa de txangurro (sofrito, tomate, brandy y bechamel) en 15 minutos con la función de cocción a temperatura controlada. Luego termina los huevos rellenos en el horno convencional para gratinar."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "elaborada",
+        "prepSummary": "Cuece los huevos en la vaporera (12 min) para obtener una cocción perfecta y uniforme. Prepara la salsa en paralelo y termina los huevos rellenos gratinados en horno. La vaporera garantiza huevos de textura ideal sin grietas."
       }
     ]
   },
@@ -11910,22 +12051,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "airfryer",
-        "time": 25,
-        "difficulty": "normal",
-        "prepSummary": "Prepara los huevos al plato en ramequines y hornéalos en la airfryer a 160°C durante 10-12 minutos. Tuesta el pan rústico y las nueces en la misma airfryer a 180°C durante 3-5 minutos para un acabado crujiente. La salsa de queso azul se elabora aparte."
-      },
-      {
         "appliance": "horno",
-        "time": 25,
+        "time": 20,
         "difficulty": "normal",
-        "prepSummary": "Hornea los huevos en ramequines con un poco de nata y queso azul a 180°C durante 10-15 minutos hasta que las claras estén cuajadas. Aprovecha el horno para tostar el pan rústico y las nueces."
+        "prepSummary": "Precalienta a 180°C. Coloca los huevos en una cazuela refractaria, vierte la salsa de queso azul y nata, y hornea 12-15 min hasta que cuajen. Sirve con pan tostado y nueces."
       },
       {
         "appliance": "thermomix",
-        "time": 20,
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Tritura el queso azul, nata y nueces en 20 seg a velocidad 4 para hacer la salsa. Luego cocina los huevos en sartén tradicional y vierte la salsa preparada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
         "difficulty": "normal",
-        "prepSummary": "Prepara la salsa de queso azul en el vaso, calentando la nata y el queso a 90°C durante 5 minutos a velocidad 2. Cocina los huevos escalfados en el Varoma durante 10-12 minutos. El pan rústico y las nueces se tuestan aparte."
+        "prepSummary": "Precalienta a 180°C. Coloca los huevos en un molde apto para airfryer, vierte la salsa de queso y nata, y cocina 10-12 min hasta que cuajen. Las nueces se pueden tostar aparte 3 min a 160°C."
       }
     ]
   },
@@ -12103,27 +12244,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 40,
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Las patatas, cebolla y pimientos se cocinan en la airfryer con un poco de aceite a 180°C durante 20-25 minutos hasta que estén tiernas."
+        "prepSummary": "Precalienta a 180°C. Cocina las patatas y pimientos 12 min, vierte los huevos batidos y continúa 10-12 min hasta que cuaje. Voltea a mitad si es necesario para dorar ambos lados."
       },
       {
         "appliance": "horno",
-        "time": 55,
+        "time": 30,
         "difficulty": "normal",
-        "prepSummary": "Se asan las patatas, cebolla y pimientos en el horno a 180-200°C durante 25-30 minutos hasta que estén tiernos. Se mezclan con el huevo batido y se hornea la tortilla en un molde a la misma temperatura durante 25-30 minutos, obteniendo una tortilla jugosa y con menos aceite."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 45,
-        "difficulty": "normal",
-        "prepSummary": "La Thermomix permite picar y pochar las patatas, cebolla y pimientos con aceite a 120°C durante 20 minutos. Luego se mezclan con los huevos y se puede cuajar la tortilla en el recipiente Varoma al vapor durante 20-25 minutos, resultando en una tortilla muy tierna y jugosa."
+        "prepSummary": "Sofríe patatas y pimientos en sartén, vierte huevos batidos y cocina 2 min en la sartén. Introduce en horno a 200°C durante 12-15 min hasta que cuaje completamente."
       },
       {
         "appliance": "olla_express",
-        "time": 35,
-        "difficulty": "normal",
-        "prepSummary": "Se pochan las patatas, cebolla y pimientos en la olla express con un poco de aceite y se cocinan a presión durante 5-7 minutos. Tras despresurizar y escurrir, se mezclan con el huevo y se cuaja en una sartén, acelerando el proceso de cocción de los ingredientes principales."
+        "time": 20,
+        "difficulty": "elaborada",
+        "prepSummary": "Sofríe patatas y pimientos en el recipiente con función sartén, vierte huevos y cocina a presión 8-10 min. Requiere cuidado al despresurizar para evitar que se desmorone."
       }
     ]
   },
@@ -12344,21 +12479,21 @@
     "methods": [
       {
         "appliance": "thermomix",
-        "time": 25,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolleta, añade los guisantes y el caldo, cocínalos y tritura hasta obtener una crema suave. Pocha los huevos en el Varoma con agua y vinagre mientras se cocina la crema."
+        "prepSummary": "Programa la crema de guisantes a 100°C, 15 min con velocidad progresiva, incorporando caldo, nata y menta. Los huevos poché se cocinan aparte en agua con vinagre en una sartén convencional."
       },
       {
         "appliance": "vaporera",
-        "time": 25,
+        "time": 22,
         "difficulty": "normal",
-        "prepSummary": "Cocina al vapor los guisantes y la cebolleta hasta que estén tiernos. Pocha los huevos en moldes individuales en la vaporera. Luego, tritura los guisantes con el caldo, menta y nata hasta hacer la crema."
+        "prepSummary": "Cuece los guisantes al vapor 8-10 min, luego tritúralos con nata y caldo en una cazuela aparte. Los huevos poché se preparan en agua hirviendo con vinagre en una sartén tradicional simultáneamente."
       },
       {
         "appliance": "olla_express",
-        "time": 20,
+        "time": 18,
         "difficulty": "normal",
-        "prepSummary": "Sofríe la cebolleta y cocina los guisantes con el caldo en la olla a presión para ablandarlos rápidamente. Pocha los huevos en moldes individuales sobre una rejilla en la olla. Libera la presión y tritura la mezcla de guisantes hasta obtener una crema."
+        "prepSummary": "Cuece los guisantes con caldo 5 min a presión, despresurizando rápido. Tritúra la crema con nata y menta, mientras los huevos poché se hacen en agua con vinagre en sartén convencional."
       }
     ]
   },
@@ -12559,15 +12694,21 @@
     "methods": [
       {
         "appliance": "horno",
-        "time": 35,
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Prepara la base de setas, jamón y nata en una sartén. Vierte en ramequines individuales, casca los huevos encima y hornea a 180-200°C durante 20-25 minutos hasta que las claras estén cuajadas y las yemas cremosas."
+        "prepSummary": "Precalienta a 200°C, saltea las setas y ajo en sartén, distribuye en fuente con jamón, vierte los huevos batidos con nata, hornea 15-20 min hasta cuajar. El pan rústico acompaña al lado."
       },
       {
         "appliance": "airfryer",
-        "time": 30,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Sofríe las setas y el jamón con ajo y perejil. Coloca la mezcla en ramequines aptos para airfryer, añade la nata y los huevos. Cocina a 170-180°C durante 15-20 minutos, vigilando para que las yemas queden a tu gusto."
+        "prepSummary": "Precalienta a 180°C, saltea setas y ajo en sartén aparte, monta en molde apto para airfryer con jamón y huevos batidos con nata, cocina 12-15 min hasta cuajar. Resultado similar al horno pero más rápido."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Usa el vaso para picar setas y ajo (5 seg, vel. 5), saltea con aceite en modo cocción 5 min a 100°C. Bate huevos con nata, mezcla todo, vierte en molde y termina en horno a 200°C 15 min para cuajar."
       }
     ]
   },
@@ -12754,27 +12895,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 40,
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Cocina las patatas y cebolla troceadas con un poco de aceite en la airfryer a 180°C durante 20-25 minutos, removiendo a mitad."
+        "prepSummary": "Precalienta a 180°C. Cocina las patatas cortadas en rodajas finas 12 min, luego añade la mezcla de huevo, cebolla y pulpo, y termina 10 min más hasta que cuaje. Voltea a mitad del proceso para dorar ambos lados."
       },
       {
         "appliance": "horno",
-        "time": 60,
+        "time": 35,
         "difficulty": "normal",
-        "prepSummary": "Rostiza las patatas y cebolla con un chorrito de aceite a 200°C durante 30-40 minutos hasta que estén tiernas y ligeramente doradas."
+        "prepSummary": "Precalienta a 200°C. Cocina las patatas en cazuela 15 min, vierte la mezcla de huevo y pulpo, y hornea 18-20 min hasta que cuaje completamente. El resultado es más uniforme que en sartén."
       },
       {
-        "appliance": "thermomix",
-        "time": 45,
-        "difficulty": "normal",
-        "prepSummary": "Pocha las patatas y cebolla troceadas en el vaso con aceite a 120°C, velocidad cuchara, giro inverso, durante 20-25 minutos."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 45,
-        "difficulty": "facil",
-        "prepSummary": "Cocina al vapor las patatas y cebolla troceadas hasta que estén tiernas, unos 20-25 minutos. Luego, mezcla con los huevos batidos y el pulpo, y cuaja la tortilla en un molde apto para vaporera durante otros 20-25 minutos, obteniendo una versión muy jugosa y saludable."
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "elaborada",
+        "prepSummary": "Cocina las patatas cortadas 5 min a presión con poco aceite, luego despresurizas y viertes la mezcla de huevo y pulpo. Termina 8-10 min sin presión hasta que cuaje. Requiere atención en el cambio de técnica."
       }
     ]
   },
@@ -12995,19 +13130,19 @@
         "appliance": "horno",
         "time": 35,
         "difficulty": "normal",
-        "prepSummary": "Prepara la bechamel en un cazo y saltea las espinacas con ajo. Monta los huevos a la Florentina en ramequines individuales: espinacas, un huevo, bechamel y queso. Hornea a 180-200°C durante 15-20 minutos hasta que el huevo esté cuajado y la bechamel gratinada."
+        "prepSummary": "Prepara la bechamel en vitrocerámica, dispón las espinacas en fuente refractaria, vierte la bechamel, crea 4 huecos para los huevos y hornea a 180°C durante 20-25 min hasta que cuajen. El truco es no sobrecocinar para mantener las yemas cremosas."
       },
       {
         "appliance": "thermomix",
         "time": 30,
         "difficulty": "normal",
-        "prepSummary": "Utiliza la Thermomix para elaborar la bechamel y cocinar las espinacas al vapor. Puedes pochar los huevos en el Varoma. Luego, monta los huevos a la Florentina y gratina en el horno tradicional o bajo el grill para un acabado dorado y perfecto."
+        "prepSummary": "Usa el Thermomix para elaborar la bechamel (mantequilla, harina y leche en 5 min a 60°C) y picar las espinacas cocidas. Luego monta todo en fuente refractaria y termina en horno a 180°C durante 15-20 min para cuajar los huevos."
       },
       {
-        "appliance": "airfryer",
-        "time": 25,
-        "difficulty": "normal",
-        "prepSummary": "Prepara la bechamel y saltea las espinacas por separado. Monta los huevos a la Florentina en ramequines aptos para airfryer. Cocina a 180°C durante 10-15 minutos, vigilando que el huevo se cuaje y la bechamel se dore sin secarse, para un gratinado rápido."
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "elaborada",
+        "prepSummary": "Cuece las espinacas en la vaporera 8 min, prepara la bechamel aparte, monta en recipiente apto para vapor con los huevos y cuece al vapor 15-18 min hasta cuajar. Resulta más delicado y requiere control de temperatura."
       }
     ]
   },
@@ -13177,7 +13312,7 @@
         "appliance": "thermomix",
         "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Para un revuelto cremoso, sofríe el ajo, guindilla y pimientos con aceite a 120°C, velocidad cuchara, unos 5-7 min. Añade el bacalao y cocina 2 min más. Finalmente, incorpora los huevos y, con la mariposa, programa 5-8 min a 90°C, velocidad 2, hasta que cuaje a tu gusto."
+        "prepSummary": "Pica ajo y pimientos con la función turbo, sofríe en el vaso a 100°C 5 min con aceite, añade bacalao 2 min, luego vierte huevos batidos y cuaja a 80°C removiendo cada 30 segundos hasta punto deseado."
       }
     ]
   },
@@ -13376,9 +13511,21 @@
     "methods": [
       {
         "appliance": "horno",
-        "time": 30,
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla, pimiento y ajo en una sartén apta para horno con aceite, añade las espinacas y comino hasta que se ablanden. Haz cuatro huecos, casca los huevos y hornea a 180°C durante 10-15 minutos hasta que las claras estén cuajadas y las yemas a tu gusto."
+        "prepSummary": "Sofríe verduras en cazuela a fuego previo, añade espinacas y huevos, espolvorea feta y comino. Introduce en horno a 200°C durante 12-15 min hasta que los huevos cuajen."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la mezcla de verduras y espinacas en recipiente apto para airfryer, crea pozos para los huevos, añade feta y comino. Cocina a 180°C durante 12-15 min hasta cuajar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Pica verduras con función turbo, sofríe en vaso a 100°C velocidad 1 con mariposa. Añade espinacas y huevos batidos, cocina 8-10 min a 90°C. Termina con feta y comino."
       }
     ]
   },
@@ -13553,13 +13700,19 @@
         "appliance": "horno",
         "time": 30,
         "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 180°C. Cocina la base de tomate con ajo unos minutos, luego añade los huevos y hornea 15-20 minutos hasta que cuajen. Sirve inmediatamente con la burrata y albahaca fresca."
+        "prepSummary": "Precalienta a 180°C, vierte la salsa de tomate con ajo en una fuente, crea 4 huecos y casca los huevos, hornea 15-20 min hasta que las claras cuajen. Termina con burrata fresca y albahaca al sacar del horno."
       },
       {
         "appliance": "airfryer",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Precalienta la airfryer a 170°C. En ramequines individuales aptos, cocina la base de tomate con ajo 5 minutos, añade los huevos y cocina 8-12 minutos hasta que las claras estén firmes. Un truco es usar recipientes pequeños para optimizar el espacio."
+        "prepSummary": "Precalienta a 180°C, coloca la salsa de tomate en un molde apto para airfryer, casca los huevos sobre ella y cocina 12-15 min hasta que las claras cuajen. Añade burrata y albahaca al final."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix para preparar la salsa de tomate con ajo en 5 min (velocidad progresiva), luego vierte en fuente apta para horno y termina la cocción en horno a 180°C durante 15-20 min con los huevos y burrata."
       }
     ]
   },
@@ -13788,7 +13941,26 @@
     "llevaSalsa": true,
     "formato": "plato_seco",
     "temperatura": "caliente",
-    "methods": []
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 28,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas paja a 190°C durante 15 min hasta dorarlas, luego sube a 200°C y fríe los huevos 8-10 min en una cazuela dentro del airfryer. Prepara la salsa de boletus en paralelo en una sartén convencional."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 32,
+        "difficulty": "normal",
+        "prepSummary": "Utiliza el Thermomix para preparar la salsa de boletus: sofríe ajo, añade boletus y nata, cocina 15 min a 90°C. Las patatas y huevos se cocinan en sartén/plancha convencional en paralelo."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Hornea las patatas paja a 200°C durante 12-14 min hasta dorarlas, luego prepara los huevos rotos en una cazuela a 180°C durante 10-12 min. La salsa de boletus se hace en sartén convencional en paralelo."
+      }
+    ]
   },
   {
     "id": "huevos_080",
@@ -13942,7 +14114,20 @@
     "tecnica": "sarten",
     "formato": "plato_seco",
     "temperatura": "caliente",
-    "methods": []
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 180°C, cocina las patatas cortadas en paja 12 min removiendo a mitad, luego añade los huevos y jamón otros 6 min hasta que cuajen. Queda crujiente sin necesidad de tanto aceite."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Fríe las patatas en sartén 10 min, colócalas en una cazuela refractaria con jamón, vierte los huevos encima y gratina en horno a 200°C durante 8-10 min hasta que cuajen. Resultado similar al tradicional."
+      }
+    ]
   },
   {
     "id": "huevos_081",
@@ -14208,15 +14393,21 @@
     "methods": [
       {
         "appliance": "horno",
-        "time": 65,
+        "time": 60,
         "difficulty": "normal",
-        "prepSummary": "Precalienta el horno a 180°C. Saltea la cebolla y las setas, mezcla con huevos, nata, queso y nuez moscada. Vierte sobre la masa quebrada en un molde y hornea durante 45-50 minutos hasta que esté cuajado y dorado."
+        "prepSummary": "Precalienta a 180°C, vierte el relleno sobre la masa quebrada y hornea 35-40 min hasta que cuaje y dore. Es el método tradicional que garantiza una quiche perfecta con textura cremosa."
       },
       {
         "appliance": "airfryer",
-        "time": 50,
+        "time": 35,
         "difficulty": "normal",
-        "prepSummary": "Prepara el relleno salteando la cebolla y las setas. Monta la quiche en un molde apto para airfryer. Cocina en la airfryer precalentada a 160°C durante 30-35 minutos, o hasta que esté cuajada y la masa dorada."
+        "prepSummary": "Precalienta a 180°C y cocina 25-30 min en la cesta del airfryer. Reduce tiempo respecto al horno por la circulación de aire, pero requiere vigilar que no se queme la masa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "elaborada",
+        "prepSummary": "Usa el Thermomix para preparar la masa quebrada (5 min) y mezclar el relleno (huevos, nata, setas salteadas). Luego hornea en molde 35-40 min a 180°C para cuajar correctamente."
       }
     ]
   },
@@ -14465,7 +14656,19 @@
         "appliance": "horno",
         "time": 55,
         "difficulty": "elaborada",
-        "prepSummary": "Precalienta el horno a 180°C. Prepara una base de bechamel con espinacas y yemas, luego incorpora las claras montadas a punto de nieve con movimientos envolventes. Hornea inmediatamente en moldes engrasados hasta que suba y dore, evitando abrir la puerta del horno."
+        "prepSummary": "Prepara la bechamel con mantequilla y harina, mezcla con espinacas cocidas y yemas. Monta claras a punto de nieve e incorpora suavemente. Cuece en molde a 180°C durante 35-40 min hasta que suba y dore."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la mezcla igual que en horno. Vierte en molde apto para airfryer y cocina a 160°C durante 25-28 min. El resultado es más rápido aunque con menos altura que en horno convencional."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Usa Thermomix para picar espinacas, hacer la bechamel (programas automáticos) y mezclar ingredientes. Luego trasvasa a molde y cuece en horno a 180°C 35-40 min. Reduce tiempo de preparación manual significativamente."
       }
     ]
   },
@@ -14583,10 +14786,22 @@
     "temperatura": "caliente",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
+        "appliance": "airfryer",
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Sofríe el bacon y los champiñones en el vaso. Añade los huevos batidos y programa a temperatura y velocidad bajas con la mariposa para un revuelto cremoso y perfectamente cocido."
+        "prepSummary": "Precalienta a 180°C, cocina el bacon 5 min, añade los champiñones 3 min más, luego vierte los huevos batidos y remueve cada minuto hasta cuajar. El resultado es esponjoso y bien cocinado."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta a 200°C, dora el bacon y champiñones en una cazuela apta para horno 5 min, vierte los huevos batidos y termina en horno 8-10 min hasta que cuaje. Queda cremoso y uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "normal",
+        "prepSummary": "Programa 5 seg velocidad 4 para picar bacon y champiñones, calienta 3 min a 80°C con giro, añade huevos batidos y cocina 4 min a 60°C removiendo. Resulta en un revuelto cremoso y bien emulsionado."
       }
     ]
   },
@@ -14724,15 +14939,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 25,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Sofríe los espárragos y la cebolla en la airfryer a 180°C durante 10 min. Luego, vierte la mezcla de huevo en un molde apto y cocina a 180°C por 15 min hasta que cuaje y dore."
+        "prepSummary": "Precalienta a 180°C, saltea los espárragos y cebolla 5 min, vierte los huevos batidos y cocina 10-12 min hasta cuajar. Queda esponjosa y dorada."
       },
       {
         "appliance": "horno",
-        "time": 35,
+        "time": 22,
         "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 180°C. Cocina los espárragos y cebolla hasta que estén tiernos, mezcla con los huevos y vierte en un molde apto. Hornea 20-25 min hasta que cuaje y dore ligeramente."
+        "prepSummary": "Saltea espárragos y cebolla en sartén, vierte huevos batidos y termina en horno a 200°C durante 10-12 min hasta que cuaje. Resulta uniforme y bien cocida."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Cocina espárragos al vapor 8 min, mezcla con cebolla y huevos batidos en molde apto para vapor, cuece 10-12 min. Tortilla más ligera pero menos dorada."
       }
     ]
   },
@@ -14866,15 +15087,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 25,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Corta las patatas en dados y el chorizo en rodajas. Cocina las patatas en la airfryer a 190°C durante 15-20 min, añadiendo el chorizo los últimos 8-10 min hasta que esté crujiente."
+        "prepSummary": "Precalienta a 200°C, cocina las patatas cortadas en dados 12 min, añade el chorizo 5 min más, luego vierte los huevos batidos y termina 3 min hasta cuajar. Queda crujiente y bien integrado."
       },
       {
         "appliance": "horno",
-        "time": 40,
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Corta las patatas y el chorizo en trozos. Asa en una bandeja de horno con aceite de oliva a 200°C durante 30-35 min, removiendo ocasionalmente para que doren."
+        "prepSummary": "Saltea patatas y chorizo en una cazuela a fuego fuerte 15 min, vierte los huevos batidos y termina en horno a 200°C durante 8-10 min hasta que cuajen. Resulta esponjoso y uniforme."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Saltea patatas y chorizo con aceite 5 min sin presión, vierte huevos batidos, cierra y cocina a presión 3 min. Despresurizas y sirves. Queda jugoso aunque pierde algo de crujencia."
       }
     ]
   },
@@ -14995,15 +15222,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 18,
+        "time": 12,
         "difficulty": "facil",
-        "prepSummary": "Bate los huevos con el jamón y queso. Vierte en un molde apto para airfryer y cocina a 180°C durante 15-18 minutos hasta que cuaje y dore ligeramente por encima."
+        "prepSummary": "Precalienta a 180°C, vierte la mezcla de huevo batido con jamón y queso en la canasta, cocina 10-12 min hasta que cuaje. Queda esponjosa y dorada sin necesidad de voltear."
       },
       {
         "appliance": "horno",
-        "time": 25,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Mezcla los ingredientes y vierte en un molde refractario. Hornea a 180°C (precalentado) durante 20-25 minutos hasta que esté cuajada y dorada. Un truco es cubrir con papel de aluminio si se dora demasiado rápido."
+        "prepSummary": "Precalienta a 200°C, vierte la mezcla en una fuente apta horno previamente engrasada, cocina 12-15 min hasta que cuaje y dore ligeramente. Resulta más esponjosa que en sartén."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Bate los huevos en el vaso (vel. 4, 20 seg), añade jamón y queso, vierte en sartén precalentada y termina la cocción en la placa. El Thermomix solo prepara la mezcla, no cocina la tortilla completa."
       }
     ]
   },
@@ -15131,15 +15364,15 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 20,
+        "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Precalienta la airfryer a 190°C. Cocina el chorizo y los pimientos durante 10-12 minutos, removiendo a mitad. Luego, haz un hueco y añade los huevos en un molde o directamente con un poco de aceite, cocinando 5-7 minutos más hasta que la clara esté cuajada y la yema a tu gusto."
+        "prepSummary": "Precalienta a 180°C, cocina el chorizo y pimientos 8 min, luego añade los huevos y cocina 8-10 min más hasta que cuajen. Los huevos quedan con textura similar a la sartén tradicional."
       },
       {
         "appliance": "horno",
-        "time": 30,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 200°C. Extiende el chorizo y los pimientos en una bandeja de horno con un poco de aceite y hornea durante 15-20 minutos."
+        "prepSummary": "Precalienta a 200°C, saltea chorizo y pimientos en una cazuela apta para horno 5 min, añade los huevos y termina en horno 12-15 min hasta que cuajen. Resulta jugoso y uniforme."
       }
     ]
   },
@@ -15297,34 +15530,22 @@
     "temperatura": "caliente",
     "methods": [
       {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta a 200°C, vierte la mezcla de huevo, atún y tomate en una bandeja engrasada y cuece 15-18 min hasta que cuaje. Queda esponjosa y uniforme."
+      },
+      {
         "appliance": "airfryer",
         "time": 18,
         "difficulty": "facil",
-        "prepSummary": "Mezcla los ingredientes y vierte en un molde apto para airfryer. Cocina a 180°C durante 15-18 minutos, hasta que esté cuajada y ligeramente dorada."
-      },
-      {
-        "appliance": "horno",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 180°C. Vierte la mezcla de huevo y el resto de ingredientes en un molde refractario y hornea durante 20-25 minutos, hasta que esté firme y dorada."
+        "prepSummary": "Precalienta a 180°C, vierte la mezcla en molde apto para airfryer y cocina 12-15 min hasta que cuaje completamente. Resulta ligera y bien cocida."
       },
       {
         "appliance": "thermomix",
         "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Mezcla los ingredientes en el vaso. Vierte la preparación en un molde apto para Varoma y cocina al vapor durante 20-25 minutos, obteniendo una tortilla muy jugosa y ligera."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Prepara la mezcla de ingredientes. Vierte en un recipiente resistente al calor y cocina en la vaporera durante 20-25 minutos, hasta que el huevo esté completamente cuajado y suave."
-      },
-      {
-        "appliance": "microondas",
-        "time": 7,
-        "difficulty": "facil",
-        "prepSummary": "Bate los huevos con el atún, tomate y cebolla. Vierte en un recipiente apto para microondas y cocina a máxima potencia en intervalos de 1-2 minutos, removiendo entre medias, hasta que esté cuajada."
+        "difficulty": "normal",
+        "prepSummary": "Bate los huevos con el Thermomix, luego vierte en sartén precalentada con aceite y cocina en placa hasta cuajar. El Thermomix agiliza la preparación de la mezcla base."
       }
     ]
   },
@@ -15458,15 +15679,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 25,
+        "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Las patatas y salchichas se cocinan en la airfryer a 190°C durante 15-20 minutos, removiendo a mitad, hasta que estén doradas. Los huevos se fríen en una sartén aparte mientras se terminan los demás ingredientes."
+        "prepSummary": "Precalienta a 200°C. Cocina las patatas cortadas en bastones 12 min, añade las salchichas 5 min más, luego los huevos batidos 3 min. Resulta crujiente y bien integrado."
       },
       {
         "appliance": "horno",
-        "time": 40,
+        "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Las patatas y salchichas se asan en una bandeja a 200°C durante 35-40 minutos, volteando las patatas a mitad. Los huevos se pueden añadir directamente a la bandeja en los últimos 8-10 minutos para que se cocinen al punto deseado."
+        "prepSummary": "Precalienta a 200°C. Hornea patatas y salchichas 15 min, vierte los huevos batidos encima y continúa 10 min hasta cuajar. Se obtiene una tortilla jugosa y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "normal",
+        "prepSummary": "Saltea salchichas y patatas 5 min a presión con poco aceite, despresurizas y añades huevos batidos cocinando 3 min más sin presión. Queda todo tierno y bien cocido."
       }
     ]
   },
@@ -15707,15 +15934,21 @@
     "methods": [
       {
         "appliance": "airfryer",
-        "time": 45,
+        "time": 25,
         "difficulty": "normal",
-        "prepSummary": "Precalienta la airfryer a 190°C. Asa los pimientos verdes y los ingredientes de la salsa (tomate, cebolla, ajo) hasta que estén tiernos y ligeramente caramelizados, unos 15-20 minutos."
+        "prepSummary": "Precalienta a 200°C, rellena los pimientos de queso, pasa por huevo batido y harina, cocina 18-20 min a 200°C dándoles la vuelta a mitad. Sirve con la salsa de tomate preparada aparte en sartén."
       },
       {
         "appliance": "horno",
-        "time": 60,
+        "time": 35,
         "difficulty": "normal",
-        "prepSummary": "Precalienta el horno a 200°C. Asa los pimientos verdes, tomates, cebolla y ajo en una bandeja con aceite de oliva hasta que estén tiernos y dorados (aprox. 30-40 min)."
+        "prepSummary": "Precalienta a 180°C, rellena pimientos de queso, pasa por huevo y harina, hornea 20-25 min hasta dorar. Prepara la salsa en paralelo en sartén y sirve caliente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Usa el Thermomix solo para la salsa: tritura tomate, cebolla y ajo a velocidad progresiva, calienta 8 min a 100°C. Los pimientos rellenos se cocinan en sartén tradicional en paralelo."
       }
     ]
   },

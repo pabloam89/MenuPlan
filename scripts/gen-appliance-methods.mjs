@@ -31,24 +31,29 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const RECIPES_DIR = join(__dirname, "../src/data/recipes");
 
 /**
- * DOS PROVEEDORES, UN SOLO PROMPT.
+ * ESTO ES TEXTO, ASÍ QUE VA POR ANTHROPIC. En este repo el reparto no es una
+ * preferencia, es una división de trabajo:
  *
- * El 23 sep 2026 el crédito de prepago de AI Studio se agotó a mitad de una
- * tanda y devolvió 402 con las 263 recetas estrella que quedaban sin procesar.
- * El fallo además no es limpio: las peticiones se quedan colgadas ~20 minutos
- * antes de devolver el error, así que el script parece estar trabajando.
+ *   GEMINI / AI Studio  →  IMÁGENES. Las doce herramientas que lo usan piden
+ *                          todas `gemini-2.5-flash-image` o Imagen 3:
+ *                          gen-all-photos, gen-dish-images-imagen3,
+ *                          regen-one-dish, api/generate-dish-photo…
+ *   ANTHROPIC           →  TEXTO. bedca-select elige fichas nutricionales,
+ *                          enrich-recipe-steps escribe pasos, api/generate
+ *                          arma menús.
  *
- * `--proveedor anthropic` usa ANTHROPIC_API_KEY, que el repo ya usa por fetch
- * directo en scripts/bedca-select.mjs. Lo que NO cambia es nada de lo que
- * decide: el mismo prompt (incluido el de bebés con sus reglas de seguridad),
- * el mismo vocabulario de aparatos y el mismo `sanitizeMethods`. Solo cambia
- * el transporte, que es lo único que estaba roto.
+ * Este script era LA ÚNICA excepción: pedía texto —tiempos, dificultad y un
+ * resumen que el usuario lee— a la clave de las fotos. Eso costó una tanda
+ * entera el 23 sep 2026, cuando el crédito de prepago de AI Studio se agotó a
+ * mitad y devolvió 402 con 263 recetas sin procesar. Y el fallo no fue limpio:
+ * las peticiones se quedaban colgadas ~20 minutos antes de dar el error, así
+ * que el script parecía estar trabajando.
  *
- * Los `methods[]` del catálogo quedan por tanto escritos por dos modelos
- * distintos. Es asumible porque la salida está acotada por el vocabulario y
- * validada por el mismo sanitizador, pero conviene saberlo.
+ * `--proveedor gemini` se queda para poder comparar salidas, no para usarlo.
+ * El prompt, el vocabulario de aparatos y `sanitizeMethods` son los mismos por
+ * los dos caminos: lo único que cambia es el transporte.
  */
-const PROVEEDOR = getOptEarly("--proveedor") || "gemini";
+const PROVEEDOR = getOptEarly("--proveedor") || "anthropic";
 if (!["gemini", "anthropic"].includes(PROVEEDOR)) {
   console.error(`❌  --proveedor tiene que ser "gemini" o "anthropic", no "${PROVEEDOR}".`);
   process.exit(1);
