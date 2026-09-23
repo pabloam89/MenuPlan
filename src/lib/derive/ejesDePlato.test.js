@@ -12,6 +12,7 @@ import { recipeCatalog } from "../../data/recipeCatalog.js";
 import {
   tiempoActivoDe, aptoVigiliaDe, sinCerdoDe, completitudDe, densidadDe,
   cargaDe, esfuerzoDe, recursoDe, llevaMasaDe, seEstorban,
+  escalabilidadDe, robustezDe, perecibilidadDe, conLasManosDe,
 } from "./ejesDePlato.js";
 
 const cobertura = (f) => recipeCatalog.filter((r) => f(r).valor !== null).length / recipeCatalog.length;
@@ -233,5 +234,94 @@ describe("eje 47 · lleva masa", () => {
     const con = recipeCatalog.filter((r) => llevaMasaDe(r).valor).length;
     expect(con).toBeGreaterThan(15);
     expect(con / recipeCatalog.length).toBeLessThan(0.1);
+  });
+});
+
+describe("eje 42 · escalabilidad real", () => {
+  it("cubre lo que declara técnica", () => {
+    expect(cobertura(escalabilidadDe)).toBeGreaterThanOrEqual(0.95);
+  });
+
+  it("la olla escala y la plancha va por tandas", () => {
+    expect(escalabilidadDe({ tecnica: "olla" }).valor).toBe("escala");
+    expect(escalabilidadDe({ tecnica: "horno" }).valor).toBe("escala");
+    expect(escalabilidadDe({ tecnica: "plancha" }).valor).toBe("por_tandas");
+    expect(escalabilidadDe({ tecnica: "sarten" }).valor).toBe("por_tandas");
+  });
+});
+
+describe("eje 43 · robustez ante el descuido", () => {
+  it("cubre lo que tiene pasos ricos", () => {
+    expect(cobertura(robustezDe)).toBeGreaterThanOrEqual(0.96);
+  });
+
+  /**
+   * EL CASO QUE OBLIGÓ A CONTAR MINUTOS Y NO PASOS.
+   *
+   * Midiendo la racha en número de pasos, las «Lentejas con verduras» salían
+   * FRÁGILES: un guiso encadena seis pasos activos —picar, sofreír, añadir,
+   * rehogar— que son doce minutos y luego hora y media de olla sola. Seis pasos
+   * suena a mucho; doce minutos, a nada. El número de pasos mide cómo escribió
+   * la receta quien la escribió, no cuánto te ata a la cocina.
+   */
+  it("un guiso no es frágil y un risotto sí", () => {
+    const lentejas = recipeCatalog.find((r) => r.name.startsWith("Lentejas con verduras"));
+    const risotto = recipeCatalog.find((r) => /^Risotto/.test(r.name));
+    if (lentejas) expect(robustezDe(lentejas).valor).not.toBe("fragil");
+    if (risotto) expect(robustezDe(risotto).valor).toBe("fragil");
+  });
+
+  it("y la mayoría del catálogo se cocina sola", () => {
+    const robustas = recipeCatalog.filter((r) => robustezDe(r).valor === "robusto").length;
+    const fragiles = recipeCatalog.filter((r) => robustezDe(r).valor === "fragil").length;
+    expect(robustas).toBeGreaterThan(fragiles * 3);
+  });
+});
+
+describe("eje 40 · perecibilidad", () => {
+  it("contesta a todo el catálogo", () => {
+    expect(cobertura(perecibilidadDe)).toBe(1);
+  });
+
+  /**
+   * NO descarta, COLOCA. El pescado fresco comprado el lunes no se cocina el
+   * viernes, y eso no quita la receta del menú: la mueve al principio.
+   */
+  it("el pescado fresco manda dos días y la conserva no manda nada", () => {
+    const fresco = { ingredients: [{ name: "Lomo de merluza", ingredientId: "merluza" }] };
+    const lata = { ingredients: [{ name: "Atún en conserva", ingredientId: "atun" }] };
+    expect(perecibilidadDe(fresco).valor.dias).toBe(2);
+    expect(perecibilidadDe(lata).valor.estable).toBe(true);
+  });
+
+  it("manda el ingrediente más delicado del plato", () => {
+    const mixto = {
+      ingredients: [
+        { name: "Pollo", ingredientId: "pollo" },
+        { name: "Gambas", ingredientId: "gambas" },
+      ],
+    };
+    expect(perecibilidadDe(mixto).valor.dias).toBe(2);
+  });
+});
+
+describe("eje 31 · se come con las manos", () => {
+  it("contesta a todo el catálogo", () => {
+    expect(cobertura((r) => conLasManosDe(r))).toBe(1);
+  });
+
+  /**
+   * SOLO LA CABEZA DEL NOMBRE. Unas «Alubias pintas con costillas» salían de
+   * manos porque la palabra aparece, pero ahí la costilla va dentro del guiso y
+   * se come con cuchara. Lo que se come con las manos es lo que el plato ES.
+   */
+  it("una costilla es de manos; unas alubias con costilla, no", () => {
+    expect(conLasManosDe({ name: "Costillas BBQ al horno" }).valor).toBe(true);
+    expect(conLasManosDe({ name: "Alubias pintas con costillas" }).valor).toBe(false);
+  });
+
+  it("y el formato cierra la puerta que abre el nombre", () => {
+    expect(conLasManosDe({ name: "Croquetas de jamón" }, null).valor).toBe(true);
+    expect(conLasManosDe({ name: "Croquetas de jamón" }, "sopa").valor).toBe(false);
   });
 });

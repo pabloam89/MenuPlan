@@ -296,15 +296,15 @@ export const EJES = [
   },
   {
     n: 42, id: "escalabilidadReal", nombre: "Escalabilidad real",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "Un guiso escala; doce filetes a la plancha, no. Derivable de la técnica.",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    campo: null, vocabulario: ["escala", "por_tandas"], consumidores: [], cobertura: 0.883,
+    nota: "Un guiso escala; doce filetes a la plancha, no. DERIVADO por `escalabilidadDe` de la técnica: olla, horno y crudo escalan (589 recetas) y sartén y plancha van POR TANDAS (323). La diferencia no está en los ingredientes sino en si el RECIPIENTE limita, y «por tandas» no es «no se puede»: es que el tiempo crece con los comensales en vez de quedarse igual, que es justo lo que hace falta saber antes de invitar a gente.",
   },
   {
     n: 43, id: "robustez", nombre: "Robustez ante el descuido",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "Derivable de stepsRich[].kind: pasos `activo` encadenados = frágil.",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    campo: null, vocabulario: ["robusto", "atento", "fragil"], consumidores: [], cobertura: 0.975,
+    nota: "DERIVADO por `robustezDe` de la racha más larga de MINUTOS activos seguidos: 632 robustas, 235 atentas, 56 frágiles. Lo de los minutos no es un detalle — contando PASOS, las «Lentejas con verduras» salían frágiles, porque un guiso encadena seis pasos activos (picar, sofreír, añadir, rehogar) que son doce minutos y luego hora y media de olla sola. El número de pasos mide cómo escribió la receta quien la escribió, no cuánto te ata. Hoy las lentejas salen `atento` con 15 min y el risotto `fragil` con 32, que es la distinción que el eje existe para hacer.",
   },
   {
     n: 44, id: "quienCocina", nombre: "Quién puede cocinarlo",
@@ -322,8 +322,9 @@ export const EJES = [
   },
   {
     n: 31, id: "conLasManos", nombre: "Se come con las manos",
-    ambito: AMBITO.RECETA, tipo: "booleano", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "sin_lector",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 1,
+    nota: "DERIVADO por `conLasManosDe` al 100 %: 89 recetas. Sale del NOMBRE, y aquí el nombre es el dato y no un atajo — un plato que se llama «Bocadillo» se come con las manos lo diga quien lo diga. SOLO DE LA CABEZA del nombre, que es la lección de `formato` otra vez: unas «Alubias pintas CON COSTILLAS» salían de manos porque la palabra aparece, y ahí la costilla va dentro del guiso. Y el `formato` cierra la puerta que el nombre abre: cremoso, sopa o guiso mandan sobre él. Decide más de lo que parece — una cena de manos es otra cosa, delante de la tele y con niños—, y es una petición que la gente hace con esas palabras.",
   },
   {
     n: 32, id: "compartido", nombre: "Compartido vs individual",
@@ -339,9 +340,9 @@ export const EJES = [
   },
   {
     n: 40, id: "perecibilidad", nombre: "Perecibilidad y orden en la semana",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "Restricción DE POSICIÓN, no de selección: el pescado fresco va al principio de la semana. Derivable del ingrediente.",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 1,
+    nota: "Restricción DE POSICIÓN, no de selección: el pescado fresco va al principio de la semana, y eso no descarta la receta — la coloca. Es el único eje de posición de la lista, y un planificador que no lo sepa arma menús correctos e imposibles de comprar. DERIVADO por `perecibilidadDe` al 100 % de la clase del alimento: pez, marisco y cefalópodo mandan 2 días (208 recetas), carne y lácteo 4 (578), y 161 no tienen nada que caduque. La conserva, el congelado y el ahumado NO cuentan: un «Atún en conserva» es pez y aguanta un año, y tratarlo como fresco adelantaría platos sin motivo.",
   },
 
   // ── Economía y sostenibilidad (34-36) ────────────────────────────────────

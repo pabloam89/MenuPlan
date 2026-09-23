@@ -9,6 +9,7 @@ import { composicionDe } from "../lib/derive/composicion.js";
 import {
   densidadDe, completitudDe, sinCerdoDe, aptoVigiliaDe, tiempoActivoDe,
   cargaDe, esfuerzoDe, recursoDe, llevaMasaDe,
+  escalabilidadDe, robustezDe, perecibilidadDe, conLasManosDe,
 } from "../lib/derive/ejesDePlato.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
@@ -40,6 +41,10 @@ const MEDIDORES = {
   esfuerzoMental: () => recetas.filter((r) => esfuerzoDe(r).valor !== null).length / recetas.length,
   conflictoRecursos: () => recetas.filter((r) => recursoDe(r).valor !== null).length / recetas.length,
   llevaMasa: () => recetas.filter((r) => llevaMasaDe(r).valor !== null).length / recetas.length,
+  escalabilidadReal: () => recetas.filter((r) => escalabilidadDe(r).valor !== null).length / recetas.length,
+  robustez: () => recetas.filter((r) => robustezDe(r).valor !== null).length / recetas.length,
+  perecibilidad: () => recetas.filter((r) => perecibilidadDe(r).valor !== null).length / recetas.length,
+  conLasManos: () => recetas.filter((r) => conLasManosDe(r).valor !== null).length / recetas.length,
   parte: () => recetas.filter((r) => (r.stepsRich ?? []).some((s) => s.part != null)).length / recetas.length,
   // El eje 49 tampoco vive en un campo: se lee de los minutos de los pasos. Su
   // cobertura es «de cuántas recetas se puede AFIRMAR algo», que es tener

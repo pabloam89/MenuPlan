@@ -432,3 +432,164 @@ export function llevaMasaDe(receta) {
   }
   return { valor: false, via: "ninguna línea es una masa", duda: null };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Eje 42 · Escalabilidad real
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Si el plato aguanta cocinar para ocho, que no es lo mismo que multiplicar la
+ * receta por cuatro.
+ *
+ * Un guiso escala: el doble de ingredientes en la misma olla y el mismo rato.
+ * Doce filetes a la plancha NO escalan: son tres tandas, y la tercera se come
+ * fría mientras se hace la cuarta. La diferencia no está en los ingredientes,
+ * está en si el RECIPIENTE limita.
+ *
+ * Sale de `tecnica`, que es donde vive esa limitación:
+ *
+ *   olla, horno   escalan — cabe más en la misma cazuela o bandeja
+ *   crudo         escala — no hay recipiente que limite
+ *   sarten        POR TANDAS — una sartén da para cuatro raciones
+ *   plancha       POR TANDAS, y peor: la plancha se hace de uno en uno
+ *
+ * «Por tandas» no es «no se puede»: es que el tiempo crece con los comensales
+ * en vez de quedarse igual, y eso es justo lo que alguien necesita saber antes
+ * de invitar a gente.
+ */
+const ESCALA_POR_TECNICA = {
+  olla: "escala",
+  horno: "escala",
+  crudo: "escala",
+  sarten: "por_tandas",
+  plancha: "por_tandas",
+};
+
+export function escalabilidadDe(receta) {
+  const e = ESCALA_POR_TECNICA[receta?.tecnica];
+  if (!e) return { valor: null, via: "SIN DECIDIR", duda: `«${receta?.name}» no declara técnica` };
+  return { valor: e, via: `técnica ${receta.tecnica}`, duda: null };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Eje 43 · Robustez ante el descuido
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Si el plato perdona que te despistes.
+ *
+ * Un guiso aguanta que te vayas diez minutos; un risotto no, y unas vieiras a
+ * la plancha menos todavía. Lo que lo decide no es la dificultad —que ya la
+ * cura una persona— sino si hay tramos donde no puedes soltar la cuchara.
+ *
+ * Se mide con la RACHA más larga de MINUTOS activos seguidos, y lo de los
+ * minutos no es un detalle: contando PASOS, las «Lentejas con verduras» salían
+ * frágiles. Un guiso tiene seis pasos activos encadenados —picar, sofreír,
+ * añadir, rehogar— que son doce minutos en total y luego hora y media de olla
+ * sola. Seis pasos suena a mucho; doce minutos, a nada. El número de pasos mide
+ * cómo escribió la receta quien la escribió, no cuánto te ata.
+ *
+ *   ≤10 min   robusto   el sofrito y poco más; luego se cocina solo
+ *   11-20     atento    hay un tramo largo en el que estás
+ *   >20       frágil    más de veinte minutos seguidos sin soltar
+ *
+ * La racha y no el total, porque cuarenta minutos activos partidos por esperas
+ * son ratos cortos, y veinte seguidos son veinte seguidos. Es la diferencia
+ * entre cocinar con un niño alrededor y no poder.
+ */
+export function robustezDe(receta) {
+  const pasos = receta?.stepsRich ?? [];
+  if (!pasos.length) {
+    return { valor: null, via: "SIN DECIDIR", duda: `«${receta?.name}» no tiene pasos ricos` };
+  }
+  let racha = 0;
+  let maxima = 0;
+  for (const s of pasos) {
+    racha = s?.kind === "activo" ? racha + (s.minutes ?? 0) : 0;
+    if (racha > maxima) maxima = racha;
+  }
+  const valor = maxima > 20 ? "fragil" : maxima > 10 ? "atento" : "robusto";
+  return { valor, via: `${maxima} min activos seguidos sin poder soltar`, duda: null };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Eje 40 · Perecibilidad y orden en la semana
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * NO es si el plato entra en el menú: es CUÁNDO.
+ *
+ * Es el único eje de posición de la lista. El pescado fresco comprado el lunes
+ * no se cocina el viernes, y eso no descarta la receta — la coloca. Un
+ * planificador que no lo sepa arma menús correctos e imposibles de comprar.
+ *
+ * Sale de la clase del alimento, que está al 100 %:
+ *
+ *   pez, marisco, cefalopodo   → 2 días   (228 recetas del catálogo)
+ *   carne fresca, lácteo       → 4 días
+ *   el resto                   → sin límite
+ *
+ * Los días son de la COMPRA, no de la receta, y por eso el eje es del plato
+ * aunque el dato sea del ingrediente: lo que se planifica es el plato.
+ *
+ * El congelado y la conserva NO cuentan, y por eso se mira `fraccionServida` no
+ * — se mira el nombre de la línea. Un «Atún en conserva» es pez y aguanta un
+ * año; tratarlo como pescado fresco adelantaría platos sin motivo.
+ */
+const DIAS_POR_CLASE = { pez: 2, marisco: 2, cefalopodo: 2, mamifero: 4, ave: 4, viscera: 2, lacteo: 4 };
+const LINEA_ESTABLE = /\bconserva\b|\ben lata\b|\blata\b|\bcongelad|\bahumad|\bcurad|\bsalaz|\bencurtid|\bseco\b|\bsecos\b|\bdeshidratad/i;
+
+export function perecibilidadDe(receta) {
+  const lineas = receta?.ingredients ?? [];
+  if (!lineas.length) return { valor: null, via: "SIN DECIDIR", duda: "sin ingredientes" };
+  let dias = null;
+  let culpable = null;
+  for (const l of lineas) {
+    if (LINEA_ESTABLE.test(l.name ?? "")) continue;
+    const t = alimentoDe(l.ingredientId)?.taxonomia;
+    const d = DIAS_POR_CLASE[t?.clase];
+    if (d != null && (dias == null || d < dias)) { dias = d; culpable = l.name; }
+  }
+  return dias == null
+    ? { valor: { dias: null, estable: true }, via: "nada fresco que caduque pronto", duda: null }
+    : { valor: { dias, estable: false }, via: `${culpable} manda: ${dias} días desde la compra`, duda: null };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Eje 31 · Se come con las manos
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Si se come sin cubiertos, que decide más de lo que parece: una cena de manos
+ * es otra cosa —delante de la tele, en el sofá, con niños— y es una petición
+ * que la gente hace con esas palabras.
+ *
+ * Sale del NOMBRE, y aquí el nombre es el dato y no un atajo: un plato que se
+ * llama «Bocadillo» se come con las manos, lo diga quien lo diga. Es el mismo
+ * criterio que `formato`.
+ *
+ * SOLO EN LA CABEZA DEL NOMBRE, que es la lección de `formato` otra vez. Unas
+ * «Alubias pintas CON COSTILLAS» salían de manos porque la palabra «costillas»
+ * aparece — pero ahí la costilla está dentro del guiso y se come con cuchara.
+ * Lo que se come con las manos es lo que el plato ES, no lo que lleva dentro,
+ * así que se corta por « con » igual que en `formatoDe`.
+ *
+ * Y con una excepción más que el nombre no ve: `formato` cremoso, sopa o guiso
+ * manda sobre él. La palabra abre la puerta; el formato la cierra.
+ */
+const NOMBRE_DE_MANOS = /\bbocadillo|\bsandwich\b|\bsándwich\b|\btostas?\b|\btacos?\b|\bburrito|\bwrap\b|\bhamburguesa|\bpizza\b|\bempanadilla|\bcroquetas?\b|\bnugget|\balitas?\b|\bcostillas?\b|\bbrocheta|\bpinchos?\b|\bfalafel\b|\bbuñuelos?\b|\bsamosa|\bquesadilla|\bbastones\b|\bnachos\b|\btortitas?\b|\bgofres?\b|\bcrepes?\b|\bmini\b/i;
+const FORMATO_DE_CUCHARA = new Set(["cremoso", "sopa", "guiso"]);
+
+export function conLasManosDe(receta, formato = null) {
+  const nombre = receta?.name ?? "";
+  if (!nombre) return { valor: null, via: "SIN DECIDIR", duda: "sin nombre" };
+  // La cabeza: lo que el plato ES, antes de « con » y de « de ».
+  const cabeza = nombre.split(/ con | de /)[0];
+  if (!NOMBRE_DE_MANOS.test(cabeza)) {
+    return { valor: false, via: "el nombre no dice que se coma con las manos", duda: null };
+  }
+  if (FORMATO_DE_CUCHARA.has(formato)) {
+    return { valor: false, via: `se llama así pero su formato es ${formato}: va con cuchara`, duda: null };
+  }
+  return { valor: true, via: "lo dice el nombre", duda: null };
+}
