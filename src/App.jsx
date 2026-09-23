@@ -44,6 +44,7 @@ const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ 
 const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
 const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
 const PizarraControles = lazy(() => import("./screens/PizarraControles.jsx").then(m => ({ default: m.PizarraControles })));
+const PizarraBurbuja = lazy(() => import("./components/PizarraBurbuja.jsx").then(m => ({ default: m.PizarraBurbuja })));
 const AnadirHuecoSheet = lazy(() => import("./screens/AnadirHuecoSheet.jsx").then(m => ({ default: m.AnadirHuecoSheet })));
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
@@ -2847,6 +2848,9 @@ export default function App() {
       // la fila de mandos y dejar solo Día y Semana: los mandos ajustan lo
       // que el motor va a decidir, y aquí no decide nadie más que tú.
       origin: "pizarra",
+      // El pop-up de inicio (días → cocina → Empezar) sale una vez, sobre el
+      // tablero ya dibujado. Lo apaga PizarraControles al terminar.
+      pizarra: { introPendiente: true },
       weeks,
     };
 
@@ -4568,9 +4572,12 @@ export default function App() {
    * el segundo hueco ya sabe lo que acaba de caer en el primero y no repite
    * plato. Es lo mismo que hace `handleRegenerateDay`.
    */
-  const handleFillSlots = useCallback(async (ambito) => {
+  // `forzar` pisa las preferencias guardadas en esta vuelta: la primera vez que
+  // se rellena, la respuesta del pop-up de despensa se escribe y se usa en el
+  // mismo toque, antes de que el `setData` llegue a `prefsPizarra`.
+  const handleFillSlots = useCallback(async (ambito, forzar = null) => {
     if (householdReadOnly) return;
-    const { usarDespensa = false, agrupar = false } = prefsPizarra;
+    const { usarDespensa = false, agrupar = false } = { ...prefsPizarra, ...(forzar ?? {}) };
     const despensa = usarDespensa ? despensaPizarra : [];
     // Las bases que ya vas a cocinar. Preferir un plato que comparta una de
     // estas es lo que convierte siete platos en tres ollas.
@@ -4665,6 +4672,71 @@ export default function App() {
     showToast(puestos === 1 ? "Hueco rellenado" : `${puestos} huecos rellenados`);
     trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
   }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor, prefsPizarra, despensaPizarra]);
+
+  /**
+   * La burbuja de la pizarra: una frase → cambios en el tablero.
+   *
+   * El modelo solo traduce la frase a operaciones (ver lib/pizarraIA.js); las
+   * recetas salen de `pickCatalogReplacement`, como en cualquier toque a mano.
+   * Devuelve lo que la burbuja enseña, y guarda el plan de antes para que
+   * "Deshacer" lo devuelva entero de un toque.
+   */
+  const deshacerPizarra = useRef(null);
+  const handleOrdenPizarra = useCallback(async (frase) => {
+    if (householdReadOnly) return { reply: "Solo lectura: no puedes editar el menú", hechos: 0, noHechos: [] };
+    const { contextoDelTablero, interpretarOrden, validarOrden, aplicarOrden } = await import("./lib/pizarraIA.js");
+    const groups = data.groups.length > 0
+      ? data.groups
+      : groupsFromModel(data.members, data.menuModel);
+    const plan = menuPlan ?? {};
+    // Los días y comidas que el tablero tiene de verdad, no los de la casa:
+    // el modelo solo puede señalar huecos que existen.
+    const claves = new Set();
+    for (const g of groups) for (const k of Object.keys(plan[g.id] ?? {})) claves.add(k);
+    const dias = DAYS.filter((d) => [...claves].some((k) => k.startsWith(`${d}-`)));
+    const comidas = getDayMeals(data).filter((m) => [...claves].some((k) => k.endsWith(`-${m}`)));
+    const principal = groups.find((g) => plan[g.id]) ?? groups[0];
+    const nombreDe = (id) => RECIPES_BY_ID[id]?.name ?? recipeCatalogById[String(id).split("__").pop()]?.name ?? "plato";
+    const contexto = contextoDelTablero({ plan: plan[principal?.id] ?? {}, dias, comidas, nombreDe });
+
+    const crudo = await interpretarOrden(frase, contexto);
+    const { reply, ops } = validarOrden(crudo, { dias, comidas });
+    if (ops.length === 0) {
+      return { reply: reply || "No he sabido qué cambiar. Prueba con «pon lentejas el lunes» o «algo rápido el miércoles».", hechos: 0, noHechos: [] };
+    }
+
+    const { trabajo, nuevas, hechos, noHechos, tocados } = aplicarOrden(ops, {
+      data: { ...data, groups }, plan, dias, comidas, pick: pickCatalogReplacement,
+    });
+    if (hechos === 0) return { reply: noHechos[0] ?? "No he podido cambiar nada", hechos, noHechos: noHechos.slice(1) };
+
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    deshacerPizarra.current = { plan, groups, pantryIngredients };
+    if (nuevas.length) {
+      registerRecipes(nuevas);
+      setAiRecipes((cur) => {
+        const byId = new Map(cur.map((r) => [r.id, r]));
+        for (const r of nuevas) byId.set(r.id, r);
+        return Array.from(byId.values());
+      });
+    }
+    setMenuPlan(() => {
+      applyShoppingFor(trabajo, groups, pantryIngredients);
+      return trabajo;
+    });
+    trackEvent(user, "pizarra_burbuja", "menu", { ops: ops.length, hechos, fallos: noHechos.length });
+    return { reply, hechos, noHechos, tocados };
+  }, [data, menuPlan, user, householdReadOnly, applyShoppingFor]);
+
+  const handleDeshacerPizarra = useCallback(() => {
+    const antes = deshacerPizarra.current;
+    if (!antes) return;
+    deshacerPizarra.current = null;
+    setMenuPlan(() => {
+      applyShoppingFor(antes.plan, antes.groups, antes.pantryIngredients);
+      return antes.plan;
+    });
+  }, [applyShoppingFor]);
 
   /**
    * Soltar un plato en otro hueco (arrastre de la pizarra).
@@ -5668,7 +5740,13 @@ export default function App() {
               // ajustar. Y la burbuja tampoco: el asistente entero sobra en un
               // menú que no genera nadie.
               wizardControls={esPizarra ? null : wizard.controls}
-              wizardBubble={esPizarra ? null : wizard.bubble}
+              wizardBubble={esPizarra
+                ? (!householdReadOnly && (
+                  <Suspense fallback={null}>
+                    <PizarraBurbuja onOrden={handleOrdenPizarra} onDeshacer={handleDeshacerPizarra} />
+                  </Suspense>
+                ))
+                : wizard.bubble}
               modoPizarra={esPizarra}
               onAddSlot={esPizarra ? setAddSlotDay : null}
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
