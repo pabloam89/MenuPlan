@@ -507,29 +507,51 @@ function claveDePool(nombre) {
  * «1,5 paquetes» sería redondear un dato que tú diste exacto.
  */
 const POOL_POR_CLAVE = new Map();
+
+/**
+ * Cómo se lee una línea guardada, y cómo se vuelve a abrir su ficha.
+ *
+ * Vale para CUALQUIER ingrediente, no solo para los doce del pool: la tabla de
+ * medidas conoce el catálogo entero por familias, así que la quinoa que
+ * escribiste a mano se lee igual que el arroz que tocaste. Antes esto miraba
+ * solo el pool y por eso lo escrito se leía en crudo — «500 g» — mientras lo
+ * tocado decía «1 paquete».
+ *
+ * Se guarda en g, ml o ud —lo exige el cruce con la compra— pero eso no es
+ * como se piensa en el ajo. Si lo guardado es un múltiplo limpio de lo que
+ * vale una medida, se cuenta en ellas. Si no, se lee en crudo: 750 g de arroz
+ * son 750 g, y decir «1,5 paquetes» sería redondear un dato que diste exacto.
+ */
 function poolDe(item, elegidas = {}) {
   if (POOL_POR_CLAVE.size === 0) {
     for (const p of POOL) POOL_POR_CLAVE.set(claveDePool(p.nombre), p);
   }
-  const p = POOL_POR_CLAVE.get(item?.ingredientNormalized);
-  if (!p) return null;
-  const medidas = medidasDe(p.nombre);
-  const medida = medidaPorId(medidas, elegidas[item.ingredientNormalized] ?? p.medida);
+  const nombre = item?.ingredientName ?? item?.name;
+  if (!nombre) return null;
+  const clave = item.ingredientNormalized;
+  const base = POOL_POR_CLAVE.get(clave) ?? { nombre, n: 1 };
+
+  const medidas = medidasDe(nombre);
+  const medida = medidaPorId(medidas, elegidas[clave] ?? base.medida ?? medidas[0].id);
   // Si algo la ha tocado por otro lado —un ticket, la compra— y ahora son
   // mililitros de una cosa que contábamos en unidades, se lee en crudo.
   if (item.unit !== medida.base) return null;
   const n = Number(item.qty) / medida.por;
   if (!(n > 0) || Math.abs(n - Math.round(n)) > 0.01) return null;
   const veces = Math.round(n);
+
   return {
-    ...p,
+    ...base,
+    nombre,
     medida: medida.id,
     n: veces,
-    // Las unidades sueltas ya se pintan con `formatStockQty`; esto es para las
-    // que tienen palabra propia.
+    // La línea dice TODO lo declarado: «1 paquete · 500 g», no «1 paquete».
+    // El envase solo no basta —un paquete es de medio kilo o de kilo— y el
+    // peso solo tampoco: 500 g no te dicen si te queda un paquete o medio.
+    // Con una unidad suelta no hay nada que añadir: «2 ud · 2 ud» sobra.
     etiqueta: UNIDAD_SUELTA.has(medida.id)
       ? formatStockQty(item.qty, medida.base)
-      : `${veces} ${veces === 1 ? medida.id : enPlural(medida.id)}`,
+      : `${veces} ${veces === 1 ? medida.id : enPlural(medida.id)} · ${formatStockQty(medida.por, medida.base)}`,
   };
 }
 
@@ -670,8 +692,6 @@ function FichaDelPool({ item, inicial = null, onCancelar, onConfirmar }) {
 
 function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
   const [texto, setTexto] = useState("");
-  const [qty, setQty] = useState("1");
-  const [unidad, setUnidad] = useState("ud");
   const [pendiente, setPendiente] = useState(null);
   // La medida en la que cada cosa se declaró, por clave de ingrediente. No va
   // a la despensa —allí solo caben cantidad y unidad— así que vive aquí para
@@ -692,14 +712,19 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
   // cotejar los nombres tal cual no habría casado ni uno de los dos.
   const pool = useMemo(() => POOL.filter((p) => !yaPuesto.has(claveDePool(p.nombre))), [yaPuesto]);
 
+  // Escribir y tocar el pool acaban en el MISMO sitio: la ficha. Antes lo
+  // escrito iba por su propia fila de cantidad+unidad, así que «quinoa» —que
+  // es pasta a todos los efectos— pedía gramos mientras «arroz» pedía
+  // paquetes. La tabla de medidas sabe lo mismo de los dos; lo único que
+  // cambiaba era por dónde habías entrado.
   const enviar = (e) => {
     e?.preventDefault?.();
     const t = texto.trim();
     if (!t) return;
-    onAnadir(t, Number(qty.replace(",", ".")) || 1, unidad);
+    const [parsed] = normalizePantryInput(t);
+    const nombre = parsed?.raw ?? t;
+    setPendiente({ nombre, n: 1, medida: medidasDe(nombre)[0].id });
     setTexto("");
-    setQty("1");
-    setUnidad("ud");
   };
 
   return (
@@ -729,40 +754,23 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
           <Miniatura name={texto} size={26} soloSiSeConoce />
         </div>
 
-        {/* La cantidad solo cuando hay algo que contar. En blanco eran dos
-            campos pidiendo un dato sobre nada, y encima los primeros que veías
-            al abrir el panel. */}
+        {/* Aquí había una fila de cantidad+unidad propia de lo escrito, y era
+            la que hacía que «quinoa» y «arroz» se comportaran distinto. Ahora
+            el Enter —o el botón— abre la misma ficha que el pool. */}
         {escribiendo && (
-          <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-            <input
-              value={qty}
-              onChange={(e) => setQty(e.target.value)}
-              inputMode="decimal"
-              aria-label="Cantidad"
-              style={{ ...campoBase, width: 48, textAlign: "center", padding: "0 4px" }}
-            />
-            <select
-              value={unidad}
-              onChange={(e) => setUnidad(e.target.value)}
-              aria-label="Unidad"
-              style={{ ...campoBase, width: 58, padding: "0 4px", cursor: "pointer" }}
-            >
-              {UNIDADES.map((u) => <option key={u} value={u}>{u === "l" ? "L" : u}</option>)}
-            </select>
-            <button
-              type="submit"
-              className="mp-press"
-              style={{
-                flex: 1, height: 30, borderRadius: 9, padding: 0,
-                border: "none", cursor: "pointer", background: VERDE, color: "#fff",
-                fontSize: 12.5, fontWeight: 800, fontFamily: "inherit",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-              }}
-            >
-              <Plus size={15} strokeWidth={3} />
-              Añadir
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="mp-press"
+            style={{
+              width: "100%", height: 32, borderRadius: 10, marginTop: 8, padding: 0,
+              border: "none", cursor: "pointer", background: VERDE, color: "#fff",
+              fontSize: 12.5, fontWeight: 800, fontFamily: "inherit",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+            }}
+          >
+            <Plus size={15} strokeWidth={3} />
+            Añadir «{texto.trim()}»
+          </button>
         )}
       </form>
 
@@ -832,7 +840,10 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
           </p>
         </div>
       ) : (
-        <div style={{ background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16, overflow: "hidden" }}>
+        // Sin card: el inventario NO es un bloque aparte, es lo que hay. La
+        // caja blanca lo separaba del buscador de arriba como si fuera otra
+        // cosa, y son la misma: lo que escribes acaba ahí.
+        <div>
           {ingredientes.map((i, n) => (
             <div
               key={i.id}

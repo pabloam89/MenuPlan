@@ -2750,6 +2750,10 @@ export default function App() {
       // `sugerenciasDeHueco` reparte por familia y baja lo de ocasión y lo de
       // otras cocinas, y para repartir hace falta de dónde.
       candidatos: 60,
+      // El hueco está VACÍO y eliges tú, así que entran los platos de montaje
+      // —las tostas, los sándwiches—. Fuera de aquí siguen cerrados: en el
+      // relleno automático y en "cambiar plato" decide la máquina.
+      admiteMontaje: true,
     });
     return sugerenciasDeHueco(r?.candidatos ?? [], 12);
   }, [slotPicker, data, menuPlan]);

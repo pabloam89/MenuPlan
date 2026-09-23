@@ -3031,7 +3031,7 @@ const POOL_DE_FRANJA = {
   Postre: "postres",
 };
 
-export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0 }) {
+export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false, candidatos = 0, admiteMontaje = false }) {
   const group = (data?.groups ?? []).find((g) => g.id === groupId);
   if (!group) return null;
 
@@ -3134,7 +3134,14 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // A montaje dish (nachos, sándwiches...) is only appropriate for the exact
   // slot the user flagged as "cena rápida" — otherwise it can replace a normal
   // dinner with something that doesn't match what the user actually asked for.
-  const isCenaRapida = data.slotType?.[`${day}|${meal}`] === "rapida";
+  //
+  // `admiteMontaje` abre esa puerta para UN caso: las sugerencias de un hueco
+  // VACÍO, donde no se reemplaza nada y eliges tú. Ahí la regla sobraba y se
+  // notaba: dejaba fuera las doce tostas de cena del catálogo —ocho minutos,
+  // salmón ahumado, tomate rallado con anchoas— que son justo lo que se cena
+  // un martes. La puerta sigue cerrada para el relleno automático y para
+  // "cambiar plato": ahí decide la máquina, y ahí la regla es buena.
+  const isCenaRapida = admiteMontaje || data.slotType?.[`${day}|${meal}`] === "rapida";
 
   // "Parecido" (misma categoría): restrict candidates to the category of the
   // dish being replaced, e.g. another salad for a salad. Null = any category.
