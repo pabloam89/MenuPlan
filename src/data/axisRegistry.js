@@ -110,10 +110,10 @@ export const EJES = [
   },
   {
     n: 3, id: "densidadNutricional", nombre: "Densidad nutricional (kcal/100 g, g proteína/100 kcal, fibra, saciedad)",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "sin_lector",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
-    nota: "Calculable hoy: las macros de receta están al 100 % y computeRecipeNutrition da cobertura 99,7 % de media. Falta el campo derivado y quien lo lea.",
+    consumidores: [], cobertura: 1,
+    nota: "DERIVADO, no curado: `densidadDe` en src/lib/derive/ejesDePlato.js da kcal/100 g del plato servido y gramos de proteína por 100 kcal, de las macros de receta (al 100 %) sobre la masa del vector. Cobertura 100 % del catálogo, mediana 113 kcal/100 g con p05 50 y p95 212. El segundo número es el que de verdad separa: un plato puede ser denso en calorías y pobre en proteína, que es justo lo que alguien quiere saber al pedir «algo que llene».",
   },
   {
     n: 4, id: "micronutrientes", nombre: "Micronutrientes (hierro, calcio, B12, omega-3, folato)",
@@ -176,10 +176,10 @@ export const EJES = [
   },
   {
     n: 11, id: "completitud", nombre: "Completitud (¿es comida entera?)",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
-    nota: "En vivo: el solver dio por bueno un menú con «Brócoli al vapor en árbol» de segundo plato, cumpliendo TODAS las restricciones. Las restricciones solo descartan; lo que hace bueno un menú es la función objetivo.",
+    consumidores: [], cobertura: 1,
+    nota: "DERIVADO por `completitudDe` (src/lib/derive/ejesDePlato.js): un plato es entero cuando trae proteína, hidrato Y verdura, leídos del vector de composición. La verdura se mide por masa y no por presencia —40 g por ración—, porque dos hojas de perejil no completan nada. Cobertura 100 %, y DISCRIMINA: 261 de 947 son completos, así que el eje sirve para elegir cena. Nace de un caso en vivo: el solver dio por bueno un menú con «Brócoli al vapor en árbol» de segundo, cumpliendo TODAS las restricciones — las restricciones descartan, pero lo que hace bueno un menú es la función objetivo.",
   },
   {
     n: 12, id: "fotogenia", nombre: "Aspecto y fotogenia",
@@ -228,15 +228,15 @@ export const EJES = [
   },
   {
     n: 19, id: "restriccionReligiosa", nombre: "Halal / kosher / sin cerdo / sin alcohol",
-    ambito: AMBITO.RECETA, tipo: "tags", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "El alcohol ya sale del plano B: `vino-generoso`, `brandy` y compañía declaran conflictsWith alcohol_cocina.",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "sin_lector",
+    campo: null, vocabulario: ["sin_cerdo"], consumidores: [], cobertura: 1,
+    nota: "SOLO `sin_cerdo`, y el recorte es la parte importante. `sinCerdoDe` (src/lib/derive/ejesDePlato.js) lo deriva de la taxonomía al 100 %, contando el embutido como cerdo —el chorizo cuelga de `subclase: embutido` con `especie: chorizo`, así que buscar la especie «cerdo» daba sin_cerdo a un plato con chorizo, el falso negativo más caro posible aquí— salvo pastrami, cecina y pavo. HALAL Y KOSHER NO SE DERIVAN NI SE DERIVARÁN de esto: son cómo se sacrificó el animal y cómo se separó la vajilla, y eso no está en el repo ni puede estarlo; darlos por aptos porque no hay cerdo sería faltar al respeto a quien confía en la respuesta. El alcohol ya sale del plano B: `vino-generoso`, `brandy` y compañía declaran conflictsWith alcohol_cocina.",
   },
   {
     n: 20, id: "aptoVigilia", nombre: "Apto vigilia",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "Sale del plano A: si el árbol dice que no hay carne de mamífero ni ave, es de vigilia.",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 1,
+    nota: "DERIVADO por `aptoVigiliaDe` al 100 %, de `taxonomia.clase`, que está al 100 % en los 396 alimentos: no hay mamífero, ave ni víscera. La víscera cuenta porque unos callos son carne aunque el árbol los cuelgue aparte, y el pescado NO cuenta — ese matiz es lo que hace que esto sea un eje y no un sinónimo de vegetariano. 444 de 947 recetas son de vigilia.",
   },
   {
     n: 21, id: "aptoAyuno", nombre: "Apto ayuno",
@@ -260,9 +260,9 @@ export const EJES = [
   },
   {
     n: 24, id: "tiempoActivo", nombre: "Tiempo activo vs calendario",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "98 Estrella tienen activo por debajo del 50 % del total. Derivable ya desde stepsRich[].kind, que está al 97,5 %.",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "sin_lector",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0.971,
+    nota: "DERIVADO por `tiempoActivoDe` de `stepsRich[].kind`: suma los pasos `prep`, `activo` y `emplatado`, y NO los `pasivo`, `espera`, `opcional` ni `paralelo` — un precalentado de horno es paralelo y no son manos de nadie. Mediana 20 minutos contra 30 de `time`, que es exactamente la distancia que el eje existe para enseñar: las cuatro horas de un guiso son cuatro horas en las que no estás en la cocina. OJO CON LO QUE MIDE: es SUMA DE TRABAJO, no minutos de pie. En 87 recetas supera el `time` declarado porque una receta solapa —mientras se fríe la berenjena se escurre la patata— y los dos pasos suman por separado. Sirve para comparar dos platos; para el reloj real harían falta las dependencias entre pasos, que el catálogo no tiene. Se abstiene cuando faltan minutos en más del 20 % de los pasos.",
   },
   {
     n: 25, id: "esfuerzoMental", nombre: "Esfuerzo mental / nº de componentes",

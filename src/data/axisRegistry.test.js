@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 import alimentos from "./alimentos.json";
 import { EJES, EJE_POR_ID, cobertura, puedeResponder, valorValido } from "./axisRegistry.js";
 import { composicionDe } from "../lib/derive/composicion.js";
+import {
+  densidadDe, completitudDe, sinCerdoDe, aptoVigiliaDe, tiempoActivoDe,
+} from "../lib/derive/ejesDePlato.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
 const recetas = readdirSync(RAIZ)
@@ -24,6 +27,14 @@ const MEDIDORES = {
   // sin campo y sin medidor — la afirmación más fuerte del registro y la única
   // que nadie comprobaba.
   composicion: () => recetas.filter((r) => composicionDe(r).masaTotal > 0).length / recetas.length,
+  // Los cinco que salieron del catálogo sin pedir un dato nuevo. Se miden
+  // CORRIENDO su operador, igual que el eje 1: no viven en ningún campo, así
+  // que lo único que sostiene su cobertura es que la función conteste.
+  densidadNutricional: () => recetas.filter((r) => densidadDe(r).valor !== null).length / recetas.length,
+  completitud: () => recetas.filter((r) => completitudDe(r).valor !== null).length / recetas.length,
+  restriccionReligiosa: () => recetas.filter((r) => sinCerdoDe(r).valor !== null).length / recetas.length,
+  aptoVigilia: () => recetas.filter((r) => aptoVigiliaDe(r).valor !== null).length / recetas.length,
+  tiempoActivo: () => recetas.filter((r) => tiempoActivoDe(r).valor !== null).length / recetas.length,
   parte: () => recetas.filter((r) => (r.stepsRich ?? []).some((s) => s.part != null)).length / recetas.length,
   // El eje 49 tampoco vive en un campo: se lee de los minutos de los pasos. Su
   // cobertura es «de cuántas recetas se puede AFIRMAR algo», que es tener
