@@ -20326,90 +20326,107 @@
       {
         "text": "Pelar {{Patata}} y cortar en trozos de tamaño similar.",
         "minutes": 5,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Cocer la patata en una olla con agua abundante y sal hasta que esté tierna.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "guarnicion"
       },
       {
         "text": "Picar {{Cebolla}}, {{Zanahoria}} y {{Ajo}} fino.",
         "minutes": 5,
         "kind": "paralelo",
-        "during": 1
+        "during": 1,
+        "part": "principal"
       },
       {
         "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Sofreír la cebolla, la zanahoria y el ajo hasta que estén blandos.",
         "minutes": 8,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Añadir {{Carne picada de ternera}} y dorar a fuego fuerte, deshaciendo los grumos.",
         "minutes": 5,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Incorporar {{Tomate triturado}}, {{Caldo de carne}}, {{Salsa Worcestershire}} y {{Tomillo|pizca}}.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "principal"
       },
       {
         "text": "Cocer a fuego medio hasta que la salsa espese. Salpimentar y reservar.",
         "minutes": 15,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "principal"
       },
       {
         "text": "Precalentar el horno a 200 °C.",
         "minutes": 10,
         "kind": "paralelo",
-        "during": 7
+        "during": 7,
+        "part": "combinado"
       },
       {
         "text": "Calentar {{Leche}} en un cazo a fuego suave hasta que esté caliente.",
         "minutes": 3,
         "kind": "paralelo",
-        "during": 7
+        "during": 7,
+        "part": "guarnicion"
       },
       {
         "text": "Escurrir la patata cocida y triturar en el mismo cazo.",
         "minutes": 2,
-        "kind": "prep"
+        "kind": "prep",
+        "part": "guarnicion"
       },
       {
         "text": "Añadir la leche caliente y la mitad de {{Mantequilla}} al puré y mezclar hasta que esté cremoso.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "guarnicion"
       },
       {
         "text": "Extender la carne guisada en una fuente de horno formando una capa uniforme.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Cubrir la carne con el puré y alisar la superficie con un tenedor.",
         "minutes": 2,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Repartir {{Queso rallado}} y el resto de la mantequilla en trocitos por encima.",
         "minutes": 1,
-        "kind": "activo"
+        "kind": "activo",
+        "part": "combinado"
       },
       {
         "text": "Hornear a 200 °C hasta que la superficie esté dorada.",
         "minutes": 18,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "part": "combinado"
       },
       {
         "text": "Servir la fuente bien caliente en la mesa.",
         "minutes": 1,
-        "kind": "emplatado"
+        "kind": "emplatado",
+        "part": "combinado"
       }
     ],
     "fiber_g": 5,
