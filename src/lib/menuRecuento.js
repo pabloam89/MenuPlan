@@ -54,30 +54,54 @@ export function familiasDe(receta) {
  * `catalogToFrontendRecipe` no arrastra `tecnica` ni `cocina` — solo deja
  * `tags: [category, mainProtein]`, que llega para las familias y no para los
  * otros dos ejes.
+ *
+ * Además del recuento devuelve `platosPorFamilia`: QUIÉNES son esos platos,
+ * con su día, su franja y sus macros por ración. Es lo que necesita una fila
+ * de Balance para poder abrirse y enseñar de qué se compone su número — un
+ * «3» no dice nada si no puedes ver cuáles son los tres.
+ *
+ * Los macros salen de la receta de catálogo, donde `recipeCatalog.js` ya los
+ * ha dejado POR RACIÓN. Solo se copian los cuatro que están al 100% en las
+ * 1033 recetas; el azúcar, por ejemplo, está al 58% y enseñarlo sería
+ * prometer un dato que no se tiene.
  */
 export function recuentoDelMenu(plan, catalogoPorId) {
   const familias = {};
+  const platosPorFamilia = {};
   const cocinas = {};
   const tecnicas = {};
   let huecos = 0;
 
   for (const [groupId, slots] of Object.entries(plan ?? {})) {
     if (groupId.startsWith("_") || !slots || typeof slots !== "object") continue;
-    for (const slot of Object.values(slots)) {
+    for (const [clave, slot] of Object.entries(slots)) {
       const ids = [slot?.firstRecipeId, slot?.recipeId].filter(Boolean);
       if (ids.length) huecos++;
+      const corte = String(clave).indexOf("-");
+      const dia = corte > 0 ? clave.slice(0, corte) : "";
+      const comida = corte > 0 ? clave.slice(corte + 1) : "";
       for (const id of ids) {
         // Con varios menús el id lleva prefijo de grupo ("g1__carnes_007"); el
         // catálogo se indexa por el id pelado.
         const base = id.includes("__") ? id.split("__").slice(1).join("__") : id;
         const receta = catalogoPorId?.[base];
         if (!receta) continue;
-        for (const f of familiasDe(receta)) familias[f] = (familias[f] ?? 0) + 1;
+        const ficha = {
+          id: base, nombre: receta.name, dia, comida,
+          kcal: receta.kcal ?? null,
+          protein_g: receta.protein_g ?? null,
+          carbs_g: receta.carbs_g ?? null,
+          fat_g: receta.fat_g ?? null,
+        };
+        for (const f of familiasDe(receta)) {
+          familias[f] = (familias[f] ?? 0) + 1;
+          (platosPorFamilia[f] ??= []).push(ficha);
+        }
         if (receta.cocina) cocinas[receta.cocina] = (cocinas[receta.cocina] ?? 0) + 1;
         if (receta.tecnica) tecnicas[receta.tecnica] = (tecnicas[receta.tecnica] ?? 0) + 1;
       }
     }
   }
 
-  return { familias, cocinas, tecnicas, huecos };
+  return { familias, platosPorFamilia, cocinas, tecnicas, huecos };
 }

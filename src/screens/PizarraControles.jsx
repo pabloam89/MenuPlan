@@ -11,7 +11,7 @@ import { medidasDe, medidaPorId, enPlural, UNIDAD_SUELTA } from "../lib/medidasD
 import { Picker } from "../components/Picker.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
-import { DAYS, getDayMeals } from "../lib/planner.js";
+import { DAYS, dayLabel, getDayMeals } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
 import { tandaDelMenu } from "../lib/tandaDelPlato.js";
@@ -173,7 +173,15 @@ function PanelBalance({ menuPlan, groups }) {
     return recuentoDelMenu(plan, recipeCatalogById);
   }, [menuPlan, groups]);
 
-  const filas = FAMILIAS_BALANCE.map((f) => ({ ...f, puestos: recuento.familias[f.id] ?? 0 }));
+  const filas = FAMILIAS_BALANCE.map((f) => ({
+    ...f,
+    puestos: recuento.familias[f.id] ?? 0,
+    platos: recuento.platosPorFamilia?.[f.id] ?? [],
+  }));
+
+  // Qué familia está abierta, o null. Una sola: dos abiertas a la vez hacen
+  // scroll de más en un panel de 320px y nadie compara dos listas largas.
+  const [abierta, setAbierta] = useState(null);
 
   return (
     <>
@@ -194,12 +202,26 @@ function PanelBalance({ menuPlan, groups }) {
       >
         {filas.map((f, i) => {
           const vacia = f.puestos === 0;
+          const abierto = abierta === f.id;
           return (
             <div
               key={f.id}
               style={{
-                display: "flex", alignItems: "center", gap: 12, padding: "10px 12px",
-                borderBottom: i === filas.length - 1 ? "none" : "1px solid #eef3f0",
+                borderBottom: i === filas.length - 1 && !abierto ? "none" : "1px solid #eef3f0",
+              }}
+            >
+            {/* La fila entera abre: el número por sí solo no dice de qué se
+                compone, y «3 carnes» sin saber cuáles no se puede juzgar. Las
+                vacías no abren — no hay nada que enseñar. */}
+            <button
+              type="button"
+              disabled={vacia}
+              onClick={() => setAbierta((a) => (a === f.id ? null : f.id))}
+              aria-expanded={abierto}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 12,
+                padding: "10px 12px", border: "none", background: "none",
+                cursor: vacia ? "default" : "pointer", fontFamily: "inherit", textAlign: "left",
               }}
             >
               {/* La foto de la categoría, la misma que ves en las carpetas del
@@ -244,6 +266,62 @@ function PanelBalance({ menuPlan, groups }) {
               >
                 {f.puestos}
               </span>
+              {!vacia && (
+                <span
+                  style={{
+                    flexShrink: 0, color: "#9ab0a1", display: "flex",
+                    transform: abierto ? "rotate(90deg)" : "none",
+                    transition: "transform .22s cubic-bezier(.2,.9,.3,1)",
+                  }}
+                >
+                  <ChevronRight size={15} strokeWidth={2.6} />
+                </span>
+              )}
+            </button>
+
+            {abierto && (
+              <div style={{ padding: "2px 12px 10px", background: "#fafcfb" }}>
+                {f.platos.map((p, n) => (
+                  <div
+                    key={`${p.id}-${p.dia}-${p.comida}-${n}`}
+                    style={{
+                      display: "flex", alignItems: "baseline", gap: 8,
+                      padding: "7px 0",
+                      borderTop: n === 0 ? "none" : "1px solid #eef3f0",
+                    }}
+                  >
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: INK, lineHeight: 1.3 }}>
+                      {p.nombre}
+                      {/* El día y la franja debajo del nombre: sin ellos la
+                          lista dice QUÉ hay pero no CUÁNDO, que es la mitad de
+                          lo que vienes a mirar. */}
+                      <span style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "#9ab0a1", marginTop: 1 }}>
+                        {dayLabel(p.dia)} · {String(p.comida).toLowerCase()}
+                      </span>
+                    </span>
+                    {/* Por ración, que es como el catálogo los guarda. No se
+                        suman a total de semana: una suma de raciones sueltas
+                        no es lo que come nadie, y presentarla como tal sería
+                        inventarse un dato. */}
+                    <span style={{ flexShrink: 0, display: "flex", gap: 7, fontVariantNumeric: "tabular-nums" }}>
+                      {[
+                        { v: p.kcal, u: "kcal", c: "#5a7066" },
+                        { v: p.protein_g, u: "P", c: "#c0392b" },
+                        { v: p.carbs_g, u: "H", c: "#cf7833" },
+                        { v: p.fat_g, u: "G", c: "#b9770e" },
+                      ].filter((x) => x.v != null).map((x) => (
+                        <span key={x.u} style={{ fontSize: 10.5, fontWeight: 900, color: x.c }}>
+                          {Math.round(x.v)}<span style={{ fontWeight: 700, opacity: 0.65 }}>{x.u === "kcal" ? "" : x.u}</span>
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                ))}
+                <p style={{ margin: "8px 0 0", fontSize: 10, fontWeight: 700, color: "#9ab0a1", letterSpacing: ".2px" }}>
+                  Por ración · kcal · P proteína · H hidratos · G grasa
+                </p>
+              </div>
+            )}
             </div>
           );
         })}

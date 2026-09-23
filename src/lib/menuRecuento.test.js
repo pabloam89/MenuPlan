@@ -78,7 +78,7 @@ describe("bordes que se dan de verdad", () => {
   });
 
   it("sin plan devuelve ceros en vez de reventar", () => {
-    expect(recuentoDelMenu(null, CATALOGO)).toEqual({ familias: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
-    expect(recuentoDelMenu({}, undefined)).toEqual({ familias: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
+    expect(recuentoDelMenu(null, CATALOGO)).toEqual({ familias: {}, platosPorFamilia: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
+    expect(recuentoDelMenu({}, undefined)).toEqual({ familias: {}, platosPorFamilia: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
   });
 });
