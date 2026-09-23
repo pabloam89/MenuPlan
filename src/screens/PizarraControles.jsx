@@ -393,7 +393,13 @@ function CantidadDeLinea({ item, onQty, pool, onEditarFicha }) {
   // Si la línea vino del pool se LEE en su medida —tres cabezas, no ciento
   // ochenta gramos— aunque por debajo se guarden los gramos, que es lo que
   // necesita el cruce con la compra. Y al tocarla se abre su ficha.
-  const etiqueta = pool?.etiqueta ?? formatStockQty(item.qty ?? 1, item.unit ?? "ud");
+  //
+  // Dos columnas fijas: el envase y el peso. Lo escrito a mano no tiene
+  // envase que declarar, así que su cantidad cae en la columna del peso y la
+  // primera se queda en blanco — es lo que hace que todas las líneas se
+  // alineen aunque unas sepan más de sí mismas que otras.
+  const envase = pool?.envase ?? null;
+  const peso = pool ? pool.peso : formatStockQty(item.qty ?? 1, item.unit ?? "ud");
 
   const guardar = () => {
     setEditando(false);
@@ -410,20 +416,44 @@ function CantidadDeLinea({ item, onQty, pool, onEditarFicha }) {
   };
 
   if (!editando) {
-    return (
+    // Anchos FIJOS, no al contenido: una píldora que mide lo que dice deja el
+    // borde izquierdo distinto en cada línea, y entonces no hay columna que
+    // leer. Con el ancho clavado, «1 paquete» y «3 cabezas» empiezan y acaban
+    // en el mismo sitio en todas las filas.
+    const columna = (texto, ancho, etiquetaAria) => (
       <button
         type="button"
         onClick={abrir}
-        aria-label={`Cambiar la cantidad de ${item.ingredientName ?? item.name}`}
+        disabled={!texto}
+        aria-label={texto ? etiquetaAria : undefined}
+        aria-hidden={texto ? undefined : true}
+        tabIndex={texto ? undefined : -1}
         style={{
-          flexShrink: 0, padding: "4px 9px", borderRadius: 999,
-          background: "#f0f6f2", border: "1px solid #dfeae3", cursor: "pointer",
+          // Alto CLAVADO, no al contenido: la columna vacía no tiene texto que
+          // la estire, así que sin esto se quedaba 8px más abajo que su pareja
+          // y la fila entera se leía torcida.
+          boxSizing: "border-box", width: ancho, height: 23, flexShrink: 0,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          padding: "0 6px", borderRadius: 999,
+          // La columna vacía sigue ocupando su sitio: es lo que mantiene el
+          // peso siempre en la segunda, tenga envase o no.
+          background: texto ? "#f0f6f2" : "transparent",
+          border: texto ? "1px solid #dfeae3" : "1px solid transparent",
+          cursor: texto ? "pointer" : "default",
           fontSize: 11.5, fontWeight: 900, color: VERDE, fontFamily: "inherit",
           fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap",
+          overflow: "hidden", textOverflow: "ellipsis", textAlign: "center",
         }}
       >
-        {etiqueta}
+        {texto ?? ""}
       </button>
+    );
+    const nombre = item.ingredientName ?? item.name;
+    return (
+      <span style={{ display: "flex", gap: 5, alignItems: "center" }}>
+        {columna(envase, 86, `Cambiar cuántos ${nombre} tienes`)}
+        {columna(peso, 62, `Cambiar cuánto pesa ${nombre}`)}
+      </span>
     );
   }
 
@@ -550,13 +580,19 @@ function poolDe(item, elegidas = {}) {
     nombre,
     medida: medida.id,
     n: veces,
-    // La línea dice TODO lo declarado: «1 paquete · 500 g», no «1 paquete».
-    // El envase solo no basta —un paquete es de medio kilo o de kilo— y el
-    // peso solo tampoco: 500 g no te dicen si te queda un paquete o medio.
-    // Con una unidad suelta no hay nada que añadir: «2 ud · 2 ud» sobra.
-    etiqueta: UNIDAD_SUELTA.has(medida.id)
+    // La línea dice TODO lo declarado, y en DOS trozos: cuántos envases y
+    // cuánto pesa cada uno. El envase solo no basta —un paquete es de medio
+    // kilo o de kilo— y el peso solo tampoco: 500 g no te dicen si te queda un
+    // paquete o medio. Iban juntos en una píldora con un punto en medio, y un
+    // punto no es una columna: así cada mitad cae en la suya y las líneas se
+    // leen en vertical. Con una unidad suelta no hay peso que añadir: «2 ud ·
+    // 2 ud» sobra, así que la columna del peso se queda vacía.
+    envase: UNIDAD_SUELTA.has(medida.id)
       ? formatStockQty(item.qty, medida.base)
-      : `${veces} ${veces === 1 ? medida.id : enPlural(medida.id)} · ${formatStockQty(medida.por, medida.base)}`,
+      : `${veces} ${veces === 1 ? medida.id : enPlural(medida.id)}`,
+    peso: UNIDAD_SUELTA.has(medida.id)
+      ? null
+      : formatStockQty(medida.por, medida.base),
   };
 }
 
@@ -858,19 +894,27 @@ function PanelDespensa({ despensa, onAnadir, onQuitar, onQty }) {
               }}
             >
               <Miniatura name={i.ingredientName ?? i.name} />
-              <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.25 }}>
-                {i.ingredientName ?? i.name}
-              </span>
-              {/* Lo del pool se corrige en su ficha —la misma del alta, con el
-                  contador de paquetes Y los gramos—. Lo escrito a mano no tiene
-                  ficha, así que se edita en el sitio, en la unidad en la que
-                  esté guardado. */}
-              <CantidadDeLinea
-                item={i}
-                onQty={onQty}
-                pool={poolDe(i, medidaElegida)}
-                onEditarFicha={(p) => setPendiente({ ...p, editando: { id: i.id, n: p.n } })}
-              />
+              {/* El nombre arriba y las cantidades debajo. En una sola línea
+                  las dos columnas se comían el nombre: en 288px de panel,
+                  «Aceite de oliva» se quedaba en «Aceite d…» para que cupiera
+                  «1 botella». Partirlo en dos les da sitio a las dos cosas y,
+                  de paso, alinea las píldoras de todas las filas en la misma
+                  vertical, que es justo lo que se pedía. */}
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 5 }}>
+                <span style={{ maxWidth: "100%", fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {i.ingredientName ?? i.name}
+                </span>
+                {/* Lo del pool se corrige en su ficha —la misma del alta, con el
+                    contador de paquetes Y los gramos—. Lo escrito a mano no tiene
+                    ficha, así que se edita en el sitio, en la unidad en la que
+                    esté guardado. */}
+                <CantidadDeLinea
+                  item={i}
+                  onQty={onQty}
+                  pool={poolDe(i, medidaElegida)}
+                  onEditarFicha={(p) => setPendiente({ ...p, editando: { id: i.id, n: p.n } })}
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => onQuitar(i.id)}
@@ -1512,14 +1556,34 @@ export function PizarraControles({
           </span>
         </button>
 
-        <div
-          style={{
-            flex: 1, minWidth: 0, display: "flex", gap: 2,
-            overflowX: "auto", padding: "8px 8px 6px",
-            scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
-          }}
-        >
-          {cara === "acciones" ? (
+        {/* Una ventana, y dentro un carril con las DOS caras puestas.
+            Antes se cambiaba desmontando una y montando la otra: la que se iba
+            desaparecía de golpe y la que llegaba entraba a saltos con su
+            cascada de baldosas. Aquí ninguna se desmonta y lo único que se
+            mueve es el carril, así que el cambio es un desplazamiento
+            continuo — que además es lo que el chevron estaba prometiendo.
+
+            `overflow: clip` y no `hidden`: hidden fuerza a que `overflow-y`
+            compute como auto y eso convierte esto en contenedor de scroll (el
+            mismo problema que el shell, documentado en index.css). */}
+        <div style={{ flex: 1, minWidth: 0, overflow: "clip" }}>
+          <div
+            style={{
+              display: "flex", width: "200%",
+              transform: cara === "acciones" ? "translateX(0)" : "translateX(-50%)",
+              transition: "transform .38s cubic-bezier(.22,1,.36,1)",
+            }}
+          >
+            <div
+              // La cara que no se ve no se puede tabular con el tabulador: si
+              // no, el foco se va a baldosas que están fuera de la ventana.
+              inert={cara === "acciones" ? undefined : ""}
+              style={{
+                width: "50%", flexShrink: 0, display: "flex", gap: 2,
+                overflowX: "auto", padding: "8px 8px 6px",
+                scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
+              }}
+            >
             <>
               {onRellenar && huecosVacios > 0 && (
                 <BaldosaMando
@@ -1577,7 +1641,15 @@ export function PizarraControles({
                 />
               )}
             </>
-          ) : (
+            </div>
+            <div
+              inert={cara === "controles" ? undefined : ""}
+              style={{
+                width: "50%", flexShrink: 0, display: "flex", gap: 2,
+                overflowX: "auto", padding: "8px 8px 6px",
+                scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
+              }}
+            >
             <>
               <BaldosaMando
                 Icon={BarChart3}
@@ -1613,7 +1685,8 @@ export function PizarraControles({
                 onClick={() => setAbierto("tanda")}
               />
             </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
 
