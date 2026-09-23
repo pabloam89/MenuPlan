@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ArrowRight, BarChart3, Check, ChevronRight, CookingPot, Eraser, Heart, Minus,
-  CheckCircle2, Moon, Package, Plus, Salad, Search, Sparkles, Sun, X,
+  Moon, Package, Plus, Salad, Search, Sparkles, Sun, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
@@ -1508,7 +1508,6 @@ export function PizarraControles({
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
   onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
   tema = "claro", onTema,
-  onSeleccionar,
 }) {
   const [abierto, setAbierto] = useState(null);
   // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
@@ -1653,24 +1652,14 @@ export function PizarraControles({
                   onClick={() => (onAddDespensa ? setDespensaAlRellenar(true) : onRellenar())}
                 />
               )}
-              {/* Marcar varios huecos y rellenarlos de una. Va justo detrás de
-                  «Rellenar» porque es su versión fina: uno rellena todo lo que
-                  queda, el otro solo lo que señales. */}
-              {onSeleccionar && huecosVacios > 0 && (
-                <BaldosaMando
-                  Icon={CheckCircle2}
-                  label="Elegir"
-                  orden={1}
-                  color="#2f7d8c"
-                  tinte="#fff"
-                  onClick={onSeleccionar}
-                />
-              )}
+              {/* Aquí vivía una baldosa «Elegir» que ponía el tablero en modo
+                  marcar. Sobraba: marcar es tocar un hueco, y un modo que hay
+                  que encender antes convertía dos toques en tres. */}
               {onNuevaPizarra && (
                 <BaldosaMando
                   Icon={Plus}
                   label="Nueva"
-                  orden={2}
+                  orden={1}
                   color={TEAL}
                   tinte="#fff"
                   onClick={onNuevaPizarra}
@@ -1680,7 +1669,7 @@ export function PizarraControles({
                 <BaldosaMando
                   Icon={Eraser}
                   label="Vaciar"
-                  orden={3}
+                  orden={2}
                   color="#b45309"
                   tinte="#fff"
                   onClick={() => setConfirmarVaciar(true)}
@@ -1690,7 +1679,7 @@ export function PizarraControles({
                 <BaldosaMando
                   Icon={Heart}
                   label={esFavorito ? "Guardada" : "Favorito"}
-                  orden={4}
+                  orden={3}
                   color="#e0405a"
                   tinte="#fff"
                   onClick={onFavorito}
@@ -1704,7 +1693,7 @@ export function PizarraControles({
                 <BaldosaMando
                   Icon={tema === "oscuro" ? Sun : Moon}
                   label={tema === "oscuro" ? "Claro" : "Oscuro"}
-                  orden={5}
+                  orden={4}
                   color="#4b5d8f"
                   tinte="#fff"
                   onClick={onTema}

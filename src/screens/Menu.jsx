@@ -10,7 +10,6 @@ import {
   BookOpenCheck,
   CalendarDays,
   Check,
-  Eraser,
   ChefHat,
   ChevronDown,
   ChevronLeft,
@@ -2217,10 +2216,11 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     : recipe
       ? { recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey }
       : null;
-  // Marcada, o marcable. Mientras se marca, la baldosa no hace ninguna de sus
-  // cosas: ni abre el recetario, ni se levanta para arrastrarla, ni enseña sus
-  // botones. Solo se marca.
-  const enSeleccion = Boolean(seleccion) && Boolean(sel);
+  // Marcada, o marcable. En cuanto hay UN hueco marcado, todos los demás
+  // huecos vacíos enseñan su sello y se atenúan: es lo que dice que ahora
+  // mismo estás eligiendo cuáles. Los platos ya puestos se quedan como están
+  // —no se marcan— así que ni se atenúan ni esconden sus botones.
+  const enSeleccion = Boolean(seleccion) && Boolean(sel) && isEmpty;
   const marcado = enSeleccion && seleccion.marcados.has(claveDeHueco({ ...sel, day, meal }));
   const pinturaSeleccion = enSeleccion
     ? {
@@ -2441,7 +2441,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   // Las acciones de un plato ya colocado. En la pizarra la pulsación larga
   // levanta el plato para arrastrarlo, así que el rosco y el vaciar necesitan
   // botón propio — sin ellos, un plato puesto no se podía ni quitar.
-  const mandosDelPlato = onDishActions && sel && !mosaico && !enSeleccion && (
+  const mandosDelPlato = onDishActions && sel && !mosaico && (
     <div
       style={{
         position: "absolute", top: compact ? 5 : 8, right: compact ? 5 : 8,
@@ -2495,7 +2495,6 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       }}
     >
       {isArmed && <ArmedRing radius={radius} />}
-      {selloDeMarca}
       {mandosDelPlato}
       {showPhoto ? (
         <img
@@ -5196,15 +5195,8 @@ export const MenuScreen = memo(function MenuScreen({
   // reparto: no es un booleano porque dos rellenos seguidos tienen que volver
   // a animar, y un booleano que ya estaba a true no cambia nada.
   repartoKey = 0,
-  // Modo «marcar huecos». Mientras está puesto, tocar una baldosa la marca en
-  // vez de abrirla, y abajo sale la barra con lo que se puede hacer con lo
-  // marcado. El interruptor lo lleva App —está en la franja de mandos— pero
-  // los huecos marcados son de aquí, que es quien sabe qué baldosas hay.
-  modoSeleccion = false,
-  onSalirSeleccion = null,
-  // Vacía de golpe los huecos marcados.
-  onVaciarHuecos = null,
-  // Abre el recetario UNA vez para colocar el mismo plato en todos.
+  // Abre el recetario UNA vez para colocar el mismo plato en todos los huecos
+  // marcados.
   onElegirParaVarios = null,
 }) {
   const deckViews = modoPizarra ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
@@ -5244,21 +5236,25 @@ export const MenuScreen = memo(function MenuScreen({
     if (incomingDish?.recipeId) setArmed({ mode: "incoming", dish: incomingDish });
   }, [incomingDish]);
 
-  // Los huecos marcados, por clave. Se guarda el `sel` entero y no solo la
-  // clave porque la barra de abajo necesita saber cuántos están vacíos para
-  // decidir qué ofrece, y eso no se puede leer de la clave.
+  // Los huecos marcados, por clave. No hay modo que encender: en la pizarra,
+  // tocar un hueco VACÍO lo marca y ya está. Se guarda el `sel` entero y no
+  // solo la clave porque la barra de abajo se los pasa tal cual a quien
+  // rellena.
+  //
+  // Solo huecos vacíos: un plato ya puesto se toca para abrirlo, y robarle ese
+  // toque para marcarlo dejaría el tablero sin forma de ver una receta.
   const [marcados, setMarcados] = useState(() => new Map());
-  // Al salir del modo no queda nada marcado: volver a entrar y encontrarse la
-  // selección de hace media hora es una trampa — le das a «Vaciar» creyendo
-  // que empiezas de cero.
-  useEffect(() => { if (!modoSeleccion) setMarcados(new Map()); }, [modoSeleccion]);
   const huecosMarcados = useMemo(() => [...marcados.values()], [marcados]);
-  const vaciosMarcados = useMemo(() => huecosMarcados.filter((h) => h.empty), [huecosMarcados]);
+  const hayMarcados = marcados.size > 0;
+  const limpiarMarcados = useCallback(() => setMarcados(new Map()), []);
+  // Si el tablero cambia de forma debajo —otra pizarra, vaciarla, cambiar los
+  // días— lo marcado deja de existir y no puede quedarse en pie.
+  useEffect(() => { setMarcados(new Map()); }, [modoPizarra]);
 
   const handleTileTap = useCallback(
     (sel) => {
       if (readOnly && sel.empty) return;
-      if (modoSeleccion) {
+      if (modoPizarra && sel.empty && onFillSlots) {
         const clave = claveDeHueco(sel);
         setMarcados((m) => {
           const next = new Map(m);
@@ -5286,7 +5282,7 @@ export const MenuScreen = memo(function MenuScreen({
       }
       onDishTap?.(sel);
     },
-    [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly, modoSeleccion],
+    [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly, modoPizarra, onFillSlots],
   );
 
   // El hueco al que se le estan añadiendo comensales, o null. Vive aparte de
@@ -5398,7 +5394,7 @@ export const MenuScreen = memo(function MenuScreen({
 
   const handleTileLongPress = useCallback(
     (sel) => {
-      if (readOnly || armed || modoSeleccion) return;
+      if (readOnly || armed) return;
       // En la pizarra la pulsación larga LEVANTA el plato. Las acciones
       // (cambiar, duplicar, vaciar) siguen en el botón de los tres puntos, que
       // es un gesto explícito: aquí el dedo largo ya significa "lo voy a
@@ -5410,7 +5406,7 @@ export const MenuScreen = memo(function MenuScreen({
       if (sel.empty) return;
       setDishAction(sel);
     },
-    [armed, readOnly, modoPizarra, onSlotDrag, iniciarArrastre, modoSeleccion],
+    [armed, readOnly, modoPizarra, onSlotDrag, iniciarArrastre],
   );
 
   // Demo-only autoplay for the value-props carousel: open the quick-actions
@@ -6333,11 +6329,11 @@ export const MenuScreen = memo(function MenuScreen({
               // Con la barra de lo marcado puesta, el tablero le deja su alto:
               // si no, la última fila queda debajo y hay huecos que no se
               // pueden marcar porque no se pueden ver.
-              paddingBottom: `calc(${bottomNavSpacer()} + ${modoSeleccion ? 112 : 12}px)`,
+              paddingBottom: `calc(${bottomNavSpacer()} + ${hayMarcados ? 112 : 12}px)`,
             }}
           >
             <ArmedContext.Provider value={armed}>
-            <SeleccionContext.Provider value={modoSeleccion ? { marcados } : null}>
+            <SeleccionContext.Provider value={hayMarcados ? { marcados } : null}>
             <MenuDeck
               repartiendo={repartiendo}
               denso={modoPizarra}
@@ -6372,18 +6368,16 @@ export const MenuScreen = memo(function MenuScreen({
         )}
 
         {/* ── La barra de lo marcado ────────────────────────────────────────
+            No hay modo que encender: toca un hueco vacío y la barra sube;
+            quítalos todos y se va. Solo se marcan huecos VACÍOS, así que aquí
+            no hay nada que vaciar — lo único que se puede hacer con un puñado
+            de huecos es llenarlos, y de dos maneras.
+
             Va por portal a `document.body` y no aquí dentro por lo de siempre
             en esta pantalla: cualquier ancestro con `transform` —y el tablero
             tiene varios mientras reparte cartas— se queda con los
-            `position: fixed` de dentro y la barra aparecería flotando a mitad
-            de página (ver .mp-nav-fwd en index.css).
-
-            El CTA es RELLENAR y ocupa el ancho: marcar huecos vacíos para que
-            los rellene la app es para lo que existe esto. Lo demás —el mismo
-            plato en todos, vaciarlos— son atajos que aparecen solo cuando la
-            selección los admite, así que la barra nunca ofrece algo que no
-            vaya a hacer nada. */}
-        {modoSeleccion && createPortal(
+            `position: fixed` de dentro (ver .mp-nav-fwd en index.css). */}
+        {hayMarcados && createPortal(
           <div
             style={{
               position: "fixed", zIndex: 190,
@@ -6397,77 +6391,54 @@ export const MenuScreen = memo(function MenuScreen({
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 4px" }}>
               <span style={{ flex: 1, fontSize: 13, fontWeight: 900, letterSpacing: "-.2px" }}>
-                {huecosMarcados.length === 0
-                  ? "Toca los huecos que quieras"
-                  : `${huecosMarcados.length} ${huecosMarcados.length === 1 ? "hueco" : "huecos"}`}
+                {huecosMarcados.length === 1 ? "1 hueco" : `${huecosMarcados.length} huecos`}
               </span>
               <button
                 type="button"
-                onClick={() => onSalirSeleccion?.()}
+                onClick={limpiarMarcados}
                 style={{
                   border: "none", background: "rgba(255,255,255,.14)", color: "#fff",
                   borderRadius: 999, padding: "5px 11px", cursor: "pointer",
                   fontFamily: "inherit", fontSize: 12, fontWeight: 800,
                 }}
               >
-                Listo
+                Quitar
               </button>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
+              {/* Que los elija la app. Es el CTA y ocupa el ancho: marcar
+                  huecos para no tener que pensarlos es para lo que sirve. */}
               <button
                 type="button"
                 className="mp-press"
-                disabled={vaciosMarcados.length === 0}
-                onClick={() => {
-                  if (vaciosMarcados.length === 0) return;
-                  onFillSlots?.({ huecos: vaciosMarcados });
-                  onSalirSeleccion?.();
-                }}
+                onClick={() => { onFillSlots?.({ huecos: huecosMarcados }); limpiarMarcados(); }}
                 style={{
                   flex: 1, height: 42, borderRadius: 14, border: "none",
-                  background: vaciosMarcados.length === 0 ? "rgba(255,255,255,.13)" : "#4bbd7a",
-                  color: vaciosMarcados.length === 0 ? "rgba(255,255,255,.45)" : "#0d2416",
-                  cursor: vaciosMarcados.length === 0 ? "default" : "pointer",
+                  background: "#4bbd7a", color: "#0d2416", cursor: "pointer",
                   fontFamily: "inherit", fontSize: 14, fontWeight: 900,
                   display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
                 }}
               >
                 <Sparkles size={16} strokeWidth={2.6} />
-                {vaciosMarcados.length === 0
-                  ? "Rellenar"
-                  : `Rellenar ${vaciosMarcados.length}`}
+                {`Rellenar ${huecosMarcados.length}`}
               </button>
-              {onElegirParaVarios && huecosMarcados.length > 0 && (
+              {/* Elegirlo yo. Con un hueco marcado es el recetario de siempre;
+                  con varios, lo que elijas cae en todos. */}
+              {onElegirParaVarios && (
                 <button
                   type="button"
                   className="mp-press"
-                  aria-label="El mismo plato en todos"
-                  onClick={() => { onElegirParaVarios(huecosMarcados); onSalirSeleccion?.(); }}
+                  aria-label={huecosMarcados.length === 1 ? "Elegir plato" : "El mismo plato en todos"}
+                  onClick={() => { onElegirParaVarios(huecosMarcados); limpiarMarcados(); }}
                   style={{
-                    width: 46, height: 42, borderRadius: 14, border: "none", padding: 0,
+                    height: 42, padding: "0 14px", borderRadius: 14, border: "none",
                     background: "rgba(255,255,255,.14)", color: "#fff", cursor: "pointer",
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    fontFamily: "inherit", fontSize: 13, fontWeight: 800,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
                   }}
                 >
-                  <BookOpenCheck size={17} strokeWidth={2.4} />
-                </button>
-              )}
-              {onVaciarHuecos && huecosMarcados.some((h) => !h.empty) && (
-                <button
-                  type="button"
-                  className="mp-press"
-                  aria-label="Vaciar los huecos marcados"
-                  onClick={() => {
-                    onVaciarHuecos(huecosMarcados.filter((h) => !h.empty));
-                    onSalirSeleccion?.();
-                  }}
-                  style={{
-                    width: 46, height: 42, borderRadius: 14, border: "none", padding: 0,
-                    background: "rgba(255,255,255,.14)", color: "#ffb4a2", cursor: "pointer",
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <Eraser size={17} strokeWidth={2.4} />
+                  <BookOpenCheck size={16} strokeWidth={2.4} />
+                  Elegir
                 </button>
               )}
             </div>

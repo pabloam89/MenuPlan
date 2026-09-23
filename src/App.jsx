@@ -2846,10 +2846,6 @@ export default function App() {
   // tablero los reparta como cartas en vez de enseñarlos ya puestos.
   const [repartoKey, setRepartoKey] = useState(0);
 
-  // El modo «marcar huecos» de la pizarra. Solo el interruptor vive aquí: los
-  // huecos marcados son del tablero, que es quien sabe qué baldosas hay, y se
-  // quedan dentro de la pantalla del menú.
-  const [seleccionandoHuecos, setSeleccionandoHuecos] = useState(false);
 
   const handleStartPizarra = useCallback((eleccion = null) => {
     if (householdReadOnly) {
@@ -5107,42 +5103,6 @@ export default function App() {
     showToast("Pizarra vaciada");
   }, [data, householdReadOnly, user, syncHouseholdId, showToast, applyShoppingFor]);
 
-  /**
-   * Vaciar SOLO los huecos marcados.
-   *
-   * No reutiliza `handleClearSlot` en un bucle porque ese guarda y reconstruye
-   * la compra en cada llamada: con ocho huecos serían ocho reconstrucciones
-   * sobre un `menuPlan` que todavía no se ha asentado, y las últimas pisarían
-   * a las primeras. Aquí se tocan todos dentro del mismo `setMenuPlan`.
-   */
-  const handleVaciarHuecos = useCallback(async (huecos) => {
-    if (householdReadOnly || !Array.isArray(huecos) || huecos.length === 0) return;
-    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id, syncHouseholdId) : loadLocalPantry();
-    let tocados = 0;
-    setMenuPlan((plan) => {
-      const next = { ...plan };
-      for (const h of huecos) {
-        const key = `${h.day}-${h.meal}`;
-        const prev = next[h.groupId]?.[key] ?? plan[h.groupId]?.[key];
-        if (!prev) continue;
-        const campo = (h.course ?? "main") === "first" ? "firstRecipeId" : "recipeId";
-        if (!prev[campo]) continue;
-        next[h.groupId] = {
-          ...(next[h.groupId] ?? {}),
-          // `cleared` y no borrar la casilla: el hueco tiene que seguir ahí
-          // para poder volver a rellenarlo (ver handleVaciarPizarra).
-          [key]: { ...prev, [campo]: null, warnings: [], cleared: true },
-        };
-        tocados++;
-      }
-      if (tocados === 0) return plan;
-      applyShoppingFor(next, groups, pantryIngredients);
-      return next;
-    });
-    showToast(tocados === 1 ? "Hueco vaciado" : `${tocados} huecos vaciados`);
-  }, [data, householdReadOnly, user, syncHouseholdId, showToast, applyShoppingFor]);
-
   const handleClearSlot = useCallback(async (sel) => {
     if (householdReadOnly || !sel) return;
     const { groupId, day, meal, course } = sel;
@@ -5936,9 +5896,6 @@ export default function App() {
               modoPizarra={esPizarra}
               temaPizarra={esPizarra ? temaPizarra : "claro"}
               repartoKey={esPizarra ? repartoKey : 0}
-              modoSeleccion={esPizarra && !householdReadOnly && seleccionandoHuecos}
-              onSalirSeleccion={() => setSeleccionandoHuecos(false)}
-              onVaciarHuecos={householdReadOnly ? null : handleVaciarHuecos}
               // Un plato para TODOS los marcados: se abre el recetario una vez
               // con la lista pegada, y al elegir cae en los que haya.
               onElegirParaVarios={householdReadOnly ? null : ((huecos) => {
@@ -5968,7 +5925,6 @@ export default function App() {
                       onQtyDespensa={handleQtyDespensa}
                       onNuevaPizarra={() => handleStartPizarra()}
                       onVaciar={handleVaciarPizarra}
-                      onSeleccionar={() => setSeleccionandoHuecos(true)}
                       onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
                       esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
                       tema={temaPizarra}
