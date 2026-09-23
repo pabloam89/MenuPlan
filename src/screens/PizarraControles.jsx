@@ -1279,16 +1279,16 @@ export function SelectorDeDias({ data, onAplicar }) {
  */
 const PASOS_ARRANQUE = [
   { id: "dias", titulo: "¿Qué días quieres?" },
-  { id: "cocina", titulo: "¿Qué tienes en la cocina?", detalle: "Ajusta las recetas y lo que tarda el Batch." },
+  { id: "cocina", titulo: "¿Qué tienes en la cocina?" },
 ];
 
 export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
   // Dos pasos, deslizando: los días y luego los electrodomésticos, que
-  // cambian las recetas y los minutos del Batch. Mientras desliza se ven los
-  // dos; al terminar, el que se fue se pliega para que la hoja mida lo suyo.
+  // cambian las recetas y los minutos del Batch. Los dos pasos están siempre
+  // montados y la hoja mide lo que el más alto —el calendario—: si cambiara
+  // de tamaño al pasar de uno a otro, el salto se come el deslizamiento.
   const [paso, setPaso] = useState(0);
-  const [deslizando, setDeslizando] = useState(false);
-  const irA = (n) => { setDeslizando(true); setPaso(n); };
+  const irA = (n) => setPaso(n);
   const ultimo = paso === PASOS_ARRANQUE.length - 1;
   const actual = PASOS_ARRANQUE[paso];
   // Tres momentos: la hoja, la hoja yéndose, y el montaje. El del medio existe
@@ -1388,11 +1388,10 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
         <div style={{ overflow: "hidden", margin: "0 -18px" }}>
           <div
             style={{
-              display: "flex", width: `${PASOS_ARRANQUE.length * 100}%`, alignItems: "flex-start",
+              display: "flex", width: `${PASOS_ARRANQUE.length * 100}%`, alignItems: "stretch",
               transform: `translateX(-${(paso * 100) / PASOS_ARRANQUE.length}%)`,
               transition: "transform .38s cubic-bezier(.22,1,.36,1)",
             }}
-            onTransitionEnd={(e) => { if (e.target === e.currentTarget) setDeslizando(false); }}
           >
             {[
               <SelectorDeDias key="dias" data={data} onAplicar={onAplicar} />,
@@ -1401,13 +1400,15 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
               <div
                 key={PASOS_ARRANQUE[i].id}
                 aria-hidden={paso !== i}
+                inert={paso !== i}
                 style={{
                   width: `${100 / PASOS_ARRANQUE.length}%`, boxSizing: "border-box",
                   paddingLeft: 18, paddingRight: 18,
-                  ...(paso !== i && !deslizando ? { height: 0, overflow: "hidden" } : null),
+                  // El paso más bajo se centra en el alto del calendario.
+                  display: "flex", flexDirection: "column", justifyContent: "center",
                 }}
               >
-                {(paso === i || deslizando) && contenido}
+                {contenido}
               </div>
             ))}
           </div>
