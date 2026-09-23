@@ -2187,7 +2187,7 @@
     "category": "sopas_cremas",
     "mainProtein": "none",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "mealRole": [
       "primero"
     ],
@@ -2290,7 +2290,8 @@
       {
         "text": "Cocer los trozos de patata en el agua hirviendo a fuego medio hasta que estén tiernos, unos 20 min.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Calentar {{Leche}} en un cazo a fuego suave hasta que esté caliente, sin que llegue a hervir.",

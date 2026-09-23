@@ -15798,7 +15798,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -15996,7 +15996,8 @@
         "text": "Hervir agua con sal en un cazo y cocer las patatas troceadas 20 min, hasta que estén tiernas.",
         "minutes": 20,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Calentar {{Leche}} en un cazo pequeño a fuego suave hasta que esté caliente, sin que hierva.",
@@ -19880,7 +19881,7 @@
     "category": "carnes",
     "mainProtein": "cerdo",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -20074,7 +20075,8 @@
         "text": "Cocer las patatas en una olla con agua y sal a fuego fuerte hasta que estén tiernas.",
         "minutes": 20,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Calentar {{Leche}} en un cazo a fuego suave hasta que esté caliente sin llegar a hervir.",
@@ -20197,7 +20199,7 @@
     "category": "carnes",
     "mainProtein": "ternera",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "caldo"
@@ -20333,7 +20335,8 @@
         "text": "Cocer la patata en una olla con agua abundante y sal hasta que esté tierna.",
         "minutes": 20,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Picar {{Cebolla}}, {{Zanahoria}} y {{Ajo}} fino.",
@@ -30291,7 +30294,8 @@
       {
         "text": "Cocer las patatas en una olla con agua y {{Sal|gusto}} hasta que estén tiernas.",
         "minutes": 20,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "patatas"
       },
       {
         "text": "Picar {{Cebolla}} en dados pequeños.",

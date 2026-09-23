@@ -20169,7 +20169,7 @@
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -20292,7 +20292,8 @@
         "text": "Cocer la patata en un cazo con agua y {{Salsa de soja|gusto}} hasta que esté tierna.",
         "minutes": 18,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Rallar {{Jengibre fresco}}.",

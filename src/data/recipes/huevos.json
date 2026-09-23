@@ -9377,7 +9377,7 @@
     ],
     "type": "completo",
     "mainBase": "patatas",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "time": 30,
     "difficulty": "normal",
     "season": "all",
@@ -9465,7 +9465,8 @@
         "text": "Cocer las patatas en una olla con agua con sal hasta que estén tiernas.",
         "minutes": 17,
         "kind": "pasivo",
-        "part": "guarnicion"
+        "part": "guarnicion",
+        "base": "patatas"
       },
       {
         "text": "Calentar {{Leche}} y {{Mantequilla}} en un cazo a fuego suave hasta que la mantequilla se funda.",

@@ -9466,7 +9466,8 @@
       {
         "text": "Cocer {{Espaguetis}} en el agua hirviendo 2 min menos del tiempo indicado en el envase.",
         "minutes": 7,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Reservar 2 cucharones del agua de cocción en un bol y dejar templar ligeramente.",
@@ -18074,7 +18075,7 @@
     "category": "pasta_arroces",
     "mainProtein": "ternera",
     "mainBase": "pasta",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "bolonesa"
@@ -18245,7 +18246,8 @@
         "minutes": 7,
         "kind": "paralelo",
         "during": 8,
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Escurrir los nidos con cuidado de que no se deshagan.",
@@ -18326,7 +18328,7 @@
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
     "mainBase": "pasta",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito",
       "bechamel"
@@ -18484,7 +18486,8 @@
       {
         "text": "Cocer {{Macarrones}} en el agua hirviendo el tiempo indicado en el envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}} y sofreír la cebolla picada hasta que esté transparente.",
@@ -19185,7 +19188,7 @@
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "requiredAppliance": "horno",
     "mealRole": [
       "plato_unico",
@@ -19325,7 +19328,8 @@
         "minutes": 10,
         "kind": "paralelo",
         "during": 5,
-        "part": "principal"
+        "part": "principal",
+        "base": "pasta"
       },
       {
         "text": "Reservar un cazo del agua de cocción y escurrir la pasta.",
@@ -20530,7 +20534,7 @@
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
     "mainBase": "pasta",
-    "baseMode": "dentro",
+    "baseMode": "aparte",
     "basesAparte": [
       "sofrito"
     ],
@@ -20625,7 +20629,8 @@
       {
         "text": "Cocer {{Macarrones}} en el agua hirviendo el tiempo indicado en el envase.",
         "minutes": 10,
-        "kind": "pasivo"
+        "kind": "pasivo",
+        "base": "pasta"
       },
       {
         "text": "Picar {{Cebolla}} en trozos finos mientras la pasta cuece.",
