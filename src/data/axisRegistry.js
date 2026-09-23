@@ -169,10 +169,10 @@ export const EJES = [
   },
   {
     n: 10, id: "carga", nombre: "Carga / saciedad",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "sin_lector",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
-    nota: "Seis reglas del prompt la invocan y no existe. Es una de las tres que la función objetivo del solver necesita, junto con completitud y densidad.",
+    consumidores: [], cobertura: 0.881,
+    nota: "Seis reglas del prompt la invocan. Es una de las tres que la función objetivo del solver necesita, junto con completitud y densidad. DERIVADA por `cargaDe` (src/lib/derive/ejesDePlato.js) de `protein_g` y `fiber_g` por ración, que están en 910 de 1.033: lo que sacia no son las calorías sino la proteína, la fibra y el volumen — 600 kcal de pasta con nata dejan con hambre a las dos horas y 400 de legumbre con verdura no. NO devuelve un índice de saciedad a propósito: hay media docena publicadas y ninguna es consenso, así que da los gramos y los dos ratios por 100 kcal y quien pregunte decide. Mediana 5,08 g de proteína por 100 kcal.",
   },
   {
     n: 11, id: "completitud", nombre: "Completitud (¿es comida entera?)",
@@ -266,15 +266,15 @@ export const EJES = [
   },
   {
     n: 25, id: "esfuerzoMental", nombre: "Esfuerzo mental / nº de componentes",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "Derivable de stepsRich.",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    campo: null, vocabulario: null, consumidores: [], cobertura: 0.975,
+    nota: "DERIVADO por `esfuerzoDe` de stepsRich: ingredientes que controlar, pasos, componentes y pasos `paralelo`. No es `difficulty` —que la cura una persona— ni el tiempo: es la carga de atención, y quince pasos con tres componentes que se cruzan cansan más que veinte en línea. Los `componentes` salen de `part`, así que valen null y NO 0 cuando la receta no lo tiene: que nadie lo mirara no significa que haya un solo componente, y esa es la distinción que el catálogo pagó cara contando 442 recetas juzgadas como sin mirar.",
   },
   {
     n: 26, id: "conflictoRecursos", nombre: "Conflicto de recursos (horno, fuegos)",
-    ambito: AMBITO.RECETA, tipo: "tags", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "Un solver lo exige: dos platos al horno a la vez a temperaturas distintas no se pueden.",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "sin_lector",
+    campo: null, vocabulario: ["horno", "fuego", "ninguno"], consumidores: [], cobertura: 0.883,
+    nota: "Un solver lo exige: dos platos al horno a la vez a temperaturas distintas no se pueden. DERIVADO por `recursoDe` de `tecnica` — 634 fuego, 173 horno, 105 ninguno—, y el conflicto se pregunta con `seEstorban(a, b)` porque NO es propiedad de una receta sino de un par. No sale de los marcadores `{{@Aparato}}` aunque parecieran el sitio natural: están en el 42,9 % de las recetas y 386 de 515 son «Sartén», así que un eje derivado de ellos habría contestado «fuego» a casi todo con cara de medido. Tampoco de `requiredAppliance` ni `methods`: el primero dice qué hace falta TENER y el segundo son alternativas que el usuario no ha elegido.",
   },
   {
     n: 27, id: "equipamiento", nombre: "Equipamiento requerido",
@@ -411,9 +411,10 @@ export const EJES = [
   },
   {
     n: 47, id: "llevaMasa", nombre: "Lleva masa",
-    ambito: AMBITO.PARTE, tipo: "booleano", estado: "silencioso",
+    ambito: AMBITO.RECETA, tipo: "booleano", estado: "sin_lector",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
+    consumidores: [], cobertura: 1,
+    notaDerivacion: "DERIVADO por `llevaMasaDe` (src/lib/derive/ejesDePlato.js) al 100 %: 40 recetas. POR ID Y NO POR NOMBRE, que es la lección que este repo repite — el regex sobre el nombre casa diez ingredientes y TRES no son masa: `pan-rallado` es un rebozado que va por fuera, `semola-de-trigo` es grano, y la `harina` sola espesa salsas en el 90 % de sus usos. A los ocho ids de masa comprada se suma la firma `harina + levadura`, que es la masa que se amasa en casa: la pizza casera, el calzone, la coca y tres empanadas se escapaban sin ella. Ámbito RECETA y no PARTE: el dato sale de `ingredients[]`, que es de la receta entera.",
     nota: "El otro que salía del enum de `formato`, y el que causaba 5 de sus 11 dobles encajes: tortitas, lasaña, gnocchi, nidos gratinados y burritos eran «masa» Y otra cosa a la vez. Es independiente del 46 y se demuestra con las cuatro combinaciones: la empanada gallega lleva masa y no se monta, el pan tumaca se monta y no lleva masa, la lasaña y los burritos son las dos, y un guiso no es ninguna.",
   },
   {

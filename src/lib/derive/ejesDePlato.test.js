@@ -11,6 +11,7 @@ import { describe, it, expect } from "vitest";
 import { recipeCatalog } from "../../data/recipeCatalog.js";
 import {
   tiempoActivoDe, aptoVigiliaDe, sinCerdoDe, completitudDe, densidadDe,
+  cargaDe, esfuerzoDe, recursoDe, llevaMasaDe, seEstorban,
 } from "./ejesDePlato.js";
 
 const cobertura = (f) => recipeCatalog.filter((r) => f(r).valor !== null).length / recipeCatalog.length;
@@ -149,5 +150,88 @@ describe("eje 3 · densidad nutricional", () => {
       .filter(({ d }) => d && (d.kcal100g < 20 || d.kcal100g > 500))
       .map(({ r, d }) => `${r.id} ${r.name}: ${d.kcal100g} kcal/100 g`);
     expect(fuera.length).toBeLessThan(25);
+  });
+});
+
+describe("eje 10 · carga / saciedad", () => {
+  it("cubre donde hay proteína y fibra declaradas", () => {
+    expect(cobertura(cargaDe)).toBeGreaterThanOrEqual(0.85);
+  });
+
+  /**
+   * NO devuelve un índice de saciedad, y es a propósito: hay media docena
+   * publicadas y ninguna es consenso. Devuelve los gramos y quien pregunte
+   * decide. Inventar aquí una fórmula sería fabricarse autoridad.
+   */
+  it("da gramos, no un índice inventado", () => {
+    const v = recipeCatalog.map((r) => cargaDe(r).valor).find(Boolean);
+    expect(Object.keys(v).sort()).toEqual(
+      ["fibra_g", "fibraPor100kcal", "gramos", "proteina_g", "proteinaPor100kcal"].sort(),
+    );
+  });
+
+  it("separa el plato que llena del que no", () => {
+    const ps = recipeCatalog
+      .map((r) => cargaDe(r).valor?.proteinaPor100kcal)
+      .filter((x) => x != null);
+    expect(Math.max(...ps) / Math.min(...ps.filter((x) => x > 0))).toBeGreaterThan(5);
+  });
+});
+
+describe("eje 25 · esfuerzo mental", () => {
+  it("cubre lo que tiene pasos e ingredientes", () => {
+    expect(cobertura(esfuerzoDe)).toBeGreaterThanOrEqual(0.96);
+  });
+
+  /**
+   * `componentes` es null y no 0 cuando la receta no tiene `part`. Es la misma
+   * distinción que el catálogo pagó cara en recipeParts, contando 442 recetas
+   * juzgadas monocomponente como si nadie las hubiera mirado.
+   */
+  it("distingue «un componente» de «no se sabe»", () => {
+    const sinPart = recipeCatalog.find((r) => !(r.stepsRich ?? []).some((s) => s.part));
+    expect(esfuerzoDe(sinPart).valor.componentes).toBeNull();
+    expect(esfuerzoDe(sinPart).duda).toMatch(/no tiene `part`/);
+  });
+});
+
+describe("eje 26 · conflicto de recursos", () => {
+  it("cubre lo que declara técnica", () => {
+    expect(cobertura(recursoDe)).toBeGreaterThanOrEqual(0.95);
+  });
+
+  /**
+   * El conflicto es de un PAR, no de una receta. Dos al horno se estorban; algo
+   * crudo no estorba a nada.
+   */
+  it("dos hornos pelean, un crudo no estorba", () => {
+    const h = recipeCatalog.filter((r) => recursoDe(r).valor === "horno");
+    const crudo = recipeCatalog.find((r) => recursoDe(r).valor === "ninguno");
+    expect(seEstorban(h[0], h[1])).toBe(true);
+    expect(seEstorban(h[0], crudo)).toBe(false);
+    expect(seEstorban(h[0], { name: "sin técnica" })).toBeNull();
+  });
+});
+
+describe("eje 47 · lleva masa", () => {
+  it("contesta a todo el catálogo", () => {
+    expect(cobertura(llevaMasaDe)).toBe(1);
+  });
+
+  /**
+   * Los dos lados del filo. Un empanado NO lleva masa —el pan rallado va por
+   * fuera— y una pizza casera SÍ, aunque no compre la masa hecha.
+   */
+  it("el rebozado no es masa y el amasado sí", () => {
+    const empanado = recipeCatalog.find((r) => /empanad[oa]s/i.test(r.name));
+    const pizza = recipeCatalog.find((r) => /pizza casera/i.test(r.name));
+    if (empanado) expect(llevaMasaDe(empanado).valor).toBe(false);
+    if (pizza) expect(llevaMasaDe(pizza).valor).toBe(true);
+  });
+
+  it("y no dice que sí a media carta", () => {
+    const con = recipeCatalog.filter((r) => llevaMasaDe(r).valor).length;
+    expect(con).toBeGreaterThan(15);
+    expect(con / recipeCatalog.length).toBeLessThan(0.1);
   });
 });

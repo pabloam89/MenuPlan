@@ -243,3 +243,192 @@ export function densidadDe(receta) {
     duda: null,
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Eje 10 · Carga / saciedad
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Cuánto llena, que no es cuánto engorda.
+ *
+ * Lo que sacia no son las calorías: son la PROTEÍNA y la FIBRA, y el volumen.
+ * Un plato de 600 kcal de pasta con nata deja con hambre a las dos horas y uno
+ * de 400 con legumbre y verdura no, y esa diferencia es la que alguien busca
+ * cuando dice «algo que llene» o «algo ligero».
+ *
+ * Sale de `protein_g` y `fiber_g` por ración, que están en 910 de 1.033. No se
+ * inventa una fórmula de saciedad —hay media docena publicadas y ninguna es
+ * consenso—: se devuelven los dos gramajes y los gramos servidos, y quien
+ * pregunte decide. Un índice compuesto aquí sería inventarse autoridad.
+ */
+export function cargaDe(receta) {
+  if (receta?.protein_g == null || receta?.fiber_g == null) {
+    return {
+      valor: null,
+      via: "SIN DECIDIR",
+      duda: `«${receta?.name}» no declara proteína o fibra por ración`,
+    };
+  }
+  const v = composicionDe(receta);
+  const raciones = receta.baseServings || 2;
+  const gramosRacion = v?.masaTotal > 0 ? Math.round(v.masaTotal / raciones) : null;
+  return {
+    valor: {
+      proteina_g: receta.protein_g,
+      fibra_g: receta.fiber_g,
+      gramos: gramosRacion,
+      // Los dos que de verdad separan platos, por cada 100 kcal.
+      proteinaPor100kcal: receta.kcal > 0 ? +(100 * receta.protein_g / receta.kcal).toFixed(2) : null,
+      fibraPor100kcal: receta.kcal > 0 ? +(100 * receta.fiber_g / receta.kcal).toFixed(2) : null,
+    },
+    via: "proteína y fibra por ración sobre las kcal",
+    duda: null,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Eje 25 · Esfuerzo mental / número de componentes
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Cuántas cosas hay que llevar a la vez en la cabeza.
+ *
+ * No es la dificultad —`difficulty` ya existe y la cura una persona— ni el
+ * tiempo. Es la carga de atención: una receta de quince pasos con tres
+ * componentes que se cruzan cansa más que una de veinte pasos en línea, aunque
+ * las dos pongan «normal».
+ *
+ * Tres señales, todas de campos que ya están: cuántos INGREDIENTES hay que
+ * tener controlados, cuántos PASOS, y cuántas PARTES distintas se cocinan a la
+ * vez. La tercera es la que más pesa y la que menos cobertura tiene (`part` al
+ * 24 %), así que se devuelve aparte en vez de mezclarse en un número: con una
+ * sola cifra no se sabría si un 7 viene de muchos pasos o de tres cacerolas.
+ */
+export function esfuerzoDe(receta) {
+  const pasos = receta?.stepsRich ?? [];
+  const ingredientes = (receta?.ingredients ?? []).length;
+  if (!pasos.length || !ingredientes) {
+    return { valor: null, via: "SIN DECIDIR", duda: `«${receta?.name}» sin pasos o sin ingredientes` };
+  }
+  const partes = new Set(pasos.map((s) => s?.part).filter(Boolean));
+  return {
+    valor: {
+      ingredientes,
+      pasos: pasos.length,
+      // null y no 0: que no haya `part` no quiere decir un solo componente,
+      // quiere decir que nadie lo miró. Es la diferencia que el catálogo pagó
+      // cara en recipeParts, contando 442 recetas juzgadas como sin mirar.
+      componentes: partes.size || null,
+      // Los pasos que se cruzan con otros: lo que obliga a vigilar dos cosas.
+      simultaneos: pasos.filter((s) => s?.kind === "paralelo").length,
+    },
+    via: "ingredientes, pasos, partes y pasos simultáneos",
+    duda: partes.size ? null : `«${receta?.name}» no tiene \`part\`: los componentes no se saben`,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Eje 26 · Conflicto de recursos
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Qué OCUPA el plato mientras se hace, para saber si dos platos se estorban.
+ *
+ * El conflicto no es una propiedad de una receta: es de un par. Lo que sí es
+ * de la receta es el recurso que reserva, y eso es lo que devuelve esto — quien
+ * arme un menú compara.
+ *
+ * Sale de `tecnica`, que está al 88,3 %, y NO de los marcadores `{{@Aparato}}`
+ * aunque parecieran el sitio natural: están en el 42,9 % de las recetas y son
+ * casi todos «Sartén» (386 de 515). Con esa distribución no distinguen nada, y
+ * un eje derivado de ellos habría dicho «fuego» a casi todo con cara de
+ * medido.
+ *
+ * `requiredAppliance` y `methods` NO entran: el primero dice qué hace falta
+ * TENER y el segundo son alternativas que el usuario aún no ha elegido.
+ * Ninguna de las dos contesta qué se ocupa mientras cocinas la versión base.
+ */
+const RECURSO_POR_TECNICA = {
+  horno: "horno",
+  olla: "fuego",
+  sarten: "fuego",
+  plancha: "fuego",
+  crudo: "ninguno",
+};
+
+export function recursoDe(receta) {
+  const r = RECURSO_POR_TECNICA[receta?.tecnica];
+  if (!r) {
+    return { valor: null, via: "SIN DECIDIR", duda: `«${receta?.name}» no declara técnica` };
+  }
+  return { valor: r, via: `técnica ${receta.tecnica}`, duda: null };
+}
+
+/** Si dos platos pelean por el mismo sitio. `null` si de alguno no se sabe. */
+export function seEstorban(a, b) {
+  const ra = recursoDe(a).valor;
+  const rb = recursoDe(b).valor;
+  if (!ra || !rb) return null;
+  if (ra === "ninguno" || rb === "ninguno") return false;
+  return ra === rb;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Eje 47 · Lleva masa
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Si el plato tiene una MASA como estructura: empanada, pizza, lasaña, hojaldre.
+ *
+ * Es ortogonal a todo lo demás y por eso salió del enum de `formato` (§6 del
+ * documento): la empanada es masa sin montaje, el pan tumaca es montaje sin
+ * masa, y la lasaña es las dos cosas.
+ *
+ * ── POR ID, NO POR NOMBRE, y aquí la diferencia se ve a simple vista ──────
+ *
+ * El regex `/\bmasas?\b|\bharinas?\b|.../` sobre el nombre casa diez
+ * ingredientes del catálogo, y TRES de ellos no son masa:
+ *
+ *   pan-rallado      es un rebozado; va por fuera, no es la estructura
+ *   semola-de-trigo  es grano, se come en cuscús
+ *   harina           espesar una salsa con una cucharada no hace un plato
+ *                    de masa, y es el 90 % de sus usos
+ *
+ * Con la frontera de palabra bien puesta y todo. La lección que el repo repite
+ * —`^sal` casando «Salmón», `\bvino\b` casando «Vinagre de vino»— es que el
+ * nombre no dice el rol: el rol lo dice el id, que es una decisión tomada.
+ */
+const IDS_MASA = new Set([
+  "masa-de-pizza", "masa-quebrada", "hojaldre", "vol-au-vent",
+  "obleas", "canelones", "placas-de-cannelones", "lasana",
+]);
+
+/**
+ * LA MASA QUE SE AMASA NO TIENE ID, y con la lista de arriba sola se escapaban
+ * ocho platos que son masa de principio a fin: la pizza casera, el calzone, la
+ * coca de recapte y tres empanadas. No compran la masa, la hacen.
+ *
+ * `harina + levadura` es esa firma, y es limpia: son 17 recetas y las 17
+ * amasan —pizza, empanada, naan, gofres, buñuelos, bizcochos—. La harina sola
+ * no vale, porque su uso mayoritario es espesar una salsa; la levadura al lado
+ * es lo que dice que esa harina va a ser una estructura.
+ *
+ * Los «Filetes empanados» siguen fuera con razón: llevan harina y pan rallado,
+ * pero eso es un rebozado que va POR FUERA. Y «Mini quiche sin masa» también,
+ * porque lo dice su propio nombre.
+ */
+const esHarina = (id) => /^harina/.test(id ?? "");
+const esLevadura = (id) => /^levadura/.test(id ?? "");
+
+export function llevaMasaDe(receta) {
+  const lineas = receta?.ingredients ?? [];
+  if (!lineas.length) {
+    return { valor: null, via: "SIN DECIDIR", duda: `«${receta?.name}» sin ingredientes` };
+  }
+  const masa = lineas.find((l) => IDS_MASA.has(l.ingredientId));
+  if (masa) return { valor: true, via: `lleva ${masa.name}`, duda: null };
+  if (lineas.some((l) => esHarina(l.ingredientId)) && lineas.some((l) => esLevadura(l.ingredientId))) {
+    return { valor: true, via: "harina y levadura: la masa se amasa aquí", duda: null };
+  }
+  return { valor: false, via: "ninguna línea es una masa", duda: null };
+}

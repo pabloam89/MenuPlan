@@ -8,6 +8,7 @@ import { EJES, EJE_POR_ID, cobertura, puedeResponder, valorValido } from "./axis
 import { composicionDe } from "../lib/derive/composicion.js";
 import {
   densidadDe, completitudDe, sinCerdoDe, aptoVigiliaDe, tiempoActivoDe,
+  cargaDe, esfuerzoDe, recursoDe, llevaMasaDe,
 } from "../lib/derive/ejesDePlato.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
@@ -35,6 +36,10 @@ const MEDIDORES = {
   restriccionReligiosa: () => recetas.filter((r) => sinCerdoDe(r).valor !== null).length / recetas.length,
   aptoVigilia: () => recetas.filter((r) => aptoVigiliaDe(r).valor !== null).length / recetas.length,
   tiempoActivo: () => recetas.filter((r) => tiempoActivoDe(r).valor !== null).length / recetas.length,
+  carga: () => recetas.filter((r) => cargaDe(r).valor !== null).length / recetas.length,
+  esfuerzoMental: () => recetas.filter((r) => esfuerzoDe(r).valor !== null).length / recetas.length,
+  conflictoRecursos: () => recetas.filter((r) => recursoDe(r).valor !== null).length / recetas.length,
+  llevaMasa: () => recetas.filter((r) => llevaMasaDe(r).valor !== null).length / recetas.length,
   parte: () => recetas.filter((r) => (r.stepsRich ?? []).some((s) => s.part != null)).length / recetas.length,
   // El eje 49 tampoco vive en un campo: se lee de los minutos de los pasos. Su
   // cobertura es «de cuántas recetas se puede AFIRMAR algo», que es tener
