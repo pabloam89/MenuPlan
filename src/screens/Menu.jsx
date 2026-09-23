@@ -9,6 +9,7 @@ import {
   BookOpenCheck,
   CalendarDays,
   Check,
+  Eraser,
   ChefHat,
   ChevronDown,
   ChevronLeft,
@@ -1602,6 +1603,22 @@ const ArmedContext = createContext(null);
  */
 const TandaContext = createContext(null);
 
+/**
+ * Los huecos marcados, mientras la pizarra está en modo selección.
+ *
+ * Va por contexto y no por props por lo mismo que `ArmedContext`: la baldosa
+ * está tres niveles por debajo (MenuDeck → DeckWeek/DeckDayPager → DeckTile) y
+ * encadenarlo a mano serían tres sitios donde olvidarse.
+ *
+ * `null` significa que NO hay modo selección, que es distinto de "no hay nada
+ * marcado": con el modo puesto y cero marcados, las baldosas ya se atenúan y
+ * la barra de abajo ya está ahí esperando.
+ */
+const SeleccionContext = createContext(null);
+
+/** La misma clave en los dos sitios: el tablero y el que rellena. */
+const claveDeHueco = (h) => `${h.groupId}|${h.day}-${h.meal}|${h.course ?? "main"}`;
+
 // Overlay that draws the traveling green "about to move" ring. Absolutely
 // positioned, so its host must be `position: relative`. `radius` matches the
 // host's border-radius so the ring hugs the corners exactly.
@@ -2158,6 +2175,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   const { meal, group, slot, dish } = tile;
   const armed = useContext(ArmedContext);
   const clavesTanda = useContext(TandaContext);
+  const seleccion = useContext(SeleccionContext);
   const isEmpty = Boolean(tile.empty);
   const badgeGroups = tile.groups ?? (group ? [group] : []);
   const [failed, setFailed] = useState(false);
@@ -2172,9 +2190,44 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     : recipe
       ? { recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey }
       : null;
+  // Marcada, o marcable. Mientras se marca, la baldosa no hace ninguna de sus
+  // cosas: ni abre el recetario, ni se levanta para arrastrarla, ni enseña sus
+  // botones. Solo se marca.
+  const enSeleccion = Boolean(seleccion) && Boolean(sel);
+  const marcado = enSeleccion && seleccion.marcados.has(claveDeHueco({ ...sel, day, meal }));
+  const pinturaSeleccion = enSeleccion
+    ? {
+        // `outline` y no `border`: el borde movería el contenido 3px y la
+        // baldosa daría un salto al marcarla.
+        outline: marcado ? "3px solid var(--pz-verde, #2d5a3d)" : "none",
+        outlineOffset: -2,
+        // Sin transición a propósito: una transición de opacidad sobre una
+        // baldosa que se remonta con cada toque se queda a medias —o clavada
+        // en el fotograma cero si la pestaña no está delante— y entonces el
+        // atenuado no llega a verse nunca. Esto tiene que ser instantáneo:
+        // es el acuse de recibo del toque.
+        opacity: marcado ? 1 : 0.5,
+      }
+    : null;
+  const selloDeMarca = enSeleccion && (
+    <span
+      aria-hidden
+      style={{
+        position: "absolute", top: compact ? 5 : 7, left: compact ? 5 : 7, zIndex: 4,
+        width: 20, height: 20, borderRadius: 999,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: marcado ? "var(--pz-verde, #2d5a3d)" : "rgba(255,255,255,.92)",
+        border: marcado ? "none" : "1.5px solid #cbd8cf",
+        boxShadow: "0 2px 6px -3px rgba(20,47,29,.4)",
+      }}
+    >
+      {marcado && <Check size={12} color="#fff" strokeWidth={3.2} />}
+    </span>
+  );
+
   const press = useLongPress(
     (targetEl) => {
-      if (!sel) return;
+      if (!sel || enSeleccion) return;
       const tr = targetEl?.getBoundingClientRect();
       const radius = targetEl ? parseFloat(getComputedStyle(targetEl).borderRadius) || 18 : 18;
       onDishLongPress?.({
@@ -2227,7 +2280,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       {/* "Que lo elija la app": rellena SOLO este hueco, con el mismo pool
           que ya calcula las sugerencias de abajo. Ni espera ni coste — no
           pasa por el modelo. */}
-      {onFillSlot && (
+      {onFillSlot && !enSeleccion && (
         <span
           role="button"
           tabIndex={0}
@@ -2245,7 +2298,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           <Sparkles size={11} color="#7a9485" strokeWidth={2.4} />
         </span>
       )}
-      {onRemoveSlot && (
+      {onRemoveSlot && !enSeleccion && (
         <span
           role="button"
           tabIndex={0}
@@ -2270,6 +2323,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
         data-group={group?.id}
         data-course="main"
         style={{
+          ...pinturaSeleccion,
           position: "relative",
           width: "100%",
           height: "100%",
@@ -2289,6 +2343,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           touchAction: "pan-x pan-y",
         }}
       >
+        {selloDeMarca}
         <span
           style={{
             position: "relative",
@@ -2353,7 +2408,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   // Las acciones de un plato ya colocado. En la pizarra la pulsación larga
   // levanta el plato para arrastrarlo, así que el rosco y el vaciar necesitan
   // botón propio — sin ellos, un plato puesto no se podía ni quitar.
-  const mandosDelPlato = onDishActions && sel && (
+  const mandosDelPlato = onDishActions && sel && !enSeleccion && (
     <div
       style={{
         position: "absolute", top: compact ? 5 : 8, right: compact ? 5 : 8,
@@ -2387,6 +2442,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       {...press}
       onPointerDown={onPointerDownPrefetch}
       style={{
+        ...pinturaSeleccion,
         position: "relative",
         width: "100%",
         height: "100%",
@@ -2406,6 +2462,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       }}
     >
       {isArmed && <ArmedRing radius={radius} />}
+      {selloDeMarca}
       {mandosDelPlato}
       {showPhoto ? (
         <img
@@ -5091,6 +5148,16 @@ export const MenuScreen = memo(function MenuScreen({
   // reparto: no es un booleano porque dos rellenos seguidos tienen que volver
   // a animar, y un booleano que ya estaba a true no cambia nada.
   repartoKey = 0,
+  // Modo «marcar huecos». Mientras está puesto, tocar una baldosa la marca en
+  // vez de abrirla, y abajo sale la barra con lo que se puede hacer con lo
+  // marcado. El interruptor lo lleva App —está en la franja de mandos— pero
+  // los huecos marcados son de aquí, que es quien sabe qué baldosas hay.
+  modoSeleccion = false,
+  onSalirSeleccion = null,
+  // Vacía de golpe los huecos marcados.
+  onVaciarHuecos = null,
+  // Abre el recetario UNA vez para colocar el mismo plato en todos.
+  onElegirParaVarios = null,
 }) {
   const deckViews = modoPizarra ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
 
@@ -5127,9 +5194,29 @@ export const MenuScreen = memo(function MenuScreen({
     if (incomingDish?.recipeId) setArmed({ mode: "incoming", dish: incomingDish });
   }, [incomingDish]);
 
+  // Los huecos marcados, por clave. Se guarda el `sel` entero y no solo la
+  // clave porque la barra de abajo necesita saber cuántos están vacíos para
+  // decidir qué ofrece, y eso no se puede leer de la clave.
+  const [marcados, setMarcados] = useState(() => new Map());
+  // Al salir del modo no queda nada marcado: volver a entrar y encontrarse la
+  // selección de hace media hora es una trampa — le das a «Vaciar» creyendo
+  // que empiezas de cero.
+  useEffect(() => { if (!modoSeleccion) setMarcados(new Map()); }, [modoSeleccion]);
+  const huecosMarcados = useMemo(() => [...marcados.values()], [marcados]);
+  const vaciosMarcados = useMemo(() => huecosMarcados.filter((h) => h.empty), [huecosMarcados]);
+
   const handleTileTap = useCallback(
     (sel) => {
       if (readOnly && sel.empty) return;
+      if (modoSeleccion) {
+        const clave = claveDeHueco(sel);
+        setMarcados((m) => {
+          const next = new Map(m);
+          if (next.has(clave)) next.delete(clave); else next.set(clave, sel);
+          return next;
+        });
+        return;
+      }
       if (armed) {
         // Tapping the same dish cancels the armed action.
         if (sameDish(armed.source, sel)) {
@@ -5149,7 +5236,7 @@ export const MenuScreen = memo(function MenuScreen({
       }
       onDishTap?.(sel);
     },
-    [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly],
+    [armed, onDishSwap, onDishDuplicate, onDishPlace, onDishManualPick, onDishTap, readOnly, modoSeleccion],
   );
 
   // El hueco al que se le estan añadiendo comensales, o null. Vive aparte de
@@ -5261,7 +5348,7 @@ export const MenuScreen = memo(function MenuScreen({
 
   const handleTileLongPress = useCallback(
     (sel) => {
-      if (readOnly || armed) return;
+      if (readOnly || armed || modoSeleccion) return;
       // En la pizarra la pulsación larga LEVANTA el plato. Las acciones
       // (cambiar, duplicar, vaciar) siguen en el botón de los tres puntos, que
       // es un gesto explícito: aquí el dedo largo ya significa "lo voy a
@@ -5273,7 +5360,7 @@ export const MenuScreen = memo(function MenuScreen({
       if (sel.empty) return;
       setDishAction(sel);
     },
-    [armed, readOnly, modoPizarra, onSlotDrag, iniciarArrastre],
+    [armed, readOnly, modoPizarra, onSlotDrag, iniciarArrastre, modoSeleccion],
   );
 
   // Demo-only autoplay for the value-props carousel: open the quick-actions
@@ -6194,10 +6281,14 @@ export const MenuScreen = memo(function MenuScreen({
               // este aire se comía la esquina izquierda de las tarjetas.
               paddingLeft: modoPizarra ? 36 : 16,
               paddingRight: 16,
-              paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
+              // Con la barra de lo marcado puesta, el tablero le deja su alto:
+              // si no, la última fila queda debajo y hay huecos que no se
+              // pueden marcar porque no se pueden ver.
+              paddingBottom: `calc(${bottomNavSpacer()} + ${modoSeleccion ? 112 : 12}px)`,
             }}
           >
             <ArmedContext.Provider value={armed}>
+            <SeleccionContext.Provider value={modoSeleccion ? { marcados } : null}>
             <MenuDeck
               repartiendo={repartiendo}
               denso={modoPizarra}
@@ -6225,8 +6316,113 @@ export const MenuScreen = memo(function MenuScreen({
               onPickMonthDay={handlePickMonthDay}
               invitadosPorHueco={invitadosPorHueco}
             />
+            </SeleccionContext.Provider>
             </ArmedContext.Provider>
           </div>
+        )}
+
+        {/* ── La barra de lo marcado ────────────────────────────────────────
+            Va por portal a `document.body` y no aquí dentro por lo de siempre
+            en esta pantalla: cualquier ancestro con `transform` —y el tablero
+            tiene varios mientras reparte cartas— se queda con los
+            `position: fixed` de dentro y la barra aparecería flotando a mitad
+            de página (ver .mp-nav-fwd en index.css).
+
+            El CTA es RELLENAR y ocupa el ancho: marcar huecos vacíos para que
+            los rellene la app es para lo que existe esto. Lo demás —el mismo
+            plato en todos, vaciarlos— son atajos que aparecen solo cuando la
+            selección los admite, así que la barra nunca ofrece algo que no
+            vaya a hacer nada. */}
+        {modoSeleccion && createPortal(
+          <div
+            style={{
+              position: "fixed", zIndex: 190,
+              left: "max(8px, calc(50% - 202px))", right: "max(8px, calc(50% - 202px))",
+              bottom: `calc(${bottomNavSpacer()} + 10px)`,
+              padding: 10, borderRadius: 20,
+              background: "#14301d", color: "#fff",
+              boxShadow: "0 12px 34px -12px rgba(20,47,29,.6)",
+              display: "flex", flexDirection: "column", gap: 8,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 4px" }}>
+              <span style={{ flex: 1, fontSize: 13, fontWeight: 900, letterSpacing: "-.2px" }}>
+                {huecosMarcados.length === 0
+                  ? "Toca los huecos que quieras"
+                  : `${huecosMarcados.length} ${huecosMarcados.length === 1 ? "hueco" : "huecos"}`}
+              </span>
+              <button
+                type="button"
+                onClick={() => onSalirSeleccion?.()}
+                style={{
+                  border: "none", background: "rgba(255,255,255,.14)", color: "#fff",
+                  borderRadius: 999, padding: "5px 11px", cursor: "pointer",
+                  fontFamily: "inherit", fontSize: 12, fontWeight: 800,
+                }}
+              >
+                Listo
+              </button>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                className="mp-press"
+                disabled={vaciosMarcados.length === 0}
+                onClick={() => {
+                  if (vaciosMarcados.length === 0) return;
+                  onFillSlots?.({ huecos: vaciosMarcados });
+                  onSalirSeleccion?.();
+                }}
+                style={{
+                  flex: 1, height: 42, borderRadius: 14, border: "none",
+                  background: vaciosMarcados.length === 0 ? "rgba(255,255,255,.13)" : "#4bbd7a",
+                  color: vaciosMarcados.length === 0 ? "rgba(255,255,255,.45)" : "#0d2416",
+                  cursor: vaciosMarcados.length === 0 ? "default" : "pointer",
+                  fontFamily: "inherit", fontSize: 14, fontWeight: 900,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
+                }}
+              >
+                <Sparkles size={16} strokeWidth={2.6} />
+                {vaciosMarcados.length === 0
+                  ? "Rellenar"
+                  : `Rellenar ${vaciosMarcados.length}`}
+              </button>
+              {onElegirParaVarios && huecosMarcados.length > 0 && (
+                <button
+                  type="button"
+                  className="mp-press"
+                  aria-label="El mismo plato en todos"
+                  onClick={() => { onElegirParaVarios(huecosMarcados); onSalirSeleccion?.(); }}
+                  style={{
+                    width: 46, height: 42, borderRadius: 14, border: "none", padding: 0,
+                    background: "rgba(255,255,255,.14)", color: "#fff", cursor: "pointer",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <BookOpenCheck size={17} strokeWidth={2.4} />
+                </button>
+              )}
+              {onVaciarHuecos && huecosMarcados.some((h) => !h.empty) && (
+                <button
+                  type="button"
+                  className="mp-press"
+                  aria-label="Vaciar los huecos marcados"
+                  onClick={() => {
+                    onVaciarHuecos(huecosMarcados.filter((h) => !h.empty));
+                    onSalirSeleccion?.();
+                  }}
+                  style={{
+                    width: 46, height: 42, borderRadius: 14, border: "none", padding: 0,
+                    background: "rgba(255,255,255,.14)", color: "#ffb4a2", cursor: "pointer",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <Eraser size={17} strokeWidth={2.4} />
+                </button>
+              )}
+            </div>
+          </div>,
+          document.body,
         )}
 
         {/* La etiqueta que sigue al dedo mientras arrastras. Es la única pista

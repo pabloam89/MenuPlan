@@ -2777,6 +2777,10 @@ export default function App() {
     return {
       meal: slotPicker.meal,
       esBebe: grupo ? isBabyMenuGroup(grupo, data.members ?? []) : false,
+      // Cuántos huecos va a llenar lo que elijas. Solo para el rótulo: el
+      // recetario no decide nada con esto, pero «Para este hueco» encima de
+      // una elección que va a caer en cinco sitios es mentira.
+      cuantos: Array.isArray(slotPicker.huecos) ? slotPicker.huecos.length : 1,
     };
   }, [slotPicker, data.groups, data.members, data.menuModel]);
 
@@ -2839,6 +2843,11 @@ export default function App() {
   // Sube cada vez que caen varios platos de golpe: es la señal para que el
   // tablero los reparta como cartas en vez de enseñarlos ya puestos.
   const [repartoKey, setRepartoKey] = useState(0);
+
+  // El modo «marcar huecos» de la pizarra. Solo el interruptor vive aquí: los
+  // huecos marcados son del tablero, que es quien sabe qué baldosas hay, y se
+  // quedan dentro de la pantalla del menú.
+  const [seleccionandoHuecos, setSeleccionandoHuecos] = useState(false);
 
   const handleStartPizarra = useCallback((eleccion = null) => {
     if (householdReadOnly) {
@@ -4667,14 +4676,23 @@ export default function App() {
       for (const k of Object.keys(menuPlan[gid] ?? {})) trabajo[gid][k] = { ...menuPlan[gid][k] };
     }
 
+    // Una lista explícita de huecos —la que deja la multi-selección— manda
+    // sobre los filtros sueltos: cuando vienes de marcar cinco a dedo, no hay
+    // un día ni una franja que los describa, son esos cinco y ningún otro.
+    const marcados = Array.isArray(ambito?.huecos) && ambito.huecos.length > 0
+      ? new Set(ambito.huecos.map((h) => `${h.groupId}|${h.day}-${h.meal}|${h.course ?? "main"}`))
+      : null;
+
     const nuevas = [];
     let puestos = 0;
     for (const gid of Object.keys(trabajo)) {
       for (const key of Object.keys(trabajo[gid])) {
         const [day, meal] = [key.slice(0, key.indexOf("-")), key.slice(key.indexOf("-") + 1)];
-        if (ambito?.day && ambito.day !== day) continue;
-        if (ambito?.groupId && ambito.groupId !== gid) continue;
-        if (ambito?.meal && ambito.meal !== meal) continue;
+        if (!marcados) {
+          if (ambito?.day && ambito.day !== day) continue;
+          if (ambito?.groupId && ambito.groupId !== gid) continue;
+          if (ambito?.meal && ambito.meal !== meal) continue;
+        }
         const slot = trabajo[gid][key];
         if (!slot) continue;
 
@@ -4683,10 +4701,16 @@ export default function App() {
         const cursos = [];
         if (slot.dosPlatos && !slot.firstRecipeId) cursos.push("first");
         if (!slot.recipeId) cursos.push("main");
-        if (ambito?.course) {
+        if (ambito?.course && !marcados) {
           if (!cursos.includes(ambito.course)) continue;
           cursos.length = 0;
           cursos.push(ambito.course);
+        }
+        if (marcados) {
+          const solo = cursos.filter((c) => marcados.has(`${gid}|${key}|${c}`));
+          if (solo.length === 0) continue;
+          cursos.length = 0;
+          cursos.push(...solo);
         }
 
         for (const course of cursos) {
@@ -4731,7 +4755,7 @@ export default function App() {
     // parpadearía sin motivo. A partir de dos, sí.
     if (puestos > 1) setRepartoKey((k) => k + 1);
     showToast(puestos === 1 ? "Hueco rellenado" : `${puestos} huecos rellenados`);
-    trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
+    trackEvent(user, "pizarra_autorelleno", "menu", { puestos, ambito: marcados ? "seleccion" : ambito?.day ? "dia" : ambito?.meal ? "hueco" : "semana" });
   }, [data, menuPlan, user, householdReadOnly, showToast, applyShoppingFor, despensaPizarra]);
 
   /**
@@ -5003,6 +5027,42 @@ export default function App() {
     showToast("Pizarra vaciada");
   }, [data, householdReadOnly, user, syncHouseholdId, showToast, applyShoppingFor]);
 
+  /**
+   * Vaciar SOLO los huecos marcados.
+   *
+   * No reutiliza `handleClearSlot` en un bucle porque ese guarda y reconstruye
+   * la compra en cada llamada: con ocho huecos serían ocho reconstrucciones
+   * sobre un `menuPlan` que todavía no se ha asentado, y las últimas pisarían
+   * a las primeras. Aquí se tocan todos dentro del mismo `setMenuPlan`.
+   */
+  const handleVaciarHuecos = useCallback(async (huecos) => {
+    if (householdReadOnly || !Array.isArray(huecos) || huecos.length === 0) return;
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id, syncHouseholdId) : loadLocalPantry();
+    let tocados = 0;
+    setMenuPlan((plan) => {
+      const next = { ...plan };
+      for (const h of huecos) {
+        const key = `${h.day}-${h.meal}`;
+        const prev = next[h.groupId]?.[key] ?? plan[h.groupId]?.[key];
+        if (!prev) continue;
+        const campo = (h.course ?? "main") === "first" ? "firstRecipeId" : "recipeId";
+        if (!prev[campo]) continue;
+        next[h.groupId] = {
+          ...(next[h.groupId] ?? {}),
+          // `cleared` y no borrar la casilla: el hueco tiene que seguir ahí
+          // para poder volver a rellenarlo (ver handleVaciarPizarra).
+          [key]: { ...prev, [campo]: null, warnings: [], cleared: true },
+        };
+        tocados++;
+      }
+      if (tocados === 0) return plan;
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    showToast(tocados === 1 ? "Hueco vaciado" : `${tocados} huecos vaciados`);
+  }, [data, householdReadOnly, user, syncHouseholdId, showToast, applyShoppingFor]);
+
   const handleClearSlot = useCallback(async (sel) => {
     if (householdReadOnly || !sel) return;
     const { groupId, day, meal, course } = sel;
@@ -5093,14 +5153,21 @@ export default function App() {
     // comensales y sus intolerancias, así que cada uno necesita su propia
     // receta escalada y adaptada (y su prefijo de grupo, que es lo que impide
     // que dos menús compartan por error la misma ficha).
-    const destinos = Array.isArray(slotPicker.groupIds) && slotPicker.groupIds.length > 0
-      ? slotPicker.groupIds
-      : [groupId];
+    // Tres formas de tener más de un destino, y las tres acaban en la misma
+    // lista: una selección de varios huecos (`huecos`), el filtro en "Todos"
+    // (`groupIds`), o el hueco suelto de siempre.
+    const destinos = Array.isArray(slotPicker.huecos) && slotPicker.huecos.length > 0
+      ? slotPicker.huecos.map((h) => ({
+          gid: h.groupId, day: h.day, meal: h.meal,
+          course: kind === "plato_unico" ? "main" : (h.course ?? "main"),
+        }))
+      : (Array.isArray(slotPicker.groupIds) && slotPicker.groupIds.length > 0 ? slotPicker.groupIds : [groupId])
+          .map((gid) => ({ gid, day, meal, course: placeCourse }));
 
     const colocados = [];
-    for (const gid of destinos) {
-      const r = pickCatalogReplacement(data, menuPlan, { groupId: gid, day, meal, course: placeCourse, forcedRecipe: catalogRecipe });
-      if (r) colocados.push({ gid, ...r });
+    for (const d of destinos) {
+      const r = pickCatalogReplacement(data, menuPlan, { groupId: d.gid, day: d.day, meal: d.meal, course: d.course, forcedRecipe: catalogRecipe });
+      if (r) colocados.push({ ...d, ...r });
     }
     if (colocados.length === 0) { showToast("No se pudo colocar esa receta aquí"); setSlotPicker(null); return; }
     const frontendRecipe = colocados[0].frontendRecipe;
@@ -5126,15 +5193,18 @@ export default function App() {
     const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
     const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
     setMenuPlan((plan) => {
-      const key = `${day}-${meal}`;
       const next = { ...plan };
+      // Cada destino escribe en SU casilla: con una selección de varios huecos
+      // no comparten ni día ni franja, así que la clave no se puede calcular
+      // una vez fuera del bucle.
       for (const c of colocados) {
-        const prevSlot = plan[c.gid]?.[key] ?? {};
+        const key = `${c.day}-${c.meal}`;
+        const prevSlot = next[c.gid]?.[key] ?? plan[c.gid]?.[key] ?? {};
         next[c.gid] = {
           ...(next[c.gid] ?? {}),
           [key]: {
             ...prevSlot,
-            ...(placeCourse === "first" ? { firstRecipeId: c.recipeId } : { recipeId: c.recipeId }),
+            ...(c.course === "first" ? { firstRecipeId: c.recipeId } : { recipeId: c.recipeId }),
             // Plato único merges the two courses into one → drop the primero.
             ...(kind === "plato_unico" ? { firstRecipeId: null } : null),
             cleared: false,
@@ -5147,9 +5217,11 @@ export default function App() {
     });
     setSlotPicker(null);
     showToast(
-      colocados.length > 1
-        ? `«${frontendRecipe.name}» en los ${colocados.length} menús`
-        : `Colocado «${frontendRecipe.name}»`,
+      colocados.length === 1
+        ? `Colocado «${frontendRecipe.name}»`
+        : slotPicker.huecos
+          ? `«${frontendRecipe.name}» en ${colocados.length} huecos`
+          : `«${frontendRecipe.name}» en los ${colocados.length} menús`,
     );
     trackEvent(user, "dish_manual_pick", "menu", { day, meal, kind, menus: colocados.length });
   }, [slotPicker, data, menuPlan, showToast, user, applyShoppingFor]);
@@ -5778,6 +5850,15 @@ export default function App() {
               modoPizarra={esPizarra}
               temaPizarra={esPizarra ? temaPizarra : "claro"}
               repartoKey={esPizarra ? repartoKey : 0}
+              modoSeleccion={esPizarra && !householdReadOnly && seleccionandoHuecos}
+              onSalirSeleccion={() => setSeleccionandoHuecos(false)}
+              onVaciarHuecos={householdReadOnly ? null : handleVaciarHuecos}
+              // Un plato para TODOS los marcados: se abre el recetario una vez
+              // con la lista pegada, y al elegir cae en los que haya.
+              onElegirParaVarios={householdReadOnly ? null : ((huecos) => {
+                if (!huecos?.length) return;
+                setSlotPicker({ ...huecos[0], huecos });
+              })}
               onAddSlot={esPizarra ? setAddSlotDay : null}
               onRemoveSlot={esPizarra ? handleRemoveSlot : null}
               onSlotDrag={esPizarra ? handleSlotDrag : null}
@@ -5801,6 +5882,7 @@ export default function App() {
                       onQtyDespensa={handleQtyDespensa}
                       onNuevaPizarra={() => handleStartPizarra()}
                       onVaciar={handleVaciarPizarra}
+                      onSeleccionar={() => setSeleccionandoHuecos(true)}
                       onFavorito={householdReadOnly ? undefined : toggleActiveFavorite}
                       esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
                       tema={temaPizarra}
