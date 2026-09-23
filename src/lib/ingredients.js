@@ -24,6 +24,7 @@ import substitutionsJson from "../data/ingredientSubstitutions.json";
 import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, seFrie, esCostra, ES_SAL, SAL_A_GRANEL } from "./derive/masaServida.js";
 import { vieneCocinadaPorId } from "./derive/estadoDeFicha.js";
 import { factorRetencion } from "./derive/factorRetencion.js";
+import { repartoNova } from "./derive/nova.js";
 // LA COMPOSICIÓN SE LEE DE LA TABLA MAESTRA, no de una copia en el catálogo.
 // `alimentos.json` es el output maestro del embudo de alimentos —el número y su
 // procedencia viven juntos— y esto es su proyección para el cliente, sellada
@@ -392,6 +393,11 @@ export function computeRecipeNutrition(recipe, servings) {
   // recalcularla fuera habría abierto un tercer carril que se desincroniza.
   const hierro = { hemo: 0, noHemo: 0, sinRepartir: 0 };
 
+  // La masa por alimento, para el reparto NOVA. Se acumula en este bucle y no
+  // se recalcula fuera por el mismo motivo que el hierro: aquí la masa ya trae
+  // la merma, el tope del aceite y la costra descontada.
+  const masaPorAlimento = [];
+
   // El aceite de freír se ABSORBE, no se come entero — ver ACEITE_ABSORBIDO.
   // Hace falta saber la masa sólida antes de contar el aceite, así que las
   // líneas se resuelven una vez y se recorren dos.
@@ -430,6 +436,10 @@ export function computeRecipeNutrition(recipe, servings) {
     if (grams <= 0) continue;
 
     totalGrams += grams;
+    // Va ANTES del filtro de composición: un alimento sin ficha nutricional
+    // puede tener grupo NOVA igual, y dejarlo fuera inflaría la fracción de los
+    // que sí la tienen.
+    masaPorAlimento.push({ id: alimentoDeIngrediente(line.ingredient?.id)?.id, gramos: grams });
 
     const nutrition = composicionDe(line.ingredient?.id);
     if (!nutrition) continue;
@@ -514,6 +524,10 @@ export function computeRecipeNutrition(recipe, servings) {
     noHemo: perServing(hierro.noHemo, 2),
     sinRepartir: perServing(hierro.sinRepartir, 2),
   };
+
+  // De qué está hecho el plato por grado de procesado. Va como reparto y no
+  // como etiqueta única a propósito: ver derive/nova.js.
+  salida.nova = repartoNova(masaPorAlimento);
 
   // VITAMINA A EN µg RAE, que es la unidad en la que se publican las ingestas
   // de referencia. El repo ya tenía las dos mitades en columnas separadas

@@ -33,6 +33,7 @@ describe("las tablas derivadas", () => {
     "../lib/derive/masaServida.js",
     "../lib/derive/estadoDeFicha.js",
     "../lib/derive/factorRetencion.js",
+    "../lib/derive/nova.js",
     "./retencion.json",
     "./nutrientes.js",
   ];

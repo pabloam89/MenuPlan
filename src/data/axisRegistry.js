@@ -124,10 +124,10 @@ export const EJES = [
   },
   {
     n: 5, id: "nova", nombre: "Grado de procesado (NOVA 1-4)",
-    ambito: AMBITO.ALIMENTO, tipo: "enum", estado: "silencioso",
-    campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
-    nota: "Sale gratis del atributo `transformacion` de la variante, que hoy vive en alimentos.dimensiones.procesado (16 % donde aplica).",
+    ambito: AMBITO.ALIMENTO, tipo: "enum", estado: "sin_lector",
+    campo: null, vocabulario: [1, 2, 3, 4],
+    consumidores: [], cobertura: 0.861,
+    nota: "DERIVADO, no curado: `novaDe` en src/lib/derive/nova.js. La nota anterior decía que salía gratis de `dimensiones.procesado`, y NO salía: `procesado` dice CÓMO se cocinó (hervido, frito) y NOVA pregunta quién lo hizo y para qué — una patata hervida en casa y un puré deshidratado tienen el mismo `procesado` y no son el mismo grupo. Lo que hacía falta era el resto de la ficha: `rol`, `familia` y el nombre de la fuente. 341 de 396 fichas con grupo: 267 del 1, 20 del 2, 42 del 3 y 12 del 4. Los 55 que faltan son la frontera 3/4, que se decide con la LISTA DE INGREDIENTES del producto —un pan de masa madre y uno de molde formulado tienen los mismos gramos de todo— y eso el catálogo no lo tiene: embutido, pan, salsas y alcoholes devuelven la horquilla («3 o 4, y por qué») en vez de un grupo inventado. `computeRecipeNutrition` publica además el REPARTO por masa del plato, que es más honesto que una etiqueta: la mediana de las estrella es 86 % grupo 1. Y NOVA no ordena de sano a insano — el aceite de oliva es grupo 2 y el pan integral es 3.",
   },
   {
     n: 45, id: "parte", nombre: "Parte del plato",

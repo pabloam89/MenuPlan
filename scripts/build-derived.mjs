@@ -128,6 +128,7 @@ const FICHEROS_DEL_OPERADOR = [
   "src/lib/derive/masaServida.js",
   "src/lib/derive/estadoDeFicha.js",
   "src/lib/derive/factorRetencion.js",
+  "src/lib/derive/nova.js",
   "src/data/retencion.json",
   "src/data/nutrientes.js",
 ];

@@ -7,6 +7,7 @@ import alimentos from "./alimentos.json";
 import { EJES, EJE_POR_ID, cobertura, puedeResponder, valorValido } from "./axisRegistry.js";
 import { escalaPorTandas } from "./recipeSchema.js";
 import { composicionDe } from "../lib/derive/composicion.js";
+import { novaDe } from "../lib/derive/nova.js";
 import {
   densidadDe, completitudDe, sinCerdoDe, aptoVigiliaDe, tiempoActivoDe,
   cargaDe, esfuerzoDe, recursoDe, llevaMasaDe,
@@ -53,6 +54,11 @@ const MEDIDORES = {
   // que no se sabe. Se mide corriendo la misma función que usa filterRecipes.
   antelacion: () => recetas.filter((r) => (r.stepsRich ?? []).length > 0).length / recetas.length,
   tecnica: () => recetas.filter((r) => r.tecnica).length / recetas.length,
+  // El único eje de ALIMENTO que se mide corriendo su operador, y por eso su
+  // denominador son las 396 fichas y no las recetas. Lo que no se puede
+  // decidir es la frontera 3/4, que necesita la lista de ingredientes del
+  // producto y el catálogo no la tiene.
+  nova: () => alimentos.filter((a) => novaDe(a).valor != null).length / alimentos.length,
   cocina: () => recetas.filter((r) => r.cocina).length / recetas.length,
   equipamiento: () => recetas.filter((r) => r.requiredAppliance).length / recetas.length,
   transportabilidad: () => recetas.filter((r) => r.tupperFriendly != null).length / recetas.length,
