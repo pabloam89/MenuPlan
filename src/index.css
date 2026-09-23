@@ -163,6 +163,27 @@ textarea::placeholder {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ── Los dos temas de la pizarra ───────────────────────────────────────────
+   El oscuro NO es el tema de la app: el resto vive de ilustraciones Pixar
+   sobre blanco y en negro se rompen. Es un tema de ESTE tablero, que se pide
+   desde su propia baldosa, y por eso va por variables en vez de tocar cien
+   estilos: los sitios que cambian leen `var(--pz-…)` con su color de siempre
+   como respaldo, así que fuera de la pizarra todo sigue exactamente igual.
+
+   En claro no se declara nada a propósito: sin variables, cada `var()` cae en
+   su respaldo, que es el color que ya había. Un tema que no existe no puede
+   desviarse del original. */
+.mp-pizarra-oscura {
+  --pz-fondo: #10201a;
+  --pz-fondo-suave: #16291f;
+  --pz-tinta: #eaf2ec;
+  --pz-tinta-suave: #9db5a6;
+  --pz-linea: #274234;
+  --pz-hueco: #17281f;
+  --pz-hueco-borde: #3a6049;
+  --pz-verde: #6fd39a;
+}
+
 /* El tablero desnudo del arranque: se ven los días y su sitio, no los huecos.
    Se ocultan en vez de no montarlos para que al aparecer no salte el alto de
    la página bajo la hoja. */
@@ -194,10 +215,42 @@ textarea::placeholder {
   animation-delay: var(--d, 0s);
 }
 
+/* ── Repartir como cartas ──────────────────────────────────────────────────
+   «Rellenar» coloca catorce platos de golpe y el tablero cambiaba entero en
+   un fotograma: no daba tiempo a ver QUÉ había puesto, solo a notar que algo
+   había cambiado. Repartidas una detrás de otra se leen de izquierda a
+   derecha, que es como se mira una semana.
+
+   Caen desde arriba y con una vuelta mínima, como una carta que se suelta.
+   40 ms entre una y otra: más lento se hace esperar, más rápido vuelve a ser
+   un fotograma. */
+@keyframes mpCartaCae {
+  from { opacity: 0; transform: translateY(-26px) rotate(-4deg) scale(.92); }
+  70%  { opacity: 1; transform: translateY(3px) rotate(.6deg) scale(1.01); }
+  to   { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+}
+.mp-carta {
+  animation: mpCartaCae .42s cubic-bezier(.22,.9,.28,1.1) backwards;
+  animation-delay: var(--d, 0s);
+}
+
+/* ── Peso al soltar ────────────────────────────────────────────────────────
+   Un plato arrastrado aterrizaba apareciendo, sin peso. Asienta con un rebote
+   corto: el hueco lo acusa, y ese acuse es lo que dice que lo has soltado ahí
+   y no en el de al lado. */
+@keyframes mpAsienta {
+  0%   { transform: scale(1.06); }
+  55%  { transform: scale(.975); }
+  100% { transform: scale(1); }
+}
+.mp-asienta { animation: mpAsienta .34s cubic-bezier(.3,.9,.4,1.2) backwards; }
+
 @media (prefers-reduced-motion: reduce) {
   .mp-montando { animation: none; opacity: 1; }
   .mp-anillo { animation: none; stroke-dashoffset: 0; }
+  .mp-asienta { animation: none; }
   .mp-franja-entra,
+  .mp-carta,
   .mp-baldosa-entra { animation: mpFadeIn .12s ease both; }
 }
 

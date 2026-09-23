@@ -2,7 +2,7 @@ import { lazy, Suspense, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ArrowRight, BarChart3, Check, ChevronRight, CookingPot, Eraser, Heart, Minus,
-  Package, Plus, Salad, Search, Sparkles, X,
+  Moon, Package, Plus, Salad, Search, Sparkles, Sun, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
@@ -306,14 +306,14 @@ function BaldosaMando({ Icon, label, color, tinte, onClick, badge = null, orden 
               background: color, color: "#fff",
               fontSize: 11, fontWeight: 900, fontVariantNumeric: "tabular-nums",
               display: "flex", alignItems: "center", justifyContent: "center",
-              border: "2px solid #f4f8f5",
+              border: "2px solid var(--pz-fondo-suave, #f4f8f5)",
             }}
           >
             {badge}
           </span>
         )}
       </span>
-      <span style={{ fontSize: 10, fontWeight: 800, color: "#5a7066", letterSpacing: "-.1px" }}>
+      <span style={{ fontSize: 10, fontWeight: 800, color: "var(--pz-tinta-suave, #5a7066)", letterSpacing: "-.1px" }}>
         {label}
       </span>
     </button>
@@ -1413,6 +1413,7 @@ export function PizarraControles({
   data, setData, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
   onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
+  tema = "claro", onTema,
 }) {
   const [abierto, setAbierto] = useState(null);
   // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
@@ -1499,7 +1500,7 @@ export function PizarraControles({
           <span
             style={{
               width: 24, height: 24, borderRadius: 999,
-              background: "rgba(45,90,61,.1)", color: VERDE,
+              background: "var(--pz-linea, rgba(45,90,61,.1))", color: "var(--pz-verde, #2d5a3d)",
               display: "flex", alignItems: "center", justifyContent: "center",
               // Gira al cambiar de cara: es la única pieza que se queda
               // quieta, así que es la que tiene que decir que hay otra.
@@ -1559,6 +1560,20 @@ export function PizarraControles({
                   color="#e0405a"
                   tinte="#fff"
                   onClick={onFavorito}
+                />
+              )}
+              {/* Claro y oscuro. Vive aquí y no en los ajustes de la app
+                  porque solo viste el TABLERO: es una preferencia de esta
+                  pizarra, no del producto, y el resto de pantallas siguen en
+                  claro. El icono enseña adónde vas, no dónde estás. */}
+              {onTema && (
+                <BaldosaMando
+                  Icon={tema === "oscuro" ? Sun : Moon}
+                  label={tema === "oscuro" ? "Claro" : "Oscuro"}
+                  orden={4}
+                  color="#4b5d8f"
+                  tinte="#fff"
+                  onClick={onTema}
                 />
               )}
             </>

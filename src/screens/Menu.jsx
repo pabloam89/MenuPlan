@@ -2273,9 +2273,11 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           position: "relative",
           width: "100%",
           height: "100%",
-          border: "2px dashed #cbd8cf",
+          // Los tres colores del hueco leen del tema de la pizarra y caen en
+          // el de siempre cuando no hay tema: en claro, nada cambia.
+          border: "2px dashed var(--pz-hueco-borde, #cbd8cf)",
           borderRadius: radius,
-          background: "#f6faf7",
+          background: "var(--pz-hueco, #f6faf7)",
           cursor: "pointer",
           fontFamily: "inherit",
           display: "flex",
@@ -2314,18 +2316,18 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              border: "2px solid #f6faf7",
+              border: "2px solid var(--pz-hueco, #f6faf7)",
             }}
           >
             <Plus size={compact ? 9 : 11} strokeWidth={3.2} />
           </span>
         </span>
-        <span style={{ fontSize: compact ? 10 : 12.5, fontWeight: 800, color: "#4f6a5b", textAlign: "center", lineHeight: 1.2 }}>
+        <span style={{ fontSize: compact ? 10 : 12.5, fontWeight: 800, color: "var(--pz-tinta, #4f6a5b)", textAlign: "center", lineHeight: 1.2 }}>
           {tile.dosPlatos
             ? `${tile.course === "first" ? "1º" : "2º"} libre`
             : `${emptyMealLabel} libre`}
         </span>
-        <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "#9bb0a4" }}>Toca para añadir</span>
+        <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "var(--pz-tinta-suave, #9bb0a4)" }}>Toca para añadir</span>
       </button>
       </div>
     );
@@ -2852,7 +2854,11 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 }
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
-function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null, repartiendo = false }) {
+  // Un contador que corre por TODA la semana, no por día: las cartas caen de
+  // lunes a domingo seguidas, que es como se lee el tablero. Reiniciarlo en
+  // cada día las haría caer de siete en siete a la vez.
+  let orden = 0;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: denso ? 12 : 18 }}>
       {days.map((day) => {
@@ -2863,14 +2869,18 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
         return (
           <div key={day}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 900, color: "#142f1d" }}>{dayLabel(day)}</span>
+              <span style={{ fontSize: 14, fontWeight: 900, color: "var(--pz-tinta, #142f1d)" }}>{dayLabel(day)}</span>
               <span style={{ fontSize: 12, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</span>
-              <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
+              <span style={{ flex: 1, height: 1, background: "var(--pz-linea, #e8f0ea)" }} />
               <DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} compact />
             </div>
             <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
               {tiles.map((tile, i) => (
-                <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: denso ? "0 0 33%" : "0 0 46%" }}>
+                <div
+                  key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`}
+                  className={repartiendo && tile.dish ? "mp-carta" : undefined}
+                  style={{ flex: denso ? "0 0 33%" : "0 0 46%", "--d": `${(orden++) * 40}ms` }}
+                >
                   <div style={{ height: denso ? 104 : 150 }}>
                     <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={denso ? 14 : 16} compact denso={denso} showGroup={showGroup} members={data?.members} invitados={invitadosPorHueco?.[`${tile.group?.id}|${day}|${tile.meal}`] ?? 0} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} />
                   </div>
@@ -4092,7 +4102,7 @@ const monthDots = {
   alignItems: "center", gap: 3, maxWidth: 30,
 };
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null }) {
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], menuWeeks = null, onPickMonthDay, invitadosPorHueco = null, denso = false, onAddSlot = null, onRemoveSlot = null, onFillSlot = null, onDishActions = null, repartiendo = false }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
@@ -4134,7 +4144,7 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
         />
       )}
       {deckView === "semana" && (
-        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} onAddSlot={onAddSlot} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} />
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} invitadosPorHueco={invitadosPorHueco} denso={denso} onAddSlot={onAddSlot} onRemoveSlot={onRemoveSlot} onFillSlot={onFillSlot} onDishActions={onDishActions} repartiendo={repartiendo} />
       )}
       {deckView === "mes" && (
         <DeckMonth
@@ -5074,8 +5084,25 @@ export const MenuScreen = memo(function MenuScreen({
   // sitio que la del asistente y por el mismo motivo: se lee como "esto de
   // aquí arriba controla lo de abajo".
   pizarraControles = null,
+  // "claro" | "oscuro". Solo pinta en la pizarra, y solo si se pide desde su
+  // baldosa: el resto de la app vive de ilustraciones sobre blanco.
+  temaPizarra = "claro",
+  // Sube cada vez que "Rellenar" termina de colocar. Es lo que dispara el
+  // reparto: no es un booleano porque dos rellenos seguidos tienen que volver
+  // a animar, y un booleano que ya estaba a true no cambia nada.
+  repartoKey = 0,
 }) {
   const deckViews = modoPizarra ? DECK_VIEWS_BASICAS : DECK_VIEW_OPTIONS;
+
+  // El reparto dura lo que dura y se apaga solo: si la clase se quedara
+  // puesta, cualquier repintado posterior volvería a lanzar la animación.
+  const [repartiendo, setRepartiendo] = useState(false);
+  useEffect(() => {
+    if (!repartoKey) return undefined;
+    setRepartiendo(true);
+    const id = setTimeout(() => setRepartiendo(false), 1200);
+    return () => clearTimeout(id);
+  }, [repartoKey]);
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
   const [pdfExportOpen, setPdfExportOpen] = useState(false);
@@ -5145,6 +5172,11 @@ export const MenuScreen = memo(function MenuScreen({
   const [arrastre, setArrastre] = useState(null);
   const arrastreRef = useRef(null);
   useEffect(() => { arrastreRef.current = arrastre; }, [arrastre]);
+  // El último hueco sobrevolado, en crudo. Se guarda el NODO —y en un ref, no
+  // en una variable del efecto— porque el efecto se vuelve a montar en CADA
+  // movimiento del dedo (`arrastre` está en sus dependencias): una variable
+  // local se quedaría a null justo antes de soltar.
+  const sobreElRef = useRef(null);
 
   const iniciarArrastre = useCallback((sel) => {
     // La etiqueta nace en el centro de la baldosa que acabas de levantar, no
@@ -5164,6 +5196,7 @@ export const MenuScreen = memo(function MenuScreen({
 
     const destinoEn = (x, y) => {
       const el = document.elementFromPoint(x, y)?.closest?.("[data-slot]");
+      sobreElRef.current = el ?? null;
       if (!el) return null;
       const bruto = el.getAttribute("data-slot") ?? "";
       const corte = bruto.indexOf("-");
@@ -5185,8 +5218,20 @@ export const MenuScreen = memo(function MenuScreen({
     };
     const soltar = () => {
       const a = arrastreRef.current;
+      const destino = a?.sobre ? sobreElRef.current : null;
       setArrastre(null);
-      if (a?.sobre) onSlotDrag?.(a.source, a.sobre);
+      if (!a?.sobre) return;
+      onSlotDrag?.(a.source, a.sobre);
+      // Peso al soltar: el hueco que recibe acusa el golpe. Se marca sobre el
+      // nodo y no por estado porque la baldosa sobrevive al re-render —es el
+      // mismo `data-slot`— y React no vuelve a escribir un `className` que en
+      // su árbol no ha cambiado. Se quita al acabar para no dejar un
+      // `transform` pegado: un ancestro con transform atrapa a los
+      // `position: fixed` de dentro (ver .mp-nav-fwd en index.css).
+      sobreElRef.current = null;
+      if (!destino) return;
+      destino.classList.add("mp-asienta");
+      setTimeout(() => destino.classList.remove("mp-asienta"), 420);
     };
 
     // ── Que el navegador no se lleve el gesto ───────────────────────────
@@ -5641,7 +5686,10 @@ export const MenuScreen = memo(function MenuScreen({
 
 
   return (
-    <div style={{ background: "#fff", minHeight: "100dvh" }}>
+    <div
+      className={modoPizarra && temaPizarra === "oscuro" ? "mp-pizarra-oscura" : undefined}
+      style={{ background: "var(--pz-fondo, #fff)", minHeight: "100dvh" }}
+    >
       <style>{`
         @keyframes shareDropIn {
           from { opacity: 0; transform: translateY(-6px) scale(.96); }
@@ -5788,7 +5836,7 @@ export const MenuScreen = memo(function MenuScreen({
         }
       `}</style>
       {/* ── Top header: title + actions ── */}
-      <div style={{ background: "#e9f4ed", padding: "20px 20px 14px" }}>
+      <div style={{ background: "var(--pz-fondo-suave, #e9f4ed)", padding: "20px 20px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
@@ -5805,7 +5853,7 @@ export const MenuScreen = memo(function MenuScreen({
             >
               <ClipboardList size={18} color="#1f4a30" strokeWidth={2.4} />
             </span>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.3px" }}>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: "var(--pz-tinta, #142f1d)", margin: 0, letterSpacing: "-.3px" }}>
               Tu menú
             </h2>
             {!modoPizarra && <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />}
@@ -6004,7 +6052,7 @@ export const MenuScreen = memo(function MenuScreen({
           de semanas y el filtro, que no se usan a media lista. */}
       <div
         style={{
-          background: "#fff",
+          background: "var(--pz-fondo, #fff)",
           padding: "12px 16px 0",
           ...(hasMenu && modoPizarra
             // zIndex por encima de las tarjetas y por debajo de las hojas
@@ -6039,7 +6087,7 @@ export const MenuScreen = memo(function MenuScreen({
             className="mp-franja-entra"
             style={{ display: "flex", alignItems: "stretch", marginRight: -16, marginBottom: 14, minHeight: 78 }}
           >
-            <div style={{ background: "#fff", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
+            <div style={{ background: "var(--pz-fondo, #fff)", display: "flex", alignItems: "center", paddingRight: 12, flexShrink: 0 }}>
               {(data.groups?.length > 0) && (
                 <DeckFilter
                   groups={data.groups}
@@ -6051,7 +6099,7 @@ export const MenuScreen = memo(function MenuScreen({
                 />
               )}
             </div>
-            <div style={{ flex: 1, minWidth: 0, background: "#f1f5f9", display: "flex", alignItems: "center" }}>
+            <div style={{ flex: 1, minWidth: 0, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
               {pizarraControles}
             </div>
           </div>
@@ -6151,6 +6199,7 @@ export const MenuScreen = memo(function MenuScreen({
           >
             <ArmedContext.Provider value={armed}>
             <MenuDeck
+              repartiendo={repartiendo}
               denso={modoPizarra}
               onAddSlot={modoPizarra ? onAddSlot : null}
               onRemoveSlot={modoPizarra ? onRemoveSlot : null}
