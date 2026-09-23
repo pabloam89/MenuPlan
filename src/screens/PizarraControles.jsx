@@ -12,7 +12,7 @@ import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { todayDayIdx } from "../lib/weekCalendar.js";
 import { sesionDeBases } from "../lib/bases.js";
 import { enHoras } from "../lib/cookTime.js";
-import { selectMethodForRecipe } from "../lib/applianceMethods.js";
+import { APPLIANCE_COLORS, REQUIRED_APPLIANCE_ICONS, selectMethodForRecipe } from "../lib/applianceMethods.js";
 
 import {
   buildCalendarWeeks,
@@ -789,19 +789,22 @@ function CalendarioDias({ data, onAplicar }) {
 }
 
 /**
- * Las seis de serie, con las ilustraciones del onboarding. Son las mismas
- * rutas que `APPLIANCES` (Onboarding.jsx) y no se importan de allí para no
- * arrastrar el onboarding entero a la pizarra; si una cambia, cambian las dos.
- * Solo estas seis: son las que el generador sabe aprovechar, y lo que la casa
- * tuviera en `customKitchenTools` se respeta sin editarse aquí, igual que allí.
+ * Las seis de serie, con el icono de Núcleo que ya las representa en la app
+ * (`REQUIRED_APPLIANCE_ICONS`, el de "¿Cómo se prepara?") y el color de su
+ * método (`APPLIANCE_COLORS`). Solo estas seis: son las que el generador sabe
+ * aprovechar, y lo que la casa tuviera en `customKitchenTools` se respeta sin
+ * editarse aquí, igual que en el onboarding.
+ *
+ * La olla rápida va en verde y no en el gris de su método: en una rejilla de
+ * colores, la única gris se leía como apagada antes de tocarla.
  */
 const ELECTRODOMESTICOS = [
-  { id: "Airfryer", img: "/avatares/cards/electrodomesticos/airfryer.webp" },
-  { id: "Horno", img: "/avatares/cards/electrodomesticos/horno.webp" },
-  { id: "Microondas", img: "/avatares/cards/electrodomesticos/microondas.webp" },
-  { id: "Olla rápida", img: "/avatares/cards/electrodomesticos/olla_rapida.webp" },
-  { id: "Thermomix", img: "/avatares/cards/electrodomesticos/thermomix.webp" },
-  { id: "Vaporera", img: "/avatares/cards/electrodomesticos/vaporera.webp" },
+  { id: "Airfryer", color: APPLIANCE_COLORS.airfryer },
+  { id: "Horno", color: APPLIANCE_COLORS.horno },
+  { id: "Microondas", color: APPLIANCE_COLORS.microondas },
+  { id: "Olla rápida", color: "#16a34a" },
+  { id: "Thermomix", color: APPLIANCE_COLORS.thermomix },
+  { id: "Vaporera", color: APPLIANCE_COLORS.vaporera },
 ];
 
 /**
@@ -809,9 +812,8 @@ const ELECTRODOMESTICOS = [
  * y el onboarding: con olla rápida la legumbre son 25 minutos y no 60, y eso
  * cambia la receta que ves y lo que dura el Batch.
  *
- * La tarjeta es la del onboarding (RestrictionTabCard con `textOverlay`): la
- * ilustración a sangre, el nombre encima y el teal al marcar. El mismo
- * aparato tiene que verse igual en los dos sitios donde se pregunta.
+ * Iconos y no ilustraciones: seis fotos grandes hacían del paso una pantalla
+ * entera, y aquí es una pregunta rápida dentro de un pop-up.
  */
 function Electrodomesticos({ data, setData }) {
   const trastos = data?.kitchenTools ?? [];
@@ -822,9 +824,10 @@ function Electrodomesticos({ data, setData }) {
       : [...(d.kitchenTools ?? []), t],
   }));
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
       {ELECTRODOMESTICOS.map((a, i) => {
         const sel = trastos.includes(a.id);
+        const Icono = REQUIRED_APPLIANCE_ICONS[a.id] ?? CookingPot;
         return (
           <button
             key={a.id}
@@ -832,43 +835,43 @@ function Electrodomesticos({ data, setData }) {
             className="mp-rise mp-press"
             onClick={() => alternar(a.id)}
             aria-pressed={sel}
-            aria-label={a.id}
             style={{
-              "--d": `${i * 40}ms`,
-              position: "relative", padding: 0, overflow: "hidden",
-              aspectRatio: "4 / 3", borderRadius: 15,
-              border: `2px solid ${sel ? TEAL : "#e0eae3"}`,
-              background: "#f4f7f5", cursor: "pointer", fontFamily: "inherit",
-              boxShadow: sel ? `0 6px 18px ${TEAL}33` : "0 1px 2px rgba(0,0,0,.04)",
-              transition: "border-color .16s ease, box-shadow .16s ease",
+              "--d": `${i * 35}ms`,
+              position: "relative",
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 7,
+              height: 88, padding: "0 4px", borderRadius: 16, cursor: "pointer", fontFamily: "inherit",
+              border: `1.5px solid ${sel ? a.color : "#e3ebe6"}`,
+              background: sel ? `${a.color}14` : "#fff",
+              boxShadow: sel ? `0 6px 16px -8px ${a.color}88` : "0 1px 2px rgba(20,47,29,.04)",
+              transition: "background .16s ease, border-color .16s ease, box-shadow .16s ease",
             }}
           >
-            <img
-              src={a.img}
-              alt=""
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
             <span
               style={{
-                position: "absolute", inset: 0,
-                background: "linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.22) 50%, transparent 100%)",
-                display: "flex", alignItems: "flex-end", justifyContent: "center",
-                padding: "0 7px 8px",
-                fontSize: 12, fontWeight: 800, color: "#fff", lineHeight: 1.2,
+                width: 42, height: 42, borderRadius: 14,
+                background: sel ? a.color : `${a.color}1c`,
+                color: sel ? "#fff" : a.color,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "background .16s ease, color .16s ease",
               }}
             >
+              <Icono size={21} strokeWidth={2.2} />
+            </span>
+            <span style={{
+              fontSize: 11.5, fontWeight: 800, lineHeight: 1.1,
+              color: sel ? INK : "#3a4a42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%",
+            }}>
               {a.id}
             </span>
             {sel && (
               <span
                 style={{
-                  position: "absolute", top: 8, right: 8,
-                  width: 20, height: 20, borderRadius: "50%", background: TEAL,
+                  position: "absolute", top: 6, right: 6,
+                  width: 17, height: 17, borderRadius: "50%", background: a.color,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 1px 4px rgba(20,47,29,.3)",
                 }}
               >
-                <Check size={12} color="#fff" strokeWidth={3} />
+                <Check size={10} color="#fff" strokeWidth={3.2} />
               </span>
             )}
           </button>
@@ -951,6 +954,13 @@ const botonSecundario = {
   fontSize: 14, fontWeight: 800, fontFamily: "inherit",
 };
 
+/** El de volver: vacío, solo el borde, para que el de avanzar mande. */
+const botonVacio = {
+  height: 46, padding: "0 16px", borderRadius: 999, cursor: "pointer",
+  background: "#fff", border: "1.5px solid #cfe0d6", color: VERDE,
+  fontSize: 14.5, fontWeight: 800, fontFamily: "inherit",
+};
+
 const PASOS_INICIO = [
   { id: "dias", titulo: "¿Qué días?", detalle: "Toca una semana entera, o afina día a día." },
   { id: "cocina", titulo: "¿Qué tienes en la cocina?", detalle: "Ajusta las recetas y lo que tarda el Batch." },
@@ -975,22 +985,9 @@ function PopupInicio({ data, setData, onAplicar, primeraVez, onTerminar }) {
 
   return (
     <PopupCentrado onCerrar={onTerminar} etiqueta={actual.titulo}>
-      <div style={{ padding: "22px 20px 0" }}>
-        <div style={{ display: "flex", gap: 5, marginBottom: 14 }}>
-          {PASOS_INICIO.map((p, i) => (
-            <span
-              key={p.id}
-              style={{
-                height: 6, borderRadius: 999,
-                width: i === paso ? 22 : 6,
-                background: i <= paso ? VERDE : "#dce7e0",
-                transition: "width .25s cubic-bezier(.22,1,.36,1), background .25s ease",
-              }}
-            />
-          ))}
-        </div>
+      <div style={{ padding: "24px 48px 0" }}>
         {/* El título viaja con su paso (key), así entra deslizando igual. */}
-        <div key={actual.id} className="mp-pizarra-paso" style={{ paddingRight: 36 }}>
+        <div key={actual.id} className="mp-pizarra-paso" style={{ textAlign: "center" }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.4px" }}>
             {actual.titulo}
           </p>
@@ -1033,14 +1030,24 @@ function PopupInicio({ data, setData, onAplicar, primeraVez, onTerminar }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px 20px" }}>
-        {paso > 0
-          ? <button type="button" className="mp-press" style={botonSecundario} onClick={() => irA(paso - 1)}>Atrás</button>
-          : <span />}
+      {/* Los dos botones a lo ancho y a partes iguales: el de avanzar lleno,
+          el de volver solo con borde. En el primer paso no hay a dónde volver
+          y Siguiente ocupa la fila entera. */}
+      <div style={{ display: "flex", gap: 8, padding: "16px 20px 20px" }}>
+        {paso > 0 && (
+          <button
+            type="button"
+            className="mp-press"
+            style={{ ...botonVacio, flex: 1 }}
+            onClick={() => irA(paso - 1)}
+          >
+            Atrás
+          </button>
+        )}
         <button
           type="button"
           className="mp-press"
-          style={botonPrincipal}
+          style={{ ...botonPrincipal, flex: 1 }}
           onClick={() => (ultimo ? onTerminar() : irA(paso + 1))}
         >
           {ultimo ? (primeraVez ? "Empezar" : "Hecho") : "Siguiente"}
