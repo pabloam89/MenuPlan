@@ -113,7 +113,7 @@ import {
   splitSlotPortions,
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
-import { recetaConBases } from "../lib/recetaConBases.js";
+import { componentesDeTanda, vistaConTanda } from "../lib/tandaDelPlato.js";
 import { hayTandasPedidas } from "../lib/cookTime.js";
 import { basesPedidas, claveDeBase, clavesDeReceta, sesionDeBases } from "../lib/bases.js";
 import { BASES_UI } from "../lib/basesUI.js";
@@ -6642,7 +6642,9 @@ export function DishDetail({
   //
   // Cuando la vista del domingo sepa qué se cocinó de verdad, podrá decidirlo
   // ella en vez de asumirlo.
-  const [conBases, setConBases] = useState(true);
+  // Lo que has dicho que NO tienes hecho, pieza a pieza (ver lib/tandaDelPlato).
+  // Vacío = todo hecho, que es el punto de partida por lo de arriba.
+  const [faltanDeTanda, setFaltanDeTanda] = useState(() => new Set());
   const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
   // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
@@ -6817,15 +6819,30 @@ export function DishDetail({
   // Solo en el plato principal: una guarnición o una salsa de catálogo tienen
   // su propia pestaña con sus propios pasos, y meter ahí la tanda mezclaría
   // dos cosas que el usuario está mirando por separado.
-  const vistaBases = useMemo(() => recetaConBases(recipe), [recipe]);
+  // Una pieza por pregunta: el plato si se puede dejar hecho (semi o entero) y
+  // cada base por separado. `vistaBases` es la receta con lo que SÍ tienes.
+  const delCatalogoTanda = catalogId ? (recipeCatalogById[catalogId] ?? recipe) : recipe;
+  const piezasTanda = useMemo(
+    () => componentesDeTanda(recipe, delCatalogoTanda),
+    [recipe, delCatalogoTanda],
+  );
+  const vistaBases = useMemo(
+    () => vistaConTanda(recipe, delCatalogoTanda, faltanDeTanda),
+    [recipe, delCatalogoTanda, faltanDeTanda],
+  );
   // La pregunta solo tiene sentido si hay tandas pedidas. Antes salía en
   // cualquier plato que TUVIERA bases, que son casi todos, así que a quien
   // nunca pidió batch cooking le preguntaba si tiene cocinado un sofrito que
   // nadie le dijo que cocinara — y de paso hacía parecer que el menú traía
   // tandas que no había pedido.
   const puedeConBases =
-    vistaBases.aplicada && !garnishRecipe && !sauceRecipe && hayTandasPedidas(data);
-  const usandoBases = puedeConBases && conBases;
+    piezasTanda.length > 0 && !garnishRecipe && !sauceRecipe && hayTandasPedidas(data);
+  const usandoBases = puedeConBases && vistaBases.aplicada;
+  const alternarPieza = (clave, tengo) => setFaltanDeTanda((prev) => {
+    const next = new Set(prev);
+    if (tengo) next.delete(clave); else next.add(clave);
+    return next;
+  });
   // Los ingredientes de la ficha vienen escalados, así que la marca se cruza
   // por nombre — que es la misma clave con la que se resolvieron.
   const deBasePorNombre = useMemo(() => {
@@ -7845,65 +7862,22 @@ export function DishDetail({
                 sola al mover el interruptor, que es donde el usuario ya mira
                 el tiempo del plato. */}
             {puedeConBases && (
-              <div
-                style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "10px 12px", marginBottom: 12, borderRadius: 12,
-                  background: usandoBases ? "#e8f5ec" : "#f7f9f7",
-                  outline: usandoBases ? "1.5px solid #2d5a3d" : "1px solid #e3ede6",
-                  outlineOffset: -1,
-                  transition: "background .15s, outline .15s",
-                }}
-              >
-                {/* Ilustración con su nombre debajo, como en el selector de
-                    bases: es la misma cosa y se reconoce por el dibujo. */}
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexShrink: 0 }}>
-                  {vistaBases.bases.map((b) => {
-                    const img = ingredientThumbSrc(BASES_UI[b.clave]?.foto ?? b.clave);
-                    return (
-                      <div key={b.clave} style={{ textAlign: "center", width: 54 }}>
-                        {img && (
-                          <img
-                            src={img}
-                            alt=""
-                            style={{ width: 42, height: 42, objectFit: "contain", display: "block", margin: "0 auto" }}
-                          />
-                        )}
-                        <div style={{
-                          fontSize: 10, fontWeight: 800, color: "#142f1d", lineHeight: 1.15, marginTop: 2,
-                        }}>
-                          {BASES_UI[b.clave]?.etiqueta ?? b.nombre}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.3 }}>
-                  {vistaBases.bases.length === 1
-                    ? "¿Tienes cocinada esta base?"
-                    : "¿Tienes cocinadas estas bases?"}
-                </div>
-
-                <div style={{ display: "flex", flexShrink: 0, background: "#fff", borderRadius: 999, padding: 3, outline: "1.5px solid #cfe0d5", outlineOffset: -1.5 }}>
-                  {[["si", "Sí", true], ["no", "No", false]].map(([id, texto, valor]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setConBases(valor)}
-                      aria-pressed={usandoBases === valor}
-                      style={{
-                        padding: "5px 13px", borderRadius: 999, border: "none",
-                        background: usandoBases === valor ? "#2d5a3d" : "transparent",
-                        color: usandoBases === valor ? "#fff" : "#7a9485",
-                        fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                        transition: "background .15s, color .15s",
-                      }}
-                    >
-                      {texto}
-                    </button>
-                  ))}
-                </div>
+              <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                {piezasTanda.length > 1 && (
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", margin: "0 2px 2px" }}>
+                    ¿Qué tienes ya hecho?
+                  </div>
+                )}
+                {piezasTanda.map((pieza) => (
+                  <FilaPiezaTanda
+                    key={pieza.clave}
+                    pieza={pieza}
+                    sola={piezasTanda.length === 1}
+                    tengo={!faltanDeTanda.has(pieza.clave)}
+                    incluida={vistaBases.incluidas?.has(pieza.clave)}
+                    onCambiar={(v) => alternarPieza(pieza.clave, v)}
+                  />
+                ))}
               </div>
             )}
 
@@ -8602,6 +8576,84 @@ function IngredientThumb({ ing, dimmed = false, size = 30 }) {
   );
 }
 
+/**
+ * Una pieza de la tanda en la ficha: su dibujo, qué es y su Sí/No.
+ *
+ * Una fila por pieza y no una para todas: lo normal es tener el sofrito y no
+ * el arroz, y con un solo interruptor la receta era toda larga o toda corta.
+ * Una base que el plato hecho ya lleva dentro sale "Incluida", sin
+ * interruptor: preguntar por la bechamel de una lasaña montada no significa
+ * nada.
+ */
+const TEXTO_PIEZA = {
+  semi: { que: "Montado, a medio hacer", pregunta: "¿Lo tienes montado?" },
+  cocinado: { que: "Hecho entero", pregunta: "¿Lo tienes hecho?" },
+  base: { que: "Base", pregunta: "¿Tienes cocinada esta base?" },
+};
+
+function FilaPiezaTanda({ pieza, sola, tengo, incluida, onCambiar }) {
+  const esPlato = pieza.tipo !== "base";
+  const img = esPlato ? null : ingredientThumbSrc(BASES_UI[pieza.clave]?.foto ?? pieza.clave);
+  const nombre = esPlato ? pieza.nombre : (BASES_UI[pieza.clave]?.etiqueta ?? pieza.nombre);
+  const txt = TEXTO_PIEZA[pieza.tipo];
+  const activa = tengo && !incluida;
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 10,
+        padding: "8px 10px 8px 8px", borderRadius: 12,
+        background: incluida ? "#f7f9f7" : activa ? "#e8f5ec" : "#f7f9f7",
+        outline: activa ? "1.5px solid #2d5a3d" : "1px solid #e3ede6",
+        outlineOffset: -1,
+        opacity: incluida ? 0.6 : 1,
+        transition: "background .15s, outline .15s, opacity .15s",
+      }}
+    >
+      <span style={{
+        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+        background: esPlato ? "#f6efe0" : "#fff",
+        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
+      }}>
+        {img
+          ? <img src={img} alt="" style={{ width: 36, height: 36, objectFit: "contain" }} />
+          : <CookingPot size={19} color="#b2622f" strokeWidth={2.2} />}
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.2 }}>
+          {sola ? txt.pregunta : nombre}
+        </span>
+        <span style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "#7a9485", marginTop: 1 }}>
+          {incluida ? "Ya va dentro del plato" : sola ? nombre : txt.que}
+        </span>
+      </span>
+      {incluida ? (
+        <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#5a7066", padding: "0 6px" }}>Incluida</span>
+      ) : (
+        <div style={{ display: "flex", flexShrink: 0, background: "#fff", borderRadius: 999, padding: 3, outline: "1.5px solid #cfe0d5", outlineOffset: -1.5 }}>
+          {[["si", "Sí", true], ["no", "No", false]].map(([id, texto, valor]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onCambiar(valor)}
+              aria-pressed={tengo === valor}
+              aria-label={`${nombre}: ${texto}`}
+              style={{
+                padding: "5px 13px", borderRadius: 999, border: "none",
+                background: tengo === valor ? "#2d5a3d" : "transparent",
+                color: tengo === valor ? "#fff" : "#7a9485",
+                fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                transition: "background .15s, color .15s",
+              }}
+            >
+              {texto}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned, deBase = null }) {
   const unit = ing.unit ?? "ud";
   const qty = ing.qtyScaled;
@@ -8699,7 +8751,7 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
               }}
             >
               <Check size={11} strokeWidth={3} />
-              Ya en la base
+              {String(deBase).startsWith("plato:") ? "Ya está en el plato" : "Ya en la base"}
             </span>
           )}
           {ing.adapted && (
