@@ -88,6 +88,34 @@ describe("la masa por ración", () => {
   });
 
   /**
+   * UNA CREMA DE ADULTO NO CABE EN MEDIA TAZA.
+   *
+   * Siete sopas del catálogo usaban agua en sus pasos —«cubrir las verduras con
+   * 400 ml de agua fría», literal— y no la declaraban en `ingredients`. La
+   * «Crema de puerros» daba 145 g por ración: media taza. El líquido de una
+   * crema ES el plato, y sin él la masa servida y la densidad quedan mal
+   * aunque las kcal salgan bien, porque el agua no tiene calorías.
+   *
+   * Los purés de bebé quedan fuera a propósito: 100-160 g es la ración correcta
+   * a esa edad, y meterlos en la misma vara los convertía en falsos positivos.
+   *
+   * EL CORTE ESTÁ EN 200 Y NO EN 220, y la diferencia son dos purés. Un «Puré
+   * de patatas gratinado» (214 g) y un «Puré de verduras con picatostes»
+   * (205 g) son purés ESPESOS, que se comen con tenedor: no les falta líquido,
+   * es que no son cremas. El segundo además escurre el agua de cocción en su
+   * propio paso —«reservando un poco»—, así que declararla entera habría sido
+   * el error contrario al que este test persigue.
+   */
+  it("ninguna sopa o crema de adulto baja de un plato", () => {
+    const cortas = recipeCatalog
+      .filter((r) => r.category === "sopas_cremas")
+      .map((r) => ({ r, g: gramosPorRacion(r) }))
+      .filter(({ g }) => g != null && g < 200)
+      .map(({ r, g }) => `${r.id} ${r.name.slice(0, 34)}: ${Math.round(g)} g`);
+    expect(cortas).toEqual([]);
+  });
+
+  /**
    * Y el catálogo entero no se desplaza. Si la mediana se mueve mucho es que
    * alguien cambió una regla de masa —hidratación, fracción comestible,
    * aceite— y arrastró todo consigo sin darse cuenta.
