@@ -1504,6 +1504,7 @@ export function ArranqueDePizarra({ data, setData, onAplicar, onEmpezar }) {
 
 const TITULOS = {
   balance: "Cómo va la semana",
+  despensa: "En casa",
   tanda: "Batch Cooking",
 };
 
@@ -1518,9 +1519,6 @@ export function PizarraControles({
   // vive ahí y es lo que más se toca en un tablero recién montado.
   const [cara, setCara] = useState("acciones");
   const [confirmarVaciar, setConfirmarVaciar] = useState(false);
-  // La despensa ya no es una baldosa: sale al ir a rellenar, que es el único
-  // momento en que importa lo que tienes en casa.
-  const [despensaAlRellenar, setDespensaAlRellenar] = useState(false);
   const todayIdx = useMemo(() => todayDayIdx(), []);
 
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
@@ -1567,6 +1565,10 @@ export function PizarraControles({
   // siguen contando para la ficha y el tablero, pero aquí no se listan.
   const piezasTanda = sesion.bases.length;
   const hayTanda = piezasTanda > 0;
+
+  // Lo que hay guardado, para la chapa. Los platos cocinados no cuentan: son
+  // raciones hechas, no ingredientes, y el panel tampoco los enseña.
+  const enDespensa = (despensa ?? []).filter((i) => (i.itemType ?? "ingredient") !== "cooked_dish").length;
 
 
   return (
@@ -1653,7 +1655,7 @@ export function PizarraControles({
                   color="#c98a1e"
                   tinte="#fff"
                   badge={huecosVacios}
-                  onClick={() => (onAddDespensa ? setDespensaAlRellenar(true) : onRellenar())}
+                  onClick={() => onRellenar()}
                 />
               )}
               {/* Aquí vivía una baldosa «Elegir» que ponía el tablero en modo
@@ -1722,6 +1724,21 @@ export function PizarraControles({
                 tinte="#fff"
                 onClick={() => setAbierto("balance")}
               />
+              {/* Lo que tienes en casa. Estuvo un rato saliendo solo al ir a
+                  rellenar: era el único momento en que importaba, pero también
+                  el peor, porque te paraba un gesto que ya habías empezado.
+                  Aquí es un sitio al que vas cuando quieres, no un peaje. */}
+              {onAddDespensa && (
+                <BaldosaMando
+                  Icon={Package}
+                  label="En casa"
+                  orden={1}
+                  color="#3f9656"
+                  tinte="#fff"
+                  badge={enDespensa > 0 ? enDespensa : null}
+                  onClick={() => setAbierto("despensa")}
+                />
+              )}
               {/* "Batch" y no "Batch Cooking": la etiqueta son 55px, y el
                   título entero está en el panel que abre. */}
               <BaldosaMando
@@ -1748,78 +1765,6 @@ export function PizarraControles({
           Rellenar tira siempre de lo que tienes, así que antes de hacerlo se
           enseña: apuntas lo que falte y le das. Por portal, como los paneles
           (un ancestro animado atraparía el `fixed`). */}
-      {despensaAlRellenar && createPortal(
-        <div
-          onClick={() => setDespensaAlRellenar(false)}
-          className="mp-overlay-in"
-          style={{
-            position: "fixed", inset: 0, zIndex: 300,
-            background: "rgba(20,47,29,.45)",
-            display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label="¿Quieres cocinar sólo con lo que tienes en casa?"
-            style={{
-              width: "min(380px, 100%)", maxHeight: "calc(100dvh - 32px)",
-              background: "#f4f8f5", borderRadius: 24, boxSizing: "border-box",
-              boxShadow: "0 28px 70px -20px rgba(20,47,29,.5)",
-              display: "flex", flexDirection: "column", overflow: "hidden",
-            }}
-          >
-            <div style={{ position: "relative", padding: "20px 48px 12px", textAlign: "center" }}>
-              {/* El título ya dice para qué sirve la pantalla, así que la línea
-                  de debajo —«Rellenamos tirando primero de esto»— repetía en
-                  pequeño lo que la pregunta dice en grande. */}
-              <p style={{ margin: 0, fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.3px", lineHeight: 1.25 }}>
-                ¿Quieres cocinar sólo con lo que tienes en casa?
-              </p>
-              <button
-                type="button"
-                onClick={() => setDespensaAlRellenar(false)}
-                aria-label="Cerrar"
-                className="mp-press"
-                style={{
-                  position: "absolute", top: 14, right: 14,
-                  width: 32, height: 32, borderRadius: 999, padding: 0,
-                  background: "#fff", border: "1px solid #e0eae3", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-              >
-                <X size={16} color={VERDE} />
-              </button>
-            </div>
-            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "0 16px" }}>
-              <PanelDespensa
-                despensa={despensa}
-                onAnadir={onAddDespensa}
-                onQuitar={onQuitarDespensa}
-                onQty={onQtyDespensa}
-              />
-            </div>
-            <div style={{ padding: "12px 16px calc(16px + env(safe-area-inset-bottom, 0px))" }}>
-              <button
-                type="button"
-                className="mp-press"
-                onClick={() => { setDespensaAlRellenar(false); onRellenar(); }}
-                style={{
-                  width: "100%", height: 46, borderRadius: 15, border: "none", cursor: "pointer",
-                  background: VERDE, color: "#fff", fontSize: 15, fontWeight: 900, fontFamily: "inherit",
-                  display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-                }}
-              >
-                <Sparkles size={16} strokeWidth={2.6} />
-                {huecosVacios === 1 ? "Rellenar 1 hueco" : `Rellenar ${huecosVacios} huecos`}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body,
-      )}
-
       {confirmarVaciar && createPortal(
         <div
           onClick={() => setConfirmarVaciar(false)}
@@ -1926,6 +1871,13 @@ export function PizarraControles({
 
             {abierto === "balance" ? (
               <PanelBalance menuPlan={menuPlan} groups={groups} />
+            ) : abierto === "despensa" ? (
+              <PanelDespensa
+                despensa={despensa}
+                onAnadir={onAddDespensa}
+                onQuitar={onQuitarDespensa}
+                onQty={onQtyDespensa}
+              />
             ) : abierto === "tanda" ? (
               <PanelTanda data={data} setData={setData} sesion={sesion} />
             ) : null}
