@@ -22,6 +22,8 @@
 import ingredientsJson from "../data/ingredients.json";
 import substitutionsJson from "../data/ingredientSubstitutions.json";
 import { ES_ACEITE_DE_FREIR, factorAceite, fraccionServida, seFrie, esCostra, ES_SAL, SAL_A_GRANEL } from "./derive/masaServida.js";
+import { vieneCocinadaPorId } from "./derive/estadoDeFicha.js";
+import { factorRetencion } from "./derive/factorRetencion.js";
 // LA COMPOSICIÓN SE LEE DE LA TABLA MAESTRA, no de una copia en el catálogo.
 // `alimentos.json` es el output maestro del embudo de alimentos —el número y su
 // procedencia viven juntos— y esto es su proyección para el cliente, sellada
@@ -346,6 +348,11 @@ export function computeRecipeNutrition(recipe, servings) {
   const gramosDelCampo = Object.fromEntries(CAMPOS_SECUNDARIOS.map((c) => [c, 0]));
   let totalGrams = 0;
   let coveredGrams = 0;
+  // Los ingredientes a los que no se les supo aplicar retención porque no se
+  // sabe si su ficha venía cruda o cocinada. Viaja a la salida en vez de
+  // tragarse: un folato corregido y uno sin corregir no son el mismo dato, y
+  // la cobertura por campo no lo cuenta porque mide otra cosa.
+  const sinDecidir = new Set();
 
   // El aceite de freír se ABSORBE, no se come entero — ver ACEITE_ABSORBIDO.
   // Hace falta saber la masa sólida antes de contar el aceite, así que las
@@ -392,9 +399,23 @@ export function computeRecipeNutrition(recipe, servings) {
 
     const factor = grams / 100;
     for (const campo of CAMPOS_DUROS) totals[campo] += nutrition[campo] * factor;
+
+    // LO QUE SE PIERDE AL COCINAR, y solo se le aplica a los secundarios.
+    //
+    // Los macros no se corrigen a propósito: las kcal, la proteína y la grasa
+    // no se destruyen con el calor, se concentran al irse el agua — y esa masa
+    // ya la lleva `factorHidratacion` por el otro carril. Lo que sí se destruye
+    // o se disuelve son las vitaminas y, en menor medida, los minerales.
+    //
+    // El estado de la ficha manda sobre la técnica: una legumbre que la tabla
+    // analizó ya cocida no vuelve a perder nada. Ver derive/factorRetencion.js.
+    const alimento = alimentoDeIngrediente(line.ingredient?.id);
+    const cocinada = vieneCocinadaPorId(alimento?.id).cocinada;
     for (const campo of CAMPOS_SECUNDARIOS) {
       if (nutrition[campo] == null) continue;
-      totals[campo] += nutrition[campo] * factor;
+      const ret = factorRetencion(NUTRIENTES[campo].porRacion, alimento?.familia, recipe?.tecnica, cocinada);
+      if (ret.via === "SIN DECIDIR") sinDecidir.add(alimento?.id ?? nombre);
+      totals[campo] += nutrition[campo] * factor * ret.factor;
       gramosDelCampo[campo] += grams;
     }
   }
@@ -440,6 +461,10 @@ export function computeRecipeNutrition(recipe, servings) {
   // aproximar por el valor aportado, y esa aproximación es ciega justo en el
   // caso que importa —un campo con cobertura 0 aporta 0 y no baja nada—.
   salida.totalGrams = Math.round(totalGrams);
+  // La retención que no se pudo decidir, por su nombre. Vacío significa que
+  // todos los ingredientes de la receta supieron contestar, no que no se haya
+  // mirado.
+  salida.retencionSinDecidir = [...sinDecidir];
   // Qué parte de la receta sostiene cada campo secundario. Un 0,31 en
   // `sugar_g` dice que ese azúcar es el de un tercio del plato.
   salida.coberturaPorCampo = cobertura;

@@ -42,6 +42,7 @@
  */
 
 import { FAMILIA_DIMENSIONES } from "../../data/alimentoSchema.js";
+import alimentos from "../../data/alimentos.json";
 
 const norm = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
@@ -208,3 +209,25 @@ export function vieneCocinada(alimento) {
   if (valor === "no_aplica") return { cocinada: false, via, duda: null };
   return { cocinada: valor !== "crudo", via, duda };
 }
+
+/**
+ * Lo mismo por id de alimento, memoizado.
+ *
+ * `computeRecipeNutrition` pregunta una vez por línea y por campo secundario:
+ * son 28 preguntas por línea y ~7.600 líneas en el catálogo, así que recorrer
+ * la escalera cada vez costaría de verdad. El índice y el resultado se
+ * calculan una sola vez por alimento.
+ */
+const PorId = new Map(alimentos.map((a) => [a.id, a]));
+const memo = new Map();
+
+export function vieneCocinadaPorId(id) {
+  if (!id) return { cocinada: null, via: "SIN DECIDIR", duda: "sin id de alimento" };
+  if (memo.has(id)) return memo.get(id);
+  const r = vieneCocinada(PorId.get(id) ?? null);
+  memo.set(id, r);
+  return r;
+}
+
+/** La familia declarada de un alimento, por id. La necesita la retención. */
+export const familiaDe = (id) => (id ? PorId.get(id)?.familia ?? null : null);

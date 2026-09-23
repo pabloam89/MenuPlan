@@ -16,11 +16,34 @@ const leer = (ruta) => readFileSync(new URL(ruta, import.meta.url), "utf8");
 const meta = JSON.parse(leer("./derived/_meta.json"));
 
 describe("las tablas derivadas", () => {
+  /**
+   * Y EL OPERADOR CUENTA COMO FUENTE. Este test hasheaba `ingredients.json` y
+   * las recetas, y nada más. Pero la nutrición no sale de las fuentes: sale de
+   * las fuentes pasadas por `computeRecipeNutrition`. Al enchufar el factor de
+   * retención por técnica cambiaron los 1.033 folatos del artefacto sin que se
+   * moviera una sola fuente — el hash cuadró, el test pasó, y la tabla estaba
+   * caducada. Justo lo que la cabecera dice impedir.
+   *
+   * Faltaba también `alimentos.json`, que es de donde salen TODOS los números
+   * de composición y llevaba fuera del hash desde el principio.
+   */
+  const FICHEROS_DEL_OPERADOR = [
+    "../lib/ingredients.js",
+    "../lib/derive/composicion.js",
+    "../lib/derive/masaServida.js",
+    "../lib/derive/estadoDeFicha.js",
+    "../lib/derive/factorRetencion.js",
+    "./retencion.json",
+    "./nutrientes.js",
+  ];
+
   it("se generaron con las fuentes que hay ahora", () => {
     const ficheros = readdirSync(new URL("./recipes/", import.meta.url)).filter((f) => f.endsWith(".json")).sort();
     expect({
       ingredientes: hash(leer("./ingredients.json")),
       recetas: hash(ficheros.map((f) => leer(`./recipes/${f}`)).join("")),
+      alimentos: hash(leer("./alimentos.json")),
+      operador: hash(FICHEROS_DEL_OPERADOR.map((f) => leer(f)).join("")),
     }).toEqual(meta.hash_fuentes);
   });
 

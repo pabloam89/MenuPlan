@@ -1,0 +1,1325 @@
+{
+  "_meta": {
+    "fuente": "USDA Table of Nutrient Retention Factors, Release 6 (2007)",
+    "url": "https://www.ars.usda.gov/arsuserfiles/80400530/pdf/retn06.pdf",
+    "csv": "https://ndownloader.figshare.com/files/44488754",
+    "licencia": "dominio público (obra del Gobierno de EE. UU.)",
+    "generado": "2026-09-23",
+    "nutrientesSinFactor": [
+      "selenium_ug",
+      "iodine_ug",
+      "manganese_mg",
+      "pantothenic_acid_mg",
+      "vitamin_d_ug",
+      "vitamin_e_mg",
+      "vitamin_k_ug"
+    ]
+  },
+  "verdura_hoja": {
+    "olla": {
+      "usda": "VEG,GREENS,BOILED,WATER USED",
+      "factores": {
+        "vitamin_c_mg": 0.7,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.75,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "horno": {
+      "usda": "VEG,GREENS,BAKED",
+      "factores": {
+        "vitamin_c_mg": 0.7,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.75,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "sarten": {
+      "usda": "VEG,GREENS,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.85,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "plancha": {
+      "usda": "VEG,GREENS,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.85,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "verdura_raiz": {
+    "olla": {
+      "usda": "VEG,ROOTS,ETC,BOILED,WATER USED",
+      "factores": {
+        "vitamin_c_mg": 0.75,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "horno": {
+      "usda": "VEG,ROOTS,ETC,BAKED",
+      "factores": {
+        "vitamin_c_mg": 0.75,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "sarten": {
+      "usda": "VEG,ROOTS,ETC,SAUTEED",
+      "factores": {
+        "vitamin_c_mg": 0.75,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.7,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    },
+    "plancha": {
+      "usda": "VEG,ROOTS,ETC,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "verdura_bulbo": {
+    "olla": {
+      "usda": "VEG,ROOTS,ETC,BOILED,WATER USED",
+      "factores": {
+        "vitamin_c_mg": 0.75,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "horno": {
+      "usda": "VEG,ROOTS,ETC,BAKED",
+      "factores": {
+        "vitamin_c_mg": 0.75,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "sarten": {
+      "usda": "VEG,ROOTS,ETC,SAUTEED",
+      "factores": {
+        "vitamin_c_mg": 0.75,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.7,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    },
+    "plancha": {
+      "usda": "VEG,ROOTS,ETC,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "verdura_fruto": {
+    "olla": {
+      "usda": "VEG,OTHER,BLD,WATER USED",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.85,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "horno": {
+      "usda": "VEG,OTHER,BAKED",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.85,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "sarten": {
+      "usda": "VEG,OTHER,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "plancha": {
+      "usda": "VEG,OTHER,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "verdura_col": {
+    "olla": {
+      "usda": "VEG,OTHER,BLD,WATER USED",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.85,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "horno": {
+      "usda": "VEG,OTHER,BAKED",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.85,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "sarten": {
+      "usda": "VEG,OTHER,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "plancha": {
+      "usda": "VEG,OTHER,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "seta": {
+    "olla": {
+      "usda": "VEG,OTHER,BLD,WATER USED",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.85,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "horno": {
+      "usda": "VEG,OTHER,BAKED",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.85,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "sarten": {
+      "usda": "VEG,OTHER,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "plancha": {
+      "usda": "VEG,OTHER,STIR FRY",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "legumbre": {
+    "olla": {
+      "usda": "LEGUMES,CKD 45/75MIN,BLD,WATER USED",
+      "factores": {
+        "calcium_mg": 0.9,
+        "iron_mg": 0.85,
+        "magnesium_mg": 0.8,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.75,
+        "sodium_mg": 0.95,
+        "zinc_mg": 0.9,
+        "copper_mg": 0.7,
+        "vitamin_c_mg": 0.7,
+        "thiamin_mg": 0.65,
+        "riboflavin_mg": 0.75,
+        "niacin_mg": 0.7,
+        "vitamin_b6_mg": 0.7,
+        "folate_ug": 0.5,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "horno": {
+      "usda": "LEGUMES,CKD 45/75MIN,BOILED+BAKED",
+      "factores": {
+        "calcium_mg": 0.9,
+        "iron_mg": 0.85,
+        "magnesium_mg": 0.8,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.75,
+        "sodium_mg": 0.95,
+        "zinc_mg": 0.9,
+        "copper_mg": 0.7,
+        "vitamin_c_mg": 0.65,
+        "thiamin_mg": 0.6,
+        "riboflavin_mg": 0.7,
+        "niacin_mg": 0.65,
+        "vitamin_b6_mg": 0.65,
+        "folate_ug": 0.45,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    },
+    "sarten": {
+      "usda": "LEGUMES,CKD 45/75MIN,BOILED+FRIED",
+      "factores": {
+        "calcium_mg": 0.9,
+        "iron_mg": 0.85,
+        "magnesium_mg": 0.8,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.75,
+        "sodium_mg": 0.95,
+        "zinc_mg": 0.9,
+        "copper_mg": 0.7,
+        "vitamin_c_mg": 0.65,
+        "thiamin_mg": 0.6,
+        "riboflavin_mg": 0.7,
+        "niacin_mg": 0.65,
+        "vitamin_b6_mg": 0.65,
+        "folate_ug": 0.45,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    }
+  },
+  "pasta": {
+    "olla": {
+      "usda": "PASTA,BOILED,DRAINED",
+      "factores": {
+        "calcium_mg": 0.95,
+        "iron_mg": 0.75,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.85,
+        "potassium_mg": 0.3,
+        "sodium_mg": 0.5,
+        "copper_mg": 0.9,
+        "vitamin_c_mg": 0.7,
+        "thiamin_mg": 0.65,
+        "riboflavin_mg": 0.75,
+        "niacin_mg": 0.65,
+        "vitamin_b6_mg": 0.8,
+        "folate_ug": 0.7,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "horno": {
+      "usda": "PASTA,BOILED,DRAINED,BAKED",
+      "factores": {
+        "calcium_mg": 0.95,
+        "iron_mg": 0.75,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.85,
+        "potassium_mg": 0.3,
+        "sodium_mg": 0.5,
+        "copper_mg": 0.9,
+        "vitamin_c_mg": 0.6,
+        "thiamin_mg": 0.55,
+        "riboflavin_mg": 0.75,
+        "niacin_mg": 0.6,
+        "vitamin_b6_mg": 0.75,
+        "folate_ug": 0.5,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "arroz": {
+    "olla": {
+      "usda": "RICE,WHITE/BROWN,COOKED,WATER USED",
+      "factores": {
+        "iron_mg": 0.95,
+        "phosphorus_mg": 0.95,
+        "potassium_mg": 0.95,
+        "copper_mg": 0.95,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.8,
+        "riboflavin_mg": 0.9,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.7,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "horno": {
+      "usda": "RICE,WHITE/BROWN,COOKED,WATER USED",
+      "factores": {
+        "iron_mg": 0.95,
+        "phosphorus_mg": 0.95,
+        "potassium_mg": 0.95,
+        "copper_mg": 0.95,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.8,
+        "riboflavin_mg": 0.9,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.7,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "sarten": {
+      "usda": "RICE,WHITE/BROWN,SAUTEED+SIMMERED",
+      "factores": {
+        "iron_mg": 0.95,
+        "phosphorus_mg": 0.95,
+        "potassium_mg": 0.95,
+        "copper_mg": 0.95,
+        "vitamin_c_mg": 0.7,
+        "thiamin_mg": 0.75,
+        "riboflavin_mg": 0.85,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.6,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "cereal": {
+    "olla": {
+      "usda": "CEREAL,REG/QUICK,COOKED",
+      "factores": {
+        "iron_mg": 0.95,
+        "phosphorus_mg": 0.95,
+        "potassium_mg": 0.95,
+        "copper_mg": 0.95,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.8,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.9,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.7,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "carne_roja": {
+    "olla": {
+      "usda": "BEEF,ROAST,SIMMERED,W/DRIP",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.6,
+        "niacin_mg": 0.9,
+        "vitamin_b6_mg": 0.5,
+        "folate_ug": 0.7,
+        "vitamin_b12_ug": 0.75,
+        "retinol_ug": 0.8,
+        "beta_carotene_ug": 0.8
+      }
+    },
+    "horno": {
+      "usda": "BEEF,ROASTED",
+      "factores": {
+        "calcium_mg": 0.9,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.85,
+        "potassium_mg": 0.8,
+        "sodium_mg": 0.85,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.55,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.75,
+        "vitamin_b6_mg": 0.5,
+        "folate_ug": 0.95,
+        "vitamin_b12_ug": 0.7,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "sarten": {
+      "usda": "BEEF,FRIED,W/O COATING",
+      "factores": {
+        "iron_mg": 0.95,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.85,
+        "sodium_mg": 0.85,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.6,
+        "folate_ug": 0.85,
+        "vitamin_b12_ug": 0.8,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "plancha": {
+      "usda": "BEEF,BROILED CUT",
+      "factores": {
+        "iron_mg": 0.95,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.85,
+        "sodium_mg": 0.85,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.6,
+        "folate_ug": 0.85,
+        "vitamin_b12_ug": 0.8,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    }
+  },
+  "carne_caza": {
+    "olla": {
+      "usda": "BEEF,ROAST,SIMMERED,W/DRIP",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.6,
+        "niacin_mg": 0.9,
+        "vitamin_b6_mg": 0.5,
+        "folate_ug": 0.7,
+        "vitamin_b12_ug": 0.75,
+        "retinol_ug": 0.8,
+        "beta_carotene_ug": 0.8
+      }
+    },
+    "horno": {
+      "usda": "BEEF,ROASTED",
+      "factores": {
+        "calcium_mg": 0.9,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.85,
+        "potassium_mg": 0.8,
+        "sodium_mg": 0.85,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.55,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.75,
+        "vitamin_b6_mg": 0.5,
+        "folate_ug": 0.95,
+        "vitamin_b12_ug": 0.7,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "sarten": {
+      "usda": "BEEF,FRIED,W/O COATING",
+      "factores": {
+        "iron_mg": 0.95,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.85,
+        "sodium_mg": 0.85,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.6,
+        "folate_ug": 0.85,
+        "vitamin_b12_ug": 0.8,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "plancha": {
+      "usda": "BEEF,BROILED CUT",
+      "factores": {
+        "iron_mg": 0.95,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.85,
+        "sodium_mg": 0.85,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.6,
+        "folate_ug": 0.85,
+        "vitamin_b12_ug": 0.8,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    }
+  },
+  "casqueria": {
+    "olla": {
+      "usda": "BEEF,ROAST,SIMMERED,W/DRIP",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.6,
+        "niacin_mg": 0.9,
+        "vitamin_b6_mg": 0.5,
+        "folate_ug": 0.7,
+        "vitamin_b12_ug": 0.75,
+        "retinol_ug": 0.8,
+        "beta_carotene_ug": 0.8
+      }
+    },
+    "horno": {
+      "usda": "BEEF,ROASTED",
+      "factores": {
+        "calcium_mg": 0.9,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.85,
+        "potassium_mg": 0.8,
+        "sodium_mg": 0.85,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.55,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.75,
+        "vitamin_b6_mg": 0.5,
+        "folate_ug": 0.95,
+        "vitamin_b12_ug": 0.7,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "sarten": {
+      "usda": "BEEF,FRIED,W/O COATING",
+      "factores": {
+        "iron_mg": 0.95,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.85,
+        "sodium_mg": 0.85,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.6,
+        "folate_ug": 0.85,
+        "vitamin_b12_ug": 0.8,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "plancha": {
+      "usda": "BEEF,BROILED CUT",
+      "factores": {
+        "iron_mg": 0.95,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.85,
+        "sodium_mg": 0.85,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.6,
+        "folate_ug": 0.85,
+        "vitamin_b12_ug": 0.8,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    }
+  },
+  "carne_cerdo": {
+    "olla": {
+      "usda": "PORK,FRESH,ROAST,SIMMERED W/DRIPPNG",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.55,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.65,
+        "folate_ug": 0.7,
+        "vitamin_b12_ug": 0.75,
+        "retinol_ug": 0.8,
+        "beta_carotene_ug": 0.8
+      }
+    },
+    "horno": {
+      "usda": "PORK,FRESH,ROASTED",
+      "factores": {
+        "calcium_mg": 0.95,
+        "magnesium_mg": 0.75,
+        "phosphorus_mg": 0.85,
+        "potassium_mg": 0.8,
+        "sodium_mg": 0.8,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.6,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.85,
+        "vitamin_b6_mg": 0.85,
+        "folate_ug": 0.95,
+        "vitamin_b12_ug": 0.8,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "sarten": {
+      "usda": "PORK,FRESH,FRIED,WO/COATING",
+      "factores": {
+        "calcium_mg": 0.75,
+        "iron_mg": 0.8,
+        "magnesium_mg": 0.95,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.85,
+        "sodium_mg": 0.9,
+        "copper_mg": 0.95,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.65,
+        "folate_ug": 0.85,
+        "vitamin_b12_ug": 0.9,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "plancha": {
+      "usda": "PORK,FRESH,BROILED",
+      "factores": {
+        "calcium_mg": 0.75,
+        "iron_mg": 0.8,
+        "magnesium_mg": 0.95,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.85,
+        "sodium_mg": 0.9,
+        "copper_mg": 0.95,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.65,
+        "folate_ug": 0.85,
+        "vitamin_b12_ug": 0.9,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    }
+  },
+  "carne_ave": {
+    "olla": {
+      "usda": "CHICKEN,SIMMERED,W/DRIPPINGS",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.75,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.65,
+        "folate_ug": 0.7,
+        "vitamin_b12_ug": 0.65,
+        "retinol_ug": 0.8,
+        "beta_carotene_ug": 0.8
+      }
+    },
+    "horno": {
+      "usda": "CHICKEN,ROASTED",
+      "factores": {
+        "calcium_mg": 0.95,
+        "iron_mg": 0.9,
+        "magnesium_mg": 0.75,
+        "phosphorus_mg": 0.8,
+        "potassium_mg": 0.8,
+        "sodium_mg": 0.8,
+        "copper_mg": 0.95,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.8,
+        "folate_ug": 0.6,
+        "vitamin_b12_ug": 0.65,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "sarten": {
+      "usda": "CHICKEN,FRIED,WO/COATING",
+      "factores": {
+        "calcium_mg": 0.95,
+        "iron_mg": 0.9,
+        "magnesium_mg": 0.75,
+        "phosphorus_mg": 0.8,
+        "potassium_mg": 0.8,
+        "sodium_mg": 0.8,
+        "copper_mg": 0.95,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.8,
+        "folate_ug": 0.6,
+        "vitamin_b12_ug": 0.65,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "plancha": {
+      "usda": "CHICKEN,BROILED",
+      "factores": {
+        "calcium_mg": 0.95,
+        "iron_mg": 0.9,
+        "magnesium_mg": 0.75,
+        "phosphorus_mg": 0.8,
+        "potassium_mg": 0.8,
+        "sodium_mg": 0.8,
+        "copper_mg": 0.95,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.7,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.8,
+        "vitamin_b6_mg": 0.8,
+        "folate_ug": 0.6,
+        "vitamin_b12_ug": 0.65,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    }
+  },
+  "pescado_blanco": {
+    "olla": {
+      "usda": "FINFISH,<5%FAT,SIMMERED,W/DRIPPINGS",
+      "factores": {
+        "calcium_mg": 0.8,
+        "iron_mg": 0.8,
+        "magnesium_mg": 0.8,
+        "phosphorus_mg": 0.8,
+        "potassium_mg": 0.8,
+        "sodium_mg": 0.8,
+        "zinc_mg": 0.8,
+        "copper_mg": 0.8,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.9,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.9,
+        "vitamin_b12_ug": 0.95,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "horno": {
+      "usda": "FINFISH,<5%FAT,BAKED W/DRIPPINGS",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.95,
+        "vitamin_b12_ug": 0.95,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "sarten": {
+      "usda": "FINFISH,<5%FAT,FRIED,WO/COATING",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.9,
+        "vitamin_b12_ug": 0.9,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    },
+    "plancha": {
+      "usda": "FINFISH,<5%FAT,BROILED,WO/DRIPPINGS",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.9,
+        "vitamin_b12_ug": 0.9,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    }
+  },
+  "pescado_azul": {
+    "olla": {
+      "usda": "FINFISH,>5%FAT,SIMMERED,WO/DRIP",
+      "factores": {
+        "magnesium_mg": 0.9,
+        "phosphorus_mg": 0.9,
+        "potassium_mg": 0.85,
+        "sodium_mg": 0.9,
+        "vitamin_c_mg": 0.75,
+        "thiamin_mg": 0.8,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.85,
+        "vitamin_b6_mg": 0.8,
+        "folate_ug": 0.8,
+        "vitamin_b12_ug": 0.85,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    },
+    "horno": {
+      "usda": "FINFISH,>5%FAT,BAKED,W/DRIPPINGS",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.95,
+        "vitamin_b12_ug": 0.8,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "sarten": {
+      "usda": "FINFISH,>5%FAT,FRIED,WO/COATING",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.9,
+        "vitamin_b12_ug": 0.75,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    },
+    "plancha": {
+      "usda": "FINFISH,>5%FAT,BROILED,WO/DRIPPNG",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.95,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.9,
+        "vitamin_b12_ug": 0.75,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    }
+  },
+  "marisco": {
+    "olla": {
+      "usda": "SHELLFISH,W/SHELL,BOILED",
+      "factores": {
+        "iron_mg": 0.9,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.7,
+        "potassium_mg": 0.7,
+        "sodium_mg": 0.85,
+        "copper_mg": 0.9,
+        "vitamin_c_mg": 0.75,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.75,
+        "niacin_mg": 0.75,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.75,
+        "vitamin_b12_ug": 0.6,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "horno": {
+      "usda": "SHELLFISH,WO/SHELL,BAKED,W/DRIPPNGS",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.9,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "sarten": {
+      "usda": "SHELLFISH,WO/SHELL,FRIED,WO/COATING",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.75,
+        "vitamin_b12_ug": 0.85,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "plancha": {
+      "usda": "SHELLFISH,WO/SHELL,BROILED",
+      "factores": {
+        "vitamin_c_mg": 0.95,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.8,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.95,
+        "vitamin_b12_ug": 0.95,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    }
+  },
+  "cefalopodo": {
+    "olla": {
+      "usda": "SHELLFISH,W/SHELL,BOILED",
+      "factores": {
+        "iron_mg": 0.9,
+        "magnesium_mg": 0.85,
+        "phosphorus_mg": 0.7,
+        "potassium_mg": 0.7,
+        "sodium_mg": 0.85,
+        "copper_mg": 0.9,
+        "vitamin_c_mg": 0.75,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.75,
+        "niacin_mg": 0.75,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.75,
+        "vitamin_b12_ug": 0.6,
+        "retinol_ug": 0.9,
+        "beta_carotene_ug": 0.9
+      }
+    },
+    "horno": {
+      "usda": "SHELLFISH,WO/SHELL,BAKED,W/DRIPPNGS",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.9,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "sarten": {
+      "usda": "SHELLFISH,WO/SHELL,FRIED,WO/COATING",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.75,
+        "vitamin_b12_ug": 0.85,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "plancha": {
+      "usda": "SHELLFISH,WO/SHELL,BROILED",
+      "factores": {
+        "vitamin_c_mg": 0.95,
+        "thiamin_mg": 0.9,
+        "riboflavin_mg": 0.8,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.95,
+        "vitamin_b12_ug": 0.95,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    }
+  },
+  "huevo": {
+    "olla": {
+      "usda": "EGGS,HARD COOKED",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.75,
+        "vitamin_b12_ug": 0.85
+      }
+    },
+    "horno": {
+      "usda": "EGGS,BAKED",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.8,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.9,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.75,
+        "vitamin_b12_ug": 0.8
+      }
+    },
+    "sarten": {
+      "usda": "EGGS,FRIED,SCRAMBLED",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.75,
+        "vitamin_b12_ug": 0.85
+      }
+    },
+    "plancha": {
+      "usda": "EGGS,FRIED,SCRAMBLED",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.75,
+        "vitamin_b12_ug": 0.85
+      }
+    }
+  },
+  "leche": {
+    "olla": {
+      "usda": "MILK,HEATED APPROX 10MIN",
+      "factores": {
+        "vitamin_c_mg": 0.85,
+        "thiamin_mg": 0.9,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.85,
+        "vitamin_b12_ug": 0.8
+      }
+    },
+    "horno": {
+      "usda": "MILK,HEATED APPROX 30MIN",
+      "factores": {
+        "vitamin_c_mg": 0.65,
+        "thiamin_mg": 0.75,
+        "vitamin_b6_mg": 0.75,
+        "folate_ug": 0.8,
+        "vitamin_b12_ug": 0.55
+      }
+    }
+  },
+  "queso": {
+    "olla": {
+      "usda": "CHEESE,COOKED W/LIQUID",
+      "factores": {
+        "vitamin_c_mg": 0.65,
+        "thiamin_mg": 0.75,
+        "vitamin_b6_mg": 0.75,
+        "folate_ug": 0.8,
+        "vitamin_b12_ug": 0.55
+      }
+    },
+    "horno": {
+      "usda": "CHEESE,BAKED",
+      "factores": {
+        "vitamin_c_mg": 0.65,
+        "thiamin_mg": 0.75,
+        "vitamin_b6_mg": 0.75,
+        "folate_ug": 0.8,
+        "vitamin_b12_ug": 0.55
+      }
+    },
+    "plancha": {
+      "usda": "CHEESE,BROILED",
+      "factores": {
+        "vitamin_c_mg": 0.65,
+        "thiamin_mg": 0.75,
+        "vitamin_b6_mg": 0.75,
+        "folate_ug": 0.8,
+        "vitamin_b12_ug": 0.55
+      }
+    }
+  },
+  "fruta": {
+    "olla": {
+      "usda": "FRUITS,FRESH(NOT CITRUS),STEWED",
+      "factores": {
+        "calcium_mg": 0.95,
+        "potassium_mg": 0.9,
+        "copper_mg": 0.9,
+        "vitamin_c_mg": 0.7,
+        "thiamin_mg": 0.8,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.9,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.5,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    },
+    "horno": {
+      "usda": "FRUITS,FRESH(NOT CITRUS),BAKED",
+      "factores": {
+        "calcium_mg": 0.95,
+        "potassium_mg": 0.9,
+        "copper_mg": 0.9,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.8,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.9,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.6,
+        "retinol_ug": 0.85,
+        "beta_carotene_ug": 0.85
+      }
+    },
+    "sarten": {
+      "usda": "FRUITS,FRESH(NOT CITRUS),SAUTEED",
+      "factores": {
+        "calcium_mg": 0.95,
+        "potassium_mg": 0.9,
+        "copper_mg": 0.9,
+        "vitamin_c_mg": 0.7,
+        "thiamin_mg": 0.8,
+        "riboflavin_mg": 0.9,
+        "niacin_mg": 0.9,
+        "vitamin_b6_mg": 0.9,
+        "folate_ug": 0.5,
+        "retinol_ug": 0.75,
+        "beta_carotene_ug": 0.75
+      }
+    }
+  },
+  "fruto_seco": {
+    "horno": {
+      "usda": "NUTS,ROASTED",
+      "factores": {
+        "phosphorus_mg": 0.8,
+        "sodium_mg": 0.95,
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.8,
+        "beta_carotene_ug": 0.8
+      }
+    },
+    "sarten": {
+      "usda": "NUTS,BROILED",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    },
+    "olla": {
+      "usda": "NUTS,BOILED,W/DRIPPINGS",
+      "factores": {
+        "vitamin_c_mg": 0.8,
+        "thiamin_mg": 0.85,
+        "riboflavin_mg": 0.95,
+        "niacin_mg": 0.95,
+        "vitamin_b6_mg": 0.95,
+        "folate_ug": 0.8,
+        "retinol_ug": 0.95,
+        "beta_carotene_ug": 0.95
+      }
+    }
+  }
+}

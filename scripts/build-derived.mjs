@@ -12,13 +12,27 @@
  *   2. Cada tabla lleva su PROCEDENCIA por fila: de qué operador salió y con
  *      qué cobertura. Una fila derivada que no dice de dónde viene acaba
  *      leyéndose como un dato medido, y no lo es.
- *   3. _meta.json lleva el hash de las fuentes. derived.test.js compara: si
- *      una fuente cambió y nadie regeneró, el test lo dice. Una tabla
+ *   3. _meta.json lleva el hash de las fuentes Y DEL OPERADOR. derived.test.js
+ *      compara: si algo cambió y nadie regeneró, el test lo dice. Una tabla
  *      derivada caducada es peor que no tenerla, porque parece fresca.
  *
  *   node scripts/build-derived.mjs [--check]
  *
  * --check no escribe: falla si lo generado no coincide con lo commiteado.
+ *
+ * ── OJO: en Node 24 esto no arranca ────────────────────────────────────────
+ *
+ * El script importa `src/lib/ingredients.js`, que importa JSON sin el
+ * `with { type: "json" }` que Node 24 exige, y la cascada muere con
+ * ERR_IMPORT_ATTRIBUTE_MISSING antes de ejecutar nada. No es un fallo de este
+ * fichero —es todo el árbol de imports del `src/`, que Vite sí resuelve— y
+ * arreglarlo a mano serían decenas de ficheros tocados por un problema de
+ * runtime. Mientras tanto se ejecuta a través de Vite, que ya está instalado:
+ *
+ *   mkdir scripts/__run
+ *   echo 'import {it,expect} from "vitest"; it("b", async()=>{ await import("../build-derived.mjs"); expect(1).toBe(1); }, 300000);' > scripts/__run/build.test.js
+ *   node node_modules/vitest/vitest.mjs run scripts/__run/build.test.js
+ *   rm -rf scripts/__run
  */
 import { createHash } from "crypto";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "fs";
@@ -93,9 +107,36 @@ const ficheros = readdirSync(RECIPES_DIR).filter((f) => f.endsWith(".json")).sor
 const recetas = ficheros.flatMap((f) => JSON.parse(readFileSync(join(RECIPES_DIR, f), "utf8")));
 const ingredientesRaw = readFileSync(join(ROOT, "src", "data", "ingredients.json"), "utf8");
 
+/**
+ * EL HASH NO CUBRÍA AL OPERADOR, y esa era la mitad del problema.
+ *
+ * `_meta.json` guardaba el hash de `ingredients.json` y de las recetas, y el
+ * test de CI comparaba eso. Pero la nutrición no sale solo de las fuentes:
+ * sale de las fuentes PASADAS POR UN OPERADOR. Al enchufar el factor de
+ * retención cambiaron los 1.033 folatos del artefacto sin que se moviera una
+ * sola fuente, así que el hash siguió cuadrando y el test siguió en verde
+ * sobre una tabla caducada. Es exactamente el fallo que ese test dice impedir:
+ * «una tabla derivada caducada es peor que no tenerla: parece fresca y no lo
+ * está».
+ *
+ * Faltaba además `alimentos.json`, que es de donde salen TODOS los números de
+ * composición. Estaba fuera del hash desde el principio.
+ */
+const FICHEROS_DEL_OPERADOR = [
+  "src/lib/ingredients.js",
+  "src/lib/derive/composicion.js",
+  "src/lib/derive/masaServida.js",
+  "src/lib/derive/estadoDeFicha.js",
+  "src/lib/derive/factorRetencion.js",
+  "src/data/retencion.json",
+  "src/data/nutrientes.js",
+];
+
 const hashFuentes = {
   ingredientes: hash(ingredientesRaw),
   recetas: hash(ficheros.map((f) => readFileSync(join(RECIPES_DIR, f), "utf8")).join("")),
+  alimentos: hash(readFileSync(join(ROOT, "src", "data", "alimentos.json"), "utf8")),
+  operador: hash(FICHEROS_DEL_OPERADOR.map((f) => readFileSync(join(ROOT, f), "utf8")).join("")),
 };
 
 // ── recipeNutrition ─────────────────────────────────────────────────────────
