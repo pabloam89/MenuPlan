@@ -324,6 +324,30 @@ export function deriveRecipeAllergens(recipe) {
  *   CADA campo secundario, que es siempre menor o igual y a veces mucho menor:
  *   BEDCA publica azúcar en 42 de sus 198 fichas.
  */
+/**
+ * Las clases cuyo hierro es HEMO, que es el que se absorbe bien.
+ *
+ * Hemo es el hierro unido a la hemoglobina y la mioglobina, o sea el del
+ * músculo y la sangre de un animal. El huevo y el lácteo son de origen animal
+ * y su hierro NO es hemo: por eso la lista va por `clase` y no por `reino`,
+ * que es el error fácil aquí.
+ */
+const CLASES_HEMO = new Set(["mamifero", "ave", "viscera", "pez", "marisco", "cefalopodo"]);
+
+/**
+ * `compuesto` es el único que no se puede repartir: un alioli o una bechamel
+ * son varias cosas a la vez y su hierro viene de todas. Se cuenta aparte en
+ * vez de asignarlo a ojo a uno de los dos lados. Medido sobre el recetario
+ * estrella, es el 1,9 % del hierro total.
+ */
+function origenDelHierro(alimento) {
+  const clase = alimento?.taxonomia?.clase;
+  if (!clase) return "sinRepartir";
+  if (CLASES_HEMO.has(clase)) return "hemo";
+  if (clase === "compuesto") return "sinRepartir";
+  return "noHemo";
+}
+
 export function computeRecipeNutrition(recipe, servings) {
   if (!(servings > 0)) return null;
 
@@ -353,6 +377,20 @@ export function computeRecipeNutrition(recipe, servings) {
   // tragarse: un folato corregido y uno sin corregir no son el mismo dato, y
   // la cobertura por campo no lo cuenta porque mide otra cosa.
   const sinDecidir = new Set();
+
+  // EL HIERRO NO SE ABSORBE IGUAL SEGÚN DE DÓNDE VENGA, y el catálogo ya sabe
+  // de dónde viene: `taxonomia.clase` está al 100 % en las 396 fichas.
+  //
+  // El hemo —carne, ave, víscera, pescado, marisco, cefalópodo— se absorbe en
+  // torno al 25 %. El no hemo, en torno al 5-10 %, y además depende de lo que
+  // le acompañe. Sumar los dos en un número y llamarlo «hierro» dice menos de
+  // lo que el dato ya permite: un menú de legumbres y uno de carne con el
+  // mismo hierro en el papel no dan el mismo hierro a quien se lo come.
+  //
+  // Se reparte AQUÍ y no en un módulo aparte a propósito: este bucle ya tiene
+  // la masa buena —con merma, con el tope del aceite y sin la costra—, y
+  // recalcularla fuera habría abierto un tercer carril que se desincroniza.
+  const hierro = { hemo: 0, noHemo: 0, sinRepartir: 0 };
 
   // El aceite de freír se ABSORBE, no se come entero — ver ACEITE_ABSORBIDO.
   // Hace falta saber la masa sólida antes de contar el aceite, así que las
@@ -415,8 +453,10 @@ export function computeRecipeNutrition(recipe, servings) {
       if (nutrition[campo] == null) continue;
       const ret = factorRetencion(NUTRIENTES[campo].porRacion, alimento?.familia, recipe?.tecnica, cocinada);
       if (ret.via === "SIN DECIDIR") sinDecidir.add(alimento?.id ?? nombre);
-      totals[campo] += nutrition[campo] * factor * ret.factor;
+      const aporte = nutrition[campo] * factor * ret.factor;
+      totals[campo] += aporte;
       gramosDelCampo[campo] += grams;
+      if (campo === "iron100g") hierro[origenDelHierro(alimento)] += aporte;
     }
   }
 
@@ -465,6 +505,31 @@ export function computeRecipeNutrition(recipe, servings) {
   // todos los ingredientes de la receta supieron contestar, no que no se haya
   // mirado.
   salida.retencionSinDecidir = [...sinDecidir];
+
+  // De dónde viene el hierro de este plato, por ración. Los tres suman
+  // `iron_mg`, así que `sinRepartir` no es una pérdida: es la parte que viene
+  // de un `compuesto` y no se puede atribuir.
+  salida.hierroPorOrigen = {
+    hemo: perServing(hierro.hemo, 2),
+    noHemo: perServing(hierro.noHemo, 2),
+    sinRepartir: perServing(hierro.sinRepartir, 2),
+  };
+
+  // VITAMINA A EN µg RAE, que es la unidad en la que se publican las ingestas
+  // de referencia. El repo ya tenía las dos mitades en columnas separadas
+  // —`retinol_ug` y `beta_carotene_ug`— y solo faltaba la fórmula: el
+  // betacaroteno de la dieta rinde 1 µg de retinol por cada 12 µg, según el
+  // factor de conversión del Institute of Medicine que EFSA y la FAO usan.
+  //
+  // Sale `null` si falta cualquiera de las dos, no 0: media vitamina A no es
+  // una vitamina A baja, es media respuesta. Y por eso NO sustituye a los dos
+  // campos, que siguen publicándose aparte — un menú vegetariano y uno con
+  // hígado pueden dar el mismo RAE y no son lo mismo.
+  const retinol = salida.retinol_ug;
+  const caroteno = salida.beta_carotene_ug;
+  salida.vitamin_a_rae_ug = retinol == null || caroteno == null
+    ? null
+    : Math.round((retinol + caroteno / 12) * 10) / 10;
   // Qué parte de la receta sostiene cada campo secundario. Un 0,31 en
   // `sugar_g` dice que ese azúcar es el de un tercio del plato.
   salida.coberturaPorCampo = cobertura;
