@@ -452,6 +452,175 @@ const NO_REPETIR = [
   },
 ];
 
+/**
+ * LAS REGLAS UNARIAS: las que se deciden mirando SOLO el plato y su hueco.
+ *
+ * ── El problema que cierran ───────────────────────────────────────────────
+ *
+ * Siete de estas ya estaban escritas DOS VECES: aquí y en `candidatosDeHueco`
+ * del solver, que las reimplementa para podar el dominio. El propio solver lo
+ * reconoce —«son unarias: puestas aquí, un hígado encebollado NO llega
+ * siquiera a probarse un miércoles»— y es una decisión correcta de
+ * rendimiento, pero dejaba siete reglas con dos redacciones que pueden
+ * divergir en silencio. Es exactamente el fallo que la cabecera del solver
+ * jura evitar, cometido por el solver.
+ *
+ * Con la tabla, `validateMenu` las evalúa y `candidatosDeHueco` las filtra
+ * desde la MISMA declaración. Ya no pueden separarse.
+ *
+ * ── Tres no se podan todavía ──────────────────────────────────────────────
+ *
+ * Los dos conflictos con el menú escolar y el perfil de salud son unarios y
+ * el solver NO los poda: se prueban y rebotan en cada nodo. Están declarados
+ * igual, pero enchufarlos a la poda CAMBIA qué menús salen —podar de más
+ * estrecha el dominio— así que es un paso aparte y se mide antes.
+ */
+export const UNARIAS = [
+  {
+    rule: "rol_incompatible_con_hueco",
+    cumple: (r, h) => slotAcceptsRole(r, { mealType: h.mealType, position: h.position, preferType: h.preferType }),
+    mensaje: (r, h) => `"${r.name}" (${(r.mealRole ?? []).join("/") || "sin rol"}) no encaja en ${h.slotId}`,
+  },
+  {
+    rule: "tiempo_excedido",
+    cumple: (r, h) => !h.maxTime || r.time <= h.maxTime,
+    mensaje: (r, h) => `"${r.name}" (${r.time}min) excede el límite de ${h.maxTime}min`,
+  },
+  {
+    rule: "tupper_not_friendly",
+    cumple: (r, h) => h.mode !== "tupper" || Boolean(r.tupperFriendly),
+    mensaje: (r) => `"${r.name}" no es apta para tupper pero el slot lo requiere`,
+  },
+  {
+    // Un plato de montaje no es una COMIDA. De CENA sí, cuando su ficha lo
+    // dice: vetarlo en todas partes dejaba fuera a 43 platos estrella con
+    // "cena" en su `mealRole` —carpaccio, wrap, quesadillas, poke bowl— y el
+    // motor volvía una y otra vez a la tortilla.
+    rule: "cena_rapida_no_solicitada",
+    cumple: (r, h) => {
+      if (!isMontaje(r)) return true;
+      if (h.preferType === "cena_rapida") return true;
+      // `mealTypeDeclarado`, NO `mealType`: esta regla siempre leyó el contexto
+      // crudo, sin el respaldo de partir el slotId que sí usa la del rol. La
+      // diferencia es real y la cazó un test — un hueco "lun_cena" sin contexto
+      // declarado tiene que seguir marcando el montaje, porque nadie ha dicho
+      // que esa cena admita uno.
+      return h.mealTypeDeclarado === "cena" && (r.mealRole ?? []).includes("cena");
+    },
+    mensaje: (r) => `"${r.name}" es un plato de montaje pero el slot no fue marcado como cena rápida`,
+  },
+  {
+    // Por categoría O por proteína, para que una «Crema de lentejas» archivada
+    // en sopas_cremas cuente igual.
+    rule: "legumbres_en_cena",
+    cumple: (r, h) => h.mealType !== "cena" || (r.category !== "legumbres" && r.mainProtein !== "legumbre"),
+    mensaje: (r) => `"${r.name}" es legumbre y no debería ir en cena`,
+  },
+  {
+    // Lo que hace raro un hígado un miércoles no es el tiempo ni la dificultad
+    // —para el motor era un segundo rápido, igual que un filete—: es que la
+    // casquería se come cuando se elige. Se DERIVA de los ingredientes para que
+    // el catálogo pueda crecer sin que la regla se quede vieja en silencio.
+    rule: "casqueria_entre_semana",
+    cumple: (r, h) => !WEEKDAY_SLUGS.has(h.daySlug) || !esCasqueria(r),
+    mensaje: (r, h) => `"${r.name}" es casquería: va en fin de semana, no un ${h.daySlug}`,
+  },
+  {
+    rule: "plato_ocasion_entre_semana",
+    cumple: (r, h) => !WEEKDAY_SLUGS.has(h.daySlug) || r?.occasion !== "especial",
+    mensaje: (r, h) => `"${r.name}" es plato de ocasión y ${h.daySlug} es día de diario`,
+  },
+  {
+    // Se mira DONDE ESTÉ EL CAMPO, no solo en cena: cuando los niños cenan lo
+    // que los padres comieron, `buildGroupContext` cuelga esto del segundo de
+    // la comida. Un `if (mealType !== "cena")` lo saltaba, y el día que el niño
+    // comía pollo en el cole nada impedía que los padres comieran pollo.
+    rule: "school_protein_conflict",
+    cumple: (r, h) => !h.schoolProteinsToAvoid?.length
+      || ![...proteinGroupsOf(r)].some((g) => h.schoolProteinsToAvoid.includes(g)),
+    mensaje: (r, h) => {
+      const clash = [...proteinGroupsOf(r)].find((g) => h.schoolProteinsToAvoid.includes(g));
+      return `"${r.name}" tiene proteína "${clash}" que el menú escolar ya cubrió`;
+    },
+  },
+  {
+    rule: "school_carb_conflict",
+    cumple: (r, h) => {
+      if (!h.schoolCarbsToAvoid?.length) return true;
+      const carb = getCarbType(r);
+      return !carb || !h.schoolCarbsToAvoid.includes(carb);
+    },
+    mensaje: (r) => `"${r.name}" tiene base "${getCarbType(r)}" que el menú escolar ya cubrió`,
+  },
+  {
+    // Unaria respecto al PLATO, pero su parámetro es del hogar y no del hueco,
+    // así que `huecoDe` se lo cuelga a todos por igual.
+    rule: "health_profile_conflict",
+    cumple: (r, h) => {
+      const perfiles = h.activeHealthProfiles ?? [];
+      if (perfiles.length === 0) return true;
+      const flags = r.healthFlags ?? [];
+      return !perfiles.some((id) => !HEALTH_PROFILE_BADGE[id].matches(flags));
+    },
+    mensaje: (r, h) => {
+      const flags = r.healthFlags ?? [];
+      const violados = (h.activeHealthProfiles ?? []).filter((id) => !HEALTH_PROFILE_BADGE[id].matches(flags));
+      return `"${r.name}" no cumple el/los perfil(es) de salud activos: ${violados.join(", ")}`;
+    },
+  },
+];
+
+/** La tabla por nombre, para que el solver coja solo las que quiere podar. */
+export const UNARIA_POR_REGLA = Object.fromEntries(UNARIAS.map((u) => [u.rule, u]));
+
+/**
+ * Un hueco con todo lo que las unarias pueden preguntar, venga del validador
+ * o del solver. El `slotId` se parte como respaldo porque no todos los
+ * contextos declaran `mealType`/`position` — así estaba ya en la regla del rol.
+ */
+export function huecoDe(slotId, ctx = {}, extra = {}) {
+  const partes = String(slotId).split("_");
+  return {
+    slotId,
+    daySlug: ctx.daySlug ?? partes[0],
+    mealType: ctx.mealType ?? partes[1],
+    position: ctx.position ?? partes[2],
+    // Sin respaldo, y hace falta: no todas las reglas leían el contexto igual.
+    // La del rol partía el slotId cuando el contexto callaba; la del montaje
+    // no, y esa diferencia decide si un hueco "lun_cena" sin contexto admite
+    // un sándwich. Uniformarlas sin darse cuenta era un cambio de
+    // comportamiento disfrazado de limpieza.
+    mealTypeDeclarado: ctx.mealType,
+    preferType: ctx.preferType,
+    maxTime: ctx.maxTime,
+    mode: ctx.mode,
+    schoolProteinsToAvoid: ctx.schoolProteinsToAvoid,
+    schoolCarbsToAvoid: ctx.schoolCarbsToAvoid,
+    ...extra,
+  };
+}
+
+/**
+ * Evalúa una unaria sobre una lista de huecos.
+ *
+ * La LISTA se pasa desde fuera —unas reglas recorrían `slotAssignments` y
+ * otras `mealOrder`— porque las dos no llevan el mismo orden: `mealOrder` está
+ * ordenada por día y `slotAssignments` viene como la devolvió quien la montó.
+ * Cambiar cuál usa cada regla cambiaría el orden de `violations`, y de eso
+ * depende qué hueco repara `applyFallback` primero.
+ */
+function evaluarUnaria(regla, huecos, poolById, contextBySlot, extra) {
+  const out = [];
+  for (const { slotId, recipeId } of huecos) {
+    const receta = poolById[recipeId];
+    if (!receta) continue;
+    const hueco = huecoDe(slotId, contextBySlot[slotId] ?? {}, extra);
+    if (regla.cumple(receta, hueco)) continue;
+    out.push({ rule: regla.rule, slotId, message: regla.mensaje(receta, hueco) });
+  }
+  return out;
+}
+
 function buildMealOrder(slotAssignments) {
   const mealOrder = [];
   for (const { slotId, recipeId } of slotAssignments) {
@@ -760,6 +929,18 @@ export function validateMenu(
   freqs = {},
   basesPedidas = {},
 ) {
+
+  // Lo que las unarias necesitan y NO viene del hueco: los perfiles de salud
+  // son del hogar, así que se cuelgan de todos los huecos por igual.
+  //
+  // `anemia` queda fuera (CORRECTABLE_HEALTH_PROFILES) porque es el único
+  // perfil de PRESENCIA —«tiene que llevar hierro»— en vez de ausencia:
+  // tratarlo igual marcaría casi todos los huecos de la semana y pelearía con
+  // las reglas de variedad. Se queda como sesgo blando en el prompt.
+  const unariaExtra = {
+    activeHealthProfiles: Array.from(new Set(activeHealthProfiles ?? []))
+      .filter((id) => CORRECTABLE_HEALTH_PROFILES.has(id)),
+  };
   const violations = [];
   const poolIds = new Set(filteredPool.map((r) => r.id));
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
@@ -818,70 +999,17 @@ export function validateMenu(
     }
   }
 
-  // 2. No legumbres in cena slots — matched by category OR mainProtein, so a
-  // legume-based dish filed under another category (e.g. "Crema de lentejas"
-  // in sopas_cremas, mainProtein "legumbre") is caught too, aligning with the
-  // SYSTEM_PROMPT and with FREQ_KEY_MATCHERS.legumbres.
-  for (const { slotId, recipeId, mealType } of mealOrder) {
-    if (mealType !== "cena") continue;
-    const recipe = poolById[recipeId];
-    if (!recipe) continue;
-    if (recipe.category === "legumbres" || recipe.mainProtein === "legumbre") {
-      violations.push({
-        rule: "legumbres_en_cena",
-        slotId,
-        message: `"${recipe.name}" es legumbre y no debería ir en cena`,
-      });
-    }
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.legumbres_en_cena, mealOrder, poolById, contextBySlot, unariaExtra,
+  ));
 
-  // 1b. The dish's mealRole must fit the slot it landed in. Without this rule
-  // a cena-only dish could sit as a comida's primero and nothing complained:
-  // the constraint existed solely in applyFallback, i.e. only on the repair
-  // path, so it was never detected and therefore never repaired.
-  for (const { slotId, recipeId } of slotAssignments) {
-    const recipe = poolById[recipeId];
-    if (!recipe) continue; // already flagged by rule 1
-    const parts = slotId.split("_");
-    const ctx = contextBySlot[slotId] ?? {};
-    const slotShape = {
-      mealType: ctx.mealType ?? parts[1],
-      position: ctx.position ?? parts[2],
-      preferType: ctx.preferType,
-    };
-    if (!slotAcceptsRole(recipe, slotShape)) {
-      violations.push({
-        rule: "rol_incompatible_con_hueco",
-        slotId,
-        message: `"${recipe.name}" (${(recipe.mealRole ?? []).join("/") || "sin rol"}) no encaja en ${slotId}`,
-      });
-    }
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.rol_incompatible_con_hueco, slotAssignments, poolById, contextBySlot, unariaExtra,
+  ));
 
-  // 2b. Un plato de montaje (sándwich, tostas, tabla…) no es una COMIDA.
-  //
-  // De CENA sí, cuando su ficha dice que puede serlo. Esta regla vetaba el
-  // montaje en TODAS partes salvo en un hueco marcado a mano como cena
-  // rápida, y eso dejaba fuera de una cena normal a 43 platos del recetario
-  // estrella que llevan "cena" en su `mealRole`: carpaccio, wrap de pollo,
-  // quesadillas, sándwich club, poke bowl, ensalada de aguacate y gambas. Las
-  // cenas rápidas buenas, precisamente. Con ellas vetadas, el motor volvía una
-  // y otra vez a la tortilla — reportado tal cual.
-  //
-  // Qué platos pueden ser cena se decide en el catálogo, plato a plato. Esto
-  // era una segunda reja por encima que contradecía esa decisión.
-  for (const { slotId, recipeId } of slotAssignments) {
-    const recipe = poolById[recipeId];
-    if (!recipe || !isMontaje(recipe)) continue;
-    const ctx = contextBySlot[slotId];
-    if (ctx?.preferType === "cena_rapida") continue;
-    if (ctx?.mealType === "cena" && (recipe.mealRole ?? []).includes("cena")) continue;
-    violations.push({
-      rule: "cena_rapida_no_solicitada",
-      slotId,
-      message: `"${recipe.name}" es un plato de montaje pero el slot no fue marcado como cena rápida`,
-    });
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.cena_rapida_no_solicitada, slotAssignments, poolById, contextBySlot, unariaExtra,
+  ));
 
   // ── Las cinco de NO REPETIR que salen aquí (reglas 3, 3b, 3c, 3d, 3e) ────
   //
@@ -903,108 +1031,25 @@ export function validateMenu(
   violations.push(...evaluarNoRepetir(NO_REPETIR.filter((r) => r.bloque === 1), ctxNoRepetir));
 
 
-  // 3e-bis. La CASQUERÍA es de fin de semana.
-  //
-  //     Mismo mecanismo que la regla 3f de aquí abajo y por el mismo motivo:
-  //     lo que hace raro un hígado encebollado un miércoles por la noche no es
-  //     el tiempo (20 minutos), ni la dificultad, ni la proteína — para el
-  //     motor era un segundo de carne rápido, igual que un filete. Es que la
-  //     casquería se come cuando se elige. Reportado tal cual: salió de cena
-  //     entre semana.
-  //
-  //     Qué cuenta como casquería se DERIVA de los ingredientes (lib/casqueria.js),
-  //     no se marca plato a plato, para que el catálogo pueda crecer sin que
-  //     esta regla se quede vieja en silencio.
-  for (const { slotId, recipeId, daySlug } of mealOrder) {
-    if (!WEEKDAY_SLUGS.has(daySlug)) continue;
-    const recipe = poolById[recipeId];
-    if (!esCasqueria(recipe)) continue;
-    violations.push({
-      rule: "casqueria_entre_semana",
-      slotId,
-      message: `"${recipe.name}" es casquería: va en fin de semana, no un ${daySlug}`,
-    });
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.casqueria_entre_semana, mealOrder, poolById, contextBySlot, unariaExtra,
+  ));
 
-  // 3f. Los platos de OCASIÓN no caen entre semana.
-  //
-  //     Reportado tal cual: "nadie en España toma cigalas a la plancha un
-  //     puñetero martes para comer" y "nadie toma navajas de segundo, NADIE".
-  //     Y era verdad que el generador no podía saberlo: para él unas navajas
-  //     a la plancha son un segundo de pescado de 10 minutos y fácil — igual
-  //     que un filete. Lo que las distingue no es tiempo ni dificultad, es la
-  //     ocasión, así que ahora eso se declara en la receta (campo `occasion`)
-  //     y aquí solo se respeta. Sábado y domingo sí: ahí es donde vive.
-  for (const { slotId, recipeId, daySlug } of mealOrder) {
-    if (!WEEKDAY_SLUGS.has(daySlug)) continue;
-    const recipe = poolById[recipeId];
-    if (recipe?.occasion !== "especial") continue;
-    violations.push({
-      rule: "plato_ocasion_entre_semana",
-      slotId,
-      message: `"${recipe.name}" es plato de ocasión y ${daySlug} es día de diario`,
-    });
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.plato_ocasion_entre_semana, mealOrder, poolById, contextBySlot, unariaExtra,
+  ));
 
-  // 4. schoolProteinsToAvoid respetado DONDE ESTÉ EL CAMPO, no solo en cena.
-  //
-  // Llevaba un `if (mealType !== "cena") continue` y era un fallo real. Cuando
-  // los niños cenan lo que los padres comieron al mediodía (`reuseColeDinner`),
-  // `buildGroupContext` cuelga este campo del SEGUNDO DE LA COMIDA de los
-  // adultos — porque esa comida es lo que el niño va a cenar. El filtro por
-  // `cena` lo saltaba, así que el día que el niño comía pollo en el cole nada
-  // impedía que los padres comieran pollo. La restricción estaba puesta y no la
-  // leía nadie, ni aquí, ni en la reparación, ni en el prompt.
-  //
-  // El campo solo lo llevan los huecos que lo necesitan, así que mirar si está
-  // presente es más preciso que adivinar por el tipo de comida.
-  for (const { slotId, recipeId } of mealOrder) {
-    const ctx = contextBySlot[slotId];
-    if (!ctx?.schoolProteinsToAvoid?.length) continue;
-    const recipe = poolById[recipeId];
-    if (!recipe) continue;
-    const clash = [...proteinGroupsOf(recipe)].find((g) => ctx.schoolProteinsToAvoid.includes(g));
-    if (clash) {
-      violations.push({
-        rule: "school_protein_conflict",
-        slotId,
-        message: `"${recipe.name}" tiene proteína "${clash}" que el menú escolar ya cubrió`,
-      });
-    }
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.school_protein_conflict, mealOrder, poolById, contextBySlot, unariaExtra,
+  ));
 
-  // 4b. schoolCarbsToAvoid — misma idea que la 4, y mismo arreglo: se mira
-  // donde esté el campo, no solo en la cena (el arroz del cole tiene que
-  // bloquear también la comida de los padres si es lo que el niño va a cenar).
-  for (const { slotId, recipeId } of mealOrder) {
-    const ctx = contextBySlot[slotId];
-    if (!ctx?.schoolCarbsToAvoid?.length) continue;
-    const recipe = poolById[recipeId];
-    if (!recipe) continue;
-    const carb = getCarbType(recipe);
-    if (carb && ctx.schoolCarbsToAvoid.includes(carb)) {
-      violations.push({
-        rule: "school_carb_conflict",
-        slotId,
-        message: `"${recipe.name}" tiene base "${carb}" que el menú escolar ya cubrió`,
-      });
-    }
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.school_carb_conflict, mealOrder, poolById, contextBySlot, unariaExtra,
+  ));
 
-  // 5. tupperFriendly in tupper slots
-  for (const { slotId, recipeId } of slotAssignments) {
-    const ctx = contextBySlot[slotId];
-    if (!ctx || ctx.mode !== "tupper") continue;
-    const recipe = poolById[recipeId];
-    if (!recipe) continue;
-    if (!recipe.tupperFriendly) {
-      violations.push({
-        rule: "tupper_not_friendly",
-        slotId,
-        message: `"${recipe.name}" no es apta para tupper pero el slot lo requiere`,
-      });
-    }
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.tupper_not_friendly, slotAssignments, poolById, contextBySlot, unariaExtra,
+  ));
 
   // 6. No repeated recipeId in the week
   //
@@ -1132,45 +1177,13 @@ export function validateMenu(
     }
   }
 
-  // 8. Time constraint: recipe.time must be ≤ slot maxTime
-  for (const { slotId, recipeId } of slotAssignments) {
-    const ctx = contextBySlot[slotId];
-    if (!ctx?.maxTime) continue;
-    const recipe = poolById[recipeId];
-    if (!recipe) continue;
-    if (recipe.time > ctx.maxTime) {
-      violations.push({
-        rule: "tiempo_excedido",
-        slotId,
-        message: `"${recipe.name}" (${recipe.time}min) excede el límite de ${ctx.maxTime}min`,
-      });
-    }
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.tiempo_excedido, slotAssignments, poolById, contextBySlot, unariaExtra,
+  ));
 
-  // 10. Health-profile conflicts — reuses the exact rules the dish-detail
-  // badge uses (matchingHealthProfiles), so a violation here means "the badge
-  // would show this dish as non-compliant for an active profile". Soft and
-  // correctable like every other rule above, never a hard block (see
-  // applyFallback's carve-out): this is the deterministic backstop for the
-  // SYSTEM_PROMPT's "PERFILES DE SALUD" instruction, which the LLM can ignore.
-  const activeProfileIds = Array.from(new Set(activeHealthProfiles ?? [])).filter((id) =>
-    CORRECTABLE_HEALTH_PROFILES.has(id),
-  );
-  if (activeProfileIds.length > 0) {
-    for (const { slotId, recipeId } of slotAssignments) {
-      const recipe = poolById[recipeId];
-      if (!recipe) continue;
-      const flags = recipe.healthFlags ?? [];
-      const violated = activeProfileIds.filter((id) => !HEALTH_PROFILE_BADGE[id].matches(flags));
-      if (violated.length > 0) {
-        violations.push({
-          rule: "health_profile_conflict",
-          slotId,
-          message: `"${recipe.name}" no cumple el/los perfil(es) de salud activos: ${violated.join(", ")}`,
-        });
-      }
-    }
-  }
+  violations.push(...evaluarUnaria(
+    UNARIA_POR_REGLA.health_profile_conflict, slotAssignments, poolById, contextBySlot, unariaExtra,
+  ));
 
   // 11. Weekly frequency CAPS (config.freqs) — soft, correctable MAXIMUMS for
   // how many times each food-group key (carne/pescado/legumbres/huevos/
