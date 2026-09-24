@@ -318,7 +318,8 @@ export const EJES = [
     n: 30, id: "transportabilidad", nombre: "Transportabilidad / tupper",
     ambito: AMBITO.RECETA, tipo: "booleano", estado: "activo",
     campo: "tupperFriendly", vocabulario: null,
-    consumidores: ["solver", "aiPlanner", "planner", "validateMenu", "menuInsights"], cobertura: 1.0,
+    consumidores: ["aiPlanner", "planner", "validateMenu", "menuInsights"], cobertura: 1.0,
+    nota: "`solver` sale de la lista el 24 sep y NO porque dejara de usarlo: lo lee a través de `UNARIA_POR_REGLA.tupper_not_friendly`, la tabla de reglas unarias de validateMenu, en vez de nombrar `tupperFriendly` a mano. El test de este registro comprueba que el módulo declarado NOMBRE el campo, y con la tabla ya no lo nombra ninguno de los que podan — el lector real pasa a ser `validateMenu`, que es donde vive la regla. Es la consecuencia buscada de que las siete unarias dejaran de estar escritas dos veces, y el registro la cazó a la primera.",
   },
   {
     n: 31, id: "conLasManos", nombre: "Se come con las manos",

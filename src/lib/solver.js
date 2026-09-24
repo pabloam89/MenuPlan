@@ -48,11 +48,9 @@
  *     iguales y el mismo menú sí se pueda reproducir en un test.
  */
 
-import { validateMenu, slotAcceptsRole, FREQ_KEY_MATCHERS, getCarbType, COMIDA_KCAL_SOFT_CAP, VECES_MISMA_SOPA } from "../utils/validateMenu.js";
+import { validateMenu, FREQ_KEY_MATCHERS, getCarbType, COMIDA_KCAL_SOFT_CAP, VECES_MISMA_SOPA, UNARIA_POR_REGLA, huecoDe } from "../utils/validateMenu.js";
 import { recipeMatchesPreferType } from "../utils/filterRecipes.js";
-import { isMontaje } from "../data/recipeSchema.js";
 import { esAnadido, topeDe } from "./cocinaTopes.js";
-import { esCasqueria } from "./casqueria.js";
 import { aporteDe } from "./aporte.js";
 
 /**
@@ -100,51 +98,60 @@ const IGNORAR_EN_PARCIAL = new Set([
  * Los candidatos de un hueco: lo que puede ir ahí mirando SOLO el plato y el
  * hueco, sin depender de qué haya en los demás.
  *
- * Son las reglas unarias de `validateMenu`. Aplicadas aquí dejan de poder
- * violarse: un plato que las rompa nunca llega a estar sobre la mesa, así que
- * no hay que detectarlo ni repararlo después.
+ * Son las reglas UNARIAS de `validateMenu`, y ahora salen de su tabla en vez
+ * de estar copiadas aquí. Aplicadas en el dominio dejan de poder violarse: un
+ * plato que las rompa nunca llega a estar sobre la mesa, así que no hay que
+ * detectarlo ni repararlo después.
+ *
+ * ── Por qué importaba dejar de copiarlas ──────────────────────────────────
+ *
+ * Estaban escritas dos veces y ya habían divergido. Medido: en un hueco de
+ * cena, la versión de aquí dejaba pasar 23 platos que `validateMenu` marca —
+ * montajes con `mealRole` de primero pero sin "cena": hummus, ensalada de
+ * garbanzos de bote. La de aquí solo miraba `slot.mealType !== "cena"`; la de
+ * allí exige además que la ficha del plato diga que puede ser cena.
+ *
+ * No producía menús malos —`parcialValida` los rechazaba después— sino nodos
+ * gastados en candidatos que iban a rebotar. Con la tabla, el dominio ya no
+ * los trae.
+ *
+ * ── Las tres que siguen sin podarse ───────────────────────────────────────
+ *
+ * `school_protein_conflict`, `school_carb_conflict` y `health_profile_conflict`
+ * son unarias y NO están aquí. Las dos del cole necesitan el contexto del
+ * hueco y el perfil de salud es del hogar; las tres se pueden enchufar, pero
+ * podar de más ESTRECHA el dominio y cambia qué menús salen, así que es una
+ * decisión aparte que hay que medir con casas reales.
  *
  * Exportada aparte del solver porque vale por sí sola: es lo que necesita la
  * pantalla de ajuste para decir "el martes no hay ningún segundo de 15 minutos,
  * sube a 20 y tienes 34".
  */
+const UNARIAS_QUE_PODAN = [
+  "rol_incompatible_con_hueco",
+  "tiempo_excedido",
+  "tupper_not_friendly",
+  "cena_rapida_no_solicitada",
+  "legumbres_en_cena",
+  "casqueria_entre_semana",
+  "plato_ocasion_entre_semana",
+].map((id) => UNARIA_POR_REGLA[id]);
+
 export function candidatosDeHueco(pool, slot) {
+  const hueco = huecoDe(slot.slotId, slot);
   return pool.filter((r) => {
-    if (slot.maxTime && r.time > slot.maxTime) return false;
-    if (slot.mode === "tupper" && !r.tupperFriendly) return false;
-    if (!slotAcceptsRole(r, {
-      mealType: slot.mealType,
-      position: slot.position,
-      preferType: slot.preferType,
-    })) return false;
-    if (slot.preferType && !recipeMatchesPreferType(r, slot.preferType, slot.eaters)) return false;
-    // Nada de legumbres en cena (regla 2), que es unaria aunque viva entre las
-    // de variedad.
-    if (slot.mealType === "cena" && (r.category === "legumbres" || r.mainProtein === "legumbre")) {
-      return false;
+    for (const regla of UNARIAS_QUE_PODAN) {
+      if (!regla.cumple(r, hueco)) return false;
     }
-    // Un plato de montaje (sándwich, tosta, tabla, ensalada de bote) no es una
-    // COMIDA: ahí sigue vetado salvo que el hueco se marcara como rápido. Pero
-    // de CENA sí, si el catálogo dice que puede serlo.
-    //
-    // Antes estaba vetado en todas partes, y eso dejaba fuera de una cena
-    // normal a 43 platos del recetario estrella que llevan "cena" en su
-    // `mealRole` — carpaccio, wrap de pollo, quesadillas, sándwich club, poke
-    // bowl, ensalada de aguacate y gambas. Justo las cenas rápidas buenas. Con
-    // ellas fuera, el motor tiraba una y otra vez de tortilla.
-    //
-    // La decisión de si un plato puede ser cena ya está tomada en su ficha;
-    // esto era una segunda reja por encima que la contradecía.
-    if (isMontaje(r) && slot.preferType !== "cena_rapida" && slot.mealType !== "cena") return false;
-    // Casquería solo en fin de semana, y platos de ocasión tampoco entre
-    // semana. Las dos viven en `validateMenu` (reglas 3e-bis y 3f), pero son
-    // unarias: puestas aquí, un hígado encebollado NO llega siquiera a
-    // probarse un miércoles, en vez de probarse y rebotar en cada nodo.
-    const finde = slot.daySlug === "sab" || slot.daySlug === "dom";
-    if (!finde && (esCasqueria(r) || r.occasion === "especial")) return false;
+    // Y una poda que NO es una de las 28: `preferType` es una petición del
+    // hueco ("cena rápida", "algo ligero"), no una regla de menú. Nadie la
+    // valida después porque no hay nada que reparar — un plato que no encaja
+    // en lo que se pidió simplemente no se ofrece.
+    if (slot.preferType && !recipeMatchesPreferType(r, slot.preferType, slot.eaters)) return false;
     return true;
   });
 }
+
 
 /** djb2 con semilla: barajado reproducible. */
 function hash(texto, semilla) {
