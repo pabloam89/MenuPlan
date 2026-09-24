@@ -102,10 +102,18 @@ const ICONO_FRANJA = {
  * Los gramos siguen ahí, en los números — cada cosa dice lo suyo y el pie lo
  * declara, para que nadie intente cuadrar los porcentajes con los gramos.
  */
+/*
+ * Los colores no son decorativos: son la ÚNICA forma de saber qué arco es
+ * cuál. Iban en rojo, naranja y amarillo y eran tres pasos de la misma rampa
+ * —en un aro de 9px no se distinguían—. Ahora son tres tonos de familias
+ * distintas: verde azulado, ámbar y azul marino. Separan por tono, no por
+ * claridad, así que aguantan también en pantallas malas y en daltonismo
+ * rojo-verde, que es justo el que rompía la rampa anterior.
+ */
 const MACROS = [
-  { id: "protein_g", letra: "P", nombre: "proteína", color: "#c0392b", kcalPorG: 4 },
-  { id: "carbs_g", letra: "H", nombre: "hidratos", color: "#cf7833", kcalPorG: 4 },
-  { id: "fat_g", letra: "G", nombre: "grasa", color: "#d4a017", kcalPorG: 9 },
+  { id: "protein_g", letra: "P", nombre: "proteína", color: "#0d8a7d", kcalPorG: 4 },
+  { id: "carbs_g", letra: "H", nombre: "hidratos", color: "#d99320", kcalPorG: 4 },
+  { id: "fat_g", letra: "G", nombre: "grasa", color: "#2c4a7c", kcalPorG: 9 },
 ];
 
 /**
@@ -183,7 +191,7 @@ function AnilloMacros({ platos, size = 74 }) {
             semana real. */}
         {fibra > 0 && (
           <div style={{ display: "flex", alignItems: "center", gap: 7, paddingTop: 5, borderTop: "1px solid #e8efea" }}>
-            <span style={{ width: 8, height: 8, borderRadius: 3, border: "1.5px solid #3f9656", boxSizing: "border-box", flexShrink: 0 }} />
+            <span style={{ width: 8, height: 8, borderRadius: 3, border: "1.5px solid #7a8f84", boxSizing: "border-box", flexShrink: 0 }} />
             <span style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: "#5a7066" }}>fibra</span>
             <span style={{ fontSize: 11.5, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>
               {Math.round(fibra / platos.length)} g
@@ -332,7 +340,13 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
         <div style={{ display: "flex", gap: 6, marginBottom: 12, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 2 }}>
           {[{ id: null, label: "Todos" }, ...groups].map((g) => {
             const activo = soloGrupo === g.id;
-            const caras = g.id ? groupAvatarFaces(membersOfGroup(g, members), members) : [];
+            // "Todos" lleva a TODA la casa: es el chip que dice "sin filtrar",
+            // y enseñar las mismas caras que va a contar es lo que lo explica
+            // sin una palabra. Dos caras y a partir de la tercera un contador,
+            // que si no una casa de cinco se come la fila entera.
+            const caras = g.id
+              ? groupAvatarFaces(membersOfGroup(g, members), members)
+              : groupAvatarFaces(members, members);
             return (
               <button
                 key={g.id ?? "todos"}
@@ -348,7 +362,7 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
                   fontSize: 11.5, fontWeight: 800,
                 }}
               >
-                {caras.length > 0 && <GroupAvatarStack faces={caras} size={22} active={activo} max={3} />}
+                {caras.length > 0 && <GroupAvatarStack faces={caras} size={22} active={activo} max={2} />}
                 {g.label}
               </button>
             );
@@ -463,7 +477,7 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
             </button>
 
             {abierto && (
-              <div style={{ padding: "8px 10px 10px", background: "#f1f6f3" }}>
+              <div style={{ padding: "8px 10px 10px", background: "#e4edf6" }}>
                 {/* Cabecera de las tres columnas. Los números van sin letra
                     pegada —cabían mal y ensuciaban— así que la letra vive aquí
                     arriba, una vez, con el color de su arco. */}
@@ -490,7 +504,7 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
                       style={{
                         display: "flex", alignItems: "center", gap: 7,
                         padding: "8px 0",
-                        borderTop: "1px solid #dfe9e3",
+                        borderTop: "1px solid #cfdcec",
                       }}
                     >
                       {/* El día como en Compra: la inicial arriba y el número
@@ -547,9 +561,6 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
                   );
                 })}
 
-                <p style={{ margin: "9px 0 0", fontSize: 9.5, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.35 }}>
-                  Gramos por ración.
-                </p>
               </div>
             )}
             </div>
@@ -2152,7 +2163,13 @@ export function PizarraControles({
               position: "fixed", top: 0, bottom: 0, zIndex: 161,
               left: "max(0px, calc(50% - 210px))",
               width: "min(320px, 86vw)", boxSizing: "border-box",
-              background: "#f4f8f5", borderRight: "1px solid #e0eae3",
+              // Balance apila tres superficies —panel, tarjeta blanca y la
+              // tira de recetas de dentro— y con el gris verdoso de siempre
+              // dos de las tres se tocaban. Se le da un fondo propio, más
+              // hundido, para que las tarjetas blancas floten de verdad. Los
+              // otros paneles no lo necesitan: no tienen tercer nivel.
+              background: abierto === "balance" ? "#e6eeea" : "#f4f8f5",
+              borderRight: "1px solid #e0eae3",
               boxShadow: "8px 0 28px -18px rgba(20,47,29,.5)",
               overflowY: "auto",
               padding: `18px 16px calc(18px + env(safe-area-inset-bottom, 0px))`,
