@@ -98,6 +98,40 @@ export function ejeHidrato(t) {
   return null;
 }
 
+/**
+ * El tercer plano: la VERDURA.
+ *
+ * No existía, y su ausencia es la que obligaba a que la familia «verdura»
+ * saliera de `category` —o sea, del formato: `ensaladas_verduras` y
+ * `sopas_cremas`—. Con él, las seis familias salen del mismo sitio y la
+ * categoría deja de decidir de qué está hecho un plato.
+ *
+ * ── Un solo nodo, y a propósito ───────────────────────────────────────────
+ * Los otros dos planos existen para que sus nodos COMPITAN: una proteína con
+ * otra proteína. La verdura no compite con nadie —lo dice la cabecera de este
+ * fichero— así que aquí no hay dominancia que resolver: hay una cuota de masa.
+ * Por eso todas las hortalizas suman al mismo nodo en vez de pelearse entre
+ * ellas: lo que se pregunta no es «¿calabacín o berenjena?», es «¿cuánta
+ * verdura lleva esto?».
+ *
+ * ── El tubérculo NO ───────────────────────────────────────────────────────
+ * La patata ya compite en el plano del hidrato (`ejeHidrato` la manda a
+ * `patatas`). Contarla también aquí la metería dos veces y, peor, convertiría
+ * cualquier guiso con patatas en un plato de verdura. La patata gasta
+ * presupuesto de guarnición y no convierte el plato en nada — es exactamente
+ * lo que dice el eje 45 del registro.
+ *
+ * La seta entra: un salteado de setas es un plato de verdura para cualquiera
+ * que se lo coma, aunque un micólogo diría que no es una planta.
+ */
+export function ejeVerdura(t) {
+  if (!t) return null;
+  if (t.clase === "hortaliza") return t.subclase === "tuberculo" ? null : "verdura";
+  if (t.clase === "hongo") return "verdura";
+  if (t.clase === "alga") return "verdura";
+  return null;
+}
+
 /** La harina no es una base servida hasta que alguien la amasa: lo dice la línea. */
 const MASA_A_EJE = { masa_pasta: "pasta", masa_pan: "pan" };
 
@@ -133,6 +167,7 @@ const cuentaPeroNoCompite = (a) => a?.rol === "caldo" || a?.id === "agua";
  * @returns {{
  *   partes: Record<string, Record<string, number>>,
  *   proteina: Map<string, number>, hidrato: Map<string, number>,
+ *   verdura: Map<string, number>,
  *   proteinaG: Map<string, number>, masaTotal: number, dudas: string[]
  * }}
  */
@@ -145,6 +180,7 @@ export function composicionDe(receta) {
   const partes = {};
   const proteina = new Map();
   const hidrato = new Map();
+  const verdura = new Map();
   const proteinaG = new Map();
   const dudas = [];
   let masaTotal = 0;
@@ -211,9 +247,11 @@ export function composicionDe(receta) {
       }
       const hid = MASA_A_EJE[linea.preparacion] ?? ejeHidrato(t);
       if (hid) hidrato.set(hid, (hidrato.get(hid) ?? 0) + servida);
+      const ver = ejeVerdura(t);
+      if (ver) verdura.set(ver, (verdura.get(ver) ?? 0) + servida);
     }
   }
-  return { partes, proteina, hidrato, proteinaG, masaTotal, dudas };
+  return { partes, proteina, hidrato, verdura, proteinaG, masaTotal, dudas };
 }
 
 /**

@@ -316,12 +316,17 @@ describe("el registro de ejes", () => {
       // test lo tenía atornillado en verde, así que al corregir el registro se
       // puso rojo por decir la verdad — que es la peor clase de test.
       //
-      // El ejemplo bueno es el eje 1: la composición por parte se calcula y en
-      // producción no la lee nadie, porque derive/composicion.js solo lo
-      // importa su propio test.
-      const composicion = puedeResponder("composicion");
-      expect(composicion.puede).toBe(false);
-      expect(composicion.porque).toMatch(/nadie los lee/);
+      // El ejemplo era el eje 1, la composición, y ha dejado de servir por la
+      // mejor de las razones: el 24 sep derive/familias.js empezó a leerla
+      // para decidir las familias por masa, así que ya tiene lector. Es la
+      // SEGUNDA vez que este test se queda sin ejemplo porque el registro
+      // mejora — y eso es justo lo que tiene que pasar.
+      //
+      // Ahora el ejemplo es `temperatura`: 88,7 % de cobertura y su propia
+      // nota dice que queda sin lector a propósito.
+      const temperatura = puedeResponder("temperatura");
+      expect(temperatura.puede).toBe(false);
+      expect(temperatura.porque).toMatch(/nadie los lee/);
     });
 
     it("`valorValido` devuelve null cuando el eje aún no fija vocabulario", () => {

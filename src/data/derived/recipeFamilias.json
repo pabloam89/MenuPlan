@@ -1,0 +1,8947 @@
+{
+  "bases_001": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5412
+    }
+  },
+  "bases_002": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.1881
+    }
+  },
+  "bases_003": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "bases_004": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3232
+    }
+  },
+  "bases_005": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5808
+    }
+  },
+  "bases_006": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.692
+    }
+  },
+  "bases_007": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "bases_008": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.945
+    }
+  },
+  "bases_009": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4506,
+      "verdura": 0.5429
+    }
+  },
+  "bases_010": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.1868
+    }
+  },
+  "bases_011": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9424
+    }
+  },
+  "bases_012": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "bases_013": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "bases_014": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "bases_015": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3665,
+      "verdura": 0.242
+    }
+  },
+  "bebes_001": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0818,
+      "pasta_arroz": 0.1418,
+      "verdura": 0.2182
+    }
+  },
+  "bebes_002": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.1737,
+      "verdura": 0.4963
+    }
+  },
+  "bebes_003": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2174,
+      "verdura": 0.4058
+    }
+  },
+  "bebes_004": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1983,
+      "verdura": 0.3966
+    }
+  },
+  "bebes_005": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2271,
+      "pasta_arroz": 0.2839,
+      "verdura": 0.4542
+    }
+  },
+  "bebes_006": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1999,
+      "pasta_arroz": 0.2677,
+      "verdura": 0.4997
+    }
+  },
+  "bebes_007": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2218,
+      "pasta_arroz": 0.4621,
+      "verdura": 0.2957
+    }
+  },
+  "bebes_008": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4322,
+      "verdura": 0.5402
+    }
+  },
+  "bebes_009": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.203,
+      "verdura": 0.3383
+    }
+  },
+  "bebes_010": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.2992,
+      "pasta_arroz": 0.4987,
+      "verdura": 0.1746
+    }
+  },
+  "bebes_012": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4093,
+      "verdura": 0.5594
+    }
+  },
+  "bebes_013": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4327,
+      "verdura": 0.2055
+    }
+  },
+  "bebes_014": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0871,
+      "verdura": 0.1741
+    }
+  },
+  "bebes_015": {
+    "familias": [
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.2974,
+      "pasta_arroz": 0.1933,
+      "verdura": 0.4957
+    }
+  },
+  "bebes_016": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1958,
+      "verdura": 0.4569
+    }
+  },
+  "bebes_018": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2095,
+      "verdura": 0.419
+    }
+  },
+  "bebes_019": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2305,
+      "verdura": 0.3842
+    }
+  },
+  "bebes_021": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4458,
+      "carne": 0.2229,
+      "verdura": 0.2972
+    }
+  },
+  "bebes_022": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4598,
+      "carne": 0.1916,
+      "verdura": 0.3193
+    }
+  },
+  "bebes_023": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2672,
+      "verdura": 0.3117
+    }
+  },
+  "bebes_024": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2876,
+      "verdura": 0.4506
+    }
+  },
+  "bebes_025": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2461
+    }
+  },
+  "bebes_026": {
+    "familias": [
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "legumbres": 0.4988,
+      "pasta_arroz": 0.3117,
+      "verdura": 0.1663
+    }
+  },
+  "bebes_027": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.8067,
+      "verdura": 0.14
+    }
+  },
+  "bebes_028": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2558,
+      "verdura": 0.341
+    }
+  },
+  "bebes_029": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.3692,
+      "huevos": 0.3165,
+      "verdura": 0.211
+    }
+  },
+  "bebes_030": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.3037,
+      "huevos": 0.2603
+    }
+  },
+  "bebes_031": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.3507,
+      "huevos": 0.3006,
+      "verdura": 0.2505
+    }
+  },
+  "bebes_032": {
+    "familias": [
+      "legumbres",
+      "huevos"
+    ],
+    "cuotas": {
+      "legumbres": 0.3259,
+      "huevos": 0.2444,
+      "verdura": 0.2037
+    }
+  },
+  "bebes_033": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.3604,
+      "huevos": 0.3089
+    }
+  },
+  "bebes_034": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "bebes_035": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9632
+    }
+  },
+  "bebes_036": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.9561
+    }
+  },
+  "bebes_037": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9599
+    }
+  },
+  "bebes_038": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4459
+    }
+  },
+  "bebes_039": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1704,
+      "pasta_arroz": 0.2998,
+      "verdura": 0.2726
+    }
+  },
+  "bebes_040": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.6809,
+      "verdura": 0.2723
+    }
+  },
+  "bebes_041": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3117,
+      "verdura": 0.2078
+    }
+  },
+  "bebes_042": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2356,
+      "verdura": 0.5035
+    }
+  },
+  "bebes_043": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2947,
+      "verdura": 0.3094
+    }
+  },
+  "bebes_044": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2545,
+      "verdura": 0.2121
+    }
+  },
+  "bebes_045": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1756
+    }
+  },
+  "bebes_046": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.2984,
+      "huevos": 0.2558,
+      "verdura": 0.2131
+    }
+  },
+  "bebes_047": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6781,
+      "verdura": 0.2826
+    }
+  },
+  "bebes_048": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3528,
+      "verdura": 0.3822
+    }
+  },
+  "bebes_049": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3924,
+      "verdura": 0.2943
+    }
+  },
+  "bebes_050": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.196
+    }
+  },
+  "bebes_051": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.3284,
+      "huevos": 0.197,
+      "verdura": 0.1313
+    }
+  },
+  "bebes_052": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.4126,
+      "huevos": 0.2476
+    }
+  },
+  "bebes_053": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.2334,
+      "huevos": 0.1751,
+      "verdura": 0.1751
+    }
+  },
+  "bebes_054": {
+    "familias": [
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "legumbres": 0.3039,
+      "pasta_arroz": 0.4862,
+      "verdura": 0.1737
+    }
+  },
+  "bebes_055": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.3966,
+      "huevos": 0.2163
+    }
+  },
+  "bebes_056": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2052,
+      "verdura": 0.5131
+    }
+  },
+  "bebes_057": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4102,
+      "verdura": 0.1367
+    }
+  },
+  "bebes_058": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "bebes_059": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.9077
+    }
+  },
+  "bebes_060": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4979,
+      "verdura": 0.4787
+    }
+  },
+  "bebes_061": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4196,
+      "verdura": 0.5035
+    }
+  },
+  "bebes_062": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2082,
+      "pasta_arroz": 0.4881,
+      "verdura": 0.2798
+    }
+  },
+  "carnes_001": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3886,
+      "verdura": 0.1214
+    }
+  },
+  "carnes_002": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7161
+    }
+  },
+  "carnes_003": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.361,
+      "huevos": 0.0722,
+      "verdura": 0.0963
+    }
+  },
+  "carnes_004": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6289,
+      "huevos": 0.1258
+    }
+  },
+  "carnes_005": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4001,
+      "verdura": 0.2057
+    }
+  },
+  "carnes_006": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7459,
+      "verdura": 0.0426
+    }
+  },
+  "carnes_007": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.8514
+    }
+  },
+  "carnes_008": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.339,
+      "verdura": 0.2486
+    }
+  },
+  "carnes_009": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4413,
+      "huevos": 0.0883,
+      "verdura": 0.2148
+    }
+  },
+  "carnes_010": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4562,
+      "verdura": 0.3639
+    }
+  },
+  "carnes_011": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6579
+    }
+  },
+  "carnes_012": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5849,
+      "huevos": 0.1132
+    }
+  },
+  "carnes_013": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6545,
+      "verdura": 0.1745
+    }
+  },
+  "carnes_014": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6324,
+      "huevos": 0.1265,
+      "verdura": 0.1265
+    }
+  },
+  "carnes_015": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4264,
+      "verdura": 0.3411
+    }
+  },
+  "carnes_016": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5701,
+      "huevos": 0.0977,
+      "verdura": 0.1303
+    }
+  },
+  "carnes_017": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4527,
+      "verdura": 0.1907
+    }
+  },
+  "carnes_018": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.9532
+    }
+  },
+  "carnes_019": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6504
+    }
+  },
+  "carnes_020": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5273,
+      "verdura": 0.2712
+    }
+  },
+  "carnes_021": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3648,
+      "verdura": 0.4378
+    }
+  },
+  "carnes_022": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5446,
+      "verdura": 0.1452
+    }
+  },
+  "carnes_023": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6332
+    }
+  },
+  "carnes_024": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7161
+    }
+  },
+  "carnes_025": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5602,
+      "verdura": 0.128
+    }
+  },
+  "carnes_026": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3137,
+      "huevos": 0.0896,
+      "verdura": 0.2092
+    }
+  },
+  "carnes_027": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.9309
+    }
+  },
+  "carnes_028": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5062,
+      "verdura": 0.3761
+    }
+  },
+  "carnes_029": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4921,
+      "verdura": 0.246
+    }
+  },
+  "carnes_030": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.515,
+      "verdura": 0.2837
+    }
+  },
+  "carnes_031": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4173,
+      "verdura": 0.306
+    }
+  },
+  "carnes_032": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5503,
+      "huevos": 0.0943
+    }
+  },
+  "carnes_033": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.422,
+      "verdura": 0.2689
+    }
+  },
+  "carnes_034": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5156,
+      "verdura": 0.1473
+    }
+  },
+  "carnes_035": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6647,
+      "huevos": 0.1286
+    }
+  },
+  "carnes_037": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3149,
+      "verdura": 0.3446
+    }
+  },
+  "carnes_038": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5557,
+      "huevos": 0.029,
+      "verdura": 0.1933
+    }
+  },
+  "carnes_039": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7756,
+      "verdura": 0.0152
+    }
+  },
+  "carnes_040": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3115
+    }
+  },
+  "carnes_041": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4672,
+      "verdura": 0.0525
+    }
+  },
+  "carnes_042": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2799,
+      "verdura": 0.1836
+    }
+  },
+  "carnes_043": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.9383,
+      "verdura": 0.0134
+    }
+  },
+  "carnes_044": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3328,
+      "verdura": 0.1248
+    }
+  },
+  "carnes_045": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7662
+    }
+  },
+  "carnes_046": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5325,
+      "huevos": 0.0639,
+      "verdura": 0.1349
+    }
+  },
+  "carnes_047": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6644,
+      "verdura": 0.1379
+    }
+  },
+  "carnes_048": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3128,
+      "verdura": 0.1437
+    }
+  },
+  "carnes_049": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3807,
+      "verdura": 0.0381
+    }
+  },
+  "carnes_050": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4869,
+      "verdura": 0.2181
+    }
+  },
+  "carnes_051": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7737
+    }
+  },
+  "carnes_052": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3057,
+      "huevos": 0.0524,
+      "verdura": 0.2271
+    }
+  },
+  "carnes_053": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2899
+    }
+  },
+  "carnes_054": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.9646
+    }
+  },
+  "carnes_055": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5204,
+      "verdura": 0.1821
+    }
+  },
+  "carnes_056": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6757
+    }
+  },
+  "carnes_057": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6604
+    }
+  },
+  "carnes_058": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5357
+    }
+  },
+  "carnes_059": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.459,
+      "verdura": 0.4787
+    }
+  },
+  "carnes_060": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.8426
+    }
+  },
+  "carnes_061": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.8201
+    }
+  },
+  "carnes_062": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4273
+    }
+  },
+  "carnes_063": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4221
+    }
+  },
+  "carnes_064": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4877,
+      "verdura": 0.2223
+    }
+  },
+  "carnes_065": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5525,
+      "huevos": 0.0829
+    }
+  },
+  "carnes_066": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7025
+    }
+  },
+  "carnes_067": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3212,
+      "huevos": 0.1101
+    }
+  },
+  "carnes_068": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5428
+    }
+  },
+  "carnes_069": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6812,
+      "verdura": 0.109
+    }
+  },
+  "carnes_070": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6859,
+      "huevos": 0.0823,
+      "verdura": 0.1189
+    }
+  },
+  "carnes_071": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3509,
+      "huevos": 0.0702,
+      "verdura": 0.117
+    }
+  },
+  "carnes_072": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6721
+    }
+  },
+  "carnes_073": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7849
+    }
+  },
+  "carnes_074": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4053,
+      "verdura": 0.0841
+    }
+  },
+  "carnes_075": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3541
+    }
+  },
+  "carnes_076": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5156,
+      "huevos": 0.0619,
+      "verdura": 0.1856
+    }
+  },
+  "carnes_077": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3212,
+      "verdura": 0.1445
+    }
+  },
+  "carnes_078": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3611,
+      "verdura": 0.1625
+    }
+  },
+  "carnes_079": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4899,
+      "huevos": 0.084
+    }
+  },
+  "carnes_080": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7947
+    }
+  },
+  "carnes_081": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.318,
+      "verdura": 0.3089
+    }
+  },
+  "carnes_082": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4149,
+      "huevos": 0.0622
+    }
+  },
+  "carnes_083": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.8895
+    }
+  },
+  "carnes_084": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4971,
+      "verdura": 0.1069
+    }
+  },
+  "carnes_085": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7192
+    }
+  },
+  "carnes_086": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6237,
+      "huevos": 0.078
+    }
+  },
+  "carnes_087": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3263,
+      "huevos": 0.1119
+    }
+  },
+  "carnes_088": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3076,
+      "verdura": 0.3076
+    }
+  },
+  "carnes_089": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5836
+    }
+  },
+  "carnes_090": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4322,
+      "verdura": 0.1852
+    }
+  },
+  "carnes_091": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.8407
+    }
+  },
+  "carnes_092": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.503,
+      "verdura": 0.4419
+    }
+  },
+  "carnes_093": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4498,
+      "huevos": 0.0771,
+      "verdura": 0.0129
+    }
+  },
+  "carnes_094": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3641,
+      "verdura": 0.3121
+    }
+  },
+  "carnes_095": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2804,
+      "verdura": 0.1559
+    }
+  },
+  "carnes_096": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.284,
+      "verdura": 0.1183
+    }
+  },
+  "carnes_097": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7317
+    }
+  },
+  "carnes_098": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2918,
+      "verdura": 0.1995
+    }
+  },
+  "carnes_099": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6768,
+      "verdura": 0.0387
+    }
+  },
+  "carnes_100": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.368,
+      "huevos": 0.0442,
+      "verdura": 0.0932
+    }
+  },
+  "carnes_101": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3005,
+      "verdura": 0.1545
+    }
+  },
+  "carnes_102": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4529,
+      "verdura": 0.017
+    }
+  },
+  "carnes_103": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4361
+    }
+  },
+  "carnes_104": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3584,
+      "verdura": 0.1459
+    }
+  },
+  "carnes_105": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3177
+    }
+  },
+  "carnes_106": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5137,
+      "huevos": 0.0587,
+      "verdura": 0.0489
+    }
+  },
+  "carnes_107": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4175
+    }
+  },
+  "carnes_108": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3513,
+      "verdura": 0.1317
+    }
+  },
+  "carnes_109": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3429,
+      "verdura": 0.0196
+    }
+  },
+  "carnes_110": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3002,
+      "verdura": 0.1252
+    }
+  },
+  "carnes_111": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3645
+    }
+  },
+  "carnes_112": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4567,
+      "verdura": 0.0522
+    }
+  },
+  "carnes_113": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7236,
+      "verdura": 0.0186
+    }
+  },
+  "carnes_114": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6713,
+      "verdura": 0.0168
+    }
+  },
+  "carnes_115": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4478,
+      "verdura": 0.1194
+    }
+  },
+  "carnes_116": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.7281,
+      "verdura": 0.0974
+    }
+  },
+  "carnes_117": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4681,
+      "verdura": 0.4012
+    }
+  },
+  "carnes_118": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.333,
+      "verdura": 0.2137
+    }
+  },
+  "carnes_119": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3215,
+      "huevos": 0.0643,
+      "pescado": 0.0086,
+      "verdura": 0.254
+    }
+  },
+  "carnes_120": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.1386,
+      "verdura": 0.273
+    }
+  },
+  "carnes_121": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2516,
+      "pasta_arroz": 0.2818,
+      "verdura": 0.348
+    }
+  },
+  "carnes_122": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.3529,
+      "huevos": 0.1568,
+      "verdura": 0.1516
+    }
+  },
+  "carnes_123": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.275,
+      "pescado": 0.0196,
+      "verdura": 0.3928
+    }
+  },
+  "carnes_124": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3542,
+      "verdura": 0.2273
+    }
+  },
+  "carnes_125": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.375
+    }
+  },
+  "carnes_126": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4706,
+      "verdura": 0.0941
+    }
+  },
+  "carnes_127": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.277,
+      "verdura": 0.4848
+    }
+  },
+  "carnes_128": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2504,
+      "verdura": 0.0626
+    }
+  },
+  "carnes_129": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2262
+    }
+  },
+  "carnes_130": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3607,
+      "carne": 0.1202,
+      "verdura": 0.3231
+    }
+  },
+  "carnes_131": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5392,
+      "verdura": 0.3389
+    }
+  },
+  "carnes_132": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5245,
+      "verdura": 0.3506
+    }
+  },
+  "carnes_133": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5342,
+      "verdura": 0.3358
+    }
+  },
+  "carnes_134": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.528,
+      "verdura": 0.396
+    }
+  },
+  "carnes_135": {
+    "familias": [
+      "carne",
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2576,
+      "legumbres": 0.1717,
+      "pasta_arroz": 0.322,
+      "verdura": 0.1846
+    }
+  },
+  "carnes_136": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1715,
+      "verdura": 0.4288
+    }
+  },
+  "carnes_137": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1917,
+      "huevos": 0.0767,
+      "verdura": 0.032
+    }
+  },
+  "carnes_138": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1963,
+      "huevos": 0.0785
+    }
+  },
+  "carnes_139": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4351,
+      "verdura": 0.1044
+    }
+  },
+  "carnes_140": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.1417,
+      "huevos": 0.2267,
+      "verdura": 0.1322
+    }
+  },
+  "carnes_141": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2433,
+      "verdura": 0.1703
+    }
+  },
+  "carnes_142": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1549
+    }
+  },
+  "carnes_143": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.224,
+      "carne": 0.1245
+    }
+  },
+  "carnes_144": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.1354,
+      "huevos": 0.0812
+    }
+  },
+  "carnes_145": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.376,
+      "verdura": 0.2707
+    }
+  },
+  "carnes_146": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4043,
+      "huevos": 0.0606,
+      "verdura": 0.3462
+    }
+  },
+  "carnes_147": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4513,
+      "verdura": 0.5064
+    }
+  },
+  "carnes_148": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4579
+    }
+  },
+  "carnes_149": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5175,
+      "verdura": 0.3881
+    }
+  },
+  "carnes_150": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5384,
+      "verdura": 0.4038
+    }
+  },
+  "carnes_151": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4733
+    }
+  },
+  "carnes_152": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5109,
+      "verdura": 0.105
+    }
+  },
+  "carnes_153": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.6553,
+      "verdura": 0.1638
+    }
+  },
+  "carnes_154": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.492,
+      "verdura": 0.4305
+    }
+  },
+  "carnes_155": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4324,
+      "huevos": 0.1081,
+      "verdura": 0.3085
+    }
+  },
+  "carnes_156": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4061,
+      "verdura": 0.5076
+    }
+  },
+  "carnes_157": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4569,
+      "verdura": 0.1142
+    }
+  },
+  "carnes_158": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3326,
+      "verdura": 0.448
+    }
+  },
+  "carnes_159": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4698
+    }
+  },
+  "carnes_160": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5018,
+      "verdura": 0.3764
+    }
+  },
+  "carnes_161": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2267,
+      "pasta_arroz": 0.2833,
+      "verdura": 0.221
+    }
+  },
+  "carnes_162": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2259,
+      "huevos": 0.0678,
+      "pasta_arroz": 0.2117,
+      "verdura": 0.0847
+    }
+  },
+  "carnes_163": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5491
+    }
+  },
+  "carnes_164": {
+    "familias": [
+      "carne",
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2743,
+      "legumbres": 0.2634,
+      "pasta_arroz": 0.2058,
+      "verdura": 0.1811
+    }
+  },
+  "carnes_165": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5303
+    }
+  },
+  "carnes_166": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2851,
+      "pasta_arroz": 0.2138,
+      "verdura": 0.0855
+    }
+  },
+  "carnes_167": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.566,
+      "verdura": 0.1011
+    }
+  },
+  "carnes_168": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.3565,
+      "pasta_arroz": 0.2674,
+      "verdura": 0.1283
+    }
+  },
+  "carnes_169": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4231,
+      "verdura": 0.2989
+    }
+  },
+  "carnes_170": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5559,
+      "verdura": 0.2641
+    }
+  },
+  "carnes_171": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3805,
+      "verdura": 0.0571
+    }
+  },
+  "cenas_rapidas_001": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2759
+    }
+  },
+  "cenas_rapidas_002": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1618,
+      "verdura": 0.3842
+    }
+  },
+  "cenas_rapidas_003": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4617,
+      "verdura": 0.2415
+    }
+  },
+  "cenas_rapidas_004": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1753,
+      "verdura": 0.333
+    }
+  },
+  "cenas_rapidas_005": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4403
+    }
+  },
+  "cenas_rapidas_006": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4318
+    }
+  },
+  "cenas_rapidas_007": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4511
+    }
+  },
+  "cenas_rapidas_008": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5081
+    }
+  },
+  "cenas_rapidas_009": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.5217,
+      "verdura": 0.1304
+    }
+  },
+  "cenas_rapidas_010": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.382
+    }
+  },
+  "cenas_rapidas_012": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8761
+    }
+  },
+  "cenas_rapidas_013": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2812,
+      "verdura": 0.2812
+    }
+  },
+  "cenas_rapidas_014": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.303,
+      "verdura": 0.4192
+    }
+  },
+  "cenas_rapidas_015": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.0752
+    }
+  },
+  "cenas_rapidas_061": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_001": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_008": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_009": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_010": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.1096
+    }
+  },
+  "desayunos_011": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_012": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_013": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_014": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_015": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_016": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_017": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_018": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2755
+    }
+  },
+  "desayunos_019": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_020": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1961,
+      "verdura": 0.3494
+    }
+  },
+  "desayunos_021": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1719
+    }
+  },
+  "desayunos_022": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1584
+    }
+  },
+  "desayunos_023": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.8333
+    }
+  },
+  "desayunos_024": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "desayunos_025": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.224,
+      "verdura": 0.224
+    }
+  },
+  "ensaladas_verduras_001": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7516
+    }
+  },
+  "ensaladas_verduras_002": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9558
+    }
+  },
+  "ensaladas_verduras_003": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0743,
+      "verdura": 0.873
+    }
+  },
+  "ensaladas_verduras_004": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2389,
+      "verdura": 0.5494
+    }
+  },
+  "ensaladas_verduras_005": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8087
+    }
+  },
+  "ensaladas_verduras_006": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2148,
+      "verdura": 0.5822
+    }
+  },
+  "ensaladas_verduras_007": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.286,
+      "verdura": 0.4862
+    }
+  },
+  "ensaladas_verduras_008": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9598
+    }
+  },
+  "ensaladas_verduras_009": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9631
+    }
+  },
+  "ensaladas_verduras_010": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0743,
+      "verdura": 0.8668
+    }
+  },
+  "ensaladas_verduras_011": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7218
+    }
+  },
+  "ensaladas_verduras_012": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "huevos": 0.1155,
+      "verdura": 0.7701
+    }
+  },
+  "ensaladas_verduras_013": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4709
+    }
+  },
+  "ensaladas_verduras_015": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.1093,
+      "huevos": 0.164,
+      "verdura": 0.3277
+    }
+  },
+  "ensaladas_verduras_016": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0514,
+      "verdura": 0.6857
+    }
+  },
+  "ensaladas_verduras_017": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6874
+    }
+  },
+  "ensaladas_verduras_018": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9323
+    }
+  },
+  "ensaladas_verduras_020": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7807
+    }
+  },
+  "ensaladas_verduras_021": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7793
+    }
+  },
+  "ensaladas_verduras_022": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7489
+    }
+  },
+  "ensaladas_verduras_023": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0971,
+      "verdura": 0.85
+    }
+  },
+  "ensaladas_verduras_024": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3186,
+      "verdura": 0.3186
+    }
+  },
+  "ensaladas_verduras_025": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9703
+    }
+  },
+  "ensaladas_verduras_031": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3404
+    }
+  },
+  "ensaladas_verduras_032": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.483
+    }
+  },
+  "ensaladas_verduras_033": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1735,
+      "verdura": 0.5552
+    }
+  },
+  "ensaladas_verduras_034": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "ensaladas_verduras_035": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.477
+    }
+  },
+  "ensaladas_verduras_036": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.2004,
+      "huevos": 0.2505,
+      "verdura": 0.3758
+    }
+  },
+  "ensaladas_verduras_037": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "ensaladas_verduras_038": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "ensaladas_verduras_039": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6135
+    }
+  },
+  "ensaladas_verduras_040": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4322,
+      "verdura": 0.1781
+    }
+  },
+  "ensaladas_verduras_041": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3914,
+      "verdura": 0.5381
+    }
+  },
+  "ensaladas_verduras_042": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.1888
+    }
+  },
+  "ensaladas_verduras_043": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "ensaladas_verduras_044": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5466,
+      "verdura": 0.1171
+    }
+  },
+  "ensaladas_verduras_045": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.2688
+    }
+  },
+  "ensaladas_verduras_046": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5168
+    }
+  },
+  "ensaladas_verduras_047": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6793,
+      "verdura": 0.2033
+    }
+  },
+  "ensaladas_verduras_048": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1737,
+      "verdura": 0.7239
+    }
+  },
+  "ensaladas_verduras_049": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2595,
+      "verdura": 0.6597
+    }
+  },
+  "ensaladas_verduras_050": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.1416,
+      "verdura": 0.118
+    }
+  },
+  "ensaladas_verduras_051": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4869
+    }
+  },
+  "ensaladas_verduras_052": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3894,
+      "verdura": 0.4516
+    }
+  },
+  "ensaladas_verduras_053": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3792,
+      "huevos": 0.0903,
+      "verdura": 0.4424
+    }
+  },
+  "ensaladas_verduras_054": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.1566,
+      "huevos": 0.1342,
+      "verdura": 0.439
+    }
+  },
+  "ensaladas_verduras_055": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3304,
+      "verdura": 0.5204
+    }
+  },
+  "ensaladas_verduras_056": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.2542
+    }
+  },
+  "ensaladas_verduras_057": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4187,
+      "verdura": 0.4389
+    }
+  },
+  "ensaladas_verduras_058": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.3685,
+      "verdura": 0.5499
+    }
+  },
+  "ensaladas_verduras_059": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.1674,
+      "huevos": 0.0837,
+      "verdura": 0.3379
+    }
+  },
+  "ensaladas_verduras_060": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1547,
+      "verdura": 0.7217
+    }
+  },
+  "ensaladas_verduras_061": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3093
+    }
+  },
+  "ensaladas_verduras_062": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.2912
+    }
+  },
+  "ensaladas_verduras_063": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5377
+    }
+  },
+  "ensaladas_verduras_064": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4462,
+      "verdura": 0.348
+    }
+  },
+  "ensaladas_verduras_065": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3292,
+      "huevos": 0.076,
+      "verdura": 0.3989
+    }
+  },
+  "ensaladas_verduras_066": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6687
+    }
+  },
+  "ensaladas_verduras_067": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3238,
+      "huevos": 0.0747,
+      "pescado": 0.0125,
+      "verdura": 0.2491
+    }
+  },
+  "ensaladas_verduras_068": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7673
+    }
+  },
+  "ensaladas_verduras_069": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7907
+    }
+  },
+  "ensaladas_verduras_070": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4474,
+      "verdura": 0.4817
+    }
+  },
+  "ensaladas_verduras_071": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1769,
+      "verdura": 0.7813
+    }
+  },
+  "ensaladas_verduras_072": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1684,
+      "pescado": 0.2245,
+      "verdura": 0.0561
+    }
+  },
+  "ensaladas_verduras_073": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6266
+    }
+  },
+  "ensaladas_verduras_074": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3531
+    }
+  },
+  "ensaladas_verduras_075": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1508,
+      "verdura": 0.6031
+    }
+  },
+  "ensaladas_verduras_076": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9087
+    }
+  },
+  "ensaladas_verduras_077": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3699
+    }
+  },
+  "ensaladas_verduras_078": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2058,
+      "verdura": 0.6999
+    }
+  },
+  "ensaladas_verduras_079": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8091
+    }
+  },
+  "ensaladas_verduras_080": {
+    "familias": [
+      "pescado",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3893,
+      "pescado": 0.2076,
+      "verdura": 0.326
+    }
+  },
+  "ensaladas_verduras_081": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4105,
+      "verdura": 0.3896
+    }
+  },
+  "ensaladas_verduras_082": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.1419,
+      "verdura": 0.071
+    }
+  },
+  "ensaladas_verduras_083": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6813
+    }
+  },
+  "ensaladas_verduras_084": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3932,
+      "verdura": 0.466
+    }
+  },
+  "ensaladas_verduras_085": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.469
+    }
+  },
+  "ensaladas_verduras_086": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5938
+    }
+  },
+  "ensaladas_verduras_087": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.3503,
+      "verdura": 0.2803
+    }
+  },
+  "ensaladas_verduras_088": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.13
+    }
+  },
+  "ensaladas_verduras_089": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.3998,
+      "verdura": 0.3844
+    }
+  },
+  "ensaladas_verduras_090": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "huevos": 0.0725,
+      "verdura": 0.3046
+    }
+  },
+  "ensaladas_verduras_091": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "huevos": 0.1291,
+      "verdura": 0.8211
+    }
+  },
+  "ensaladas_verduras_092": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7671
+    }
+  },
+  "ensaladas_verduras_093": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.2447,
+      "verdura": 0.6637
+    }
+  },
+  "ensaladas_verduras_094": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8521
+    }
+  },
+  "ensaladas_verduras_095": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.735
+    }
+  },
+  "ensaladas_verduras_096": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7011
+    }
+  },
+  "ensaladas_verduras_097": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7212
+    }
+  },
+  "ensaladas_verduras_098": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5568
+    }
+  },
+  "ensaladas_verduras_099": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6654
+    }
+  },
+  "ensaladas_verduras_100": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7308
+    }
+  },
+  "ensaladas_verduras_101": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8292
+    }
+  },
+  "ensaladas_verduras_102": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7147
+    }
+  },
+  "ensaladas_verduras_103": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.1461,
+      "verdura": 0.7346
+    }
+  },
+  "ensaladas_verduras_104": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.1037,
+      "verdura": 0.5529
+    }
+  },
+  "ensaladas_verduras_105": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8557
+    }
+  },
+  "ensaladas_verduras_106": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "pescado": 0.0581,
+      "verdura": 0.8845
+    }
+  },
+  "ensaladas_verduras_107": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4363,
+      "verdura": 0.4363
+    }
+  },
+  "ensaladas_verduras_108": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2789,
+      "verdura": 0.2789
+    }
+  },
+  "ensaladas_verduras_109": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.735
+    }
+  },
+  "ensaladas_verduras_110": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.712
+    }
+  },
+  "ensaladas_verduras_111": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8202
+    }
+  },
+  "ensaladas_verduras_112": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5979
+    }
+  },
+  "ensaladas_verduras_113": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8001
+    }
+  },
+  "ensaladas_verduras_114": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.1866,
+      "verdura": 0.6467
+    }
+  },
+  "ensaladas_verduras_115": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7297
+    }
+  },
+  "ensaladas_verduras_116": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6567
+    }
+  },
+  "ensaladas_verduras_117": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4028,
+      "verdura": 0.2685
+    }
+  },
+  "ensaladas_verduras_118": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "huevos": 0.1184,
+      "verdura": 0.1974
+    }
+  },
+  "ensaladas_verduras_119": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1864,
+      "verdura": 0.2721
+    }
+  },
+  "ensaladas_verduras_120": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.0476
+    }
+  },
+  "ensaladas_verduras_121": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.162,
+      "verdura": 0.3421
+    }
+  },
+  "ensaladas_verduras_122": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8515
+    }
+  },
+  "ensaladas_verduras_123": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5038
+    }
+  },
+  "ensaladas_verduras_124": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8726
+    }
+  },
+  "ensaladas_verduras_125": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8149
+    }
+  },
+  "ensaladas_verduras_126": {
+    "familias": [],
+    "cuotas": {
+      "huevos": 0.1209,
+      "verdura": 0.0604
+    }
+  },
+  "ensaladas_verduras_127": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2269,
+      "huevos": 0.0544,
+      "verdura": 0.0817
+    }
+  },
+  "ensaladas_verduras_128": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6815
+    }
+  },
+  "ensaladas_verduras_129": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6603
+    }
+  },
+  "ensaladas_verduras_130": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6505
+    }
+  },
+  "ensaladas_verduras_131": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9437
+    }
+  },
+  "ensaladas_verduras_132": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.3475,
+      "verdura": 0.4917
+    }
+  },
+  "ensaladas_verduras_133": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.2899,
+      "verdura": 0.6225
+    }
+  },
+  "ensaladas_verduras_134": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6049
+    }
+  },
+  "ensaladas_verduras_135": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2188,
+      "verdura": 0.1367
+    }
+  },
+  "guarniciones_024": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_025": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_026": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.136,
+      "verdura": 0.7933
+    }
+  },
+  "guarniciones_027": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2656,
+      "verdura": 0.6641
+    }
+  },
+  "guarniciones_028": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.1671
+    }
+  },
+  "guarniciones_029": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8997
+    }
+  },
+  "guarniciones_030": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8289
+    }
+  },
+  "guarniciones_031": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9192
+    }
+  },
+  "guarniciones_032": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0806,
+      "verdura": 0.8064
+    }
+  },
+  "guarniciones_033": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.1369,
+      "verdura": 0.7664
+    }
+  },
+  "guarniciones_034": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7619
+    }
+  },
+  "guarniciones_035": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6623
+    }
+  },
+  "guarniciones_036": {
+    "familias": [],
+    "cuotas": {
+      "huevos": 0.1092
+    }
+  },
+  "guarniciones_037": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8327
+    }
+  },
+  "guarniciones_038": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_039": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_040": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_041": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_042": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5942
+    }
+  },
+  "guarniciones_043": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.1004,
+      "verdura": 0.4015
+    }
+  },
+  "guarniciones_044": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_045": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_046": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.0799
+    }
+  },
+  "guarniciones_047": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9176
+    }
+  },
+  "guarniciones_048": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9322
+    }
+  },
+  "guarniciones_049": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7025
+    }
+  },
+  "guarniciones_050": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8475
+    }
+  },
+  "guarniciones_051": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8981
+    }
+  },
+  "guarniciones_052": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_053": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "huevos": 0.128,
+      "verdura": 0.7682
+    }
+  },
+  "guarniciones_054": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.1363,
+      "verdura": 0.7948
+    }
+  },
+  "guarniciones_055": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.826
+    }
+  },
+  "guarniciones_056": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8938
+    }
+  },
+  "guarniciones_057": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8921
+    }
+  },
+  "guarniciones_058": {
+    "familias": [],
+    "cuotas": {
+      "huevos": 0.1432
+    }
+  },
+  "guarniciones_059": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7762
+    }
+  },
+  "guarniciones_060": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4138
+    }
+  },
+  "guarniciones_061": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8574
+    }
+  },
+  "guarniciones_062": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_063": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_064": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.311
+    }
+  },
+  "guarniciones_065": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "guarniciones_066": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.3514,
+      "verdura": 0.5354
+    }
+  },
+  "huevos_001": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3883,
+      "verdura": 0.1294
+    }
+  },
+  "huevos_002": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.9632
+    }
+  },
+  "huevos_003": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.417,
+      "carne": 0.1042
+    }
+  },
+  "huevos_004": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5092,
+      "verdura": 0.4243
+    }
+  },
+  "huevos_005": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5475,
+      "pescado": 0.1825,
+      "verdura": 0.2281
+    }
+  },
+  "huevos_006": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4189,
+      "verdura": 0.5411
+    }
+  },
+  "huevos_007": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.9434
+    }
+  },
+  "huevos_008": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5168,
+      "verdura": 0.4307
+    }
+  },
+  "huevos_009": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4716,
+      "carne": 0.1358,
+      "verdura": 0.1179
+    }
+  },
+  "huevos_010": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5358,
+      "pescado": 0.1786,
+      "verdura": 0.0556
+    }
+  },
+  "huevos_011": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5696,
+      "pescado": 0.356
+    }
+  },
+  "huevos_012": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5168,
+      "verdura": 0.4307
+    }
+  },
+  "huevos_013": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3338,
+      "carne": 0.1096,
+      "verdura": 0.2454
+    }
+  },
+  "huevos_014": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4065,
+      "verdura": 0.498
+    }
+  },
+  "huevos_015": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5564,
+      "verdura": 0.3709
+    }
+  },
+  "huevos_017": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2135,
+      "verdura": 0.5223
+    }
+  },
+  "huevos_018": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.6095,
+      "verdura": 0.2032
+    }
+  },
+  "huevos_019": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.512,
+      "pescado": 0.4266
+    }
+  },
+  "huevos_020": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.6234,
+      "pescado": 0.2597
+    }
+  },
+  "huevos_021": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3897,
+      "carne": 0.1299,
+      "verdura": 0.3775
+    }
+  },
+  "huevos_022": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4048,
+      "verdura": 0.4216
+    }
+  },
+  "huevos_023": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4152,
+      "carne": 0.1038,
+      "verdura": 0.4022
+    }
+  },
+  "huevos_024": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3138,
+      "pescado": 0.2615,
+      "verdura": 0.1177
+    }
+  },
+  "huevos_025": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4223,
+      "verdura": 0.1056
+    }
+  },
+  "huevos_026": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5124,
+      "carne": 0.1281,
+      "verdura": 0.2989
+    }
+  },
+  "huevos_027": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3522,
+      "verdura": 0.5026
+    }
+  },
+  "huevos_028": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4563,
+      "verdura": 0.3993
+    }
+  },
+  "huevos_029": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5035,
+      "pescado": 0.2098,
+      "verdura": 0.1888
+    }
+  },
+  "huevos_030": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5535,
+      "carne": 0.123
+    }
+  },
+  "huevos_031": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3815,
+      "carne": 0.1113
+    }
+  },
+  "huevos_032": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3379,
+      "carne": 0.183
+    }
+  },
+  "huevos_033": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4144,
+      "verdura": 0.0829
+    }
+  },
+  "huevos_034": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.6013,
+      "verdura": 0.3207
+    }
+  },
+  "huevos_035": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3759,
+      "verdura": 0.2506
+    }
+  },
+  "huevos_036": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5011,
+      "verdura": 0.4176
+    }
+  },
+  "huevos_037": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4079,
+      "pescado": 0.3059,
+      "verdura": 0.2549
+    }
+  },
+  "huevos_038": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4797,
+      "verdura": 0.3998
+    }
+  },
+  "huevos_039": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.6967,
+      "carne": 0.1742
+    }
+  },
+  "huevos_040": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3494,
+      "carne": 0.0847,
+      "verdura": 0.3049
+    }
+  },
+  "huevos_041": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.6232,
+      "pescado": 0.3116
+    }
+  },
+  "huevos_042": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.1449,
+      "huevos": 0.2609
+    }
+  },
+  "huevos_043": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2731,
+      "verdura": 0.1062
+    }
+  },
+  "huevos_044": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4957,
+      "pescado": 0.2065
+    }
+  },
+  "huevos_045": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4835,
+      "pescado": 0.2149
+    }
+  },
+  "huevos_046": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4781,
+      "pescado": 0.3187,
+      "verdura": 0.1594
+    }
+  },
+  "huevos_047": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4633,
+      "verdura": 0.2896
+    }
+  },
+  "huevos_048": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.8738
+    }
+  },
+  "huevos_049": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.365
+    }
+  },
+  "huevos_050": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4191,
+      "carne": 0.1164
+    }
+  },
+  "huevos_051": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4053,
+      "carne": 0.0675,
+      "verdura": 0.2587
+    }
+  },
+  "huevos_052": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4054
+    }
+  },
+  "huevos_053": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4711,
+      "verdura": 0.2355
+    }
+  },
+  "huevos_054": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.6501,
+      "carne": 0.1625
+    }
+  },
+  "huevos_055": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4659
+    }
+  },
+  "huevos_056": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5725,
+      "carne": 0.3578
+    }
+  },
+  "huevos_057": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5197,
+      "carne": 0.1083,
+      "verdura": 0.3248
+    }
+  },
+  "huevos_058": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3471
+    }
+  },
+  "huevos_059": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4422,
+      "verdura": 0.4422
+    }
+  },
+  "huevos_060": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4435,
+      "verdura": 0.4001
+    }
+  },
+  "huevos_061": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4496
+    }
+  },
+  "huevos_062": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5102,
+      "verdura": 0.4082
+    }
+  },
+  "huevos_063": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5538,
+      "carne": 0.1385,
+      "verdura": 0.0231
+    }
+  },
+  "huevos_064": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.256,
+      "verdura": 0.1952
+    }
+  },
+  "huevos_065": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3043,
+      "legumbres": 0.1268,
+      "verdura": 0.0634
+    }
+  },
+  "huevos_066": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4129,
+      "carne": 0.1068,
+      "verdura": 0.0826
+    }
+  },
+  "huevos_067": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.0828,
+      "pasta_arroz": 0.2761,
+      "verdura": 0.145
+    }
+  },
+  "huevos_068": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2056,
+      "pescado": 0.1713,
+      "verdura": 0.197
+    }
+  },
+  "huevos_069": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4665,
+      "pescado": 0.1944,
+      "verdura": 0.0518
+    }
+  },
+  "huevos_070": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4898
+    }
+  },
+  "huevos_071": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4129,
+      "verdura": 0.1831
+    }
+  },
+  "huevos_072": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2793,
+      "verdura": 0.3841
+    }
+  },
+  "huevos_073": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3817,
+      "carne": 0.0954,
+      "verdura": 0.2545
+    }
+  },
+  "huevos_074": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3794,
+      "pescado": 0.1897,
+      "verdura": 0.0632
+    }
+  },
+  "huevos_075": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2659,
+      "verdura": 0.3323
+    }
+  },
+  "huevos_076": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4871,
+      "pescado": 0.3247,
+      "verdura": 0.1078
+    }
+  },
+  "huevos_077": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.305,
+      "verdura": 0.4784
+    }
+  },
+  "huevos_078": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2987
+    }
+  },
+  "huevos_079": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3089,
+      "carne": 0.103,
+      "verdura": 0.103
+    }
+  },
+  "huevos_080": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4022,
+      "carne": 0.1341
+    }
+  },
+  "huevos_081": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2212,
+      "verdura": 0.2581
+    }
+  },
+  "huevos_082": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.345,
+      "verdura": 0.2875
+    }
+  },
+  "huevos_083": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.538,
+      "carne": 0.1494,
+      "verdura": 0.2989
+    }
+  },
+  "huevos_084": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5052,
+      "verdura": 0.4561
+    }
+  },
+  "huevos_085": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3538,
+      "carne": 0.1716
+    }
+  },
+  "huevos_086": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.6687,
+      "carne": 0.1857
+    }
+  },
+  "huevos_087": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3469,
+      "carne": 0.1682,
+      "verdura": 0.4318
+    }
+  },
+  "huevos_088": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.4763,
+      "pescado": 0.2117,
+      "verdura": 0.2878
+    }
+  },
+  "huevos_089": {
+    "familias": [
+      "carne",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3045,
+      "carne": 0.2791
+    }
+  },
+  "huevos_090": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "huevos": 0.1136,
+      "verdura": 0.6677
+    }
+  },
+  "huevos_091": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3188,
+      "verdura": 0.6314
+    }
+  },
+  "huevos_092": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3183,
+      "carne": 0.1029
+    }
+  },
+  "legumbres_001": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4917,
+      "verdura": 0.2524
+    }
+  },
+  "legumbres_002": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5289,
+      "carne": 0.0855,
+      "verdura": 0.1653
+    }
+  },
+  "legumbres_003": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4627,
+      "verdura": 0.3085
+    }
+  },
+  "legumbres_004": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4707,
+      "carne": 0.2685,
+      "verdura": 0.1655
+    }
+  },
+  "legumbres_005": {
+    "familias": [
+      "pescado",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.381,
+      "pescado": 0.1905,
+      "verdura": 0.2794
+    }
+  },
+  "legumbres_006": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6046,
+      "carne": 0.32,
+      "verdura": 0.0605
+    }
+  },
+  "legumbres_007": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6829,
+      "verdura": 0.189
+    }
+  },
+  "legumbres_008": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4706,
+      "carne": 0.1217,
+      "verdura": 0.201
+    }
+  },
+  "legumbres_009": {
+    "familias": [
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "legumbres": 0.4647,
+      "pasta_arroz": 0.2421,
+      "verdura": 0.1694
+    }
+  },
+  "legumbres_010": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.7495
+    }
+  },
+  "legumbres_011": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6788,
+      "carne": 0.2242,
+      "verdura": 0.0679
+    }
+  },
+  "legumbres_012": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4787,
+      "verdura": 0.4688
+    }
+  },
+  "legumbres_013": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4782,
+      "verdura": 0.3347
+    }
+  },
+  "legumbres_014": {
+    "familias": [
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "legumbres": 0.3274,
+      "pasta_arroz": 0.3274,
+      "verdura": 0.3107
+    }
+  },
+  "legumbres_015": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5221,
+      "verdura": 0.4083
+    }
+  },
+  "legumbres_016": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6119,
+      "verdura": 0.153
+    }
+  },
+  "legumbres_017": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4591,
+      "carne": 0.17,
+      "verdura": 0.1594
+    }
+  },
+  "legumbres_018": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4551,
+      "verdura": 0.1817
+    }
+  },
+  "legumbres_019": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.596,
+      "pescado": 0.0993,
+      "verdura": 0.1192
+    }
+  },
+  "legumbres_020": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5412,
+      "verdura": 0.3904
+    }
+  },
+  "legumbres_021": {
+    "familias": [
+      "pescado",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4316,
+      "pescado": 0.2302,
+      "verdura": 0.2486
+    }
+  },
+  "legumbres_022": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3819,
+      "verdura": 0.2387
+    }
+  },
+  "legumbres_023": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3614,
+      "verdura": 0.3791
+    }
+  },
+  "legumbres_024": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4955,
+      "verdura": 0.4413
+    }
+  },
+  "legumbres_025": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.466,
+      "carne": 0.0942,
+      "huevos": 0.1165,
+      "verdura": 0.2037
+    }
+  },
+  "legumbres_026": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5475,
+      "verdura": 0.2737
+    }
+  },
+  "legumbres_027": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.612,
+      "verdura": 0.2203
+    }
+  },
+  "legumbres_028": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5677,
+      "verdura": 0.071
+    }
+  },
+  "legumbres_029": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6502,
+      "pescado": 0.1016,
+      "verdura": 0.1355
+    }
+  },
+  "legumbres_030": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6015,
+      "carne": 0.0972,
+      "verdura": 0.0501
+    }
+  },
+  "legumbres_031": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5618,
+      "verdura": 0.3211
+    }
+  },
+  "legumbres_032": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5054,
+      "verdura": 0.0936
+    }
+  },
+  "legumbres_033": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.2376,
+      "verdura": 0.5939
+    }
+  },
+  "legumbres_034": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5317,
+      "huevos": 0.0911,
+      "verdura": 0.0608
+    }
+  },
+  "legumbres_035": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5231,
+      "carne": 0.1305,
+      "verdura": 0.2831
+    }
+  },
+  "legumbres_036": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6746,
+      "pescado": 0.0984,
+      "verdura": 0.1124
+    }
+  },
+  "legumbres_037": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5641,
+      "verdura": 0.3526
+    }
+  },
+  "legumbres_038": {
+    "familias": [
+      "legumbres",
+      "huevos"
+    ],
+    "cuotas": {
+      "legumbres": 0.4558,
+      "huevos": 0.1563,
+      "verdura": 0.2604
+    }
+  },
+  "legumbres_039": {
+    "familias": [
+      "pescado",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.2886,
+      "pescado": 0.2061,
+      "verdura": 0.1372
+    }
+  },
+  "legumbres_040": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.6425,
+      "carne": 0.2647,
+      "verdura": 0.0669
+    }
+  },
+  "legumbres_041": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4757,
+      "carne": 0.217,
+      "verdura": 0.1881
+    }
+  },
+  "legumbres_042": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4151,
+      "verdura": 0.1669
+    }
+  },
+  "legumbres_043": {
+    "familias": [
+      "pescado",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5089,
+      "pescado": 0.2326,
+      "verdura": 0.1788
+    }
+  },
+  "legumbres_044": {
+    "familias": [
+      "pescado",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3571,
+      "pescado": 0.3061,
+      "verdura": 0.1528
+    }
+  },
+  "legumbres_045": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5344,
+      "verdura": 0.3206
+    }
+  },
+  "legumbres_046": {
+    "familias": [
+      "pescado",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.413,
+      "pescado": 0.177,
+      "verdura": 0.2714
+    }
+  },
+  "legumbres_047": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5066,
+      "verdura": 0.3536
+    }
+  },
+  "legumbres_048": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.491,
+      "carne": 0.224,
+      "verdura": 0.143
+    }
+  },
+  "legumbres_049": {
+    "familias": [
+      "pescado",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5787,
+      "pescado": 0.1929,
+      "verdura": 0.1543
+    }
+  },
+  "legumbres_050": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.913
+    }
+  },
+  "legumbres_051": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3386,
+      "carne": 0.0813,
+      "verdura": 0.4876
+    }
+  },
+  "legumbres_052": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5098,
+      "carne": 0.2505,
+      "verdura": 0.1352
+    }
+  },
+  "legumbres_053": {
+    "familias": [
+      "pescado",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4984,
+      "pescado": 0.3323,
+      "verdura": 0.0997
+    }
+  },
+  "legumbres_054": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5353,
+      "carne": 0.1673,
+      "verdura": 0.145
+    }
+  },
+  "legumbres_055": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4675,
+      "carne": 0.2922,
+      "verdura": 0.1264
+    }
+  },
+  "legumbres_056": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4813,
+      "verdura": 0.3289
+    }
+  },
+  "legumbres_057": {
+    "familias": [
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "legumbres": 0.3523,
+      "pasta_arroz": 0.4697,
+      "verdura": 0.1407
+    }
+  },
+  "legumbres_058": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4244,
+      "verdura": 0.2667
+    }
+  },
+  "legumbres_059": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5506,
+      "carne": 0.1721,
+      "verdura": 0.1491
+    }
+  },
+  "legumbres_060": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5533,
+      "verdura": 0.3099
+    }
+  },
+  "legumbres_061": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5062,
+      "verdura": 0.3327
+    }
+  },
+  "legumbres_062": {
+    "familias": [
+      "legumbres",
+      "huevos"
+    ],
+    "cuotas": {
+      "legumbres": 0.4798,
+      "carne": 0.133,
+      "huevos": 0.1645,
+      "verdura": 0.0822
+    }
+  },
+  "legumbres_063": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4247,
+      "carne": 0.2776,
+      "pasta_arroz": 0.0623,
+      "verdura": 0.1494
+    }
+  },
+  "legumbres_064": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.2259
+    }
+  },
+  "legumbres_065": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3579,
+      "carne": 0.3579,
+      "verdura": 0.1572
+    }
+  },
+  "legumbres_066": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4323,
+      "carne": 0.2058,
+      "verdura": 0.2398
+    }
+  },
+  "legumbres_067": {
+    "familias": [
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "legumbres": 0.3251,
+      "pasta_arroz": 0.3034,
+      "verdura": 0.13
+    }
+  },
+  "legumbres_068": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5229,
+      "carne": 0.0871,
+      "verdura": 0.366
+    }
+  },
+  "legumbres_069": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3732,
+      "verdura": 0.4043
+    }
+  },
+  "legumbres_070": {
+    "familias": [
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "legumbres": 0.3872,
+      "carne": 0.1002,
+      "pasta_arroz": 0.3227,
+      "verdura": 0.0968
+    }
+  },
+  "legumbres_071": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4482,
+      "verdura": 0.1121
+    }
+  },
+  "legumbres_072": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4275,
+      "carne": 0.2601,
+      "verdura": 0.2993
+    }
+  },
+  "legumbres_073": {
+    "familias": [
+      "legumbres",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "legumbres": 0.3359,
+      "pasta_arroz": 0.2799,
+      "verdura": 0.3636
+    }
+  },
+  "legumbres_074": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.376,
+      "carne": 0.1293,
+      "verdura": 0.2279
+    }
+  },
+  "legumbres_075": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3909,
+      "verdura": 0.3029
+    }
+  },
+  "legumbres_076": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.493,
+      "verdura": 0.3456
+    }
+  },
+  "legumbres_077": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5453,
+      "carne": 0.0661,
+      "verdura": 0.2156
+    }
+  },
+  "legumbres_078": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5374,
+      "verdura": 0.347
+    }
+  },
+  "legumbres_079": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5079,
+      "verdura": 0.2899
+    }
+  },
+  "legumbres_080": {
+    "familias": [
+      "carne",
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.3836,
+      "carne": 0.2739,
+      "verdura": 0.1798
+    }
+  },
+  "legumbres_081": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4696,
+      "verdura": 0.3813
+    }
+  },
+  "legumbres_082": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5239,
+      "verdura": 0.4231
+    }
+  },
+  "legumbres_083": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5531,
+      "verdura": 0.1047
+    }
+  },
+  "legumbres_084": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.432,
+      "verdura": 0.1555
+    }
+  },
+  "meriendas_001": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "meriendas_002": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "meriendas_003": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2191,
+      "verdura": 0.2081
+    }
+  },
+  "meriendas_004": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2647
+    }
+  },
+  "meriendas_005": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "meriendas_006": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "pasta_arroces_001": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5571,
+      "verdura": 0.076
+    }
+  },
+  "pasta_arroces_002": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1804,
+      "pasta_arroz": 0.3968,
+      "verdura": 0.1263
+    }
+  },
+  "pasta_arroces_003": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.7174
+    }
+  },
+  "pasta_arroces_004": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1865,
+      "legumbres": 0.088,
+      "pasta_arroz": 0.4951
+    }
+  },
+  "pasta_arroces_005": {
+    "familias": [
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.141,
+      "huevos": 0.1692,
+      "pasta_arroz": 0.6204
+    }
+  },
+  "pasta_arroces_006": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1409,
+      "pasta_arroz": 0.5166,
+      "verdura": 0.0704
+    }
+  },
+  "pasta_arroces_007": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2121,
+      "pasta_arroz": 0.4773,
+      "verdura": 0.1977
+    }
+  },
+  "pasta_arroces_008": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.225,
+      "pasta_arroz": 0.4454,
+      "verdura": 0.1235
+    }
+  },
+  "pasta_arroces_009": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.1285,
+      "pasta_arroz": 0.482
+    }
+  },
+  "pasta_arroces_010": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.7819
+    }
+  },
+  "pasta_arroces_011": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5447,
+      "verdura": 0.3266
+    }
+  },
+  "pasta_arroces_012": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.277,
+      "pasta_arroz": 0.6095
+    }
+  },
+  "pasta_arroces_013": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1628,
+      "pasta_arroz": 0.3663,
+      "verdura": 0.0488
+    }
+  },
+  "pasta_arroces_014": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.2048,
+      "pasta_arroz": 0.4505,
+      "verdura": 0.2355
+    }
+  },
+  "pasta_arroces_015": {
+    "familias": [
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.1536,
+      "carne": 0.0768,
+      "pasta_arroz": 0.5762,
+      "verdura": 0.1536
+    }
+  },
+  "pasta_arroces_016": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2406,
+      "pasta_arroz": 0.5294,
+      "verdura": 0.1761
+    }
+  },
+  "pasta_arroces_017": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2272,
+      "pasta_arroz": 0.2399,
+      "verdura": 0.0545
+    }
+  },
+  "pasta_arroces_018": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2569,
+      "pasta_arroz": 0.226,
+      "verdura": 0.0822
+    }
+  },
+  "pasta_arroces_019": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1619,
+      "pasta_arroz": 0.3312
+    }
+  },
+  "pasta_arroces_020": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.6342,
+      "verdura": 0.3206
+    }
+  },
+  "pasta_arroces_021": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1049,
+      "pasta_arroz": 0.427
+    }
+  },
+  "pasta_arroces_022": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.8951
+    }
+  },
+  "pasta_arroces_023": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.17,
+      "pasta_arroz": 0.3365,
+      "verdura": 0.0564
+    }
+  },
+  "pasta_arroces_024": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5776,
+      "verdura": 0.2022
+    }
+  },
+  "pasta_arroces_025": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.3409,
+      "verdura": 0.197
+    }
+  },
+  "pasta_arroces_026": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5269,
+      "verdura": 0.3792
+    }
+  },
+  "pasta_arroces_027": {
+    "familias": [
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.2086,
+      "carne": 0.1192,
+      "pasta_arroz": 0.5902
+    }
+  },
+  "pasta_arroces_028": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.6032,
+      "verdura": 0.2171
+    }
+  },
+  "pasta_arroces_029": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1922,
+      "pasta_arroz": 0.4758
+    }
+  },
+  "pasta_arroces_030": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.2712,
+      "verdura": 0.1546
+    }
+  },
+  "pasta_arroces_031": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.109,
+      "pasta_arroz": 0.3115,
+      "verdura": 0.079
+    }
+  },
+  "pasta_arroces_032": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1155,
+      "pasta_arroz": 0.3372,
+      "verdura": 0.0771
+    }
+  },
+  "pasta_arroces_033": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1213,
+      "pasta_arroz": 0.3161,
+      "verdura": 0.0399
+    }
+  },
+  "pasta_arroces_034": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1588,
+      "pasta_arroz": 0.2888,
+      "verdura": 0.1003
+    }
+  },
+  "pasta_arroces_035": {
+    "familias": [
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.2219,
+      "pasta_arroz": 0.3698,
+      "verdura": 0.0355
+    }
+  },
+  "pasta_arroces_036": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2417,
+      "pasta_arroz": 0.3403,
+      "verdura": 0.1078
+    }
+  },
+  "pasta_arroces_037": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.2709,
+      "verdura": 0.1591
+    }
+  },
+  "pasta_arroces_038": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.0419,
+      "pasta_arroz": 0.5527,
+      "verdura": 0.3489
+    }
+  },
+  "pasta_arroces_039": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.108,
+      "pasta_arroz": 0.2468,
+      "verdura": 0.0626
+    }
+  },
+  "pasta_arroces_040": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1954,
+      "pasta_arroz": 0.0568,
+      "verdura": 0.1234
+    }
+  },
+  "pasta_arroces_041": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1921,
+      "pasta_arroz": 0.6087
+    }
+  },
+  "pasta_arroces_042": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1196,
+      "pasta_arroz": 0.2733,
+      "verdura": 0.041
+    }
+  },
+  "pasta_arroces_043": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.276,
+      "legumbres": 0.0505,
+      "huevos": 0.1011,
+      "pasta_arroz": 0.2696
+    }
+  },
+  "pasta_arroces_044": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2919,
+      "pasta_arroz": 0.2598,
+      "verdura": 0.1144
+    }
+  },
+  "pasta_arroces_045": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.7615
+    }
+  },
+  "pasta_arroces_046": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.8199
+    }
+  },
+  "pasta_arroces_047": {
+    "familias": [
+      "carne",
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1688,
+      "huevos": 0.1969,
+      "pasta_arroz": 0.557
+    }
+  },
+  "pasta_arroces_048": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.6236
+    }
+  },
+  "pasta_arroces_049": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4108,
+      "verdura": 0.1961
+    }
+  },
+  "pasta_arroces_050": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.8396
+    }
+  },
+  "pasta_arroces_051": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.0862,
+      "pasta_arroz": 0.2155
+    }
+  },
+  "pasta_arroces_052": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "huevos": 0.0916,
+      "pasta_arroz": 0.1221,
+      "verdura": 0.3053
+    }
+  },
+  "pasta_arroces_053": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1532,
+      "pasta_arroz": 0.6743
+    }
+  },
+  "pasta_arroces_054": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4438
+    }
+  },
+  "pasta_arroces_055": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.405
+    }
+  },
+  "pasta_arroces_056": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.2379,
+      "verdura": 0.2869
+    }
+  },
+  "pasta_arroces_057": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.071,
+      "verdura": 0.3771
+    }
+  },
+  "pasta_arroces_058": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.35,
+      "pasta_arroz": 0.0723,
+      "verdura": 0.0452
+    }
+  },
+  "pasta_arroces_059": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1698,
+      "pasta_arroz": 0.1867,
+      "verdura": 0.0853
+    }
+  },
+  "pasta_arroces_060": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5298,
+      "verdura": 0.2288
+    }
+  },
+  "pasta_arroces_061": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1745,
+      "pasta_arroz": 0.4799,
+      "verdura": 0.2715
+    }
+  },
+  "pasta_arroces_062": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5751,
+      "verdura": 0.0784
+    }
+  },
+  "pasta_arroces_063": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.22,
+      "pasta_arroz": 0.3872,
+      "verdura": 0.0528
+    }
+  },
+  "pasta_arroces_064": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5469
+    }
+  },
+  "pasta_arroces_065": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4966,
+      "verdura": 0.237
+    }
+  },
+  "pasta_arroces_066": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.2343,
+      "pasta_arroz": 0.5154,
+      "verdura": 0.0469
+    }
+  },
+  "pasta_arroces_067": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.3326,
+      "pasta_arroz": 0.5853
+    }
+  },
+  "pasta_arroces_068": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1463,
+      "pasta_arroz": 0.6435
+    }
+  },
+  "pasta_arroces_069": {
+    "familias": [
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.2045,
+      "pasta_arroz": 0.2841,
+      "verdura": 0.1705
+    }
+  },
+  "pasta_arroces_070": {
+    "familias": [
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.2222,
+      "pasta_arroz": 0.3086,
+      "verdura": 0.3457
+    }
+  },
+  "pasta_arroces_071": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.6077
+    }
+  },
+  "pasta_arroces_072": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.0259,
+      "pasta_arroz": 0.5695,
+      "verdura": 0.3236
+    }
+  },
+  "pasta_arroces_073": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2445,
+      "pasta_arroz": 0.3261,
+      "verdura": 0.0652
+    }
+  },
+  "pasta_arroces_074": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.285,
+      "verdura": 0.2138
+    }
+  },
+  "pasta_arroces_075": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1477,
+      "pasta_arroz": 0.2698,
+      "verdura": 0.1527
+    }
+  },
+  "pasta_arroces_076": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1446,
+      "pasta_arroz": 0.3068,
+      "verdura": 0.0383
+    }
+  },
+  "pasta_arroces_077": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1424,
+      "pescado": 0.0548,
+      "pasta_arroz": 0.2848,
+      "verdura": 0.133
+    }
+  },
+  "pasta_arroces_078": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.116,
+      "legumbres": 0.1271,
+      "pasta_arroz": 0.2542,
+      "verdura": 0.1223
+    }
+  },
+  "pasta_arroces_079": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.3285,
+      "verdura": 0.2263
+    }
+  },
+  "pasta_arroces_080": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1429,
+      "pasta_arroz": 0.3214,
+      "verdura": 0.0357
+    }
+  },
+  "pasta_arroces_081": {
+    "familias": [
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.1536,
+      "carne": 0.0768,
+      "pasta_arroz": 0.5762,
+      "verdura": 0.1536
+    }
+  },
+  "pasta_arroces_082": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1857,
+      "pasta_arroz": 0.2782,
+      "verdura": 0.0887
+    }
+  },
+  "pasta_arroces_083": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1559,
+      "pasta_arroz": 0.3131,
+      "verdura": 0.0781
+    }
+  },
+  "pasta_arroces_084": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.7426,
+      "verdura": 0.1013
+    }
+  },
+  "pasta_arroces_085": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2291,
+      "pasta_arroz": 0.4032,
+      "verdura": 0.0916
+    }
+  },
+  "pasta_arroces_086": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1267,
+      "pasta_arroz": 0.3484,
+      "verdura": 0.0396
+    }
+  },
+  "pasta_arroces_087": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1535,
+      "pasta_arroz": 0.6756
+    }
+  },
+  "pasta_arroces_088": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1882,
+      "pasta_arroz": 0.3388,
+      "verdura": 0.0452
+    }
+  },
+  "pasta_arroces_089": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.2248,
+      "pasta_arroz": 0.4946,
+      "verdura": 0.2248
+    }
+  },
+  "pasta_arroces_090": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4395,
+      "verdura": 0.2847
+    }
+  },
+  "pasta_arroces_091": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1216,
+      "pasta_arroz": 0.4458,
+      "verdura": 0.0507
+    }
+  },
+  "pasta_arroces_092": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.18,
+      "pasta_arroz": 0.2851,
+      "verdura": 0.108
+    }
+  },
+  "pasta_arroces_093": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.3404,
+      "verdura": 0.0464
+    }
+  },
+  "pasta_arroces_094": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4688,
+      "verdura": 0.071
+    }
+  },
+  "pasta_arroces_095": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1156,
+      "pasta_arroz": 0.4577,
+      "verdura": 0.289
+    }
+  },
+  "pasta_arroces_096": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.1325,
+      "pasta_arroz": 0.4967
+    }
+  },
+  "pasta_arroces_097": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1396,
+      "pasta_arroz": 0.4748,
+      "verdura": 0.0899
+    }
+  },
+  "pasta_arroces_098": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.5374
+    }
+  },
+  "pasta_arroces_099": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.2658,
+      "verdura": 0.3984
+    }
+  },
+  "pasta_arroces_100": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2863,
+      "pasta_arroz": 0.2863,
+      "verdura": 0.3973
+    }
+  },
+  "pasta_arroces_101": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.3127,
+      "pasta_arroz": 0.3127,
+      "verdura": 0.195
+    }
+  },
+  "pasta_arroces_102": {
+    "familias": [
+      "huevos",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "huevos": 0.1704,
+      "carne": 0.0947,
+      "pasta_arroz": 0.426,
+      "verdura": 0.2556
+    }
+  },
+  "pasta_arroces_103": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2227,
+      "pasta_arroz": 0.4083,
+      "verdura": 0.1188
+    }
+  },
+  "pasta_arroces_104": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2434,
+      "huevos": 0.146,
+      "pasta_arroz": 0.4057,
+      "verdura": 0.1322
+    }
+  },
+  "pasta_arroces_105": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.2301,
+      "pasta_arroz": 0.4315,
+      "verdura": 0.1438
+    }
+  },
+  "pasta_arroces_106": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.416,
+      "verdura": 0.4994
+    }
+  },
+  "pasta_arroces_107": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.505,
+      "verdura": 0.3314
+    }
+  },
+  "pasta_arroces_108": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.4728,
+      "verdura": 0.1791
+    }
+  },
+  "pescados_001": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.591,
+      "verdura": 0.1206
+    }
+  },
+  "pescados_002": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4118,
+      "verdura": 0.1098
+    }
+  },
+  "pescados_003": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4515,
+      "verdura": 0.1674
+    }
+  },
+  "pescados_004": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5896
+    }
+  },
+  "pescados_005": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4404,
+      "verdura": 0.1281
+    }
+  },
+  "pescados_006": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6822
+    }
+  },
+  "pescados_007": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4971,
+      "huevos": 0.1217
+    }
+  },
+  "pescados_008": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3849,
+      "verdura": 0.2449
+    }
+  },
+  "pescados_009": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6942
+    }
+  },
+  "pescados_010": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.7947
+    }
+  },
+  "pescados_011": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4403,
+      "huevos": 0.1258
+    }
+  },
+  "pescados_012": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.8098
+    }
+  },
+  "pescados_013": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4205,
+      "verdura": 0.2672
+    }
+  },
+  "pescados_014": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5793,
+      "huevos": 0.0993
+    }
+  },
+  "pescados_015": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6294,
+      "carne": 0.0944
+    }
+  },
+  "pescados_016": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.632,
+      "verdura": 0.1352
+    }
+  },
+  "pescados_017": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6506,
+      "huevos": 0.1301
+    }
+  },
+  "pescados_018": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4704,
+      "verdura": 0.3152
+    }
+  },
+  "pescados_019": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4595,
+      "verdura": 0.3063
+    }
+  },
+  "pescados_020": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6577
+    }
+  },
+  "pescados_021": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1568,
+      "pasta_arroz": 0.3642
+    }
+  },
+  "pescados_022": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6465
+    }
+  },
+  "pescados_023": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6981
+    }
+  },
+  "pescados_024": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5111,
+      "verdura": 0.1022
+    }
+  },
+  "pescados_025": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4184,
+      "verdura": 0.3985
+    }
+  },
+  "pescados_026": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2297,
+      "pescado": 0.1914,
+      "verdura": 0.2297
+    }
+  },
+  "pescados_027": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.2007,
+      "legumbres": 0.1003,
+      "pasta_arroz": 0.4013,
+      "verdura": 0.2328
+    }
+  },
+  "pescados_028": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3132,
+      "verdura": 0.0313
+    }
+  },
+  "pescados_029": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.2351,
+      "pasta_arroz": 0.4275,
+      "verdura": 0.1282
+    }
+  },
+  "pescados_030": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2991,
+      "verdura": 0.4579
+    }
+  },
+  "pescados_031": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "pescado": 0.1445,
+      "verdura": 0.4574
+    }
+  },
+  "pescados_032": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5059,
+      "verdura": 0.4047
+    }
+  },
+  "pescados_033": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4532,
+      "verdura": 0.4834
+    }
+  },
+  "pescados_034": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5026,
+      "verdura": 0.3895
+    }
+  },
+  "pescados_035": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5283,
+      "verdura": 0.1585
+    }
+  },
+  "pescados_036": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6583,
+      "huevos": 0.1047
+    }
+  },
+  "pescados_037": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5749,
+      "verdura": 0.0511
+    }
+  },
+  "pescados_038": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5447,
+      "verdura": 0.2397
+    }
+  },
+  "pescados_039": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4634,
+      "verdura": 0.181
+    }
+  },
+  "pescados_040": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2965,
+      "carne": 0.0988,
+      "verdura": 0.4117
+    }
+  },
+  "pescados_041": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6017
+    }
+  },
+  "pescados_042": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.8675,
+      "verdura": 0.0651
+    }
+  },
+  "pescados_043": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.5688,
+      "huevos": 0.2666
+    }
+  },
+  "pescados_044": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1179,
+      "pasta_arroz": 0.3367,
+      "verdura": 0.077
+    }
+  },
+  "pescados_045": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.7972
+    }
+  },
+  "pescados_046": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3676,
+      "verdura": 0.3301
+    }
+  },
+  "pescados_047": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4656,
+      "verdura": 0.2661
+    }
+  },
+  "pescados_048": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5473,
+      "verdura": 0.0832
+    }
+  },
+  "pescados_049": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5218
+    }
+  },
+  "pescados_050": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5559,
+      "verdura": 0.139
+    }
+  },
+  "pescados_051": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4376,
+      "verdura": 0.0365
+    }
+  },
+  "pescados_052": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2917,
+      "verdura": 0.093
+    }
+  },
+  "pescados_053": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4505,
+      "carne": 0.0282,
+      "huevos": 0.0676,
+      "verdura": 0.1875
+    }
+  },
+  "pescados_054": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6653
+    }
+  },
+  "pescados_055": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3894,
+      "verdura": 0.3407
+    }
+  },
+  "pescados_056": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6187
+    }
+  },
+  "pescados_057": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4901
+    }
+  },
+  "pescados_058": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5319,
+      "verdura": 0.0355
+    }
+  },
+  "pescados_059": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3072
+    }
+  },
+  "pescados_060": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4686
+    }
+  },
+  "pescados_061": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.7678
+    }
+  },
+  "pescados_062": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3446,
+      "huevos": 0.0646
+    }
+  },
+  "pescados_063": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4277
+    }
+  },
+  "pescados_064": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6302,
+      "verdura": 0.0315
+    }
+  },
+  "pescados_065": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.615
+    }
+  },
+  "pescados_066": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.7296,
+      "verdura": 0.0342
+    }
+  },
+  "pescados_067": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3758,
+      "verdura": 0.4377
+    }
+  },
+  "pescados_068": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.7096,
+      "verdura": 0.1362
+    }
+  },
+  "pescados_069": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5734,
+      "verdura": 0.061
+    }
+  },
+  "pescados_070": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5607,
+      "verdura": 0.3084
+    }
+  },
+  "pescados_071": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.7043
+    }
+  },
+  "pescados_072": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4185,
+      "verdura": 0.1744
+    }
+  },
+  "pescados_073": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.483
+    }
+  },
+  "pescados_074": {
+    "familias": [],
+    "cuotas": {
+      "pescado": 0.1046
+    }
+  },
+  "pescados_075": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.634
+    }
+  },
+  "pescados_076": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2023,
+      "huevos": 0.0971,
+      "verdura": 0.0485
+    }
+  },
+  "pescados_077": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5096,
+      "verdura": 0.0921
+    }
+  },
+  "pescados_078": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2562,
+      "huevos": 0.1025,
+      "verdura": 0.4307
+    }
+  },
+  "pescados_079": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5739,
+      "verdura": 0.2255
+    }
+  },
+  "pescados_080": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4966,
+      "verdura": 0.1207
+    }
+  },
+  "pescados_081": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.6557,
+      "carne": 0.0787
+    }
+  },
+  "pescados_082": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5547
+    }
+  },
+  "pescados_083": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4538,
+      "verdura": 0.1545
+    }
+  },
+  "pescados_084": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5746,
+      "verdura": 0.0492
+    }
+  },
+  "pescados_085": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3517,
+      "verdura": 0.2741
+    }
+  },
+  "pescados_086": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5978
+    }
+  },
+  "pescados_087": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.3356,
+      "pasta_arroz": 0.3356,
+      "verdura": 0.0908
+    }
+  },
+  "pescados_088": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5457,
+      "huevos": 0.0819
+    }
+  },
+  "pescados_089": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.3657,
+      "huevos": 0.1755
+    }
+  },
+  "pescados_090": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2341,
+      "verdura": 0.1402
+    }
+  },
+  "pescados_091": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.7208
+    }
+  },
+  "pescados_092": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.1795,
+      "pasta_arroz": 0.3303,
+      "verdura": 0.0703
+    }
+  },
+  "pescados_093": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5146,
+      "verdura": 0.4103
+    }
+  },
+  "pescados_094": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5714,
+      "carne": 0.0952,
+      "verdura": 0.119
+    }
+  },
+  "pescados_095": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5935
+    }
+  },
+  "pescados_096": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5314,
+      "verdura": 0.2558
+    }
+  },
+  "pescados_097": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3288,
+      "verdura": 0.0811
+    }
+  },
+  "pescados_098": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.3089,
+      "legumbres": 0.0662,
+      "pasta_arroz": 0.3861,
+      "verdura": 0.1544
+    }
+  },
+  "pescados_099": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3247,
+      "verdura": 0.0609
+    }
+  },
+  "pescados_100": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3681,
+      "verdura": 0.4602
+    }
+  },
+  "pescados_101": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3919,
+      "verdura": 0.1176
+    }
+  },
+  "pescados_102": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3587
+    }
+  },
+  "pescados_103": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4106
+    }
+  },
+  "pescados_104": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4184,
+      "verdura": 0.0685
+    }
+  },
+  "pescados_105": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4236,
+      "verdura": 0.1595
+    }
+  },
+  "pescados_106": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4296
+    }
+  },
+  "pescados_107": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "pescado": 0.0876,
+      "verdura": 0.6091
+    }
+  },
+  "pescados_108": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "pescado": 0.0684,
+      "verdura": 0.5696
+    }
+  },
+  "pescados_109": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3071,
+      "huevos": 0.0461,
+      "verdura": 0.2173
+    }
+  },
+  "pescados_110": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3982,
+      "verdura": 0.2323
+    }
+  },
+  "pescados_111": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.2976,
+      "huevos": 0.1786
+    }
+  },
+  "pescados_112": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.4646,
+      "huevos": 0.2027,
+      "verdura": 0.0422
+    }
+  },
+  "pescados_113": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.208,
+      "huevos": 0.0416,
+      "verdura": 0.3173
+    }
+  },
+  "pescados_114": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2006,
+      "huevos": 0.043,
+      "verdura": 0.3157
+    }
+  },
+  "pescados_115": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2841,
+      "verdura": 0.1136
+    }
+  },
+  "pescados_116": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2986,
+      "huevos": 0.0717,
+      "verdura": 0.0955
+    }
+  },
+  "pescados_117": {
+    "familias": [
+      "pescado",
+      "huevos"
+    ],
+    "cuotas": {
+      "pescado": 0.3532,
+      "huevos": 0.2422,
+      "verdura": 0.1413
+    }
+  },
+  "pescados_118": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2415,
+      "huevos": 0.0724,
+      "verdura": 0.277
+    }
+  },
+  "pescados_119": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4387,
+      "verdura": 0.0877
+    }
+  },
+  "pescados_120": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4184,
+      "huevos": 0.0628,
+      "verdura": 0.1569
+    }
+  },
+  "pescados_121": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.7294
+    }
+  },
+  "pescados_122": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4393,
+      "verdura": 0.3295
+    }
+  },
+  "pescados_123": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4659,
+      "verdura": 0.2329
+    }
+  },
+  "pescados_124": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.848,
+      "verdura": 0.0424
+    }
+  },
+  "pescados_125": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3086,
+      "verdura": 0.6631
+    }
+  },
+  "pescados_126": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.7021,
+      "verdura": 0.0527
+    }
+  },
+  "pescados_127": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.3737,
+      "verdura": 0.1019
+    }
+  },
+  "pescados_128": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.8289
+    }
+  },
+  "pescados_129": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.4613,
+      "verdura": 0.4576
+    }
+  },
+  "pescados_130": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.5004,
+      "verdura": 0.2971
+    }
+  },
+  "platos_unicos_001": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.1754,
+      "legumbres": 0.0658,
+      "pasta_arroz": 0.5483,
+      "verdura": 0.0877
+    }
+  },
+  "platos_unicos_002": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "platos_unicos_003": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.1256,
+      "huevos": 0.0942
+    }
+  },
+  "platos_unicos_004": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2083,
+      "huevos": 0.0781,
+      "verdura": 0.2427
+    }
+  },
+  "platos_unicos_005": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2453,
+      "huevos": 0.1227,
+      "verdura": 0.2075
+    }
+  },
+  "platos_unicos_006": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2065,
+      "carne": 0.1377
+    }
+  },
+  "platos_unicos_007": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2739,
+      "verdura": 0.1948
+    }
+  },
+  "platos_unicos_008": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1656,
+      "verdura": 0.0497
+    }
+  },
+  "platos_unicos_009": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.4299,
+      "verdura": 0.2709
+    }
+  },
+  "platos_unicos_010": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.1758,
+      "huevos": 0.0879
+    }
+  },
+  "platos_unicos_011": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.2737
+    }
+  },
+  "platos_unicos_012": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.2897,
+      "verdura": 0.5698
+    }
+  },
+  "platos_unicos_013": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.1114
+    }
+  },
+  "platos_unicos_014": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2197,
+      "verdura": 0.3241
+    }
+  },
+  "platos_unicos_015": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2025
+    }
+  },
+  "platos_unicos_016": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2818,
+      "verdura": 0.0939
+    }
+  },
+  "platos_unicos_017": {
+    "familias": [
+      "carne",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "carne": 0.4582,
+      "pasta_arroz": 0.1833,
+      "verdura": 0.1217
+    }
+  },
+  "platos_unicos_018": {
+    "familias": [
+      "pescado",
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pescado": 0.2586,
+      "pasta_arroz": 0.5999
+    }
+  },
+  "platos_unicos_019": {
+    "familias": [
+      "carne"
+    ],
+    "cuotas": {
+      "carne": 0.1942,
+      "verdura": 0.1612
+    }
+  },
+  "platos_unicos_020": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3048,
+      "carne": 0.0616,
+      "verdura": 0.0762
+    }
+  },
+  "postres_001": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_002": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_003": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_007": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_008": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_009": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_013": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_014": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_019": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1939
+    }
+  },
+  "postres_020": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_021": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1931
+    }
+  },
+  "postres_022": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1867
+    }
+  },
+  "postres_023": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1562
+    }
+  },
+  "postres_024": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.5442
+    }
+  },
+  "postres_025": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_026": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.163
+    }
+  },
+  "postres_027": {
+    "familias": [],
+    "cuotas": {
+      "huevos": 0.0748
+    }
+  },
+  "postres_028": {
+    "familias": [],
+    "cuotas": {
+      "huevos": 0.0708
+    }
+  },
+  "postres_029": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "huevos": 0.1455,
+      "verdura": 0.1818
+    }
+  },
+  "postres_030": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_031": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_032": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "postres_033": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.3293
+    }
+  },
+  "postres_034": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1872
+    }
+  },
+  "postres_035": {
+    "familias": [],
+    "cuotas": {
+      "huevos": 0.1083
+    }
+  },
+  "postres_036": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1854
+    }
+  },
+  "postres_037": {
+    "familias": [],
+    "cuotas": {
+      "huevos": 0.1488
+    }
+  },
+  "salsas_001": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_002": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_003": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.1039
+    }
+  },
+  "salsas_004": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.1573
+    }
+  },
+  "salsas_005": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.0598
+    }
+  },
+  "salsas_006": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_007": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_008": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_009": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_010": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4644
+    }
+  },
+  "salsas_011": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_012": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3223
+    }
+  },
+  "salsas_013": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_014": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_015": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.1989
+    }
+  },
+  "salsas_016": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_017": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_019": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_020": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_021": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_023": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_024": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_025": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2341
+    }
+  },
+  "salsas_026": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_027": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_028": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.2218
+    }
+  },
+  "salsas_029": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "salsas_030": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.1195
+    }
+  },
+  "sopas_cremas_001": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7866
+    }
+  },
+  "sopas_cremas_002": {
+    "familias": [
+      "pasta_arroz"
+    ],
+    "cuotas": {
+      "pasta_arroz": 0.207,
+      "verdura": 0.0706
+    }
+  },
+  "sopas_cremas_003": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8052
+    }
+  },
+  "sopas_cremas_004": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8851
+    }
+  },
+  "sopas_cremas_005": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0287,
+      "huevos": 0.0861,
+      "verdura": 0.6816
+    }
+  },
+  "sopas_cremas_006": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8218
+    }
+  },
+  "sopas_cremas_007": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "carne": 0.0515,
+      "huevos": 0.1546
+    }
+  },
+  "sopas_cremas_008": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.1814
+    }
+  },
+  "sopas_cremas_009": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.2245
+    }
+  },
+  "sopas_cremas_010": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3774
+    }
+  },
+  "sopas_cremas_011": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3624
+    }
+  },
+  "sopas_cremas_012": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7429
+    }
+  },
+  "sopas_cremas_013": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "sopas_cremas_014": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7764
+    }
+  },
+  "sopas_cremas_015": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "sopas_cremas_016": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.9513
+    }
+  },
+  "sopas_cremas_017": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7988
+    }
+  },
+  "sopas_cremas_018": {
+    "familias": [
+      "huevos"
+    ],
+    "cuotas": {
+      "huevos": 0.1668
+    }
+  },
+  "sopas_cremas_019": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3648
+    }
+  },
+  "sopas_cremas_020": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.5992,
+      "verdura": 0.233
+    }
+  },
+  "sopas_cremas_021": {
+    "familias": [],
+    "cuotas": {
+      "huevos": 0.0883,
+      "carne": 0.0442,
+      "verdura": 0.0736
+    }
+  },
+  "sopas_cremas_022": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.2922
+    }
+  },
+  "sopas_cremas_023": {
+    "familias": [],
+    "cuotas": {
+      "pescado": 0.0946,
+      "pasta_arroz": 0.0473,
+      "verdura": 0.1268
+    }
+  },
+  "sopas_cremas_024": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3779
+    }
+  },
+  "sopas_cremas_025": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3228
+    }
+  },
+  "sopas_cremas_026": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0541,
+      "huevos": 0.0812,
+      "verdura": 0.6429
+    }
+  },
+  "sopas_cremas_027": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0618,
+      "verdura": 0.1597
+    }
+  },
+  "sopas_cremas_028": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4368
+    }
+  },
+  "sopas_cremas_029": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3904
+    }
+  },
+  "sopas_cremas_030": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.321
+    }
+  },
+  "sopas_cremas_031": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5354
+    }
+  },
+  "sopas_cremas_032": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "pescado": 0.1401,
+      "verdura": 0.3466
+    }
+  },
+  "sopas_cremas_033": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8899
+    }
+  },
+  "sopas_cremas_034": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6186
+    }
+  },
+  "sopas_cremas_035": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.079
+    }
+  },
+  "sopas_cremas_036": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4799
+    }
+  },
+  "sopas_cremas_037": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4426
+    }
+  },
+  "sopas_cremas_038": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4333
+    }
+  },
+  "sopas_cremas_039": {
+    "familias": [],
+    "cuotas": {
+      "legumbres": 0.1359,
+      "carne": 0.1004,
+      "verdura": 0.1019
+    }
+  },
+  "sopas_cremas_040": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4725
+    }
+  },
+  "sopas_cremas_041": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2879,
+      "verdura": 0.0882
+    }
+  },
+  "sopas_cremas_042": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7737
+    }
+  },
+  "sopas_cremas_043": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.0419
+    }
+  },
+  "sopas_cremas_044": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.2253,
+      "verdura": 0.1012
+    }
+  },
+  "sopas_cremas_045": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.699
+    }
+  },
+  "sopas_cremas_046": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4108
+    }
+  },
+  "sopas_cremas_047": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4545
+    }
+  },
+  "sopas_cremas_048": {
+    "familias": [],
+    "cuotas": {
+      "legumbres": 0.1148,
+      "verdura": 0.132
+    }
+  },
+  "sopas_cremas_049": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.4069,
+      "verdura": 0.1424
+    }
+  },
+  "sopas_cremas_050": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.046,
+      "verdura": 0.2508
+    }
+  },
+  "sopas_cremas_051": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.49
+    }
+  },
+  "sopas_cremas_052": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5223
+    }
+  },
+  "sopas_cremas_053": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4318
+    }
+  },
+  "sopas_cremas_054": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.111
+    }
+  },
+  "sopas_cremas_055": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4163
+    }
+  },
+  "sopas_cremas_056": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.0604
+    }
+  },
+  "sopas_cremas_057": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7637
+    }
+  },
+  "sopas_cremas_058": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.0791,
+      "huevos": 0.0138,
+      "verdura": 0.0992
+    }
+  },
+  "sopas_cremas_059": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.334,
+      "verdura": 0.1345
+    }
+  },
+  "sopas_cremas_060": {
+    "familias": [],
+    "cuotas": {
+      "huevos": 0.1379,
+      "verdura": 0.023
+    }
+  },
+  "sopas_cremas_061": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.0547
+    }
+  },
+  "sopas_cremas_062": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4593
+    }
+  },
+  "sopas_cremas_063": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7705
+    }
+  },
+  "sopas_cremas_064": {
+    "familias": [],
+    "cuotas": {
+      "verdura": 0.0741
+    }
+  },
+  "sopas_cremas_065": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.6503
+    }
+  },
+  "sopas_cremas_066": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0611,
+      "verdura": 0.4703
+    }
+  },
+  "sopas_cremas_067": {
+    "familias": [],
+    "cuotas": {}
+  },
+  "sopas_cremas_068": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.2147
+    }
+  },
+  "sopas_cremas_069": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "pescado": 0.1217,
+      "verdura": 0.1695
+    }
+  },
+  "sopas_cremas_070": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.1855,
+      "verdura": 0.3709
+    }
+  },
+  "sopas_cremas_071": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0512,
+      "verdura": 0.3413
+    }
+  },
+  "sopas_cremas_072": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5201
+    }
+  },
+  "sopas_cremas_073": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5173
+    }
+  },
+  "sopas_cremas_074": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7083
+    }
+  },
+  "sopas_cremas_075": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.7714
+    }
+  },
+  "sopas_cremas_076": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4947
+    }
+  },
+  "sopas_cremas_077": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0579,
+      "verdura": 0.1709
+    }
+  },
+  "sopas_cremas_078": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4186
+    }
+  },
+  "sopas_cremas_079": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4975
+    }
+  },
+  "sopas_cremas_080": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5114
+    }
+  },
+  "sopas_cremas_081": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.1925,
+      "verdura": 0.1347
+    }
+  },
+  "sopas_cremas_082": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5728
+    }
+  },
+  "sopas_cremas_083": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.0446,
+      "huevos": 0.1338,
+      "pasta_arroz": 0.1472
+    }
+  },
+  "sopas_cremas_084": {
+    "familias": [],
+    "cuotas": {
+      "carne": 0.132,
+      "pasta_arroz": 0.1162,
+      "verdura": 0.1358
+    }
+  },
+  "sopas_cremas_085": {
+    "familias": [
+      "pescado"
+    ],
+    "cuotas": {
+      "pescado": 0.1503,
+      "pasta_arroz": 0.1181,
+      "verdura": 0.0805
+    }
+  },
+  "sopas_cremas_086": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "carne": 0.0412,
+      "pasta_arroz": 0.1358,
+      "verdura": 0.2058
+    }
+  },
+  "sopas_cremas_087": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4112
+    }
+  },
+  "sopas_cremas_088": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.4743
+    }
+  },
+  "sopas_cremas_089": {
+    "familias": [
+      "legumbres"
+    ],
+    "cuotas": {
+      "legumbres": 0.1968,
+      "verdura": 0.059
+    }
+  },
+  "sopas_cremas_090": {
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "pescado": 0.1276,
+      "huevos": 0.0814,
+      "pasta_arroz": 0.1018,
+      "verdura": 0.2324
+    }
+  }
+}

@@ -87,8 +87,21 @@ export function motivoDeFamilia(receta, familia) {
   return null;
 }
 
-/** Las familias que consume un plato. Puede ser más de una, y eso importa. */
+/**
+ * Las familias que consume un plato. Puede ser más de una, y eso importa.
+ *
+ * Lo normal es que la receta ya las traiga: `recipeCatalog` las pega desde
+ * `derived/recipeFamilias.json`, donde se calcularon por MASA (ver
+ * lib/derive/familias.js). Eso es lo que separa una pasta con bacon al 12 %
+ * de unos filetes al 33 %, y lo que saca a la familia «verdura» de `category`,
+ * que describe el formato y no de qué está hecho el plato.
+ *
+ * Los dos mapas de abajo son el RESPALDO, para lo que no tiene fila: una
+ * receta de usuario, una recién llegada de Supabase. Dan una respuesta peor
+ * —binaria y por cajón— pero dan una.
+ */
 export function familiasDe(receta) {
+  if (Array.isArray(receta?.familias)) return new Set(receta.familias);
   const familias = new Set();
   const porCategoria = FAMILIA_POR_CATEGORIA[receta?.category];
   if (porCategoria) familias.add(porCategoria);

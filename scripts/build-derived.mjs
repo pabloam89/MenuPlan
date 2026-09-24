@@ -45,6 +45,7 @@ import { availablePartsOf, ingredientsByPart, stepsByPart } from "../src/lib/rec
 import { deriveStepParts, medirConcordancia } from "../src/lib/derive/stepParts.js";
 import { selectPartsTargets } from "./select-recipes-for-parts.mjs";
 import { gramsForRecipeQuantity } from "../src/lib/kitchenUnits.js";
+import { familiasDeReceta, FAMILIAS, UMBRAL } from "../src/lib/derive/familias.js";
 import { resolveIngredient, composicionDe } from "../src/lib/ingredients.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -155,6 +156,28 @@ for (const r of recetas) {
     operador: "computeRecipeNutrition",
   };
 }
+
+// ── recipeFamilias ──────────────────────────────────────────────────────────
+// De qué familia es cada plato, por MASA. Sustituye a las tres copias de la
+// regla que miraban `category` y `mainProtein` — binarias las dos, y la
+// primera además mezclaba de qué está hecho un plato con qué forma tiene.
+//
+// Se materializa por lo de siempre: calcularlo pide recorrer los ingredientes
+// de la receta entera, y el panel lo pregunta en cada pintada. Aquí se paga
+// una vez, se puede diffear, y `--check` avisa si alguien mueve la regla sin
+// regenerar.
+const recipeFamilias = {};
+for (const r of recetas) {
+  const { familias, cuotas } = familiasDeReceta(r);
+  recipeFamilias[r.id] = { familias, cuotas };
+}
+
+const repartoFamilias = {};
+for (const f of FAMILIAS) {
+  repartoFamilias[f] = Object.values(recipeFamilias).filter((v) => v.familias.includes(f)).length;
+}
+const sinFamilia = Object.values(recipeFamilias).filter((v) => v.familias.length === 0).length;
+const conVarias = Object.values(recipeFamilias).filter((v) => v.familias.length > 1).length;
 
 // ── recipeParts ─────────────────────────────────────────────────────────────
 // El vector de masa por componente del plato. Cada fila dice de dónde sale su
@@ -298,6 +321,15 @@ const meta = {
       };
     })(),
   },
+  recipeFamilias: {
+    filas: Object.keys(recipeFamilias).length,
+    umbral: UMBRAL,
+    por_familia: repartoFamilias,
+    sin_familia: sinFamilia,
+    con_varias: conVarias,
+    operador: "src/lib/derive/familias.js",
+    nota: "Por masa servida, no por category ni por mainProtein. Un plato puede entrar en varias: un cocido es legumbres y carne, y gasta las dos cuotas.",
+  },
   recipeParts: {
     filas: Object.keys(recipeParts).length,
     por_origen: cuentaOrigen,
@@ -314,6 +346,7 @@ const meta = {
 const salidas = {
   "recipeNutrition.json": recipeNutrition,
   "recipeParts.json": recipeParts,
+  "recipeFamilias.json": recipeFamilias,
   "_meta.json": meta,
 };
 
@@ -338,6 +371,8 @@ const rm = meta.recipeNutrition.estrella.reparto_micros;
 console.log(`\nrecipeNutrition: ${meta.recipeNutrition.filas} filas, cobertura media ${(meta.recipeNutrition.cobertura_media * 100).toFixed(1)} % (masa con ficha)`);
 console.log(`  micros en ESTRELLA: mediana ${(rm.mediana * 100).toFixed(1)} % · ${rm.bajo_95} por debajo del 95 % · ${rm.bajo_80} por debajo del 80 %`);
 console.log(`recipeParts:     ${Object.entries(cuentaOrigen).map(([k, v]) => `${k} ${v}`).join(" · ")}`);
+console.log(`recipeFamilias:  ${Object.entries(repartoFamilias).map(([k, v]) => `${k} ${v}`).join(" · ")}`);
+console.log(`  sin familia ${sinFamilia} · en más de una ${conVarias} · umbral ${(UMBRAL * 100).toFixed(0)} %`);
 console.log(`operador determinista: ${(concordancia.ratio * 100).toFixed(1)} % de concordancia sobre ${concordancia.pasos} pasos → NO promocionable`);
 if (!cambios) console.log("\nsin cambios: lo derivado ya estaba al día");
 if (CHECK && cambios) {

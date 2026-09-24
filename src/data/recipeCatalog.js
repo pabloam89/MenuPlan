@@ -20,6 +20,7 @@ import { supabase } from "../lib/supabase.js";
 import { BUNDLED_CATALOG_VERSION } from "./catalogVersion.js";
 import { rowToRecipe } from "./recipeRow.js";
 import recipeNutrition from "./derived/recipeNutrition.json";
+import recipeFamilias from "./derived/recipeFamilias.json";
 import { computeRecipeNutrition } from "../lib/ingredients.js";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "./nutrientes.js";
 
@@ -100,6 +101,22 @@ const nutricionDe = (r) => recipeNutrition[r.id] ?? computeRecipeNutrition(r, r.
 // que llega de la nube y no está en la tabla derivada. Mismo motivo por el que
 // `rowToRecipe` vive en su propio fichero — la costura que más silenciosamente
 // se rompe necesita poder probarse.
+/**
+ * Las familias (las claves de `freqs`) que consume cada plato, y con qué
+ * cuota de masa. Vienen de `derived/recipeFamilias.json`, no se calculan
+ * aquí: el cálculo recorre los ingredientes de la receta entera y el panel
+ * las pregunta en cada pintada.
+ *
+ * Una receta sin fila —una de usuario, una recién llegada de Supabase— se
+ * queda sin el campo, y quien lo lea tiene que saber caer a la regla vieja.
+ */
+export function withFamilias(recipes) {
+  return recipes.map((r) => {
+    const f = recipeFamilias[r.id];
+    return f ? { ...r, familias: f.familias, familiaCuotas: f.cuotas } : r;
+  });
+}
+
 export function withMicronutrientes(recipes) {
   return recipes.map((r) => {
     const n = nutricionDe(r);
@@ -350,7 +367,7 @@ async function loadRecipes() {
 
 // El orden importa: los micros ANTES de las banderas, porque
 // `deriveHealthFlags` lee `iron_mg` para decidir «rico en hierro».
-export const recipeCatalog = withHealthFlags(withMicronutrientes(await loadRecipes()));
+export const recipeCatalog = withFamilias(withHealthFlags(withMicronutrientes(await loadRecipes())));
 
 export const recipeCatalogById = Object.fromEntries(
   recipeCatalog.map((r) => [r.id, r]),

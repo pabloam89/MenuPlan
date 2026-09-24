@@ -4,7 +4,7 @@
     "ingredientes": "e7596e2067cea067",
     "recetas": "8b2b8740e6f50b2f",
     "alimentos": "effcc6d80ca0d39b",
-    "operador": "a992253a7168dfe7"
+    "operador": "9d92ad35fbd0282b"
   },
   "recetas": 1033,
   "recipeNutrition": {
@@ -162,6 +162,22 @@
         }
       ]
     }
+  },
+  "recipeFamilias": {
+    "filas": 1033,
+    "umbral": 0.15,
+    "por_familia": {
+      "carne": 265,
+      "pescado": 197,
+      "legumbres": 104,
+      "huevos": 169,
+      "pasta_arroz": 157,
+      "verdura": 183
+    },
+    "sin_familia": 111,
+    "con_varias": 150,
+    "operador": "src/lib/derive/familias.js",
+    "nota": "Por masa servida, no por category ni por mainProtein. Un plato puede entrar en varias: un cocido es legumbres y carne, y gasta las dos cuotas."
   },
   "recipeParts": {
     "filas": 1033,

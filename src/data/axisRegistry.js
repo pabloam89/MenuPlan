@@ -96,10 +96,10 @@ export const EJES = [
   // ── Composición y nutrición (1-5, 45) ────────────────────────────────────
   {
     n: 1, id: "composicion", nombre: "Composición jerárquica ponderada, por parte",
-    ambito: AMBITO.RECETA, tipo: "derivado", estado: "sin_lector",
+    ambito: AMBITO.RECETA, tipo: "derivado", estado: "activo",
     campo: null, vocabulario: null,
-    consumidores: [], cobertura: 1.0,
-    nota: "Estaba repartida en cuatro campos sin pesos. Hoy la calcula derive/composicion.js: 98,6 % de acuerdo con la curación en proteína, 99,5 % en hidrato.",
+    consumidores: ["familias", "recipeCatalog", "menuRecuento", "PanelBalance"], cobertura: 1.0,
+    nota: "Estaba repartida en cuatro campos sin pesos. Hoy la calcula derive/composicion.js: 98,6 % de acuerdo con la curación en proteína, 99,5 % en hidrato. — YA TIENE LECTOR (24 sep): derive/familias.js lo usa para decidir las seis claves de `freqs` por MASA en vez de por `category` + `mainProtein`, que eran binarias (un bacon al 12 % contaba como carne igual que un filete al 33 %) y mezclaban composición con formato. Se le añadió un TERCER PLANO, la verdura, que es lo que permitió sacar la familia «verdura» de `sopas_cremas` y `ensaladas_verduras` — o sea, del eje 6. El plano de la verdura no compite: es una cuota, y la familia se decide por RESIDUO (si ninguna de las cinco que estructuran llega al umbral, queda ella), porque tratarla como una cuota más daba 529 recetas de 1.033: la verdura es agua y el sofrito pesa.",
   },
   {
     n: 2, id: "subtipoIngrediente", nombre: "Subtipo de ingrediente (garbanzo vs lenteja, bivalvo vs crustáceo)",
