@@ -20,6 +20,7 @@ import { supabase } from "../lib/supabase.js";
 import { BUNDLED_CATALOG_VERSION } from "./catalogVersion.js";
 import { rowToRecipe } from "./recipeRow.js";
 import recipeNutrition from "./derived/recipeNutrition.json";
+import { computeRecipeNutrition } from "../lib/ingredients.js";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "./nutrientes.js";
 
 // Attach heuristic health flags once, so filterRecipes/decisionCatalog get them
@@ -62,9 +63,46 @@ const MICRONUTRIENTES = CAMPOS_SECUNDARIOS.filter(
   (c) => !["fiber100g", "sugar100g", "saturatedFat100g", "sodium100g"].includes(c),
 ).map((c) => NUTRIENTES[c].porRacion);
 
-function withMicronutrientes(recipes) {
+/**
+ * LA TABLA ES UNA CACHÉ, NO LA ÚNICA FUENTE, y hasta hoy se comportaba como
+ * si lo fuera.
+ *
+ * `recipeNutrition.json` se calcula en build sobre el catálogo DEL BUILD, y
+ * está indexado por id. Pero el catálogo puede venir de la nube: cuando la
+ * versión remota supera a la del bundle, `loadCatalog` se baja `recipes`
+ * entera de Supabase y usa ESA. Una receta que no existía cuando se generó el
+ * artefacto no tiene fila — y se quedaba sin los 24 micros, sin su cobertura
+ * y sin la corrección por cocción. Sin error: simplemente no los tenía.
+ *
+ * Es el fallo que la doctrina de `ejesDePlato.js` ya nombra —«un campo
+ * derivado que se materializa es un campo que se desincroniza de su
+ * operador»— y llegó por un salto que nadie decidió: `build-derived.mjs` dice
+ * que materializa «para que la auditoría y el análisis no tengan que
+ * recalcularlo, y sobre todo para que se vea», o sea para MIRARLO, y luego
+ * esto empezó a leerlo para SERVIR.
+ *
+ * El arreglo es el `??`: la tabla cuando está, que es el caso normal y es
+ * gratis, y el operador al vuelo para las pocas que no conoce. No recalcula
+ * 1.033 recetas al arrancar — solo las que la nube haya traído de más.
+ *
+ * `servings` es `baseServings || 4` porque es exactamente lo que usa
+ * `build-derived.mjs`: con otro divisor los números de las recetas nuevas no
+ * serían comparables con los de las viejas.
+ *
+ * Y no hace falta marcar la procedencia con un `nutritionSource` como hace
+ * `userRecipes.js`: allí distingue el cálculo de lo que estimó un modelo, que
+ * son dos calidades distintas. Aquí las dos ramas son el MISMO operador sobre
+ * los mismos datos, así que el dato es idéntico y no hay nada que advertir.
+ */
+const nutricionDe = (r) => recipeNutrition[r.id] ?? computeRecipeNutrition(r, r.baseServings || 4);
+
+// Exportada para poder probar la rama que NO se da en el bundle: una receta
+// que llega de la nube y no está en la tabla derivada. Mismo motivo por el que
+// `rowToRecipe` vive en su propio fichero — la costura que más silenciosamente
+// se rompe necesita poder probarse.
+export function withMicronutrientes(recipes) {
   return recipes.map((r) => {
-    const n = recipeNutrition[r.id];
+    const n = nutricionDe(r);
     if (!n) return r;
     const extra = {};
     const cobertura = {};

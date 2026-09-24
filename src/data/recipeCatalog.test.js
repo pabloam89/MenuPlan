@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { recipeCatalog } from "./recipeCatalog.js";
+import { recipeCatalog, withMicronutrientes } from "./recipeCatalog.js";
 import { deriveHealthFlags } from "../lib/healthFlags.js";
 import legumbres from "./recipes/legumbres.json";
 import carnes from "./recipes/carnes.json";
@@ -67,5 +67,68 @@ describe("los micronutrientes llegan a la receta", () => {
       (r) => r.iron_mg != null && r.micronutrientesCobertura?.iron_mg === undefined,
     );
     for (const r of conPropio) expect(typeof r.iron_mg, r.id).toBe("number");
+  });
+});
+
+/**
+ * LA RECETA QUE LA TABLA NO CONOCE.
+ *
+ * `recipeNutrition.json` se calcula en build sobre el catálogo DEL BUILD. Pero
+ * el catálogo puede venir de la nube: si la versión remota supera a la del
+ * bundle, `loadCatalog` se baja `recipes` entera de Supabase y usa esa. Una
+ * receta que no existía cuando se generó el artefacto no tiene fila.
+ *
+ * Hasta hoy eso era un `if (!n) return r`: la receta llegaba sin los 24
+ * micros, sin cobertura y sin la corrección por cocción, y no fallaba nada —
+ * simplemente no los tenía. El mismo patrón que ya se ha comido cinco campos
+ * en `recipeRow.js`, un piso más abajo.
+ *
+ * Este bloque no se puede probar con el catálogo real, porque en el bundle
+ * TODAS las recetas tienen fila. Por eso `withMicronutrientes` se exporta.
+ */
+describe("una receta que la tabla derivada no conoce", () => {
+  const deLaNube = {
+    id: "remota_9999_que_no_esta_en_la_tabla",
+    name: "Lentejas con chorizo",
+    baseServings: 4,
+    tecnica: "olla",
+    ingredients: [
+      { name: "Lentejas", ingredientId: "lentejas", amount: 320, unit: "g" },
+      { name: "Chorizo", ingredientId: "chorizo", amount: 120, unit: "g" },
+      { name: "Zanahoria", ingredientId: "zanahoria", amount: 150, unit: "g" },
+      { name: "Aceite de oliva", ingredientId: "aceite-oliva", amount: 20, unit: "ml" },
+    ],
+  };
+
+  it("gana sus micros igual, calculados al vuelo", () => {
+    const [r] = withMicronutrientes([deLaNube]);
+    expect(r.iron_mg, "sin hierro: la receta llegó muda de la nube").toBeTypeOf("number");
+    expect(r.iron_mg).toBeGreaterThan(0);
+    expect(r.folate_ug).toBeTypeOf("number");
+  });
+
+  it("y con su cobertura, igual que las del bundle", () => {
+    const [r] = withMicronutrientes([deLaNube]);
+    expect(r.micronutrientesCobertura?.iron_mg).toBeTypeOf("number");
+  });
+
+  /**
+   * EL DIVISOR TIENE QUE SER EL MISMO QUE EL DEL ARTEFACTO (`baseServings || 4`,
+   * ver build-derived.mjs). Con otro, los números de las recetas nuevas no
+   * serían comparables con los de las viejas y nadie lo notaría: las dos
+   * ramas publican un número plausible.
+   */
+  it("con el mismo divisor que usa el artefacto", () => {
+    const solo = withMicronutrientes([{ ...deLaNube, baseServings: 4 }])[0];
+    const doble = withMicronutrientes([{ ...deLaNube, id: "otra", baseServings: 2 }])[0];
+    // La misma comida entre 2 en vez de entre 4 da el doble por ración.
+    expect(doble.iron_mg / solo.iron_mg).toBeCloseTo(2, 1);
+  });
+
+  it("y si no se puede calcular, no inventa", () => {
+    const sinNada = { id: "x", name: "Plato vacío", baseServings: 2, ingredients: [] };
+    const [r] = withMicronutrientes([sinNada]);
+    expect(r.iron_mg).toBeUndefined();
+    expect(r.micronutrientesCobertura).toBeUndefined();
   });
 });
