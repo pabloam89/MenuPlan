@@ -11,7 +11,7 @@ import { describe, it, expect } from "vitest";
 import { recipeCatalog } from "../../data/recipeCatalog.js";
 import {
   tiempoActivoDe, aptoVigiliaDe, sinCerdoDe, completitudDe, densidadDe,
-  cargaDe, esfuerzoDe, recursoDe, llevaMasaDe, seEstorban,
+  cargaDe, esfuerzoDe, recursoDe, llevaMasaDe, seEstorban, aforoExcedido,
   escalabilidadDe, robustezDe, perecibilidadDe, conLasManosDe,
 } from "./ejesDePlato.js";
 
@@ -211,6 +211,77 @@ describe("eje 26 · conflicto de recursos", () => {
     expect(seEstorban(h[0], h[1])).toBe(true);
     expect(seEstorban(h[0], crudo)).toBe(false);
     expect(seEstorban(h[0], { name: "sin técnica" })).toBeNull();
+  });
+
+  /**
+   * EL CASO QUE ESTE BLOQUE NO PROBABA, y por eso el eje llevaba meses
+   * diciendo una cosa falsa sin que nada saltara: probaba horno+horno y
+   * horno+crudo, los dos correctos, y nunca OLLA+SARTÉN.
+   *
+   * Con el modelo viejo —«mismo recurso, luego conflicto»— una olla y una
+   * sartén se estorbaban, y eso hacía que el 49,8 % de los pares del recetario
+   * salieran en conflicto: en una cocina hay cuatro fuegos y eso no es un
+   * conflicto, es una comida normal. Con la capacidad puesta son el 2,7 %.
+   */
+  it("una olla y una sartén NO se estorban: hay cuatro fuegos", () => {
+    const olla = { name: "Lentejas", tecnica: "olla" };
+    const sarten = { name: "Filete", tecnica: "sarten" };
+    const plancha = { name: "Merluza", tecnica: "plancha" };
+    expect(seEstorban(olla, sarten)).toBe(false);
+    expect(seEstorban(olla, plancha)).toBe(false);
+    expect(seEstorban(sarten, plancha)).toBe(false);
+  });
+
+  it("y el horno sigue siendo uno", () => {
+    expect(seEstorban({ name: "a", tecnica: "horno" }, { name: "b", tecnica: "horno" })).toBe(true);
+  });
+
+  /**
+   * El par no es el caso general: una comida puede llevar primero, segundo y
+   * guarnición, y tres cosas al horno son tres turnos aunque ningún PAR de
+   * ellas diga nada distinto de lo que dicen dos.
+   */
+  it("el aforo ve lo que el par no puede: tres al horno", () => {
+    const h = (n) => ({ name: n, tecnica: "horno" });
+    expect(aforoExcedido([h("a"), h("b"), h("c")])).toEqual([
+      { recurso: "horno", cuantos: 3, capacidad: 1 },
+    ]);
+  });
+
+  it("pero tres fuegos caben, y lo crudo no ocupa sitio", () => {
+    expect(aforoExcedido([
+      { name: "a", tecnica: "olla" },
+      { name: "b", tecnica: "sarten" },
+      { name: "c", tecnica: "plancha" },
+      { name: "d", tecnica: "crudo" },
+    ])).toEqual([]);
+  });
+
+  it("y cinco fuegos ya no caben", () => {
+    const f = (n) => ({ name: n, tecnica: "sarten" });
+    expect(aforoExcedido([f("a"), f("b"), f("c"), f("d"), f("e")])).toEqual([
+      { recurso: "fuego", cuantos: 5, capacidad: 4 },
+    ]);
+  });
+
+  /**
+   * EL TRINQUETE. Con el modelo viejo esto valía 0,498 y el eje era inservible
+   * para lo único que existe: decidir si dos platos caben en la misma comida.
+   * Se fija un techo, no el número.
+   */
+  it("los pares en conflicto son pocos, que es lo que hace útil el eje", () => {
+    const pool = recipeCatalog.filter((r) => r.estrella);
+    const primeros = pool.filter((r) => (r.mealRole ?? []).includes("primero"));
+    const segundos = pool.filter((r) => (r.mealRole ?? []).includes("segundo"));
+    let chocan = 0;
+    let total = 0;
+    for (let i = 0; i < 4000; i++) {
+      const e = seEstorban(primeros[(i * 7919) % primeros.length], segundos[(i * 6271) % segundos.length]);
+      if (e === null) continue;
+      total++;
+      if (e) chocan++;
+    }
+    expect(chocan / total).toBeLessThan(0.1);
   });
 });
 

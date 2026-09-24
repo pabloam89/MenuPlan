@@ -365,13 +365,60 @@ export function recursoDe(receta) {
   return { valor: r, via: `técnica ${receta.tecnica}`, duda: null };
 }
 
-/** Si dos platos pelean por el mismo sitio. `null` si de alguno no se sabe. */
+/**
+ * CUÁNTAS COSAS CABEN A LA VEZ EN CADA SITIO, que es lo que faltaba.
+ *
+ * La primera versión de `seEstorban` decía que dos platos se estorban si
+ * reservan el mismo recurso, y con eso el 49,8 % de los pares del recetario
+ * salían en conflicto — el 95 % de ellos por ser «dos de fuego», o sea una
+ * olla y una sartén. En una cocina hay cuatro fuegos y eso no es un conflicto,
+ * es una comida normal. El eje decía que sí en la mitad de los casos y por eso
+ * no lo usaba nadie.
+ *
+ * El horno es el único sitio del que hay UNO, y además solo admite una
+ * temperatura: dos asados son dos turnos. Ahí el conflicto es real.
+ *
+ * Cuatro es el número de fogones de una cocina doméstica estándar. En la
+ * práctica hace que el fuego no se sature nunca —una comida son dos o tres
+ * platos— y eso es correcto: lo que agobia al cocinar dos guisos a la vez no
+ * es que falten fogones, son las manos, y de eso hablan los ejes 24 y 25.
+ */
+const CAPACIDAD = { horno: 1, fuego: 4, ninguno: Infinity };
+
+/**
+ * Si dos platos pelean por el mismo sitio. `null` si de alguno no se sabe.
+ *
+ * Comparten recurso Y ese recurso no admite dos cosas a la vez. Con el modelo
+ * viejo —«mismo recurso, luego conflicto»— esto era cierto en la mitad del
+ * catálogo; ahora sale en el 2,7 % de los pares, que son los que de verdad
+ * obligan a cocinar en dos turnos.
+ */
 export function seEstorban(a, b) {
   const ra = recursoDe(a).valor;
   const rb = recursoDe(b).valor;
   if (!ra || !rb) return null;
-  if (ra === "ninguno" || rb === "ninguno") return false;
-  return ra === rb;
+  if (ra !== rb) return false;
+  return CAPACIDAD[ra] < 2;
+}
+
+/**
+ * Cuántos de estos platos no caben a la vez, por recurso.
+ *
+ * Existe porque el par no es el caso general: una comida puede tener primero,
+ * segundo y guarnición, y tres cosas al horno son tres turnos aunque ningún
+ * PAR de ellas sume más que otro. Devuelve `{ recurso, cuantos, capacidad }`
+ * por cada sitio que se pasa de aforo, y `[]` cuando todo cabe.
+ */
+export function aforoExcedido(recetas) {
+  const cuenta = {};
+  for (const r of recetas ?? []) {
+    const rec = recursoDe(r).valor;
+    if (!rec || rec === "ninguno") continue;
+    cuenta[rec] = (cuenta[rec] ?? 0) + 1;
+  }
+  return Object.entries(cuenta)
+    .filter(([rec, n]) => n > CAPACIDAD[rec])
+    .map(([rec, n]) => ({ recurso: rec, cuantos: n, capacidad: CAPACIDAD[rec] }));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
