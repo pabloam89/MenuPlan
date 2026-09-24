@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  ArrowRight, BarChart3, Check, ChevronRight, CookingPot, Eraser, Heart, Minus,
-  Moon, Package, Plus, Salad, Search, Sparkles, Sun, X,
+  Apple, ArrowRight, BarChart3, Check, ChevronRight, Coffee, CookingPot, Eraser,
+  Heart, IceCream, Minus, Moon, Package, Plus, Salad, Search, Sparkles, Sun, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
@@ -11,9 +11,9 @@ import { medidasDe, medidaPorId, enPlural, UNIDAD_SUELTA } from "../lib/medidasD
 import { Picker } from "../components/Picker.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
-import { DAYS, dayLabel, getDayMeals } from "../lib/planner.js";
+import { DAYS, getDayMeals } from "../lib/planner.js";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
-import { todayDayIdx } from "../lib/weekCalendar.js";
+import { calendarDayNumber, getWeekDates, todayDayIdx } from "../lib/weekCalendar.js";
 import { tandaDelMenu } from "../lib/tandaDelPlato.js";
 import { APPLIANCE_COLORS, REQUIRED_APPLIANCE_ICONS, selectMethodForRecipe } from "../lib/applianceMethods.js";
 import { enHoras, minutosDeTanda } from "../lib/cookTime.js";
@@ -76,6 +76,108 @@ const MESES = [
  * `recuentoDelMenu`, que es el mismo del reparto: si aquí se renombrara uno,
  * la barra contaría una familia y compararía con otra.
  */
+/** La inicial del día, la misma que usan Compra, Análisis y el menú. */
+const LETRA_DIA = { Lun: "L", Mar: "M", "Mié": "X", Jue: "J", Vie: "V", "Sáb": "S", Dom: "D" };
+
+/** El icono de la franja, el mismo del tablero. */
+const ICONO_FRANJA = {
+  Desayuno: { Icon: Coffee, color: "#c98a3a" },
+  Comida: { Icon: Sun, color: "#d4a017" },
+  Merienda: { Icon: Apple, color: "#c0504d" },
+  Cena: { Icon: Moon, color: "#4f68b0" },
+  Postre: { Icon: IceCream, color: "#c0568f" },
+};
+
+/**
+ * Los tres macros, con su color y sus kcal por gramo.
+ *
+ * El anillo reparte por ENERGÍA, no por gramos. 26 g de grasa y 26 g de
+ * hidratos ocupan lo mismo en una báscula y no se parecen en nada en un plato:
+ * la grasa lleva 9 kcal por gramo y los hidratos 4. Un anillo por gramos
+ * dibujaría la grasa a menos de la mitad de lo que pesa de verdad en la comida,
+ * que es justo el error que este dibujo tiene que no cometer.
+ *
+ * Los gramos siguen ahí, en los números — cada cosa dice lo suyo y el pie lo
+ * declara, para que nadie intente cuadrar los porcentajes con los gramos.
+ */
+const MACROS = [
+  { id: "protein_g", letra: "P", nombre: "proteína", color: "#c0392b", kcalPorG: 4 },
+  { id: "carbs_g", letra: "H", nombre: "hidratos", color: "#cf7833", kcalPorG: 4 },
+  { id: "fat_g", letra: "G", nombre: "grasa", color: "#d4a017", kcalPorG: 9 },
+];
+
+/**
+ * El anillo de macros: cuánta de la energía viene de cada uno.
+ *
+ * Un arco por macro sobre un mismo círculo, con las kcal en el centro. Es un
+ * SVG y no tres divs porque un arco se dibuja con `stroke-dasharray` y ya está:
+ * no hay que calcular ni un path.
+ */
+function AnilloMacros({ platos, size = 74 }) {
+  const suma = (campo) => platos.reduce((t, p) => t + (Number(p[campo]) || 0), 0);
+  const trozos = MACROS.map((m) => ({ ...m, gramos: suma(m.id), kcal: suma(m.id) * m.kcalPorG }));
+  const energia = trozos.reduce((t, x) => t + x.kcal, 0);
+  const kcalMedia = platos.length ? Math.round(suma("kcal") / platos.length) : 0;
+  if (energia <= 0) return null;
+
+  const grosor = 9;
+  const r = (size - grosor) / 2;
+  const circ = 2 * Math.PI * r;
+  // El punto de arranque de cada arco se calcula ANTES de pintar, no mutando
+  // un contador dentro del map: el compilador de React no admite reasignar
+  // durante el render, y además así el trozo trae ya todo lo que necesita.
+  const arcos = trozos.reduce((acc, x) => {
+    const frac = x.kcal / energia;
+    const previo = acc.length ? acc[acc.length - 1] : null;
+    acc.push({ ...x, frac, desde: previo ? previo.desde + previo.frac : 0 });
+    return acc;
+  }, []);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+        <svg width={size} height={size} style={{ display: "block", transform: "rotate(-90deg)" }} aria-hidden>
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#eef3f0" strokeWidth={grosor} />
+          {arcos.map((x) => {
+            // Un pelo de aire entre arcos para que se vean tres y no uno.
+            const largo = Math.max(0, circ * x.frac - 2);
+            return (
+              <circle
+                key={x.id}
+                cx={size / 2} cy={size / 2} r={r} fill="none"
+                stroke={x.color} strokeWidth={grosor} strokeLinecap="round"
+                strokeDasharray={`${largo} ${circ - largo}`}
+                strokeDashoffset={-circ * x.desde}
+              />
+            );
+          })}
+        </svg>
+        <span
+          style={{
+            position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", lineHeight: 1,
+          }}
+        >
+          <span style={{ fontSize: 16, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>{kcalMedia}</span>
+          <span style={{ fontSize: 8.5, fontWeight: 800, color: "#9ab0a1", marginTop: 2 }}>kcal</span>
+        </span>
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+        {trozos.map((x) => (
+          <div key={x.id} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 3, background: x.color, flexShrink: 0 }} />
+            <span style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: "#5a7066" }}>{x.nombre}</span>
+            <span style={{ fontSize: 11.5, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>
+              {Math.round(x.gramos / platos.length)} g
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const FAMILIAS_BALANCE = [
   { id: "carne", label: "Carne", color: "#c0392b", img: "carnes.png" },
   { id: "pescado", label: "Pescado", color: "#2f6f9f", img: "pescados.png" },
@@ -182,6 +284,9 @@ function PanelBalance({ menuPlan, groups }) {
   // Qué familia está abierta, o null. Una sola: dos abiertas a la vez hacen
   // scroll de más en un panel de 320px y nadie compara dos listas largas.
   const [abierta, setAbierta] = useState(null);
+  // Los números del mes, para el chip del día. La pizarra vive siempre en la
+  // semana en curso (ver handleStartPizarra), así que no hay offset que pasar.
+  const fechas = useMemo(() => getWeekDates(), []);
 
   return (
     <>
@@ -280,45 +385,98 @@ function PanelBalance({ menuPlan, groups }) {
             </button>
 
             {abierto && (
-              <div style={{ padding: "2px 12px 10px", background: "#fafcfb" }}>
-                {f.platos.map((p, n) => (
-                  <div
-                    key={`${p.id}-${p.dia}-${p.comida}-${n}`}
-                    style={{
-                      display: "flex", alignItems: "baseline", gap: 8,
-                      padding: "7px 0",
-                      borderTop: n === 0 ? "none" : "1px solid #eef3f0",
-                    }}
-                  >
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: INK, lineHeight: 1.3 }}>
-                      {p.nombre}
-                      {/* El día y la franja debajo del nombre: sin ellos la
-                          lista dice QUÉ hay pero no CUÁNDO, que es la mitad de
-                          lo que vienes a mirar. */}
-                      <span style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "#9ab0a1", marginTop: 1 }}>
-                        {dayLabel(p.dia)} · {String(p.comida).toLowerCase()}
+              <div style={{ padding: "10px 10px 12px", background: "#fafcfb" }}>
+                {/* El anillo primero: de un vistazo sabes de qué va esta
+                    familia antes de leer un solo plato. */}
+                <div style={{ padding: "2px 2px 12px" }}>
+                  <AnilloMacros platos={f.platos} />
+                </div>
+
+                {/* Cabecera de las tres columnas. Los números van sin letra
+                    pegada —cabían mal y ensuciaban— así que la letra vive aquí
+                    arriba, una vez, con el color de su arco. */}
+                <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "0 0 2px" }}>
+                  <span style={{ flex: 1, minWidth: 0 }} />
+                  <span style={{ flexShrink: 0, display: "flex", gap: 4 }}>
+                    {MACROS.map((m) => (
+                      <span
+                        key={m.id}
+                        style={{ width: 21, textAlign: "right", fontSize: 9, fontWeight: 900, color: m.color, letterSpacing: ".3px" }}
+                      >
+                        {m.letra}
                       </span>
-                    </span>
-                    {/* Por ración, que es como el catálogo los guarda. No se
-                        suman a total de semana: una suma de raciones sueltas
-                        no es lo que come nadie, y presentarla como tal sería
-                        inventarse un dato. */}
-                    <span style={{ flexShrink: 0, display: "flex", gap: 7, fontVariantNumeric: "tabular-nums" }}>
-                      {[
-                        { v: p.kcal, u: "kcal", c: "#5a7066" },
-                        { v: p.protein_g, u: "P", c: "#c0392b" },
-                        { v: p.carbs_g, u: "H", c: "#cf7833" },
-                        { v: p.fat_g, u: "G", c: "#b9770e" },
-                      ].filter((x) => x.v != null).map((x) => (
-                        <span key={x.u} style={{ fontSize: 10.5, fontWeight: 900, color: x.c }}>
-                          {Math.round(x.v)}<span style={{ fontWeight: 700, opacity: 0.65 }}>{x.u === "kcal" ? "" : x.u}</span>
+                    ))}
+                  </span>
+                </div>
+
+                {f.platos.map((p, n) => {
+                  const franja = ICONO_FRANJA[p.comida] ?? ICONO_FRANJA.Comida;
+                  const FranjaIcon = franja.Icon;
+                  return (
+                    <div
+                      key={`${p.id}-${p.dia}-${p.comida}-${n}`}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 7,
+                        padding: "8px 0",
+                        borderTop: "1px solid #eef3f0",
+                      }}
+                    >
+                      {/* El día como en Compra: la inicial arriba y el número
+                          debajo. Ocupa la mitad que «Miércoles · cena» y se lee
+                          igual de rápido — mejor, porque todos miden lo mismo y
+                          se alinean en columna. */}
+                      <span
+                        style={{
+                          width: 24, flexShrink: 0, borderRadius: 8, padding: "3px 0",
+                          background: "#fff", border: "1px solid #e0eae3",
+                          display: "flex", flexDirection: "column", alignItems: "center", lineHeight: 1,
+                        }}
+                      >
+                        <span style={{ fontSize: 9.5, fontWeight: 800, color: "#9ab0a1" }}>
+                          {LETRA_DIA[p.dia] ?? String(p.dia).slice(0, 1)}
                         </span>
-                      ))}
-                    </span>
-                  </div>
-                ))}
-                <p style={{ margin: "8px 0 0", fontSize: 10, fontWeight: 700, color: "#9ab0a1", letterSpacing: ".2px" }}>
-                  Por ración · kcal · P proteína · H hidratos · G grasa
+                        <span style={{ fontSize: 11, fontWeight: 900, color: VERDE, marginTop: 1, fontVariantNumeric: "tabular-nums" }}>
+                          {calendarDayNumber(p.dia, fechas) ?? ""}
+                        </span>
+                      </span>
+
+                      <span style={{ flexShrink: 0, color: franja.color, display: "flex" }}>
+                        <FranjaIcon size={14} strokeWidth={2.4} />
+                      </span>
+
+                      {/* Una línea y a lo que quepa. Los nombres largos partían
+                          la fila en tres y la tabla se leía como un párrafo. */}
+                      <span
+                        style={{
+                          flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: INK,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        }}
+                        title={p.nombre}
+                      >
+                        {p.nombre}
+                      </span>
+
+                      {/* Los gramos, en columnas fijas y con el color de su arco
+                          en el anillo: así se sabe cuál es cuál sin leyenda. */}
+                      <span style={{ flexShrink: 0, display: "flex", gap: 4, fontVariantNumeric: "tabular-nums" }}>
+                        {MACROS.map((m) => (
+                          <span
+                            key={m.id}
+                            style={{
+                              width: 21, textAlign: "right", fontSize: 10.5, fontWeight: 900,
+                              color: p[m.id] == null ? "#c2cfc7" : m.color,
+                            }}
+                          >
+                            {p[m.id] == null ? "–" : Math.round(p[m.id])}
+                          </span>
+                        ))}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                <p style={{ margin: "9px 0 0", fontSize: 9.5, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.35 }}>
+                  Gramos por ración. El anillo reparte las calorías, no los gramos.
                 </p>
               </div>
             )}
