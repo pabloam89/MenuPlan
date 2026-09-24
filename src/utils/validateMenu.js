@@ -259,8 +259,26 @@ function isFrito(recipe) {
 // "Plato de cuchara": soups/creams, legume stews, and any name that reads as a
 // stew/broth. Used by rule 13 to avoid two spoon dishes on the same day.
 const CUCHARA_NAME_RE = /\b(guiso|estofad|potaje|cocido|caldo|fabada|marmitako|puchero|olla)/;
+/**
+ * Los tres formatos que se comen con cuchara. El eje 6 los separa de
+ * `plato_seco` y de `ensalada`, que es justo lo que este detector quería y no
+ * podía: la categoría decía dónde está archivada la receta, no cómo se come.
+ */
+const CUCHARA_FORMATO = new Set(["sopa", "cremoso", "guiso"]);
+
 function isPlatoCuchara(recipe) {
   if (!recipe) return false;
+  // EL EJE MANDA CUANDO HABLA (749 de 1.033, ver axisRegistry §6). Medido
+  // contra el detector viejo: deja de contar 28 platos que NO son de cuchara
+  // —falafel, hamburguesa de garbanzos, croquetas de cocido, bocaditos de
+  // lentejas— que entraban por `mainProtein: legumbre` o por la palabra
+  // «cocido» dentro de «croquetas de cocido»; y empieza a contar 33 que sí lo
+  // son y el nombre no delataba: ternera guisada, pollo en pepitoria, ragú,
+  // merluza en salsa verde, bacalao a la vizcaína.
+  if (recipe.formato) return CUCHARA_FORMATO.has(recipe.formato);
+  // Y el detector viejo sigue de respaldo para el 27,5 % sin formato, que se
+  // abstiene a propósito: en olla conviven «Brócoli al vapor» y «Ternera
+  // guisada» sin nada en el nombre que las separe.
   if (recipe.category === "sopas_cremas" || recipe.category === "legumbres") return true;
   if (recipe.mainProtein === "legumbre") return true;
   return CUCHARA_NAME_RE.test(normName(recipe.name));
@@ -283,7 +301,14 @@ function isPlatoCuchara(recipe) {
 // the 15 dishes where "Ensalada" IS the dish (starts the name) count.
 const ENSALADA_NAME_RE = /^ensalada/i;
 function isEnsalada(recipe) {
-  return recipe ? ENSALADA_NAME_RE.test(recipe.name.trim()) : false;
+  if (!recipe) return false;
+  // EL EJE 6 ES ESTRICTAMENTE MEJOR AQUÍ, medido: ve las 78 que el regex ve y
+  // CINCO más que se le escapaban por no empezar por «Ensalada» —Ensaladilla
+  // rusa, Tabulé de cuscús, Salpicón de marisco, Lentejas en ensalada
+  // templada— y no pierde ninguna. El regex se queda de respaldo para lo que
+  // no declara formato.
+  if (recipe.formato) return recipe.formato === "ensalada";
+  return ENSALADA_NAME_RE.test(recipe.name.trim());
 }
 
 // Y los que LLEVAN ensalada de acompañamiento sin serlo: "Filete de pavo a la
@@ -430,7 +455,17 @@ const NO_REPETIR = [
     rule: "dos_cuchara_mismo_dia",
     ventana: mismoDia,
     soloUnaPorSlot: true,
-    extractor: deBandera(isPlatoCuchara, "cuchara"),
+    // LOS PURÉS DE BEBÉ QUEDAN FUERA, y es la regla la que los excluye, no el
+    // detector: un puré SÍ es un plato de cuchara —lo que no aplica es la
+    // regla de variedad—. A los seis meses se come así, y un día entero de
+    // purés no es un menú aburrido, es el menú correcto.
+    //
+    // Hizo falta al poner el eje `formato`: los 14 purés de bebé pasaron de no
+    // contar (su categoría no es `sopas_cremas` ni `legumbres`) a contar todos
+    // como `cremoso`, y las violaciones de un menú de bebé se triplicaron —de
+    // 161 a 545 sobre 300 menús—. Mismo criterio que `racion.test.js`, que ya
+    // dejaba los purés de bebé fuera de la regla de las sopas.
+    extractor: deBandera((r) => r.category !== "bebes" && isPlatoCuchara(r), "cuchara"),
     mensaje: ({ rb, antes, despues }) =>
       `"${rb.name}" es un segundo plato de cuchara el ${despues.daySlug} (también en ${antes.slotId})`,
   },

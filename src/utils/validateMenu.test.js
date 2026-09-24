@@ -2020,3 +2020,86 @@ describe("la comida entera cabe en el tiempo que se pidió", () => {
     expect(violations.map((v) => v.rule)).not.toContain("comida_demasiado_larga");
   });
 });
+
+/**
+ * EL EJE 6 `formato` SUSTITUYE A DOS REGEX SOBRE EL NOMBRE.
+ *
+ * `isEnsalada` era `/^ensalada/` e `isPlatoCuchara` una lista de palabras más
+ * dos categorías. Los dos decidían con el nombre y el cajón del archivo, que
+ * es justo lo que el eje 6 existe para separar: «hay ensaladas de pasta y
+ * ensaladas de legumbre».
+ *
+ * Medido sobre 300 menús aleatorios al hacer el cambio:
+ *   dos_cuchara_mismo_dia    219 -> 213   (salen falsos positivos)
+ *   dos_ensaladas_en_comida   26 ->  33   (entran las que el regex no veía)
+ *   y ninguna otra regla se mueve.
+ */
+describe("formato manda sobre el nombre", () => {
+  const conFormato = (formato, extra = {}) => recipe({ id: "x", name: "Da igual el nombre", formato, ...extra });
+
+  it("una ensalada lo es por su formato, aunque no empiece por «Ensalada»", () => {
+    // Ensaladilla rusa, Tabulé, Salpicón de marisco: cinco reales del catálogo
+    // que el regex anclado al principio del nombre no veía.
+    const pool = [
+      conFormato("ensalada", { id: "a", name: "Salpicón de marisco", mealRole: ["primero"] }),
+      conFormato("ensalada", { id: "b", name: "Tabulé de cuscús con menta", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1", { mealType: "comida", position: "1" }), slot("lun_comida_2", { mealType: "comida", position: "2" })];
+    const asg = [{ slotId: "lun_comida_1", recipeId: "a" }, { slotId: "lun_comida_2", recipeId: "b" }];
+    const { violations } = validateMenu(asg, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("dos_ensaladas_en_comida");
+  });
+
+  it("y un falafel deja de ser plato de cuchara por llevar lenteja", () => {
+    // Entraba por `mainProtein: legumbre`. Es un plato seco y se come con la
+    // mano; que su ingrediente principal sea una legumbre no lo hace un guiso.
+    const falafel = conFormato("plato_seco", { id: "a", name: "Falafel al horno de lentejas", mainProtein: "legumbre" });
+    const sopa = conFormato("sopa", { id: "b", name: "Sopa de verduras" });
+    const pool = [falafel, sopa];
+    const slots = [slot("lun_comida_1", { mealType: "comida", position: "1" }), slot("lun_cena_2", { mealType: "cena", position: "2" })];
+    const asg = [{ slotId: "lun_comida_1", recipeId: "b" }, { slotId: "lun_cena_2", recipeId: "a" }];
+    const { violations } = validateMenu(asg, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("dos_cuchara_mismo_dia");
+  });
+
+  it("una ternera guisada SÍ lo es, aunque el nombre no diga «guiso»", () => {
+    const pool = [
+      conFormato("guiso", { id: "a", name: "Pollo en pepitoria" }),
+      conFormato("guiso", { id: "b", name: "Merluza en salsa verde" }),
+    ];
+    const slots = [slot("lun_comida_2", { mealType: "comida", position: "2" }), slot("lun_cena_2", { mealType: "cena", position: "2" })];
+    const asg = [{ slotId: "lun_comida_2", recipeId: "a" }, { slotId: "lun_cena_2", recipeId: "b" }];
+    const { violations } = validateMenu(asg, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("dos_cuchara_mismo_dia");
+  });
+
+  /**
+   * A LOS SEIS MESES SE COME ASÍ. Un día entero de purés no es un menú
+   * aburrido: es el menú correcto. Al poner el eje, los 14 purés de bebé
+   * pasaron a contar como `cremoso` y las violaciones de un menú de bebé se
+   * triplicaron — de 161 a 545 sobre 300 menús.
+   */
+  it("pero un menú de bebé puede ser todo purés", () => {
+    const pool = [
+      conFormato("cremoso", { id: "a", name: "Puré de calabacín con pollo", category: "bebes" }),
+      conFormato("cremoso", { id: "b", name: "Puré de zanahoria con merluza", category: "bebes" }),
+    ];
+    const slots = [slot("lun_comida_2", { mealType: "comida", position: "2" }), slot("lun_cena_2", { mealType: "cena", position: "2" })];
+    const asg = [{ slotId: "lun_comida_2", recipeId: "a" }, { slotId: "lun_cena_2", recipeId: "b" }];
+    const { violations } = validateMenu(asg, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("dos_cuchara_mismo_dia");
+  });
+
+  it("y sin formato declarado sigue mandando el detector viejo", () => {
+    // El eje se abstiene en el 27,5 % del catálogo, a propósito: en olla
+    // conviven «Brócoli al vapor» y «Ternera guisada» sin nada que las separe.
+    const pool = [
+      recipe({ id: "a", name: "Potaje de garbanzos", mealRole: ["primero"] }),
+      recipe({ id: "b", name: "Estofado de ternera", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1", { mealType: "comida", position: "1" }), slot("lun_comida_2", { mealType: "comida", position: "2" })];
+    const asg = [{ slotId: "lun_comida_1", recipeId: "a" }, { slotId: "lun_comida_2", recipeId: "b" }];
+    const { violations } = validateMenu(asg, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("dos_cuchara_mismo_dia");
+  });
+});
