@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { recuentoDelMenu } from "./menuRecuento.js";
+import { motivoDeFamilia, recuentoDelMenu } from "./menuRecuento.js";
 
 /** Un catálogo mínimo con los ejes que el recuento mira. */
 const CATALOGO = {
@@ -80,5 +80,43 @@ describe("bordes que se dan de verdad", () => {
   it("sin plan devuelve ceros en vez de reventar", () => {
     expect(recuentoDelMenu(null, CATALOGO)).toEqual({ familias: {}, platos: [], platosPorFamilia: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
     expect(recuentoDelMenu({}, undefined)).toEqual({ familias: {}, platos: [], platosPorFamilia: {}, cocinas: {}, tecnicas: {}, huecos: 0 });
+  });
+});
+
+/*
+ * El caso que hizo que el panel pareciera roto: una «Pasta con champiñones y
+ * bacon» aparecía bajo «Carne» sin decir por qué, y una «Crema de tres quesos»
+ * bajo «Verdura». Las dos están bien contadas; lo que faltaba era decirlo.
+ */
+describe("por qué un plato cuenta en una familia", () => {
+  const pastaConBacon = { category: "pasta_arroces", mainProtein: "cerdo" };
+  const filetes = { category: "carnes", mainProtein: "cerdo" };
+  const cremaDeQuesos = { category: "sopas_cremas", mainProtein: "none" };
+  const ensaladaDeLentejas = { category: "ensaladas_verduras", mainProtein: "legumbre" };
+
+  it("lo evidente no se explica", () => {
+    expect(motivoDeFamilia(filetes, "carne")).toBeNull();
+    expect(motivoDeFamilia(ensaladaDeLentejas, "verdura")).toBeNull();
+  });
+
+  it("si entra por la proteína, lo dice", () => {
+    expect(motivoDeFamilia(pastaConBacon, "carne")).toBe("cerdo");
+    expect(motivoDeFamilia(ensaladaDeLentejas, "legumbres")).toBe("legumbre");
+  });
+
+  it("si la categoría no es la esperada de esa familia, también", () => {
+    expect(motivoDeFamilia(cremaDeQuesos, "verdura")).toBe("crema");
+  });
+
+  it("la pasta con bacon sale en las DOS, con su motivo en cada una", () => {
+    const r = recuentoDelMenu(
+      plan({ "Lun-Cena": { recipeId: "pasta_bacon" } }),
+      { pasta_bacon: { name: "Pasta con bacon", category: "pasta_arroces", mainProtein: "cerdo" } },
+    );
+    expect(r.familias).toEqual({ pasta_arroz: 1, carne: 1 });
+    // Un plato, dos familias: por eso las familias suman más que los platos.
+    expect(r.platos).toHaveLength(1);
+    expect(r.platosPorFamilia.carne[0].motivo).toBe("cerdo");
+    expect(r.platosPorFamilia.pasta_arroz[0].motivo).toBeNull();
   });
 });

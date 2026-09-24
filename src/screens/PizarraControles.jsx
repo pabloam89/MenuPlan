@@ -320,6 +320,7 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
   // Los números del mes, para el chip del día. La pizarra vive siempre en la
   // semana en curso (ver handleStartPizarra), así que no hay offset que pasar.
   const fechas = useMemo(() => getWeekDates(), []);
+  const sumaFamilias = filas.reduce((t, f) => t + f.puestos, 0);
 
   return (
     <>
@@ -532,14 +533,32 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
 
                       {/* Una línea y a lo que quepa. Los nombres largos partían
                           la fila en tres y la tabla se leía como un párrafo. */}
-                      <span
-                        style={{
-                          flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: INK,
-                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                        }}
-                        title={p.nombre}
-                      >
-                        {p.nombre}
+                      <span style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 5 }}>
+                        <span
+                          style={{
+                            minWidth: 0, fontSize: 12, fontWeight: 700, color: INK,
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                          }}
+                          title={p.nombre}
+                        >
+                          {p.nombre}
+                        </span>
+                        {/* Por qué está aquí, cuando no salta a la vista. Una
+                            pasta con bacon en «Carne» parece un fallo hasta que
+                            lees «cerdo»; entonces parece lo que es. */}
+                        {p.motivo && (
+                          <span
+                            style={{
+                              flexShrink: 0, maxWidth: 58, overflow: "hidden", textOverflow: "ellipsis",
+                              whiteSpace: "nowrap", padding: "1px 5px", borderRadius: 5,
+                              background: "#fff", border: "1px solid #cfdcec",
+                              fontSize: 8.5, fontWeight: 800, color: "#5a7066",
+                              textTransform: "uppercase", letterSpacing: ".3px",
+                            }}
+                          >
+                            {p.motivo}
+                          </span>
+                        )}
                       </span>
 
                       {/* Los gramos, en columnas fijas y con el color de su arco
@@ -567,6 +586,18 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
           );
         })}
       </div>
+
+      {/* Las familias suman más que los platos y eso confunde: un plato puede
+          contar en dos. No es un error de cuenta, es que gasta las dos cuotas
+          —y el motor lo cuenta así—, pero sin decirlo parece que los números
+          no cuadran. Solo sale cuando de verdad hay alguno repetido. */}
+      {sumaFamilias > recuento.platos.length && (
+        <p style={{ margin: "10px 2px 0", fontSize: 10.5, fontWeight: 600, color: "#7a8f84", lineHeight: 1.4 }}>
+          Un plato puede contar en dos familias: una pasta con bacon es pasta
+          <em style={{ fontStyle: "normal", fontWeight: 800 }}> y </em>
+          es carne, y gasta de las dos.
+        </p>
+      )}
     </>
   );
 }
