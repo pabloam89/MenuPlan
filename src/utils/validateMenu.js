@@ -266,6 +266,12 @@ const CUCHARA_NAME_RE = /\b(guiso|estofad|potaje|cocido|caldo|fabada|marmitako|p
  */
 const CUCHARA_FORMATO = new Set(["sopa", "cremoso", "guiso"]);
 
+/**
+ * Los formatos de legumbre que no pegan de noche. `cremoso` NO está: una crema
+ * de lentejas son 272 kcal de mediana y es exactamente lo que se cena.
+ */
+const LEGUMBRE_PESADA = new Set(["guiso", "sopa"]);
+
 function isPlatoCuchara(recipe) {
   if (!recipe) return false;
   // EL EJE MANDA CUANDO HABLA (749 de 1.033, ver axisRegistry §6). Medido
@@ -545,11 +551,32 @@ export const UNARIAS = [
     mensaje: (r) => `"${r.name}" es un plato de montaje pero el slot no fue marcado como cena rápida`,
   },
   {
-    // Por categoría O por proteína, para que una «Crema de lentejas» archivada
-    // en sopas_cremas cuente igual.
+    // LO QUE NO PEGA DE NOCHE ES EL GUISO, NO LA LEGUMBRE.
+    //
+    // La regla vetaba las 102 recetas de legumbre del catálogo, y entre ellas
+    // hay un cocido madrileño y una ensalada de alubias blancas. Las kcal no
+    // los separan —guiso 428 de mediana, ensalada 400, plato seco 420—, así
+    // que un umbral de carga tampoco habría servido: lo que los separa es el
+    // FORMATO, que es el eje 6.
+    //
+    // Medido: 13 recetas estaban vetadas de cena mientras su propia ficha
+    // decía que pueden ser cena —falafel, hamburguesa de garbanzos, hummus con
+    // bastones de zanahoria, wrap de hummus, crema de lentejas—. El catálogo
+    // se contradecía y ganaba la regla. Es el mismo caso que las 43 cenas
+    // rápidas que el veto al montaje dejaba fuera, y que hacían que el motor
+    // «volviera una y otra vez a la tortilla».
+    //
+    // Siguen vetados el guiso y la sopa (22 recetas), y las 41 sin formato
+    // declarado se quedan vetadas por respaldo: abstenerse aquí es mantener el
+    // comportamiento de siempre, no relajarlo.
     rule: "legumbres_en_cena",
-    cumple: (r, h) => h.mealType !== "cena" || (r.category !== "legumbres" && r.mainProtein !== "legumbre"),
-    mensaje: (r) => `"${r.name}" es legumbre y no debería ir en cena`,
+    cumple: (r, h) => {
+      if (h.mealType !== "cena") return true;
+      if (r.category !== "legumbres" && r.mainProtein !== "legumbre") return true;
+      if (r.formato) return !LEGUMBRE_PESADA.has(r.formato);
+      return false;
+    },
+    mensaje: (r) => `"${r.name}" es un guiso de legumbre y no debería ir en cena`,
   },
   {
     // Lo que hace raro un hígado un miércoles no es el tiempo ni la dificultad
@@ -1833,7 +1860,17 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       // ── Hard constraints: never relaxed (maxTime is the one exception —
       // see relaxMaxTime below) ─────────────────────────────────────────
       if (!relaxMaxTime && ctx?.maxTime && r.time > ctx.maxTime) return false;
-      if (mealType === "cena" && (r.category === "legumbres" || r.mainProtein === "legumbre")) return false;
+      // DESDE LA TABLA, no copiada: era la TERCERA redacción de la misma regla
+      // —validateMenu, candidatosDeHueco del solver, y aquí— y al pasar la de
+      // arriba a mirar el `formato` esta se habría quedado vetando las 13
+      // legumbres ligeras que el validador ya deja pasar. La reparación habría
+      // seguido sin poder colocarlas.
+      //
+      // Las dos de al lado (maxTime y tupper) siguen copiadas: no han
+      // divergido y tocarlas aquí sería ampliar el riesgo de este cambio.
+      if (!UNARIA_POR_REGLA.legumbres_en_cena.cumple(
+        r, huecoDe(slot.slotId, { ...(ctx ?? {}), mealType: ctx?.mealType ?? mealType }),
+      )) return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
 
       // Same shared helper as the validation rule — see slotAcceptsRole.

@@ -2103,3 +2103,52 @@ describe("formato manda sobre el nombre", () => {
     expect(violations.map((v) => v.rule)).toContain("dos_cuchara_mismo_dia");
   });
 });
+
+/**
+ * LO QUE NO PEGA DE NOCHE ES EL GUISO, NO LA LEGUMBRE.
+ *
+ * La regla vetaba las 102 recetas de legumbre del catálogo, y entre ellas hay
+ * un cocido madrileño y una ensalada de alubias blancas. Las kcal no los
+ * separan —guiso 428 de mediana, ensalada 400, plato seco 420—, así que un
+ * umbral de carga tampoco habría servido: lo que los separa es el formato.
+ */
+describe("legumbres en cena, por formato", () => {
+  const cena = (formato, extra = {}) => recipe({
+    id: "a", name: "Plato de legumbre", category: "legumbres",
+    mealRole: ["segundo", "cena"], formato, ...extra,
+  });
+  const enCena = (pool) => validateMenu(
+    [{ slotId: "lun_cena_2", recipeId: "a" }],
+    pool,
+    [slot("lun_cena_2", { mealType: "cena", position: "2" })],
+  ).violations.map((v) => v.rule);
+
+  it("un cocido sigue sin poder cenarse", () => {
+    expect(enCena([cena("guiso", { name: "Cocido madrileño" })])).toContain("legumbres_en_cena");
+  });
+
+  it("y un caldo gallego tampoco", () => {
+    expect(enCena([cena("sopa", { name: "Caldo gallego" })])).toContain("legumbres_en_cena");
+  });
+
+  /**
+   * Trece recetas estaban vetadas de cena mientras su propia ficha decía que
+   * pueden ser cena. El catálogo se contradecía y ganaba la regla — el mismo
+   * caso que las 43 cenas rápidas que el veto al montaje dejaba fuera, y que
+   * hacían que el motor «volviera una y otra vez a la tortilla».
+   */
+  it("pero una ensalada de alubias sí", () => {
+    expect(enCena([cena("ensalada", { name: "Ensalada de alubias blancas" })])).not.toContain("legumbres_en_cena");
+  });
+
+  it("y un falafel, y una crema de lentejas", () => {
+    expect(enCena([cena("plato_seco", { name: "Falafel al horno de lentejas" })])).not.toContain("legumbres_en_cena");
+    expect(enCena([cena("cremoso", { name: "Crema de lentejas" })])).not.toContain("legumbres_en_cena");
+  });
+
+  it("sin formato declarado se mantiene el veto de siempre", () => {
+    // Abstenerse aquí es conservar el comportamiento, no relajarlo: son 41 de
+    // las 102 y nadie ha dicho todavía qué son.
+    expect(enCena([cena(undefined, { name: "Potaje sin clasificar" })])).toContain("legumbres_en_cena");
+  });
+});
