@@ -12,7 +12,7 @@ ninguno fiable. Ver «El registro miente» más abajo.
 | Ficheros en `supabase/migrations/` | **55** |
 | Comprobadas contra producción | 32 |
 | Aplicadas | **31** |
-| **Sin aplicar** | **2** — `0021_store_products` y `0055_recipe_share_links` (escrita el 24 sep 2026; sin ella el botón de compartir de la ficha no crea llave y `/r/<id>` responde «ya no está disponible») |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026 y quedó registrada en `schema_migrations`) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
 
 ## La única sin aplicar
