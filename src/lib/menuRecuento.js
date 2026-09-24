@@ -55,10 +55,17 @@ export function familiasDe(receta) {
  * `tags: [category, mainProtein]`, que llega para las familias y no para los
  * otros dos ejes.
  *
- * Además del recuento devuelve `platosPorFamilia`: QUIÉNES son esos platos,
- * con su día, su franja y sus macros por ración. Es lo que necesita una fila
- * de Balance para poder abrirse y enseñar de qué se compone su número — un
- * «3» no dice nada si no puedes ver cuáles son los tres.
+ * Además del recuento devuelve los platos en DOS formas, y la diferencia
+ * importa:
+ *
+ *   · `platosPorFamilia` — para abrir una fila y ver de qué se compone su
+ *     número. Un plato puede salir en DOS familias: un arroz a la cubana es
+ *     pasta_arroz y huevos a la vez, y así lo cuenta `familiasDe`.
+ *   · `platos` — la lista plana, cada plato UNA vez. Es la que hay que usar
+ *     para cualquier total de la semana: sumar `platosPorFamilia` contaría dos
+ *     veces todo lo que pertenece a dos familias.
+ *
+ * Cada plato trae su día, su franja y sus macros por ración.
  *
  * Los macros salen de la receta de catálogo, donde `recipeCatalog.js` ya los
  * ha dejado POR RACIÓN. Solo se copian los cuatro que están al 100% en las
@@ -67,6 +74,7 @@ export function familiasDe(receta) {
  */
 export function recuentoDelMenu(plan, catalogoPorId) {
   const familias = {};
+  const platos = [];
   const platosPorFamilia = {};
   const cocinas = {};
   const tecnicas = {};
@@ -92,7 +100,10 @@ export function recuentoDelMenu(plan, catalogoPorId) {
           protein_g: receta.protein_g ?? null,
           carbs_g: receta.carbs_g ?? null,
           fat_g: receta.fat_g ?? null,
+          fiber_g: receta.fiber_g ?? null,
+          grupo: groupId,
         };
+        platos.push(ficha);
         for (const f of familiasDe(receta)) {
           familias[f] = (familias[f] ?? 0) + 1;
           (platosPorFamilia[f] ??= []).push(ficha);
@@ -103,5 +114,5 @@ export function recuentoDelMenu(plan, catalogoPorId) {
     }
   }
 
-  return { familias, platosPorFamilia, cocinas, tecnicas, huecos };
+  return { familias, platos, platosPorFamilia, cocinas, tecnicas, huecos };
 }

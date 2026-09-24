@@ -9,6 +9,8 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { formatStockQty } from "../lib/kitchenUnits.js";
 import { medidasDe, medidaPorId, enPlural, UNIDAD_SUELTA } from "../lib/medidasDeIngrediente.js";
 import { Picker } from "../components/Picker.jsx";
+import { GroupAvatarStack, groupAvatarFaces } from "../components/ui.jsx";
+import { membersOfGroup } from "../lib/groups.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { recuentoDelMenu } from "../lib/menuRecuento.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
@@ -117,6 +119,7 @@ function AnilloMacros({ platos, size = 74 }) {
   const suma = (campo) => platos.reduce((t, p) => t + (Number(p[campo]) || 0), 0);
   const trozos = MACROS.map((m) => ({ ...m, gramos: suma(m.id), kcal: suma(m.id) * m.kcalPorG }));
   const energia = trozos.reduce((t, x) => t + x.kcal, 0);
+  const fibra = suma("fiber_g");
   const kcalMedia = platos.length ? Math.round(suma("kcal") / platos.length) : 0;
   if (energia <= 0) return null;
 
@@ -173,6 +176,20 @@ function AnilloMacros({ platos, size = 74 }) {
             </span>
           </div>
         ))}
+        {/* La fibra NO es un arco: no aporta energía, así que dentro del
+            anillo estaría mintiendo sobre de dónde salen las calorías. Va
+            debajo, con su punto hueco, porque vale la pena verla —está al
+            99,5 % en el catálogo y es lo que más se queda corto en una
+            semana real. */}
+        {fibra > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 7, paddingTop: 5, borderTop: "1px solid #e8efea" }}>
+            <span style={{ width: 8, height: 8, borderRadius: 3, border: "1.5px solid #3f9656", boxSizing: "border-box", flexShrink: 0 }} />
+            <span style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: "#5a7066" }}>fibra</span>
+            <span style={{ fontSize: 11.5, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>
+              {Math.round(fibra / platos.length)} g
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -266,14 +283,22 @@ function Radial({ label, Icon, texto, active, onClick, delay = 0, size = 58, col
  * platos para el motor. Si este panel contara por su cuenta, acabaría
  * diciendo "te falta pescado" mientras el generador cree que va sobrado.
  */
-function PanelBalance({ menuPlan, groups }) {
+function PanelBalance({ menuPlan, groups, members = [] }) {
+  // Con más de un menú en casa, el reparto de uno no es el del otro: el de los
+  // peques lleva cosas que el de los mayores no, y mezclarlos da una media que
+  // no es la semana de nadie. `null` = todos juntos, que sigue siendo el
+  // arranque porque es lo que se quiere ver casi siempre.
+  const [soloGrupo, setSoloGrupo] = useState(null);
+  const variosMenus = (groups ?? []).length > 1;
+
   const recuento = useMemo(() => {
     const plan = {};
     for (const g of groups ?? []) {
+      if (soloGrupo && g.id !== soloGrupo) continue;
       if (menuPlan?.[g.id]) plan[g.id] = menuPlan[g.id];
     }
     return recuentoDelMenu(plan, recipeCatalogById);
-  }, [menuPlan, groups]);
+  }, [menuPlan, groups, soloGrupo]);
 
   const filas = FAMILIAS_BALANCE.map((f) => ({
     ...f,
@@ -293,11 +318,64 @@ function PanelBalance({ menuPlan, groups }) {
       {/* Esto cuenta, y ya está. Sin objetivos ni huecos que faltan: no hay
           tope que respetar, así que un "0 de 3" pintaba un límite que no
           existe y convertía el panel en un examen. */}
-      <p style={{ margin: "0 0 16px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
+      <p style={{ margin: "0 0 12px", fontSize: 12.5, fontWeight: 600, color: "#5a7066", lineHeight: 1.4 }}>
         {recuento.huecos === 0
           ? "Todavía no has puesto ningún plato."
           : `${recuento.huecos} ${recuento.huecos === 1 ? "plato puesto" : "platos puestos"} esta semana.`}
       </p>
+
+      {/* ── De quién es esta semana ──────────────────────────────────────
+          Solo con más de un menú: con uno, un filtro de una opción es un
+          control que no controla nada. Las caras y no los nombres porque un
+          menú de casa se reconoce por quién come de él. */}
+      {variosMenus && (
+        <div style={{ display: "flex", gap: 6, marginBottom: 12, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 2 }}>
+          {[{ id: null, label: "Todos" }, ...groups].map((g) => {
+            const activo = soloGrupo === g.id;
+            const caras = g.id ? groupAvatarFaces(membersOfGroup(g, members), members) : [];
+            return (
+              <button
+                key={g.id ?? "todos"}
+                type="button"
+                onClick={() => setSoloGrupo(g.id)}
+                style={{
+                  flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: caras.length ? "3px 10px 3px 3px" : "6px 12px",
+                  borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+                  background: activo ? VERDE : "#fff",
+                  border: `1px solid ${activo ? VERDE : "#e0eae3"}`,
+                  color: activo ? "#fff" : "#5a7066",
+                  fontSize: 11.5, fontWeight: 800,
+                }}
+              >
+                {caras.length > 0 && <GroupAvatarStack faces={caras} size={22} active={activo} max={3} />}
+                {g.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── El anillo, una vez y arriba ──────────────────────────────────
+          Estaba dentro de cada familia y se repetía seis veces diciendo cada
+          vez algo distinto sobre un trozo pequeño. Una semana tiene UN
+          reparto de macros, y es este. Se calcula sobre `recuento.platos` —la
+          lista plana— y no sumando las familias: un arroz a la cubana está en
+          dos y contaría por partida doble. */}
+      {recuento.platos.length > 0 && (
+        <div
+          style={{
+            background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16,
+            padding: "12px 14px", marginBottom: 12,
+            boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+          }}
+        >
+          <AnilloMacros platos={recuento.platos} />
+          <p style={{ margin: "10px 0 0", fontSize: 9.5, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.35 }}>
+            Media por ración. El anillo reparte las calorías, no los gramos.
+          </p>
+        </div>
+      )}
 
       <div
         style={{
@@ -385,13 +463,7 @@ function PanelBalance({ menuPlan, groups }) {
             </button>
 
             {abierto && (
-              <div style={{ padding: "10px 10px 12px", background: "#fafcfb" }}>
-                {/* El anillo primero: de un vistazo sabes de qué va esta
-                    familia antes de leer un solo plato. */}
-                <div style={{ padding: "2px 2px 12px" }}>
-                  <AnilloMacros platos={f.platos} />
-                </div>
-
+              <div style={{ padding: "8px 10px 10px", background: "#f1f6f3" }}>
                 {/* Cabecera de las tres columnas. Los números van sin letra
                     pegada —cabían mal y ensuciaban— así que la letra vive aquí
                     arriba, una vez, con el color de su arco. */}
@@ -418,7 +490,7 @@ function PanelBalance({ menuPlan, groups }) {
                       style={{
                         display: "flex", alignItems: "center", gap: 7,
                         padding: "8px 0",
-                        borderTop: "1px solid #eef3f0",
+                        borderTop: "1px solid #dfe9e3",
                       }}
                     >
                       {/* El día como en Compra: la inicial arriba y el número
@@ -476,7 +548,7 @@ function PanelBalance({ menuPlan, groups }) {
                 })}
 
                 <p style={{ margin: "9px 0 0", fontSize: 9.5, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.35 }}>
-                  Gramos por ración. El anillo reparte las calorías, no los gramos.
+                  Gramos por ración.
                 </p>
               </div>
             )}
@@ -2106,7 +2178,7 @@ export function PizarraControles({
             </div>
 
             {abierto === "balance" ? (
-              <PanelBalance menuPlan={menuPlan} groups={groups} />
+              <PanelBalance menuPlan={menuPlan} groups={groups} members={data?.members ?? []} />
             ) : abierto === "despensa" ? (
               <PanelDespensa
                 despensa={despensa}
