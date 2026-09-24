@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { rateLimit } from "./_guard.js";
 
 // La preview de un enlace a receta (WhatsApp, Telegram, iMessage...).
@@ -47,6 +47,40 @@ function catalogImage(id) {
     }
   }
   return manifestCache[id] ?? null;
+}
+
+let namesCache = null;
+/**
+ * Nombre de catálogo por id, leído de los JSON del repo y no de la tabla
+ * `recipes` de Supabase: esa tabla va por detrás del catálogo (1002 filas
+ * frente a 1033 el 24 sep 2026; el boeuf bourguignon no estaba) y la preview
+ * salía como "Una receta en HoMenu" sin foto según qué plato tocara. Los
+ * ficheros viajan con la función por `includeFiles` en vercel.json; se leen
+ * una vez por arranque en frío y se quedan en memoria.
+ */
+function catalogName(id) {
+  if (!id) return null;
+  if (!namesCache) {
+    namesCache = new Map();
+    try {
+      const dir = new URL("../src/data/recipes/", import.meta.url);
+      for (const f of readdirSync(dir)) {
+        if (!f.endsWith(".json")) continue;
+        let rows;
+        try {
+          rows = JSON.parse(readFileSync(new URL(f, dir), "utf8"));
+        } catch {
+          continue;
+        }
+        for (const r of Array.isArray(rows) ? rows : []) {
+          if (r?.id && r?.name) namesCache.set(r.id, r.name);
+        }
+      }
+    } catch (err) {
+      console.warn("[share-recipe] catálogo local ilegible", err?.message);
+    }
+  }
+  return namesCache.get(id) ?? null;
 }
 
 export function isCrawler(userAgent) {
@@ -117,53 +151,48 @@ function supabaseConfig() {
 /**
  * Nombre, foto y autor de lo que hay detrás del enlace, o null si no hay nada
  * que enseñar. Las recetas de gente pasan por recipe_from_link (0055), que
- * aplica la llave y las políticas; las del catálogo se leen de la tabla
- * pública y su foto sale del manifiesto.
+ * aplica la llave y las políticas; las del catálogo salen del propio repo
+ * (nombre y manifiesto de fotos), sin tocar la red.
  */
 async function resolveRecipe({ id, token }) {
+  if (!id.startsWith("user_")) {
+    const name = catalogName(id);
+    const image = catalogImage(id);
+    if (!name && !image) return null;
+    return { name: name ?? "Una receta en HoMenu", image, owner: null, locked: false };
+  }
+
   const sb = supabaseConfig();
   if (!sb) return null;
   const signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
 
-  if (id.startsWith("user_")) {
-    const r = await fetch(`${sb.url}/rest/v1/rpc/recipe_from_link`, {
-      method: "POST",
-      headers: sb.headers,
-      body: JSON.stringify({ p_recipe: id, p_token: token ?? null }),
-      signal,
-    });
-    if (!r.ok) return null;
-    const out = await r.json().catch(() => null);
-    if (out?.status === "ok" && out.recipe) {
-      const row = out.recipe;
-      return {
-        name: row.name,
-        image: row.photo || catalogImage(row.linked_catalog_id ?? row.base_dish_id),
-        owner: row.owner_snapshot?.name ?? null,
-        locked: false,
-      };
-    }
-    if (out?.status === "locked" && out.preview) {
-      const p = out.preview;
-      return {
-        name: p.name,
-        image: p.photo || catalogImage(p.linked_catalog_id ?? p.base_dish_id),
-        owner: p.owner?.display_name || (p.owner?.username ? `@${p.owner.username}` : null),
-        locked: true,
-      };
-    }
-    return null;
-  }
-
-  const r = await fetch(
-    `${sb.url}/rest/v1/recipes?id=eq.${encodeURIComponent(id)}&select=name&limit=1`,
-    { headers: sb.headers, signal },
-  );
+  const r = await fetch(`${sb.url}/rest/v1/rpc/recipe_from_link`, {
+    method: "POST",
+    headers: sb.headers,
+    body: JSON.stringify({ p_recipe: id, p_token: token ?? null }),
+    signal,
+  });
   if (!r.ok) return null;
-  const rows = await r.json().catch(() => []);
-  const name = rows?.[0]?.name;
-  if (!name) return null;
-  return { name, image: catalogImage(id), owner: null, locked: false };
+  const out = await r.json().catch(() => null);
+  if (out?.status === "ok" && out.recipe) {
+    const row = out.recipe;
+    return {
+      name: row.name,
+      image: row.photo || catalogImage(row.linked_catalog_id ?? row.base_dish_id),
+      owner: row.owner_snapshot?.name ?? null,
+      locked: false,
+    };
+  }
+  if (out?.status === "locked" && out.preview) {
+    const p = out.preview;
+    return {
+      name: p.name,
+      image: p.photo || catalogImage(p.linked_catalog_id ?? p.base_dish_id),
+      owner: p.owner?.display_name || (p.owner?.username ? `@${p.owner.username}` : null),
+      locked: true,
+    };
+  }
+  return null;
 }
 
 function describeFound(found) {

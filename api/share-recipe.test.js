@@ -100,7 +100,8 @@ describe("handler", () => {
   });
 
   it("la URL de la foto va por ruta y sin ampersand, que no todos los robots lo decodifican", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => [{ name: "Pollo al horno" }] })));
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
     const res = mockRes();
     await handler(
       {
@@ -112,18 +113,31 @@ describe("handler", () => {
     );
     expect(res.body).toContain('og:image" content="https://homenu.app/r/carnes_001/img?t=0123456789abcdef0123456789abcdef"');
     expect(res.body).not.toContain("&amp;img");
+    // Catálogo: nombre y foto salen del repo, sin pedir nada a Supabase.
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("una receta de catálogo que no está en la tabla de Supabase sale igual con su nombre", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => [] })));
+    const res = mockRes();
+    await handler(
+      { method: "GET", query: { id: "carnes_169" }, headers: { host: "homenu.app", "user-agent": "WhatsApp/2.0" } },
+      res,
+    );
+    expect(res.body).toContain('og:title" content="Boeuf bourguignon"');
+    expect(res.body).toContain('og:image" content="https://homenu.app/r/carnes_169/img"');
   });
 
   it("a un robot le da HTML con las etiquetas aunque Supabase no conteste", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false })));
     const res = mockRes();
     await handler(
-      { method: "GET", query: { id: "carnes_001" }, headers: { host: "homenu.app", "user-agent": "WhatsApp/2.0" } },
+      { method: "GET", query: { id: "user_abc" }, headers: { host: "homenu.app", "user-agent": "WhatsApp/2.0" } },
       res,
     );
     expect(res.statusCode).toBe(200);
     expect(res.headers["Content-Type"]).toContain("text/html");
     expect(res.body).toContain('og:title" content="Una receta en HoMenu"');
-    expect(res.body).toContain('og:url" content="https://homenu.app/r/carnes_001"');
+    expect(res.body).toContain('og:url" content="https://homenu.app/r/user_abc"');
   });
 });

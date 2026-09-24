@@ -34,6 +34,34 @@ export function buildShareUrl(kind, value, { token = null } = {}) {
   return `${base}/?${key}=${encodeURIComponent(String(value).replace(/^@/, ""))}`;
 }
 
+/** La miniatura que WhatsApp pinta en la preview (api/share-recipe, ?img=1). */
+export function buildShareImageUrl(recipeId, { token = null } = {}) {
+  if (!recipeId) return null;
+  const base = typeof window !== "undefined" ? window.location.origin : "";
+  return `${base}/r/${encodeURIComponent(String(recipeId))}/img${token ? `?${LINK_PARAMS.token}=${encodeURIComponent(token)}` : ""}`;
+}
+
+/**
+ * Calentar la miniatura antes de que el robot la pida. La preview la genera
+ * el propio móvil de quien comparte, y WhatsApp en Android la descarta si la
+ * imagen tarda: la primera vez que se pide, la función arranca en frío, baja
+ * la foto original y la reduce, y eso son uno o dos segundos que el móvil no
+ * espera. En escritorio sí los esperaba: por eso salía foto en uno y en otro
+ * no, y según qué plato (24 sep 2026). Pedirla aquí deja la respuesta en la
+ * CDN, y para cuando la persona elige el chat, llega en milisegundos.
+ *
+ * Sin esperar a que termine: la hoja nativa tiene que abrirse en el gesto.
+ */
+function warmShareImage(recipeId, token) {
+  const url = buildShareImageUrl(recipeId, { token });
+  if (!url || typeof fetch !== "function") return;
+  try {
+    fetch(url, { mode: "no-cors" }).catch(() => {});
+  } catch {
+    // Sin red no hay nada que calentar; compartir sigue igual.
+  }
+}
+
 /**
  * Compartir de verdad si el sistema deja (hoja nativa de iOS/Android), y si
  * no, al portapapeles. Devuelve qué pasó para que quien llama pueda decirlo:
@@ -45,6 +73,7 @@ export function buildShareUrl(kind, value, { token = null } = {}) {
 export async function shareOut({ kind, value, token = null, title, text }) {
   const url = buildShareUrl(kind, value, { token });
   if (!url) return "error";
+  if (kind === "recipe") warmShareImage(value, token);
 
   if (typeof navigator !== "undefined" && navigator.share) {
     try {

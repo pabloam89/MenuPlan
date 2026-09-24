@@ -1,6 +1,35 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
-import { buildShareUrl, readIncomingLink } from "./shareLink.js";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { buildShareUrl, buildShareImageUrl, readIncomingLink, shareOut } from "./shareLink.js";
+
+afterEach(() => vi.unstubAllGlobals());
+
+describe("buildShareImageUrl", () => {
+  it("la miniatura va por ruta, sin ampersand aunque lleve llave", () => {
+    expect(buildShareImageUrl("user_abc")).toBe(`${window.location.origin}/r/user_abc/img`);
+    expect(buildShareImageUrl("user_abc", { token: "abc" })).toBe(`${window.location.origin}/r/user_abc/img?t=abc`);
+    expect(buildShareImageUrl("")).toBeNull();
+  });
+});
+
+describe("shareOut", () => {
+  it("calienta la miniatura antes de abrir la hoja, sin esperar a que llegue", async () => {
+    const fetchSpy = vi.fn(() => new Promise(() => {})); // nunca resuelve: no debe bloquear
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn(async () => {}) } });
+    const res = await shareOut({ kind: "recipe", value: "user_abc", token: "abc", title: "X", text: "y" });
+    expect(res).toBe("copied");
+    expect(fetchSpy).toHaveBeenCalledWith(`${window.location.origin}/r/user_abc/img?t=abc`, { mode: "no-cors" });
+  });
+
+  it("un perfil no calienta nada", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn(async () => {}) } });
+    await shareOut({ kind: "user", value: "ana", title: "X", text: "y" });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
 
 function goTo(path) {
   window.history.replaceState({}, "", path);

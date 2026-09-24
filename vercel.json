@@ -2,6 +2,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "functions": {
+    "api/share-recipe.js": {
+      "includeFiles": "src/{data/recipes/*.json,assets/dishes/dishImages.json}"
+    }
+  },
   "rewrites": [
     { "source": "/r/:id", "destination": "/api/share-recipe?id=:id" },
     { "source": "/r/:id/img", "destination": "/api/share-recipe?id=:id&img=1" }
