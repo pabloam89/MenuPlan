@@ -7,6 +7,10 @@
 
 import { HEALTH_PROFILE_BADGE } from "../lib/healthProfileMatch.js";
 import { CARB_TYPE_BY_BASE, PROTEIN_GROUP_BY_MAIN_PROTEIN, isMontaje } from "../data/recipeSchema.js";
+import {
+  evaluarNoRepetir, deValor, deBandera, deConjunto,
+  cadena, parFranja, parComida, primeroVsCenas, mismoDia, diaYAnterior, cenasAdyacentes,
+} from "./reglasNoRepetir.js";
 import { esCasqueria } from "../lib/casqueria.js";
 import { clavesDeReceta } from "../lib/bases.js";
 
@@ -319,6 +323,134 @@ function dishFamily(recipe) {
   const first = normName(recipe?.name).trim().split(/\s+/)[0] ?? "";
   return first.length > 3 ? first.replace(/(es|s)$/, "") : first;
 }
+
+/**
+ * LAS DIEZ DE «NO REPETIR», declaradas.
+ *
+ * Eran diez bloques con su bucle y su acumulador, unas 350 líneas para diez
+ * celdas de una matriz de extractor × ventana. El motor está en
+ * reglasNoRepetir.js; aquí solo vive la tabla, porque los extractores son
+ * locales a este fichero.
+ *
+ * ── Por qué van en DOS bloques ────────────────────────────────────────────
+ *
+ * Por el orden en que se emiten las violaciones, no por nada conceptual. Cinco
+ * salían entre la regla 3 y la 3e y las otras cinco después de la 8, y
+ * `applyFallback` recorre `violations` en orden para decidir qué hueco
+ * repara primero. Agruparlas todas movería cinco reglas de sitio y cambiaría
+ * qué plato se cambia en un menú con varios problemas — un cambio de
+ * comportamiento colado dentro de un refactor que no debe tener ninguno.
+ *
+ * Si algún día se decide que el orden da igual, se juntan y se borra el campo.
+ */
+const NO_REPETIR = [
+  {
+    bloque: 1,
+    rule: "proteina_consecutiva",
+    ventana: cadena,
+    // Valor CRUDO, no grupo: deja pasar pollo → cerdo como variedad legítima,
+    // pero pilla que las gambas de `extraProteins` de un plato de huevo choquen
+    // con una pasta de gambas — que la igualdad de `mainProtein` no veía, y un
+    // tester reportó marisco en casi todos los huecos por exactamente eso.
+    extractor: deConjunto(proteinTokensOf),
+    mensaje: ({ ra, rb, antes, despues, valor }) =>
+      `Proteína "${valor}" repetida entre ${antes.slotId} ("${ra.name}") y ${despues.slotId} ("${rb.name}")`,
+  },
+  {
+    bloque: 1,
+    rule: "proteina_repetida_en_comida",
+    ventana: parComida,
+    // Exacta, y solo primero+segundo de la MISMA comida: un revuelto de huevo
+    // seguido de una tortilla. La regla de la cadena saca los primeros a
+    // propósito, y esa relajación nunca quiso decir «la misma proteína dos
+    // veces en un mismo plato».
+    extractor: deValor((r) => r.mainProtein),
+    mensaje: ({ ra, rb, antes, valor }) =>
+      `"${rb.name}" repite la proteína "${valor}" del primero ("${ra.name}") de la misma comida (${antes.daySlug})`,
+  },
+  {
+    bloque: 1,
+    rule: "proteina_repetida_en_dia",
+    ventana: primeroVsCenas,
+    // Por GRUPO y con el conjunto entero (mainProtein + extraProteins), para
+    // que un «Cocido madrileño» —legumbre y tres carnes— bloquee también una
+    // cena de carne y no solo otra de legumbre.
+    extractor: deConjunto(proteinGroupsOf),
+    mensaje: ({ ra, rb, antes, valor }) =>
+      `"${rb.name}" repite el grupo de proteína "${valor}" del primero ("${ra.name}") el mismo día (${antes.daySlug})`,
+  },
+  {
+    bloque: 1,
+    rule: "dos_ensaladas_en_comida",
+    ventana: parFranja,
+    // LA ÚNICA ASIMÉTRICA, y por eso lleva comparador propio en vez de
+    // extractor: uno de los dos tiene que SER ensalada, al otro le basta con
+    // traerla de guarnición. Sin esa mitad se escapaba el caso más común y el
+    // que de verdad se ve en la mesa — ensalada de primero, y de segundo un
+    // filete con ensalada.
+    comparador: (ra, rb) =>
+      (isEnsalada(ra) && traeEnsalada(rb)) || (traeEnsalada(ra) && isEnsalada(rb)),
+    mensaje: ({ ra, rb, antes }) =>
+      `"${ra.name}" (primero) y "${rb.name}" (segundo) son ambas ensaladas en la misma comida (${antes.daySlug})`,
+  },
+  {
+    bloque: 1,
+    rule: "mismo_plato_seguido",
+    ventana: diaYAnterior,
+    soloUnaPorSlot: true,
+    // Hummus el lunes y el martes, quesadillas el martes y el miércoles: son
+    // RECETAS distintas, con otra categoría y otra proteína, así que ni la
+    // regla de repetir receta ni las de proteína las veían. El catálogo tiene
+    // familias enteras —seis hummus, tres quesadillas— donde «otra receta» y
+    // «otro plato» no son lo mismo para quien se lo come.
+    extractor: deValor(dishFamily),
+    mensaje: ({ ra, rb, antes }) =>
+      `"${rb.name}" repite el mismo plato que "${ra.name}" (${antes.slotId})`,
+  },
+
+  {
+    bloque: 2,
+    rule: "guarnicion_repetida",
+    ventana: mismoDia,
+    soloUnaPorSlot: true,
+    extractor: deValor(getCarbType),
+    mensaje: ({ rb, antes, despues, valor }) =>
+      `"${rb.name}" tiene base "${valor}" repetida el ${despues.daySlug} (también en ${antes.slotId})`,
+  },
+  {
+    bloque: 2,
+    rule: "dos_fritos_seguidos",
+    ventana: cadena,
+    extractor: deBandera(isFrito, "frito"),
+    mensaje: ({ ra, rb }) =>
+      `"${rb.name}" es un frito justo después de otro frito ("${ra.name}")`,
+  },
+  {
+    bloque: 2,
+    rule: "dos_cuchara_mismo_dia",
+    ventana: mismoDia,
+    soloUnaPorSlot: true,
+    extractor: deBandera(isPlatoCuchara, "cuchara"),
+    mensaje: ({ rb, antes, despues }) =>
+      `"${rb.name}" es un segundo plato de cuchara el ${despues.daySlug} (también en ${antes.slotId})`,
+  },
+  {
+    bloque: 2,
+    rule: "guarnicion_cena_consecutiva",
+    ventana: cenasAdyacentes,
+    extractor: deValor(getCarbType),
+    mensaje: ({ ra, rb, antes, valor }) =>
+      `"${rb.name}" tiene base "${valor}" igual que la cena del ${antes.daySlug} ("${ra.name}")`,
+  },
+  {
+    bloque: 2,
+    rule: "proteina_cena_consecutiva",
+    ventana: cenasAdyacentes,
+    extractor: deConjunto(proteinGroupsOf),
+    mensaje: ({ ra, rb, antes, valor }) =>
+      `"${rb.name}" repite el grupo de proteína "${valor}" de la cena del ${antes.daySlug} ("${ra.name}")`,
+  },
+];
 
 function buildMealOrder(slotAssignments) {
   const mealOrder = [];
@@ -751,163 +883,25 @@ export function validateMenu(
     });
   }
 
-  // 3. No repeated mainProtein in consecutive meals (including across a day
-  // boundary: cena day N and comida_2 day N+1 are adjacent in mainMeals once
-  // comida_1 primeros are filtered out — see mainMealsOf above for the
-  // plato_unico carve-in).
+  // ── Las cinco de NO REPETIR que salen aquí (reglas 3, 3b, 3c, 3d, 3e) ────
+  //
+  // Eran cinco bucles con su propio acumulador. Ahora son cinco filas de la
+  // tabla NO_REPETIR de arriba y el motor vive en reglasNoRepetir.js.
+  //
+  // Siguen saliendo en ESTE punto del recorrido, y no agrupadas con las otras
+  // cinco, porque `applyFallback` lee `violations` en orden para decidir qué
+  // hueco repara primero: moverlas cambiaría qué plato se sustituye en un menú
+  // con varios problemas, y eso es un cambio de comportamiento colado dentro
+  // de un refactor que no debe tener ninguno.
+  // La cadena cronológica de platos principales: `mainMealsOf` deja fuera los
+  // primeros de comida a propósito (ver su comentario), y de ahí salen las dos
+  // reglas que dicen «seguidos».
   const mainMeals = mainMealsOf(mealOrder, poolById);
-  for (let i = 1; i < mainMeals.length; i++) {
-    const prev = mainMeals[i - 1];
-    const curr = mainMeals[i];
-    const prevR = poolById[prev.recipeId];
-    const currR = poolById[curr.recipeId];
-    if (!prevR || !currR) continue;
-    // Raw-value comparison (see proteinTokensOf), not protein-GROUP: this
-    // still lets pollo -> cerdo through as normal variety, but also catches a
-    // secondary protein (extraProteins) repeating the neighbor's protein —
-    // e.g. gambas as the extraProteins of an egg dish right before a gambas
-    // pasta dish, which plain mainProtein equality missed entirely (a tester
-    // reported marisco showing up in nearly every slot of the week because of
-    // exactly this gap).
-    const prevTokens = proteinTokensOf(prevR);
-    const shared = [...proteinTokensOf(currR)].find((p) => prevTokens.has(p));
-    if (shared) {
-      violations.push({
-        rule: "proteina_consecutiva",
-        slotId: curr.slotId,
-        message: `Proteína "${shared}" repetida entre ${prev.slotId} ("${prevR.name}") y ${curr.slotId} ("${currR.name}")`,
-      });
-    }
-  }
+  const ctxNoRepetir = {
+    mealOrder, poolById, mainMeals, parejasPorDia, comidaByDay, DAY_ORDER,
+  };
+  violations.push(...evaluarNoRepetir(NO_REPETIR.filter((r) => r.bloque === 1), ctxNoRepetir));
 
-  // 3b. Same mainProtein for BOTH primero and segundo of the SAME comida —
-  // e.g. a huevo-based primero (revuelto) followed by a huevo-based segundo
-  // (tortilla) on the exact same meal. Rule 3 above deliberately keeps a
-  // genuine primero (soup/salad) out of the cross-meal/cross-day sequence
-  // (see mainMealsOf) so a light starter never blocks an unrelated dinner —
-  // but that relaxation was never meant to allow the identical protein twice
-  // within ONE comida. Scoped to same-day primero+segundo only, so it can
-  // never re-flag the comida_1-vs-cena case rule 3 intentionally allows.
-  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
-    const slot1 = positions["1"];
-    const slot2 = positions["2"];
-    if (!slot1 || !slot2) continue;
-    const r1 = poolById[slot1.recipeId];
-    const r2 = poolById[slot2.recipeId];
-    if (!r1 || !r2) continue;
-    if (r1.mainProtein !== "none" && r1.mainProtein === r2.mainProtein) {
-      violations.push({
-        rule: "proteina_repetida_en_comida",
-        slotId: slot2.slotId,
-        message: `"${r2.name}" repite la proteína "${r2.mainProtein}" del primero ("${r1.name}") de la misma comida (${daySlug})`,
-      });
-    }
-  }
-
-  // 3c. Same-day protein-group clash from the comida_1 primero. Rule 3 filters
-  // comida_1 primeros out of the consecutive sequence and rule 3b only compares
-  // the two halves of a comida by *exact* protein — so a primero that actually
-  // carries a protein (e.g. "Crema de lentejas", mainProtein "legumbre") could
-  // share the day with a same-group cena undetected. Compared by protein GROUP
-  // (carne/pescado/legumbres/huevos), scoped to comida_1 ↔ cena of the same day
-  // so it never re-flags the comida_1-vs-cena "light starter" case rule 3
-  // intentionally allows for a *neutral* (mainProtein "none") primero.
-  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
-    const primero = positions["1"];
-    if (!primero) continue;
-    const r1 = poolById[primero.recipeId];
-    if (!r1) continue;
-    // Group SET (mainProtein + extraProteins) so a compound legume primero
-    // like "Cocido madrileño" (legumbre + ternera/cerdo/pollo) also blocks a
-    // same-day meat cena, not just another legume.
-    const g1set = proteinGroupsOf(r1);
-    if (g1set.size === 0) continue;
-    for (const m of mealOrder) {
-      if (m.daySlug !== daySlug || m.mealType !== "cena") continue;
-      const r2 = poolById[m.recipeId];
-      if (!r2) continue;
-      const shared = [...proteinGroupsOf(r2)].find((g) => g1set.has(g));
-      if (shared) {
-        violations.push({
-          rule: "proteina_repetida_en_dia",
-          slotId: m.slotId,
-          message: `"${r2.name}" repite el grupo de proteína "${shared}" del primero ("${r1.name}") el mismo día (${daySlug})`,
-        });
-      }
-    }
-  }
-
-  // 3d. Same-comida primero+segundo can't BOTH be "ensalada"-named dishes —
-  // even when each one's mealRole is individually valid for its slot (e.g. a
-  // protein-heavy "ensalada completa" correctly tagged segundo). A tester
-  // reported exactly this: "Ensalada de rúcula, parmesano y piñones" as
-  // primero next to "Ensalada de pollo asado de bolsa con nueces y queso" as
-  // segundo — nothing else in this file catches it, since the two dishes can
-  // have different categories (ensaladas_verduras vs carnes) and different
-  // mainProtein, so rules 3b/3c never fire. Name-based like isPlatoCuchara,
-  // because "looks like two salads" is what the user actually perceives.
-  for (const { daySlug, "1": slot1, "2": slot2 } of Object.values(parejasPorDia)) {
-    if (!slot1 || !slot2) continue;
-    const r1 = poolById[slot1.recipeId];
-    const r2 = poolById[slot2.recipeId];
-    if (!r1 || !r2) continue;
-    // Uno de los dos tiene que SER una ensalada; al otro le basta con traerla
-    // de guarnición. Sin la segunda mitad se escapaba el caso más común, que
-    // es justo el que se ve en la mesa: ensalada de primero y un filete con
-    // ensalada de segundo.
-    if ((isEnsalada(r1) && traeEnsalada(r2)) || (traeEnsalada(r1) && isEnsalada(r2))) {
-      violations.push({
-        rule: "dos_ensaladas_en_comida",
-        slotId: slot2.slotId,
-        message: `"${r1.name}" (primero) y "${r2.name}" (segundo) son ambas ensaladas en la misma comida (${daySlug})`,
-      });
-    }
-  }
-
-  // 3e. El MISMO PLATO dos días seguidos (o dos veces el mismo día), aunque
-  //     sean recetas distintas.
-  //
-  //     Reportado: hummus el lunes y el martes de primero, y quesadillas el
-  //     martes y el miércoles. La regla 6 ("no repetir recipeId") no lo veía:
-  //     las quesadillas son DOS recetas distintas (carnes_120 y
-  //     ensaladas_verduras_035), con categorías y proteínas distintas, así que
-  //     tampoco la veían las reglas 3x. Y el catálogo tiene familias enteras
-  //     -seis hummus de primero, tres quesadillas- donde "otra receta" y "otro
-  //     plato" no son lo mismo para quien se lo come.
-  //
-  //     Se mira día a día contra el día anterior, y dentro del propio día,
-  //     sobre TODOS los huecos (los primeros incluidos, que mainMealsOf deja
-  //     fuera a propósito para las reglas de proteína).
-  {
-    const byDay = new Map();
-    for (const m of mealOrder) {
-      if (m.dayIdx < 0) continue;
-      if (!byDay.has(m.dayIdx)) byDay.set(m.dayIdx, []);
-      byDay.get(m.dayIdx).push(m);
-    }
-    const days = [...byDay.keys()].sort((a, b) => a - b);
-    for (const dayIdx of days) {
-      const today = byDay.get(dayIdx);
-      const yesterday = byDay.get(dayIdx - 1) ?? [];
-      for (let i = 0; i < today.length; i++) {
-        const recipe = poolById[today[i].recipeId];
-        if (!recipe) continue;
-        const family = dishFamily(recipe);
-        if (!family) continue;
-        const earlier = [...yesterday, ...today.slice(0, i)];
-        const clash = earlier.find((m) => {
-          const r = poolById[m.recipeId];
-          return r && dishFamily(r) === family;
-        });
-        if (!clash) continue;
-        violations.push({
-          rule: "mismo_plato_seguido",
-          slotId: today[i].slotId,
-          message: `"${recipe.name}" repite el mismo plato que "${poolById[clash.recipeId].name}" (${clash.slotId})`,
-        });
-      }
-    }
-  }
 
   // 3e-bis. La CASQUERÍA es de fin de semana.
   //
@@ -1153,27 +1147,6 @@ export function validateMenu(
     }
   }
 
-  // 9. Same carb base within the same day (comida_1 + comida_2 + cena)
-  // Catches cases like: sopa de fideos (pasta) + espaguetis (pasta) the same day
-  const dayUsedCarbs = {};
-  for (const m of mealOrder) {
-    const recipe = poolById[m.recipeId];
-    if (!recipe) continue;
-    const carb = getCarbType(recipe);
-    if (!carb) continue;
-    if (!dayUsedCarbs[m.daySlug]) dayUsedCarbs[m.daySlug] = new Map();
-    const dayCarbs = dayUsedCarbs[m.daySlug];
-    if (dayCarbs.has(carb)) {
-      violations.push({
-        rule: "guarnicion_repetida",
-        slotId: m.slotId,
-        message: `"${recipe.name}" tiene base "${carb}" repetida el ${m.daySlug} (también en ${dayCarbs.get(carb)})`,
-      });
-    } else {
-      dayCarbs.set(carb, m.slotId);
-    }
-  }
-
   // 10. Health-profile conflicts — reuses the exact rules the dish-detail
   // badge uses (matchingHealthProfiles), so a violation here means "the badge
   // would show this dish as non-compliant for an active profile". Soft and
@@ -1325,92 +1298,14 @@ export function validateMenu(
     }
   }
 
-  // 12. No two fried mains in consecutive meals — soft style backstop. Uses the
-  // same mainMeals chronological sequence as rule 3 so "seguidos" means the same
-  // thing (across the day boundary too). The `frito` flag is derived/declared in
-  // lib/healthFlags.js.
-  for (let i = 1; i < mainMeals.length; i++) {
-    const prevR = poolById[mainMeals[i - 1].recipeId];
-    const currR = poolById[mainMeals[i].recipeId];
-    if (!prevR || !currR) continue;
-    if (isFrito(prevR) && isFrito(currR)) {
-      violations.push({
-        rule: "dos_fritos_seguidos",
-        slotId: mainMeals[i].slotId,
-        message: `"${currR.name}" es un frito justo después de otro frito ("${prevR.name}")`,
-      });
-    }
-  }
+  // ── Las otras cinco de NO REPETIR (reglas 9, 12, 13, 14, 15) ─────────────
+  //
+  // La 9 (`guarnicion_repetida`) salía antes, entre la 8 y la 10, y se ha
+  // traído aquí: es la ÚNICA de las diez cuyo sitio en el orden no cambia
+  // nada, porque ninguna otra regla apunta a su mismo hueco por el mismo
+  // motivo. Las otras cuatro ya salían al final.
+  violations.push(...evaluarNoRepetir(NO_REPETIR.filter((r) => r.bloque === 2), ctxNoRepetir));
 
-  // 13. No two "platos de cuchara" (soups/stews/legumes) on the same day — soft
-  // style backstop so a day doesn't end up all spoon dishes.
-  const dayCuchara = {};
-  for (const m of mealOrder) {
-    const recipe = poolById[m.recipeId];
-    if (!recipe || !isPlatoCuchara(recipe)) continue;
-    if (dayCuchara[m.daySlug]) {
-      violations.push({
-        rule: "dos_cuchara_mismo_dia",
-        slotId: m.slotId,
-        message: `"${recipe.name}" es un segundo plato de cuchara el ${m.daySlug} (también en ${dayCuchara[m.daySlug]})`,
-      });
-    } else {
-      dayCuchara[m.daySlug] = m.slotId;
-    }
-  }
-
-  // 14. Same carb type in consecutive cenas across days — e.g. pasta Monday
-  // cena followed by pasta Tuesday cena. Uses DAY_ORDER adjacency so only
-  // back-to-back days are compared, not arbitrary pairings.
-  const cenaByDay = {};
-  for (const m of mealOrder) {
-    if (m.mealType !== "cena") continue;
-    const recipe = poolById[m.recipeId];
-    if (!recipe) continue;
-    const carb = getCarbType(recipe);
-    if (carb) cenaByDay[m.daySlug] = { carb, slotId: m.slotId, name: recipe.name };
-  }
-  for (let i = 1; i < DAY_ORDER.length; i++) {
-    const prev = cenaByDay[DAY_ORDER[i - 1]];
-    const curr = cenaByDay[DAY_ORDER[i]];
-    if (!prev || !curr) continue;
-    if (prev.carb === curr.carb) {
-      violations.push({
-        rule: "guarnicion_cena_consecutiva",
-        slotId: curr.slotId,
-        message: `"${curr.name}" tiene base "${curr.carb}" igual que la cena del ${DAY_ORDER[i - 1]} ("${prev.name}")`,
-      });
-    }
-  }
-
-  // 15. Same protein GROUP in consecutive cenas across days — e.g. huevos
-  // Friday cena followed by huevos Saturday cena (a tester reported exactly
-  // this: 3 egg dinners in a row). Mirrors rule 14 above but for protein
-  // group instead of carb base. Rule 3's mainMeals chain never catches this:
-  // within a day the chain link is comida_main -> cena, so that day's comida
-  // always sits BETWEEN two consecutive cenas — they're never adjacent pairs
-  // in that chain, no matter how many nights running they repeat.
-  const cenaProteinByDay = {};
-  for (const m of mealOrder) {
-    if (m.mealType !== "cena") continue;
-    const recipe = poolById[m.recipeId];
-    if (!recipe) continue;
-    const groups = proteinGroupsOf(recipe);
-    if (groups.size) cenaProteinByDay[m.daySlug] = { groups, slotId: m.slotId, name: recipe.name };
-  }
-  for (let i = 1; i < DAY_ORDER.length; i++) {
-    const prev = cenaProteinByDay[DAY_ORDER[i - 1]];
-    const curr = cenaProteinByDay[DAY_ORDER[i]];
-    if (!prev || !curr) continue;
-    const shared = [...curr.groups].find((g) => prev.groups.has(g));
-    if (shared) {
-      violations.push({
-        rule: "proteina_cena_consecutiva",
-        slotId: curr.slotId,
-        message: `"${curr.name}" repite el grupo de proteína "${shared}" de la cena del ${DAY_ORDER[i - 1]} ("${prev.name}")`,
-      });
-    }
-  }
 
   return { valid: violations.length === 0, violations };
 }
