@@ -509,12 +509,30 @@ const NO_REPETIR = [
  * Con la tabla, `validateMenu` las evalúa y `candidatosDeHueco` las filtra
  * desde la MISMA declaración. Ya no pueden separarse.
  *
- * ── Tres no se podan todavía ──────────────────────────────────────────────
+ * ── Tres NO se podan, y ya no es un pendiente ─────────────────────────────
  *
- * Los dos conflictos con el menú escolar y el perfil de salud son unarios y
- * el solver NO los poda: se prueban y rebotan en cada nodo. Están declarados
- * igual, pero enchufarlos a la poda CAMBIA qué menús salen —podar de más
- * estrecha el dominio— así que es un paso aparte y se mide antes.
+ * Los dos conflictos con el menú escolar y el perfil de salud son unarios y el
+ * solver no los poda: se prueban y rebotan en cada nodo. Parecía deuda y no lo
+ * es. Medido sobre un hueco de cena con 345 candidatos, estrecharían bastante
+ * —perfil glucémico −10,7 %, bajo en sodio −27,0 %, el cole evitando carne
+ * −29,3 %— y aun así no deben podarse:
+ *
+ *   `health_profile_conflict` es RELAJABLE (ver REGLAS_RELAJABLES en
+ *   solver.js). Cuando no hay solución, el solver la afloja antes de rendirse,
+ *   y el propio fichero lo tiene medido: sin relajarla «se cierran 17 semanas
+ *   enteras en vez de 10». Podarla del dominio la volvería IMPOSIBLE de
+ *   relajar —la receta ya no estaría ahí para reconsiderarla— y esas siete
+ *   semanas volverían a quedarse con huecos. El prompt dice lo mismo: «nunca
+ *   dejes un hueco sin cubrir por cumplir un perfil».
+ *
+ *   Las dos del cole SÍ son duras, así que podarlas sería seguro. Pero lo
+ *   único que ganarían son nodos, y el solver no está limitado por nodos: su
+ *   propia cabecera mide que de 300 a 2.500 salen los mismos huecos, las
+ *   mismas semanas y las mismas relajaciones. Cero beneficio a cambio de
+ *   tocar la poda.
+ *
+ * O sea: una no se poda porque se relaja, y las otras dos porque no compra
+ * nada. Está declarado aquí para que nadie vuelva a medirlo.
  */
 export const UNARIAS = [
   {

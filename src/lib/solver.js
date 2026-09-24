@@ -115,13 +115,26 @@ const IGNORAR_EN_PARCIAL = new Set([
  * gastados en candidatos que iban a rebotar. Con la tabla, el dominio ya no
  * los trae.
  *
- * ── Las tres que siguen sin podarse ───────────────────────────────────────
+ * ── Las tres que NO se podan, y por qué no es deuda ───────────────────────
  *
  * `school_protein_conflict`, `school_carb_conflict` y `health_profile_conflict`
- * son unarias y NO están aquí. Las dos del cole necesitan el contexto del
- * hueco y el perfil de salud es del hogar; las tres se pueden enchufar, pero
- * podar de más ESTRECHA el dominio y cambia qué menús salen, así que es una
- * decisión aparte que hay que medir con casas reales.
+ * son unarias y no están aquí. Medido: estrecharían de verdad —el perfil
+ * glucémico un 10,7 %, el bajo en sodio un 27,0 %, el cole evitando carne un
+ * 29,3 % sobre un dominio de 345—. Y aun así:
+ *
+ *   EL PERFIL DE SALUD ES RELAJABLE (ver REGLAS_RELAJABLES aquí abajo).
+ *   Cuando no hay solución, esta búsqueda lo afloja antes de rendirse, y sin
+ *   eso «se cierran 17 semanas enteras en vez de 10» — está medido unas líneas
+ *   más abajo. Podarlo del dominio lo volvería imposible de relajar: la receta
+ *   ya no estaría para reconsiderarla, y esas siete semanas se quedarían con
+ *   huecos. Es lo contrario de lo que pide el prompt: «nunca dejes un hueco
+ *   sin cubrir por cumplir un perfil».
+ *
+ *   LAS DOS DEL COLE sí son duras y podarlas sería seguro, pero lo único que
+ *   ganarían son nodos — y esta búsqueda no está limitada por nodos: de 300 a
+ *   2.500 salen los mismos huecos y las mismas semanas (ver los dos topes).
+ *
+ * Una no se poda porque se relaja y las otras dos porque no compran nada.
  *
  * Exportada aparte del solver porque vale por sí sola: es lo que necesita la
  * pantalla de ajuste para decir "el martes no hay ningún segundo de 15 minutos,
