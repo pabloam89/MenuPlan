@@ -453,12 +453,15 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
                   qué — solo cuántos llevas. */}
               <span
                 style={{
-                  width: 32, height: 32, borderRadius: 999, flexShrink: 0,
+                  // Más pequeño que la foto y que el nombre: es el dato, no
+                  // el titular. A 32px competía con la ilustración de la
+                  // familia y la fila se leía como dos cosas del mismo peso.
+                  width: 25, height: 25, borderRadius: 999, flexShrink: 0,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   background: vacia ? "#f4f7f5" : `${f.color}18`,
                   border: `1.5px solid ${vacia ? "#e3ebe6" : `${f.color}55`}`,
                   color: vacia ? "#c2cfc7" : f.color,
-                  fontSize: 14, fontWeight: 900, fontVariantNumeric: "tabular-nums",
+                  fontSize: 11.5, fontWeight: 900, fontVariantNumeric: "tabular-nums",
                   transition: "all .25s ease",
                 }}
               >
