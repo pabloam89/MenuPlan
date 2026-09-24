@@ -200,7 +200,9 @@ export default defineConfig(({ mode }) => {
           // por el service worker: sin runtimeCaching para ellas, van
           // siempre directas a red, así nunca se sirve un menú o una
           // respuesta de IA cacheada y obsoleta.
-          navigateFallbackDenylist: [/^\/api\//],
+          // /r/<id> es la preview de un enlace a receta (api/share-recipe):
+          // tiene que llegar al servidor, no al index.html cacheado.
+          navigateFallbackDenylist: [/^\/api\//, /^\/r\//],
           cleanupOutdatedCaches: true,
           // El catálogo de recetas enriquecido (fixedDishes) supera el límite
           // por defecto de 2 MiB de workbox — sin esto, el build falla al

@@ -6893,6 +6893,9 @@ export function DishDetail({
   // la cara siguen ahí, pero como texto: no se pinta un enlace que no lleva a
   // ningún sitio.
   onOpenPerson = null,
+  // Mandar esta receta fuera de la app (WhatsApp, portapapeles). Quien la
+  // monte decide si el enlace lleva llave; aquí solo hay un botón.
+  onShare = null,
   readOnly = false,
 }) {
   const isFavorite = favoriteScope != null;
@@ -7724,6 +7727,21 @@ export function DishDetail({
           </button>
         )}
 
+        {onShare && (
+          <button
+            type="button"
+            onClick={() => onShare(recipe)}
+            aria-label="Compartir receta"
+            title="Compartir receta"
+            style={{
+              ...heroActionButtonStyle, position: "absolute", top: 26, zIndex: 2,
+              // A la derecha del corazón cuando lo hay; en su sitio cuando no.
+              left: onSetFavoriteScope && !readOnly ? 66 : 26,
+            }}
+          >
+            <Share2 size={18} color="#1a3a24" strokeWidth={2} />
+          </button>
+        )}
 
         <DishVisual
           recipe={recipe}

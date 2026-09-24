@@ -25,7 +25,7 @@ import { OnboardingProgressContext } from "./screens/onboardingProgressContext.j
 import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
 import { publishMenu, unpublishMenu, loadMyPublishedMenus } from "./lib/social.js";
 import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
-import { readIncomingLink } from "./lib/shareLink.js";
+import { readIncomingLink, shareOut } from "./lib/shareLink.js";
 import { migrateEmbeddedPhotos } from "./lib/recipePhotos.js";
 import { searchProfiles, ensureSocialProfile } from "./lib/social.js";
 import { googleInfo } from "./screens/Settings.jsx";
@@ -173,6 +173,8 @@ import {
   updateRecipeVisibility,
   deleteUserRecipe,
   loadPublicRecipe,
+  loadRecipeFromLink,
+  createRecipeShareToken,
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";
@@ -3637,7 +3639,7 @@ export default function App() {
     const link = readIncomingLink();
     if (!link) return;
     if (link.kind === "recipe") {
-      handleOpenFeedRecipe({ id: link.id });
+      openLinkedRecipe(link.id, link.token);
       return;
     }
     // Del handle solo tenemos el texto: hay que resolverlo a una persona.
@@ -4079,6 +4081,66 @@ export default function App() {
     };
     handleOpenCatalogRecipe(full);
   }, [handleOpenCatalogRecipe]);
+
+  /**
+   * Quien llega por un enlace compartido (/r/<id>?t=<llave>). Las del
+   * catálogo se abren en local; las de gente pasan por recipe_from_link, que
+   * decide en el servidor si se ve entera, si está cerrada, o si no está.
+   *
+   * "Cerrada" no es un callejón: se abre el perfil de quien la subió, que ya
+   * tiene el botón de conectar. Cuando acepte, el mismo enlace abre la ficha.
+   */
+  const openLinkedRecipe = useCallback(async (id, token = null) => {
+    if (!id) return;
+    if (recipeCatalogById[id]) {
+      handleOpenCatalogRecipe(recipeCatalogById[id]);
+      return;
+    }
+    const res = await loadRecipeFromLink(id, token);
+    if (res.status === "ok") {
+      handleOpenCatalogRecipe(res.recipe);
+      return;
+    }
+    if (res.status === "locked") {
+      const owner = res.preview.owner ?? {};
+      const who = owner.username ? `@${owner.username}` : (owner.display_name || "alguien");
+      showToast(`«${res.preview.name}» es de ${who}. Conéctate para verla`);
+      if (owner.user_id) {
+        setDeepLinkPerson(owner.user_id);
+        setScreen("feed");
+      }
+      return;
+    }
+    showToast(res.status === "error" ? "No se ha podido abrir la receta" : "Esa receta ya no está disponible");
+  }, [handleOpenCatalogRecipe, showToast]);
+
+  /**
+   * Compartir la ficha abierta fuera de la app. Si la receta es mía, el
+   * enlace lleva llave: quien lo reciba la ve sin cuenta y sin conectar. Si
+   * es del catálogo o de otra persona, va sin llave y abre lo que esa persona
+   * ya pudiera ver.
+   */
+  const handleShareRecipe = useCallback(async (recipe) => {
+    if (!recipe?.id) return;
+    const id = String(recipe.baseRecipeId ?? recipe.id).split("__").pop();
+    let token = null;
+    // En un hogar ajeno `data.userRecipes` son las del propietario, no las
+    // mías: ahí no hay llave que pedir, y el enlace va como el de cualquier
+    // receta de otra persona.
+    const mine = !householdReadOnly && id.startsWith("user_") && (data.userRecipes ?? []).some((r) => r.id === id);
+    if (mine) {
+      if (!user?.id) { showToast("Inicia sesión para compartir tus recetas"); return; }
+      token = await createRecipeShareToken(id);
+      if (!token) { showToast("No se ha podido crear el enlace"); return; }
+    }
+    const res = await shareOut({
+      kind: "recipe", value: id, token,
+      title: recipe.name,
+      text: `Mira esta receta en HoMenu: ${recipe.name}`,
+    });
+    if (res === "copied") showToast("Enlace copiado");
+    else if (res === "error") showToast("No se ha podido compartir");
+  }, [householdReadOnly, data.userRecipes, user, showToast]);
 
   /**
    * Publicar el menú activo en Gente.
@@ -6480,6 +6542,7 @@ export default function App() {
                   )
           }
           onUpdateUserRecipe={householdReadOnly ? undefined : handleUpdateUserRecipe}
+          onShare={handleShareRecipe}
           readOnly={householdReadOnly && !selectedSlot.browse}
         />
         );
