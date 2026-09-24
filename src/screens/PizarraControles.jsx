@@ -546,9 +546,10 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
                         >
                           {p.nombre}
                         </span>
-                        {/* Por qué está aquí, cuando no salta a la vista. Una
-                            pasta con bacon en «Carne» parece un fallo hasta que
-                            lees «cerdo»; entonces parece lo que es. */}
+                        {/* Cuánta masa pone el plato en ESTA familia. Solo sale
+                            cuando está en más de una: un cocido bajo «Carne» y
+                            bajo «Legumbres» parece un error de cuenta hasta que
+                            ves que gasta un 22 % y un 31 %. */}
                         {p.motivo && (
                           <span
                             style={{
@@ -556,7 +557,7 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
                               whiteSpace: "nowrap", padding: "1px 5px", borderRadius: 5,
                               background: "#fff", border: "1px solid #cfdcec",
                               fontSize: 8.5, fontWeight: 800, color: "#5a7066",
-                              textTransform: "uppercase", letterSpacing: ".3px",
+                              fontVariantNumeric: "tabular-nums", letterSpacing: ".2px",
                             }}
                           >
                             {p.motivo}

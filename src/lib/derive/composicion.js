@@ -8,6 +8,12 @@
  *
  *   · el vector se calcula por PARTE (principal / guarnición / salsa), porque
  *     la patata de una guarnición nunca compitió con el pescado del principal;
+ *   · hay DOS planos de contienda —proteína e hidrato— y UNA cuota, la
+ *     verdura. No son la misma clase de cosa: un plano pregunta «¿cuál de
+ *     estos gana?» y una cuota pregunta «¿cuánto hay?». Mezclarlos tiene
+ *     precio y se pagó: la verdura heredó el filtro de aroma, que solo
+ *     existe para que algo pequeño no gane, y 175 recetas perdieron su
+ *     tomate triturado por llevar `rol: "salsa"`;
  *   · la dominancia compite solo DENTRO de su plano: una proteína con otra
  *     proteína, y la verdura no compite con nadie;
  *   · el caldo cuenta como masa servida pero NO compite — excluirlo quitó de
@@ -238,6 +244,24 @@ export function composicionDe(receta) {
       const nodo = t ? [t.clase, t.subclase, t.especie].filter(Boolean).join(".") : `?${id ?? linea.name}`;
       partes[parte][nodo] = (partes[parte][nodo] ?? 0) + servida;
 
+      // ── La verdura se mide ANTES del filtro de aroma ───────────────────
+      // Y es a propósito, porque no es lo mismo que los otros dos. `esAroma`
+      // existe para que algo pequeño no GANE una contienda —34 g de salsa de
+      // soja le robaban el eje de la proteína a 200 g de salmón—, y la
+      // verdura no compite con nadie: lo suyo es una cuota.
+      //
+      // Heredar ese filtro costaba caro y en silencio: el tomate triturado,
+      // el frito y el concentrado llevan `rol: "salsa"`, así que 175 recetas
+      // perdían su tomate entero. Una «Ensalada de burrata y tomate» con un
+      // 36 % de tomate daba cuota de verdura CERO.
+      //
+      // Lo que sí se queda fuera es el condimento: la cayena, la guindilla,
+      // el jengibre y el ajo en polvo cuelgan de `hortaliza` en el árbol y no
+      // son verdura en un plato. Del resto ya se encarga la masa — dos gramos
+      // de nada no llegan a ningún umbral.
+      const ver = ejeVerdura(t);
+      if (ver && al?.rol !== "condimento") verdura.set(ver, (verdura.get(ver) ?? 0) + servida);
+
       if (esAroma(linea, al, cruda) || cuentaPeroNoCompite(al)) continue;
 
       const p = ejeProteina(t);
@@ -247,8 +271,6 @@ export function composicionDe(receta) {
       }
       const hid = MASA_A_EJE[linea.preparacion] ?? ejeHidrato(t);
       if (hid) hidrato.set(hid, (hidrato.get(hid) ?? 0) + servida);
-      const ver = ejeVerdura(t);
-      if (ver) verdura.set(ver, (verdura.get(ver) ?? 0) + servida);
     }
   }
   return { partes, proteina, hidrato, verdura, proteinaG, masaTotal, dudas };

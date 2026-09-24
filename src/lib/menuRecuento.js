@@ -34,57 +34,25 @@ const FAMILIA_POR_PROTEINA = {
 };
 
 /**
- * La categoría que se da por sabida en cada familia. Sirve para explicar los
- * casos en que NO coinciden: una «Crema de tres quesos» cuenta como verdura
- * porque `sopas_cremas` va a verdura, y eso hay que decirlo o parece un fallo.
- */
-const CATEGORIA_OBVIA = {
-  carne: "carnes",
-  pescado: "pescados",
-  legumbres: "legumbres",
-  huevos: "huevos",
-  pasta_arroz: "pasta_arroces",
-  verdura: "ensaladas_verduras",
-};
-
-/**
- * Cómo se llaman en cristiano, para poder enseñarlo. UNA palabra corta: esto
- * va en una etiqueta dentro de la fila y cada letra se la quita al nombre del
- * plato. «Pescado azul» dejaba el nombre en «Past…»; dentro de la familia
- * «Pescado», «azul» dice lo mismo y cuesta un tercio.
- */
-const NOMBRE_PROTEINA = {
-  pollo: "pollo", pavo: "pavo", cerdo: "cerdo", ternera: "ternera",
-  cordero: "cordero", pato: "pato", caza: "caza",
-  pescado_blanco: "blanco", pescado_azul: "azul", marisco: "marisco",
-  legumbre: "legumbre", huevo: "huevo",
-};
-const NOMBRE_CATEGORIA = {
-  sopas_cremas: "crema", ensaladas_verduras: "verdura", pasta_arroces: "pasta",
-  carnes: "carne", pescados: "pescado", legumbres: "legumbre", huevos: "huevo",
-};
-
-/**
- * POR QUÉ este plato cuenta en esta familia, cuando no salta a la vista.
+ * POR QUÉ este plato cuenta en esta familia.
  *
- * Un plato entra en una familia por su categoría, por su proteína, o por las
- * dos. Cuando entra por la proteína y su categoría dice otra cosa —una pasta
- * con bacon cuenta como carne— la lista parece equivocada, y no lo está: está
- * enseñando lo que el motor de verdad cuenta. Así que lo dice.
+ * Desde que la familia sale de la MASA (lib/derive/familias.js), la respuesta
+ * es un número: el cocido está en «carne» porque la carne es el 22 % de lo que
+ * te comes. Antes esto explicaba la regla vieja —«por el cerdo», «por ser una
+ * crema»— y se quedó obsoleto el día que la regla cambió: seguía dando razones
+ * que ya no decidían nada.
  *
- * Devuelve `null` cuando es evidente: unos filetes empanados en «Carne» no
- * necesitan que nadie explique nada.
+ * Solo habla cuando el plato está en MÁS DE UNA familia, que es el único caso
+ * en el que la lista sorprende: un cocido bajo «Carne» y bajo «Legumbres»
+ * parece un error de cuenta hasta que ves que gasta las dos. Un plato en una
+ * sola familia no necesita que nadie lo justifique.
+ *
+ * @returns {string|null} el porcentaje, o null si no hay nada que explicar
  */
 export function motivoDeFamilia(receta, familia) {
-  const porCategoria = FAMILIA_POR_CATEGORIA[receta?.category];
-  const porProteina = FAMILIA_POR_PROTEINA[receta?.mainProtein];
-  if (porCategoria !== familia && porProteina === familia) {
-    return NOMBRE_PROTEINA[receta.mainProtein] ?? null;
-  }
-  if (porCategoria === familia && CATEGORIA_OBVIA[familia] !== receta.category) {
-    return NOMBRE_CATEGORIA[receta.category] ?? null;
-  }
-  return null;
+  if (!Array.isArray(receta?.familias) || receta.familias.length < 2) return null;
+  const cuota = receta.familiaCuotas?.[familia];
+  return cuota > 0 ? `${Math.round(cuota * 100)}%` : null;
 }
 
 /**

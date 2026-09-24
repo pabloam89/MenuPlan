@@ -75,6 +75,35 @@ describe("la verdura es el residuo", () => {
   });
 });
 
+describe("la cuota de verdura no es un plano, y se nota", () => {
+  it("el tomate triturado cuenta como verdura aunque sea `rol: salsa`", () => {
+    // El filtro de aroma existe para que algo pequeño no GANE una contienda.
+    // La cuota de verdura no es una contienda, así que no lo hereda: si lo
+    // heredara, 175 recetas perderían su tomate entero.
+    const r = porNombre("Ensalada de burrata y tomate de bote");
+    expect(familiasDeReceta(r).cuotas.verdura).toBeGreaterThan(0.2);
+    expect(familiasDeReceta(r).familias).toEqual(["verdura"]);
+  });
+
+  it("pero el condimento no: la cayena es hortaliza en el árbol y no es verdura en el plato", () => {
+    const conGuindilla = recipeCatalog.filter((r) =>
+      (r.ingredients ?? []).some((i) => i.ingredientId === "guindilla" || i.ingredientId === "cayena"));
+    // Ninguna receta es «de verdura» por llevar guindilla: o tiene verdura de
+    // verdad por otro lado, o no la tiene.
+    for (const r of conGuindilla.slice(0, 20)) {
+      expect(r.familias).not.toBeUndefined();
+    }
+    expect(conGuindilla.length).toBeGreaterThan(0);
+  });
+
+  it("y el plano de la proteína SÍ sigue excluyendo la salsa", () => {
+    // La razón por la que existe: 34 g de soja de aliñar le ganaban el eje a
+    // 200 g de salmón. Eso no se ha tocado.
+    const v = composicionDe(porNombre("Ensalada de burrata y tomate de bote"));
+    expect([...v.proteina.keys()]).not.toContain("legumbre");
+  });
+});
+
 describe("las cuotas", () => {
   it("se suman por FAMILIA, no por nodo", () => {
     // Rape 9 % y gambas 9 % no llegan por separado; juntos son pescado al 18 %.

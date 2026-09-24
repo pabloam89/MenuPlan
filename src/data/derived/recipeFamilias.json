@@ -4,7 +4,8 @@
       "pasta_arroz"
     ],
     "cuotas": {
-      "pasta_arroz": 0.5412
+      "pasta_arroz": 0.5412,
+      "verdura": 0.0077
     }
   },
   "bases_002": {
@@ -69,7 +70,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.1868
+      "verdura": 0.9478
     }
   },
   "bases_011": {
@@ -82,7 +83,9 @@
   },
   "bases_012": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0243
+    }
   },
   "bases_013": {
     "familias": [],
@@ -90,7 +93,9 @@
   },
   "bases_014": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0115
+    }
   },
   "bases_015": {
     "familias": [
@@ -98,7 +103,7 @@
     ],
     "cuotas": {
       "carne": 0.3665,
-      "verdura": 0.242
+      "verdura": 0.5352
     }
   },
   "bebes_001": {
@@ -360,7 +365,8 @@
     ],
     "cuotas": {
       "carne": 0.3037,
-      "huevos": 0.2603
+      "huevos": 0.2603,
+      "verdura": 0.3471
     }
   },
   "bebes_031": {
@@ -439,7 +445,7 @@
     "cuotas": {
       "carne": 0.1704,
       "pasta_arroz": 0.2998,
-      "verdura": 0.2726
+      "verdura": 0.5111
     }
   },
   "bebes_040": {
@@ -466,7 +472,7 @@
     ],
     "cuotas": {
       "huevos": 0.2356,
-      "verdura": 0.5035
+      "verdura": 0.7391
     }
   },
   "bebes_043": {
@@ -659,7 +665,7 @@
     ],
     "cuotas": {
       "carne": 0.3886,
-      "verdura": 0.1214
+      "verdura": 0.1336
     }
   },
   "carnes_002": {
@@ -677,7 +683,7 @@
     "cuotas": {
       "carne": 0.361,
       "huevos": 0.0722,
-      "verdura": 0.0963
+      "verdura": 0.485
     }
   },
   "carnes_004": {
@@ -695,7 +701,7 @@
     ],
     "cuotas": {
       "carne": 0.4001,
-      "verdura": 0.2057
+      "verdura": 0.3018
     }
   },
   "carnes_006": {
@@ -712,7 +718,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.8514
+      "carne": 0.8514,
+      "verdura": 0.0284
     }
   },
   "carnes_008": {
@@ -721,7 +728,7 @@
     ],
     "cuotas": {
       "carne": 0.339,
-      "verdura": 0.2486
+      "verdura": 0.3436
     }
   },
   "carnes_009": {
@@ -740,7 +747,7 @@
     ],
     "cuotas": {
       "carne": 0.4562,
-      "verdura": 0.3639
+      "verdura": 0.5138
     }
   },
   "carnes_011": {
@@ -748,7 +755,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.6579
+      "carne": 0.6579,
+      "verdura": 0.027
     }
   },
   "carnes_012": {
@@ -766,7 +774,7 @@
     ],
     "cuotas": {
       "carne": 0.6545,
-      "verdura": 0.1745
+      "verdura": 0.1955
     }
   },
   "carnes_014": {
@@ -776,7 +784,7 @@
     "cuotas": {
       "carne": 0.6324,
       "huevos": 0.1265,
-      "verdura": 0.1265
+      "verdura": 0.1391
     }
   },
   "carnes_015": {
@@ -785,7 +793,7 @@
     ],
     "cuotas": {
       "carne": 0.4264,
-      "verdura": 0.3411
+      "verdura": 0.4532
     }
   },
   "carnes_016": {
@@ -795,7 +803,7 @@
     "cuotas": {
       "carne": 0.5701,
       "huevos": 0.0977,
-      "verdura": 0.1303
+      "verdura": 0.1466
     }
   },
   "carnes_017": {
@@ -804,7 +812,7 @@
     ],
     "cuotas": {
       "carne": 0.4527,
-      "verdura": 0.1907
+      "verdura": 0.5196
     }
   },
   "carnes_018": {
@@ -812,7 +820,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.9532
+      "carne": 0.9532,
+      "verdura": 0.0163
     }
   },
   "carnes_019": {
@@ -820,7 +829,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.6504
+      "carne": 0.6504,
+      "verdura": 0.02
     }
   },
   "carnes_020": {
@@ -838,7 +848,7 @@
     ],
     "cuotas": {
       "carne": 0.3648,
-      "verdura": 0.4378
+      "verdura": 0.5399
     }
   },
   "carnes_022": {
@@ -847,7 +857,7 @@
     ],
     "cuotas": {
       "carne": 0.5446,
-      "verdura": 0.1452
+      "verdura": 0.3122
     }
   },
   "carnes_023": {
@@ -872,7 +882,7 @@
     ],
     "cuotas": {
       "carne": 0.5602,
-      "verdura": 0.128
+      "verdura": 0.3089
     }
   },
   "carnes_026": {
@@ -882,7 +892,7 @@
     "cuotas": {
       "carne": 0.3137,
       "huevos": 0.0896,
-      "verdura": 0.2092
+      "verdura": 0.5319
     }
   },
   "carnes_027": {
@@ -890,7 +900,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.9309
+      "carne": 0.9309,
+      "verdura": 0.0233
     }
   },
   "carnes_028": {
@@ -899,7 +910,7 @@
     ],
     "cuotas": {
       "carne": 0.5062,
-      "verdura": 0.3761
+      "verdura": 0.3876
     }
   },
   "carnes_029": {
@@ -908,7 +919,7 @@
     ],
     "cuotas": {
       "carne": 0.4921,
-      "verdura": 0.246
+      "verdura": 0.3617
     }
   },
   "carnes_030": {
@@ -926,7 +937,7 @@
     ],
     "cuotas": {
       "carne": 0.4173,
-      "verdura": 0.306
+      "verdura": 0.4521
     }
   },
   "carnes_032": {
@@ -944,7 +955,7 @@
     ],
     "cuotas": {
       "carne": 0.422,
-      "verdura": 0.2689
+      "verdura": 0.4588
     }
   },
   "carnes_034": {
@@ -953,7 +964,7 @@
     ],
     "cuotas": {
       "carne": 0.5156,
-      "verdura": 0.1473
+      "verdura": 0.162
     }
   },
   "carnes_035": {
@@ -971,7 +982,7 @@
     ],
     "cuotas": {
       "carne": 0.3149,
-      "verdura": 0.3446
+      "verdura": 0.3499
     }
   },
   "carnes_038": {
@@ -1016,7 +1027,7 @@
     ],
     "cuotas": {
       "carne": 0.2799,
-      "verdura": 0.1836
+      "verdura": 0.2563
     }
   },
   "carnes_043": {
@@ -1034,7 +1045,7 @@
     ],
     "cuotas": {
       "carne": 0.3328,
-      "verdura": 0.1248
+      "verdura": 0.1331
     }
   },
   "carnes_045": {
@@ -1042,7 +1053,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.7662
+      "carne": 0.7662,
+      "verdura": 0.0287
     }
   },
   "carnes_046": {
@@ -1061,7 +1073,7 @@
     ],
     "cuotas": {
       "carne": 0.6644,
-      "verdura": 0.1379
+      "verdura": 0.1628
     }
   },
   "carnes_048": {
@@ -1070,7 +1082,7 @@
     ],
     "cuotas": {
       "carne": 0.3128,
-      "verdura": 0.1437
+      "verdura": 0.2592
     }
   },
   "carnes_049": {
@@ -1106,7 +1118,7 @@
     "cuotas": {
       "carne": 0.3057,
       "huevos": 0.0524,
-      "verdura": 0.2271
+      "verdura": 0.2359
     }
   },
   "carnes_053": {
@@ -1131,7 +1143,7 @@
     ],
     "cuotas": {
       "carne": 0.5204,
-      "verdura": 0.1821
+      "verdura": 0.19
     }
   },
   "carnes_056": {
@@ -1147,7 +1159,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.6604
+      "carne": 0.6604,
+      "verdura": 0.0189
     }
   },
   "carnes_058": {
@@ -1155,7 +1168,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.5357
+      "carne": 0.5357,
+      "verdura": 0.0077
     }
   },
   "carnes_059": {
@@ -1180,7 +1194,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.8201
+      "carne": 0.8201,
+      "verdura": 0.0205
     }
   },
   "carnes_062": {
@@ -1196,7 +1211,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.4221
+      "carne": 0.4221,
+      "verdura": 0.0053
     }
   },
   "carnes_064": {
@@ -1222,7 +1238,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.7025
+      "carne": 0.7025,
+      "verdura": 0.1604
     }
   },
   "carnes_067": {
@@ -1268,7 +1285,7 @@
     "cuotas": {
       "carne": 0.3509,
       "huevos": 0.0702,
-      "verdura": 0.117
+      "verdura": 0.1287
     }
   },
   "carnes_072": {
@@ -1276,7 +1293,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.6721
+      "carne": 0.6721,
+      "verdura": 0.016
     }
   },
   "carnes_073": {
@@ -1284,7 +1302,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.7849
+      "carne": 0.7849,
+      "verdura": 0.0209
     }
   },
   "carnes_074": {
@@ -1293,7 +1312,7 @@
     ],
     "cuotas": {
       "carne": 0.4053,
-      "verdura": 0.0841
+      "verdura": 0.0993
     }
   },
   "carnes_075": {
@@ -1311,7 +1330,7 @@
     "cuotas": {
       "carne": 0.5156,
       "huevos": 0.0619,
-      "verdura": 0.1856
+      "verdura": 0.1959
     }
   },
   "carnes_077": {
@@ -1320,7 +1339,7 @@
     ],
     "cuotas": {
       "carne": 0.3212,
-      "verdura": 0.1445
+      "verdura": 0.1927
     }
   },
   "carnes_078": {
@@ -1329,7 +1348,7 @@
     ],
     "cuotas": {
       "carne": 0.3611,
-      "verdura": 0.1625
+      "verdura": 0.2167
     }
   },
   "carnes_079": {
@@ -1338,7 +1357,8 @@
     ],
     "cuotas": {
       "carne": 0.4899,
-      "huevos": 0.084
+      "huevos": 0.084,
+      "verdura": 0.014
     }
   },
   "carnes_080": {
@@ -1346,7 +1366,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.7947
+      "carne": 0.7947,
+      "verdura": 0.0306
     }
   },
   "carnes_081": {
@@ -1355,7 +1376,7 @@
     ],
     "cuotas": {
       "carne": 0.318,
-      "verdura": 0.3089
+      "verdura": 0.3634
     }
   },
   "carnes_082": {
@@ -1364,7 +1385,8 @@
     ],
     "cuotas": {
       "carne": 0.4149,
-      "huevos": 0.0622
+      "huevos": 0.0622,
+      "verdura": 0.0104
     }
   },
   "carnes_083": {
@@ -1372,7 +1394,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.8895
+      "carne": 0.8895,
+      "verdura": 0.0274
     }
   },
   "carnes_084": {
@@ -1381,7 +1404,7 @@
     ],
     "cuotas": {
       "carne": 0.4971,
-      "verdura": 0.1069
+      "verdura": 0.1176
     }
   },
   "carnes_085": {
@@ -1416,7 +1439,7 @@
     ],
     "cuotas": {
       "carne": 0.3076,
-      "verdura": 0.3076
+      "verdura": 0.3153
     }
   },
   "carnes_089": {
@@ -1441,7 +1464,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.8407
+      "carne": 0.8407,
+      "verdura": 0.0192
     }
   },
   "carnes_092": {
@@ -1450,7 +1474,7 @@
     ],
     "cuotas": {
       "carne": 0.503,
-      "verdura": 0.4419
+      "verdura": 0.4563
     }
   },
   "carnes_093": {
@@ -1460,7 +1484,7 @@
     "cuotas": {
       "carne": 0.4498,
       "huevos": 0.0771,
-      "verdura": 0.0129
+      "verdura": 0.0257
     }
   },
   "carnes_094": {
@@ -1478,7 +1502,7 @@
     ],
     "cuotas": {
       "carne": 0.2804,
-      "verdura": 0.1559
+      "verdura": 0.1643
     }
   },
   "carnes_096": {
@@ -1487,7 +1511,7 @@
     ],
     "cuotas": {
       "carne": 0.284,
-      "verdura": 0.1183
+      "verdura": 0.2177
     }
   },
   "carnes_097": {
@@ -1495,7 +1519,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.7317
+      "carne": 0.7317,
+      "verdura": 0.0209
     }
   },
   "carnes_098": {
@@ -1504,7 +1529,7 @@
     ],
     "cuotas": {
       "carne": 0.2918,
-      "verdura": 0.1995
+      "verdura": 0.268
     }
   },
   "carnes_099": {
@@ -1513,7 +1538,7 @@
     ],
     "cuotas": {
       "carne": 0.6768,
-      "verdura": 0.0387
+      "verdura": 0.0503
     }
   },
   "carnes_100": {
@@ -1532,7 +1557,7 @@
     ],
     "cuotas": {
       "carne": 0.3005,
-      "verdura": 0.1545
+      "verdura": 0.1631
     }
   },
   "carnes_102": {
@@ -1541,7 +1566,7 @@
     ],
     "cuotas": {
       "carne": 0.4529,
-      "verdura": 0.017
+      "verdura": 0.0238
     }
   },
   "carnes_103": {
@@ -1558,7 +1583,7 @@
     ],
     "cuotas": {
       "carne": 0.3584,
-      "verdura": 0.1459
+      "verdura": 0.1562
     }
   },
   "carnes_105": {
@@ -1593,7 +1618,7 @@
     ],
     "cuotas": {
       "carne": 0.3513,
-      "verdura": 0.1317
+      "verdura": 0.1449
     }
   },
   "carnes_109": {
@@ -1619,7 +1644,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.3645
+      "carne": 0.3645,
+      "verdura": 0.0084
     }
   },
   "carnes_112": {
@@ -1628,7 +1654,7 @@
     ],
     "cuotas": {
       "carne": 0.4567,
-      "verdura": 0.0522
+      "verdura": 0.0652
     }
   },
   "carnes_113": {
@@ -1637,7 +1663,7 @@
     ],
     "cuotas": {
       "carne": 0.7236,
-      "verdura": 0.0186
+      "verdura": 0.0371
     }
   },
   "carnes_114": {
@@ -1646,7 +1672,7 @@
     ],
     "cuotas": {
       "carne": 0.6713,
-      "verdura": 0.0168
+      "verdura": 0.0336
     }
   },
   "carnes_115": {
@@ -1664,7 +1690,7 @@
     ],
     "cuotas": {
       "carne": 0.7281,
-      "verdura": 0.0974
+      "verdura": 0.202
     }
   },
   "carnes_117": {
@@ -1673,7 +1699,7 @@
     ],
     "cuotas": {
       "carne": 0.4681,
-      "verdura": 0.4012
+      "verdura": 0.4092
     }
   },
   "carnes_118": {
@@ -1682,7 +1708,7 @@
     ],
     "cuotas": {
       "carne": 0.333,
-      "verdura": 0.2137
+      "verdura": 0.3053
     }
   },
   "carnes_119": {
@@ -1693,7 +1719,7 @@
       "carne": 0.3215,
       "huevos": 0.0643,
       "pescado": 0.0086,
-      "verdura": 0.254
+      "verdura": 0.2593
     }
   },
   "carnes_120": {
@@ -1901,7 +1927,7 @@
     ],
     "cuotas": {
       "carne": 0.2433,
-      "verdura": 0.1703
+      "verdura": 0.1825
     }
   },
   "carnes_142": {
@@ -1909,7 +1935,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.1549
+      "carne": 0.1549,
+      "verdura": 0.0929
     }
   },
   "carnes_143": {
@@ -1934,7 +1961,7 @@
     ],
     "cuotas": {
       "carne": 0.376,
-      "verdura": 0.2707
+      "verdura": 0.2857
     }
   },
   "carnes_146": {
@@ -1953,7 +1980,7 @@
     ],
     "cuotas": {
       "carne": 0.4513,
-      "verdura": 0.5064
+      "verdura": 0.5176
     }
   },
   "carnes_148": {
@@ -1961,7 +1988,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.4579
+      "carne": 0.4579,
+      "verdura": 0.0122
     }
   },
   "carnes_149": {
@@ -1979,7 +2007,7 @@
     ],
     "cuotas": {
       "carne": 0.5384,
-      "verdura": 0.4038
+      "verdura": 0.424
     }
   },
   "carnes_151": {
@@ -1996,7 +2024,7 @@
     ],
     "cuotas": {
       "carne": 0.5109,
-      "verdura": 0.105
+      "verdura": 0.119
     }
   },
   "carnes_153": {
@@ -2042,7 +2070,7 @@
     ],
     "cuotas": {
       "carne": 0.4569,
-      "verdura": 0.1142
+      "verdura": 0.1257
     }
   },
   "carnes_158": {
@@ -2059,7 +2087,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.4698
+      "carne": 0.4698,
+      "verdura": 0.0104
     }
   },
   "carnes_160": {
@@ -2068,7 +2097,7 @@
     ],
     "cuotas": {
       "carne": 0.5018,
-      "verdura": 0.3764
+      "verdura": 0.3889
     }
   },
   "carnes_161": {
@@ -2079,7 +2108,7 @@
     "cuotas": {
       "carne": 0.2267,
       "pasta_arroz": 0.2833,
-      "verdura": 0.221
+      "verdura": 0.2255
     }
   },
   "carnes_162": {
@@ -2091,7 +2120,7 @@
       "carne": 0.2259,
       "huevos": 0.0678,
       "pasta_arroz": 0.2117,
-      "verdura": 0.0847
+      "verdura": 0.0892
     }
   },
   "carnes_163": {
@@ -2099,7 +2128,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.5491
+      "carne": 0.5491,
+      "verdura": 0.0146
     }
   },
   "carnes_164": {
@@ -2112,7 +2142,7 @@
       "carne": 0.2743,
       "legumbres": 0.2634,
       "pasta_arroz": 0.2058,
-      "verdura": 0.1811
+      "verdura": 0.1866
     }
   },
   "carnes_165": {
@@ -2120,7 +2150,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.5303
+      "carne": 0.5303,
+      "verdura": 0.0095
     }
   },
   "carnes_166": {
@@ -2131,7 +2162,7 @@
     "cuotas": {
       "carne": 0.2851,
       "pasta_arroz": 0.2138,
-      "verdura": 0.0855
+      "verdura": 0.3193
     }
   },
   "carnes_167": {
@@ -2140,7 +2171,7 @@
     ],
     "cuotas": {
       "carne": 0.566,
-      "verdura": 0.1011
+      "verdura": 0.1132
     }
   },
   "carnes_168": {
@@ -2151,7 +2182,7 @@
     "cuotas": {
       "carne": 0.3565,
       "pasta_arroz": 0.2674,
-      "verdura": 0.1283
+      "verdura": 0.134
     }
   },
   "carnes_169": {
@@ -2160,7 +2191,7 @@
     ],
     "cuotas": {
       "carne": 0.4231,
-      "verdura": 0.2989
+      "verdura": 0.3044
     }
   },
   "carnes_170": {
@@ -2169,7 +2200,7 @@
     ],
     "cuotas": {
       "carne": 0.5559,
-      "verdura": 0.2641
+      "verdura": 0.2696
     }
   },
   "carnes_171": {
@@ -2245,7 +2276,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.5081
+      "verdura": 0.5241
     }
   },
   "cenas_rapidas_009": {
@@ -2270,7 +2301,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8761
+      "verdura": 0.8835
     }
   },
   "cenas_rapidas_013": {
@@ -2298,8 +2329,12 @@
     }
   },
   "cenas_rapidas_061": {
-    "familias": [],
-    "cuotas": {}
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3041
+    }
   },
   "desayunos_001": {
     "familias": [],
@@ -2365,7 +2400,7 @@
     ],
     "cuotas": {
       "carne": 0.1961,
-      "verdura": 0.3494
+      "verdura": 0.3616
     }
   },
   "desayunos_021": {
@@ -2418,7 +2453,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.9558
+      "verdura": 0.9672
     }
   },
   "ensaladas_verduras_003": {
@@ -2436,7 +2471,7 @@
     ],
     "cuotas": {
       "carne": 0.2389,
-      "verdura": 0.5494
+      "verdura": 0.7447
     }
   },
   "ensaladas_verduras_005": {
@@ -2444,7 +2479,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8087
+      "verdura": 0.8303
     }
   },
   "ensaladas_verduras_006": {
@@ -2453,7 +2488,7 @@
     ],
     "cuotas": {
       "carne": 0.2148,
-      "verdura": 0.5822
+      "verdura": 0.7694
     }
   },
   "ensaladas_verduras_007": {
@@ -2462,7 +2497,7 @@
     ],
     "cuotas": {
       "carne": 0.286,
-      "verdura": 0.4862
+      "verdura": 0.6449
     }
   },
   "ensaladas_verduras_008": {
@@ -2487,7 +2522,7 @@
     ],
     "cuotas": {
       "carne": 0.0743,
-      "verdura": 0.8668
+      "verdura": 0.8916
     }
   },
   "ensaladas_verduras_011": {
@@ -2531,7 +2566,7 @@
     ],
     "cuotas": {
       "carne": 0.0514,
-      "verdura": 0.6857
+      "verdura": 0.7028
     }
   },
   "ensaladas_verduras_017": {
@@ -2539,7 +2574,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.6874
+      "verdura": 0.6995
     }
   },
   "ensaladas_verduras_018": {
@@ -2547,7 +2582,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.9323
+      "verdura": 0.951
     }
   },
   "ensaladas_verduras_020": {
@@ -2555,7 +2590,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7807
+      "verdura": 0.8002
     }
   },
   "ensaladas_verduras_021": {
@@ -2580,7 +2615,7 @@
     ],
     "cuotas": {
       "carne": 0.0971,
-      "verdura": 0.85
+      "verdura": 0.8694
     }
   },
   "ensaladas_verduras_024": {
@@ -2589,7 +2624,7 @@
     ],
     "cuotas": {
       "carne": 0.3186,
-      "verdura": 0.3186
+      "verdura": 0.325
     }
   },
   "ensaladas_verduras_025": {
@@ -2605,7 +2640,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.3404
+      "verdura": 0.424
     }
   },
   "ensaladas_verduras_032": {
@@ -2626,15 +2661,19 @@
     }
   },
   "ensaladas_verduras_034": {
-    "familias": [],
-    "cuotas": {}
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.3614
+    }
   },
   "ensaladas_verduras_035": {
     "familias": [
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.477
+      "verdura": 0.4968
     }
   },
   "ensaladas_verduras_036": {
@@ -2734,7 +2773,7 @@
     ],
     "cuotas": {
       "carne": 0.1737,
-      "verdura": 0.7239
+      "verdura": 0.7384
     }
   },
   "ensaladas_verduras_049": {
@@ -2841,7 +2880,7 @@
     ],
     "cuotas": {
       "carne": 0.1547,
-      "verdura": 0.7217
+      "verdura": 0.7475
     }
   },
   "ensaladas_verduras_061": {
@@ -2865,7 +2904,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.5377
+      "verdura": 0.6283
     }
   },
   "ensaladas_verduras_064": {
@@ -2903,7 +2942,7 @@
       "carne": 0.3238,
       "huevos": 0.0747,
       "pescado": 0.0125,
-      "verdura": 0.2491
+      "verdura": 0.2553
     }
   },
   "ensaladas_verduras_068": {
@@ -2956,7 +2995,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.6266
+      "verdura": 0.6423
     }
   },
   "ensaladas_verduras_074": {
@@ -3006,7 +3045,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8091
+      "verdura": 0.8172
     }
   },
   "ensaladas_verduras_080": {
@@ -3099,7 +3138,7 @@
     ],
     "cuotas": {
       "huevos": 0.0725,
-      "verdura": 0.3046
+      "verdura": 0.5947
     }
   },
   "ensaladas_verduras_091": {
@@ -3108,7 +3147,7 @@
     ],
     "cuotas": {
       "huevos": 0.1291,
-      "verdura": 0.8211
+      "verdura": 0.8315
     }
   },
   "ensaladas_verduras_092": {
@@ -3116,7 +3155,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7671
+      "verdura": 0.7732
     }
   },
   "ensaladas_verduras_093": {
@@ -3125,7 +3164,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.2447,
-      "verdura": 0.6637
+      "verdura": 0.6692
     }
   },
   "ensaladas_verduras_094": {
@@ -3133,7 +3172,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8521
+      "verdura": 0.892
     }
   },
   "ensaladas_verduras_095": {
@@ -3141,7 +3180,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.735
+      "verdura": 0.7536
     }
   },
   "ensaladas_verduras_096": {
@@ -3149,7 +3188,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7011
+      "verdura": 0.72
     }
   },
   "ensaladas_verduras_097": {
@@ -3157,7 +3196,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7212
+      "verdura": 0.7302
     }
   },
   "ensaladas_verduras_098": {
@@ -3189,7 +3228,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8292
+      "verdura": 0.8499
     }
   },
   "ensaladas_verduras_102": {
@@ -3206,7 +3245,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.1461,
-      "verdura": 0.7346
+      "verdura": 0.7419
     }
   },
   "ensaladas_verduras_104": {
@@ -3215,7 +3254,7 @@
     ],
     "cuotas": {
       "carne": 0.1037,
-      "verdura": 0.5529
+      "verdura": 0.5702
     }
   },
   "ensaladas_verduras_105": {
@@ -3223,7 +3262,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8557
+      "verdura": 0.876
     }
   },
   "ensaladas_verduras_106": {
@@ -3232,7 +3271,7 @@
     ],
     "cuotas": {
       "pescado": 0.0581,
-      "verdura": 0.8845
+      "verdura": 0.899
     }
   },
   "ensaladas_verduras_107": {
@@ -3241,7 +3280,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4363,
-      "verdura": 0.4363
+      "verdura": 0.4582
     }
   },
   "ensaladas_verduras_108": {
@@ -3250,7 +3289,7 @@
     ],
     "cuotas": {
       "pescado": 0.2789,
-      "verdura": 0.2789
+      "verdura": 0.2929
     }
   },
   "ensaladas_verduras_109": {
@@ -3299,7 +3338,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.1866,
-      "verdura": 0.6467
+      "verdura": 0.6541
     }
   },
   "ensaladas_verduras_115": {
@@ -3333,7 +3372,7 @@
     ],
     "cuotas": {
       "huevos": 0.1184,
-      "verdura": 0.1974
+      "verdura": 0.2072
     }
   },
   "ensaladas_verduras_119": {
@@ -3342,13 +3381,15 @@
     ],
     "cuotas": {
       "carne": 0.1864,
-      "verdura": 0.2721
+      "verdura": 0.4585
     }
   },
   "ensaladas_verduras_120": {
-    "familias": [],
+    "familias": [
+      "verdura"
+    ],
     "cuotas": {
-      "verdura": 0.0476
+      "verdura": 0.2261
     }
   },
   "ensaladas_verduras_121": {
@@ -3396,7 +3437,7 @@
     "familias": [],
     "cuotas": {
       "huevos": 0.1209,
-      "verdura": 0.0604
+      "verdura": 0.0645
     }
   },
   "ensaladas_verduras_127": {
@@ -3422,7 +3463,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.6603
+      "verdura": 0.6689
     }
   },
   "ensaladas_verduras_130": {
@@ -3430,7 +3471,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.6505
+      "verdura": 0.6573
     }
   },
   "ensaladas_verduras_131": {
@@ -3438,7 +3479,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.9437
+      "verdura": 0.9516
     }
   },
   "ensaladas_verduras_132": {
@@ -3523,7 +3564,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8289
+      "verdura": 0.86
     }
   },
   "guarniciones_031": {
@@ -3531,7 +3572,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.9192
+      "verdura": 0.9376
     }
   },
   "guarniciones_032": {
@@ -3540,7 +3581,7 @@
     ],
     "cuotas": {
       "carne": 0.0806,
-      "verdura": 0.8064
+      "verdura": 0.8266
     }
   },
   "guarniciones_033": {
@@ -3549,7 +3590,7 @@
     ],
     "cuotas": {
       "carne": 0.1369,
-      "verdura": 0.7664
+      "verdura": 0.7937
     }
   },
   "guarniciones_034": {
@@ -3557,7 +3598,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7619
+      "verdura": 0.7852
     }
   },
   "guarniciones_035": {
@@ -3569,9 +3610,12 @@
     }
   },
   "guarniciones_036": {
-    "familias": [],
+    "familias": [
+      "verdura"
+    ],
     "cuotas": {
-      "huevos": 0.1092
+      "huevos": 0.1092,
+      "verdura": 0.2093
     }
   },
   "guarniciones_037": {
@@ -3579,12 +3623,14 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8327
+      "verdura": 0.8535
     }
   },
   "guarniciones_038": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0132
+    }
   },
   "guarniciones_039": {
     "familias": [],
@@ -3592,11 +3638,15 @@
   },
   "guarniciones_040": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0129
+    }
   },
   "guarniciones_041": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.013
+    }
   },
   "guarniciones_042": {
     "familias": [
@@ -3621,7 +3671,9 @@
   },
   "guarniciones_045": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0373
+    }
   },
   "guarniciones_046": {
     "familias": [],
@@ -3688,7 +3740,7 @@
     ],
     "cuotas": {
       "carne": 0.1363,
-      "verdura": 0.7948
+      "verdura": 0.8175
     }
   },
   "guarniciones_055": {
@@ -3712,7 +3764,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8921
+      "verdura": 0.9273
     }
   },
   "guarniciones_058": {
@@ -3726,7 +3778,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7762
+      "verdura": 0.7956
     }
   },
   "guarniciones_060": {
@@ -3742,7 +3794,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8574
+      "verdura": 0.8798
     }
   },
   "guarniciones_062": {
@@ -3751,7 +3803,9 @@
   },
   "guarniciones_063": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0291
+    }
   },
   "guarniciones_064": {
     "familias": [
@@ -3763,7 +3817,9 @@
   },
   "guarniciones_065": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0104
+    }
   },
   "guarniciones_066": {
     "familias": [
@@ -3806,7 +3862,7 @@
     ],
     "cuotas": {
       "huevos": 0.5092,
-      "verdura": 0.4243
+      "verdura": 0.4413
     }
   },
   "huevos_005": {
@@ -3843,7 +3899,7 @@
     ],
     "cuotas": {
       "huevos": 0.5168,
-      "verdura": 0.4307
+      "verdura": 0.4436
     }
   },
   "huevos_009": {
@@ -3853,7 +3909,7 @@
     "cuotas": {
       "huevos": 0.4716,
       "carne": 0.1358,
-      "verdura": 0.1179
+      "verdura": 0.3655
     }
   },
   "huevos_010": {
@@ -3864,7 +3920,7 @@
     "cuotas": {
       "huevos": 0.5358,
       "pescado": 0.1786,
-      "verdura": 0.0556
+      "verdura": 0.1962
     }
   },
   "huevos_011": {
@@ -3874,7 +3930,8 @@
     ],
     "cuotas": {
       "huevos": 0.5696,
-      "pescado": 0.356
+      "pescado": 0.356,
+      "verdura": 0.019
     }
   },
   "huevos_012": {
@@ -3883,7 +3940,7 @@
     ],
     "cuotas": {
       "huevos": 0.5168,
-      "verdura": 0.4307
+      "verdura": 0.4436
     }
   },
   "huevos_013": {
@@ -3893,7 +3950,7 @@
     "cuotas": {
       "huevos": 0.3338,
       "carne": 0.1096,
-      "verdura": 0.2454
+      "verdura": 0.5374
     }
   },
   "huevos_014": {
@@ -3911,7 +3968,7 @@
     ],
     "cuotas": {
       "huevos": 0.5564,
-      "verdura": 0.3709
+      "verdura": 0.3895
     }
   },
   "huevos_017": {
@@ -3920,7 +3977,7 @@
     ],
     "cuotas": {
       "huevos": 0.2135,
-      "verdura": 0.5223
+      "verdura": 0.5294
     }
   },
   "huevos_018": {
@@ -3939,7 +3996,8 @@
     ],
     "cuotas": {
       "huevos": 0.512,
-      "pescado": 0.4266
+      "pescado": 0.4266,
+      "verdura": 0.0213
     }
   },
   "huevos_020": {
@@ -4083,7 +4141,7 @@
     ],
     "cuotas": {
       "huevos": 0.6013,
-      "verdura": 0.3207
+      "verdura": 0.3367
     }
   },
   "huevos_035": {
@@ -4101,7 +4159,7 @@
     ],
     "cuotas": {
       "huevos": 0.5011,
-      "verdura": 0.4176
+      "verdura": 0.4385
     }
   },
   "huevos_037": {
@@ -4141,7 +4199,7 @@
     "cuotas": {
       "huevos": 0.3494,
       "carne": 0.0847,
-      "verdura": 0.3049
+      "verdura": 0.5458
     }
   },
   "huevos_041": {
@@ -4151,7 +4209,8 @@
     ],
     "cuotas": {
       "huevos": 0.6232,
-      "pescado": 0.3116
+      "pescado": 0.3116,
+      "verdura": 0.0166
     }
   },
   "huevos_042": {
@@ -4209,7 +4268,7 @@
     ],
     "cuotas": {
       "huevos": 0.4633,
-      "verdura": 0.2896
+      "verdura": 0.305
     }
   },
   "huevos_048": {
@@ -4252,7 +4311,8 @@
       "huevos"
     ],
     "cuotas": {
-      "huevos": 0.4054
+      "huevos": 0.4054,
+      "verdura": 0.0135
     }
   },
   "huevos_053": {
@@ -4299,7 +4359,7 @@
     "cuotas": {
       "huevos": 0.5197,
       "carne": 0.1083,
-      "verdura": 0.3248
+      "verdura": 0.3422
     }
   },
   "huevos_058": {
@@ -4333,7 +4393,8 @@
       "huevos"
     ],
     "cuotas": {
-      "huevos": 0.4496
+      "huevos": 0.4496,
+      "verdura": 0.4084
     }
   },
   "huevos_062": {
@@ -4342,7 +4403,7 @@
     ],
     "cuotas": {
       "huevos": 0.5102,
-      "verdura": 0.4082
+      "verdura": 0.4167
     }
   },
   "huevos_063": {
@@ -4352,7 +4413,7 @@
     "cuotas": {
       "huevos": 0.5538,
       "carne": 0.1385,
-      "verdura": 0.0231
+      "verdura": 0.0346
     }
   },
   "huevos_064": {
@@ -4361,7 +4422,7 @@
     ],
     "cuotas": {
       "huevos": 0.256,
-      "verdura": 0.1952
+      "verdura": 0.6326
     }
   },
   "huevos_065": {
@@ -4371,7 +4432,7 @@
     "cuotas": {
       "huevos": 0.3043,
       "legumbres": 0.1268,
-      "verdura": 0.0634
+      "verdura": 0.3233
     }
   },
   "huevos_066": {
@@ -4391,7 +4452,7 @@
     "cuotas": {
       "huevos": 0.0828,
       "pasta_arroz": 0.2761,
-      "verdura": 0.145
+      "verdura": 0.1484
     }
   },
   "huevos_068": {
@@ -4413,7 +4474,7 @@
     "cuotas": {
       "huevos": 0.4665,
       "pescado": 0.1944,
-      "verdura": 0.0518
+      "verdura": 0.1166
     }
   },
   "huevos_070": {
@@ -4449,7 +4510,7 @@
     "cuotas": {
       "huevos": 0.3817,
       "carne": 0.0954,
-      "verdura": 0.2545
+      "verdura": 0.2704
     }
   },
   "huevos_074": {
@@ -4469,7 +4530,7 @@
     ],
     "cuotas": {
       "huevos": 0.2659,
-      "verdura": 0.3323
+      "verdura": 0.3379
     }
   },
   "huevos_076": {
@@ -4480,7 +4541,7 @@
     "cuotas": {
       "huevos": 0.4871,
       "pescado": 0.3247,
-      "verdura": 0.1078
+      "verdura": 0.1322
     }
   },
   "huevos_077": {
@@ -4489,7 +4550,7 @@
     ],
     "cuotas": {
       "huevos": 0.305,
-      "verdura": 0.4784
+      "verdura": 0.4911
     }
   },
   "huevos_078": {
@@ -4497,7 +4558,8 @@
       "huevos"
     ],
     "cuotas": {
-      "huevos": 0.2987
+      "huevos": 0.2987,
+      "verdura": 0.3859
     }
   },
   "huevos_079": {
@@ -4507,7 +4569,7 @@
     "cuotas": {
       "huevos": 0.3089,
       "carne": 0.103,
-      "verdura": 0.103
+      "verdura": 0.1158
     }
   },
   "huevos_080": {
@@ -4534,7 +4596,7 @@
     ],
     "cuotas": {
       "huevos": 0.345,
-      "verdura": 0.2875
+      "verdura": 0.2923
     }
   },
   "huevos_083": {
@@ -4614,7 +4676,7 @@
     ],
     "cuotas": {
       "huevos": 0.1136,
-      "verdura": 0.6677
+      "verdura": 0.674
     }
   },
   "huevos_091": {
@@ -4641,7 +4703,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4917,
-      "verdura": 0.2524
+      "verdura": 0.3599
     }
   },
   "legumbres_002": {
@@ -4651,7 +4713,7 @@
     "cuotas": {
       "legumbres": 0.5289,
       "carne": 0.0855,
-      "verdura": 0.1653
+      "verdura": 0.2578
     }
   },
   "legumbres_003": {
@@ -4660,7 +4722,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4627,
-      "verdura": 0.3085
+      "verdura": 0.4535
     }
   },
   "legumbres_004": {
@@ -4682,7 +4744,7 @@
     "cuotas": {
       "legumbres": 0.381,
       "pescado": 0.1905,
-      "verdura": 0.2794
+      "verdura": 0.3988
     }
   },
   "legumbres_006": {
@@ -4702,7 +4764,7 @@
     ],
     "cuotas": {
       "legumbres": 0.6829,
-      "verdura": 0.189
+      "verdura": 0.2938
     }
   },
   "legumbres_008": {
@@ -4712,7 +4774,7 @@
     "cuotas": {
       "legumbres": 0.4706,
       "carne": 0.1217,
-      "verdura": 0.201
+      "verdura": 0.3782
     }
   },
   "legumbres_009": {
@@ -4723,7 +4785,7 @@
     "cuotas": {
       "legumbres": 0.4647,
       "pasta_arroz": 0.2421,
-      "verdura": 0.1694
+      "verdura": 0.2711
     }
   },
   "legumbres_010": {
@@ -4731,7 +4793,8 @@
       "legumbres"
     ],
     "cuotas": {
-      "legumbres": 0.7495
+      "legumbres": 0.7495,
+      "verdura": 0.018
     }
   },
   "legumbres_011": {
@@ -4742,7 +4805,7 @@
     "cuotas": {
       "legumbres": 0.6788,
       "carne": 0.2242,
-      "verdura": 0.0679
+      "verdura": 0.0769
     }
   },
   "legumbres_012": {
@@ -4760,7 +4823,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4782,
-      "verdura": 0.3347
+      "verdura": 0.4814
     }
   },
   "legumbres_014": {
@@ -4789,7 +4852,7 @@
     ],
     "cuotas": {
       "legumbres": 0.6119,
-      "verdura": 0.153
+      "verdura": 0.2468
     }
   },
   "legumbres_017": {
@@ -4800,7 +4863,7 @@
     "cuotas": {
       "legumbres": 0.4591,
       "carne": 0.17,
-      "verdura": 0.1594
+      "verdura": 0.2487
     }
   },
   "legumbres_018": {
@@ -4809,7 +4872,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4551,
-      "verdura": 0.1817
+      "verdura": 0.5125
     }
   },
   "legumbres_019": {
@@ -4819,7 +4882,7 @@
     "cuotas": {
       "legumbres": 0.596,
       "pescado": 0.0993,
-      "verdura": 0.1192
+      "verdura": 0.1391
     }
   },
   "legumbres_020": {
@@ -4848,7 +4911,7 @@
     ],
     "cuotas": {
       "legumbres": 0.3819,
-      "verdura": 0.2387
+      "verdura": 0.2467
     }
   },
   "legumbres_023": {
@@ -4857,7 +4920,7 @@
     ],
     "cuotas": {
       "legumbres": 0.3614,
-      "verdura": 0.3791
+      "verdura": 0.3881
     }
   },
   "legumbres_024": {
@@ -4877,7 +4940,7 @@
       "legumbres": 0.466,
       "carne": 0.0942,
       "huevos": 0.1165,
-      "verdura": 0.2037
+      "verdura": 0.2949
     }
   },
   "legumbres_026": {
@@ -4886,7 +4949,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5475,
-      "verdura": 0.2737
+      "verdura": 0.2829
     }
   },
   "legumbres_027": {
@@ -4895,7 +4958,7 @@
     ],
     "cuotas": {
       "legumbres": 0.612,
-      "verdura": 0.2203
+      "verdura": 0.2325
     }
   },
   "legumbres_028": {
@@ -4904,7 +4967,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5677,
-      "verdura": 0.071
+      "verdura": 0.0828
     }
   },
   "legumbres_029": {
@@ -4914,7 +4977,7 @@
     "cuotas": {
       "legumbres": 0.6502,
       "pescado": 0.1016,
-      "verdura": 0.1355
+      "verdura": 0.1558
     }
   },
   "legumbres_030": {
@@ -4933,7 +4996,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5618,
-      "verdura": 0.3211
+      "verdura": 0.3371
     }
   },
   "legumbres_032": {
@@ -4942,7 +5005,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5054,
-      "verdura": 0.0936
+      "verdura": 0.2036
     }
   },
   "legumbres_033": {
@@ -4951,7 +5014,7 @@
     ],
     "cuotas": {
       "legumbres": 0.2376,
-      "verdura": 0.5939
+      "verdura": 0.6058
     }
   },
   "legumbres_034": {
@@ -4961,7 +5024,7 @@
     "cuotas": {
       "legumbres": 0.5317,
       "huevos": 0.0911,
-      "verdura": 0.0608
+      "verdura": 0.0653
     }
   },
   "legumbres_035": {
@@ -4981,7 +5044,7 @@
     "cuotas": {
       "legumbres": 0.6746,
       "pescado": 0.0984,
-      "verdura": 0.1124
+      "verdura": 0.1293
     }
   },
   "legumbres_037": {
@@ -4990,7 +5053,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5641,
-      "verdura": 0.3526
+      "verdura": 0.3702
     }
   },
   "legumbres_038": {
@@ -5001,7 +5064,7 @@
     "cuotas": {
       "legumbres": 0.4558,
       "huevos": 0.1563,
-      "verdura": 0.2604
+      "verdura": 0.28
     }
   },
   "legumbres_039": {
@@ -5012,7 +5075,7 @@
     "cuotas": {
       "legumbres": 0.2886,
       "pescado": 0.2061,
-      "verdura": 0.1372
+      "verdura": 0.2362
     }
   },
   "legumbres_040": {
@@ -5023,7 +5086,7 @@
     "cuotas": {
       "legumbres": 0.6425,
       "carne": 0.2647,
-      "verdura": 0.0669
+      "verdura": 0.077
     }
   },
   "legumbres_041": {
@@ -5034,7 +5097,7 @@
     "cuotas": {
       "legumbres": 0.4757,
       "carne": 0.217,
-      "verdura": 0.1881
+      "verdura": 0.2862
     }
   },
   "legumbres_042": {
@@ -5043,7 +5106,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4151,
-      "verdura": 0.1669
+      "verdura": 0.1756
     }
   },
   "legumbres_043": {
@@ -5065,7 +5128,7 @@
     "cuotas": {
       "legumbres": 0.3571,
       "pescado": 0.3061,
-      "verdura": 0.1528
+      "verdura": 0.2753
     }
   },
   "legumbres_045": {
@@ -5074,7 +5137,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5344,
-      "verdura": 0.3206
+      "verdura": 0.3335
     }
   },
   "legumbres_046": {
@@ -5085,7 +5148,7 @@
     "cuotas": {
       "legumbres": 0.413,
       "pescado": 0.177,
-      "verdura": 0.2714
+      "verdura": 0.3824
     }
   },
   "legumbres_047": {
@@ -5094,7 +5157,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5066,
-      "verdura": 0.3536
+      "verdura": 0.4728
     }
   },
   "legumbres_048": {
@@ -5105,7 +5168,7 @@
     "cuotas": {
       "legumbres": 0.491,
       "carne": 0.224,
-      "verdura": 0.143
+      "verdura": 0.2606
     }
   },
   "legumbres_049": {
@@ -5134,7 +5197,7 @@
     "cuotas": {
       "legumbres": 0.3386,
       "carne": 0.0813,
-      "verdura": 0.4876
+      "verdura": 0.5553
     }
   },
   "legumbres_052": {
@@ -5145,7 +5208,7 @@
     "cuotas": {
       "legumbres": 0.5098,
       "carne": 0.2505,
-      "verdura": 0.1352
+      "verdura": 0.2259
     }
   },
   "legumbres_053": {
@@ -5156,7 +5219,7 @@
     "cuotas": {
       "legumbres": 0.4984,
       "pescado": 0.3323,
-      "verdura": 0.0997
+      "verdura": 0.1163
     }
   },
   "legumbres_054": {
@@ -5178,7 +5241,7 @@
     "cuotas": {
       "legumbres": 0.4675,
       "carne": 0.2922,
-      "verdura": 0.1264
+      "verdura": 0.218
     }
   },
   "legumbres_056": {
@@ -5198,7 +5261,7 @@
     "cuotas": {
       "legumbres": 0.3523,
       "pasta_arroz": 0.4697,
-      "verdura": 0.1407
+      "verdura": 0.1524
     }
   },
   "legumbres_058": {
@@ -5207,7 +5270,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4244,
-      "verdura": 0.2667
+      "verdura": 0.3553
     }
   },
   "legumbres_059": {
@@ -5218,7 +5281,7 @@
     "cuotas": {
       "legumbres": 0.5506,
       "carne": 0.1721,
-      "verdura": 0.1491
+      "verdura": 0.2547
     }
   },
   "legumbres_060": {
@@ -5227,7 +5290,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5533,
-      "verdura": 0.3099
+      "verdura": 0.3231
     }
   },
   "legumbres_061": {
@@ -5236,7 +5299,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5062,
-      "verdura": 0.3327
+      "verdura": 0.3471
     }
   },
   "legumbres_062": {
@@ -5248,7 +5311,7 @@
       "legumbres": 0.4798,
       "carne": 0.133,
       "huevos": 0.1645,
-      "verdura": 0.0822
+      "verdura": 0.1796
     }
   },
   "legumbres_063": {
@@ -5279,7 +5342,7 @@
     "cuotas": {
       "legumbres": 0.3579,
       "carne": 0.3579,
-      "verdura": 0.1572
+      "verdura": 0.2588
     }
   },
   "legumbres_066": {
@@ -5332,7 +5395,7 @@
       "legumbres": 0.3872,
       "carne": 0.1002,
       "pasta_arroz": 0.3227,
-      "verdura": 0.0968
+      "verdura": 0.1781
     }
   },
   "legumbres_071": {
@@ -5341,7 +5404,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4482,
-      "verdura": 0.1121
+      "verdura": 0.2211
     }
   },
   "legumbres_072": {
@@ -5373,7 +5436,7 @@
     "cuotas": {
       "legumbres": 0.376,
       "carne": 0.1293,
-      "verdura": 0.2279
+      "verdura": 0.2373
     }
   },
   "legumbres_075": {
@@ -5382,7 +5445,7 @@
     ],
     "cuotas": {
       "legumbres": 0.3909,
-      "verdura": 0.3029
+      "verdura": 0.3127
     }
   },
   "legumbres_076": {
@@ -5391,7 +5454,7 @@
     ],
     "cuotas": {
       "legumbres": 0.493,
-      "verdura": 0.3456
+      "verdura": 0.475
     }
   },
   "legumbres_077": {
@@ -5401,7 +5464,7 @@
     "cuotas": {
       "legumbres": 0.5453,
       "carne": 0.0661,
-      "verdura": 0.2156
+      "verdura": 0.2247
     }
   },
   "legumbres_078": {
@@ -5410,7 +5473,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5374,
-      "verdura": 0.347
+      "verdura": 0.4383
     }
   },
   "legumbres_079": {
@@ -5419,7 +5482,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5079,
-      "verdura": 0.2899
+      "verdura": 0.4539
     }
   },
   "legumbres_080": {
@@ -5430,7 +5493,7 @@
     "cuotas": {
       "legumbres": 0.3836,
       "carne": 0.2739,
-      "verdura": 0.1798
+      "verdura": 0.3152
     }
   },
   "legumbres_081": {
@@ -5439,7 +5502,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4696,
-      "verdura": 0.3813
+      "verdura": 0.5009
     }
   },
   "legumbres_082": {
@@ -5457,7 +5520,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5531,
-      "verdura": 0.1047
+      "verdura": 0.3212
     }
   },
   "legumbres_084": {
@@ -5466,7 +5529,7 @@
     ],
     "cuotas": {
       "legumbres": 0.432,
-      "verdura": 0.1555
+      "verdura": 0.4665
     }
   },
   "meriendas_001": {
@@ -5508,7 +5571,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.5571,
-      "verdura": 0.076
+      "verdura": 0.4159
     }
   },
   "pasta_arroces_002": {
@@ -5519,7 +5582,7 @@
     "cuotas": {
       "carne": 0.1804,
       "pasta_arroz": 0.3968,
-      "verdura": 0.1263
+      "verdura": 0.3702
     }
   },
   "pasta_arroces_003": {
@@ -5527,7 +5590,8 @@
       "pasta_arroz"
     ],
     "cuotas": {
-      "pasta_arroz": 0.7174
+      "pasta_arroz": 0.7174,
+      "verdura": 0.2607
     }
   },
   "pasta_arroces_004": {
@@ -5538,7 +5602,8 @@
     "cuotas": {
       "carne": 0.1865,
       "legumbres": 0.088,
-      "pasta_arroz": 0.4951
+      "pasta_arroz": 0.4951,
+      "verdura": 0.1155
     }
   },
   "pasta_arroces_005": {
@@ -5559,7 +5624,7 @@
     "cuotas": {
       "pescado": 0.1409,
       "pasta_arroz": 0.5166,
-      "verdura": 0.0704
+      "verdura": 0.324
     }
   },
   "pasta_arroces_007": {
@@ -5570,7 +5635,7 @@
     "cuotas": {
       "carne": 0.2121,
       "pasta_arroz": 0.4773,
-      "verdura": 0.1977
+      "verdura": 0.2868
     }
   },
   "pasta_arroces_008": {
@@ -5581,7 +5646,7 @@
     "cuotas": {
       "carne": 0.225,
       "pasta_arroz": 0.4454,
-      "verdura": 0.1235
+      "verdura": 0.3096
     }
   },
   "pasta_arroces_009": {
@@ -5590,7 +5655,8 @@
     ],
     "cuotas": {
       "huevos": 0.1285,
-      "pasta_arroz": 0.482
+      "pasta_arroz": 0.482,
+      "verdura": 0.2314
     }
   },
   "pasta_arroces_010": {
@@ -5598,7 +5664,8 @@
       "pasta_arroz"
     ],
     "cuotas": {
-      "pasta_arroz": 0.7819
+      "pasta_arroz": 0.7819,
+      "verdura": 0.0107
     }
   },
   "pasta_arroces_011": {
@@ -5607,7 +5674,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.5447,
-      "verdura": 0.3266
+      "verdura": 0.4282
     }
   },
   "pasta_arroces_012": {
@@ -5617,7 +5684,8 @@
     ],
     "cuotas": {
       "pescado": 0.277,
-      "pasta_arroz": 0.6095
+      "pasta_arroz": 0.6095,
+      "verdura": 0.0166
     }
   },
   "pasta_arroces_013": {
@@ -5628,7 +5696,7 @@
     "cuotas": {
       "pescado": 0.1628,
       "pasta_arroz": 0.3663,
-      "verdura": 0.0488
+      "verdura": 0.1237
     }
   },
   "pasta_arroces_014": {
@@ -5639,7 +5707,7 @@
     "cuotas": {
       "pescado": 0.2048,
       "pasta_arroz": 0.4505,
-      "verdura": 0.2355
+      "verdura": 0.2437
     }
   },
   "pasta_arroces_015": {
@@ -5662,7 +5730,7 @@
     "cuotas": {
       "carne": 0.2406,
       "pasta_arroz": 0.5294,
-      "verdura": 0.1761
+      "verdura": 0.1858
     }
   },
   "pasta_arroces_017": {
@@ -5673,7 +5741,7 @@
     "cuotas": {
       "carne": 0.2272,
       "pasta_arroz": 0.2399,
-      "verdura": 0.0545
+      "verdura": 0.2931
     }
   },
   "pasta_arroces_018": {
@@ -5684,7 +5752,7 @@
     "cuotas": {
       "carne": 0.2569,
       "pasta_arroz": 0.226,
-      "verdura": 0.0822
+      "verdura": 0.1901
     }
   },
   "pasta_arroces_019": {
@@ -5694,7 +5762,8 @@
     ],
     "cuotas": {
       "pescado": 0.1619,
-      "pasta_arroz": 0.3312
+      "pasta_arroz": 0.3312,
+      "verdura": 0.0778
     }
   },
   "pasta_arroces_020": {
@@ -5703,7 +5772,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.6342,
-      "verdura": 0.3206
+      "verdura": 0.3321
     }
   },
   "pasta_arroces_021": {
@@ -5712,7 +5781,8 @@
     ],
     "cuotas": {
       "pescado": 0.1049,
-      "pasta_arroz": 0.427
+      "pasta_arroz": 0.427,
+      "verdura": 0.0674
     }
   },
   "pasta_arroces_022": {
@@ -5720,7 +5790,8 @@
       "pasta_arroz"
     ],
     "cuotas": {
-      "pasta_arroz": 0.8951
+      "pasta_arroz": 0.8951,
+      "verdura": 0.0305
     }
   },
   "pasta_arroces_023": {
@@ -5731,7 +5802,7 @@
     "cuotas": {
       "carne": 0.17,
       "pasta_arroz": 0.3365,
-      "verdura": 0.0564
+      "verdura": 0.1346
     }
   },
   "pasta_arroces_024": {
@@ -5740,7 +5811,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.5776,
-      "verdura": 0.2022
+      "verdura": 0.2415
     }
   },
   "pasta_arroces_025": {
@@ -5758,7 +5829,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.5269,
-      "verdura": 0.3792
+      "verdura": 0.3925
     }
   },
   "pasta_arroces_027": {
@@ -5778,7 +5849,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.6032,
-      "verdura": 0.2171
+      "verdura": 0.3389
     }
   },
   "pasta_arroces_029": {
@@ -5788,7 +5859,8 @@
     ],
     "cuotas": {
       "pescado": 0.1922,
-      "pasta_arroz": 0.4758
+      "pasta_arroz": 0.4758,
+      "verdura": 0.2595
     }
   },
   "pasta_arroces_030": {
@@ -5807,7 +5879,7 @@
     "cuotas": {
       "pescado": 0.109,
       "pasta_arroz": 0.3115,
-      "verdura": 0.079
+      "verdura": 0.1523
     }
   },
   "pasta_arroces_032": {
@@ -5817,7 +5889,7 @@
     "cuotas": {
       "pescado": 0.1155,
       "pasta_arroz": 0.3372,
-      "verdura": 0.0771
+      "verdura": 0.1499
     }
   },
   "pasta_arroces_033": {
@@ -5827,7 +5899,7 @@
     "cuotas": {
       "pescado": 0.1213,
       "pasta_arroz": 0.3161,
-      "verdura": 0.0399
+      "verdura": 0.0982
     }
   },
   "pasta_arroces_034": {
@@ -5838,7 +5910,7 @@
     "cuotas": {
       "carne": 0.1588,
       "pasta_arroz": 0.2888,
-      "verdura": 0.1003
+      "verdura": 0.1437
     }
   },
   "pasta_arroces_035": {
@@ -5860,7 +5932,7 @@
     "cuotas": {
       "carne": 0.2417,
       "pasta_arroz": 0.3403,
-      "verdura": 0.1078
+      "verdura": 0.3157
     }
   },
   "pasta_arroces_037": {
@@ -5879,7 +5951,7 @@
     "cuotas": {
       "pescado": 0.0419,
       "pasta_arroz": 0.5527,
-      "verdura": 0.3489
+      "verdura": 0.3629
     }
   },
   "pasta_arroces_039": {
@@ -5889,7 +5961,7 @@
     "cuotas": {
       "pescado": 0.108,
       "pasta_arroz": 0.2468,
-      "verdura": 0.0626
+      "verdura": 0.1336
     }
   },
   "pasta_arroces_040": {
@@ -5899,7 +5971,7 @@
     "cuotas": {
       "carne": 0.1954,
       "pasta_arroz": 0.0568,
-      "verdura": 0.1234
+      "verdura": 0.1301
     }
   },
   "pasta_arroces_041": {
@@ -5909,7 +5981,8 @@
     ],
     "cuotas": {
       "pescado": 0.1921,
-      "pasta_arroz": 0.6087
+      "pasta_arroz": 0.6087,
+      "verdura": 0.0184
     }
   },
   "pasta_arroces_042": {
@@ -5919,7 +5992,7 @@
     "cuotas": {
       "pescado": 0.1196,
       "pasta_arroz": 0.2733,
-      "verdura": 0.041
+      "verdura": 0.0478
     }
   },
   "pasta_arroces_043": {
@@ -5931,7 +6004,8 @@
       "carne": 0.276,
       "legumbres": 0.0505,
       "huevos": 0.1011,
-      "pasta_arroz": 0.2696
+      "pasta_arroz": 0.2696,
+      "verdura": 0.0388
     }
   },
   "pasta_arroces_044": {
@@ -5942,7 +6016,7 @@
     "cuotas": {
       "carne": 0.2919,
       "pasta_arroz": 0.2598,
-      "verdura": 0.1144
+      "verdura": 0.3276
     }
   },
   "pasta_arroces_045": {
@@ -5987,7 +6061,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.4108,
-      "verdura": 0.1961
+      "verdura": 0.4995
     }
   },
   "pasta_arroces_050": {
@@ -5995,7 +6069,8 @@
       "pasta_arroz"
     ],
     "cuotas": {
-      "pasta_arroz": 0.8396
+      "pasta_arroz": 0.8396,
+      "verdura": 0.0286
     }
   },
   "pasta_arroces_051": {
@@ -6024,7 +6099,8 @@
     ],
     "cuotas": {
       "pescado": 0.1532,
-      "pasta_arroz": 0.6743
+      "pasta_arroz": 0.6743,
+      "verdura": 0.0153
     }
   },
   "pasta_arroces_054": {
@@ -6049,7 +6125,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.2379,
-      "verdura": 0.2869
+      "verdura": 0.4004
     }
   },
   "pasta_arroces_057": {
@@ -6079,7 +6155,7 @@
     "cuotas": {
       "carne": 0.1698,
       "pasta_arroz": 0.1867,
-      "verdura": 0.0853
+      "verdura": 0.2933
     }
   },
   "pasta_arroces_060": {
@@ -6108,7 +6184,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.5751,
-      "verdura": 0.0784
+      "verdura": 0.0863
     }
   },
   "pasta_arroces_063": {
@@ -6119,7 +6195,7 @@
     "cuotas": {
       "carne": 0.22,
       "pasta_arroz": 0.3872,
-      "verdura": 0.0528
+      "verdura": 0.337
     }
   },
   "pasta_arroces_064": {
@@ -6127,7 +6203,8 @@
       "pasta_arroz"
     ],
     "cuotas": {
-      "pasta_arroz": 0.5469
+      "pasta_arroz": 0.5469,
+      "verdura": 0.404
     }
   },
   "pasta_arroces_065": {
@@ -6136,7 +6213,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.4966,
-      "verdura": 0.237
+      "verdura": 0.246
     }
   },
   "pasta_arroces_066": {
@@ -6157,7 +6234,8 @@
     ],
     "cuotas": {
       "pescado": 0.3326,
-      "pasta_arroz": 0.5853
+      "pasta_arroz": 0.5853,
+      "verdura": 0.016
     }
   },
   "pasta_arroces_068": {
@@ -6166,7 +6244,8 @@
     ],
     "cuotas": {
       "pescado": 0.1463,
-      "pasta_arroz": 0.6435
+      "pasta_arroz": 0.6435,
+      "verdura": 0.0176
     }
   },
   "pasta_arroces_069": {
@@ -6206,7 +6285,7 @@
     "cuotas": {
       "pescado": 0.0259,
       "pasta_arroz": 0.5695,
-      "verdura": 0.3236
+      "verdura": 0.343
     }
   },
   "pasta_arroces_073": {
@@ -6217,7 +6296,7 @@
     "cuotas": {
       "carne": 0.2445,
       "pasta_arroz": 0.3261,
-      "verdura": 0.0652
+      "verdura": 0.0734
     }
   },
   "pasta_arroces_074": {
@@ -6226,7 +6305,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.285,
-      "verdura": 0.2138
+      "verdura": 0.2209
     }
   },
   "pasta_arroces_075": {
@@ -6236,7 +6315,7 @@
     "cuotas": {
       "carne": 0.1477,
       "pasta_arroz": 0.2698,
-      "verdura": 0.1527
+      "verdura": 0.2302
     }
   },
   "pasta_arroces_076": {
@@ -6246,7 +6325,7 @@
     "cuotas": {
       "pescado": 0.1446,
       "pasta_arroz": 0.3068,
-      "verdura": 0.0383
+      "verdura": 0.1104
     }
   },
   "pasta_arroces_077": {
@@ -6257,7 +6336,7 @@
       "carne": 0.1424,
       "pescado": 0.0548,
       "pasta_arroz": 0.2848,
-      "verdura": 0.133
+      "verdura": 0.1401
     }
   },
   "pasta_arroces_078": {
@@ -6310,7 +6389,7 @@
     "cuotas": {
       "carne": 0.1857,
       "pasta_arroz": 0.2782,
-      "verdura": 0.0887
+      "verdura": 0.1325
     }
   },
   "pasta_arroces_083": {
@@ -6321,7 +6400,7 @@
     "cuotas": {
       "carne": 0.1559,
       "pasta_arroz": 0.3131,
-      "verdura": 0.0781
+      "verdura": 0.16
     }
   },
   "pasta_arroces_084": {
@@ -6330,7 +6409,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.7426,
-      "verdura": 0.1013
+      "verdura": 0.1181
     }
   },
   "pasta_arroces_085": {
@@ -6341,7 +6420,7 @@
     "cuotas": {
       "carne": 0.2291,
       "pasta_arroz": 0.4032,
-      "verdura": 0.0916
+      "verdura": 0.2932
     }
   },
   "pasta_arroces_086": {
@@ -6351,7 +6430,7 @@
     "cuotas": {
       "pescado": 0.1267,
       "pasta_arroz": 0.3484,
-      "verdura": 0.0396
+      "verdura": 0.1188
     }
   },
   "pasta_arroces_087": {
@@ -6361,7 +6440,8 @@
     ],
     "cuotas": {
       "pescado": 0.1535,
-      "pasta_arroz": 0.6756
+      "pasta_arroz": 0.6756,
+      "verdura": 0.023
     }
   },
   "pasta_arroces_088": {
@@ -6372,7 +6452,7 @@
     "cuotas": {
       "pescado": 0.1882,
       "pasta_arroz": 0.3388,
-      "verdura": 0.0452
+      "verdura": 0.1144
     }
   },
   "pasta_arroces_089": {
@@ -6383,7 +6463,7 @@
     "cuotas": {
       "pescado": 0.2248,
       "pasta_arroz": 0.4946,
-      "verdura": 0.2248
+      "verdura": 0.2417
     }
   },
   "pasta_arroces_090": {
@@ -6392,7 +6472,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.4395,
-      "verdura": 0.2847
+      "verdura": 0.2947
     }
   },
   "pasta_arroces_091": {
@@ -6402,7 +6482,7 @@
     "cuotas": {
       "carne": 0.1216,
       "pasta_arroz": 0.4458,
-      "verdura": 0.0507
+      "verdura": 0.2634
     }
   },
   "pasta_arroces_092": {
@@ -6413,7 +6493,7 @@
     "cuotas": {
       "carne": 0.18,
       "pasta_arroz": 0.2851,
-      "verdura": 0.108
+      "verdura": 0.1152
     }
   },
   "pasta_arroces_093": {
@@ -6422,7 +6502,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.3404,
-      "verdura": 0.0464
+      "verdura": 0.383
     }
   },
   "pasta_arroces_094": {
@@ -6431,7 +6511,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.4688,
-      "verdura": 0.071
+      "verdura": 0.4498
     }
   },
   "pasta_arroces_095": {
@@ -6441,7 +6521,7 @@
     "cuotas": {
       "carne": 0.1156,
       "pasta_arroz": 0.4577,
-      "verdura": 0.289
+      "verdura": 0.3005
     }
   },
   "pasta_arroces_096": {
@@ -6450,7 +6530,8 @@
     ],
     "cuotas": {
       "huevos": 0.1325,
-      "pasta_arroz": 0.4967
+      "pasta_arroz": 0.4967,
+      "verdura": 0.1656
     }
   },
   "pasta_arroces_097": {
@@ -6460,7 +6541,7 @@
     "cuotas": {
       "carne": 0.1396,
       "pasta_arroz": 0.4748,
-      "verdura": 0.0899
+      "verdura": 0.2788
     }
   },
   "pasta_arroces_098": {
@@ -6468,7 +6549,8 @@
       "pasta_arroz"
     ],
     "cuotas": {
-      "pasta_arroz": 0.5374
+      "pasta_arroz": 0.5374,
+      "verdura": 0.3698
     }
   },
   "pasta_arroces_099": {
@@ -6488,7 +6570,7 @@
     "cuotas": {
       "carne": 0.2863,
       "pasta_arroz": 0.2863,
-      "verdura": 0.3973
+      "verdura": 0.4045
     }
   },
   "pasta_arroces_101": {
@@ -6499,7 +6581,7 @@
     "cuotas": {
       "carne": 0.3127,
       "pasta_arroz": 0.3127,
-      "verdura": 0.195
+      "verdura": 0.277
     }
   },
   "pasta_arroces_102": {
@@ -6522,7 +6604,7 @@
     "cuotas": {
       "carne": 0.2227,
       "pasta_arroz": 0.4083,
-      "verdura": 0.1188
+      "verdura": 0.1232
     }
   },
   "pasta_arroces_104": {
@@ -6534,7 +6616,7 @@
       "carne": 0.2434,
       "huevos": 0.146,
       "pasta_arroz": 0.4057,
-      "verdura": 0.1322
+      "verdura": 0.1371
     }
   },
   "pasta_arroces_105": {
@@ -6545,7 +6627,7 @@
     "cuotas": {
       "carne": 0.2301,
       "pasta_arroz": 0.4315,
-      "verdura": 0.1438
+      "verdura": 0.1507
     }
   },
   "pasta_arroces_106": {
@@ -6563,7 +6645,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.505,
-      "verdura": 0.3314
+      "verdura": 0.3365
     }
   },
   "pasta_arroces_108": {
@@ -6572,7 +6654,7 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.4728,
-      "verdura": 0.1791
+      "verdura": 0.1839
     }
   },
   "pescados_001": {
@@ -6581,7 +6663,7 @@
     ],
     "cuotas": {
       "pescado": 0.591,
-      "verdura": 0.1206
+      "verdura": 0.1496
     }
   },
   "pescados_002": {
@@ -6599,7 +6681,7 @@
     ],
     "cuotas": {
       "pescado": 0.4515,
-      "verdura": 0.1674
+      "verdura": 0.5189
     }
   },
   "pescados_004": {
@@ -6607,7 +6689,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.5896
+      "pescado": 0.5896,
+      "verdura": 0.017
     }
   },
   "pescados_005": {
@@ -6624,7 +6707,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.6822
+      "pescado": 0.6822,
+      "verdura": 0.0136
     }
   },
   "pescados_007": {
@@ -6658,7 +6742,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.7947
+      "pescado": 0.7947,
+      "verdura": 0.0341
     }
   },
   "pescados_011": {
@@ -6675,7 +6760,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.8098
+      "pescado": 0.8098,
+      "verdura": 0.0486
     }
   },
   "pescados_013": {
@@ -6702,7 +6788,8 @@
     ],
     "cuotas": {
       "pescado": 0.6294,
-      "carne": 0.0944
+      "carne": 0.0944,
+      "verdura": 0.0126
     }
   },
   "pescados_016": {
@@ -6711,7 +6798,7 @@
     ],
     "cuotas": {
       "pescado": 0.632,
-      "verdura": 0.1352
+      "verdura": 0.1577
     }
   },
   "pescados_017": {
@@ -6738,7 +6825,7 @@
     ],
     "cuotas": {
       "pescado": 0.4595,
-      "verdura": 0.3063
+      "verdura": 0.435
     }
   },
   "pescados_020": {
@@ -6746,7 +6833,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.6577
+      "pescado": 0.6577,
+      "verdura": 0.0187
     }
   },
   "pescados_021": {
@@ -6756,7 +6844,8 @@
     ],
     "cuotas": {
       "pescado": 0.1568,
-      "pasta_arroz": 0.3642
+      "pasta_arroz": 0.3642,
+      "verdura": 0.0864
     }
   },
   "pescados_022": {
@@ -6764,7 +6853,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.6465
+      "pescado": 0.6465,
+      "verdura": 0.0148
     }
   },
   "pescados_023": {
@@ -6772,7 +6862,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.6981
+      "pescado": 0.6981,
+      "verdura": 0.016
     }
   },
   "pescados_024": {
@@ -6790,7 +6881,7 @@
     ],
     "cuotas": {
       "pescado": 0.4184,
-      "verdura": 0.3985
+      "verdura": 0.4145
     }
   },
   "pescados_026": {
@@ -6851,7 +6942,7 @@
     ],
     "cuotas": {
       "pescado": 0.1445,
-      "verdura": 0.4574
+      "verdura": 0.4695
     }
   },
   "pescados_032": {
@@ -6878,7 +6969,7 @@
     ],
     "cuotas": {
       "pescado": 0.5026,
-      "verdura": 0.3895
+      "verdura": 0.4146
     }
   },
   "pescados_035": {
@@ -6941,7 +7032,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.6017
+      "pescado": 0.6017,
+      "verdura": 0.0214
     }
   },
   "pescados_042": {
@@ -6960,7 +7052,8 @@
     ],
     "cuotas": {
       "pescado": 0.5688,
-      "huevos": 0.2666
+      "huevos": 0.2666,
+      "verdura": 0.0444
     }
   },
   "pescados_044": {
@@ -6970,7 +7063,7 @@
     "cuotas": {
       "pescado": 0.1179,
       "pasta_arroz": 0.3367,
-      "verdura": 0.077
+      "verdura": 0.1465
     }
   },
   "pescados_045": {
@@ -6987,7 +7080,7 @@
     ],
     "cuotas": {
       "pescado": 0.3676,
-      "verdura": 0.3301
+      "verdura": 0.5752
     }
   },
   "pescados_047": {
@@ -6996,7 +7089,7 @@
     ],
     "cuotas": {
       "pescado": 0.4656,
-      "verdura": 0.2661
+      "verdura": 0.419
     }
   },
   "pescados_048": {
@@ -7013,7 +7106,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.5218
+      "pescado": 0.5218,
+      "verdura": 0.0298
     }
   },
   "pescados_050": {
@@ -7022,7 +7116,7 @@
     ],
     "cuotas": {
       "pescado": 0.5559,
-      "verdura": 0.139
+      "verdura": 0.1621
     }
   },
   "pescados_051": {
@@ -7040,7 +7134,7 @@
     ],
     "cuotas": {
       "pescado": 0.2917,
-      "verdura": 0.093
+      "verdura": 0.156
     }
   },
   "pescados_053": {
@@ -7051,7 +7145,7 @@
       "pescado": 0.4505,
       "carne": 0.0282,
       "huevos": 0.0676,
-      "verdura": 0.1875
+      "verdura": 0.3368
     }
   },
   "pescados_054": {
@@ -7059,7 +7153,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.6653
+      "pescado": 0.6653,
+      "verdura": 0.0166
     }
   },
   "pescados_055": {
@@ -7084,7 +7179,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.4901
+      "pescado": 0.4901,
+      "verdura": 0.2607
     }
   },
   "pescados_058": {
@@ -7109,7 +7205,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.4686
+      "pescado": 0.4686,
+      "verdura": 0.022
     }
   },
   "pescados_061": {
@@ -7126,7 +7223,8 @@
     ],
     "cuotas": {
       "pescado": 0.3446,
-      "huevos": 0.0646
+      "huevos": 0.0646,
+      "verdura": 0.0129
     }
   },
   "pescados_063": {
@@ -7134,7 +7232,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.4277
+      "pescado": 0.4277,
+      "verdura": 0.016
     }
   },
   "pescados_064": {
@@ -7151,7 +7250,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.615
+      "pescado": 0.615,
+      "verdura": 0.0289
     }
   },
   "pescados_066": {
@@ -7160,7 +7260,7 @@
     ],
     "cuotas": {
       "pescado": 0.7296,
-      "verdura": 0.0342
+      "verdura": 0.0524
     }
   },
   "pescados_067": {
@@ -7169,7 +7269,7 @@
     ],
     "cuotas": {
       "pescado": 0.3758,
-      "verdura": 0.4377
+      "verdura": 0.5379
     }
   },
   "pescados_068": {
@@ -7178,7 +7278,7 @@
     ],
     "cuotas": {
       "pescado": 0.7096,
-      "verdura": 0.1362
+      "verdura": 0.1505
     }
   },
   "pescados_069": {
@@ -7196,7 +7296,7 @@
     ],
     "cuotas": {
       "pescado": 0.5607,
-      "verdura": 0.3084
+      "verdura": 0.3224
     }
   },
   "pescados_071": {
@@ -7204,7 +7304,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.7043
+      "pescado": 0.7043,
+      "verdura": 0.0264
     }
   },
   "pescados_072": {
@@ -7213,7 +7314,7 @@
     ],
     "cuotas": {
       "pescado": 0.4185,
-      "verdura": 0.1744
+      "verdura": 0.3749
     }
   },
   "pescados_073": {
@@ -7221,13 +7322,15 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.483
+      "pescado": 0.483,
+      "verdura": 0.0483
     }
   },
   "pescados_074": {
     "familias": [],
     "cuotas": {
-      "pescado": 0.1046
+      "pescado": 0.1046,
+      "verdura": 0.0084
     }
   },
   "pescados_075": {
@@ -7245,7 +7348,7 @@
     "cuotas": {
       "pescado": 0.2023,
       "huevos": 0.0971,
-      "verdura": 0.0485
+      "verdura": 0.0566
     }
   },
   "pescados_077": {
@@ -7254,7 +7357,7 @@
     ],
     "cuotas": {
       "pescado": 0.5096,
-      "verdura": 0.0921
+      "verdura": 0.1052
     }
   },
   "pescados_078": {
@@ -7264,7 +7367,7 @@
     "cuotas": {
       "pescado": 0.2562,
       "huevos": 0.1025,
-      "verdura": 0.4307
+      "verdura": 0.61
     }
   },
   "pescados_079": {
@@ -7299,7 +7402,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.5547
+      "pescado": 0.5547,
+      "verdura": 0.032
     }
   },
   "pescados_083": {
@@ -7308,7 +7412,7 @@
     ],
     "cuotas": {
       "pescado": 0.4538,
-      "verdura": 0.1545
+      "verdura": 0.1648
     }
   },
   "pescados_084": {
@@ -7326,7 +7430,7 @@
     ],
     "cuotas": {
       "pescado": 0.3517,
-      "verdura": 0.2741
+      "verdura": 0.6148
     }
   },
   "pescados_086": {
@@ -7345,7 +7449,7 @@
     "cuotas": {
       "pescado": 0.3356,
       "pasta_arroz": 0.3356,
-      "verdura": 0.0908
+      "verdura": 0.1809
     }
   },
   "pescados_088": {
@@ -7354,7 +7458,8 @@
     ],
     "cuotas": {
       "pescado": 0.5457,
-      "huevos": 0.0819
+      "huevos": 0.0819,
+      "verdura": 0.0136
     }
   },
   "pescados_089": {
@@ -7364,7 +7469,8 @@
     ],
     "cuotas": {
       "pescado": 0.3657,
-      "huevos": 0.1755
+      "huevos": 0.1755,
+      "verdura": 0.0117
     }
   },
   "pescados_090": {
@@ -7373,7 +7479,7 @@
     ],
     "cuotas": {
       "pescado": 0.2341,
-      "verdura": 0.1402
+      "verdura": 0.2395
     }
   },
   "pescados_091": {
@@ -7392,7 +7498,7 @@
     "cuotas": {
       "pescado": 0.1795,
       "pasta_arroz": 0.3303,
-      "verdura": 0.0703
+      "verdura": 0.1463
     }
   },
   "pescados_093": {
@@ -7419,7 +7525,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.5935
+      "pescado": 0.5935,
+      "verdura": 0.0211
     }
   },
   "pescados_096": {
@@ -7428,7 +7535,7 @@
     ],
     "cuotas": {
       "pescado": 0.5314,
-      "verdura": 0.2558
+      "verdura": 0.2774
     }
   },
   "pescados_097": {
@@ -7467,7 +7574,7 @@
     ],
     "cuotas": {
       "pescado": 0.3681,
-      "verdura": 0.4602
+      "verdura": 0.4774
     }
   },
   "pescados_101": {
@@ -7484,7 +7591,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.3587
+      "pescado": 0.3587,
+      "verdura": 0.009
     }
   },
   "pescados_103": {
@@ -7492,7 +7600,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.4106
+      "pescado": 0.4106,
+      "verdura": 0.0103
     }
   },
   "pescados_104": {
@@ -7501,7 +7610,7 @@
     ],
     "cuotas": {
       "pescado": 0.4184,
-      "verdura": 0.0685
+      "verdura": 0.089
     }
   },
   "pescados_105": {
@@ -7510,7 +7619,7 @@
     ],
     "cuotas": {
       "pescado": 0.4236,
-      "verdura": 0.1595
+      "verdura": 0.176
     }
   },
   "pescados_106": {
@@ -7518,7 +7627,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.4296
+      "pescado": 0.4296,
+      "verdura": 0.0107
     }
   },
   "pescados_107": {
@@ -7546,7 +7656,7 @@
     "cuotas": {
       "pescado": 0.3071,
       "huevos": 0.0461,
-      "verdura": 0.2173
+      "verdura": 0.3382
     }
   },
   "pescados_110": {
@@ -7565,7 +7675,8 @@
     ],
     "cuotas": {
       "pescado": 0.2976,
-      "huevos": 0.1786
+      "huevos": 0.1786,
+      "verdura": 0.0238
     }
   },
   "pescados_112": {
@@ -7576,7 +7687,7 @@
     "cuotas": {
       "pescado": 0.4646,
       "huevos": 0.2027,
-      "verdura": 0.0422
+      "verdura": 0.1267
     }
   },
   "pescados_113": {
@@ -7586,7 +7697,7 @@
     "cuotas": {
       "pescado": 0.208,
       "huevos": 0.0416,
-      "verdura": 0.3173
+      "verdura": 0.4265
     }
   },
   "pescados_114": {
@@ -7596,7 +7707,7 @@
     "cuotas": {
       "pescado": 0.2006,
       "huevos": 0.043,
-      "verdura": 0.3157
+      "verdura": 0.4285
     }
   },
   "pescados_115": {
@@ -7636,7 +7747,7 @@
     "cuotas": {
       "pescado": 0.2415,
       "huevos": 0.0724,
-      "verdura": 0.277
+      "verdura": 0.3977
     }
   },
   "pescados_119": {
@@ -7645,7 +7756,7 @@
     ],
     "cuotas": {
       "pescado": 0.4387,
-      "verdura": 0.0877
+      "verdura": 0.095
     }
   },
   "pescados_120": {
@@ -7663,7 +7774,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.7294
+      "pescado": 0.7294,
+      "verdura": 0.0091
     }
   },
   "pescados_122": {
@@ -7672,7 +7784,7 @@
     ],
     "cuotas": {
       "pescado": 0.4393,
-      "verdura": 0.3295
+      "verdura": 0.5025
     }
   },
   "pescados_123": {
@@ -7725,7 +7837,8 @@
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.8289
+      "pescado": 0.8289,
+      "verdura": 0.0207
     }
   },
   "pescados_129": {
@@ -7734,7 +7847,7 @@
     ],
     "cuotas": {
       "pescado": 0.4613,
-      "verdura": 0.4576
+      "verdura": 0.4669
     }
   },
   "pescados_130": {
@@ -7743,7 +7856,7 @@
     ],
     "cuotas": {
       "pescado": 0.5004,
-      "verdura": 0.2971
+      "verdura": 0.3033
     }
   },
   "platos_unicos_001": {
@@ -7755,12 +7868,16 @@
       "carne": 0.1754,
       "legumbres": 0.0658,
       "pasta_arroz": 0.5483,
-      "verdura": 0.0877
+      "verdura": 0.1798
     }
   },
   "platos_unicos_002": {
-    "familias": [],
-    "cuotas": {}
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.2793
+    }
   },
   "platos_unicos_003": {
     "familias": [],
@@ -7776,7 +7893,7 @@
     "cuotas": {
       "pescado": 0.2083,
       "huevos": 0.0781,
-      "verdura": 0.2427
+      "verdura": 0.3521
     }
   },
   "platos_unicos_005": {
@@ -7786,7 +7903,7 @@
     "cuotas": {
       "pescado": 0.2453,
       "huevos": 0.1227,
-      "verdura": 0.2075
+      "verdura": 0.3792
     }
   },
   "platos_unicos_006": {
@@ -7813,7 +7930,7 @@
     ],
     "cuotas": {
       "carne": 0.1656,
-      "verdura": 0.0497
+      "verdura": 0.1192
     }
   },
   "platos_unicos_009": {
@@ -7839,7 +7956,8 @@
       "carne"
     ],
     "cuotas": {
-      "carne": 0.2737
+      "carne": 0.2737,
+      "verdura": 0.0278
     }
   },
   "platos_unicos_012": {
@@ -7848,13 +7966,16 @@
     ],
     "cuotas": {
       "pasta_arroz": 0.2897,
-      "verdura": 0.5698
+      "verdura": 0.6961
     }
   },
   "platos_unicos_013": {
-    "familias": [],
+    "familias": [
+      "verdura"
+    ],
     "cuotas": {
-      "carne": 0.1114
+      "carne": 0.1114,
+      "verdura": 0.1949
     }
   },
   "platos_unicos_014": {
@@ -7871,7 +7992,8 @@
       "huevos"
     ],
     "cuotas": {
-      "huevos": 0.2025
+      "huevos": 0.2025,
+      "verdura": 0.1873
     }
   },
   "platos_unicos_016": {
@@ -7901,7 +8023,8 @@
     ],
     "cuotas": {
       "pescado": 0.2586,
-      "pasta_arroz": 0.5999
+      "pasta_arroz": 0.5999,
+      "verdura": 0.1128
     }
   },
   "platos_unicos_019": {
@@ -7920,7 +8043,7 @@
     "cuotas": {
       "huevos": 0.3048,
       "carne": 0.0616,
-      "verdura": 0.0762
+      "verdura": 0.2839
     }
   },
   "postres_001": {
@@ -8086,12 +8209,16 @@
   },
   "salsas_002": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0646
+    }
   },
   "salsas_003": {
-    "familias": [],
+    "familias": [
+      "verdura"
+    ],
     "cuotas": {
-      "verdura": 0.1039
+      "verdura": 0.9452
     }
   },
   "salsas_004": {
@@ -8105,20 +8232,26 @@
   "salsas_005": {
     "familias": [],
     "cuotas": {
-      "verdura": 0.0598
+      "verdura": 0.0971
     }
   },
   "salsas_006": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0749
+    }
   },
   "salsas_007": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0844
+    }
   },
   "salsas_008": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0647
+    }
   },
   "salsas_009": {
     "familias": [],
@@ -8129,19 +8262,21 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.4644
+      "verdura": 0.5132
     }
   },
   "salsas_011": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0363
+    }
   },
   "salsas_012": {
     "familias": [
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.3223
+      "verdura": 0.3304
     }
   },
   "salsas_013": {
@@ -8150,14 +8285,17 @@
   },
   "salsas_014": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.1429
+    }
   },
   "salsas_015": {
     "familias": [
       "pescado"
     ],
     "cuotas": {
-      "pescado": 0.1989
+      "pescado": 0.1989,
+      "verdura": 0.0497
     }
   },
   "salsas_016": {
@@ -8166,7 +8304,9 @@
   },
   "salsas_017": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0211
+    }
   },
   "salsas_019": {
     "familias": [],
@@ -8178,11 +8318,15 @@
   },
   "salsas_021": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0642
+    }
   },
   "salsas_023": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0525
+    }
   },
   "salsas_024": {
     "familias": [],
@@ -8197,12 +8341,18 @@
     }
   },
   "salsas_026": {
-    "familias": [],
-    "cuotas": {}
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.8185
+    }
   },
   "salsas_027": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0337
+    }
   },
   "salsas_028": {
     "familias": [
@@ -8252,7 +8402,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8851
+      "verdura": 0.8938
     }
   },
   "sopas_cremas_005": {
@@ -8262,7 +8412,7 @@
     "cuotas": {
       "carne": 0.0287,
       "huevos": 0.0861,
-      "verdura": 0.6816
+      "verdura": 0.6902
     }
   },
   "sopas_cremas_006": {
@@ -8279,7 +8429,8 @@
     ],
     "cuotas": {
       "carne": 0.0515,
-      "huevos": 0.1546
+      "huevos": 0.1546,
+      "verdura": 0.0155
     }
   },
   "sopas_cremas_008": {
@@ -8319,7 +8470,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7429
+      "verdura": 0.7553
     }
   },
   "sopas_cremas_013": {
@@ -8331,19 +8482,21 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7764
+      "verdura": 0.7898
     }
   },
   "sopas_cremas_015": {
     "familias": [],
-    "cuotas": {}
+    "cuotas": {
+      "verdura": 0.0077
+    }
   },
   "sopas_cremas_016": {
     "familias": [
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.9513
+      "verdura": 0.962
     }
   },
   "sopas_cremas_017": {
@@ -8351,7 +8504,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7988
+      "verdura": 0.8108
     }
   },
   "sopas_cremas_018": {
@@ -8359,7 +8512,8 @@
       "huevos"
     ],
     "cuotas": {
-      "huevos": 0.1668
+      "huevos": 0.1668,
+      "verdura": 0.0209
     }
   },
   "sopas_cremas_019": {
@@ -8376,7 +8530,7 @@
     ],
     "cuotas": {
       "legumbres": 0.5992,
-      "verdura": 0.233
+      "verdura": 0.3729
     }
   },
   "sopas_cremas_021": {
@@ -8396,11 +8550,13 @@
     }
   },
   "sopas_cremas_023": {
-    "familias": [],
+    "familias": [
+      "verdura"
+    ],
     "cuotas": {
       "pescado": 0.0946,
       "pasta_arroz": 0.0473,
-      "verdura": 0.1268
+      "verdura": 0.1961
     }
   },
   "sopas_cremas_024": {
@@ -8416,7 +8572,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.3228
+      "verdura": 0.3291
     }
   },
   "sopas_cremas_026": {
@@ -8426,7 +8582,7 @@
     "cuotas": {
       "carne": 0.0541,
       "huevos": 0.0812,
-      "verdura": 0.6429
+      "verdura": 0.6537
     }
   },
   "sopas_cremas_027": {
@@ -8467,7 +8623,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.5354
+      "verdura": 0.545
     }
   },
   "sopas_cremas_032": {
@@ -8484,7 +8640,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.8899
+      "verdura": 0.8976
     }
   },
   "sopas_cremas_034": {
@@ -8492,7 +8648,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.6186
+      "verdura": 0.6263
     }
   },
   "sopas_cremas_035": {
@@ -8530,7 +8686,7 @@
     "cuotas": {
       "legumbres": 0.1359,
       "carne": 0.1004,
-      "verdura": 0.1019
+      "verdura": 0.1053
     }
   },
   "sopas_cremas_040": {
@@ -8547,7 +8703,7 @@
     ],
     "cuotas": {
       "pescado": 0.2879,
-      "verdura": 0.0882
+      "verdura": 0.1739
     }
   },
   "sopas_cremas_042": {
@@ -8555,7 +8711,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7737
+      "verdura": 0.7827
     }
   },
   "sopas_cremas_043": {
@@ -8570,7 +8726,7 @@
     ],
     "cuotas": {
       "pescado": 0.2253,
-      "verdura": 0.1012
+      "verdura": 0.1928
     }
   },
   "sopas_cremas_045": {
@@ -8586,7 +8742,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.4108
+      "verdura": 0.417
     }
   },
   "sopas_cremas_047": {
@@ -8610,7 +8766,7 @@
     ],
     "cuotas": {
       "legumbres": 0.4069,
-      "verdura": 0.1424
+      "verdura": 0.1526
     }
   },
   "sopas_cremas_050": {
@@ -8635,7 +8791,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.5223
+      "verdura": 0.532
     }
   },
   "sopas_cremas_053": {
@@ -8643,7 +8799,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.4318
+      "verdura": 0.4426
     }
   },
   "sopas_cremas_054": {
@@ -8688,7 +8844,7 @@
     ],
     "cuotas": {
       "pescado": 0.334,
-      "verdura": 0.1345
+      "verdura": 0.2013
     }
   },
   "sopas_cremas_060": {
@@ -8699,9 +8855,11 @@
     }
   },
   "sopas_cremas_061": {
-    "familias": [],
+    "familias": [
+      "verdura"
+    ],
     "cuotas": {
-      "verdura": 0.0547
+      "verdura": 0.5199
     }
   },
   "sopas_cremas_062": {
@@ -8723,7 +8881,7 @@
   "sopas_cremas_064": {
     "familias": [],
     "cuotas": {
-      "verdura": 0.0741
+      "verdura": 0.0864
     }
   },
   "sopas_cremas_065": {
@@ -8731,7 +8889,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.6503
+      "verdura": 0.6575
     }
   },
   "sopas_cremas_066": {
@@ -8744,8 +8902,12 @@
     }
   },
   "sopas_cremas_067": {
-    "familias": [],
-    "cuotas": {}
+    "familias": [
+      "verdura"
+    ],
+    "cuotas": {
+      "verdura": 0.5141
+    }
   },
   "sopas_cremas_068": {
     "familias": [
@@ -8761,7 +8923,7 @@
     ],
     "cuotas": {
       "pescado": 0.1217,
-      "verdura": 0.1695
+      "verdura": 0.189
     }
   },
   "sopas_cremas_070": {
@@ -8770,7 +8932,7 @@
     ],
     "cuotas": {
       "pescado": 0.1855,
-      "verdura": 0.3709
+      "verdura": 0.3771
     }
   },
   "sopas_cremas_071": {
@@ -8787,7 +8949,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.5201
+      "verdura": 0.5322
     }
   },
   "sopas_cremas_073": {
@@ -8795,7 +8957,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.5173
+      "verdura": 0.5256
     }
   },
   "sopas_cremas_074": {
@@ -8811,7 +8973,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.7714
+      "verdura": 0.7897
     }
   },
   "sopas_cremas_076": {
@@ -8844,7 +9006,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.4975
+      "verdura": 0.5049
     }
   },
   "sopas_cremas_080": {
@@ -8861,7 +9023,7 @@
     ],
     "cuotas": {
       "pescado": 0.1925,
-      "verdura": 0.1347
+      "verdura": 0.2875
     }
   },
   "sopas_cremas_082": {
@@ -8895,7 +9057,7 @@
     "cuotas": {
       "pescado": 0.1503,
       "pasta_arroz": 0.1181,
-      "verdura": 0.0805
+      "verdura": 0.1481
     }
   },
   "sopas_cremas_086": {
@@ -8913,7 +9075,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.4112
+      "verdura": 0.4183
     }
   },
   "sopas_cremas_088": {
@@ -8921,7 +9083,7 @@
       "verdura"
     ],
     "cuotas": {
-      "verdura": 0.4743
+      "verdura": 0.4834
     }
   },
   "sopas_cremas_089": {
@@ -8941,7 +9103,7 @@
       "pescado": 0.1276,
       "huevos": 0.0814,
       "pasta_arroz": 0.1018,
-      "verdura": 0.2324
+      "verdura": 0.2379
     }
   }
 }

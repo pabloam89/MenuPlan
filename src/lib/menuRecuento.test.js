@@ -85,38 +85,36 @@ describe("bordes que se dan de verdad", () => {
 
 /*
  * El caso que hizo que el panel pareciera roto: una «Pasta con champiñones y
- * bacon» aparecía bajo «Carne» sin decir por qué, y una «Crema de tres quesos»
- * bajo «Verdura». Las dos están bien contadas; lo que faltaba era decirlo.
+ * bacon» aparecía bajo «Carne» sin decir por qué. Con la familia saliendo de
+ * la masa ya no aparece ahí —el bacon es el 12 %—, y lo que queda por explicar
+ * es lo otro: por qué un mismo plato sale en DOS familias.
  */
 describe("por qué un plato cuenta en una familia", () => {
-  const pastaConBacon = { category: "pasta_arroces", mainProtein: "cerdo" };
-  const filetes = { category: "carnes", mainProtein: "cerdo" };
-  const cremaDeQuesos = { category: "sopas_cremas", mainProtein: "none" };
-  const ensaladaDeLentejas = { category: "ensaladas_verduras", mainProtein: "legumbre" };
+  const cocido = { familias: ["carne", "legumbres"], familiaCuotas: { carne: 0.22, legumbres: 0.31 } };
+  const soloUna = { familias: ["pasta_arroz"], familiaCuotas: { pasta_arroz: 0.46 } };
 
-  it("lo evidente no se explica", () => {
-    expect(motivoDeFamilia(filetes, "carne")).toBeNull();
-    expect(motivoDeFamilia(ensaladaDeLentejas, "verdura")).toBeNull();
+  it("con una sola familia no hay nada que justificar", () => {
+    expect(motivoDeFamilia(soloUna, "pasta_arroz")).toBeNull();
   });
 
-  it("si entra por la proteína, lo dice", () => {
-    expect(motivoDeFamilia(pastaConBacon, "carne")).toBe("cerdo");
-    expect(motivoDeFamilia(ensaladaDeLentejas, "legumbres")).toBe("legumbre");
+  it("con dos, dice cuánta masa pone en cada una", () => {
+    expect(motivoDeFamilia(cocido, "carne")).toBe("22%");
+    expect(motivoDeFamilia(cocido, "legumbres")).toBe("31%");
   });
 
-  it("si la categoría no es la esperada de esa familia, también", () => {
-    expect(motivoDeFamilia(cremaDeQuesos, "verdura")).toBe("crema");
+  it("y calla si no hay cuota que enseñar", () => {
+    expect(motivoDeFamilia({ familias: ["carne", "verdura"] }, "carne")).toBeNull();
+    expect(motivoDeFamilia({}, "carne")).toBeNull();
+    expect(motivoDeFamilia(null, "carne")).toBeNull();
   });
 
-  it("la pasta con bacon sale en las DOS, con su motivo en cada una", () => {
+  it("la receta que ya trae familias no vuelve a mirar el cajón", () => {
+    // `category: pescados` y aun así manda lo derivado: es lo que evita que
+    // el panel y la tabla derivada digan cosas distintas.
     const r = recuentoDelMenu(
-      plan({ "Lun-Cena": { recipeId: "pasta_bacon" } }),
-      { pasta_bacon: { name: "Pasta con bacon", category: "pasta_arroces", mainProtein: "cerdo" } },
+      plan({ "Lun-Cena": { recipeId: "raro" } }),
+      { raro: { name: "Cazuela de fideos", category: "pescados", mainProtein: "marisco", familias: ["pasta_arroz"] } },
     );
-    expect(r.familias).toEqual({ pasta_arroz: 1, carne: 1 });
-    // Un plato, dos familias: por eso las familias suman más que los platos.
-    expect(r.platos).toHaveLength(1);
-    expect(r.platosPorFamilia.carne[0].motivo).toBe("cerdo");
-    expect(r.platosPorFamilia.pasta_arroz[0].motivo).toBeNull();
+    expect(r.familias).toEqual({ pasta_arroz: 1 });
   });
 });
