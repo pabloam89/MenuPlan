@@ -3,7 +3,8 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/r/:id", "destination": "/api/share-recipe?id=:id" }
+    { "source": "/r/:id", "destination": "/api/share-recipe?id=:id" },
+    { "source": "/r/:id/img", "destination": "/api/share-recipe?id=:id&img=1" }
   ],
   "headers": [
     {

@@ -44,10 +44,11 @@ describe("buildShareHtml", () => {
     expect(html).not.toContain("<con chorizo>");
   });
 
-  it("solo lleva og:image cuando hay foto", () => {
+  it("solo lleva og:image cuando hay foto, con sus medidas", () => {
     expect(buildShareHtml({ ...base, image: null })).not.toContain("og:image");
-    const withImg = buildShareHtml({ ...base, image: "https://homenu.app/api/share-recipe?id=user_1&img=1" });
-    expect(withImg).toContain('og:image" content="https://homenu.app/api/share-recipe?id=user_1&amp;img=1"');
+    const withImg = buildShareHtml({ ...base, image: "https://homenu.app/r/user_1/img?t=abc" });
+    expect(withImg).toContain('og:image" content="https://homenu.app/r/user_1/img?t=abc"');
+    expect(withImg).toContain('og:image:width" content="720"');
     expect(withImg).toContain("summary_large_image");
   });
 
@@ -96,6 +97,21 @@ describe("handler", () => {
       res,
     );
     expect(res.redirected).toBe("/?r=user_abc");
+  });
+
+  it("la URL de la foto va por ruta y sin ampersand, que no todos los robots lo decodifican", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => [{ name: "Pollo al horno" }] })));
+    const res = mockRes();
+    await handler(
+      {
+        method: "GET",
+        query: { id: "carnes_001", t: "0123456789abcdef0123456789abcdef" },
+        headers: { host: "homenu.app", "user-agent": "WhatsApp/2.24.10.74 A" },
+      },
+      res,
+    );
+    expect(res.body).toContain('og:image" content="https://homenu.app/r/carnes_001/img?t=0123456789abcdef0123456789abcdef"');
+    expect(res.body).not.toContain("&amp;img");
   });
 
   it("a un robot le da HTML con las etiquetas aunque Supabase no conteste", async () => {

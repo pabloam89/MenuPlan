@@ -14,8 +14,15 @@ import { rateLimit } from "./_guard.js";
 // funcionaría, pero pasarían por una página en blanco antes de la app.
 //
 // La foto no se enlaza tal cual: las subidas al bucket pesan hasta 5 MB y
-// WhatsApp no pinta imágenes por encima de unos cientos de KB. ?img=1 devuelve
-// una miniatura JPEG reducida con sharp, cacheable en la CDN.
+// WhatsApp no pinta imágenes por encima de unos cientos de KB. /r/<id>/img
+// (reescrito a ?img=1) devuelve una miniatura JPEG cuadrada reducida con
+// sharp, cacheable en la CDN.
+//
+// La URL de la imagen NO lleva "&" a propósito. En HTML va escapado como
+// "&amp;", y no todos los robots lo decodifican: WhatsApp en Android pedía
+// literalmente "?id=x&amp;img=1", que aquí era "sin img" y devolvía el HTML de
+// la ficha en vez de un JPEG. En escritorio salía la foto y en el móvil no
+// (24 sep 2026). Con la ruta /r/<id>/img no hay nada que decodificar.
 
 const ID_RE = /^[a-z0-9_-]{1,80}$/i;
 const TOKEN_RE = /^[a-f0-9]{32}$/;
@@ -67,7 +74,10 @@ export function buildShareHtml({ url, title, description, image, redirect }) {
   const r = escapeHtml(redirect);
   const img = image
     ? `<meta property="og:image" content="${escapeHtml(image)}">\n` +
+      `<meta property="og:image:secure_url" content="${escapeHtml(image)}">\n` +
       `<meta property="og:image:type" content="image/jpeg">\n` +
+      `<meta property="og:image:width" content="${THUMB_MAX_PX}">\n` +
+      `<meta property="og:image:height" content="${THUMB_MAX_PX}">\n` +
       `<meta name="twitter:card" content="summary_large_image">\n` +
       `<meta name="twitter:image" content="${escapeHtml(image)}">\n`
     : `<meta name="twitter:card" content="summary">\n`;
@@ -200,7 +210,10 @@ async function sendThumbnail(res, image) {
     const sharp = (await import("sharp")).default;
     const out = await sharp(buf)
       .rotate()
-      .resize({ width: THUMB_MAX_PX, height: THUMB_MAX_PX, fit: "inside", withoutEnlargement: true })
+      // Cuadrada siempre (recorte centrado): así el HTML puede declarar
+      // og:image:width/height sin haber visto la foto, y WhatsApp pinta la
+      // preview a la primera en vez de esperar a medir la imagen.
+      .resize({ width: THUMB_MAX_PX, height: THUMB_MAX_PX, fit: "cover", position: "attention" })
       .jpeg({ quality: THUMB_QUALITY, mozjpeg: true })
       .toBuffer();
     res.setHeader("Content-Type", "image/jpeg");
@@ -262,7 +275,8 @@ export default async function handler(req, res) {
     url: `${origin}/r/${encodeURIComponent(id)}${q}`,
     title: found?.name ?? "Una receta en HoMenu",
     description: describeFound(found),
-    image: found?.image ? `${origin}/api/share-recipe?id=${encodeURIComponent(id)}${token ? `&t=${token}` : ""}&img=1` : null,
+    // Sin "&": ver la cabecera del fichero.
+    image: found?.image ? `${origin}/r/${encodeURIComponent(id)}/img${q}` : null,
     redirect,
   });
   res.setHeader("Content-Type", "text/html; charset=utf-8");
