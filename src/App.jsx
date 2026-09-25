@@ -23,7 +23,7 @@ import {
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
-import { publishMenu, unpublishMenu, loadMyPublishedMenus } from "./lib/social.js";
+import { publishMenu, unpublishMenu, loadMyPublishedMenus, createMenuShareToken, loadMenuFromLink } from "./lib/social.js";
 import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
 import { readIncomingLink, shareOut } from "./lib/shareLink.js";
 import { migrateEmbeddedPhotos } from "./lib/recipePhotos.js";
@@ -54,6 +54,7 @@ const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").t
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
+const MenuPeek = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.MenuPeek })));
 import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds, createPlannerStats } from "./lib/aiPlanner.js";
 import { sugerenciasDeHueco } from "./lib/sugerenciasDeHueco.js";
 import { resolvePlannerModel, resolvePlannerFormat } from "./lib/aiModels.js";
@@ -3635,11 +3636,21 @@ export default function App() {
   // directo a eso. Se lee una sola vez al arrancar: readIncomingLink limpia
   // la barra, asi que recargar no repite la apertura.
   const [deepLinkPerson, setDeepLinkPerson] = useState(null);
+  // La semana que ha llegado por un enlace, si ha llegado alguna. Es una FOTO
+  // del momento en que se compartió, no el menú vivo de quien lo mandó.
+  const [menuDeEnlace, setMenuDeEnlace] = useState(null);
   useEffect(() => {
     const link = readIncomingLink();
     if (!link) return;
     if (link.kind === "recipe") {
       openLinkedRecipe(link.id, link.token);
+      return;
+    }
+    if (link.kind === "menu") {
+      loadMenuFromLink(link.id, link.token).then((res) => {
+        if (res.status === "ok") setMenuDeEnlace(res.menu);
+        else if (res.status === "gone") showToast("Ese enlace ya no vale");
+      });
       return;
     }
     // Del handle solo tenemos el texto: hay que resolverlo a una persona.
@@ -4153,8 +4164,8 @@ export default function App() {
    * Y es una instantánea: seguir editando tu semana no cambia lo publicado
    * hasta que vuelvas a darle a compartir.
    */
-  const handlePublishMenu = useCallback(async (scope = "week", visibility = "followers") => {
-    if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return false; }
+  const handlePublishMenu = useCallback(async (scope = "week", visibility = "followers", { silencioso = false } = {}) => {
+    if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return null; }
     const menuId = data.activeMenuId ?? "actual";
     const { dates, activeDays } = getWeekDatesByMenuWeek({
       offset: data.menuWeek?.offset ?? 0,
@@ -4200,7 +4211,7 @@ export default function App() {
     const days = payload.weeks?.[0]?.days ?? [];
     if (days.length === 0) {
       showToast(scope === "today" ? "Hoy no hay nada planificado que compartir" : "Genera un menú antes de compartirlo");
-      return false;
+      return null;
     }
 
     const saved = await publishMenu(user.id, {
@@ -4211,11 +4222,46 @@ export default function App() {
       payload,
       visibility,
     });
-    if (!saved) { showToast("No se pudo compartir el menú"); return false; }
+    if (!saved) { showToast("No se pudo compartir el menú"); return null; }
     setPublishedMenus((prev) => ({ ...prev, [menuId]: saved }));
-    showToast("Menú publicado en Gente");
-    return true;
+    // El enlace usa esto mismo para guardar la foto, y ahí «publicado en
+    // Gente» sería mentira: no ha ido al feed, se ha guardado en privado.
+    if (!silencioso) showToast("Menú publicado en Gente");
+    return saved;
   }, [user, data, menuPlan, showToast]);
+
+  /**
+   * Mandar la SEMANA por un enlace.
+   *
+   * Un enlace por plato serían catorce en un mensaje, y WhatsApp solo
+   * previsualiza el primero. Este trae la semana entera, se ve bien, y desde
+   * dentro cada plato ya es tocable.
+   *
+   * Dos pasos, y el primero no es publicar: se guarda la foto en
+   * `shared_menus` —la misma que usa Gente— pero en `private`, porque mandar
+   * un enlace y ponerlo en el feed son dos actos distintos (ver 0056). Si el
+   * menú YA estaba publicado, se respeta su visibilidad: compartir por enlace
+   * no puede retirar del feed lo que ya habías puesto.
+   */
+  const handleShareMenuLink = useCallback(async () => {
+    if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return; }
+    const menuId = data.activeMenuId ?? "actual";
+    const yaPublicado = publishedMenus[menuId];
+    const guardado = await handlePublishMenu("week", yaPublicado?.visibility ?? "private", { silencioso: true });
+    if (!guardado) return;
+
+    const llave = await createMenuShareToken(menuId);
+    if (!llave) { showToast("No se ha podido crear el enlace"); return; }
+
+    const res = await shareOut({
+      kind: "menu", value: llave.id, token: llave.token,
+      title: "Nuestra semana",
+      text: "Mira lo que comemos esta semana",
+    });
+    if (res === "copied") showToast("Enlace copiado");
+    else if (res === "error") showToast("No se ha podido compartir");
+    else if (res === "shared") trackEvent(user, "menu_link_compartido", "menu", {});
+  }, [user, data.activeMenuId, publishedMenus, handlePublishMenu, showToast]);
 
   const handleUnpublishMenu = useCallback(async () => {
     const menuId = data.activeMenuId ?? "actual";
@@ -5971,12 +6017,45 @@ export default function App() {
                       esFavorito={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
                       tema={temaPizarra}
                       onTema={alternarTemaPizarra}
+                      onCompartir={householdReadOnly ? undefined : handleShareMenuLink}
                     />
                   </Suspense>
                 ) : null
               }
             />
           </div>
+        )}
+
+        {/* La semana que ha llegado por un enlace. Se mira con el MISMO visor
+            que las del feed: quien te la manda por WhatsApp y quien la publica
+            en Gente están enseñando lo mismo, y dos visores para eso serían
+            dos sitios donde arreglar la misma cosa.
+
+            Va por encima de todo y no dentro de una pantalla porque un enlace
+            se atiende al arrancar, cuando todavía no hay pantalla a la que
+            pertenecer. */}
+        {menuDeEnlace && (
+          <Suspense fallback={null}>
+            <MenuPeek
+              menu={{
+                id: menuDeEnlace.id,
+                title: menuDeEnlace.title,
+                payload: menuDeEnlace.payload,
+                week_start: menuDeEnlace.weekStart,
+                week_end: menuDeEnlace.weekEnd,
+                owner_id: null,
+              }}
+              user={user}
+              profile={menuDeEnlace.owner ? {
+                username: menuDeEnlace.owner.username,
+                display_name: menuDeEnlace.owner.displayName,
+                avatar_url: menuDeEnlace.owner.avatarUrl,
+              } : null}
+              onClose={() => setMenuDeEnlace(null)}
+              onOpenDish={(dish) => openLinkedRecipe(dish?.recipeId, null)}
+              myRecipeIds={(data.userRecipes ?? []).map((r) => r.id)}
+            />
+          </Suspense>
         )}
 
         {/* La hoja de arranque de la pizarra. Va aquí y no dentro de la

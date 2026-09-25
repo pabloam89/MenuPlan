@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Apple, ArrowRight, BarChart3, Check, ChevronRight, Coffee, CookingPot, Eraser,
-  Heart, IceCream, Minus, Moon, Package, Plus, Salad, Search, Sparkles, Sun, X,
+  Heart, IceCream, Minus, Moon, Package, Plus, Salad, Search, Share2, Sparkles, Sun, X,
 } from "../components/icons.jsx";
 import { ingredientImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
@@ -1753,7 +1753,7 @@ export function PizarraControles({
   data, setData, menuPlan, groups, onRellenar,
   despensa, onAddDespensa, onQuitarDespensa, onQtyDespensa,
   onNuevaPizarra, onVaciar, onFavorito, esFavorito = false,
-  tema = "claro", onTema,
+  tema = "claro", onTema, onCompartir,
 }) {
   const [abierto, setAbierto] = useState(null);
   // Qué cara de la fila se ve. Arranca en las ACCIONES porque «Rellenar»
@@ -1922,11 +1922,24 @@ export function PizarraControles({
                   onClick={() => setConfirmarVaciar(true)}
                 />
               )}
+              {/* La semana entera por un enlace. Va en las ACCIONES y no en los
+                  ajustes porque es algo que HACES con el tablero, como
+                  guardarlo o vaciarlo — no algo que lo configure. */}
+              {onCompartir && (
+                <BaldosaMando
+                  Icon={Share2}
+                  label="Compartir"
+                  orden={3}
+                  color="#2f7d8c"
+                  tinte="#fff"
+                  onClick={onCompartir}
+                />
+              )}
               {onFavorito && (
                 <BaldosaMando
                   Icon={Heart}
                   label={esFavorito ? "Guardada" : "Favorito"}
-                  orden={3}
+                  orden={4}
                   color="#e0405a"
                   tinte="#fff"
                   onClick={onFavorito}
@@ -1940,7 +1953,7 @@ export function PizarraControles({
                 <BaldosaMando
                   Icon={tema === "oscuro" ? Sun : Moon}
                   label={tema === "oscuro" ? "Claro" : "Oscuro"}
-                  orden={4}
+                  orden={5}
                   color="#4b5d8f"
                   tinte="#fff"
                   onClick={onTema}

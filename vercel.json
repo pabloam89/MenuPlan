@@ -9,7 +9,8 @@
   },
   "rewrites": [
     { "source": "/r/:id", "destination": "/api/share-recipe?id=:id" },
-    { "source": "/r/:id/img", "destination": "/api/share-recipe?id=:id&img=1" }
+    { "source": "/r/:id/img", "destination": "/api/share-recipe?id=:id&img=1" },
+    { "source": "/m/:id", "destination": "/api/share-menu?id=:id" }
   ],
   "headers": [
     {

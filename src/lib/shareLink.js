@@ -7,7 +7,13 @@
  *
  *   /r/<id receta>?t=<llave>  → abre la ficha del plato
  *   ?r=<id receta>&t=<llave>  → lo mismo (forma antigua; sigue valiendo)
+ *   /m/<id menú>?t=<llave>    → abre una semana entera, en solo lectura
  *   ?u=<@usuario>             → abre el perfil de esa persona
+ *
+ * El menú va por la misma puerta que la receta y por el mismo motivo: un
+ * enlace por plato son catorce enlaces en un mensaje, de los que WhatsApp solo
+ * previsualiza el primero. Uno solo trae la semana entera, se ve bien, y desde
+ * dentro cada plato ya es tocable.
  *
  * Las recetas van por RUTA (/r/…) y no por parámetro porque WhatsApp y
  * compañía piden esa URL para pintar la miniatura: vercel.json la manda a
@@ -20,16 +26,18 @@
  * lo que las políticas ya dejaban ver.
  */
 
-export const LINK_PARAMS = { recipe: "r", user: "u", token: "t" };
+export const LINK_PARAMS = { recipe: "r", menu: "m", user: "u", token: "t" };
 
 /** El enlace, con el origen real de donde esté servida la app. */
 export function buildShareUrl(kind, value, { token = null } = {}) {
   const key = LINK_PARAMS[kind];
   if (!key || !value) return null;
   const base = typeof window !== "undefined" ? window.location.origin : "";
-  if (kind === "recipe") {
+  // Las dos que llevan miniatura van por ruta; el perfil no la necesita.
+  const RUTA = { recipe: "r", menu: "m" };
+  if (RUTA[kind]) {
     const id = encodeURIComponent(String(value));
-    return `${base}/r/${id}${token ? `?${LINK_PARAMS.token}=${encodeURIComponent(token)}` : ""}`;
+    return `${base}/${RUTA[kind]}/${id}${token ? `?${LINK_PARAMS.token}=${encodeURIComponent(token)}` : ""}`;
   }
   return `${base}/?${key}=${encodeURIComponent(String(value).replace(/^@/, ""))}`;
 }
@@ -94,6 +102,7 @@ export async function shareOut({ kind, value, token = null, title, text }) {
 }
 
 const RECIPE_PATH_RE = /^\/r\/([^/]+)\/?$/;
+const MENU_PATH_RE = /^\/m\/([^/]+)\/?$/;
 
 /**
  * Qué pedía el enlace con el que se ha abierto la app, o null. Se lee una vez
@@ -106,25 +115,26 @@ const RECIPE_PATH_RE = /^\/r\/([^/]+)\/?$/;
 export function readIncomingLink() {
   if (typeof window === "undefined") return null;
   const q = new URLSearchParams(window.location.search);
-  let recipeId = q.get(LINK_PARAMS.recipe);
-  const fromPath = window.location.pathname.match(RECIPE_PATH_RE);
-  if (fromPath) {
-    try {
-      recipeId = decodeURIComponent(fromPath[1]);
-    } catch {
-      recipeId = null;
-    }
-  }
+  const deRuta = (re) => {
+    const m = window.location.pathname.match(re);
+    if (!m) return null;
+    try { return decodeURIComponent(m[1]); } catch { return null; }
+  };
+  const recipeId = deRuta(RECIPE_PATH_RE) ?? q.get(LINK_PARAMS.recipe);
+  const menuId = deRuta(MENU_PATH_RE) ?? q.get(LINK_PARAMS.menu);
   const token = q.get(LINK_PARAMS.token) || null;
   const username = q.get(LINK_PARAMS.user);
-  if (!recipeId && !username) return null;
+  if (!recipeId && !menuId && !username) return null;
 
-  q.delete(LINK_PARAMS.recipe);
-  q.delete(LINK_PARAMS.token);
-  q.delete(LINK_PARAMS.user);
+  for (const k of Object.values(LINK_PARAMS)) q.delete(k);
   const rest = q.toString();
-  const path = fromPath ? "/" : window.location.pathname;
-  window.history.replaceState({}, "", path + (rest ? `?${rest}` : ""));
+  const enRuta = RECIPE_PATH_RE.test(window.location.pathname) || MENU_PATH_RE.test(window.location.pathname);
+  window.history.replaceState({}, "", (enRuta ? "/" : window.location.pathname) + (rest ? `?${rest}` : ""));
 
-  return recipeId ? { kind: "recipe", id: recipeId, token } : { kind: "user", username };
+  // El orden importa poco porque un enlace trae una cosa, pero la receta va
+  // primera por ser la forma antigua: si alguien pega `?r=` y `?m=` a la vez,
+  // gana la que ya funcionaba.
+  if (recipeId) return { kind: "recipe", id: recipeId, token };
+  if (menuId) return { kind: "menu", id: menuId, token };
+  return { kind: "user", username };
 }

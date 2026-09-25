@@ -948,6 +948,64 @@ export async function publishMenu(userId, { menuId, title, weekStart, weekEnd, p
   return data ?? null;
 }
 
+/**
+ * La llave de un menú mío para el enlace «cualquiera con el enlace».
+ *
+ * La crea el servidor la primera vez y devuelve siempre la misma después
+ * (`menu_share_token`, 0056): un enlace que cambiara en cada «compartir»
+ * invalidaría el que mandaste ayer.
+ *
+ * Exige que el menú ESTÉ en `shared_menus`, así que quien llame tiene que
+ * haber pasado antes por `publishMenu` — con `visibility: "private"` si lo que
+ * quiere es solo el enlace y no ponerlo en el feed, que son dos cosas
+ * distintas.
+ *
+ * @returns {{id: string, token: string} | null}
+ */
+export async function createMenuShareToken(menuId) {
+  if (!ok() || !menuId) return null;
+  const { data, error } = await supabase.rpc("menu_share_token", { p_menu: menuId });
+  if (warn("createMenuShareToken", error)) return null;
+  return data?.id && data?.token ? { id: data.id, token: data.token } : null;
+}
+
+/** Retirar la llave. El menú se queda; el enlace deja de abrir. */
+export async function revokeMenuShareToken(menuId) {
+  if (!ok() || !menuId) return false;
+  const { data, error } = await supabase.rpc("menu_share_revoke", { p_menu: menuId });
+  if (warn("revokeMenuShareToken", error)) return false;
+  return Boolean(data);
+}
+
+/**
+ * Abrir una semana desde un enlace compartido (ver lib/shareLink.js).
+ *
+ * Pasa por `menu_from_link` (0056), que aplica la llave en el servidor. Lo que
+ * vuelve es una FOTO —el `payload` que se guardó al compartir— y no el menú
+ * vivo del dueño: quien abre el enlace no toca ni sus tablas ni sus políticas.
+ *
+ *   { status: "ok", menu }   la semana entera, con de quién es
+ *   { status: "gone" }       no existe, la llave no vale, o hay un bloqueo
+ *   { status: "error" }      no se ha podido preguntar (sin red, sin Supabase)
+ */
+export async function loadMenuFromLink(menuId, token = null) {
+  if (!ok() || !menuId) return { status: "error" };
+  // Igual que en las recetas: la sesión se restaura de localStorage en segundo
+  // plano y un enlace se atiende justo al arrancar. Sin esperar, el dueño
+  // abriría su propio menú como anónimo.
+  await supabase.auth.getSession().catch(() => null);
+  const { data, error } = await supabase.rpc("menu_from_link", {
+    p_id: menuId,
+    p_token: token || null,
+  });
+  if (error) {
+    console.warn("[social] menu link load failed", error.message);
+    return { status: "error" };
+  }
+  if (data?.status === "ok" && data.payload) return { status: "ok", menu: data };
+  return { status: "gone" };
+}
+
 export async function unpublishMenu(userId, menuId) {
   if (!ok() || !userId || !menuId) return false;
   const { error } = await supabase

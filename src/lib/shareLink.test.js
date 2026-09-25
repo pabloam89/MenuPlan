@@ -80,3 +80,30 @@ describe("readIncomingLink", () => {
     expect(window.location.search).toBe("?tour=1");
   });
 });
+
+describe("el enlace de una semana", () => {
+  it("va por ruta, como el de la receta", () => {
+    const base = window.location.origin;
+    expect(buildShareUrl("menu", "9f1c2b3a", { token: "abc" })).toBe(`${base}/m/9f1c2b3a?t=abc`);
+    expect(buildShareUrl("menu", "9f1c2b3a")).toBe(`${base}/m/9f1c2b3a`);
+  });
+
+  it("y se lee al arrancar, con llave y sin ella", () => {
+    window.history.replaceState({}, "", "/m/9f1c2b3a?t=abc");
+    expect(readIncomingLink()).toEqual({ kind: "menu", id: "9f1c2b3a", token: "abc" });
+    window.history.replaceState({}, "", "/?m=9f1c2b3a");
+    expect(readIncomingLink()).toEqual({ kind: "menu", id: "9f1c2b3a", token: null });
+  });
+
+  it("si vienen los dos, manda la receta: es la forma que ya funcionaba", () => {
+    window.history.replaceState({}, "", "/?r=rec_1&m=9f1c2b3a&t=abc");
+    expect(readIncomingLink()).toEqual({ kind: "recipe", id: "rec_1", token: "abc" });
+  });
+
+  it("y la barra se limpia igual que con una receta", () => {
+    window.history.replaceState({}, "", "/m/9f1c2b3a?t=abc&otro=1");
+    readIncomingLink();
+    expect(window.location.pathname).toBe("/");
+    expect(window.location.search).toBe("?otro=1");
+  });
+});
