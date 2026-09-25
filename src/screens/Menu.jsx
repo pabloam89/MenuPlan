@@ -1,5 +1,6 @@
 import { cloneElement, createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useZoomPellizco } from "../lib/useZoomPellizco.js";
+import { HuecosVivosContext } from "../lib/huecosVivos.js";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -5584,6 +5585,18 @@ export const MenuScreen = memo(function MenuScreen({
     () => (activeDays ?? []).some((day) => getDeckDayTiles(day, data, menuPlan, visibleGroups).length > 0),
     [activeDays, data, menuPlan, visibleGroups],
   );
+  // Ver HuecosVivosContext. Una baldosa vacía compartida por dos grupos son
+  // dos huecos: lo que pongas cae en los dos, y así lo cuenta Rellenar.
+  const huecosVivos = useMemo(() => {
+    const out = [];
+    for (const day of activeDays ?? []) {
+      for (const t of getDeckDayTiles(day, data, menuPlan, visibleGroups)) {
+        if (!t.empty) continue;
+        for (const g of t.groups) out.push({ groupId: g.id, day, meal: t.meal, course: t.course ?? "main" });
+      }
+    }
+    return out;
+  }, [activeDays, data, menuPlan, visibleGroups]);
   const menuNeedsActivation = Boolean(
     user && activeMenu && activeMenu.activatedAt === null && onActivateMenu,
   );
@@ -6260,7 +6273,9 @@ export const MenuScreen = memo(function MenuScreen({
               )}
             </div>
             <div style={{ flex: 1, minWidth: 0, background: "var(--pz-fondo-suave, #f1f5f9)", display: "flex", alignItems: "center" }}>
-              {pizarraControles}
+              <HuecosVivosContext.Provider value={huecosVivos}>
+                {pizarraControles}
+              </HuecosVivosContext.Provider>
             </div>
           </div>
         )}

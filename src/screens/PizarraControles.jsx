@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState } from "react";
+import { useContext, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { HuecosVivosContext } from "../lib/huecosVivos.js";
 import {
   Apple, ArrowRight, BarChart3, Check, ChevronRight, Coffee, CookingPot, Eraser,
   Heart, IceCream, Minus, Moon, Package, Plus, Salad, Search, Share2, Sparkles, Sun, X,
@@ -1764,19 +1765,12 @@ export function PizarraControles({
 
   const diasDe = (offset) => diasDeSemana(data, offset, todayIdx);
 
-  // Cuántos PLATOS faltan por poner: una comida partida en dos que está
-  // entera vacía son dos, no uno. Es el número de la chapa de "Rellenar".
-  const huecosVacios = useMemo(() => {
-    let n = 0;
-    for (const g of groups ?? []) {
-      for (const s of Object.values(menuPlan?.[g.id] ?? {})) {
-        if (!s) continue;
-        if (s.dosPlatos && !s.firstRecipeId) n++;
-        if (!s.recipeId) n++;
-      }
-    }
-    return n;
-  }, [menuPlan, groups]);
+  // Los huecos vacíos que el tablero está pintando, ni uno más: la chapa de
+  // «Rellenar» los cuenta y Rellenar los llena. Los cuenta el tablero, no
+  // esto, porque solo él sabe qué días y qué grupos hay a la vista (ver
+  // HuecosVivosContext en Menu.jsx).
+  const huecosVivos = useContext(HuecosVivosContext);
+  const huecosVacios = huecosVivos.length;
 
   /**
    * La sesión del domingo, sacada del tablero tal y como está ahora mismo.
@@ -1896,7 +1890,7 @@ export function PizarraControles({
                   color="#c98a1e"
                   tinte="#fff"
                   badge={huecosVacios}
-                  onClick={() => onRellenar()}
+                  onClick={() => onRellenar({ huecos: huecosVivos })}
                 />
               )}
               {/* Aquí vivía una baldosa «Elegir» que ponía el tablero en modo
