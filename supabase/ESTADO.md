@@ -9,11 +9,35 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **55** |
+| Ficheros en `supabase/migrations/` | **56** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **31** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026 y quedó registrada en `schema_migrations`) |
+| Aplicadas | **32** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0056, aplicada el 25 sep 2026
+
+`0056_menu_share_links` — enlaces con llave para mandar una SEMANA, hermana de
+la 0055. Aplicada en transacción contra producción y verificada en vivo:
+
+| | |
+|---|---|
+| `public.menu_share_links` | creada, con RLS activo y 1 política de lectura |
+| `menu_share_token` / `menu_share_revoke` / `menu_from_link` | las tres, creadas |
+| `menu_from_link` con un uuid inexistente, como `anon` | devuelve `{"status":"gone"}` |
+| `menu_share_token` sin sesión | rechaza con «sin sesión» |
+
+**Y algo que salió al verificarla y afecta también a la 0055:** `revoke all on
+function … from public` **no le quita el permiso a `anon`**. Supabase trae un
+`alter default privileges` que concede EXECUTE a `anon` y `authenticated` sobre
+las funciones nuevas del esquema `public`, y eso es una concesión DIRECTA que
+revocarle a `public` no toca.
+
+No es un agujero: las tres funciones de escritura empiezan mirando `auth.uid()`
+y responden «sin sesión». Pero la concesión dice lo contrario de lo que se
+pretendía. En la 0056 se ha añadido un `revoke execute … from anon` explícito;
+**`recipe_share_token` (0055) sigue con `anon = true`** y convendría hacerle lo
+mismo.
 
 ## La única sin aplicar
 

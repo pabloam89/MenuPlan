@@ -86,7 +86,17 @@ begin
 end;
 $$;
 
+-- OJO con el `revoke ... from public`: NO basta. Supabase trae un
+-- `alter default privileges` que concede EXECUTE a `anon` y `authenticated`
+-- sobre las funciones nuevas del esquema public, y eso es una concesión
+-- DIRECTA que quitarle a `public` no toca. Comprobado en vivo: sin la línea
+-- de abajo, `anon` podía llamar a esto (igual que a recipe_share_token, 0055).
+--
+-- No era un agujero —la función empieza mirando `auth.uid()` y responde «sin
+-- sesión»—, pero una concesión que dice lo contrario de lo que se pretende es
+-- una trampa para el siguiente que la lea.
 revoke all on function public.menu_share_token(text) from public;
+revoke execute on function public.menu_share_token(text) from anon;
 grant execute on function public.menu_share_token(text) to authenticated;
 
 -- ── 3. Quitar la llave ──────────────────────────────────────────────────────
@@ -116,6 +126,7 @@ end;
 $$;
 
 revoke all on function public.menu_share_revoke(text) from public;
+revoke execute on function public.menu_share_revoke(text) from anon;
 grant execute on function public.menu_share_revoke(text) to authenticated;
 
 -- ── 4. Abrir un menú desde un enlace ───────────────────────────────────────
