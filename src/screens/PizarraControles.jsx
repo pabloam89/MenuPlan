@@ -91,117 +91,25 @@ const ICONO_FRANJA = {
 };
 
 /**
- * Los tres macros, con su color y sus kcal por gramo.
+ * Los tres macros, con su letra y su color: son las columnas P / H / G del
+ * desglose de cada familia.
  *
- * El anillo reparte por ENERGÍA, no por gramos. 26 g de grasa y 26 g de
- * hidratos ocupan lo mismo en una báscula y no se parecen en nada en un plato:
- * la grasa lleva 9 kcal por gramo y los hidratos 4. Un anillo por gramos
- * dibujaría la grasa a menos de la mitad de lo que pesa de verdad en la comida,
- * que es justo el error que este dibujo tiene que no cometer.
+ * Los colores no son decorativos: son la forma de saber qué columna es cuál.
+ * Tres tonos de familias distintas —verde azulado, ámbar y azul marino— que
+ * separan por tono y no por claridad, así que aguantan en pantallas malas y
+ * en daltonismo rojo-verde.
  *
- * Los gramos siguen ahí, en los números — cada cosa dice lo suyo y el pie lo
- * declara, para que nadie intente cuadrar los porcentajes con los gramos.
- */
-/*
- * Los colores no son decorativos: son la ÚNICA forma de saber qué arco es
- * cuál. Iban en rojo, naranja y amarillo y eran tres pasos de la misma rampa
- * —en un aro de 9px no se distinguían—. Ahora son tres tonos de familias
- * distintas: verde azulado, ámbar y azul marino. Separan por tono, no por
- * claridad, así que aguantan también en pantallas malas y en daltonismo
- * rojo-verde, que es justo el que rompía la rampa anterior.
+ * Aquí vivió el anillo de macros (a31404d): un reparto de la energía de la
+ * semana entera, arriba del todo. Se quitó el 25 sep 2026 porque no se
+ * entendía a qué se refería —¿una comida, todas, qué personas?— y un dibujo
+ * que hay que explicar no resume nada. Si vuelve, tendrá que decir de quién
+ * y de qué es antes de pintar un arco.
  */
 const MACROS = [
-  { id: "protein_g", letra: "P", nombre: "proteína", color: "#0d8a7d", kcalPorG: 4 },
-  { id: "carbs_g", letra: "H", nombre: "hidratos", color: "#d99320", kcalPorG: 4 },
-  { id: "fat_g", letra: "G", nombre: "grasa", color: "#2c4a7c", kcalPorG: 9 },
+  { id: "protein_g", letra: "P", nombre: "proteína", color: "#0d8a7d" },
+  { id: "carbs_g", letra: "H", nombre: "hidratos", color: "#d99320" },
+  { id: "fat_g", letra: "G", nombre: "grasa", color: "#2c4a7c" },
 ];
-
-/**
- * El anillo de macros: cuánta de la energía viene de cada uno.
- *
- * Un arco por macro sobre un mismo círculo, con las kcal en el centro. Es un
- * SVG y no tres divs porque un arco se dibuja con `stroke-dasharray` y ya está:
- * no hay que calcular ni un path.
- */
-function AnilloMacros({ platos, size = 74 }) {
-  const suma = (campo) => platos.reduce((t, p) => t + (Number(p[campo]) || 0), 0);
-  const trozos = MACROS.map((m) => ({ ...m, gramos: suma(m.id), kcal: suma(m.id) * m.kcalPorG }));
-  const energia = trozos.reduce((t, x) => t + x.kcal, 0);
-  const fibra = suma("fiber_g");
-  const kcalMedia = platos.length ? Math.round(suma("kcal") / platos.length) : 0;
-  if (energia <= 0) return null;
-
-  const grosor = 9;
-  const r = (size - grosor) / 2;
-  const circ = 2 * Math.PI * r;
-  // El punto de arranque de cada arco se calcula ANTES de pintar, no mutando
-  // un contador dentro del map: el compilador de React no admite reasignar
-  // durante el render, y además así el trozo trae ya todo lo que necesita.
-  const arcos = trozos.reduce((acc, x) => {
-    const frac = x.kcal / energia;
-    const previo = acc.length ? acc[acc.length - 1] : null;
-    acc.push({ ...x, frac, desde: previo ? previo.desde + previo.frac : 0 });
-    return acc;
-  }, []);
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-      <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-        <svg width={size} height={size} style={{ display: "block", transform: "rotate(-90deg)" }} aria-hidden>
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#eef3f0" strokeWidth={grosor} />
-          {arcos.map((x) => {
-            // Un pelo de aire entre arcos para que se vean tres y no uno.
-            const largo = Math.max(0, circ * x.frac - 2);
-            return (
-              <circle
-                key={x.id}
-                cx={size / 2} cy={size / 2} r={r} fill="none"
-                stroke={x.color} strokeWidth={grosor} strokeLinecap="round"
-                strokeDasharray={`${largo} ${circ - largo}`}
-                strokeDashoffset={-circ * x.desde}
-              />
-            );
-          })}
-        </svg>
-        <span
-          style={{
-            position: "absolute", inset: 0, display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", lineHeight: 1,
-          }}
-        >
-          <span style={{ fontSize: 16, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>{kcalMedia}</span>
-          <span style={{ fontSize: 8.5, fontWeight: 800, color: "#9ab0a1", marginTop: 2 }}>kcal</span>
-        </span>
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
-        {trozos.map((x) => (
-          <div key={x.id} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 3, background: x.color, flexShrink: 0 }} />
-            <span style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: "#5a7066" }}>{x.nombre}</span>
-            <span style={{ fontSize: 11.5, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>
-              {Math.round(x.gramos / platos.length)} g
-            </span>
-          </div>
-        ))}
-        {/* La fibra NO es un arco: no aporta energía, así que dentro del
-            anillo estaría mintiendo sobre de dónde salen las calorías. Va
-            debajo, con su punto hueco, porque vale la pena verla —está al
-            99,5 % en el catálogo y es lo que más se queda corto en una
-            semana real. */}
-        {fibra > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 7, paddingTop: 5, borderTop: "1px solid #e8efea" }}>
-            <span style={{ width: 8, height: 8, borderRadius: 3, border: "1.5px solid #7a8f84", boxSizing: "border-box", flexShrink: 0 }} />
-            <span style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 700, color: "#5a7066" }}>fibra</span>
-            <span style={{ fontSize: 11.5, fontWeight: 900, color: INK, fontVariantNumeric: "tabular-nums" }}>
-              {Math.round(fibra / platos.length)} g
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 const FAMILIAS_BALANCE = [
   { id: "carne", label: "Carne", color: "#c0392b", img: "carnes.png" },
@@ -368,27 +276,6 @@ function PanelBalance({ menuPlan, groups, members = [] }) {
               </button>
             );
           })}
-        </div>
-      )}
-
-      {/* ── El anillo, una vez y arriba ──────────────────────────────────
-          Estaba dentro de cada familia y se repetía seis veces diciendo cada
-          vez algo distinto sobre un trozo pequeño. Una semana tiene UN
-          reparto de macros, y es este. Se calcula sobre `recuento.platos` —la
-          lista plana— y no sumando las familias: un arroz a la cubana está en
-          dos y contaría por partida doble. */}
-      {recuento.platos.length > 0 && (
-        <div
-          style={{
-            background: "#fff", border: "1px solid #e3ebe6", borderRadius: 16,
-            padding: "12px 14px", marginBottom: 12,
-            boxShadow: "0 1px 3px rgba(20,47,29,.05)",
-          }}
-        >
-          <AnilloMacros platos={recuento.platos} />
-          <p style={{ margin: "10px 0 0", fontSize: 9.5, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.35 }}>
-            Media por ración. El anillo reparte las calorías, no los gramos.
-          </p>
         </div>
       )}
 
