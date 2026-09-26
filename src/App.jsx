@@ -1419,10 +1419,15 @@ export default function App() {
       }
       if (!result.ok && !storageQuotaWarnedRef.current) {
         storageQuotaWarnedRef.current = true;
+        if (!result.quota) {
+          console.error("saveState: no se pudo guardar el estado (no es falta de espacio)");
+        }
         showToast(
-          user
-            ? "Memoria del navegador llena: se ha intentado liberar historial antiguo. Si sigue fallando, borra datos del sitio o usa otra sesión."
-            : "No se ha podido guardar tu progreso en este dispositivo (memoria llena). Inicia sesión para no perderlo.",
+          !result.quota
+            ? "No se ha podido guardar tu progreso en este dispositivo."
+            : user
+              ? "Memoria del navegador llena: se ha intentado liberar historial antiguo. Si sigue fallando, borra datos del sitio o usa otra sesión."
+              : "No se ha podido guardar tu progreso en este dispositivo (memoria llena). Inicia sesión para no perderlo.",
         );
       }
     }, 400);

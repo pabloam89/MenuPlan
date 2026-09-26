@@ -68,7 +68,10 @@ function tryWrite(payload) {
  * Persist app state. On QuotaExceeded / private-mode failures, progressively
  * compact menus + spend history and retry before giving up.
  *
- * @returns {{ ok: boolean, pruned: boolean, saved: object|null }}
+ * `quota` dice si el último fallo fue de espacio. Si no lo fue (p. ej. el
+ * estado no se puede serializar), avisar de "memoria llena" sería mentir.
+ *
+ * @returns {{ ok: boolean, pruned: boolean, saved: object|null, quota?: boolean }}
  */
 export function saveState(state) {
   const attempts = [
@@ -77,15 +80,22 @@ export function saveState(state) {
     { pruned: true, payload: compactState(state, "hard") },
   ];
 
+  let lastError = null;
   for (const attempt of attempts) {
     try {
       tryWrite(attempt.payload);
       return { ok: true, pruned: attempt.pruned, saved: attempt.payload };
-    } catch {
-      // try next compaction level
+    } catch (err) {
+      lastError = err;
     }
   }
-  return { ok: false, pruned: false, saved: null };
+  return { ok: false, pruned: false, saved: null, quota: isQuotaError(lastError) };
+}
+
+function isQuotaError(err) {
+  if (!err) return false;
+  // Chrome/Safari: QuotaExceededError (code 22); Firefox: NS_ERROR_DOM_QUOTA_REACHED (1014).
+  return err.name === "QuotaExceededError" || err.name === "NS_ERROR_DOM_QUOTA_REACHED" || err.code === 22 || err.code === 1014;
 }
 
 export function clearState() {

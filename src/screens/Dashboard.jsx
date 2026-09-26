@@ -589,7 +589,7 @@ export function DashboardScreen({
           />
         )}
 
-        {!householdReadOnly && onStartPizarra && <PizarraCard onClick={onStartPizarra} />}
+        {!householdReadOnly && onStartPizarra && <PizarraCard onClick={() => onStartPizarra()} />}
 
         {/* ── Hoy toca (solo renderiza platos; vacío si no hay menú) ── */}
         {showTodaySection && (
