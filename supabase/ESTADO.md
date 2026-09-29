@@ -9,11 +9,18 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **57** |
+| Ficheros en `supabase/migrations/` | **58** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **33** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, el 29 sep 2026) |
+| Aplicadas | **34** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos` y la `0058_bot_codigos`, el 29 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0058, aplicada el 29 sep 2026
+
+`0058_bot_codigos` — códigos de un solo uso para entrar al bot sin pasar por
+Ajustes («ya tengo cuenta» por email y «soy nuevo»). Ensayada en transacción
+deshecha y aplicada: `bot_codigos` con RLS y sin políticas; un código `entrar`
+sin `user_id` se rechaza.
 
 ## La 0057, aplicada el 29 sep 2026
 

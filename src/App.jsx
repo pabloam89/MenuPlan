@@ -159,6 +159,7 @@ import {
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
 import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
 import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
+import BotEnlace from "./components/BotEnlace.jsx";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
@@ -7130,6 +7131,8 @@ export default function App() {
       )}
 
       {/* FeedbackFAB hidden */}
+
+      <BotEnlace user={user} showToast={showToast} />
 
       {toast && (
         <div
