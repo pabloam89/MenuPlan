@@ -157,7 +157,8 @@ import {
   mergeDiscards,
 } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
-import { loadHouseholdState, saveHouseholdState } from "./lib/householdState.js";
+import { loadHouseholdState, saveHouseholdState, loadHouseholdBotRev } from "./lib/householdState.js";
+import { leerBotRevVisto, guardarBotRevVisto } from "./lib/botRevVisto.js";
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
@@ -1450,6 +1451,18 @@ export default function App() {
   const hydratedUserRef = useRef(null);
   const cloudReadyRef = useRef(false);
   const householdJustEmptiedRef = useRef(false);
+  // El bot de Telegram escribe en la nube (0057). `botRevRef` es el contador
+  // que vimos al cargar: todo lo que la app sube va condicionado a él, y si el
+  // bot ha escrito entretanto, recargamos la nube (adoptándola entera, perfil
+  // incluido: `forceRemoteRef`) en vez de pisar su cambio. `cloudEpoch` solo
+  // existe para volver a disparar la hidratación.
+  const botRevRef = useRef(null);
+  const forceRemoteRef = useRef(false);
+  // Una recarga en curso: un segundo aviso de conflicto (la casa y la semana
+  // chocan a la vez) no lanza otra.
+  const recargandoRef = useRef(false);
+  const recargarDesdeNubeRef = useRef(() => {});
+  const [cloudEpoch, setCloudEpoch] = useState(0);
   // Kept live (not just captured once) so the one-time legacy backfill below
   // can tell whether a menú it's about to activate in the cloud is still
   // actually the active one locally — the user may generate a brand new menú
@@ -1485,6 +1498,8 @@ export default function App() {
     const householdId = activeHouseholdId;
     const justEmptied = householdJustEmptiedRef.current;
     if (justEmptied) householdJustEmptiedRef.current = false;
+    const forceRemote = forceRemoteRef.current;
+    forceRemoteRef.current = false;
 
     // Capture local-only blobs before any await so a mid-hydration edit
     // isn't the source of truth for the union (same as before).
@@ -1546,8 +1561,20 @@ export default function App() {
       // profile (members, allergies, intolerances, healthProfiles) the user
       // just set up. See lib/profileMerge.js.
       const remoteData = remoteState?.state?.data;
+      // Si el bot ha escrito desde la última vez que este dispositivo miró
+      // (app cerrada mientras hablabas con él), la nube manda aunque aquí ya
+      // haya perfil: si no, el primer guardado de la app borraría su cambio.
+      // Solo se adopta la nube si de verdad llegó algo: sin red, `remoteData`
+      // es null y adoptarla reiniciaría la casa a vacío. Sin fila en la nube
+      // (casa recién creada) la versión es 0, no null: así los guardados van
+      // condicionados desde el primero y un cambio del bot no se pisa.
+      const remoteBotRev = remoteState?.botRev ?? null;
+      const botEscribio = remoteBotRev != null && remoteBotRev > (leerBotRevVisto(householdId) ?? 0);
+      if (householdId) botRevRef.current = remoteBotRev ?? 0;
       const useRemote =
         justEmptied
+        || (forceRemote && remoteData)
+        || (botEscribio && remoteData)
         || shouldAdoptRemoteProfile({
           localMemberCount: data.members?.length ?? 0,
           remoteMemberCount: remoteData?.members?.length ?? 0,
@@ -1650,7 +1677,7 @@ export default function App() {
         // runs when the cloud archive is empty, so it's naturally
         // idempotent — once any menú lands there (from this backfill or a
         // live dual-write), this branch never runs again for this user.
-        const finalMenus = useRemote ? (remoteData.menus ?? {}) : localMenus;
+        const finalMenus = useRemote ? (remoteData?.menus ?? {}) : localMenus;
         const menuList = Object.values(finalMenus);
         for (const menu of menuList) {
           const recipes = Array.from(collectMenuRecipeIds({ [menu.id]: menu }))
@@ -1758,20 +1785,23 @@ export default function App() {
         });
       }
 
+      if (remoteBotRev != null) guardarBotRevVisto(householdId, remoteBotRev);
       cloudReadyRef.current = true;
+      recargandoRef.current = false;
     })();
 
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, activeHouseholdId, householdLoading, householdReadOnly]);
+  }, [user?.id, activeHouseholdId, householdLoading, householdReadOnly, cloudEpoch]);
 
   // Debounced push of the private profile snapshot (everything except the
   // normalized recipes/votes, which sync through their own tables). Gated on
   // cloudReadyRef so we never clobber the remote copy before hydration lands.
   useEffect(() => {
     if (!user?.id || !cloudReadyRef.current || !activeHouseholdId || householdReadOnly) return;
+    const rev = botRevRef.current;
     const t = window.setTimeout(() => {
       const profile = { ...data };
       delete profile.userRecipes;
@@ -1779,11 +1809,30 @@ export default function App() {
       delete profile.discards;
       delete profile.menus;
       const snapshot = { data: profile, menuPlan, shopping, aiRecipes, onbStep };
-      if (syncHouseholdId) saveHouseholdState(syncHouseholdId, snapshot);
-      else saveUserState(user.id, snapshot);
+      if (syncHouseholdId) {
+        // La versión se fija al programar el guardado, no al dispararlo: si
+        // entretanto se recargó la nube, este estado ya es viejo y no se sube.
+        if (!cloudReadyRef.current || botRevRef.current !== rev) return;
+        saveHouseholdState(syncHouseholdId, snapshot, rev).then((r) => {
+          if (r.conflict) recargarDesdeNubeRef.current();
+        });
+      } else saveUserState(user.id, snapshot);
     }, 1200);
     return () => window.clearTimeout(t);
   }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep]);
+
+  // Al volver a la app (desde Telegram, típicamente) se mira si el bot ha
+  // escrito. Es una lectura de un número; la recarga solo si ha cambiado.
+  useEffect(() => {
+    if (!user?.id || !syncHouseholdId) return;
+    const alVolver = async () => {
+      if (document.visibilityState !== "visible" || !cloudReadyRef.current) return;
+      const rev = await loadHouseholdBotRev(syncHouseholdId);
+      if (rev != null && botRevRef.current != null && rev > botRevRef.current) recargarDesdeNubeRef.current();
+    };
+    document.addEventListener("visibilitychange", alVolver);
+    return () => document.removeEventListener("visibilitychange", alVolver);
+  }, [user?.id, syncHouseholdId]);
 
   // Reconcilia el modo de consumo saliente cuando el usuario lo cambia con un
   // menú ya activo. Ejemplo: modo "onGenerate" → "endOfDay". El stock se
@@ -1935,6 +1984,19 @@ export default function App() {
     window.clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 1800);
   }, []);
+
+  // El bot ha escrito en la casa: se vuelve a hidratar adoptando la nube.
+  // Lo que se hubiera tocado aquí sin llegar a subir se pierde a propósito:
+  // es el precio de que el cambio del bot no desaparezca en silencio.
+  recargarDesdeNubeRef.current = () => {
+    if (recargandoRef.current) return;
+    recargandoRef.current = true;
+    forceRemoteRef.current = true;
+    hydratedUserRef.current = null;
+    cloudReadyRef.current = false;
+    setCloudEpoch((n) => n + 1);
+    showToast("Actualizado con los cambios del chat");
+  };
 
   const handleDeleteRecipe = useCallback(async (recipeId) => {
     if (!recipeId) return;
@@ -3046,7 +3108,7 @@ export default function App() {
     // shopping change on reload (the generation-time row would win). Debounced
     // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
     if (user && menuId && wk) {
-      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId);
+      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current() });
     }
   }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user]);
 
@@ -3175,7 +3237,7 @@ export default function App() {
       setData((d) => ({ ...d, menus }));
       if (user) {
         toggleMenuFavoriteRemote(user.id, menuId, true);
-        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId);
+        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId, { botRev: botRevRef.current, onConflict: () => recargarDesdeNubeRef.current() });
       }
       showToast("Menú guardado en favoritos");
     } else {

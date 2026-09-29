@@ -9,11 +9,25 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **56** |
+| Ficheros en `supabase/migrations/` | **57** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **32** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026) |
+| Aplicadas | **33** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, el 29 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0057, aplicada el 29 sep 2026
+
+`0057_bot_cimientos` — cimientos del bot de Telegram: `household_state.bot_rev`
+y las escrituras condicionadas para que la app no pise lo que escribe el bot
+(ver `specs/plan-bot-mensajeria.md`). Probada antes en dos transacciones
+deshechas y aplicada después en transacción, verificada en vivo:
+
+| | |
+|---|---|
+| `household_state.bot_rev` | creada, `bigint default 0`; las 28 casas en 0 |
+| `bot_identities`, `bot_chats`, `bot_link_tokens`, `bot_messages`, `bot_reminders`, `bot_usage` | creadas, con RLS y sin políticas (solo servidor) |
+| `save_household_state` / `save_menu_week` | como usuario: versión buena → `ok`; tras una escritura del bot → `ok:false`; casa ajena → rechazada por RLS |
+| `bot_save_casa` | solo `service_role` (ni `anon` ni `authenticated`); versión vieja → `ok:false` |
 
 ## La 0056, aplicada el 25 sep 2026
 
