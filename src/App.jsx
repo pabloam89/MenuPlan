@@ -7132,7 +7132,7 @@ export default function App() {
 
       {/* FeedbackFAB hidden */}
 
-      <BotEnlace user={user} showToast={showToast} />
+      <BotEnlace showToast={showToast} />
 
       {toast && (
         <div

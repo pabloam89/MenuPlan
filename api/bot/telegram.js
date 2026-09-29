@@ -8,8 +8,8 @@
  *
  * Tres formas de enlazar un chat con una casa:
  *   · `/start <código>` desde «Conectar Telegram» en Ajustes (bot_link_tokens).
- *   · «Ya tengo cuenta»: el bot pide el email y Supabase manda el enlace de
- *     acceso; al abrirlo, la app confirma y llama a api/bot/vincular.js.
+ *   · «Ya tengo cuenta»: el bot pide el email, Supabase manda un código de 6
+ *     cifras y se escribe aquí mismo (0059). Todo dentro de Telegram.
  *   · «Soy nuevo»: el bot crea cuenta y casa (api/_bot/cuentas.js) y da un
  *     enlace que abre la app ya dentro (api/bot/entrar.js).
  * Y `/app` en privado: un enlace para abrir la app ya dentro, cuando quieras.
@@ -25,8 +25,8 @@ import crypto from "node:crypto";
 import { select, update, eq } from "../_bot/db.js";
 import { enviar, llamar, escaparHtml } from "../_bot/telegram.js";
 import { cargarCasa } from "../_bot/casa.js";
-import { enlazarChat, crearCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
-import { enviarAcceso, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
+import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
+import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
 const MIN_VINCULAR = 60; // lo que dura el enlace de acceso de Supabase
@@ -73,6 +73,8 @@ async function atender(msg, base) {
       return enviar(chatId, "Este grupo aún no está conectado a ninguna casa. Conéctalo desde la app de HoMenu, en <b>Ajustes → Conectar Telegram</b>.");
     }
     if (EMAIL_RE.test(texto)) return pedirAcceso(msg, chatId, texto.toLowerCase(), base);
+    const cifras = texto.replace(/\s/g, "");
+    if (/^\d{6}$/.test(cifras)) return comprobarCodigo(msg, chatId, cifras);
     return bienvenida(chatId);
   }
 
@@ -105,7 +107,7 @@ async function pulsado(cq, base) {
   if (chat) return enviar(chatId, "Este chat ya está conectado a tu casa. Escríbeme cuando quieras.");
 
   if (cq.data === "cuenta:si") {
-    return enviar(chatId, "Escríbeme el <b>email</b> con el que entras en HoMenu y te mando un enlace para conectarnos.");
+    return enviar(chatId, "Escríbeme el <b>email</b> con el que entras en HoMenu y te mando un código para conectarnos.");
   }
   if (cq.data === "cuenta:nuevo") return crearCuenta(cq.from, chatId, base);
 }
@@ -126,14 +128,15 @@ async function pedirAcceso(msg, chatId, email, base) {
     return enviar(chatId, "Ya te he mandado varios correos. Espera un rato antes de pedir otro.");
   }
 
-  const codigo = await crearCodigo({
+  await crearCodigo({
     tipo: "vincular",
     chatId,
     externalId: msg.from?.id,
     nombre: nombreDe(msg.from),
+    email,
     minutos: MIN_VINCULAR,
   });
-  const r = await enviarAcceso(email, `${base}/?vincular=${codigo}`);
+  const r = await enviarAcceso(email, `${base}/`);
   if (!r.ok && !r.noExiste) {
     console.error("[bot/telegram] enviarAcceso", r.error);
     return enviar(chatId, "No he podido mandarte el correo ahora mismo. Prueba en unos minutos.");
@@ -142,9 +145,47 @@ async function pedirAcceso(msg, chatId, email, base) {
   // averiguar qué emails usan HoMenu.
   return enviar(
     chatId,
-    `Si <b>${escaparHtml(email)}</b> tiene cuenta en HoMenu, te acaba de llegar un correo. Ábrelo y pulsa el enlace: entrarás en la app y te pediré confirmar que conectamos este chat con tu casa.\n\n¿No te llega nada? Revisa el email o empieza desde cero:`,
+    `Si <b>${escaparHtml(email)}</b> tiene cuenta en HoMenu, te acaba de llegar un correo con un <b>código de 6 cifras</b>. Escríbemelo aquí.\n\n¿No te llega nada? Revisa el email o empieza desde cero:`,
     { botones: [[{ texto: "Soy nuevo", dato: "cuenta:nuevo" }]] },
   );
+}
+
+const MAX_INTENTOS = 5;
+
+async function comprobarCodigo(msg, chatId, token) {
+  const ahora = encodeURIComponent(new Date().toISOString());
+  const [pendiente] = await select(
+    "bot_codigos",
+    `tipo=eq.vincular&channel=eq.telegram&chat_id=${eq(chatId)}&external_id=${eq(msg.from?.id)}&used_at=is.null&expires_at=gt.${ahora}&order=created_at.desc&limit=1`,
+    "codigo,email,intentos",
+  );
+  if (!pendiente?.email) return bienvenida(chatId);
+  if (pendiente.intentos >= MAX_INTENTOS) {
+    return enviar(chatId, "Demasiados intentos con ese código. Escríbeme otra vez tu email y te mando uno nuevo.");
+  }
+
+  const userId = await verificarCodigoEmail(pendiente.email, token);
+  if (!userId) {
+    await update("bot_codigos", `codigo=${eq(pendiente.codigo)}`, { intentos: pendiente.intentos + 1 });
+    return enviar(chatId, "Ese código no es correcto (o ha caducado). Revísalo y vuelve a escribírmelo.");
+  }
+
+  if (!(await gastarCodigo(pendiente.codigo, "vincular"))) return bienvenida(chatId);
+  const hogar = await casaPropia(userId);
+  if (!hogar) {
+    return enviar(chatId, "Tu cuenta no gestiona ninguna casa todavía. Entra en la app de HoMenu para crear la tuya y vuelve a escribirme.");
+  }
+  const r = await enlazarChat({
+    chatId,
+    kind: "private",
+    householdId: hogar.id,
+    userId,
+    externalId: msg.from?.id,
+    nombre: nombreDe(msg.from),
+    lang: msg.from?.language_code,
+  });
+  if (r.ocupado) return enviar(chatId, "Este chat ya está conectado a otra casa. Solo quien lo conectó puede cambiarlo.");
+  return confirmarEnlace(chatId, hogar.id);
 }
 
 async function crearCuenta(from, chatId, base) {

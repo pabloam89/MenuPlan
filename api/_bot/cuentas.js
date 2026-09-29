@@ -2,10 +2,11 @@
  * Cuentas desde el bot: entrar con email y crearlas sin email.
  *
  * ── Ya tengo cuenta ────────────────────────────────────────────────────────
- * `enviarAcceso` pide a Supabase el mismo enlace de acceso por email que
- * usaría la app (`/auth/v1/otp`, sin crear cuenta si no existe). Supabase une
- * ese acceso con la cuenta de Google cuando el email coincide (comprobado el
- * 29 sep 2026: entra en el mismo usuario, no crea otro).
+ * `enviarAcceso` pide a Supabase un correo de acceso (`/auth/v1/otp`, sin
+ * crear cuenta si no existe) cuya plantilla lleva un código de 6 cifras; se
+ * escribe en el chat y `verificarCodigoEmail` lo comprueba. Supabase une ese
+ * acceso con la cuenta de Google cuando el email coincide (comprobado el
+ * 29 sep 2026: mismo usuario, no crea otro).
  *
  * ── Soy nuevo ──────────────────────────────────────────────────────────────
  * `crearCuentaTelegram` crea el usuario con la API de administración, con un
@@ -50,6 +51,20 @@ export async function enviarAcceso(email, redirectTo) {
   if (/signup|not.?allowed|not.?found|otp_disabled/i.test(msg)) return { ok: false, noExiste: true };
   if (r.status === 429) return { ok: false, error: "demasiados correos seguidos" };
   return { ok: false, error: msg.trim() || `HTTP ${r.status}` };
+}
+
+/**
+ * Comprueba el código de 6 cifras que Supabase mandó por email (0059). Si es
+ * bueno, devuelve el id del usuario: quien lo escribe en el chat ha leído ese
+ * correo, que es la prueba de que la cuenta es suya.
+ * @returns {Promise<string | null>}
+ */
+export async function verificarCodigoEmail(email, token) {
+  for (const type of ["email", "magiclink"]) {
+    const r = await auth("/verify", { body: { type, email, token } });
+    if (r.ok && r.json?.user?.id) return r.json.user.id;
+  }
+  return null;
 }
 
 /** El `token_hash` de un enlace mágico, sin mandar correo. Sirve para abrir la app ya dentro. */

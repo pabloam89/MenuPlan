@@ -43,7 +43,7 @@ export async function enlazarChat({ channel = "telegram", chatId, kind, househol
 /** 16 bytes en base64url: cabe en el `/start` de Telegram (máx. 64) y en una URL. */
 export const codigoNuevo = () => crypto.randomBytes(16).toString("base64url");
 
-export async function crearCodigo({ tipo, channel = "telegram", chatId, externalId, nombre, userId = null, minutos }) {
+export async function crearCodigo({ tipo, channel = "telegram", chatId, externalId, nombre, userId = null, email = null, minutos }) {
   const codigo = codigoNuevo();
   await insert("bot_codigos", [{
     codigo,
@@ -53,6 +53,7 @@ export async function crearCodigo({ tipo, channel = "telegram", chatId, external
     external_id: externalId ? String(externalId) : null,
     nombre: nombre ?? null,
     user_id: userId,
+    email,
     expires_at: new Date(Date.now() + minutos * 60000).toISOString(),
   }]);
   return codigo;

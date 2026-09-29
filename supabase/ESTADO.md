@@ -9,11 +9,18 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **58** |
+| Ficheros en `supabase/migrations/` | **59** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **34** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos` y la `0058_bot_codigos`, el 29 sep 2026) |
+| Aplicadas | **35** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0059, aplicada el 29 sep 2026
+
+`0059_bot_codigo_por_email` — `bot_codigos` gana `email` e `intentos`: «ya tengo
+cuenta» pasa de un enlace que abría la app (se perdía con la caché de la PWA)
+a un código de 6 cifras que se escribe en el chat. Columnas añadidas y
+comprobadas en vivo.
 
 ## La 0058, aplicada el 29 sep 2026
 
