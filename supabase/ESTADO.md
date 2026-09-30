@@ -9,11 +9,18 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **61** |
+| Ficheros en `supabase/migrations/` | **62** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **37** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer` y la `0061_bot_recordatorios_y_uso`, el 30 sep 2026) |
+| Aplicadas | **38** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` y la `0062_bot_cron`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0062, aplicada el 30 sep 2026
+
+`0062_bot_cron` — extensiones `pg_cron` y `pg_net`. El job `bot-recordatorios`
+(cada 5 min, POST a /api/bot/recordatorios con `BOT_CRON_SECRET`) lo programa
+`scripts/bot-cron.mjs`, no la migración, porque lleva el secreto. Primera
+pasada comprobada: 200 `{ok:true, enviados:0}`.
 
 ## La 0061, aplicada el 30 sep 2026
 
