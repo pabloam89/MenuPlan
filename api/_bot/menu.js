@@ -443,7 +443,7 @@ const POOL_PARA_APROXIMAR = 400;
  *   `dia` tal cual lo dicen («hoy», «jueves»); `parecidoA`, un plato que
  *   piden por su nombre: las opciones salen ordenadas por parecido.
  */
-export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null }, fotos = null) {
+export async function proponerPlatos(householdId, { dia: diaDicho = null, semana, franja: franjaDicha = null, grupo: grupoDicho = null, para = null, cual = "principal", n = 3, parecidoA = null, estilo = null, rasgos = null }, fotos = null) {
   const cargada = await cargarCasa(householdId);
   if (!cargada) return "Esta casa todavía no tiene datos en la nube.";
   // Nada obligatorio: sin día ni comida, la próxima que toca; «para los
@@ -458,15 +458,18 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   // Sin menú para ese día, ideas igualmente: recomendar una cena no puede
   // obligar a generar la semana entera (pasó: «¿te genero el menú?» para una
   // cena de hoy).
-  if (rd.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo }, fotos);
+  if (rd.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos }, fotos);
   const { casa, dia, fecha } = rd;
   const h = huecoDe(casa, { dia, franja, grupo, cual });
-  if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo }, fotos);
+  if (h.error) return ideasSinMenu(cargada, { diaPedido, franja, grupo: grupoDicho, para, cual, n, estilo, rasgos }, fotos);
   const m = await prepararRecetas(casa);
   const res = m.pickCatalogReplacement(casa.state?.data ?? {}, casa.semana.plan, {
     groupId: h.g.id, day: dia, meal: franja, course: h.course, candidatos: parecidoA ? POOL_PARA_APROXIMAR : POOL_PARA_VARIAR, pedido: !!parecidoA,
   });
-  let lista = parecidoA ? res?.candidatos ?? [] : variadas(segunEstilo(res?.candidatos ?? [], estilo), n);
+  // Los rasgos filtran ANTES de ordenar y variar: variadas() elige entre lo
+  // que ya cumple, no al revés.
+  const filtro = conRasgos(res?.candidatos ?? [], rasgos);
+  let lista = parecidoA ? res?.candidatos ?? [] : variadas(segunEstilo(filtro.lista, estilo), n);
   if (parecidoA) {
     // Las más parecidas primero; si ninguna se parece, las de siempre.
     const ordenadas = [];
@@ -485,7 +488,7 @@ export async function proponerPlatos(householdId, { dia: diaDicho = null, semana
   const detalle = (r) => detalleDe(r, estilo);
   lista.forEach((r, i) => apuntarFoto(m, fotos, r, `${i + 1}. ${r.name}`));
   return [
-    `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, ${h.g.label}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}`,
+    `Opciones para el ${fechaCorta(fecha)}, ${franja.toLowerCase()}${h.course === "first" ? " (primero)" : ""}${h.gs.length > 1 ? `, ${h.g.label}` : ""}. Ahora mismo: ${ahora ?? "nada"}.${parecidoA ? ` Ordenadas por parecido a «${parecidoA}» (ninguna es exactamente eso salvo que se llame igual).` : ""}${estilo ? ` Las más ${estilo === "ligero" ? "ligeras" : "rápidas"} que encajan, variadas.` : ""}${filtro.aviso ? ` ${filtro.aviso}` : ""}`,
     ...lista.map((r, i) => `${i + 1}. ${r.name}${detalle(r) ? ` (${detalle(r)})` : ""}`),
     "Nada está cambiado aún: para poner una, cambiar_plato con receta = su nombre.",
   ].join("\n");
@@ -541,8 +544,18 @@ export function grupoPara(gs, members, para) {
  * ligero, y Lola contestaba «no hay nada más ligero que lo que tenéis».
  * Las que no traen el dato van al final, no fuera. Pura, para el test.
  */
+// «Ligero» por la etiqueta del catálogo (caloriasNivel, src/lib/caloriasNivel.js),
+// que ya mide cada plato en su escala (un primero no es un segundo), y dentro
+// de cada nivel por kcal. Ordena, no filtra: si no hay bastantes ligeras para
+// n, siguen las medias, y nunca vuelve el «no hay nada».
+const RANGO_CALORIAS = { ligero: 0, medio: 1, contundente: 2 };
 export function segunEstilo(lista, estilo) {
-  const clave = estilo === "ligero" ? (r) => r.kcal : estilo === "rapido" ? (r) => r.time : null;
+  if (estilo === "ligero") {
+    const rango = (r) => RANGO_CALORIAS[r.caloriasNivel] ?? 1;
+    const kcal = (r) => (Number.isFinite(r.kcal) ? r.kcal : Infinity);
+    return [...lista].sort((a, b) => rango(a) - rango(b) || kcal(a) - kcal(b));
+  }
+  const clave = estilo === "rapido" ? (r) => r.time : null;
   if (!clave) return lista;
   const con = lista.filter((r) => Number.isFinite(clave(r)));
   const sin = lista.filter((r) => !Number.isFinite(clave(r)));
@@ -550,7 +563,36 @@ export function segunEstilo(lista, estilo) {
 }
 
 /** Tiempo y dificultad de una opción; con «ligero», también sus kcal para poder explicarlo. */
-const detalleDe = (r, estilo) => [r.time ? `${r.time} min` : "", estilo === "ligero" && r.kcal ? `${Math.round(r.kcal)} kcal` : "", r.difficulty ?? ""].filter(Boolean).join(", ");
+const detalleDe = (r, estilo) => [r.time ? `${r.time} min` : "", estilo === "ligero" && r.kcal ? `${Math.round(r.kcal)} kcal${r.caloriasNivel ? `, ${r.caloriasNivel}` : ""}` : "", r.costeRacion != null ? `unos ${r.costeRacion.toFixed(2).replace(".", ",")} € por ración` : "", r.difficulty ?? ""].filter(Boolean).join(", ");
+
+/**
+ * Rasgos que piden en voz alta: «algo reconfortante», «de cuchara», «que no
+ * pique», «algo barato». Salen de los atributos del Recetario Estrella
+ * (connotacion, textura, picante, sabor: scripts/recetas-atributos-blandos.mjs;
+ * costeNivel: derive/coste.js; caloriasNivel). Una receta sin el dato NO pasa
+ * el filtro: decir «barata» de una que no sabemos sería mentir.
+ *
+ * Si ninguna cumple, se devuelven las de siempre con un aviso para que Lola lo
+ * diga, en vez de un «no hay nada».
+ * @param {{ connotacion?: string, textura?: string, picante?: "sin"|"con", sabor?: string, coste?: string, calorias?: string }} [rasgos]
+ */
+export function conRasgos(lista, rasgos) {
+  const r = rasgos ?? {};
+  const pruebas = [
+    r.connotacion && ((x) => (x.connotacion ?? []).includes(r.connotacion)),
+    r.textura && ((x) => x.textura === r.textura),
+    r.picante === "sin" && ((x) => x.picante === "no"),
+    r.picante === "con" && ((x) => x.picante === "suave" || x.picante === "picante"),
+    r.sabor && ((x) => (x.sabor ?? []).includes(r.sabor)),
+    r.coste && ((x) => x.costeNivel === r.coste),
+    r.calorias && ((x) => x.caloriasNivel === r.calorias),
+  ].filter(Boolean);
+  if (!pruebas.length) return { lista, aviso: null };
+  const cumplen = lista.filter((x) => pruebas.every((p) => p(x)));
+  if (cumplen.length) return { lista: cumplen, aviso: null };
+  const pedido = Object.entries(r).filter(([, v]) => v).map(([k, v]) => `${k} ${v}`).join(", ");
+  return { lista, aviso: `(Ninguna que encaje cumple «${pedido}»: estas son las que hay. Dilo así.)` };
+}
 
 /**
  * `n` recetas de `lista` que no se parezcan entre sí: primero distinta
@@ -595,7 +637,7 @@ export function variadas(lista, n) {
  * Sin `grupo`, una tanda por grupo que come (los mayores y el bebé no comen lo
  * mismo): pie de foto «1. …» numerado seguido entre grupos, como la lista.
  */
-export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null }, fotos) {
+export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null, cual, n, estilo = null, rasgos = null }, fotos) {
   const m = await prepararRecetas(casa);
   // `schedule` puede faltar en una casa recién creada desde el chat, y el motor
   // lo lee sin mirar: sin horario apuntado, todos comen en casa.
@@ -614,7 +656,9 @@ export async function ideasSinMenu(casa, { diaPedido, franja, grupo, para = null
   for (const g of elegidos) {
     const plan = { [g.id]: { [clave]: { recipeId: null, firstRecipeId: conPrimero ? "_" : null, eaters: m.membersOfGroup(g, data.members ?? []).length || 2 } } };
     const res = m.pickCatalogReplacement(data, plan, { groupId: g.id, day: dia, meal: franja, course: cual === "primero" ? "first" : "main", candidatos: POOL_PARA_VARIAR });
-    const lista = variadas(segunEstilo(res?.candidatos ?? [], estilo), n);
+    const filtro = conRasgos(res?.candidatos ?? [], rasgos);
+    if (filtro.aviso) bloques.push(filtro.aviso);
+    const lista = variadas(segunEstilo(filtro.lista, estilo), n);
     if (!lista.length) continue;
     const quien = m.membersOfGroup(g, data.members ?? []).map((p) => p.name).filter(Boolean).join(", ");
     bloques.push(`Para ${g.label}${quien ? ` (${quien})` : ""}:`);

@@ -210,7 +210,16 @@
       "sofrito"
     ],
     "estrella": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "legumbres_002",
@@ -3743,7 +3752,8 @@
     "tupperFriendly": true,
     "allergens": [
       "moluscos",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -4284,7 +4294,16 @@
       "verdura_asada"
     ],
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_022",
@@ -4473,7 +4492,16 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_023",
@@ -4671,7 +4699,15 @@
     "tecnica": "crudo",
     "cocina": "arabe",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "legumbres_024",
@@ -4873,7 +4909,16 @@
     "mainBase": "legumbre",
     "baseMode": "dentro",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_025",
@@ -4896,7 +4941,8 @@
     "kidFriendly": true,
     "tupperFriendly": false,
     "allergens": [
-      "huevo"
+      "huevo",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -5175,7 +5221,17 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_026",
@@ -5356,7 +5412,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "legumbres_027",
@@ -5519,7 +5584,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_028",
@@ -5788,7 +5862,16 @@
       "guarda": "congelador",
       "dias": 60
     },
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_029",
@@ -6039,7 +6122,17 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_030",
@@ -6248,7 +6341,17 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "legumbres_031",
@@ -6457,7 +6560,16 @@
     "tecnica": "olla",
     "mainBase": "legumbre",
     "baseMode": "aparte",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_032",
@@ -6701,7 +6813,16 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "suave",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "legumbres_033",
@@ -6904,7 +7025,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_034",
@@ -7162,7 +7292,17 @@
       "dias": 1
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_035",
@@ -7351,7 +7491,17 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_036",
@@ -7620,7 +7770,17 @@
     "tecnica": "olla",
     "mainBase": "legumbre",
     "baseMode": "dentro",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_037",
@@ -7860,7 +8020,17 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_038",
@@ -7884,7 +8054,8 @@
     "tupperFriendly": false,
     "allergens": [
       "huevo",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -8103,7 +8274,17 @@
     ],
     "mainBase": "legumbre",
     "baseMode": "aparte",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_039",
@@ -8371,7 +8552,17 @@
       "caldo"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_040",
@@ -8643,7 +8834,18 @@
     "estrella": true,
     "tecnica": "olla",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_041",
@@ -8930,7 +9132,17 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_042",
@@ -9167,7 +9379,17 @@
     "basesAparte": [
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_043",
@@ -9334,7 +9556,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_044",
@@ -9587,7 +9818,17 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_045",
@@ -9755,7 +9996,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "legumbres_046",
@@ -9994,7 +10244,17 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_047",
@@ -10211,7 +10471,17 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_048",
@@ -10461,7 +10731,17 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_049",
@@ -10488,7 +10768,8 @@
     "kidFriendly": false,
     "tupperFriendly": false,
     "allergens": [
-      "pescado"
+      "pescado",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -10624,7 +10905,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_050",
@@ -10755,7 +11045,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "picante",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_051",
@@ -10956,7 +11255,17 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_052",
@@ -11218,7 +11527,18 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_053",
@@ -11425,7 +11745,18 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_054",
@@ -11666,7 +11997,17 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_055",
@@ -11910,7 +12251,17 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_056",
@@ -12113,7 +12464,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_057",
@@ -12355,7 +12715,17 @@
     ],
     "estrella": true,
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_058",
@@ -12572,7 +12942,16 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_059",
@@ -12799,7 +13178,17 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "legumbres_060",
@@ -12984,7 +13373,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "cremoso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "legumbres_061",
@@ -13202,7 +13600,16 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "legumbres_062",
@@ -13391,7 +13798,17 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_063",
@@ -13687,7 +14104,17 @@
     "mainBase": "legumbre",
     "baseMode": "dentro",
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_064",
@@ -13808,7 +14235,16 @@
     "estrella": true,
     "tecnica": "olla",
     "formato": "sopa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "legumbres_065",
@@ -14034,7 +14470,16 @@
     "basesAparte": [
       "sofrito"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_066",
@@ -14300,7 +14745,17 @@
     "tecnica": "olla",
     "mainBase": "legumbre",
     "baseMode": "dentro",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "legumbres_067",
@@ -14520,7 +14975,16 @@
     "tecnica": "horno",
     "cocina": "arabe",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "especiado"
+    ]
   },
   {
     "id": "legumbres_068",
@@ -14672,6 +15136,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe verduras y jamón en cazuela 5 min en vitrocerámica, añade alubias y caldo, termina en horno a 180°C durante 30 min. Cocción lenta y uniforme que realza sabores."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -14854,6 +15327,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece patata y zanahoria al vapor 20 min, sofríe cebolla y acelgas en bandeja inferior con aceite, mezcla todo con garbanzos cocidos y pimentón. Cocina 10 min más al vapor para integrar sabores."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -15023,6 +15505,16 @@
         "difficulty": "normal",
         "prepSummary": "Programa sofrito (cebolla y chorizo a 100°C, vel. 1, 5 min), añade arroz y tomate, luego judías con caldo, y cocina a 100°C vel. 1 durante 18 min hasta que el arroz esté tierno."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -15200,6 +15692,16 @@
         "difficulty": "normal",
         "prepSummary": "Programa sofrito 5 seg/vel.5 con cebolla y ajo, añade patatas cortadas, garbanzos y tomate. Cocina 25 min a 100°C con cesta de vapor o varoma. Resultado homogéneo y bien emulsionado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
     ]
   },
   {
@@ -15382,6 +15884,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Cuece costilla y verduras al vapor 40 min, luego sofríe brevemente en sartén con las alubias calentadas. Resulta más ligero pero requiere un paso extra de cocción."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -15565,6 +16076,14 @@
         "difficulty": "facil",
         "prepSummary": "Saltea las verduras picadas 3 min sin presión, añade garbanzos y arroz cocido con 50ml de caldo, cierra y cocina a presión 5 min. Despresurizador rápido y sirve. Resultado tierno y bien integrado."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -15763,6 +16282,16 @@
         "difficulty": "normal",
         "prepSummary": "Programa sofrito (cebolla, ajo, tomate) 5 min a 100°C, velocidad 1. Añade chorizo, bacon y frijoles, cocina 15 min a 90°C. Termina con cilantro manual."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -15970,6 +16499,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe ingredientes base en cazuela a fuego fuerte 5 min, añade calabaza, garbanzos y leche de coco. Introduce en horno a 180°C durante 30 min tapado, removiendo a mitad de cocción para cocción uniforme."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "suave",
+    "sabor": [
+      "dulce",
+      "especiado"
     ]
   },
   {
@@ -17261,7 +17799,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "verano",
     "freezable": false,
     "montaje": true,
@@ -17506,6 +18046,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe en cazuela los aromáticos con especias, añade tomate, lentejas y alubias. Introduce en horno a 180°C durante 35-40 min cubierto. Finaliza con mantequilla y nata fuera del horno."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -17626,6 +18175,15 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe cebolla, ajo y jengibre en modo tradicional 3 min, añade especias y tomate. Incorpora garbanzos cocidos, cierra y cocina a presión 10 min. Finaliza con cilantro y limón."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "especiado"
     ]
   }
 ]

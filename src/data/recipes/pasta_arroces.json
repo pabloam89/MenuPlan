@@ -215,7 +215,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -568,7 +569,16 @@
     "tecnica": "sarten",
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "pasta_arroces_004",
@@ -2072,7 +2082,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "marisco"
+      "marisco",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -4542,7 +4553,16 @@
     "llevaSalsa": true,
     "estrella": true,
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "pasta_arroces_025",
@@ -4571,7 +4591,8 @@
     "kidFriendly": true,
     "tupperFriendly": false,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "season": "invierno",
     "ingredients": [
@@ -4920,6 +4941,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece la pasta en recipiente apto con agua hirviendo durante 10-12 minutos, luego sofríe tomates cherry con ajo en otro recipiente a máxima potencia durante 3-4 minutos. Mezcla y termina con albahaca."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -5101,6 +5131,15 @@
         "difficulty": "facil",
         "prepSummary": "Cuece los espaguetis en agua hirviendo con sal (programa varoma o cocción manual). Prepara la salsa triturando huevo, yema y queso en el vaso; mezcla con la pasta caliente y bacon tostado para obtener una cremosa carbonara."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -5267,6 +5306,15 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la pasta en recipiente apto con agua salada a máxima potencia durante 12-13 minutos, removiendo a mitad. Finaliza con pesto y tomates cherry fríos para mantener su frescura."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -5456,6 +5504,15 @@
         "difficulty": "facil",
         "prepSummary": "En recipiente apto microondas, calienta el tomate con ajo 3 minutos a máxima potencia, añade atún y aceitunas, cocina 2 minutos más. Cuece la pasta en agua hirviendo aparte 8 minutos y mezcla. Resulta práctico y rápido para una ración."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -5486,7 +5543,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "mainIngredients": [
       "verdura",
@@ -5686,6 +5744,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe cebolla y setas en la olla abierta (3 min), añade arroz y vino (2 min), luego caldo. Cierra y cocina a presión 10 min. Al abrir, remueve constantemente 2-3 min para emulsionar con mantequilla y queso, logrando la textura cremosa del risotto en menos tiempo."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -5901,6 +5968,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe ingredientes en cazuela apta horno, añade arroz, caldo y tinta. Introduce a 180°C durante 25-30 minutos tapado. Consigue una cocción uniforme y un arroz con textura ideal."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -6169,6 +6245,15 @@
         "difficulty": "normal",
         "prepSummary": "Usa el vaso para picar aromáticos (2 min), luego sofríe con función calor. Añade arroz y caldo, programa cocción lenta 25 min. Finaliza con marisco en los últimos 5 min sin tapa para evitar condensación."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -6397,6 +6482,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Programa sofrito con cebolla y ajo (vel. 4, 3 min), añade fideos tostados, tomate y tinta, luego caldo caliente a 100°C 12 minutos. Incorpora calamar y gambas en los últimos 3 minutos de cocción para un resultado óptimo."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -6632,6 +6726,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Prepara el sofrito en cazuela de barro en horno a 180°C durante 30 min, añade arroz y caldo, y continúa en horno otros 30-35 min hasta que el arroz absorba el líquido. Mantiene el calor uniforme y evita que se pegue."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -6928,6 +7031,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Prepara el relleno de forma tradicional. Usa la olla express para rehidratar rápidamente los boletus (8 min a presión) y luego cuece los ravioli en agua hirviendo en olla convencional. Finaliza con mantequilla de salvia en sartén."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -7210,6 +7322,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe en cazuela 10 min en vitrocerámica, luego introduce en horno a 160°C durante 120 min tapado. El ragú se cocina lentamente desarrollando sabores profundos sin riesgo de quemar."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -7240,7 +7361,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "mainIngredients": [
       "verdura",
@@ -7437,6 +7559,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe cebolla y calabaza 4 min a máxima potencia, añade arroz y vino, luego caldo caliente. Cocina 18 min a 70% potencia removiendo cada 4 min. Termina con mantequilla y parmesano."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -7630,6 +7761,14 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la pasta y brócoli juntos a presión con agua (8 min), despresurizando rápido. Sofríe ajo y anchoas en sartén aparte y mezcla todo al final."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -7832,6 +7971,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Sofríe los ingredientes en cazuela refractaria a fuego fuerte 5 min, añade arroz y caldo, cubre con papel aluminio y hornea a 180°C durante 25-30 min. Se obtiene un arroz caldoso bien integrado con sabores profundos."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -8222,6 +8370,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Utiliza el Thermomix para picar sofrito (cebolla, zanahoria, puerro, ajo) y preparar la bechamel de forma rápida y homogénea; cocina el rabo de toro en olla convencional o express, luego gratina en horno."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -8425,6 +8582,15 @@
         "difficulty": "normal",
         "prepSummary": "Programa sofrito de ajo y guindilla a 100°C, 3 min. Añade almejas y vino, cocina a 100°C 8 min. Cuece pasta aparte y termina mezclando con aceite y perejil en el vaso a velocidad baja."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -8659,6 +8825,14 @@
         "difficulty": "normal",
         "prepSummary": "Programa sofrito de cebolla y ajo (vel. 5, 3 min), añade calamar y tinta, luego arroz con caldo caliente. Cocina 20 min a 100°C, velocidad progresiva. Mantiene la cremosidad característica del risotto."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -8917,6 +9091,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el Thermomix para picar y sofreír ajo y carnes (varoma), prepara el caldo con azafrán. Luego transfiere a cazuela de horno con arroz y caldo, cocina en horno a 180°C 45 min y gratina con huevo 10 min para la costra final."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -9190,6 +9373,15 @@
         "difficulty": "normal",
         "prepSummary": "Pica el mirepoix con la función picadora, sofríe el pato en modo mariposa 5 min a 120°C, añade tomate y vino, cocina 70 min a 100°C sin tapa. Resultado homogéneo y ragú bien integrado."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -9368,6 +9560,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece previamente los macarrones en agua hirviendo (10 min). Saltea la salvia en mantequilla en el airfryer a 180°C durante 3-4 minutos hasta crujir, luego mezcla con pasta y queso."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -9525,6 +9726,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece los espaguetis en agua con sal usando la función cocción a 100°C durante 10 minutos. Tritura la pimienta en grano, ralla el queso, y emulsiona todo en frío con la pasta caliente fuera del vaso para obtener la cremosidad característica."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -9725,6 +9935,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el Thermomix para picar el guanciale finamente y emulsionar la salsa de huevo y queso a temperatura controlada (65°C, 3 min). Cuece la pasta en agua hirviendo aparte y mezcla todo al final para obtener una cremosidad perfecta sin que se corten los huevos."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -9920,6 +10139,15 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la pasta en agua hirviendo (externa). Luego usa el Thermomix para emulsionar mantequilla, nata, zumo de limón y parmesano a 60°C durante 5 minutos, creando una salsa cremosa y homogénea."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -10159,6 +10387,14 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe ajo y berenjena en la olla abierta 3 min, añade tomate triturado y pasta con agua (proporción 1:2), cierra y cocina a presión 8 min. Termina con ricotta y albahaca fresca al servir."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -10329,6 +10565,14 @@
         "difficulty": "facil",
         "prepSummary": "Programa el vaso a 100°C, velocidad 1 para cocer los espaguetis en agua con sal. Prepara aparte el aceite infusionado con ajo y guindilla a baja temperatura, luego mezcla con la pasta."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "picante",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -10564,6 +10808,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece las patatas en la olla express a presión (12 min desde que silba), luego procesa con harina y huevo. Forma los gnocchi y cuécelos en agua hirviendo en olla normal (5-7 min), terminando con mantequilla y salvia en sartén."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -10784,6 +11037,15 @@
         "difficulty": "normal",
         "prepSummary": "Forma los gnocchi, cuécelos en agua hirviendo hasta que floten, luego colócalos en bandeja con mantequilla derretida y parmesano. Gratina en horno a 200°C durante 10-12 minutos hasta dorar."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -10994,6 +11256,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el vaso para sofrito de ajo y guindilla (3 min, 100°C), luego añade almejas y vino (8 min, 100°C). Cuece pasta aparte y termina en el Thermomix con perejil. Requiere coordinación pero resulta preciso."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "intenso"
     ]
   },
   {
@@ -11142,6 +11413,15 @@
         "difficulty": "normal",
         "prepSummary": "Calienta el caldo en la base de la vaporera, coloca los tortellini en la bandeja superior durante 12 minutos hasta que floten y estén al dente. Sirve en el caldo caliente con parmesano."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -11378,6 +11658,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece la pasta en la olla express a presión (8 min desde válvula), prepara la bechamel aparte, mezcla y termina gratinando en horno 15 min. Reduce tiempo de cocción de la pasta significativamente."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -11715,6 +12004,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Saltea verduras en la olla abierta, prepara bechamel aparte. Monta lasaña en bandeja refractaria, introduce en olla express con agua (baño maría) a presión 15 min. Requiere bandeja compatible y cuidado extra."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -12065,6 +12363,16 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 180°C, coloca canelones rellenos en capas con bechamel, cocina 20-25 min hasta dorar. Más rápido que horno tradicional y resultado crujiente."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -12395,6 +12703,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Prepara la bechamel en microondas (8 min en intervalos), rellena canelones y cocina en recipiente apto microondas a potencia media 20-25 min cubierto. Resultado menos gratinado pero viable."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -12725,6 +13043,17 @@
         "difficulty": "normal",
         "prepSummary": "Cocina la salsa boloñesa en olla express a presión durante 15 min tras dorar la carne, ganando tiempo significativo. Prepara bechamel aparte y termina en horno a 180°C para gratinar 20 min."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -12900,6 +13229,16 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la pasta en el vaso a 100°C durante 12 minutos con agua y sal. Enfría rápidamente y prepara el aliño emulsionando aceite y vinagre antes de mezclar con los ingredientes frescos."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -13084,6 +13423,16 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la pasta al vapor durante 12-14 minutos hasta al dente. Pica los ingredientes frescos y mezcla con el atún, aceitunas, aceite y vinagre para obtener una ensalada ligera y saludable."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -13296,6 +13645,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece patata y judías a presión durante 5 minutos, libera presión rápidamente. Agrega la pasta y agua, cierra 3 minutos más. Mezcla con pesto fresco al final para conservar su sabor."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -13503,6 +13861,16 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe en cazuela los ingredientes en vitrocerámica, añade pasta cruda con caldo, cubre y hornea a 180°C durante 20 min hasta que la pasta absorba el líquido. Resultado cremoso y homogéneo."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -13684,6 +14052,15 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe ajo y guindilla en modo tradicional 2 min, añade tomate y pasta con agua, cierra y cuece a presión 8 min. Rápido y concentra bien los sabores."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "picante",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -13892,6 +14269,16 @@
         "difficulty": "normal",
         "prepSummary": "Pica boletus, cebolla y ajo con la función picadora. Sofríe en modo mariposa a 100°C 5 min, añade nata y cocina 3 min más. Cuece la pasta aparte y mezcla al final para una salsa homogénea y sedosa."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -14086,6 +14473,15 @@
         "difficulty": "facil",
         "prepSummary": "Programa la cebolla en picado (vel. 5, 5 seg), sofríe en modo varoma 3 min, añade salmón troceado y pasta cocida aparte, termina con nata y eneldo en frío para integrar sin desnaturalizar."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -14257,6 +14653,13 @@
         "difficulty": "normal",
         "prepSummary": "Programa sofrito de ajo y guindilla a 100°C, 3 min. Cocina pasta en agua hirviendo (recipiente externo), luego integra gambas en Thermomix a temperatura baja para emulsionar con aceite."
       }
+    ],
+    "connotacion": [],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -14457,6 +14860,16 @@
         "difficulty": "normal",
         "prepSummary": "Programa sofrito de ajo y guindilla a 100°C, 3 min. Añade almejas y vino, cuece 8 min a 100°C sin tapa. Cuece espaguetis aparte y termina la emulsión en el Thermomix con aceite y perejil."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -14768,6 +15181,15 @@
         "difficulty": "normal",
         "prepSummary": "Prepara masa y relleno convencionalmente. Cuece los ravioli en agua a presión (2-3 min desde válvula) ganando tiempo sin perder calidad. Termina con mantequilla y salvia en sartén."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -15081,6 +15503,16 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza la calabaza durante 20 min para cocerla sin perder nutrientes, luego prepara masa y relleno convencionalmente. Cuece los ravioli en agua hirviendo y termina con mantequilla y salvia tostada en sartén."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -15249,6 +15681,16 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la pasta en la olla express con agua y sal durante 8-10 minutos (tiempo reducido respecto a cocción normal). Prepara la salsa en una sartén aparte y mezcla al final para obtener un resultado cremoso sin desvirtuarla."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -15447,6 +15889,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece la pasta en el vaso con agua y sal (varoma 100°C, 8 min), vaporiza el brócoli en la bandeja. Luego tritura ajo y anchoas con aceite para hacer la emulsión y mezcla todo."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -15662,6 +16113,16 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe pollo y aromáticos en cazuela apta horno, añade arroz, caldo y leche de coco, cubre y hornea a 180°C durante 25 min. Cocción homogénea sin remover, resultado cremoso y bien integrado."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "dulce",
+      "especiado"
     ]
   },
   {
@@ -15891,6 +16352,16 @@
         "difficulty": "normal",
         "prepSummary": "Programa sofrito de setas y aromáticos (varoma, 5 min), añade arroz y vino, luego caldo caliente. Cocina a 100°C sin tapa 20 min removiendo ocasionalmente hasta obtener la textura melosa deseada."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -16106,6 +16577,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Programa sofrito de verduras y ajo (varoma), cocina costillas 15 min a 100°C, añade arroz y caldo, programa 18 min a 100°C sin tapa. Requiere más atención pero resulta muy controlado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -16320,6 +16801,16 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe ingredientes en cazuela apta para horno a fuego medio, añade caldo y arroz, luego introduce en horno a 180°C durante 20-25 min hasta que el arroz esté tierno y el caldo parcialmente absorbido."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -16583,6 +17074,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Sofríe en cazuela de barro a fuego fuerte (5 min), añade caldo y arroz, introduce en horno a 200°C durante 40 min sin tapar. Se consigue excelente socarrat y distribución uniforme del calor."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -16801,6 +17302,17 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el programa de cocción a 100°C con vaso cerrado: sofríe costillas picadas (varoma), prepara sofrito con tomate y ajos, integra arroz y caldo, cocina 25-30 min. Requiere más atención pero logra buen resultado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -17005,6 +17517,14 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe cebolla en modo tradicional 2 min, añade arroz y tuesta 1 min, vierte vino y caldo. Cierra y cocina a presión 12 min. Abre, incorpora espárragos cortados, mantequilla y queso, remueve 2 min hasta cremosidad."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -17208,6 +17728,16 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe cebolla y arroz 2 min a fuego alto, deglasa con vino, añade caldo y gambas. Cierra y cocina a presión 8 min. Despresuriz rápidamente, termina con mantequilla y limón."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -17409,6 +17939,14 @@
         "difficulty": "normal",
         "prepSummary": "Cuece arroz en bandeja inferior 18 min con caldo, mientras vaporiza verduras y jamón en bandeja superior. Mezcla todo al final con huevo y salsa de soja."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -17642,6 +18180,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Dora el pato y sofríe verduras en cazuela a fuego, añade vino, tomate, caldo y arroz. Introduce en horno a 180°C durante 35-40 min sin tapar. El arroz absorbe los jugos y queda con textura ideal."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -17883,6 +18431,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Programa sofrito (cebolla, ajo, pimiento) en función mariposa 5 min a 120°C, añade costilla y tomate, cocina 20 min a 100°C, luego fideos y caldo 12 min a 100°C. Requiere supervisión pero resultado excelente."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -18067,6 +18624,15 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la pasta en la olla express a presión con agua (6 min desde presión), ahorrando tiempo respecto a cocción tradicional. Prepara el pesto en paralelo y mezcla al final."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
     ]
   },
   {
@@ -18320,6 +18886,16 @@
         "difficulty": "normal",
         "prepSummary": "Cocina la boloñesa en olla express a presión durante 12-15 min (sofrito + cocción), luego monta los nidos en bandeja y gratina en horno 12-15 min a 200°C. Reduce significativamente el tiempo total."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -18599,6 +19175,15 @@
         "difficulty": "normal",
         "prepSummary": "Prepara la mezcla de pasta, bechamel y atún en un molde apto para airfryer. Cocina a 180°C durante 20-25 min hasta que gratine. Resulta más rápido que el horno tradicional."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -18796,6 +19381,12 @@
         "difficulty": "elaborada",
         "prepSummary": "Programa sofrito de ajo y guindilla (varoma, 3 min), añade almejas y vino (cocción 5 min), luego espaguetis cocidos aparte se mezclan en el vaso con la salsa (2 min, velocidad baja). Requiere cocinar pasta previamente en agua."
       }
+    ],
+    "connotacion": [],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -18984,6 +19575,14 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe sepia, cebolla y ajo con la función de temperatura controlada (varoma), añade tomate e tinta, luego arroz y caldo. Cocina a 100°C durante 18 min con giro lento. Obtiene un arroz bien integrado aunque con menos textura de grano que en cazuela."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -19180,6 +19779,15 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza el calabacín 8 min y las gambas 4 min para cocción suave. Cocina la pasta aparte y sofríe todo junto con ajo y aceite en sartén 3 min final. Resultado más ligero pero menos sabor al ajillo."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -19396,6 +20004,16 @@
         "difficulty": "normal",
         "prepSummary": "Cocina la pasta 2 min menos de lo indicado en la olla express, luego mezcla con tomates, ajo y aceite, cubre con feta y termina 5 min a presión baja. Gana tiempo manteniendo la cremosidad del plato."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -19587,6 +20205,16 @@
         "difficulty": "normal",
         "prepSummary": "Programa la panceta 5 seg a velocidad 5, sofríe en modo Varoma 5 min a 100°C. Añade cebolla, tomate y vodka, cocina 10 min a 90°C. Incorpora nata y pasta cocida, mezcla suave 2 min. Salsa cremosa y homogénea garantizada."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -19963,6 +20591,15 @@
         "difficulty": "normal",
         "prepSummary": "En recipiente apto, mezcla todos los ingredientes con caldo hirviendo. Cubre y cocina a potencia máxima 14 min en intervalos de 3-4 min, removiendo entre cada uno. Reposa 1 min antes de servir."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -20159,6 +20796,16 @@
         "difficulty": "normal",
         "prepSummary": "Cocina macarrones en agua hirviendo, prepara salsa de tomate con cebolla y ajo, mezcla todo en cazuela refractaria, cubre con queso y gratina 8 min a 200°C hasta dorar."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -20327,6 +20974,16 @@
         "difficulty": "normal",
         "prepSummary": "Programa turbo para picar bacon y champiñones, luego sofrito con ajo en 5 min a 100°C. Cuece pasta aparte y mezcla con nata en el vaso a temperatura suave. Requiere cocción paralela de pasta."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -20526,6 +21183,16 @@
         "difficulty": "normal",
         "prepSummary": "Programa el arroz en modo cocción lenta (varoma o función cocción) durante 12-15 minutos. Fríe huevo y plátano en sartén aparte, calienta tomate frito y ensambla el plato final."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -20723,6 +21390,16 @@
         "difficulty": "normal",
         "prepSummary": "Pica chorizo y cebolla con la función turbo, sofríe en el vaso a 120°C 5 min, añade tomate y pasta cocida previamente, mezcla 2 min. Vierte en bandeja, cubre con queso y gratina en horno convencional 8-10 minutos."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -20902,6 +21579,15 @@
         "difficulty": "facil",
         "prepSummary": "Calienta aceite, sofríe el ajo 1 min, añade tomate y espaguetis con agua. Cierra la olla y cocina a presión 8 min (tiempo de pasta menos 2 min). Despresurizad y termina con albahaca y parmesano."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -21065,6 +21751,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe las verduras y arroz en cazuela apta para horno 3 min, añade caldo caliente, cubre con papel de aluminio y hornea a 180°C durante 25 min. El arroz queda meloso y uniforme."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -21312,6 +22007,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece el pollo al vapor 20 min, luego deshilachado se rehoga con la salsa de tomate-cebolla 10 min en la bandeja inferior. Resulta más ligero sin perder sabor."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "ahumado",
+      "especiado"
     ]
   },
   {
@@ -21337,7 +22041,8 @@
     "tupperFriendly": true,
     "allergens": [
       "soja",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -21538,6 +22243,15 @@
         "difficulty": "normal",
         "prepSummary": "Dora pollo y verduras en modo rápido 3 min, añade salsa agridulce y arroz con caldo, cierra y cuece a presión 12 min. Desahoga naturalmente 5 min para que el arroz absorba bien los sabores."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -21732,6 +22446,14 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe ingredientes en recipiente apto 3 min a máxima potencia, añade arroz y caldo (1:2), cubre y cocina 15 min removiendo cada 5 min. Termina con huevo batido 2 min más."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -21859,6 +22581,14 @@
         "difficulty": "facil",
         "prepSummary": "Cocina los tallarines en la olla express con agua a presión durante 6-7 min (reduce tiempo de cocción). El filete se prepara en sartén convencional (8 min) y la salsa verde se tritura manualmente o con batidora."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -21978,6 +22708,15 @@
         "difficulty": "normal",
         "prepSummary": "Pica verduras y ajo con la función picadora, cocina el pollo en modo temperatura 20 min a 90°C. Cuece el arroz previamente y termina el salteado manual para mantener la textura del chaufa."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -22119,6 +22858,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el Thermomix para picar cebolla, ajo y jengibre (5 seg), luego sofríe en modo mariposa a 120°C 5 min. Añade pollo troceado, especias y yogur, cocina 20 min a 100°C. Incorpora arroz y caldo, termina 15 min a 100°C hasta absorción completa del líquido."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -22272,7 +23020,15 @@
       "Saltear la pasta con la verdura asada y un par de cucharadas del agua reservada, para que ligue.",
       "Rallar {{Queso parmesano}} por encima y repartir {{Albahaca fresca}} en hojas enteras."
     ],
-    "methods": []
+    "methods": [],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "pasta_arroces_107",
@@ -22424,7 +23180,15 @@
     ],
     "methods": [],
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "pasta_arroces_108",
@@ -22586,6 +23350,15 @@
       "Mezclar en un bol amplio con el pesto y aflojar con el agua reservada hasta que la salsa envuelva.",
       "Servir templado con un poco más de parmesano por encima."
     ],
-    "methods": []
+    "methods": [],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   }
 ]

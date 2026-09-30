@@ -137,6 +137,15 @@
         "difficulty": "facil",
         "prepSummary": "Prepara las frutas peladas y troceadas en un bol apto para microondas. Calienta 30 segundos a potencia media si deseas servir templada, o sirve fría directamente sin necesidad de microondas."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -239,6 +248,14 @@
         "difficulty": "facil",
         "prepSummary": "Calienta la miel 30 segundos a potencia media para que fluya mejor, luego vierte sobre el yogur en un bol y añade las nueces. El microondas templa la miel sin afectar la textura del yogur."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce"
     ]
   },
   {
@@ -336,6 +353,15 @@
         "difficulty": "facil",
         "prepSummary": "Corta la manzana y naranja en trozos, coloca en un plato apto, calienta 3-4 min a potencia media. La fruta se ablanda manteniendo su esencia."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -463,7 +489,16 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce"
+    ]
   },
   {
     "id": "postres_008",
@@ -521,6 +556,14 @@
         "difficulty": "facil",
         "prepSummary": "Vierte el yogur natural en el vaso y programa a temperatura ambiente sin calor durante unos minutos para homogeneizar. El resultado es un yogur bien mezclado y cremoso sin necesidad de cocción."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -622,6 +665,15 @@
         "difficulty": "facil",
         "prepSummary": "Calienta el yogur a baño maría en la vaporera a 60°C durante 3 minutos para templarlo ligeramente, luego corta las frutas y mezcla. Mantiene la textura cremosa del yogur."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce"
     ]
   },
   {
@@ -684,6 +736,12 @@
         "difficulty": "facil",
         "prepSummary": "Vierte el yogur en el vaso y programa a velocidad 1 durante 2-3 minutos para mezclar y airear, creando una textura más ligera y homogénea. El truco es no exceder el tiempo para mantener la consistencia."
       }
+    ],
+    "connotacion": [],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce"
     ]
   },
   {
@@ -832,6 +890,15 @@
         "difficulty": "facil",
         "prepSummary": "Trocea las manzanas en un recipiente apto, añade azúcar, canela y zumo de limón. Cubre y calienta a máxima potencia 10 minutos, removiendo cada 3 minutos. Remueve hasta obtener compota."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce"
     ]
   },
   {
@@ -1018,6 +1085,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Precalienta a 160°C y cocina en molde apto para airfryer durante 35-40 min. Requiere vigilancia constante y posible ajuste de temperatura, ya que el calor concentrado puede resecar los bordes antes de cuajar el centro."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -1233,6 +1309,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Prepara el caramelo en una sartén tradicional, coloca en molde apto airfryer con manzanas y hojaldre, cocina a 180°C durante 25-30 min. El resultado es similar al horno convencional con tiempo reducido, aunque requiere un molde específico que quepa en la canasta."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
     ]
   },
   {
@@ -1462,6 +1547,16 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para mezclar y emulsionar los ingredientes (chocolate, mantequilla, huevos y azúcar) en 5-7 min a velocidad progresiva, luego hornea la masa resultante 35-40 min a 180°C. Garantiza una mezcla homogénea y esponjosa."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -1757,6 +1852,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el thermomix para preparar la masa (amasado rápido) y emulsionar el relleno de limón (velocidad progresiva). El horneado se completa en horno convencional, pero la preparación se optimiza significativamente con este electrodoméstico."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -1782,7 +1886,8 @@
     "allergens": [
       "gluten",
       "huevo",
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "effort": "cazo",
     "ingredients": [
@@ -1948,6 +2053,16 @@
         "difficulty": "normal",
         "prepSummary": "Calienta el café espresso en microondas 2-3 minutos, luego procede con la mezcla de mascarpone y huevos de forma tradicional. El microondas solo acelera el calentamiento del café, el resto es montaje manual."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -2084,6 +2199,15 @@
         "difficulty": "facil",
         "prepSummary": "Funde el chocolate en intervalos de 30 segundos a potencia media hasta que esté líquido, luego bate los huevos con sal e incorpora el chocolate fundido. Rápido y eficaz para la fusión inicial."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -2303,6 +2427,16 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para picar las manzanas (3 seg, vel. 4) y mezclar los ingredientes del crumble (10 seg, vel. 4). Luego hornea la preparación a 180°C durante 40 min en bandeja convencional."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
     ]
   },
   {
@@ -2540,6 +2674,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Precalienta a 190°C y cuece los profiteroles en tandas de 12-15 min hasta que suban y doren. El aire circulante los infla perfectamente. Luego monta con nata y chocolate como en horno, pero más rápido."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -2786,6 +2929,16 @@
         "difficulty": "facil",
         "prepSummary": "Usa el Thermomix para mezclar mantequilla, azúcares y huevo (velocidad 4, 20 seg), luego añade harina y bicarbonato. Forma cookies, rellena con chocolate y hornea a 180°C durante 12-15 min."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -2810,7 +2963,8 @@
     "allergens": [
       "gluten",
       "lactosa",
-      "huevo"
+      "huevo",
+      "sulfitos"
     ],
     "effort": "horno",
     "requiredAppliance": "horno",
@@ -3061,6 +3215,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Prepara la masa igual que en horno. Vierte en molde apto para airfryer y cocina a 160°C durante 25-30 min. Tiempo total menor por circulación de aire. Glaseado se prepara igual, aplicar cuando esté completamente frío."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -3337,6 +3500,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Programa a 160°C durante 35-40 min en lotes o molde compatible, verificando cocción a mitad del tiempo. Requiere vigilancia constante y posible ajuste de temperatura según el modelo, pero es viable para porciones individuales."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
     ]
   },
   {
@@ -3521,6 +3694,16 @@
         "difficulty": "facil",
         "prepSummary": "Calienta nata y leche en microondas 2-3 min hasta 60°C, disuelve gelatina hidratada en el líquido caliente, mezcla con azúcar y vainilla. Vierte en moldes y refrigera 4 horas."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -3668,6 +3851,16 @@
         "difficulty": "facil",
         "prepSummary": "Calienta la nata 30 segundos a potencia media para que monte mejor, luego mezcla manualmente con leche condensada y vainilla. Congela en recipiente removiendo cada 5-7 minutos durante 25 minutos hasta obtener textura de helado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -3827,6 +4020,15 @@
         "difficulty": "facil",
         "prepSummary": "Calienta agua y azúcar en microondas 3 minutos a máxima potencia hasta disolver el azúcar completamente, añade zumo y ralladura, enfría en congelador. Es la forma más rápida de preparar el almíbar base."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -4029,6 +4231,15 @@
         "difficulty": "facil",
         "prepSummary": "Usa el Thermomix para mezclar chocolate, mantequilla y azúcar a temperatura controlada, luego incorpora huevos y harina. Vierte en moldes y termina la cocción en horno o airfryer a 180°C durante 12 minutos."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -4265,6 +4476,16 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 160°C. Vierte la masa en molde apto para airfryer y cocina 35-40 min hasta que esté dorado. Empapar con almíbar de ron tras sacar del electrodoméstico."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -4464,6 +4685,16 @@
         "difficulty": "facil",
         "prepSummary": "Usa el Thermomix para mezclar y amasar la masa (velocidad 4, 20 seg). Luego hornea en horno convencional a 180°C durante 12-15 min. Ahorra tiempo en la preparación de la masa."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -4688,6 +4919,15 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para mezclar todos los ingredientes (velocidad progresiva 3-5, 20 seg), luego vierte en molde y hornea a 180°C durante 50 min. Ahorra tiempo en la preparación de la masa."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -4713,7 +4953,8 @@
     "tupperFriendly": false,
     "allergens": [
       "lactosa",
-      "huevo"
+      "huevo",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -4784,6 +5025,15 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para emulsionar la leche condensada, leche, yemas, vainilla y vino blanco a velocidad suave durante 2 min. Vierte en fuente refractaria y hornea en baño maría a 180°C durante 30-35 min, luego monta las claras en el Thermomix y gratina en horno 5-8 min."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   }
 ]

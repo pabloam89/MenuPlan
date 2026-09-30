@@ -61,6 +61,13 @@ export const IngredientSchema = z
     // en lib/intolerances.js — no excluye la receta, la adapta. Ver la sección
     // "Sulfitos de cocinado" de output/allergen-reconciliation.md.
     cookingAllergens: z.array(z.enum(EU_ALLERGEN_IDS)),
+    // Tercer nivel (30 sep 2026): lo que un producto ELABORADO suele llevar
+    // según la marca —el apio de un caldo de brick, la leche o la soja de un
+    // chorizo, la mostaza de un curry— y que por eso no se puede declarar como
+    // seguro. La receta lo hereda como «puede contener», se avisa, y se
+    // excluye para quien tenga esa alergia (decisión de Pablo). Lo rellena
+    // scripts/alergenos-puede-contener.mjs: dos pasadas y un juez.
+    mayContain: z.array(z.enum(EU_ALLERGEN_IDS)).optional(),
 
     // Con qué restricciones ADAPTABLES choca este ingrediente. Deliberadamente
     // NO se deduce de `allergens`: los dos conjuntos no coinciden.
@@ -170,6 +177,16 @@ export const IngredientSchema = z
         code: z.ZodIssueCode.custom,
         message: `alérgeno en los dos niveles a la vez: ${both.join(", ")}`,
         path: ["cookingAllergens"],
+      });
+    }
+    // «Puede contener» es lo que NO se sabe seguro: si ya está declarado en
+    // otro nivel, repetirlo aquí solo confunde.
+    const repetidos = (ing.mayContain ?? []).filter((a) => ing.allergens.includes(a) || ing.cookingAllergens.includes(a));
+    if (repetidos.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `mayContain repite lo ya declarado: ${repetidos.join(", ")}`,
+        path: ["mayContain"],
       });
     }
     if (ing.aliases.includes(ing.name)) {

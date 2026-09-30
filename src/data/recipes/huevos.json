@@ -2182,7 +2182,17 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "huevos_018",
@@ -2331,6 +2341,14 @@
         "difficulty": "normal",
         "prepSummary": "Bate los huevos con espinacas y queso, vierte en un plato apto microondas, cocina a máxima potencia 3-4 min revolviendo cada minuto hasta que cuaje. Dobla para formar la tortilla."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -2485,6 +2503,15 @@
         "difficulty": "facil",
         "prepSummary": "En un recipiente apto, calienta aceite con ajo 1 min a máxima potencia, añade gambas 2 min, vierte huevos batidos y cocina 2-3 min en intervalos de 30 segundos removiendo entre cada uno hasta obtener una textura cremosa."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -2627,6 +2654,15 @@
         "difficulty": "facil",
         "prepSummary": "Bate los huevos con nata y mantequilla, cocina a potencia media (50%) durante 3-4 minutos removiendo cada 30 segundos. Añade el salmón en los últimos segundos para mantener su textura."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "suave"
     ]
   },
   {
@@ -2835,6 +2871,16 @@
         "difficulty": "facil",
         "prepSummary": "Bate los huevos con jamón y queso, cocina en potencia media (50%) durante 4-5 minutos revolviendo cada minuto para evitar que se endurezcan. Obtiene un revuelto cremoso sin usar sartén."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -3023,6 +3069,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 180°C, vierte la mezcla de huevos, queso y espinacas en molde apto y cocina 10-12 min. Resulta una tortilla ligera y bien cuajada."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -3197,6 +3253,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 200°C, vierte los huevos en una fuente refractaria con jamón serrano y hornea 10-12 min hasta que las claras cuajen. La ensalada se prepara simultáneamente en frío."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -3386,6 +3452,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece las gambas al vapor 4-5 minutos a 100°C, luego en un recipiente aparte cocina los huevos batidos al vapor 6-7 minutos revolviendo ocasionalmente. La ensalada se prepara cruda al final."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -3574,6 +3649,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 190°C, vierte los huevos batidos con brie y nueces en molde apto, cocina 10-12 min hasta que cuaje sin dorarse excesivamente. Acompaña con ensalada fresca."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -3730,6 +3815,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 200°C. Coloca el bacon en bandeja 8-10 min hasta crujiente, luego añade los huevos en cazuelitas y hornea 4-5 min hasta cuajar. Prepara la ensalada mientras."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -3934,6 +4029,16 @@
         "difficulty": "normal",
         "prepSummary": "Vierte la mezcla en molde apto para vapor, cocina 12-15 min a fuego medio-alto. La tortilla queda más delicada y húmeda, ideal para una versión más ligera."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -4115,6 +4220,16 @@
         "difficulty": "facil",
         "prepSummary": "Pica los champiñones con la función picadora, saltea en modo cocción suave, añade huevos batidos y cocina a 60°C durante 4-5 min removiendo. Resulta cremoso y controlado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -4290,6 +4405,15 @@
         "difficulty": "facil",
         "prepSummary": "Cocina los huevos batidos con mantequilla en potencia media (50%) durante 3-4 minutos, removiendo cada 30 segundos para conseguir una textura revuelta suave. Rápido y sin necesidad de sartén."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "suave"
     ]
   },
   {
@@ -4503,6 +4627,15 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza los huevos en moldes 12 min a 100°C para obtener una textura suave y uniforme. Prepara la salsa holandesa en baño maría aparte. Tuesta los muffins en sartén y monta con jamón, huevo al vapor y salsa."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -4649,6 +4782,16 @@
         "difficulty": "normal",
         "prepSummary": "Hornea las patatas cortadas a 220°C durante 20-25 min hasta que estén crujientes. Mientras, prepara los huevos rotos en sartén tradicional con el jamón serrano para mantener la textura característica del plato."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -4839,6 +4982,16 @@
         "difficulty": "normal",
         "prepSummary": "Cocina las patatas en bandeja a 200°C durante 20 min hasta dorarlas. Calienta el foie 2 min a 180°C en otra bandeja, luego termina los huevos rotos en sartén sobre las patatas calientes para conseguir la textura crujiente característica."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -5034,6 +5187,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el vaso para picar patatas y cebolla, luego bate los huevos con queso. Finaliza la cocción en sartén tradicional ya que Thermomix no cocina directamente. Requiere combinación de técnicas."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -5182,6 +5345,15 @@
         "difficulty": "normal",
         "prepSummary": "Saltea previamente los boletus con ajo, vierte la mezcla de huevo en un molde apto para airfryer y cocina a 160°C durante 12-14 minutos. El resultado es una tortilla abierta jugosa con textura uniforme."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -5374,6 +5546,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Cocina las patatas troceadas a presión durante 5 min, luego abre y saltea con la cebolla caramelizada. Vierte los huevos batidos y termina a fuego lento sin presión durante 10 min hasta cuajar bien."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -5528,6 +5710,15 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 180°C, sofríe setas y ajo en la cesta 5 min, añade huevos batidos y cocina 6-7 min removiendo cada 2 minutos hasta obtener una textura cremosa."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -5658,6 +5849,15 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 180°C. Saltea ajetes y gambas en una cazuela apta para horno 4 min en la base, vierte los huevos batidos y termina en el horno 8-10 min hasta cuajar. Requiere vigilancia pero logra una textura uniforme y cremosa sin riesgo de quemar."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -5862,6 +6062,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el Thermomix para emulsionar la holandesa (mantequilla, yema y limón a 60°C, velocidad 4) de forma perfecta y segura. Los espárragos y huevos poché se preparan en paralelo con métodos tradicionales."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -5981,6 +6190,15 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 200°C. Vierte aceite en una fuente refractaria, distribuye jamón y rompe los huevos encima. Hornea 10-12 minutos hasta que las claras cuajen y añade parmesano en los últimos 2 minutos."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -6183,6 +6401,16 @@
         "difficulty": "normal",
         "prepSummary": "Usa el vaso para picar y sofreír verduras y chorizo (varoma o función sofrito), luego transfiere a bandeja refractaria y termina en horno 15 min. Prepara la base de forma rápida y eficiente."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -6350,6 +6578,14 @@
         "difficulty": "normal",
         "prepSummary": "Bate los huevos con gambas, ajo y perejil en el vaso, vierte en sartén precalentada y finaliza la cocción en sartén tradicional. El Thermomix prepara la mezcla perfectamente emulsionada."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -6577,6 +6813,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el thermomix para preparar la masa (5 min) y emulsionar el relleno (3 min a vel. 4), luego hornea a 200°C durante 35-40 min. Acelera la preparación de ingredientes pero requiere horno para la cocción final."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -6796,6 +7042,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el thermomix para picar y saltear los puerros (varoma 5 min), luego prepara la mezcla de huevo y nata. Vierte en molde y termina la cocción en horno convencional 35 min a 180°C."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -6984,6 +7239,16 @@
         "difficulty": "facil",
         "prepSummary": "Calienta agua con vinagre en la vaporera. Coloca los huevos en recipientes individuales sobre la bandeja de vapor durante 10-12 min. Consigues huevos escalfados tiernos sin que se rompan."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "suave"
     ]
   },
   {
@@ -7198,6 +7463,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece los huevos al vapor (8 min), prepara la bechamel aparte, rellena y termina el gratinado en horno o airfryer 10 minutos. Los huevos quedan perfectos sin sobrecocciones."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -7370,6 +7644,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el thermomix para picar cebolla y bacalao, luego bate los huevos. Vierte en sartén tradicional para cuajar, ya que el thermomix no cocina directamente. Requiere finalizar en cocción convencional."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -7561,6 +7844,15 @@
         "difficulty": "normal",
         "prepSummary": "Saltea champiñones previamente, distribuye en moldes con nata y huevo, vaporiza a temperatura media 15-18 min. Resultado muy cremoso y delicado, aunque menos dorado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -7724,6 +8016,16 @@
         "difficulty": "normal",
         "prepSummary": "Cuece los huevos en agua hirviendo usando el vaso (12 min a 100°C). Luego utiliza el Thermomix para emulsionar la mayonesa y mezclar con mostaza y cebollino antes de rellenar."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -7916,6 +8218,15 @@
         "difficulty": "normal",
         "prepSummary": "Usa Thermomix para preparar la bechamel (leche, mantequilla, harina) en 8 min a 90°C, luego monta manualmente con huevos y queso, y termina la cocción en horno a 190°C durante 35-40 min."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -8135,6 +8446,16 @@
         "difficulty": "facil",
         "prepSummary": "Usa el Thermomix para hacer la bechamel en 5 min (mantequilla, harina, leche), luego monta en fuente y gratina en horno o airfryer. Ahorra tiempo en la preparación de la salsa."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -8375,6 +8696,14 @@
         "difficulty": "normal",
         "prepSummary": "Saltea los ingredientes en el fondo de la olla, vierte los huevos batidos y cierra. Cocina a presión 8-10 min con válvula lenta. Despresuriz y deja reposar 2 min para que cuaje perfectamente."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -8575,6 +8904,15 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los huevos en una cazuela sobre yogur con ajo dentro de la vaporera a fuego medio-alto durante 12-15 min hasta que cuajen las claras. Calienta la mantequilla con pimentón y sirve caliente sobre los huevos."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "especiado"
     ]
   },
   {
@@ -8749,6 +9087,15 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 180°C y tuesta el pan 3-4 min hasta dorar. Cuece los huevos poché en agua con vinagre en una cazuela pequeña a fuego fuerte (4 min). Ensambla el plato con aguacate y huevo."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -8905,6 +9252,15 @@
         "difficulty": "normal",
         "prepSummary": "Bate los huevos con jamón y queso, vierte en un plato apto microondas, cocina a máxima potencia 3-4 min removiendo cada minuto hasta cuajar. Dobla al servir."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -9063,6 +9419,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 200°C, cocina las patatas en bandeja 15 min, haz un hueco y añade los huevos 5 min más hasta que cuajen. Rocía con aceite y pimentón antes de servir."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
     ]
   },
   {
@@ -9202,6 +9568,15 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 160°C, coloca la morcilla y piñones en el cesto 4 minutos, añade los huevos batidos y continúa 8-10 minutos removiendo a mitad del tiempo. Requiere más atención que en sartén."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -9364,6 +9739,14 @@
         "difficulty": "normal",
         "prepSummary": "En recipiente apto, cocina espárragos 2 min a máxima potencia, añade jamón y ajo, vierte huevos batidos y cocina 3-4 min en potencia media removiendo cada minuto. Requiere atención para evitar sobrecocción."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -9573,6 +9956,15 @@
         "difficulty": "facil",
         "prepSummary": "Cuece las patatas a presión (8 min), despresurizando rápido. Tritúralas con leche y mantequilla, mientras escalfas los huevos en agua con vinagre en una sartén."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -9765,6 +10157,14 @@
         "difficulty": "normal",
         "prepSummary": "Pica calabacín y cebolla con la función picadora, saltea en el vaso a 100°C 5 min, añade huevo batido y queso, cocina a 90°C 12-15 min en modo mariposa. Requiere terminar en sartén 2-3 min para dorar."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -9976,6 +10376,14 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para picar y mezclar las verduras (3 min), bate los huevos con leche, combina todo y vierte en molde para hornear a 180°C durante 25 min. Ahorra tiempo en preparación."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -10152,6 +10560,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 180°C, prepara la mezcla de tomate y ajo en un recipiente apto para airfryer, casca los huevos, añade queso y cocina 15-18 min hasta que las claras estén firmes. Resultado similar al horno pero más rápido."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -10362,6 +10780,14 @@
         "difficulty": "facil",
         "prepSummary": "Prepara la mezcla de huevo, espinacas, piñones y aromáticos en molde apto. Cocina a 180°C durante 12-15 minutos hasta que cuaje completamente. Queda dorada y bien hecha."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -10549,6 +10975,14 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 190°C, prepara los huevos en cazuela refractaria con jamón y trufa, hornea 12-15 min hasta cuajar. Permite cocción uniforme y presentación elegante en la misma cazuela."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -10781,6 +11215,15 @@
         "difficulty": "normal",
         "prepSummary": "Pica verduras con función turbo, sofríe en cazuela externa, luego usa el Thermomix para triturar tomate con especias (vel. 5, 20 seg). Vierte sobre verduras y termina la cocción en cazuela tradicional con los huevos poché."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "especiado"
     ]
   },
   {
@@ -11014,6 +11457,15 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para preparar la salsa base (tomate, cebolla, ajo, chile) en 8 min a velocidad 4, luego termina la cocción de huevos y montaje en sartén tradicional. Ahorra tiempo en la preparación de ingredientes."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "picante",
+    "sabor": [
+      "acido",
+      "especiado"
     ]
   },
   {
@@ -11206,6 +11658,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Saltea patatas y chorizo con la olla abierta 5 min, vierte huevos batidos y cierra 8-10 min a presión media. Requiere precisión para no sobrecocinar."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -11437,6 +11898,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe cebolla, ajo y setas a fuego fuerte (3 min), añade arroz y vino, cubre con caldo. Cierra y cocina a presión 12 min. Despresurizas, añades queso y mantequilla. Los huevos se fríen en sartén al final."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -11644,6 +12114,16 @@
         "difficulty": "facil",
         "prepSummary": "Utiliza el vaso para picar finamente patatas y zanahorias cocidas previamente, luego mezcla todos los ingredientes con la mayonesa en modo pulso suave para no desmenuzar demasiado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -11671,7 +12151,8 @@
       "huevo",
       "lactosa",
       "gluten",
-      "marisco"
+      "marisco",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -11906,6 +12387,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Cuece los huevos en la vaporera (12 min) para obtener una cocción perfecta y uniforme. Prepara la salsa en paralelo y termina los huevos rellenos gratinados en horno. La vaporera garantiza huevos de textura ideal sin grietas."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -11933,7 +12423,8 @@
       "huevo",
       "lactosa",
       "frutos_secos",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -12109,6 +12600,14 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 180°C. Coloca los huevos en un molde apto para airfryer, vierte la salsa de queso y nata, y cocina 10-12 min hasta que cuajen. Las nueces se pueden tostar aparte 3 min a 160°C."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -12301,6 +12800,14 @@
         "difficulty": "elaborada",
         "prepSummary": "Sofríe patatas y pimientos en el recipiente con función sartén, vierte huevos y cocina a presión 8-10 min. Requiere cuidado al despresurizar para evitar que se desmorone."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -12326,7 +12833,8 @@
     "tupperFriendly": false,
     "allergens": [
       "huevo",
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -12536,6 +13044,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece los guisantes con caldo 5 min a presión, despresurizando rápido. Tritúra la crema con nata y menta, mientras los huevos poché se hacen en agua con vinagre en sartén convencional."
       }
+    ],
+    "connotacion": [
+      "fresco",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -12751,6 +13268,15 @@
         "difficulty": "normal",
         "prepSummary": "Usa el vaso para picar setas y ajo (5 seg, vel. 5), saltea con aceite en modo cocción 5 min a 100°C. Bate huevos con nata, mezcla todo, vierte en molde y termina en horno a 200°C 15 min para cuajar."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -12952,6 +13478,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Cocina las patatas cortadas 5 min a presión con poco aceite, luego despresurizas y viertes la mezcla de huevo y pulpo. Termina 8-10 min sin presión hasta que cuaje. Requiere atención en el cambio de técnica."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -13185,6 +13721,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Cuece las espinacas en la vaporera 8 min, prepara la bechamel aparte, monta en recipiente apto para vapor con los huevos y cuece al vapor 15-18 min hasta cuajar. Resulta más delicado y requiere control de temperatura."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -13355,6 +13900,15 @@
         "difficulty": "normal",
         "prepSummary": "Pica ajo y pimientos con la función turbo, sofríe en el vaso a 100°C 5 min con aceite, añade bacalao 2 min, luego vierte huevos batidos y cuaja a 80°C removiendo cada 30 segundos hasta punto deseado."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -13568,6 +14122,15 @@
         "difficulty": "normal",
         "prepSummary": "Pica verduras con función turbo, sofríe en vaso a 100°C velocidad 1 con mariposa. Añade espinacas y huevos batidos, cocina 8-10 min a 90°C. Termina con feta y comino."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -13755,6 +14318,16 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para preparar la salsa de tomate con ajo en 5 min (velocidad progresiva), luego vierte en fuente apta para horno y termina la cocción en horno a 180°C durante 15-20 min con los huevos y burrata."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -13783,7 +14356,8 @@
     "tupperFriendly": false,
     "allergens": [
       "huevo",
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -14001,6 +14575,16 @@
         "difficulty": "normal",
         "prepSummary": "Hornea las patatas paja a 200°C durante 12-14 min hasta dorarlas, luego prepara los huevos rotos en una cazuela a 180°C durante 10-12 min. La salsa de boletus se hace en sartén convencional en paralelo."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -14168,6 +14752,16 @@
         "difficulty": "facil",
         "prepSummary": "Fríe las patatas en sartén 10 min, colócalas en una cazuela refractaria con jamón, vierte los huevos encima y gratina en horno a 200°C durante 8-10 min hasta que cuajen. Resultado similar al tradicional."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -14450,6 +15044,15 @@
         "difficulty": "elaborada",
         "prepSummary": "Usa el Thermomix para preparar la masa quebrada (5 min) y mezclar el relleno (huevos, nata, setas salteadas). Luego hornea en molde 35-40 min a 180°C para cuajar correctamente."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -14711,6 +15314,14 @@
         "difficulty": "normal",
         "prepSummary": "Usa Thermomix para picar espinacas, hacer la bechamel (programas automáticos) y mezclar ingredientes. Luego trasvasa a molde y cuece en horno a 180°C 35-40 min. Reduce tiempo de preparación manual significativamente."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -14844,6 +15455,15 @@
         "difficulty": "normal",
         "prepSummary": "Programa 5 seg velocidad 4 para picar bacon y champiñones, calienta 3 min a 80°C con giro, añade huevos batidos y cocina 4 min a 60°C removiendo. Resulta en un revuelto cremoso y bien emulsionado."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -14996,6 +15616,14 @@
         "difficulty": "normal",
         "prepSummary": "Cocina espárragos al vapor 8 min, mezcla con cebolla y huevos batidos en molde apto para vapor, cuece 10-12 min. Tortilla más ligera pero menos dorada."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -15144,6 +15772,16 @@
         "difficulty": "normal",
         "prepSummary": "Saltea patatas y chorizo con aceite 5 min sin presión, vierte huevos batidos, cierra y cocina a presión 3 min. Despresurizas y sirves. Queda jugoso aunque pierde algo de crujencia."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -15279,6 +15917,14 @@
         "difficulty": "normal",
         "prepSummary": "Bate los huevos en el vaso (vel. 4, 20 seg), añade jamón y queso, vierte en sartén precalentada y termina la cocción en la placa. El Thermomix solo prepara la mezcla, no cocina la tortilla completa."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -15415,6 +16061,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 200°C, saltea chorizo y pimientos en una cazuela apta para horno 5 min, añade los huevos y termina en horno 12-15 min hasta que cuajen. Resulta jugoso y uniforme."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
     ]
   },
   {
@@ -15588,6 +16244,15 @@
         "difficulty": "normal",
         "prepSummary": "Bate los huevos con el Thermomix, luego vierte en sartén precalentada con aceite y cocina en placa hasta cuajar. El Thermomix agiliza la preparación de la mezcla base."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -15736,6 +16401,15 @@
         "difficulty": "normal",
         "prepSummary": "Saltea salchichas y patatas 5 min a presión con poco aceite, despresurizas y añades huevos batidos cocinando 3 min más sin presión. Queda todo tierno y bien cocido."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -15991,6 +16665,15 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix solo para la salsa: tritura tomate, cebolla y ajo a velocidad progresiva, calienta 8 min a 100°C. Los pimientos rellenos se cocinan en sartén tradicional en paralelo."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "especiado"
     ]
   },
   {
@@ -16152,6 +16835,16 @@
         "difficulty": "facil",
         "prepSummary": "Trocea las verduras y cocínalas en la airfryer con aceite y especias a 185°C durante 15-20 minutos, removiendo. Haz huecos, añade los huevos y cocina 5-8 minutos más hasta el punto deseado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "suave"
     ]
   },
   {
@@ -16311,6 +17004,16 @@
         "difficulty": "facil",
         "prepSummary": "Corta las patatas en dados, mezcla con aceite, pimentón y comino. Extiende en una bandeja y hornea a 200°C durante 30-35 min."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   }
 ]

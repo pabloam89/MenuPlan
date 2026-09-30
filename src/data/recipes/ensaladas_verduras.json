@@ -140,7 +140,17 @@
     "tecnica": "crudo",
     "estrella": true,
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_002",
@@ -2627,7 +2637,16 @@
     "llevaSalsa": true,
     "estrella": true,
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_016",
@@ -3498,7 +3517,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "invierno",
     "ingredients": [
       {
@@ -4013,7 +4034,16 @@
     "cocina": "americana",
     "estrella": true,
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_025",
@@ -4329,7 +4359,16 @@
       "pesto"
     ],
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_032",
@@ -4537,7 +4576,16 @@
     "tecnica": "crudo",
     "cocina": "mexicana",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_033",
@@ -4759,7 +4807,15 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_034",
@@ -4922,7 +4978,17 @@
     ],
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_035",
@@ -5119,7 +5185,16 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_036",
@@ -5320,7 +5395,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "ahumado"
+    ]
   },
   {
     "id": "ensaladas_verduras_037",
@@ -5453,7 +5537,17 @@
     ],
     "tecnica": "crudo",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_038",
@@ -5584,7 +5678,16 @@
     ],
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_039",
@@ -5750,7 +5853,16 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_040",
@@ -5963,7 +6075,16 @@
     "occasion": "especial",
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "ensaladas_verduras_041",
@@ -6171,7 +6292,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_042",
@@ -6331,7 +6461,16 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_043",
@@ -6463,7 +6602,16 @@
     ],
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_044",
@@ -6662,7 +6810,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "ensaladas_verduras_045",
@@ -6816,7 +6973,16 @@
     "llevaSalsa": true,
     "cocina": "americana",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_046",
@@ -6991,7 +7157,17 @@
     "mainBase": "patatas",
     "baseMode": "aparte",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_047",
@@ -7155,7 +7331,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "especiado"
+    ]
   },
   {
     "id": "ensaladas_verduras_048",
@@ -7325,7 +7510,16 @@
     ],
     "tecnica": "plancha",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_049",
@@ -7461,7 +7655,17 @@
     ],
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_050",
@@ -7616,7 +7820,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_051",
@@ -7778,7 +7991,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_052",
@@ -8020,7 +8242,16 @@
     ],
     "tecnica": "plancha",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "especiado"
+    ]
   },
   {
     "id": "ensaladas_verduras_053",
@@ -8251,7 +8482,16 @@
     ],
     "tecnica": "olla",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_054",
@@ -8521,7 +8761,16 @@
     ],
     "cocina": "francesa",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_055",
@@ -8659,7 +8908,16 @@
     "tecnica": "crudo",
     "llevaSalsa": true,
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_056",
@@ -8820,7 +9078,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_057",
@@ -9027,7 +9294,16 @@
     "tecnica": "sarten",
     "cocina": "arabe",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_058",
@@ -9219,7 +9495,16 @@
     "tecnica": "horno",
     "cocina": "arabe",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_059",
@@ -9422,7 +9707,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_060",
@@ -9600,7 +9894,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_061",
@@ -9623,7 +9926,8 @@
     "kidFriendly": true,
     "tupperFriendly": false,
     "allergens": [
-      "frutos_secos"
+      "frutos_secos",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -9755,7 +10059,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "ensaladas_verduras_062",
@@ -9779,7 +10092,8 @@
     "tupperFriendly": false,
     "allergens": [
       "lactosa",
-      "frutos_secos"
+      "frutos_secos",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -9908,7 +10222,17 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_063",
@@ -10026,7 +10350,16 @@
       "pesto"
     ],
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_064",
@@ -10189,7 +10522,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_065",
@@ -10213,7 +10555,8 @@
     "tupperFriendly": false,
     "allergens": [
       "gluten",
-      "huevo"
+      "huevo",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -10379,7 +10722,15 @@
     ],
     "tecnica": "horno",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_066",
@@ -10404,7 +10755,8 @@
     "tupperFriendly": false,
     "allergens": [
       "lactosa",
-      "frutos_secos"
+      "frutos_secos",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -10566,7 +10918,17 @@
     ],
     "tecnica": "horno",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_067",
@@ -10830,7 +11192,15 @@
     "llevaSalsa": true,
     "cocina": "americana",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_068",
@@ -10978,7 +11348,16 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "ensaladas_verduras_069",
@@ -11101,7 +11480,16 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_070",
@@ -11306,7 +11694,17 @@
     ],
     "tecnica": "olla",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_071",
@@ -11486,7 +11884,16 @@
     ],
     "tecnica": "olla",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_072",
@@ -11693,7 +12100,15 @@
       "huevo"
     ],
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_073",
@@ -11838,7 +12253,16 @@
     "tecnica": "crudo",
     "llevaSalsa": true,
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_074",
@@ -11974,7 +12398,16 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "ensaladas_verduras_075",
@@ -12122,7 +12555,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_076",
@@ -12261,7 +12703,16 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_077",
@@ -12440,7 +12891,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "ensaladas_verduras_078",
@@ -12604,7 +13064,17 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_079",
@@ -12802,7 +13272,17 @@
     "cocina": "arabe",
     "llevaSalsa": true,
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_080",
@@ -12994,7 +13474,16 @@
     "mainBase": "legumbre",
     "baseMode": "aparte",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_081",
@@ -13215,7 +13704,15 @@
     "tecnica": "olla",
     "cocina": "italiana",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_082",
@@ -13353,7 +13850,17 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_083",
@@ -13499,7 +14006,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_084",
@@ -13690,7 +14206,17 @@
     "llevaSalsa": true,
     "cocina": "india",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_085",
@@ -13862,7 +14388,16 @@
     "montaje": true,
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "ensaladas_verduras_086",
@@ -14005,7 +14540,16 @@
     ],
     "tecnica": "sarten",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_087",
@@ -14225,7 +14769,16 @@
     ],
     "tecnica": "plancha",
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "ensaladas_verduras_088",
@@ -14363,7 +14916,17 @@
     ],
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "picante",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "ensaladas_verduras_089",
@@ -14842,7 +15405,16 @@
       "salsa_tomate"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_091",
@@ -15067,7 +15639,17 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_092",
@@ -15286,7 +15868,16 @@
     "tecnica": "horno",
     "cocina": "arabe",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "especiado"
+    ]
   },
   {
     "id": "ensaladas_verduras_093",
@@ -15579,7 +16170,15 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_094",
@@ -15725,7 +16324,15 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_095",
@@ -15958,7 +16565,16 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_096",
@@ -16143,7 +16759,16 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_097",
@@ -16359,7 +16984,17 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "ensaladas_verduras_098",
@@ -16536,7 +17171,17 @@
     "estrella": true,
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_099",
@@ -16734,7 +17379,16 @@
     "tecnica": "horno",
     "cocina": "arabe",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "ensaladas_verduras_100",
@@ -16916,7 +17570,16 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_101",
@@ -17092,7 +17755,16 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "picante",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "ensaladas_verduras_102",
@@ -17242,7 +17914,16 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_103",
@@ -17463,7 +18144,15 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_104",
@@ -17686,7 +18375,16 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_105",
@@ -17871,7 +18569,16 @@
     ],
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_106",
@@ -18076,7 +18783,16 @@
       "verdura_asada"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_107",
@@ -18301,7 +19017,17 @@
     "tecnica": "olla",
     "mainBase": "legumbre",
     "baseMode": "aparte",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_108",
@@ -18543,6 +19269,16 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la patata y bacalao en olla express a presión (8 min), prepara rápidamente la brandada, rellena los pimientos y gratina en horno 12 min."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -18697,6 +19433,15 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza calabacín 10 min hasta tierno, luego saltea brevemente en sartén con aceite para conseguir color. Termina con feta, menta y limón para recuperar la esencia de la plancha."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -18905,6 +19650,15 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la remolacha entera con agua a presión durante 15 minutos, luego despresurizando. Reduce significativamente el tiempo manteniendo todas las propiedades."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -19106,6 +19860,15 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 200°C, coloca las verduras en una bandeja con papel de horno y cocina 20-22 min. Aunque pierde la técnica de vapor, el resultado es aceptable si las rocías con agua antes de hornear."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -19273,6 +20036,15 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza las endivias 15 min hasta que estén tiernas. Luego saltéalas en sartén con mantequilla, naranja y azúcar 10 min para caramelizar. Finaliza con nueces."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -19431,6 +20203,16 @@
         "difficulty": "normal",
         "prepSummary": "Programa el vaso a 100°C, velocidad 1, durante 15 min con las setas, ajo y aceite. El calor controlado confita perfectamente sin quemar el ajo ni perder texturas."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -19679,6 +20461,16 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe las verduras en la olla express abierta, añade el arroz y caldo, introduce la calabaza rellena, cierra y cocina a presión 20 min. Deja reposar 5 min y abre. Gratina con queso en horno 5 min si lo deseas."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -19943,6 +20735,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Cuece las verduras al vapor 20 min, luego monta el timbal y termina bajo grill o en horno 15-20 min para gratinar. Requiere dos fases pero preserva nutrientes."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -20137,6 +20939,16 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza las láminas de berenjena durante 10-12 min hasta que estén tiernas, luego monta las milhojas y termina gratinándolas 5 min con calor directo o bajo el grill para que la mozzarella se funda sin desvirtuarse."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -20366,6 +21178,15 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 190°C y cocina las perdices 25-30 min, dándoles la vuelta a mitad. Prepara el escabeche en paralelo y vierte sobre las perdices calientes para que se impregnen mientras se enfría a temperatura templada."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
     ]
   },
   {
@@ -20677,6 +21498,16 @@
         "difficulty": "facil",
         "prepSummary": "Usa el Thermomix para picar boletus, cebolla y ajo, luego prepara la béchamel con la función de cocción a 90°C. Ahorra tiempo en la preparación de ingredientes y la salsa queda homogénea."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -21044,6 +21875,16 @@
         "difficulty": "normal",
         "prepSummary": "Prepara la salsa boloñesa en la olla express a presión (20 min), luego monta capas en fuente refractaria y gratina en horno a 180°C durante 25-30 min."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -21255,6 +22096,16 @@
         "difficulty": "facil",
         "prepSummary": "Usa el thermomix solo para preparar la masa (amasado rápido en 3 min), luego deja reposar 60 min fuera. Hornea en horno convencional a 220°C durante 20-25 min. El thermomix acelera la preparación de la base sin alterar el resultado final."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -21515,6 +22366,15 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para picar calabacín y cebolla (velocidad 4-5, 5 seg), luego mezcla los ingredientes del relleno. Hornea la tarta en horno convencional a 200°C durante 35-40 min. El Thermomix acelera la preparación de ingredientes."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -21665,6 +22525,15 @@
         "difficulty": "facil",
         "prepSummary": "Utiliza la función picadora para trocar el aguacate, pepino y cebolleta de forma uniforme en segundos. Luego mezcla manualmente con los aliños para evitar oxidación del aguacate."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -21920,6 +22789,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece las espinacas a presión 3-4 min, luego prepara la bechamel en la misma olla a fuego lento sin presión, mezcla todo y gratina en horno 10 min. Ahorra tiempo significativamente."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -22092,6 +22970,15 @@
         "difficulty": "facil",
         "prepSummary": "Si el maíz es congelado, descongélalo 2-3 min a potencia media. Luego prepara todos los ingredientes frescos y mezcla en frío. El microondas solo acelera la descongelación del maíz."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -22250,6 +23137,15 @@
         "difficulty": "facil",
         "prepSummary": "Vaporiza la col y zanahoria cortadas gruesas durante 3-4 minutos para ablandarlas ligeramente manteniendo textura crujiente. Luego pica finamente y mezcla con el aliño de sésamo y lima a temperatura ambiente."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -22380,6 +23276,15 @@
         "difficulty": "facil",
         "prepSummary": "Cuece las patatas en microondas con agua durante 12-15 minutos a máxima potencia en recipiente tapado. Prepara la salsa en paralelo y monta el plato."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "suave"
     ]
   },
   {
@@ -22503,6 +23408,16 @@
         "difficulty": "facil",
         "prepSummary": "Cuece la pechuga a presión durante 8-10 min con un poco de agua, ganando tiempo significativo. Cocina también las patatas en la misma olla en fases separadas para optimizar tiempo total."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "especiado"
     ]
   },
   {
@@ -22617,6 +23532,15 @@
         "difficulty": "facil",
         "prepSummary": "Utiliza el vaso para picar finamente la cebolla roja y el ají amarillo en modo turbo. Cuece guisantes y maíz en agua hirviendo aparte, luego mezcla todos los ingredientes y aliña al gusto."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "especiado"
     ]
   },
   {
@@ -22746,6 +23670,15 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe cebolla, tomate, jengibre y ajo 3 min a presión natural. Añade espinacas, especias y nata. Cierra 8 min a presión media. Integra queso fresco al final fuera del fuego."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "suave"
     ]
   },
   {
@@ -22875,6 +23808,15 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta a 200°C. Saltea cebolla, ajo y especias en bandeja refractaria 3 min, añade patata y coliflor cortadas, tomate y aceite. Hornea 30-35 min removiendo a mitad. Resultado caramelizado y aromático."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "suave"
     ]
   },
   {
@@ -22996,6 +23938,15 @@
         "difficulty": "normal",
         "prepSummary": "Programa la mariposa a velocidad progresiva (vel. 1-3) durante 30 min a 100°C para cocinar lentamente las verduras cortadas con aceite y condimentos, manteniendo texturas y sabores."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -23159,7 +24110,16 @@
       "Desmenuzar {{Queso feta}} por encima y picar {{Menta fresca}} en juliana fina.",
       "Aliñar con el zumo de {{Limón}} y un hilo de aceite, y servir templado."
     ],
-    "methods": []
+    "methods": [],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_133",
@@ -23316,7 +24276,17 @@
     ],
     "methods": [],
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "ensaladas_verduras_134",
@@ -23464,7 +24434,16 @@
       "Cortar {{Queso de cabra}} en rodajas, ponerlas encima y gratinar hasta que se doren.",
       "Terminar con un hilo de {{Miel}} y servir caliente."
     ],
-    "methods": []
+    "methods": [],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "ensaladas_verduras_135",
@@ -23609,6 +24588,16 @@
     ],
     "methods": [],
     "formato": "ensalada",
-    "temperatura": "templado"
+    "temperatura": "templado",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   }
 ]

@@ -16,12 +16,14 @@ import salsas from "./recipes/salsas.json";
 import bases from "./recipes/bases.json";
 import { validateRecipes } from "./recipeSchema.js";
 import { deriveHealthFlags } from "../lib/healthFlags.js";
+import { conNivelCalorias } from "../lib/caloriasNivel.js";
 import { supabase } from "../lib/supabase.js";
 import { BUNDLED_CATALOG_VERSION } from "./catalogVersion.js";
 import { rowToRecipe } from "./recipeRow.js";
 import recipeNutrition from "./derived/recipeNutrition.json";
 import recipeFamilias from "./derived/recipeFamilias.json";
-import { computeRecipeNutrition } from "../lib/ingredients.js";
+import recipeCoste from "./derived/recipeCoste.json";
+import { computeRecipeNutrition, deriveRecipeAllergens } from "../lib/ingredients.js";
 import { NUTRIENTES, CAMPOS_SECUNDARIOS } from "./nutrientes.js";
 
 // Attach heuristic health flags once, so filterRecipes/decisionCatalog get them
@@ -110,6 +112,32 @@ const nutricionDe = (r) => recipeNutrition[r.id] ?? computeRecipeNutrition(r, r.
  * Una receta sin fila —una de usuario, una recién llegada de Supabase— se
  * queda sin el campo, y quien lo lea tiene que saber caer a la regla vieja.
  */
+/**
+ * Coste por ración con precios de Mercadona (derived/recipeCoste.json, que
+ * regenera `npm run build:coste` y cada `sync:mercadona`). `costeNivel`
+ * solo si la cobertura de precios llega: si no, la receta se queda sin él.
+ */
+/**
+ * «Puede contener» de cada receta (ids UE), heredado de los ingredientes
+ * elaborados. Lo leen filterRecipes (excluye si choca con una alergia) y quien
+ * pinte la receta (avisa). Se calcula al cargar: no se guarda en el JSON, así
+ * que cambiar una ficha de ingrediente lo cambia en todas sus recetas.
+ */
+export function withPuedeContener(recipes) {
+  return recipes.map((r) => {
+    const lista = deriveRecipeAllergens(r).mayContain;
+    return lista.length ? { ...r, puedeContener: lista } : r;
+  });
+}
+
+export function withCoste(recipes) {
+  const filas = recipeCoste.recetas ?? {};
+  return recipes.map((r) => {
+    const c = filas[r.id];
+    return c?.porRacion != null ? { ...r, costeRacion: c.porRacion, costeNivel: c.nivel } : r;
+  });
+}
+
 export function withFamilias(recipes) {
   return recipes.map((r) => {
     const f = recipeFamilias[r.id];
@@ -367,7 +395,9 @@ async function loadRecipes() {
 
 // El orden importa: los micros ANTES de las banderas, porque
 // `deriveHealthFlags` lee `iron_mg` para decidir «rico en hierro».
-export const recipeCatalog = withFamilias(withHealthFlags(withMicronutrientes(await loadRecipes())));
+// `caloriasNivel` (ligero/medio/contundente) sale de kcal y del papel del
+// plato: ver lib/caloriasNivel.js.
+export const recipeCatalog = withPuedeContener(withCoste(conNivelCalorias(withFamilias(withHealthFlags(withMicronutrientes(await loadRecipes()))))));
 
 export const recipeCatalogById = Object.fromEntries(
   recipeCatalog.map((r) => [r.id, r]),

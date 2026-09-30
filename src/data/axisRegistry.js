@@ -155,10 +155,10 @@ export const EJES = [
   },
   {
     n: 8, id: "textura", nombre: "Textura",
-    ambito: AMBITO.RECETA, tipo: "enum", estado: "silencioso",
-    campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
-    nota: "Solo implícita en `etapaBebe`, que la esconde dentro de una categoría.",
+    ambito: AMBITO.RECETA, tipo: "enum", estado: "activo",
+    campo: "textura", vocabulario: ["cuchara", "tenedor", "mano"],
+    consumidores: ["menu.js"], cobertura: 0.723,
+    nota: "Cómo se come: cuchara, tenedor, mano. Todo el Recetario Estrella (30 sep 2026, scripts/recetas-atributos-blandos.mjs: dos pasadas y un juez). La lee el bot al recomendar («de cuchara»). Antes solo implícita en `etapaBebe`.",
   },
   {
     n: 9, id: "sabor", nombre: "Perfil de sabor + intensidad",
@@ -190,10 +190,10 @@ export const EJES = [
   },
   {
     n: 13, id: "connotacion", nombre: "Connotación emocional",
-    ambito: AMBITO.RECETA, tipo: "tags", estado: "silencioso",
-    campo: null, vocabulario: null,
-    consumidores: [], cobertura: 0,
-    nota: "Responde a «algo reconfortante», que es una petición real y hoy no se puede honrar.",
+    ambito: AMBITO.RECETA, tipo: "tags", estado: "activo",
+    campo: "connotacion", vocabulario: ["reconfortante", "fresco", "casero", "festivo"],
+    consumidores: ["menu.js"], cobertura: 0.716,
+    nota: "Responde a «algo reconfortante», que es una petición real. Todo el Recetario Estrella desde el 30 sep 2026 (scripts/recetas-atributos-blandos.mjs); la lee el bot al recomendar.",
   },
 
   // ── Cultura y rito (14-22) ───────────────────────────────────────────────
@@ -349,9 +349,9 @@ export const EJES = [
   // ── Economía y sostenibilidad (34-36) ────────────────────────────────────
   {
     n: 34, id: "coste", nombre: "Coste por ración",
-    ambito: AMBITO.RECETA, tipo: "numerico", estado: "silencioso",
-    campo: null, vocabulario: null, consumidores: [], cobertura: 0,
-    nota: "Con `priceHistory` y 3.052 productos en el repo. Es el que menos trabajo nuevo pide.",
+    ambito: AMBITO.RECETA, tipo: "numerico", estado: "activo",
+    campo: "costeNivel", vocabulario: ["economico", "medio", "caro"], consumidores: ["menu.js"], cobertura: 0.856,
+    nota: "€ por ración con Mercadona a €/kg (derive/coste.js → derived/recipeCoste.json, que regenera build:coste y cada sync:mercadona). Nivel solo con cobertura de precios ≥ 0,8; sin ella, sin nivel. La lee el bot («algo barato»).",
   },
   {
     n: 35, id: "huella", nombre: "Huella / sostenibilidad",

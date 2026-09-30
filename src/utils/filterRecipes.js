@@ -6,7 +6,7 @@ import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 import { isMontaje, effectiveRecipeTime, necesitaVispera } from "../data/recipeSchema.js";
-import { resolveIngredientId } from "../lib/ingredients.js";
+import { resolveIngredientId, deriveRecipeAllergens } from "../lib/ingredients.js";
 import { esAnadido } from "../lib/cocinaTopes.js";
 import { aporteDe } from "../lib/aporte.js";
 
@@ -73,6 +73,18 @@ const normalizeForAlcoholCheck = (s) =>
  * @param {boolean}  [opts.isBabyGroup]
  * @returns {boolean}
  */
+/**
+ * Lo que una receta «puede contener» por sus ingredientes elaborados (un caldo
+ * de brick, un embutido, un curry: ver `mayContain` en ingredientSchema.js).
+ * Para quien tiene la alergia cuenta como si lo llevara: se excluye. Las del
+ * catálogo lo traen calculado al cargar; una receta propia se calcula aquí.
+ */
+export function puedeContenerDe(recipe) {
+  if (Array.isArray(recipe?.puedeContener)) return recipe.puedeContener;
+  if (!recipe?.ingredients?.length) return [];
+  return deriveRecipeAllergens(recipe).mayContain;
+}
+
 export function recipeViolatesHardSafety(
   recipe,
   { allergies = [], intolerances = [], hasKids = false, isBabyGroup = false } = {},
@@ -82,6 +94,7 @@ export function recipeViolatesHardSafety(
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   if (blockedAllergens.size > 0) {
     if (recipe.allergens?.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
+    if (puedeContenerDe(recipe).some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
     const names = (recipe.ingredients ?? []).map((ing) => ing.name);
     if (recipeIngredientsHitAllergens(names, blockedAllergens)) return true;
   }
@@ -345,6 +358,7 @@ export function filterRecipes({
   if (blockedAllergens.size > 0) {
     pool = pool.filter((r) => {
       if (r.allergens.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return false;
+      if (puedeContenerDe(r).some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return false;
       const names = (r.ingredients ?? []).map((ing) => ing.name);
       if (recipeIngredientsHitAllergens(names, blockedAllergens)) return false;
       return true;

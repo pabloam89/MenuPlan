@@ -103,7 +103,14 @@ export const TABLAS = [
       { campo: "aisle", plano: "identidad", cobertura_min: 100, nota: "el nodo de identidad más usado: pasillo del súper" },
       { campo: "category", plano: "identidad", cobertura_min: 100 },
       { campo: "allergens", plano: "identidad", cobertura_min: 38, nota: "vacío = sin alérgeno; el cruce con las recetas da 0 falsos vacíos" },
-      { campo: "cookingAllergens", plano: "identidad", cobertura_min: 2 },
+      // Vacío desde el 30 sep 2026 A PROPÓSITO: vino, vinagre y licores pasaron
+      // sus sulfitos a `allergens` (decisión de Pablo: para una alergia, la
+      // duda de «se evapora al cocinar» cuenta). El nivel se conserva para lo
+      // que venga, pero hoy no hay ninguno.
+      { campo: "cookingAllergens", plano: "identidad", cobertura_min: 0, nota: "vacío a propósito desde el 30 sep 2026: los sulfitos del vino y el vinagre son declarados" },
+      // «Puede contener» de los elaborados (caldos, embutidos, pan…): dos
+      // pasadas, un juez y una revisión escéptica (scripts/alergenos-puede-contener.mjs).
+      { campo: "mayContain", plano: "identidad", cobertura_min: 12, nota: "solo elaborados; vacío = producto de un solo componente, no es hueco" },
       { campo: "conflictsWith", plano: "identidad", cobertura_min: 5 },
       { campo: "isVegetarian", plano: "identidad", cobertura_min: 100 },
       { campo: "isVegan", plano: "identidad", cobertura_min: 100 },

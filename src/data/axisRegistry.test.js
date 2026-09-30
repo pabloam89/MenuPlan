@@ -15,6 +15,7 @@ import {
 } from "../lib/derive/ejesDePlato.js";
 
 const RAIZ = fileURLToPath(new URL("./recipes", import.meta.url));
+const recipeCoste = JSON.parse(readFileSync(fileURLToPath(new URL("./derived/recipeCoste.json", import.meta.url)), "utf8"));
 const recetas = readdirSync(RAIZ)
   .filter((f) => f.endsWith(".json"))
   .flatMap((f) => JSON.parse(readFileSync(join(RAIZ, f), "utf8")));
@@ -80,6 +81,9 @@ const MEDIDORES = {
   // calcio (94,9 %) escondía que la B12 está en 89,6 %, y sobre todo que el
   // omega-3 no tiene campo: la cobertura decía 95 % para una pregunta que no
   // tiene ni un dato detrás.
+  textura: () => recetas.filter((r) => r.textura).length / recetas.length,
+  connotacion: () => recetas.filter((r) => (r.connotacion ?? []).length > 0).length / recetas.length,
+  coste: () => recetas.filter((r) => recipeCoste.recetas?.[r.id]?.nivel).length / recetas.length,
   micronutrientes: () => Math.min(...["iron100g", "calcium100g", "vitaminB12100g", "folate100g"]
     .map((k) => alimentos.filter((a) => a.nutricion?.[k] != null).length / alimentos.length)),
 };
@@ -219,7 +223,11 @@ describe("el registro de ejes", () => {
       if (statSync(p).isDirectory()) return rec(p);
       return /\.(js|jsx)$/.test(e) && !/\.test\./.test(e) ? [p] : [];
     });
-    return rec(raiz).map((p) => ({ ruta: p, texto: readFileSync(p, "utf8") }));
+    // Y el bot (api/_bot): también es un lector del catálogo. Los atributos
+    // blandos y el coste los lee él al recomendar, y fuera de src/ el registro
+    // los daba por muertos.
+    const bot = fileURLToPath(new URL("../../api/_bot", import.meta.url));
+    return [...rec(raiz), ...rec(bot).filter((p) => !p.endsWith("core.mjs"))].map((p) => ({ ruta: p, texto: readFileSync(p, "utf8") }));
   })();
 
   /** El nombre del campo tal cual aparece en el código, por eje. */
@@ -230,6 +238,7 @@ describe("el registro de ejes", () => {
     escalabilidadTanda: "scalesWithEaters", sabor: "healthFlags",
     subtipoIngrediente: "taxonomia", parte: ".part", montaje: "montaje",
     gruposSecundarios: "mainIngredients", formato: "formato", temperatura: "temperatura",
+    textura: "textura", connotacion: "connotacion", coste: "costeNivel",
   };
 
   it("cada consumidor declarado nombra de verdad el campo del eje", () => {
@@ -300,16 +309,19 @@ describe("el registro de ejes", () => {
       // 0 = «declarado y vacío», null = «esa pregunta no está registrada».
       // Se usaba `formato` de ejemplo y dejó de servir al poblarlo: un test
       // que ilustra con un eje vivo caduca en cuanto ese eje avanza. `textura`
-      // (eje 8) sigue declarada y vacía, que es lo que este caso necesita.
-      expect(cobertura("textura")).toBe(0);
+      // (eje 8) servía hasta el 30 sep 2026, cuando se pobló con el
+      // enriquecimiento del Recetario Estrella. Ahora `autenticidad` (eje 15),
+      // declarada y vacía.
+      expect(cobertura("autenticidad")).toBe(0);
       expect(cobertura("un-eje-que-nadie-ha-declarado")).toBeNull();
     });
 
     it("`puedeResponder` dice por qué NO, que es lo que se le enseña al usuario", () => {
       expect(puedeResponder("tecnica").puede).toBe(true);
-      const textura = puedeResponder("textura");
-      expect(textura.puede).toBe(false);
-      expect(textura.porque).toMatch(/sin datos/);
+      // Era `textura`, poblada el 30 sep 2026: ahora `autenticidad`.
+      const autenticidad = puedeResponder("autenticidad");
+      expect(autenticidad.puede).toBe(false);
+      expect(autenticidad.porque).toMatch(/sin datos/);
       // El caso «tener datos y que nadie los lea», que no es lo mismo que no
       // tenerlos. El ejemplo era `fotogenia` y era FALSO: `apetecible` sí lo
       // lee CatalogBrowserSheet, en la faceta que la UI llama «gourmet». Este

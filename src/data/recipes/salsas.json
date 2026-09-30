@@ -23,7 +23,8 @@
     "tupperFriendly": true,
     "freezable": false,
     "allergens": [
-      "mostaza"
+      "mostaza",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -358,7 +359,8 @@
     "freezable": true,
     "allergens": [
       "gluten",
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -625,7 +627,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": false,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -747,7 +751,9 @@
     "kidFriendly": false,
     "tupperFriendly": true,
     "freezable": false,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "healthFlags": [
       "picante"
     ],
@@ -877,7 +883,9 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "freezable": false,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -1097,7 +1105,8 @@
     "freezable": true,
     "allergens": [
       "frutos_secos",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [

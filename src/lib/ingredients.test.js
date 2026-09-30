@@ -133,10 +133,12 @@ describe("helpers con fallback", () => {
   });
 
   it("ingredientAllergensFor devuelve los dos niveles por separado", () => {
+    // Desde el 30 sep 2026 los sulfitos del vino son DECLARADOS, no de
+    // cocinado (decisión de Pablo): una alergia no se juega a que se evapore.
     const vino = ingredientAllergensFor("Vino blanco");
     expect(vino.known).toBe(true);
-    expect(vino.allergens).toEqual([]);
-    expect(vino.cookingAllergens).toContain("sulfitos");
+    expect(vino.allergens).toContain("sulfitos");
+    expect(vino.cookingAllergens).toEqual([]);
 
     const aceitunas = ingredientAllergensFor("Aceitunas negras");
     expect(aceitunas.allergens).toContain("sulfitos");

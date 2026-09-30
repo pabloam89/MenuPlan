@@ -2017,6 +2017,20 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
     // Lo encontró el fusible de este puente el día que se escribió.
     freezable: r.freezable,
     thawSteps: r.thawSteps,
+    // ── Atributos del enriquecimiento de 30 sep 2026 ───────────────────────
+    // Los blandos (connotacion, textura, picante, sabor) vienen del JSON; los
+    // otros cuatro, del catálogo al cargar (caloriasNivel, coste, puede
+    // contener). Todos tienen que llegar a la receta que pinta la app y que
+    // lee el bot: sin esto, el «puede contener» no se avisaría nunca en una
+    // ficha abierta desde el menú.
+    connotacion: r.connotacion,
+    textura: r.textura,
+    picante: r.picante,
+    sabor: r.sabor,
+    caloriasNivel: r.caloriasNivel,
+    costeRacion: r.costeRacion,
+    costeNivel: r.costeNivel,
+    puedeContener: r.puedeContener,
     image: r.photo ?? `/dishes/${r.id}.webp`,
     photo: r.photo ?? undefined,
     ingredients: merged,

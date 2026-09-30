@@ -390,4 +390,22 @@
 //     en MAIN_PROTEINS y `PROTEIN_IMAGE` se quedó con nueve de trece escritas
 //     a mano. El arte ya existía. Su test tampoco lo cazó: llevaba la misma
 //     lista vieja copiada, y ahora deriva del esquema.
-export const BUNDLED_CATALOG_VERSION = 38;
+//
+// v39 (30 sep 2026) — ENRIQUECIMIENTO DEL RECETARIO ESTRELLA.
+//
+//   · SULFITOS DEL VINO Y EL VINAGRE, DECLARADOS. Once ingredientes (vinos,
+//     vinagres, licores, sidra) pasan de `cookingAllergens` a `allergens`, y
+//     73 recetas declaran ahora sulfitos. Decisión de Pablo: para una alergia,
+//     «se evapora al cocinar» no basta.
+//   · «PUEDE CONTENER». `mayContain` en 51 ingredientes elaborados (caldos de
+//     brick, embutidos, pan, galletas…): dos pasadas de un modelo, un juez y
+//     una revisión escéptica que quitó los falsos positivos (pollo fresco,
+//     especias puras). La receta lo hereda al cargar (`puedeContener`) y
+//     filterRecipes la excluye para quien tenga esa alergia.
+//   · ATRIBUTOS BLANDOS en las 747 estrella: `connotacion`, `textura`,
+//     `picante`, `sabor` (scripts/recetas-atributos-blandos.mjs). `occasion` y
+//     `kidFavourite` NO se tocaron: el modelo los inflaba (35 % y 42 % frente
+//     a 7 % y 8 % a mano) y quedan como lista de candidatos para revisar.
+//   · Al cargar (no en el JSON): `caloriasNivel` (lib/caloriasNivel.js) y
+//     `costeRacion`/`costeNivel` (derived/recipeCoste.json).
+export const BUNDLED_CATALOG_VERSION = 39;

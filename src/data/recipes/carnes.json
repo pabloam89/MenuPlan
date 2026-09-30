@@ -696,7 +696,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "invierno",
     "ingredients": [
       {
@@ -921,7 +923,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -1090,7 +1094,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -1218,7 +1224,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "invierno",
     "ingredients": [
       {
@@ -2264,7 +2272,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -2635,7 +2645,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "invierno",
     "ingredients": [
       {
@@ -2862,7 +2874,8 @@
     "tupperFriendly": true,
     "allergens": [
       "huevo",
-      "frutos_secos"
+      "frutos_secos",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -3784,7 +3797,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "invierno",
     "ingredients": [
       {
@@ -4007,7 +4022,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -5048,7 +5065,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -5278,7 +5297,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -6007,7 +6028,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "apio"
+      "apio",
+      "sulfitos"
     ],
     "season": "invierno",
     "ingredients": [
@@ -6919,7 +6941,17 @@
       "sofrito",
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_038",
@@ -7203,7 +7235,15 @@
     "occasion": "especial",
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_039",
@@ -7227,7 +7267,8 @@
     "tupperFriendly": true,
     "allergens": [
       "soja",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -7463,7 +7504,17 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "mano",
+    "picante": "suave",
+    "sabor": [
+      "ahumado",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_040",
@@ -7696,7 +7747,16 @@
     "basesAparte": [
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_041",
@@ -7917,7 +7977,16 @@
     "llevaSalsa": true,
     "cocina": "francesa",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_042",
@@ -8290,7 +8359,17 @@
     "occasion": "especial",
     "tecnica": "olla",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_043",
@@ -8530,7 +8609,15 @@
     "occasion": "especial",
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_044",
@@ -8782,7 +8869,15 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_045",
@@ -8974,7 +9069,16 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_046",
@@ -9178,7 +9282,16 @@
     ],
     "cocina": "francesa",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_047",
@@ -9389,7 +9502,16 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "picante",
+    "sabor": [
+      "ahumado",
+      "especiado"
+    ]
   },
   {
     "id": "carnes_048",
@@ -9735,7 +9857,16 @@
     "tecnica": "olla",
     "llevaSalsa": true,
     "cocina": "italiana",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_049",
@@ -9949,7 +10080,16 @@
     "basesAparte": [
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_050",
@@ -10211,7 +10351,17 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_051",
@@ -10445,7 +10595,17 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_052",
@@ -10726,7 +10886,16 @@
       "caldo"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_053",
@@ -10956,7 +11125,16 @@
     "tecnica": "olla",
     "mainBase": "boniato",
     "baseMode": "dentro",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_054",
@@ -11092,7 +11270,15 @@
     "estrella": true,
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_055",
@@ -11358,7 +11544,17 @@
       "sofrito",
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_056",
@@ -11384,7 +11580,8 @@
     "allergens": [
       "soja",
       "sesamo",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -11558,7 +11755,16 @@
     "cocina": "asiatica",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_057",
@@ -11730,7 +11936,16 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_058",
@@ -11921,7 +12136,17 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_059",
@@ -12083,7 +12308,17 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_060",
@@ -12223,7 +12458,16 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "carnes_061",
@@ -12395,7 +12639,16 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "especiado"
+    ]
   },
   {
     "id": "carnes_062",
@@ -12623,7 +12876,15 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_063",
@@ -12878,7 +13139,15 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_064",
@@ -13126,7 +13395,16 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_065",
@@ -13348,7 +13626,17 @@
     ],
     "tecnica": "sarten",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "mano",
+    "picante": "picante",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "carnes_066",
@@ -13622,7 +13910,17 @@
       "salsa_tomate"
     ],
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_067",
@@ -13863,7 +14161,16 @@
       "huevo"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_068",
@@ -14064,7 +14371,17 @@
     "basesAparte": [
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_069",
@@ -14236,7 +14553,17 @@
     "tecnica": "crudo",
     "cocina": "italiana",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_070",
@@ -14419,7 +14746,17 @@
       "huevo"
     ],
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_071",
@@ -14691,7 +15028,17 @@
       "caldo"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "id": "carnes_072",
@@ -14905,7 +15252,17 @@
     "kidFavourite": true,
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_073",
@@ -15107,7 +15464,17 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "carnes_074",
@@ -15336,7 +15703,17 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "picante",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_075",
@@ -15553,7 +15930,17 @@
     ],
     "tecnica": "olla",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_076",
@@ -15790,7 +16177,16 @@
       "sofrito",
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_077",
@@ -16102,7 +16498,17 @@
     ],
     "tecnica": "olla",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_078",
@@ -16388,7 +16794,17 @@
       "ternera"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_079",
@@ -16613,7 +17029,16 @@
     "basesAparte": [
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_080",
@@ -16821,7 +17246,17 @@
     "estrella": true,
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "carnes_081",
@@ -17084,7 +17519,16 @@
       "sofrito",
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_082",
@@ -17336,7 +17780,17 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_083",
@@ -17483,7 +17937,17 @@
     "estrella": true,
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_084",
@@ -17508,7 +17972,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -17719,7 +18185,17 @@
     "occasion": "especial",
     "tecnica": "horno",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_085",
@@ -17946,7 +18422,16 @@
       "caldo"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_086",
@@ -18183,7 +18668,16 @@
       "guarda": "congelador",
       "dias": 30
     },
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_087",
@@ -18383,7 +18877,15 @@
       "huevo"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_088",
@@ -18644,7 +19146,17 @@
       "caldo"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_089",
@@ -18836,7 +19348,16 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_090",
@@ -19021,7 +19542,15 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_091",
@@ -19230,7 +19759,17 @@
     "estrella": true,
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_092",
@@ -19388,7 +19927,15 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_093",
@@ -19414,7 +19961,8 @@
       "gluten",
       "huevo",
       "soja",
-      "sesamo"
+      "sesamo",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -19642,7 +20190,16 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_094",
@@ -19873,7 +20430,17 @@
       "sofrito",
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_095",
@@ -20191,7 +20758,16 @@
       "lacteo"
     ],
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_096",
@@ -20501,7 +21077,17 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_097",
@@ -20524,7 +21110,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "mostaza"
+      "mostaza",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -20652,7 +21239,15 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce"
+    ]
   },
   {
     "id": "carnes_098",
@@ -20941,7 +21536,17 @@
       "caldo"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_099",
@@ -20965,7 +21570,8 @@
     "tupperFriendly": true,
     "allergens": [
       "lactosa",
-      "mostaza"
+      "mostaza",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -21171,7 +21777,16 @@
     "tecnica": "sarten",
     "cocina": "francesa",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_100",
@@ -21442,7 +22057,16 @@
       "huevo"
     ],
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_101",
@@ -21691,7 +22315,17 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_102",
@@ -21943,7 +22577,16 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_103",
@@ -22216,7 +22859,17 @@
     "llevaSalsa": true,
     "cocina": "americana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_104",
@@ -22460,7 +23113,16 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_105",
@@ -22662,7 +23324,16 @@
     "mainBase": "boniato",
     "baseMode": "dentro",
     "cocina": "francesa",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_106",
@@ -22897,7 +23568,16 @@
     "tecnica": "plancha",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_107",
@@ -23160,7 +23840,17 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_108",
@@ -23189,7 +23879,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -23429,7 +24120,16 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_109",
@@ -23458,7 +24158,8 @@
     "kidFriendly": false,
     "tupperFriendly": false,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -23661,7 +24362,16 @@
     "tecnica": "sarten",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_110",
@@ -23891,7 +24601,15 @@
     "llevaSalsa": true,
     "cocina": "americana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_111",
@@ -24127,7 +24845,16 @@
     "mainBase": "boniato",
     "baseMode": "dentro",
     "llevaSalsa": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
+    ]
   },
   {
     "id": "carnes_112",
@@ -24353,7 +25080,17 @@
     "basesAparte": [
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_113",
@@ -24553,7 +25290,16 @@
     "tecnica": "horno",
     "cocina": "asiatica",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "picante",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "id": "carnes_114",
@@ -24790,7 +25536,16 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_115",
@@ -25008,7 +25763,14 @@
     "tecnica": "plancha",
     "cocina": "americana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_116",
@@ -25298,7 +26060,18 @@
       "sofrito"
     ],
     "formato": "guiso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "suave",
+    "sabor": [
+      "ahumado",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_117",
@@ -25762,7 +26535,17 @@
       "sofrito",
       "caldo"
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_119",
@@ -26004,7 +26787,17 @@
     "tecnica": "crudo",
     "cocina": "americana",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_120",
@@ -26211,7 +27004,16 @@
     "tecnica": "crudo",
     "cocina": "mexicana",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_121",
@@ -26460,7 +27262,16 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_122",
@@ -26676,7 +27487,16 @@
     ],
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_123",
@@ -26869,7 +27689,16 @@
     "llevaSalsa": true,
     "cocina": "americana",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_124",
@@ -27095,7 +27924,16 @@
     "tecnica": "sarten",
     "cocina": "mexicana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "especiado"
+    ]
   },
   {
     "id": "carnes_125",
@@ -27214,7 +28052,16 @@
     ],
     "tecnica": "crudo",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "suave",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_126",
@@ -27353,7 +28200,14 @@
     ],
     "tecnica": "crudo",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [],
+    "textura": "mano",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_127",
@@ -27511,7 +28365,16 @@
     ],
     "tecnica": "crudo",
     "formato": "ensalada",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_128",
@@ -27642,7 +28505,17 @@
     ],
     "tecnica": "crudo",
     "formato": "plato_seco",
-    "temperatura": "frio"
+    "temperatura": "frio",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_129",
@@ -27846,7 +28719,17 @@
       "bechamel"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_130",
@@ -28025,7 +28908,17 @@
       "pavo"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_131",
@@ -28216,7 +29109,16 @@
     "kidFavourite": true,
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_132",
@@ -28372,7 +29274,16 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_133",
@@ -28571,7 +29482,16 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "especiado"
+    ]
   },
   {
     "id": "carnes_134",
@@ -28727,7 +29647,16 @@
     ],
     "tecnica": "plancha",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "carnes_135",
@@ -28953,7 +29882,16 @@
       "verdura"
     ],
     "tecnica": "olla",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "especiado"
+    ]
   },
   {
     "id": "carnes_136",
@@ -29166,7 +30104,17 @@
       "sofrito"
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_137",
@@ -29434,7 +30382,17 @@
       "dias": 60
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_138",
@@ -29696,7 +30654,17 @@
       "dias": 60
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_139",
@@ -29907,7 +30875,16 @@
       "dias": 60
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_140",
@@ -30156,7 +31133,17 @@
     "tecnica": "horno",
     "llevaSalsa": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "ahumado",
+      "suave"
+    ]
   },
   {
     "id": "carnes_141",
@@ -30466,7 +31453,17 @@
       "dias": 2
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_142",
@@ -30679,7 +31676,16 @@
     "tecnica": "horno",
     "cocina": "italiana",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_143",
@@ -30858,7 +31864,17 @@
       "dias": 1
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
+    ]
   },
   {
     "id": "carnes_144",
@@ -31117,7 +32133,16 @@
       "dias": 60
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "carnes_145",
@@ -31142,7 +32167,8 @@
     "allergens": [
       "gluten",
       "soja",
-      "sesamo"
+      "sesamo",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -31409,7 +32435,16 @@
       "dias": 60
     },
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "intenso"
+    ]
   },
   {
     "id": "carnes_146",
@@ -31606,6 +32641,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 200°C, coloca el pollo empanado en bandeja con poco aceite y hornea 15-18 min hasta dorar. Resulta más ligero que en sartén manteniendo la textura crujiente."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -31764,6 +32809,15 @@
         "difficulty": "normal",
         "prepSummary": "Sella los filetes 2 min a presión máxima con aceite caliente, retira y cocina pimientos y cebolla 5 min. Reintegra los filetes 1 min. Mantiene la jugosidad de la carne."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -31917,6 +32971,15 @@
         "difficulty": "normal",
         "prepSummary": "Sella los muslos en la olla abierta con aceite, añade patatas, ajo, romero y limón. Cierra y cocina a presión 12-15 min. Resultado tierno y jugoso en menos tiempo, aunque pierde algo de dorado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -31939,7 +33002,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "ingredients": [
       {
         "name": "Filetes de lomo de cerdo",
@@ -32066,6 +33131,15 @@
         "difficulty": "normal",
         "prepSummary": "Sella los filetes en la olla abierta 2 min por lado, retira. Carameliza cebolla con azúcar y vino, devuelve los filetes, cierra y cocina 8 min a presión. Carne muy tierna con salsa concentrada."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -32238,6 +33312,14 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza la pechuga 15 min a fuego medio-alto para mantener jugosidad. Saltea los champiñones con ajo en sartén aparte los últimos 5 min. Resultado más ligero pero tierno."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -32413,6 +33495,15 @@
         "difficulty": "facil",
         "prepSummary": "Cuece las patatas troceadas a presión 8 min. Mientras, cocina los filetes en sartén. Prepara el puré rápidamente con mantequilla y leche caliente."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -32576,6 +33667,17 @@
         "difficulty": "facil",
         "prepSummary": "Dora las costillas en la olla con aceite. Añade patatas en rodajas, cebolla, ajo y pimentón. Cierra y cocina a presión 20 min. El resultado es más tierno y jugoso, aunque menos crujiente que al horno."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -32599,7 +33701,8 @@
     "kidFriendly": true,
     "tupperFriendly": false,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -32733,6 +33836,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 220°C, sella las chuletas 2 minutos en sartén caliente y termina en horno 10-12 minutos. Mantiene la jugosidad interior con un exterior bien dorado."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -32755,7 +33868,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "ingredients": [
       {
         "name": "Solomillo de cerdo",
@@ -32901,6 +34016,15 @@
         "difficulty": "normal",
         "prepSummary": "Sella el solomillo a fuego fuerte sin presión, añade pimientos, cebolla y vino blanco, cierra y cocina 8 min a presión. Queda tierno y la salsa concentrada."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -33142,6 +34266,15 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza las pechugas rellenas 20-22 min a fuego medio-alto para cocción húmeda y jugosa. Simultáneamente cuece judías en agua y prepara ensalada. Resultado más saludable pero menos dorado."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso",
+      "suave"
     ]
   },
   {
@@ -33313,6 +34446,16 @@
         "difficulty": "normal",
         "prepSummary": "Sella los filetes a fuego fuerte 2 min por lado, añade champiñones y vino blanco, cierra 8 min a presión. Rápido y jugoso, aunque pierde algo de textura en la carne respecto a sartén."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
     ]
   },
   {
@@ -33336,7 +34479,9 @@
     "fat_g": 36,
     "kidFriendly": false,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "ingredients": [
       {
         "name": "Lomo de cerdo en filetes",
@@ -33530,6 +34675,15 @@
         "difficulty": "normal",
         "prepSummary": "Marina el lomo 30 min, cocina a 180°C durante 25-30 min en la canasta, dando la vuelta a mitad del proceso. Queda jugoso si no excedes la temperatura y lo cubres con papel de aluminio los primeros 15 min."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "especiado"
     ]
   },
   {
@@ -33735,6 +34889,16 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 220°C, cocina los filetes en bandeja 10-12 min. Saltea pimientos y cebolla en sartén aparte. Calienta tortillas en el horno los últimos 2 min. Monta las fajitas."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "especiado"
     ]
   },
   {
@@ -33929,6 +35093,15 @@
         "difficulty": "normal",
         "prepSummary": "Prepara la salsa en Thermomix (naranja, soja, miel, jengibre, ajo) en 3 min. Sella los filetes en sartén aparte 4 min, vierte la salsa y termina 10 min a fuego suave. Añade sésamo tostado."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -34111,6 +35284,12 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza brócoli y jengibre 8-10 min, luego saltea la ternera en sartén aparte 6-8 min y mezcla. Pierde algo de caramelización pero mantiene nutrientes y texturas."
       }
+    ],
+    "connotacion": [],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -34138,7 +35317,8 @@
     "tupperFriendly": true,
     "allergens": [
       "soja",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -34241,6 +35421,16 @@
         "difficulty": "normal",
         "prepSummary": "Sella el solomillo en modo rápido sin presión, añade verduras y condimentos, cierra y cocina a presión 5 min. Libera presión rápidamente para evitar sobrecocción. Acelera el proceso manteniendo sabor y textura."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "acido",
+      "intenso"
     ]
   },
   {
@@ -34382,6 +35572,16 @@
         "difficulty": "normal",
         "prepSummary": "Vaporiza el pollo troceado durante 20 minutos hasta cocción completa. Prepara la salsa de ají amarillo en sartén aparte y combina al final, manteniendo la jugosidad de la carne sin perder la cremosidad de la salsa."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "suave"
     ]
   },
   {
@@ -34489,6 +35689,15 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para preparar la marinada (ají, ajo, especias, aceite, vinagre) en 5 min, marina la ternera, luego cocina los anticuchos en sartén/plancha tradicional. El electrodoméstico optimiza la emulsión de la marinada."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "mano",
+    "picante": "suave",
+    "sabor": [
+      "ahumado",
+      "especiado"
     ]
   },
   {
@@ -34612,6 +35821,16 @@
         "difficulty": "elaborada",
         "prepSummary": "Pica verduras con la función picadora, sofríe la carne en modo cocción 5 min a 120°C, añade ingredientes y cocina 60 min a 100°C con giro lento. Requiere supervisión pero logra texturas perfectas."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "suave",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -34742,6 +35961,15 @@
         "difficulty": "normal",
         "prepSummary": "Dora el pollo marinado en aceite 5 min, añade patatas y líquido de marinada, cierra y cocina a presión 20 min. Abre y gratina brevemente en horno o airfryer para obtener la brasa final."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -34892,6 +36120,15 @@
         "difficulty": "facil",
         "prepSummary": "Dora el pollo marinado 5 min a presión natural, añade salsa de tomate y nata, cierra y cocina 12 min a presión máxima. Despresurizas y tienes un tikka masala tierno y concentrado en tiempo récord."
       }
+    ],
+    "connotacion": [
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado",
+      "intenso"
     ]
   },
   {
@@ -35017,6 +36254,12 @@
         "difficulty": "normal",
         "prepSummary": "Usa el Thermomix para preparar la marinada (yogur, especias, ajo, jengibre) en 5 min, luego cocina el pollo en horno o sartén. Ahorra tiempo en preparación de ingredientes."
       }
+    ],
+    "connotacion": [],
+    "textura": "tenedor",
+    "picante": "suave",
+    "sabor": [
+      "especiado"
     ]
   },
   {
@@ -35149,6 +36392,15 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe cebolla/ajo/jengibre sin presión 3 min, añade pollo y especias, cierra y cocina a presión 12 min. Abre, añade yogur/nata y almendras molidas, cuece 2 min más."
       }
+    ],
+    "connotacion": [
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -35281,6 +36533,15 @@
         "difficulty": "normal",
         "prepSummary": "Sella la carne y sofríe verduras en la olla a fuego fuerte, añade vino y caldo, cierra y cuece a presión 50 minutos. Reduce el tiempo a la mitad manteniendo la ternura de la carne."
       }
+    ],
+    "connotacion": [
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "intenso"
     ]
   },
   {
@@ -35427,7 +36688,15 @@
       "Asar hasta que el pollo esté hecho por dentro y la piel dorada.",
       "Dejar reposar 2 min y servir con el jugo de la bandeja."
     ],
-    "methods": []
+    "methods": [],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "intenso"
+    ]
   },
   {
     "id": "carnes_171",
@@ -35584,6 +36853,15 @@
       "Cortar la pechuga en tiras y {{Cebolla morada}} en plumas finas.",
       "Montar el bowl con las patatas debajo, el pollo encima y la salsa de yogur por hilos."
     ],
-    "methods": []
+    "methods": [],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   }
 ]

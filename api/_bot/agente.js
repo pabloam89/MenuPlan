@@ -538,13 +538,26 @@ function herramientasDeMenu(householdId, fotos = null) {
           parecido_a: { type: "string", description: "Opcional: el plato que piden («salmón al horno con ensalada de mango»)." },
           estilo: { type: "string", enum: ["ligero", "rapido"], description: "Opcional: si piden algo ligero (ordena por calorías y las enseña) o rápido (por tiempo)." },
           para: { type: "string", enum: ["mayores", "ninos", "bebe"], description: "Opcional: para quién. «Con mi mujer/marido», «para nosotros» = mayores. El bebé solo si lo nombran." },
+          rasgos: {
+            type: "object",
+            description: "Opcional: lo que piden del plato, tal cual lo dicen. «Reconfortante», «de cuchara», «que no pique», «barato», «fresquito»… Solo los que digan.",
+            properties: {
+              connotacion: { type: "string", enum: ["reconfortante", "fresco", "casero", "festivo"] },
+              textura: { type: "string", enum: ["cuchara", "tenedor", "mano"], description: "cuchara = sopas, cremas, guisos; mano = para picar o bocadillo." },
+              picante: { type: "string", enum: ["sin", "con"], description: "sin = que no pique; con = que pique." },
+              sabor: { type: "string", enum: ["suave", "intenso", "especiado", "dulce", "acido", "ahumado"] },
+              coste: { type: "string", enum: ["economico", "medio", "caro"], description: "economico = barato (menos de 1 € por ración)." },
+              calorias: { type: "string", enum: ["ligero", "medio", "contundente"], description: "Para «algo contundente»; para «ligero» usa estilo." },
+            },
+            additionalProperties: false,
+          },
         },
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para }) => {
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para, rasgos }) => {
         const f = comida ? franjaDe(comida) : null;
         if (comida && !f) return `No entiendo qué comida es («${comida}»).`;
-        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null }, fotos);
+        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null, rasgos: rasgos || null }, fotos);
       },
     }),
     betaTool({

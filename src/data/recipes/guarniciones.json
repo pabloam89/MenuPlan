@@ -406,7 +406,8 @@
     "kidFriendly": true,
     "tupperFriendly": false,
     "allergens": [
-      "huevo"
+      "huevo",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -2777,6 +2778,15 @@
         "difficulty": "normal",
         "prepSummary": "Cuece la coliflor previamente al vapor o hervida, prepara bechamel, monta en recipiente apto para airfryer, calienta a 180°C durante 12-15 min hasta gratinar bien."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -5922,6 +5932,15 @@
         "difficulty": "facil",
         "prepSummary": "Pica el pepino y las hierbas aromáticas en la Thermomix usando la función picadora a velocidad 4-5 durante 5 segundos. Mezcla manualmente con el yogur, comino y limón para obtener una raita homogénea y fresca."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -6032,6 +6051,14 @@
         "difficulty": "facil",
         "prepSummary": "Usa el thermomix solo para amasar los ingredientes (3 min, velocidad progresiva), luego deja reposar 60 min y cocina en horno o airfryer. Ahorra tiempo en el amasado manual."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -6183,6 +6210,16 @@
       "Mezclar el cuscús con la verdura asada, {{Pasas}} y {{Almendras}} picadas.",
       "Aliñar con un hilo de aceite y servir templado o frío."
     ],
-    "methods": []
+    "methods": [],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   }
 ]

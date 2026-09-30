@@ -60,6 +60,14 @@ const NO_VIAJAN = {
   // nombre—. La segunda evita una columna que se desincronice del operador,
   // que es el problema que `mainBase` documenta.
   formato: "lo deriva derive/formato.js sobre el bundle; sin lector todavía",
+  // Atributos blandos (scripts/recetas-atributos-blandos.mjs): viven en el
+  // bundle, que es el que sirven la app y el bot (Supabase va por detrás, v27
+  // frente a v38). Cuando el catálogo vuelva a subirse a Supabase, columnas
+  // connotacion/textura/picante/sabor y su línea en rowToRecipe.
+  connotacion: "atributo blando del bundle; Supabase va por detrás del catálogo incluido",
+  textura: "atributo blando del bundle; Supabase va por detrás del catálogo incluido",
+  picante: "atributo blando del bundle; Supabase va por detrás del catálogo incluido",
+  sabor: "atributo blando del bundle; Supabase va por detrás del catálogo incluido",
   temperatura: "lo deriva derive/formato.js sobre el bundle; sin lector todavía",
   // Todo lo que sigue solo lo llevan las recetas `type: "base"`, y esas NO se
   // sirven nunca desde Supabase: bases.json se importa directamente en

@@ -22,7 +22,8 @@
     "check:duplicates": "node scripts/detect-duplicate-dishes.mjs",
     "enrich:steps": "node scripts/enrich-recipe-steps.mjs",
     "check:wording": "node scripts/check-step-wording.mjs",
-    "sync:mercadona": "node scripts/mercadona-sync.mjs",
+    "sync:mercadona": "node scripts/mercadona-sync.mjs && node scripts/build-coste.mjs",
+    "build:coste": "node scripts/build-coste.mjs",
     "sync:mercadona:cache": "node scripts/mercadona-sync.mjs --cache"
   },
   "dependencies": {

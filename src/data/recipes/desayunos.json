@@ -121,6 +121,15 @@
         "difficulty": "facil",
         "prepSummary": "Calienta la miel en el microondas 20-30 segundos a potencia media para que fluya mejor, luego monta el bol con yogur frío, frutas y avena. El contraste de temperaturas realza los sabores."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce"
     ]
   },
   {
@@ -233,6 +242,16 @@
         "difficulty": "normal",
         "prepSummary": "Añade avena y leche, cierra y cocina 3 min a presión. Deja despresurizarse naturalmente 2 min y remueve bien para evitar grumos."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -350,6 +369,16 @@
         "difficulty": "facil",
         "prepSummary": "Calienta la leche 1-2 minutos a potencia media, luego mezcla con plátano aplastado, avena, canela y miel en un vaso. Remueve bien hasta integrar todos los ingredientes. Sirve inmediatamente."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
     ]
   },
   {
@@ -470,6 +499,15 @@
         "difficulty": "facil",
         "prepSummary": "Introduce todos los ingredientes en el vaso y programa a velocidad progresiva (vel. 5-7) durante 45-60 segundos hasta obtener una textura homogénea y cremosa. El resultado es un smoothie perfectamente batido sin grumos."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -574,6 +612,15 @@
         "difficulty": "facil",
         "prepSummary": "Calienta los frutos rojos congelados 1-2 minutos a potencia media para descongelarlos parcialmente, luego mezcla con yogur, leche y miel en un vaso o batidora. Obtendrás un smoothie más fluido y fácil de batir."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -692,6 +739,16 @@
         "difficulty": "facil",
         "prepSummary": "Calienta la leche en microondas 1-2 minutos a potencia media. Vierte en vaso con plátano troceado, cacao, avellanas molidas y miel, mezcla bien con batidor o tenedor. Obtiene un batido tibio y reconfortante."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "intenso"
     ]
   },
   {
@@ -795,6 +852,15 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el mango y plátano congelados con la leche de coco en el vaso y tritura a velocidad progresiva hasta obtener una textura cremosa y homogénea. Vierte en un bol y decora con coco rallado y zumo de lima."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -901,6 +967,16 @@
         "difficulty": "facil",
         "prepSummary": "Calienta ligeramente la miel 20 segundos para que sea más fluida y fácil de mezclar, luego monta el bowl con yogur frío, granola y frutos rojos. El microondas solo sirve para la miel, no afecta el resultado final."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -1031,6 +1107,16 @@
         "difficulty": "facil",
         "prepSummary": "Mezcla avena, leche, yogur y canela en un bol, calienta 2 minutos a potencia media. Añade manzana rallada y miel, deja reposar en frío toda la noche."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
     ]
   },
   {
@@ -1149,6 +1235,16 @@
         "difficulty": "normal",
         "prepSummary": "Vierte avena y leche, cierra y cocina a presión 3 minutos. Despresurizador rápido y remueve bien para evitar grumos. Decora con plátano y miel al servir."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -1276,6 +1372,15 @@
         "difficulty": "facil",
         "prepSummary": "Descongela la pulpa de açaí y el plátano en microondas a potencia media durante 1-2 minutos. Mezcla hasta obtener una crema suave y completa con los toppings fríos."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -1415,6 +1520,17 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 200°C, coloca las tostadas en bandeja con mantequilla, hornea 12-15 min hasta dorar. Espolvorea canela antes de hornear y añade sirope al servir."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
     ]
   },
   {
@@ -1535,6 +1651,15 @@
         "difficulty": "facil",
         "prepSummary": "Tuesta el pan en microondas a potencia alta 1-2 minutos (depende del grosor). Retira, unta con mantequilla de cacahuete, añade plátano en rodajas y rocía con miel."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -1667,6 +1792,15 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta a 180°C, tuesta el pan 4-5 min, retira y frota con ajo y tomate, rocía con aceite y calienta 2 min más. Acompaña con jamón serrano."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   },
   {
@@ -1832,6 +1966,16 @@
         "difficulty": "facil",
         "prepSummary": "Usa el Thermomix solo para preparar la masa (mezcla todos ingredientes en 30 seg), luego cocina las tortitas en sartén o plancha tradicional 3-4 min por lado."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -2036,6 +2180,16 @@
         "difficulty": "facil",
         "prepSummary": "Prepara la masa en 5 min mezclando todos los ingredientes (velocidad progresiva), luego vierte en gofrera tradicional y cocina según indicaciones. Ahorra tiempo en la preparación de la mezcla."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "dulce"
     ]
   },
   {
@@ -2161,6 +2315,15 @@
         "difficulty": "facil",
         "prepSummary": "Bate los huevos con mantequilla y nata, cocina a potencia media (50%) en intervalos de 30 segundos, removiendo entre cada uno hasta conseguir la cremosidad deseada. Añade el cebollino al final."
       }
+    ],
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
     ]
   },
   {
@@ -2272,6 +2435,15 @@
         "difficulty": "facil",
         "prepSummary": "Calienta la miel 20 segundos a potencia media para que fluya mejor. Monta el bol con requesón frío, vierte la miel templada y espolvorea nueces y canela."
       }
+    ],
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
     ]
   },
   {
@@ -2420,6 +2592,15 @@
         "difficulty": "facil",
         "prepSummary": "Tuesta el pan en microondas 2 min a potencia alta. Calienta aceite en un recipiente apto 1 min, añade huevos y cocina 3-4 min a potencia media hasta que cuajen. Monta con aguacate, limón y sal."
       }
+    ],
+    "connotacion": [
+      "fresco"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
     ]
   }
 ]

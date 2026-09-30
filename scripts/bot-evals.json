@@ -639,6 +639,37 @@
       "noLlama": [
         "generar_menu"
       ]
+    },
+    {
+      "nombre": "rasgos: reconfortante y de cuchara para cenar",
+      "entrada": "me apetece algo reconfortante de cuchara para cenar hoy",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "_todo": "reconfortante"
+        }
+      },
+      "noLlama": [
+        "ver_menu",
+        "generar_menu"
+      ]
+    },
+    {
+      "nombre": "rasgos: barato y que no pique",
+      "entrada": "dame ideas baratas para comer mañana, que no pique que es para los niños",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "_todo": "economico"
+        }
+      },
+      "noLlama": [
+        "generar_menu"
+      ]
     }
   ]
 }

@@ -87,6 +87,15 @@ const PROTEIN_GROUP_BY_MAIN_PROTEIN = {
 const TECNICAS = ["horno", "plancha", "sarten", "olla", "crudo"];
 // AUSENTE = española (ver el comentario de `cocina` más abajo): por eso
 // "espanola" no está en la lista, y por eso el panel no puede pedirla.
+// Atributos «blandos» (30 sep 2026): los que piden las familias en voz alta
+// («algo reconfortante», «de cuchara», «que no pique»). Los rellena
+// scripts/recetas-atributos-blandos.mjs en el Recetario Estrella: dos pasadas
+// independientes de un modelo y un juez donde no coinciden.
+const CONNOTACIONES = ["reconfortante", "fresco", "casero", "festivo"];
+const TEXTURAS = ["cuchara", "tenedor", "mano"];
+const PICANTES = ["no", "suave", "picante"];
+const SABORES = ["suave", "intenso", "especiado", "dulce", "acido", "ahumado"];
+
 const COCINAS = [
   "italiana", "asiatica", "mexicana", "arabe",
   "francesa", "americana", "india", "peruana",
@@ -476,6 +485,16 @@ export const RecipeSchema = z
     // kidFriendly + dificultad, que es justo la aproximación que se quedaba
     // corta (ver utils/recipeIntents.js).
     kidFavourite: z.boolean().optional(),
+    // Atributos blandos (ver CONNOTACIONES y compañía arriba). Solo en el
+    // Recetario Estrella; ausentes en el resto del catálogo.
+    //   connotacion  cómo sienta: reconfortante, fresco, casero, festivo (eje 13)
+    //   textura      cómo se come: cuchara, tenedor, mano (eje 8)
+    //   picante      no, suave, picante — tal como sale la receta escrita
+    //   sabor        lo dominante, uno o dos
+    connotacion: z.array(z.enum(CONNOTACIONES)).optional(),
+    textura: z.enum(TEXTURAS).optional(),
+    picante: z.enum(PICANTES).optional(),
+    sabor: z.array(z.enum(SABORES)).optional(),
     // Cómo se cocina, en una palabra: la técnica DOMINANTE, no las que se
     // mencionan de paso.
     //
@@ -1002,6 +1021,7 @@ export function effectiveRecipeTime(recipe, eaters) {
   return recipe.time * (1 + 0.12 * extra);
 }
 
+export { CONNOTACIONES, TEXTURAS, PICANTES, SABORES };
 export { CARB_TYPE_BY_BASE, COCINAS, DEPRECATED_CATEGORIES, MAIN_BASES, MAIN_INGREDIENTS, MAIN_PROTEINS, PROTEIN_GROUP_BY_MAIN_PROTEIN, SAUCE_COMPAT_TAGS, TECNICAS };
 
 /**

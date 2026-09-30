@@ -52,3 +52,6 @@ export { FAST_MODEL } from "../lib/aiModels.js";
 // Compartir una semana desde el chat: la misma «foto» que publica la app.
 export { buildSharedMenuPayload } from "../lib/sharedMenu.js";
 export { catalogToFrontendRecipe } from "../lib/aiPlanner.js";
+
+// El coste por ración, para scripts/build-coste.mjs (Node a secas no carga src/).
+export { costeDeReceta } from "../lib/derive/coste.js";

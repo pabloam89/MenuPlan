@@ -197,7 +197,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_002",
@@ -352,7 +361,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_003",
@@ -517,7 +535,17 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "bebes_004",
@@ -669,7 +697,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_005",
@@ -821,7 +858,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_006",
@@ -999,7 +1045,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_007",
@@ -1160,7 +1215,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_008",
@@ -1323,7 +1387,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_009",
@@ -1499,7 +1572,17 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "bebes_010",
@@ -1691,7 +1774,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_012",
@@ -1849,7 +1941,17 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "bebes_013",
@@ -2019,7 +2121,16 @@
         "prepSummary": "Cuece el boniato troceado a lo largo en agua a 100°C durante 8 minutos en el Thermomix, añade el tomate y el huevo batido, cocina 2 minutos más. Tritura a velocidad progresiva hasta obtener un puré fino y homogéneo sin grumos, añade el aceite de oliva."
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "id": "bebes_014",
@@ -2176,7 +2287,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_015",
@@ -2338,7 +2458,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_016",
@@ -2517,7 +2646,16 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_018",
@@ -2675,7 +2813,17 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "bebes_019",
@@ -2849,7 +2997,17 @@
       }
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "id": "bebes_021",
@@ -2998,7 +3156,16 @@
       "pollo"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "id": "bebes_022",
@@ -3147,7 +3314,16 @@
       "ternera"
     ],
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "cuchara",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -3281,7 +3457,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -3401,7 +3585,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -3509,7 +3701,16 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -3625,7 +3826,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -3742,7 +3951,16 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -3858,7 +4076,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -3982,7 +4208,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -4117,7 +4351,17 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "acido",
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -4231,7 +4475,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -4344,7 +4596,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -4457,7 +4717,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -4546,7 +4814,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce"
+    ]
   },
   {
     "category": "bebes",
@@ -4638,7 +4914,15 @@
         "prepSummary": "Coloca los bastones de zanahoria en un recipiente apto para microondas con 2-3 cucharadas de agua. Tapa y cocina a máxima potencia (800W) durante 6-8 minutos. Escurre y mezcla con el aceite de oliva. Deben aplastarse sin esfuerzo entre dos dedos."
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce"
+    ]
   },
   {
     "category": "bebes",
@@ -4742,7 +5026,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -4834,7 +5126,15 @@
         "prepSummary": "Coloca los arbolitos de brócoli en un recipiente apto para microondas con dos cucharadas de agua, tapa y cocina a máxima potencia durante 5 minutos. Estará listo cuando se aplaste sin esfuerzo entre dos dedos."
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -4935,7 +5235,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -5049,7 +5357,16 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -5170,7 +5487,15 @@
         "prepSummary": "Cocina el brócoli y el arroz en recipientes aptos para microondas con un poco de agua hasta que estén muy tiernos."
       }
     ],
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -5283,7 +5608,15 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -5408,7 +5741,16 @@
       }
     ],
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -5528,7 +5870,16 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "especiado"
+    ]
   },
   {
     "category": "bebes",
@@ -5656,7 +6007,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -5765,7 +6124,15 @@
     "estrella": true,
     "cocina": "francesa",
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce"
+    ]
   },
   {
     "category": "bebes",
@@ -5885,7 +6252,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -6004,7 +6379,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -6119,7 +6502,16 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero",
+      "reconfortante"
+    ],
+    "textura": "tenedor",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -6240,7 +6632,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -6367,7 +6767,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce"
+    ]
   },
   {
     "category": "bebes",
@@ -6495,7 +6903,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -6607,7 +7023,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -6736,7 +7160,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -6856,7 +7288,16 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -6976,7 +7417,16 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -7090,7 +7540,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -7217,7 +7675,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -7315,7 +7781,15 @@
       }
     ],
     "estrella": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce"
+    ]
   },
   {
     "category": "bebes",
@@ -7426,7 +7900,15 @@
     ],
     "estrella": true,
     "formato": "plato_seco",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -7553,7 +8035,15 @@
       }
     ],
     "estrella": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -7662,7 +8152,16 @@
     ],
     "estrella": true,
     "formato": "cremoso",
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "especiado",
+      "suave"
+    ]
   },
   {
     "category": "bebes",
@@ -7786,6 +8285,15 @@
       }
     ],
     "estrella": true,
-    "temperatura": "caliente"
+    "temperatura": "caliente",
+    "connotacion": [
+      "casero"
+    ],
+    "textura": "mano",
+    "picante": "no",
+    "sabor": [
+      "dulce",
+      "suave"
+    ]
   }
 ]

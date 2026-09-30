@@ -1510,7 +1510,8 @@
     "tupperFriendly": false,
     "allergens": [
       "huevo",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -2074,6 +2075,16 @@
       "Mezclar {{Mayonesa}} con {{Ajo}} picado muy fino para el alioli rápido.",
       "Servir las patatas con la salsa por encima y el alioli en hilos."
     ],
-    "methods": []
+    "methods": [],
+    "connotacion": [
+      "casero",
+      "festivo"
+    ],
+    "textura": "tenedor",
+    "picante": "picante",
+    "sabor": [
+      "especiado",
+      "intenso"
+    ]
   }
 ]
