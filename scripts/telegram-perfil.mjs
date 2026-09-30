@@ -40,7 +40,7 @@ const DESCRIPCION = `¡Hola! Soy Lola 👩‍🍳, la cocinera de tu casa.
 🥜 Tengo en cuenta las alergias y los gustos de cada uno
 👨‍👩‍👧 Y me puedes meter en el grupo de la familia
 
-Escríbeme como a un amigo: «¿qué comemos hoy?», «cambia la cena del jueves» o «genérame el menú».`;
+Escríbeme como a una amiga, o mándame un audio: «¿qué comemos hoy?», «cambia la cena del jueves» o «genérame el menú».`;
 
 const COMANDOS = [
   { command: "menu", description: "Ver el menú de la semana" },
@@ -53,6 +53,12 @@ const COMANDOS = [
   { command: "start", description: "Hola, qué sé hacer" },
 ];
 
+// El botón fijo junto al campo de texto de los chats privados: abre la semana
+// en la Mini App (api/bot/miniapp.js). Contra el despliegue de APP_URL, o
+// staging mientras el bot viva allí.
+const APP = (env.match(/^APP_URL="?([^"\r\n]+)"?/m)?.[1] ?? "https://homenu-staging.vercel.app").replace(/\/$/, "");
+const BOTON_MENU = { type: "web_app", text: "Semana", web_app: { url: `${APP}/?mini=semana` } };
+
 if ([...NOMBRE].length > 64) throw new Error(`Nombre: ${[...NOMBRE].length} > 64`);
 if ([...ABOUT].length > 120) throw new Error(`About: ${[...ABOUT].length} > 120`);
 if ([...DESCRIPCION].length > 512) throw new Error(`Descripción: ${[...DESCRIPCION].length} > 512`);
@@ -62,6 +68,7 @@ if (process.argv[2] === "aplicar") {
   await llamar("setMyShortDescription", { short_description: ABOUT });
   await llamar("setMyDescription", { description: DESCRIPCION });
   await llamar("setMyCommands", { commands: COMANDOS });
+  await llamar("setChatMenuButton", { menu_button: BOTON_MENU });
   console.log("Subido.");
 }
 
@@ -70,3 +77,4 @@ console.log(`@${yo.username} · ${(await llamar("getMyName")).name}`);
 console.log("About:", (await llamar("getMyShortDescription")).short_description);
 console.log("Descripción:\n" + (await llamar("getMyDescription")).description);
 console.log("Comandos:", (await llamar("getMyCommands")).map((c) => "/" + c.command).join(" "));
+console.log("Botón del menú:", JSON.stringify(await llamar("getChatMenuButton")));

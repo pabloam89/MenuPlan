@@ -221,7 +221,14 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
   // enlace abre la app de quien lo pulsa, con su sesión).
   const alPie = [];
   if (r.deshacible) alPie.push({ texto: "↩️ Deshacer", dato: "t:Deshaz lo último que has cambiado" });
-  if (r.ir && base && !esGrupo) alPie.push({ texto: "📱 Verlo en la app", url: await enlaceApp(base, r.ir, from, chatId) });
+  // La semana y la compra se abren DENTRO de Telegram (Mini App, api/bot/
+  // miniapp.js; web_app solo vale en privado). Un día o una receta, en la app.
+  const mini = { semana: "📅 Ver la semana", compra: "🛒 Abrir la lista" }[r.ir];
+  if (r.ir && base && !esGrupo) {
+    alPie.push(mini
+      ? { texto: mini, webApp: `${base}/?mini=${r.ir}` }
+      : { texto: "📱 Verlo en la app", url: await enlaceApp(base, r.ir, from, chatId) });
+  }
   if (alPie.length) botones.push(alPie);
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
   // Las fotos de los platos, antes del texto: así los botones quedan abajo.
