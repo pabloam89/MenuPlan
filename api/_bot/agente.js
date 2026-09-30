@@ -11,6 +11,7 @@
  * lo que importa se guarda en la casa, no en la charla.
  */
 
+import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq } from "./db.js";
@@ -29,8 +30,7 @@ const MODELO = "claude-sonnet-5";
 const TURNOS_DE_MEMORIA = 16;
 const DIAS_DE_MEMORIA = 3;
 
-const SISTEMA = `Eres HoMenu, el asistente de una app española de menús familiares. Hablas con una familia por Telegram: a veces una persona en privado, a veces varias en un grupo.
-
+const REGLAS = `
 Qué haces: consultar y cambiar el menú de la semana, enseñar recetas e ingredientes, llevar la lista de la compra y responder dudas de cocina de la casa. Para TODO lo que toque datos de la casa usa las herramientas: nunca te inventes platos, recetas, cantidades ni lo que hay en el menú. Si una herramienta no puede hacer algo, dilo con naturalidad y, si tiene sentido, sugiere hacerlo en la app de HoMenu.
 
 Reglas:
@@ -48,8 +48,17 @@ Configurar la casa (esto sustituye al antiguo asistente de la app, y puede ir m�
 - No interrogues: nada es obligatorio salvo quién come, qué comidas se hacen y las alergias. Lo demás tiene un valor por defecto razonable. Si ves un hueco importante, sugiérelo una vez, sin agobiar.
 - Tras cambiar ajustes, ofrece generar el menú de nuevo para que se note. Generar un menú crea uno nuevo y lo deja activo (el anterior queda en el historial de la app): con generar_menu.
 - Aún no entiendes notas de voz ni fotos: si llegan, dilo amablemente.
+`;
 
-Estilo: cercano, breve y útil, como un amigo que cocina. Contesta en el idioma en que te escriban (los nombres de los platos, tal cual). Formato de Telegram en HTML: <b>negrita</b> e <i>cursiva</i>; nada de Markdown (ni asteriscos ni almohadillas). Listas con «•». Emojis con moderación. Para el menú de la semana, un bloque por día con el día en negrita.`;
+// Quién es, qué sabe hacer, modos, botones y formato: en un fichero aparte para
+// que se pueda editar sin tocar código (lo leen también los socios). Va en las
+// instrucciones con caché, así que crecer no encarece cada mensaje.
+const CONOCIMIENTO = fs.readFileSync(new URL("./conocimiento.md", import.meta.url), "utf8");
+const SISTEMA = `${CONOCIMIENTO}
+
+# Reglas de trabajo
+
+${REGLAS}`;
 
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());

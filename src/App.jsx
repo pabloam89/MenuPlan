@@ -234,6 +234,12 @@ const FORCE_VALUE_PROPS =
   FORCE_TOUR ||
   new URLSearchParams(window.location.search).get("tutorial") === "1";
 
+// Tutorial (carrusel de presentación) y visitas guiadas (spotlight) apagados
+// el 30 sep 2026: a la gente la agotaban, y la app pasa a ser para VER (el
+// bot de Telegram es el que guía). No se borran: con `?tutorial=1` o `?tour=1`
+// siguen saliendo para revisarlos, y volver a encenderlos es poner esto a true.
+const GUIAS_ACTIVAS = false;
+
 // Temporary dietary states heavy/disruptive enough to warrant offering a
 // separate ad-hoc individual menu instead of restricting the whole family.
 const HEAVY_DIETARY_STATES = ["dieta_blanda"];
@@ -5821,7 +5827,7 @@ export default function App() {
                 setFirstRunOnboarding(true);
                 setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
                 setOnbStep(1);
-                setScreen(!FORCE_VALUE_PROPS && valuePropsSeen ? "onboarding" : "valueProps");
+                setScreen(FORCE_VALUE_PROPS || (GUIAS_ACTIVAS && !valuePropsSeen) ? "valueProps" : "onboarding");
               })
             }
             hasSaved={FORCE_VALUE_PROPS ? false : data.members.length > 0}
@@ -6008,6 +6014,7 @@ export default function App() {
         )}
 
         {screen === "menu" &&
+          (GUIAS_ACTIVAS || FORCE_TOUR) &&
           !menuCoachSeen &&
           !isGeneratingMenu &&
           !menuError &&
@@ -6183,7 +6190,7 @@ export default function App() {
           </div>
         )}
 
-        {screen === "dashboard" && !homeCoachSeen && (
+        {screen === "dashboard" && (GUIAS_ACTIVAS || FORCE_TOUR) && !homeCoachSeen && (
           <HomeCoachTour onClose={markHomeCoachSeen} />
         )}
 
@@ -6271,11 +6278,11 @@ export default function App() {
           </div>
         )}
 
-        {screen === "recipes" && !recipesCoachSeen && (
+        {screen === "recipes" && (GUIAS_ACTIVAS || FORCE_TOUR) && !recipesCoachSeen && (
           <RecipesCoachTour onClose={markRecipesCoachSeen} />
         )}
 
-        {screen === "feed" && !feedCoachSeen && (
+        {screen === "feed" && (GUIAS_ACTIVAS || FORCE_TOUR) && !feedCoachSeen && (
           <FeedCoachTour onClose={markFeedCoachSeen} />
         )}
 
@@ -6332,7 +6339,7 @@ export default function App() {
                 onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
                 onToast={showToast}
-                showCoach={Boolean(user) && !householdsCoachSeen}
+                showCoach={(GUIAS_ACTIVAS || FORCE_TOUR) && Boolean(user) && !householdsCoachSeen}
                 onCoachClose={markHouseholdsCoachSeen}
               />
             </Suspense>

@@ -82,8 +82,12 @@ function grupos(casa) {
   return ids.map((id, i) => {
     const g = deLaCasa.find((x) => x.id === id);
     if (g) return g;
-    const comensales = Object.values(plan[id] ?? {}).map((h) => h?.eaters).find((n) => n != null);
-    return { id, label: `grupo ${i + 1}${comensales != null ? ` (${comensales} ${comensales === 1 ? "persona" : "personas"})` : ""}` };
+    // Sin nombre en la casa: se deduce de lo que come. Los ids de receta del
+    // grupo del bebé vienen del catálogo de bebés (`…__bebes_…`).
+    const huecos = Object.values(plan[id] ?? {});
+    const deBebe = huecos.some((h) => /(^|__)bebes_/.test(h?.recipeId ?? ""));
+    const comensales = huecos.map((h) => h?.eaters).find((n) => n != null);
+    return { id, label: deBebe ? "el bebé" : comensales > 1 ? "los mayores" : `grupo ${i + 1}` };
   });
 }
 
@@ -122,12 +126,21 @@ export async function describirMenu(casa, { dia } = {}) {
   for (const d of dias) {
     const delDia = [];
     for (const f of FRANJAS) {
+      // Los grupos que comen lo mismo, juntos: si todos comen igual, una sola
+      // línea sin nombres.
+      const porPlatos = new Map();
+      let conHueco = 0;
       for (const g of grupos(casa)) {
         const hueco = plan[g.id]?.[`${d}-${f}`];
         if (!hueco) continue;
-        const platos = [nombre(hueco.firstRecipeId), nombre(hueco.recipeId)].filter(Boolean);
-        const quien = grupos(casa).length > 1 ? ` (${g.label})` : "";
-        delDia.push(`  ${f}${quien}: ${platos.length ? platos.join(" + ") : "— vacío —"}`);
+        conHueco++;
+        const platos = [nombre(hueco.firstRecipeId), nombre(hueco.recipeId)].filter(Boolean).join(" · ") || "— vacío —";
+        if (!porPlatos.has(platos)) porPlatos.set(platos, []);
+        porPlatos.get(platos).push(g.label);
+      }
+      for (const [platos, quienes] of porPlatos) {
+        const quien = porPlatos.size > 1 && conHueco > 1 ? ` (${quienes.join(" y ")})` : "";
+        delDia.push(`  ${f}${quien}: ${platos}`);
       }
     }
     if (delDia.length) lineas.push(`${DIA_LARGO[d]}:\n${delDia.join("\n")}`);

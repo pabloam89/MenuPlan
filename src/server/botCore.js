@@ -26,4 +26,5 @@ export { reglaDeInvitado, describirRegla, podarReglasVencidas } from "../lib/reg
 export { reconcileGroupsWithMembers, migrateGroupsForBabies } from "../lib/groups.js";
 export { suggestHomeRole } from "../lib/stages.js";
 export { EU_ALLERGEN_IDS } from "../data/ingredientSchema.js";
+export { aplicarAlergias, FAMILIA } from "../lib/alergias.js";
 export { SLOT_VALUES, slotKey } from "../lib/planner.js";
