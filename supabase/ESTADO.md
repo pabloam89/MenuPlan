@@ -9,11 +9,18 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **62** |
+| Ficheros en `supabase/migrations/` | **63** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **38** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` y la `0062_bot_cron`, el 30 sep 2026) |
+| Aplicadas | **39** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, la `0061_bot_recordatorios_y_uso` la `0062_bot_cron` y la `0063_bot_turnos`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0063, aplicada el 30 sep 2026
+
+`0063_bot_turnos` — `bot_cola` y `bot_candados` (RLS sin políticas) y
+`bot_tomar_candado` / `bot_soltar_candado` (solo service_role; comprobado que
+anon no): un turno a la vez por chat y los mensajes seguidos juntos. Probado
+con ráfagas simuladas: una respuesta por ráfaga, nunca dos en paralelo.
 
 ## La 0062, aplicada el 30 sep 2026
 
