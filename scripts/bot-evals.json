@@ -402,6 +402,49 @@
       }
     },
     {
+      "nombre": "cena rápida con mi mujer: opciones ya, sin preguntar el día ni traer al bebé",
+      "entrada": "Hola, qué recetas me puedes recomendar para una cena rápida con mi mujer entre semana?",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "estilo": "rapido",
+          "para": "mayores"
+        }
+      },
+      "noLlama": [
+        "ver_menu"
+      ],
+      "sinTexto": "¿para qué día"
+    },
+    {
+      "nombre": "«para hoy» contesta a su pregunta: propone, no enseña el menú",
+      "historia": [
+        {
+          "role": "user",
+          "content": "Hola, qué recetas me puedes recomendar para una cena rápida con mi mujer entre semana?"
+        },
+        {
+          "role": "assistant",
+          "content": "¡Claro! ¿Para qué día te preparo las opciones?"
+        }
+      ],
+      "entrada": "Para hoy",
+      "llama": [
+        "proponer_platos"
+      ],
+      "args": {
+        "proponer_platos": {
+          "estilo": "rapido",
+          "para": "mayores"
+        }
+      },
+      "noLlama": [
+        "ver_menu"
+      ]
+    },
+    {
       "nombre": "algo ligero con menú puesto: opciones ligeras, no «no hay nada mejor»",
       "entrada": "¿qué me recomiendas para cenar mañana algo ligero? y cuéntame por qué",
       "llama": [

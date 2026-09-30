@@ -529,22 +529,22 @@ function herramientasDeMenu(householdId, fotos = null) {
       inputSchema: {
         type: "object",
         properties: {
-          dia: { type: "string", description: "lunes…domingo, «hoy» o «mañana»." },
+          dia: { type: "string", description: "Opcional: lunes…domingo, «hoy» o «mañana». Sin él, la próxima comida que toca: NO lo preguntes para recomendar («entre semana» sin más = hoy)." },
           semana,
-          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"] },
+          comida: { type: "string", enum: ["Desayuno", "Comida", "Merienda", "Cena", "Postre"], description: "Opcional: sin ella, la próxima que toca por la hora." },
           grupo: { type: "string", description: "Opcional: el grupo de menú (p. ej. «Bebé») si hay varios." },
           cual: { type: "string", enum: ["principal", "primero"], description: "Por defecto el principal (el segundo en la comida)." },
           n: { type: "integer", minimum: 2, maximum: 6, description: "Cuántas opciones; por defecto 3 (caben 3 botones más «Elige tú»)." },
           parecido_a: { type: "string", description: "Opcional: el plato que piden («salmón al horno con ensalada de mango»)." },
           estilo: { type: "string", enum: ["ligero", "rapido"], description: "Opcional: si piden algo ligero (ordena por calorías y las enseña) o rápido (por tiempo)." },
+          para: { type: "string", enum: ["mayores", "ninos", "bebe"], description: "Opcional: para quién. «Con mi mujer/marido», «para nosotros» = mayores. El bebé solo si lo nombran." },
         },
-        required: ["dia", "comida"],
         additionalProperties: false,
       },
-      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo }) => {
-        const f = franjaDe(comida);
-        if (!f) return `No entiendo qué comida es («${comida}»).`;
-        return proponerPlatos(householdId, { dia, semana: cual_semana, franja: f, grupo, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null }, fotos);
+      run: ({ dia, semana: cual_semana, comida, grupo, cual, n, parecido_a, estilo, para }) => {
+        const f = comida ? franjaDe(comida) : null;
+        if (comida && !f) return `No entiendo qué comida es («${comida}»).`;
+        return proponerPlatos(householdId, { dia: dia || null, semana: cual_semana, franja: f, grupo, para: para || null, cual, n: n ?? 3, parecidoA: parecido_a || null, estilo: estilo || null }, fotos);
       },
     }),
     betaTool({
