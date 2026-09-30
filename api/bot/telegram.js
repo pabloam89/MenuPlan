@@ -27,6 +27,7 @@ import { select, update, eq } from "../_bot/db.js";
 import { enviar, llamar, escaparHtml } from "../_bot/telegram.js";
 import { responder } from "../_bot/agente.js";
 import { registrar, EMBUDO } from "../_bot/embudo.js";
+import { transcribir } from "../_bot/voz.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
 
@@ -100,9 +101,26 @@ async function atender(msg, base) {
     return bienvenida(chatId);
   }
 
-  // Audios y fotos, aún no (falta el proveedor de transcripción).
+  // Notas de voz: se transcriben y siguen el camino del texto. La respuesta
+  // empieza con lo que se entendió, para que un error de oído se vea.
+  const audio = msg.voice ?? msg.audio;
+  if (!texto && audio) {
+    await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
+    const t = await transcribir(audio).catch((e) => ({ error: e?.message }));
+    if (t.error) {
+      const porque = t.error === "largo" ? "Es un audio muy largo: mándamelo en trozos de menos de dos minutos." : "No he podido entender el audio. ¿Me lo escribes?";
+      return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
+    }
+    return conversar({
+      chatId, householdId: chat.household_id, texto: t.texto, from: msg.from, esGrupo,
+      responderA: esGrupo ? msg.message_id : undefined,
+      oido: t.texto,
+    });
+  }
+
+  // Fotos y demás, aún no.
   if (!texto) {
-    return enviar(chatId, "Todavía no entiendo audios ni fotos 🙈 Escríbemelo y te ayudo.", {
+    return enviar(chatId, "Todavía no entiendo fotos 🙈 Escríbemelo o mándame un audio y te ayudo.", {
       responderA: esGrupo ? msg.message_id : undefined,
     });
   }
@@ -117,11 +135,12 @@ async function atender(msg, base) {
 }
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
-async function conversar({ chatId, householdId, texto, from, esGrupo, responderA }) {
+async function conversar({ chatId, householdId, texto, from, esGrupo, responderA, oido = null }) {
   await llamar("sendChatAction", { chat_id: chatId, action: "typing" }).catch(() => {});
   const respuesta = await responder({ chatId, householdId, texto, autor: esGrupo ? nombreDe(from) : null, esGrupo });
   const { cuerpo, botones } = sacarBotones(respuesta);
-  return enviar(chatId, cuerpo, { responderA, botones });
+  const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
+  return enviar(chatId, eco + cuerpo, { responderA, botones });
 }
 
 /**

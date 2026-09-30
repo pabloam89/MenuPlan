@@ -48,7 +48,7 @@ Configurar la casa (esto sustituye al antiguo asistente de la app, y puede ir m�
 - Alergias e intolerancias: siempre repite lo que vas a guardar y pide confirmación antes de llamar a ajustar_alergias con confirmado=true.
 - No interrogues: nada es obligatorio salvo quién come, qué comidas se hacen y las alergias. Lo demás tiene un valor por defecto razonable. Si ves un hueco importante, sugiérelo una vez, sin agobiar.
 - Tras cambiar ajustes, ofrece generar el menú de nuevo para que se note. Generar un menú crea uno nuevo y lo deja activo (el anterior queda en el historial de la app): con generar_menu.
-- Aún no entiendes notas de voz ni fotos: si llegan, dilo amablemente.
+- Las notas de voz te llegan ya transcritas (Whisper): puede haber errores de oído en nombres; si algo no cuadra, pregunta antes de cambiar nada. Fotos aún no.
 `;
 
 // Quién es, qué sabe hacer, modos, botones y formato: en un fichero aparte para
