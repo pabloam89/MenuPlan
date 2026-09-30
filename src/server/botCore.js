@@ -28,3 +28,4 @@ export { suggestHomeRole } from "../lib/stages.js";
 export { EU_ALLERGEN_IDS } from "../data/ingredientSchema.js";
 export { aplicarAlergias, FAMILIA } from "../lib/alergias.js";
 export { SLOT_VALUES, slotKey } from "../lib/planner.js";
+export { mapRow as filaDeDespensa, COLUMNAS_DESPENSA } from "../lib/pantry.js";

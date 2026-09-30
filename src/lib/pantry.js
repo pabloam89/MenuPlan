@@ -16,7 +16,9 @@ import { resolveIngredientId } from "./ingredients.js";
  * ingredient amounts straight from stock with no conversion layer.
  */
 
-function mapRow(row) {
+// Exportada para el bot de Telegram (api/_bot/generar.js): lee la despensa en
+// el servidor y tiene que verla con la misma forma que la app.
+export function mapRow(row) {
   return {
     id: row.id,
     ingredientName: row.ingredient_name,
@@ -201,6 +203,8 @@ const GARNISH_COL = "garnish_ref";
 // freezer columns (lumping them would drop frozen/item_type on the fallback).
 const LOCATION_COLS = "location";
 const PACK_COLS = "pack_count, pack_kind, pack_size, pack_size_unit";
+/** Las columnas de la carga más completa (primer escalón de loadPantry). */
+export const COLUMNAS_DESPENSA = `${BASE_COLS}, updated_at, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}, ${PACK_COLS}`;
 const INGREDIENT_ID_COL = "ingredient_id";
 const UPDATED_AT_COL = "updated_at";
 // Must mirror the fullest loadPantry tier so insert/update `.select()` returns

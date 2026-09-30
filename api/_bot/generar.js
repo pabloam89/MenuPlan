@@ -8,11 +8,14 @@
  * user_menus + user_menu_weeks + user_menu_recipes, y se activa. Por último se
  * sube `bot_rev` para que la app abierta recargue en vez de pisarlo.
  *
- * Diferencias con la app, a propósito y por ahora:
- *   · una sola semana por petición («esta» desde hoy, o «la que viene»);
- *   · sin despensa: la app descuenta lo que hay en casa y anota los deltas de
- *     consumo; eso vive atado a React y a la despensa local. Se generará como
- *     con la despensa en «no cuenta» hasta portarlo.
+ * Despensa: igual que la app con sesión. Se lee `user_pantry` de la casa con
+ * la misma forma (`mapRow`), sesga el menú según `pantryMode` y SIEMPRE se
+ * pasa a la compra para marcar «ya en casa». La app con sesión no descuenta
+ * stock al generar (lo hace al cocinar o al cerrar el día), así que aquí
+ * tampoco.
+ *
+ * Diferencia con la app, a propósito: una sola semana por petición («esta»
+ * desde hoy, o «la que viene»).
  */
 
 // Las fechas de la semana (computeWeekRange) se calculan en hora local: en el
@@ -59,9 +62,14 @@ export async function generarMenu(householdId, cual = "esta") {
     weekOffsets: [offset], sameForAllWeeks: true, varietyPref, weekCount: 1, hoy: hoyISO(),
   });
 
-  const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients: [], pantryMode: "off", crossWeek });
+  const filasDespensa = await select("user_pantry", `household_id=${eq(householdId)}&order=created_at.asc`, m.COLUMNAS_DESPENSA).catch(() => []);
+  const despensa = filasDespensa.map(m.filaDeDespensa);
+  const pantryMode = ["strict", "only", "prefer", "off"].includes(working.pantryMode) ? working.pantryMode : "off";
+  const pantryIngredients = pantryMode === "off" ? [] : despensa;
+
+  const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients, pantryMode, crossWeek });
   m.registerRecipes(recipes);
-  const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), []);
+  const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
   const shopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...(sh.pantryItems ?? [])] };
 
   const week = { offset, startDayIdx, days, startISO, endISO, plan, shopping, schedule: weekSchedule };
