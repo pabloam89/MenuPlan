@@ -561,6 +561,9 @@
           "_todo": "salmon"
         }
       },
+      "noLlama": [
+        "ver_menu"
+      ],
       "sinTexto": "no (tiene|tengo|existe|está disponible)|no quiero meterte",
       "maxLlamadas": 7
     },

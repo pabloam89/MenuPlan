@@ -619,8 +619,12 @@ export async function cambiarPlato(householdId, { dia: diaPedido, semana, franja
     }], { upsert: true }).catch(() => {});
 
     apuntarFoto(m, fotos, elegido.frontendRecipe);
+    // El día tal como queda, en la propia respuesta: el modelo iba a ver_menu
+    // tras cada cambio para comprobarlo, y cada vuelta son 4-8 s en el chat.
+    const dePintado = await describirMenu({ ...casa, menu: null, semanas: null, semana: { ...casa.semana, plan } }, { dia, fecha }).catch(() => "");
     texto = `Cambiado (${fechaCorta(fecha)}, ${fecha}, ${franja}${gs.length > 1 ? `, ${g.label}` : ""}): ${antes ?? "—"} → ${elegido.frontendRecipe.name}.`
-      + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "");
+      + (aproximada ? ` No había «${receta}» tal cual: es lo más parecido que encaja. Díselo así.` : "")
+      + (dePintado ? `\n\nAsí queda ese día (es lo guardado, no hace falta ver_menu):\n${dePintado}` : "");
     // `state.menuPlan` y `state.shopping` son la semana que pinta la app (la de
     // hoy): si el cambio es en otra, solo se toca esa semana.
     const viva = casa.semana.weekStart === cargada.semanaViva;
