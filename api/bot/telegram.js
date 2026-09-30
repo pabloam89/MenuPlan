@@ -62,6 +62,10 @@ async function atender(msg, base) {
 
   // /start <código> o, en grupo, /start@HoMenuBot <código>
   const start = texto.match(/^\/start(?:@\w+)?(?:\s+(\S+))?$/);
+  // `c123456`: el botón del correo de «ya tengo cuenta» abre Telegram y manda
+  // el código solo (la plantilla de Supabase lo pone en el enlace t.me).
+  const desdeCorreo = start?.[1]?.match(/^c(\d{6})$/);
+  if (desdeCorreo && !esGrupo) return comprobarCodigo(msg, chatId, desdeCorreo[1]);
   if (start?.[1]) return enlazarDesdeAjustes(msg, chatId, esGrupo, start[1]);
 
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
