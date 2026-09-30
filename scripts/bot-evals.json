@@ -557,7 +557,8 @@
           "semana": "siguiente"
         },
         "cambiar_plato": {
-          "semana": "siguiente"
+          "semana": "siguiente",
+          "_todo": "salmon"
         }
       },
       "sinTexto": "no (tiene|tengo|existe|está disponible)|no quiero meterte",
