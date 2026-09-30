@@ -24,7 +24,7 @@ process.env.TZ = "Europe/Madrid";
 
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, guardarCasa } from "./casa.js";
-import { motor } from "./menu.js";
+import { motor, describirMenu } from "./menu.js";
 import { registrar, EMBUDO } from "./embudo.js";
 
 const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
@@ -145,7 +145,11 @@ export async function generarMenu(householdId, cual = "esta") {
   const platos = Object.entries(plan).filter(([k]) => !k.startsWith("_")).reduce((n, [, h]) => n + Object.values(h ?? {}).filter((x) => x?.recipeId).length, 0);
   const avisos = (plan._warnings ?? []).length;
   const conservadas = semanasQueSeQuedan.map((w) => `del ${w.week_start} al ${w.week_end}`);
+  // La semana generada va en la propia respuesta: sin ella, el modelo llamaba
+  // a ver_menu justo después (y otra vez tras cada cambio), y un «hazme el
+  // menú con salmón un día» tardaba casi un minuto en seis vueltas.
+  const semana = await describirMenu({ ...casa, menu: null, semanas: null, semana: { plan, weekStart: startISO, weekEnd: endISO, activeDays, startDayIdx, shopping } }).catch(() => "");
   return `Menú nuevo generado y activado: del ${startISO} al ${endISO}, ${platos} huecos con plato${avisos ? ` (${avisos} avisos del motor: huecos que no encajaban del todo)` : ""}.`
     + (conservadas.length ? ` Se conserva tal cual la semana ${conservadas.join(" y ")}.` : "")
-    + ` Enséñaselo con ver_menu${cual === "siguiente" ? " (semana: siguiente)" : ""}.`;
+    + (semana ? `\n\nAsí queda (no hace falta ver_menu):\n${semana}` : ` Enséñaselo con ver_menu${cual === "siguiente" ? " (semana: siguiente)" : ""}.`);
 }

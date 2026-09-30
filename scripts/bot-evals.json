@@ -560,7 +560,8 @@
           "semana": "siguiente"
         }
       },
-      "sinTexto": "no (tiene|tengo|existe|está disponible)|no quiero meterte"
+      "sinTexto": "no (tiene|tengo|existe|está disponible)|no quiero meterte",
+      "maxLlamadas": 7
     },
     {
       "nombre": "cena de hoy: el día es hoy, no otro",
