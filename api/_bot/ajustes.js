@@ -199,17 +199,18 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
     return "Las alergias no se guardan sin confirmación explícita. Repite lo que vas a guardar y pregúntale si es correcto; solo con su «sí» llama otra vez con confirmado=true.";
   }
   return conData(householdId, (data, m) => {
-    const x = personaPorNombre(data, persona);
-    if (!x) return { texto: `No encuentro a ${persona} en la casa.` };
-    const ids = (alergenos ?? []).map((a) => normal(a).replace(/\s+/g, "_")).filter((a) => m.EU_ALLERGEN_IDS.includes(a));
-    const ignorados = (alergenos ?? []).filter((a) => !m.EU_ALLERGEN_IDS.includes(normal(a).replace(/\s+/g, "_")));
-    if (!ids.length) return { texto: `No reconozco ninguno de esos como uno de los 14 alérgenos oficiales (${ignorados.join(", ")}). Los válidos: ${m.EU_ALLERGEN_IDS.join(", ")}.` };
-    const actuales = new Set(x.allergies ?? []);
-    for (const id of ids) quitar ? actuales.delete(id) : actuales.add(id);
-    const members = (data.members ?? []).map((p) => (p.id === x.id ? { ...p, allergies: [...actuales] } : p));
+    // La regla es la de la app (src/lib/alergias.js): ids con sus alias
+    // («frutos secos»), y se escribe la ETIQUETA, que es lo que guarda la app.
+    const toda = /^(todos|toda la familia|familia|la casa)$/.test(normal(persona));
+    const x = toda ? null : personaPorNombre(data, persona);
+    if (!toda && !x) return { texto: `No encuentro a ${persona} en la casa.` };
+    const r = m.aplicarAlergias(data, { memberId: toda ? m.FAMILIA : x.id, ids: alergenos, quitar, confirmado: true });
+    if (!r.escrito) {
+      return { texto: `No reconozco ninguno como uno de los 14 alérgenos oficiales (${r.ignorados.join(", ") || "vacío"}). Los válidos: ${m.EU_ALLERGEN_IDS.join(", ")}.` };
+    }
     return {
-      data: { ...data, members, allergiesReviewed: true },
-      texto: `${quitar ? "Quitadas" : "Guardadas"} para ${x.name}: ${ids.join(", ")}.${ignorados.length ? ` No reconocidas: ${ignorados.join(", ")}.` : ""}`,
+      data: r.data,
+      texto: `${quitar ? "Quitadas" : "Guardadas"} para ${toda ? "toda la casa" : x.name}: ${r.aplicados.join(", ")}.${r.ignorados.length ? ` No reconocidas: ${r.ignorados.join(", ")}.` : ""}`,
     };
   });
 }
