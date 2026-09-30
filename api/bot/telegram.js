@@ -101,6 +101,14 @@ function bienvenida(chatId) {
 async function pulsado(cq, base) {
   const chatId = String(cq.message.chat.id);
   await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(() => {});
+  // Un botón se usa una vez: se quitan los del mensaje pulsado para que no
+  // se pulsen luego los viejos (en la primera prueba salieron cinco avisos
+  // seguidos de «ya está conectado»).
+  await llamar("editMessageReplyMarkup", {
+    chat_id: cq.message.chat.id,
+    message_id: cq.message.message_id,
+    reply_markup: { inline_keyboard: [] },
+  }).catch(() => {});
   if (esGrupoDe(cq.message.chat)) return;
 
   const [chat] = await select("bot_chats", `channel=eq.telegram&chat_id=${eq(chatId)}`, "household_id");
@@ -109,7 +117,17 @@ async function pulsado(cq, base) {
   if (cq.data === "cuenta:si") {
     return enviar(chatId, "Escríbeme el <b>email</b> con el que entras en HoMenu y te mando un código para conectarnos.");
   }
-  if (cq.data === "cuenta:nuevo") return crearCuenta(cq.from, chatId, base);
+  // «Soy nuevo» pide confirmación: el bot no puede saber que ya tienes cuenta
+  // (Telegram no nos da tu email), y crear una vacía por error despista mucho.
+  if (cq.data === "cuenta:nuevo") {
+    return enviar(chatId, "¿Seguro que no usas HoMenu todavía? Si ya entras en la app (por ejemplo, con Google), conecta esa cuenta para ver tu casa y tu menú.", {
+      botones: [[
+        { texto: "Ya tengo cuenta", dato: "cuenta:si" },
+        { texto: "Sí, soy nuevo", dato: "cuenta:nuevo:ok" },
+      ]],
+    });
+  }
+  if (cq.data === "cuenta:nuevo:ok") return crearCuenta(cq.from, chatId, base);
 }
 
 // Límites de correos de acceso: por persona (no bombardear a nadie desde un
@@ -143,10 +161,11 @@ async function pedirAcceso(msg, chatId, email, base) {
   }
   // La misma respuesta exista o no la cuenta: si no, el bot serviría para
   // averiguar qué emails usan HoMenu.
+  // Sin botón de «Soy nuevo» aquí: quien ya ha escrito su email casi seguro
+  // tiene cuenta, y ese botón le creaba otra vacía (pasó en la primera prueba).
   return enviar(
     chatId,
-    `Si <b>${escaparHtml(email)}</b> tiene cuenta en HoMenu, te acaba de llegar un correo con un <b>código de 6 cifras</b>. Escríbemelo aquí.\n\n¿No te llega nada? Revisa el email o empieza desde cero:`,
-    { botones: [[{ texto: "Soy nuevo", dato: "cuenta:nuevo" }]] },
+    `Si <b>${escaparHtml(email)}</b> tiene cuenta en HoMenu, te acaba de llegar un correo con un <b>código de 6 cifras</b>. Escríbemelo aquí.\n\n¿No te llega? Mira en spam, o escríbeme otra vez el email por si tenía una errata.`,
   );
 }
 
