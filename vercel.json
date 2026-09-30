@@ -5,6 +5,10 @@
   "functions": {
     "api/share-recipe.js": {
       "includeFiles": "src/{data/recipes/*.json,assets/dishes/dishImages.json}"
+    },
+    "api/bot/telegram.js": {
+      "includeFiles": "api/_bot/core.mjs",
+      "maxDuration": 120
     }
   },
   "rewrites": [
