@@ -1,0 +1,29 @@
+/**
+ * Manda los recordatorios vencidos (api/_bot/recordatorios.js).
+ *
+ * Lo llama un planificador cada pocos minutos con `Authorization: Bearer
+ * <BOT_CRON_SECRET>`: vale el formato de los cron de Vercel (que mandan
+ * CRON_SECRET así) y cualquier otro. Sin el secreto no hace nada.
+ */
+
+import crypto from "node:crypto";
+import { enviarPendientes } from "../_bot/recordatorios.js";
+import { enviar, escaparHtml } from "../_bot/telegram.js";
+
+function autorizado(cabecera) {
+  const secreto = process.env.BOT_CRON_SECRET || process.env.CRON_SECRET;
+  if (!secreto) return false;
+  const a = Buffer.from(String(cabecera ?? ""));
+  const b = Buffer.from(`Bearer ${secreto}`);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+export default async function handler(req, res) {
+  if (req.method !== "GET" && req.method !== "POST") return res.status(405).end();
+  if (!autorizado(req.headers.authorization)) return res.status(401).end();
+  const enviados = await enviarPendientes(async (r) => {
+    if (r.channel !== "telegram") return;
+    await enviar(r.chat_id, `⏰ <b>Recordatorio</b>: ${escaparHtml(r.text)}`);
+  });
+  return res.status(200).json({ ok: true, enviados });
+}

@@ -61,7 +61,7 @@ export default async function handler(req, res) {
   // webhook no responde, Telegram reintenta y el mensaje se atendería dos veces.
   waitUntil((async () => {
     try {
-      if (upd.callback_query) await pulsado(upd.callback_query, base);
+      if (upd.callback_query) await pulsado(upd.callback_query);
       else if (upd.message) await atender(upd.message, base);
     } catch (err) {
       console.error("[bot/telegram]", err?.message);
@@ -168,7 +168,7 @@ function bienvenida(chatId) {
   });
 }
 
-async function pulsado(cq, base) {
+async function pulsado(cq) {
   const chatId = String(cq.message.chat.id);
   await llamar("answerCallbackQuery", { callback_query_id: cq.id }).catch(() => {});
   // Un botón se usa una vez: se quitan los del mensaje pulsado para que no

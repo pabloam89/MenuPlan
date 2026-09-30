@@ -26,6 +26,10 @@ import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
   anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos,
 } from "./ajustes.js";
+import {
+  crearRecordatorio, verRecordatorios, cancelarRecordatorio, ahoraEnMadrid,
+} from "./recordatorios.js";
+import { fueraDeLimite, contarUso, avisoDeLimite } from "./uso.js";
 
 const MODELO = "claude-sonnet-5";
 const TURNOS_DE_MEMORIA = 16;
@@ -48,7 +52,7 @@ Configurar la casa (esto sustituye al antiguo asistente de la app, y puede ir m�
 - Alergias e intolerancias: siempre repite lo que vas a guardar y pide confirmación antes de llamar a ajustar_alergias con confirmado=true.
 - No interrogues: nada es obligatorio salvo quién come, qué comidas se hacen y las alergias. Lo demás tiene un valor por defecto razonable. Si ves un hueco importante, sugiérelo una vez, sin agobiar.
 - Tras cambiar ajustes, ofrece generar el menú de nuevo para que se note. Generar un menú crea uno nuevo y lo deja activo (el anterior queda en el historial de la app): con generar_menu.
-- Las notas de voz te llegan ya transcritas (Whisper): puede haber errores de oído en nombres; si algo no cuadra, pregunta antes de cambiar nada. Fotos aún no.
+- Las notas de voz te llegan ya transcritas (Whisper): puede haber errores de oído en nombres; si algo no cuadra, pregunta antes de cambiar nada. Las fotos (ticket, nevera, menú del cole) te llegan como imagen.
 `;
 
 // Quién es, qué sabe hacer, modos, botones y formato: en un fichero aparte para
@@ -64,9 +68,41 @@ ${REGLAS}`;
 let cliente = null;
 const anthropic = () => (cliente ??= new Anthropic());
 
-async function herramientas(householdId) {
+async function herramientas(chat) {
   const gustos = await dominiosDeGustos();
-  return [...herramientasDeMenu(householdId), ...herramientasDeAjustes(householdId, gustos)];
+  return [
+    ...herramientasDeMenu(chat.householdId),
+    ...herramientasDeAjustes(chat.householdId, gustos),
+    ...herramientasDeRecordatorios(chat),
+  ];
+}
+
+function herramientasDeRecordatorios(chat) {
+  const obj = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
+  return [
+    betaTool({
+      name: "crear_recordatorio",
+      description: "Programa un recordatorio en ESTE chat. Solo si el usuario lo ha pedido o ha dicho que sí a tu oferta. cuando: fecha y hora en hora de España, AAAA-MM-DDTHH:MM. repite: diario o semanal (opcional).",
+      inputSchema: obj({
+        texto: { type: "string", description: "Lo que hay que recordar, en corto y en segunda persona: «Sacar el pollo del congelador»." },
+        cuando: { type: "string" },
+        repite: { type: "string", enum: ["diario", "semanal"] },
+      }, ["texto", "cuando"]),
+      run: (args) => crearRecordatorio(chat, args),
+    }),
+    betaTool({
+      name: "ver_recordatorios",
+      description: "Los recordatorios pendientes de este chat, con su id.",
+      inputSchema: obj({}),
+      run: () => verRecordatorios(chat.chatId),
+    }),
+    betaTool({
+      name: "cancelar_recordatorio",
+      description: "Cancela un recordatorio pendiente por su id (míralo antes con ver_recordatorios).",
+      inputSchema: obj({ id: { type: "string" } }, ["id"]),
+      run: ({ id }) => cancelarRecordatorio(chat.chatId, id),
+    }),
+  ];
 }
 
 function herramientasDeAjustes(householdId, gustos) {
@@ -287,27 +323,42 @@ async function memoria(channel, chatId) {
  * @returns {Promise<string>} el texto a mandar al chat (HTML de Telegram)
  */
 export async function responder({ channel = "telegram", chatId, householdId, texto, autor, esGrupo }) {
+  const tope = await fueraDeLimite(householdId);
+  if (tope) return tope;
+
   const historia = await memoria(channel, chatId);
   const entrada = esGrupo && autor ? `[${autor}]: ${texto}` : texto;
 
-  const final = await anthropic().beta.messages.toolRunner({
+  const runner = anthropic().beta.messages.toolRunner({
     model: MODELO,
     max_tokens: 4000,
     max_iterations: 8,
     output_config: { effort: "medium" },
-    system: [{ type: "text", text: SISTEMA, cache_control: { type: "ephemeral" } }],
-    tools: await herramientas(householdId),
+    system: [
+      { type: "text", text: SISTEMA, cache_control: { type: "ephemeral" } },
+      // Fuera de la caché: cambia en cada mensaje.
+      { type: "text", text: `Ahora mismo en España: ${ahoraEnMadrid()}.` },
+    ],
+    tools: await herramientas({ channel, chatId: String(chatId), householdId, autor }),
     messages: [...historia, { role: "user", content: entrada }],
   });
+  // Cada vuelta del runner es una llamada al modelo: el coste es la suma.
+  const uso = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 };
+  let final = null;
+  for await (const mensaje of runner) {
+    final = mensaje;
+    for (const k of Object.keys(uso)) uso[k] += mensaje.usage?.[k] ?? 0;
+  }
 
-  const respuesta = (final.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim()
+  const dicho = (final?.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim()
     || "Hecho.";
+  const llevados = await contarUso(householdId, uso).catch((e) => { console.error("[agente] uso", e?.message); return 0; });
+  const respuesta = dicho + avisoDeLimite(householdId, llevados);
 
   await insert("bot_messages", [
     { channel, chat_id: String(chatId), household_id: householdId, role: "user", author_id: autor ?? null, content: { texto: entrada } },
     { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta } },
   ]).catch((e) => console.error("[agente] memoria", e?.message));
-  await contarUso(householdId, final.usage).catch(() => {});
   await segundaSemana(householdId).catch(() => {});
 
   return respuesta;
@@ -321,17 +372,4 @@ async function segundaSemana(householdId) {
   if (enlace && Date.now() - Date.parse(enlace.created_at) >= 7 * 86400000) {
     await registrar(EMBUDO.SEGUNDA_SEMANA, { userId: dueno, unaVez: true });
   }
-}
-
-async function contarUso(householdId, usage) {
-  const mes = new Date().toISOString().slice(0, 7) + "-01";
-  const [fila] = await select("bot_usage", `household_id=${eq(householdId)}&month=eq.${mes}`, "*");
-  await insert("bot_usage", [{
-    household_id: householdId,
-    month: mes,
-    messages: (fila?.messages ?? 0) + 1,
-    input_tokens: Number(fila?.input_tokens ?? 0) + (usage?.input_tokens ?? 0),
-    output_tokens: Number(fila?.output_tokens ?? 0) + (usage?.output_tokens ?? 0),
-    cache_read_tokens: Number(fila?.cache_read_tokens ?? 0) + (usage?.cache_read_input_tokens ?? 0),
-  }], { upsert: true });
 }

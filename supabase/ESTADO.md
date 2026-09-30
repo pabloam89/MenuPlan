@@ -9,11 +9,18 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **60** |
+| Ficheros en `supabase/migrations/` | **61** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **36** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, el 30 sep 2026) |
+| Aplicadas | **37** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer` y la `0061_bot_recordatorios_y_uso`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0061, aplicada el 30 sep 2026
+
+`0061_bot_recordatorios_y_uso` — `bot_reminders.repite` (diario/semanal),
+`bot_usage.cache_write_tokens` y `bot_contar_uso()` (suma atómica; ejecutable
+solo por service_role, comprobado que anon y authenticated no). Probada en vivo
+con una casa de prueba, borrada después.
 
 ## La 0060, aplicada el 30 sep 2026
 
