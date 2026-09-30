@@ -197,6 +197,7 @@ import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from ".
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
+import { leerDestino, olvidarDestino } from "./lib/destinoBot.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
@@ -1407,6 +1408,10 @@ export default function App() {
   const recargandoRef = useRef(false);
   const recargarDesdeNubeRef = useRef(() => {});
   const [cloudEpoch, setCloudEpoch] = useState(0);
+  // Lo mismo que `cloudReadyRef`, pero como estado: el destino de un enlace
+  // del bot (`?ir=`) espera a que la casa haya llegado de la nube, y un ref
+  // no despierta a nadie cuando cambia.
+  const [nubeLista, setNubeLista] = useState(false);
   // Kept live (not just captured once) so the one-time legacy backfill below
   // can tell whether a menú it's about to activate in the cloud is still
   // actually the active one locally — the user may generate a brand new menú
@@ -1731,6 +1736,7 @@ export default function App() {
 
       if (remoteBotRev != null) guardarBotRevVisto(householdId, remoteBotRev);
       cloudReadyRef.current = true;
+      setNubeLista(true);
       recargandoRef.current = false;
     })();
 
@@ -3957,6 +3963,32 @@ export default function App() {
     trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id, garnishId: resolvedGarnishId ?? undefined, sauceId: resolvedSauceId ?? undefined });
   }, [data.members, user]);
 
+  // Un enlace del bot a una pantalla concreta (`?ir=`, ver lib/destinoBot.js).
+  // Se aplica una vez y cuando ya está la casa: con cuenta, cuando la nube ha
+  // llegado (antes el menú estaría vacío); sin cuenta, cuando hay familia.
+  const [destinoBot, setDestinoBot] = useState(() => leerDestino());
+  // Con qué vista y día abre el menú al llegar desde el bot. Solo lo lee el
+  // `useState` inicial de MenuScreen, así que no hace falta limpiarlo.
+  const [menuInicio, setMenuInicio] = useState(null);
+  useEffect(() => {
+    if (!destinoBot || authLoading) return;
+    const lista = user ? nubeLista : (data.members?.length ?? 0) > 0;
+    if (!lista) return;
+    const d = destinoBot;
+    setDestinoBot(null);
+    olvidarDestino();
+    if (d.pantalla === "receta") {
+      const receta = recipeCatalogById[d.id];
+      if (!receta) { showToast("No encuentro esa receta"); return; }
+      // La ficha se pinta encima de cualquier pantalla, pero no del splash.
+      if (screen === "splash") setScreen("dashboard");
+      handleOpenCatalogRecipe(receta);
+      return;
+    }
+    if (d.pantalla === "menu") setMenuInicio({ vista: d.vista, dia: d.dia ?? null, clave: Date.now() });
+    fwd(() => setScreen(d.pantalla));
+  }, [destinoBot, authLoading, user, nubeLista, data.members, screen, handleOpenCatalogRecipe, showToast]);
+
   /**
    * Copiar una receta de Gente a mi biblioteca. Es una INSTANTÁNEA: nace con
    * id nuevo y dueño nuevo, y no vuelve a mirar al original — si el autor la
@@ -5868,10 +5900,14 @@ export default function App() {
 
         {screen === "menu" && (
           <div
-            key="menu"
+            // Con la clave del destino del bot: si ya estabas en el menú, un
+            // enlace a otro día lo vuelve a montar para que abra en ese día.
+            key={`menu-${menuInicio?.clave ?? 0}`}
             className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
           >
             <MenuScreen
+              initialDeckView={menuInicio?.vista}
+              initialDay={menuInicio?.dia}
               data={data}
               onPublishToFeed={householdReadOnly ? null : handlePublishMenu}
               onUnpublishFromFeed={handleUnpublishMenu}

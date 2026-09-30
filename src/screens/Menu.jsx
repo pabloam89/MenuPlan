@@ -5153,6 +5153,9 @@ export const MenuScreen = memo(function MenuScreen({
   // and auto-play the quick-actions rosco so the tutorial can show off the
   // week view + acciones rápidas without a real user gesture.
   initialDeckView = null,
+  // El día con que abre (clave de la app, "Jue"): lo pasa un enlace del bot
+  // que habla de ese día. Sin él, hoy, como siempre.
+  initialDay = null,
   autoDemo = null,
   // Live shopping list (active week) + jump-to-cook-mode callback, so each
   // dish can show a "faltan ingredientes" dot instead of making you go check
@@ -5558,6 +5561,7 @@ export const MenuScreen = memo(function MenuScreen({
   const [accionesAbiertas, setAccionesAbiertas] = useState(false);
   const [confirmDeleteActive, setConfirmDeleteActive] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => {
+    if (initialDay && DAYS.includes(initialDay)) return initialDay;
     const jsDay = new Date().getDay();
     const idx = jsDay === 0 ? 6 : jsDay - 1;
     if (data.menuWeek?.offset === 0) {
@@ -6772,6 +6776,20 @@ export const MenuScreen = memo(function MenuScreen({
   );
 });
 
+// Un error de servidor o de red no le dice nada a quien cocina ("HTTP 500.
+// ANTHROPIC_API_KEY not configured on server" salió tal cual en pantalla), y
+// asusta. Esos se cambian por una frase humana; los que ya están escritos para
+// el usuario ("Añade al menos un miembro…") pasan como están.
+const ERROR_TECNICO_RE = /\bHTTP\s*\d{3}\b|api[_ ]?key|not configured|failed to fetch|networkerror|typeerror|referenceerror|syntaxerror|\bjson\b|undefined|null|timeout|timed out|\berr_|\bstack\b|at \w+ \(/i;
+
+function mensajeDeError(error) {
+  const texto = error?.message;
+  if (!texto || ERROR_TECNICO_RE.test(texto)) {
+    return "Algo ha fallado al preparar el menú. Vuelve a intentarlo en un momento; si sigue sin salir, prueba más tarde.";
+  }
+  return texto;
+}
+
 function ErrorCard({ error, onRetry }) {
   return (
     <div style={{ padding: "0 16px" }}>
@@ -6796,7 +6814,7 @@ function ErrorCard({ error, onRetry }) {
           <div style={{ fontSize: 14, fontWeight: 900 }}>No se pudo generar el menú</div>
         </div>
         <div style={{ fontSize: 12, color: "#7a4a12", marginBottom: 14, lineHeight: 1.45 }}>
-          {error?.message ?? "La IA no respondió correctamente. Inténtalo de nuevo."}
+          {mensajeDeError(error)}
         </div>
         {onRetry && (
           <button
