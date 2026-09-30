@@ -29,6 +29,7 @@ import { responder, cortarCharla } from "../_bot/agente.js";
 import { registrar, EMBUDO, duenoDe } from "../_bot/embudo.js";
 import { transcribir } from "../_bot/voz.js";
 import { adjuntoDe } from "../_bot/adjuntos.js";
+import { enTurno, aSolas, juntar } from "../_bot/turnos.js";
 import {
   enlacesReceta, enlacesSemana, botonesCompartir, resolverInvitacion,
   recetaEnTexto, semanaEnTexto, copiarReceta,
@@ -169,11 +170,8 @@ async function atender(msg, base) {
       const porque = t.error === "largo" ? "Es un audio muy largo: mándamelo en trozos de menos de dos minutos." : "No he podido entender el audio. ¿Me lo escribes?";
       return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
     }
-    return conversar({ base,
-      chatId, householdId: chat.household_id, texto: t.texto, from: msg.from, esGrupo,
-      responderA: esGrupo ? msg.message_id : undefined,
-      oido: t.texto,
-    });
+    return enTurno(chatId, itemDe(msg.from, t.texto, { oido: t.texto, responderA: esGrupo ? msg.message_id : undefined }),
+      atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
   }
 
   // Fotos y PDFs (un ticket, la nevera, el menú del cole): los lee el modelo.
@@ -188,11 +186,13 @@ async function atender(msg, base) {
       return enviar(chatId, porque, { responderA: esGrupo ? msg.message_id : undefined });
     }
     const pie = (msg.caption ?? "").replace(/@\w+bot\b/gi, "").trim();
-    return conversar({ base,
+    // Una foto no se junta con otros mensajes (va entera al modelo): espera a
+    // que el chat esté libre, y lo que llegue detrás va en el turno siguiente.
+    return aSolas(chatId, () => conversar({ base,
       chatId, householdId: chat.household_id, from: msg.from, esGrupo, adjunto,
       texto: pie || (adjunto.tipo === "document" ? "(te mando este PDF)" : "(te mando esta foto)"),
       responderA: esGrupo ? msg.message_id : undefined,
-    });
+    }), atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
   }
 
   // Stickers, ubicaciones y demás: nada que hacer.
@@ -208,7 +208,32 @@ async function atender(msg, base) {
   const comando = texto.match(/^\/(\w+)(?:@\w+)?\s*$/)?.[1]?.toLowerCase();
   // En un grupo le hablan como «@bot …»: la mención no es parte del mensaje.
   const limpio = COMANDOS[comando] ?? DEL_TECLADO[texto] ?? (texto.replace(/@\w+bot\b/gi, "").trim() || texto);
-  return conversar({ base, chatId, householdId: chat.household_id, texto: limpio, from: msg.from, esGrupo, responderA: esGrupo ? msg.message_id : undefined });
+  return enTurno(chatId, itemDe(msg.from, limpio, { responderA: esGrupo ? msg.message_id : undefined }),
+    atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
+}
+
+/** Un mensaje en la cola del chat (api/_bot/turnos.js): lo justo para responderlo. */
+function itemDe(from, texto, { oido = null, responderA } = {}) {
+  return {
+    texto, oido, responderA, autor: nombreDe(from),
+    from: from ? { id: from.id, first_name: from.first_name, last_name: from.last_name, language_code: from.language_code } : null,
+  };
+}
+
+/**
+ * Un turno con todo lo acumulado en la cola: varios mensajes seguidos, una
+ * sola respuesta. En un grupo con varias personas, cada línea va firmada
+ * (juntar) y no se atribuye el turno a nadie en concreto.
+ */
+function atenderCola({ chatId, householdId, esGrupo, base }) {
+  return async (items) => {
+    const { texto, oido, ultimo, variosAutores } = juntar(items, { esGrupo });
+    await conversar({
+      base, chatId, householdId, esGrupo, texto, oido,
+      from: variosAutores ? null : ultimo.from,
+      responderA: ultimo.responderA,
+    });
+  };
 }
 
 /** Un turno con el agente, venga de un mensaje o de un botón pulsado. */
@@ -252,8 +277,12 @@ async function conversar({ chatId, householdId, texto, from, esGrupo, responderA
     if (enlaces) botones.push(...botonesCompartir(enlaces, r.compartir.tipo));
   }
   const eco = oido ? `🎙️ <i>«${escaparHtml(oido)}»</i>\n\n` : "";
-  // Las fotos de los platos, antes del texto: así los botones quedan abajo.
-  if (r.fotos?.length) await enviarFotos(chatId, r.fotos, { responderA });
+  // Las fotos, en UN álbum y justo antes del texto (así los botones quedan
+  // abajo). Si en el turno se han propuesto opciones (pie «1. …»), solo esas:
+  // son lo que se está eligiendo, y mezclarlas con las del menú confunde.
+  const propuestas = (r.fotos ?? []).filter((f) => /^\d+\. /.test(f.pie ?? ""));
+  const fotos = propuestas.length ? propuestas : (r.fotos ?? []);
+  if (fotos.length) await enviarFotos(chatId, fotos, { responderA });
   return enviar(chatId, eco + cuerpo, { responderA, botones: botones.length ? botones : undefined, ...(esGrupo ? {} : { teclado: TECLADO }) });
 }
 
@@ -409,7 +438,8 @@ async function pulsado(cq, base) {
   if (cq.data?.startsWith("t:")) {
     if (!chat) return bienvenida(chatId);
     const esGrupo = esGrupoDe(cq.message.chat);
-    return conversar({ chatId, householdId: chat.household_id, texto: cq.data.slice(2), from: cq.from, esGrupo, base, responderA: esGrupo ? cq.message.message_id : undefined });
+    return enTurno(chatId, itemDe(cq.from, cq.data.slice(2), { responderA: esGrupo ? cq.message.message_id : undefined }),
+      atenderCola({ chatId, householdId: chat.household_id, esGrupo, base }));
   }
 
   // Quien recibe una receta: guardársela o ponerla en su menú.
