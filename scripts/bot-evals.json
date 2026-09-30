@@ -1,5 +1,5 @@
 {
-  "_nota": "Casos de conversación de Chef Mateo (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas.",
+  "_nota": "Casos de conversación de Lola (scripts/bot-evals.mjs). Cada caso: lo que dice el usuario, opcionalmente la charla previa, y qué herramientas DEBE y NO DEBE llamar. 'args' comprueba argumentos (subcadena, sin mayúsculas ni acentos). 'texto' y 'sinTexto' son expresiones regulares sobre la respuesta. 'foto' son líneas de texto que se pintan en una imagen y van adjuntas.",
   "casos": [
     {
       "nombre": "consulta rápida: qué cenamos",

@@ -25,11 +25,14 @@ const llamar = async (metodo, cuerpo = {}) => {
   return json.result;
 };
 
+// Máx. 64. El nombre visible del bot en la lista de chats (el @usuario no cambia).
+const NOMBRE = "Lola · HoMenu";
+
 // Máx. 120 caracteres. Sale en el perfil y al compartir el bot.
-const ABOUT = "Tu chef de casa 👨‍🍳 Te planifico el menú de la semana, la compra y las recetas. Háblame como a un amigo.";
+const ABOUT = "Soy Lola, tu cocinera de casa 👩‍🍳 Te planifico el menú de la semana, la compra y las recetas. Háblame como a una amiga.";
 
 // Máx. 512. Es lo que se ve, debajo del GIF, antes de pulsar «Iniciar».
-const DESCRIPCION = `¡Hola! Soy Chef Mateo 👨‍🍳, el cocinero de tu casa.
+const DESCRIPCION = `¡Hola! Soy Lola 👩‍🍳, la cocinera de tu casa.
 
 🗓️ Te preparo el menú de toda la semana en segundos
 🛒 Te hago la lista de la compra
@@ -49,10 +52,12 @@ const COMANDOS = [
   { command: "start", description: "Hola, qué sé hacer" },
 ];
 
+if ([...NOMBRE].length > 64) throw new Error(`Nombre: ${[...NOMBRE].length} > 64`);
 if ([...ABOUT].length > 120) throw new Error(`About: ${[...ABOUT].length} > 120`);
 if ([...DESCRIPCION].length > 512) throw new Error(`Descripción: ${[...DESCRIPCION].length} > 512`);
 
 if (process.argv[2] === "aplicar") {
+  await llamar("setMyName", { name: NOMBRE });
   await llamar("setMyShortDescription", { short_description: ABOUT });
   await llamar("setMyDescription", { description: DESCRIPCION });
   await llamar("setMyCommands", { commands: COMANDOS });

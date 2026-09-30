@@ -1,5 +1,5 @@
 /**
- * Pruebas de conversación de Chef Mateo: ¿llama a la herramienta que toca?
+ * Pruebas de conversación de Lola: ¿llama a la herramienta que toca?
  *
  *   node scripts/bot-evals.mjs            → todos los casos
  *   node scripts/bot-evals.mjs alergia    → los que contengan «alergia»

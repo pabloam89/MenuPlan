@@ -180,7 +180,7 @@ function sacarBotones(texto) {
 }
 
 function bienvenida(chatId) {
-  return enviar(chatId, "¡Hola! Soy <b>Chef Mateo</b> 👨‍🍳, el chef de casa de HoMenu. Te ayudo con el menú, la compra y las recetas.\n\n¿Ya usas HoMenu?", {
+  return enviar(chatId, "¡Hola! Soy <b>Lola</b> 👩‍🍳, la cocinera de casa de HoMenu. Te ayudo con el menú, la compra y las recetas.\n\n¿Ya usas HoMenu?", {
     botones: [[
       { texto: "Ya tengo cuenta", dato: "cuenta:si" },
       { texto: "Soy nuevo", dato: "cuenta:nuevo" },
