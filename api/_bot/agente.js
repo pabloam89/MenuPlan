@@ -15,7 +15,7 @@ import fs from "node:fs";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema";
 import { select, insert, eq } from "./db.js";
-import { cargarCasa } from "./casa.js";
+import { cargarCasa, deshacer } from "./casa.js";
 import {
   describirCasa, describirMenu, describirReceta, describirCompra,
   marcarCompra, anadirCompra, cambiarPlato, diaDe, franjaDe,
@@ -153,6 +153,12 @@ function herramientasDeAjustes(householdId, gustos) {
         ninguna: { type: "boolean" }, quitar: { type: "boolean" }, confirmado: { type: "boolean" },
       }, ["confirmado"]),
       run: (args) => ajustarAlergias(householdId, args),
+    }),
+    betaTool({
+      name: "deshacer",
+      description: "Deshace TU último cambio en la casa (un plato cambiado, la compra, un ajuste o un menú generado: vuelve el anterior). Un solo nivel. No deshace lo que otra persona haya hecho en la app.",
+      inputSchema: obj({}),
+      run: () => deshacer(householdId),
     }),
     betaTool({
       name: "generar_menu",

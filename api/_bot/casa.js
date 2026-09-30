@@ -12,7 +12,7 @@
  * cruzado, vuelve `conflicto` y quien llama relee y repite.
  */
 
-import { select, rpc, eq } from "./db.js";
+import { select, insert, update, rpc, eq } from "./db.js";
 
 const hoyISO = () => new Date().toISOString().slice(0, 10);
 
@@ -24,7 +24,7 @@ const hoyISO = () => new Date().toISOString().slice(0, 10);
  * }>}
  */
 export async function cargarCasa(householdId) {
-  const [fila] = await select("household_state", `household_id=${eq(householdId)}`, "state,bot_rev");
+  const [fila] = await select("household_state", `household_id=${eq(householdId)}`, "state,bot_rev,updated_at");
   if (!fila) return null;
 
   const [menu] = await select(
@@ -49,6 +49,7 @@ export async function cargarCasa(householdId) {
   return {
     householdId,
     botRev: Number(fila.bot_rev ?? 0),
+    updatedAt: fila.updated_at,
     state: fila.state ?? {},
     menu: menu ? { id: menu.id, userId: menu.user_id } : null,
     semana,
@@ -60,7 +61,7 @@ export async function cargarCasa(householdId) {
  * @param {{ state?: any, semana?: { plan?: any, shopping?: any } }} cambios
  * @returns {Promise<{ ok: true, botRev: number } | { ok: false, conflicto: true, botRev: number } | { ok: false, error: string }>}
  */
-export async function guardarCasa(casa, { state = null, semana = null } = {}) {
+export async function guardarCasa(casa, { state = null, semana = null } = {}, { sinDeshacer = false } = {}) {
   const week = semana && casa.semana
     ? { menu_id: casa.semana.menuId, week_start: casa.semana.weekStart, ...semana }
     : null;
@@ -70,9 +71,72 @@ export async function guardarCasa(casa, { state = null, semana = null } = {}) {
     p_state: state,
     p_week: week,
   });
-  if (r?.ok) return { ok: true, botRev: Number(r.bot_rev) };
+  if (r?.ok) {
+    if (!sinDeshacer) await guardarFotoPrevia(casa, Number(r.bot_rev)).catch((e) => console.error("[casa] deshacer", e?.message));
+    return { ok: true, botRev: Number(r.bot_rev) };
+  }
   if (r?.bot_rev != null) return { ok: false, conflicto: true, botRev: Number(r.bot_rev) };
   return { ok: false, error: r?.error ?? "error desconocido" };
+}
+
+// ── Deshacer (0060) ─────────────────────────────────────────────────────────
+// Cada escritura del bot guarda cómo estaba la casa ANTES. «Deshaz» restaura
+// la última, un solo nivel: basta para «uy, no», y más niveles obligarían a
+// saber qué cambios de la app hubo entre medias.
+
+const FOTOS_POR_CASA = 5;
+
+async function guardarFotoPrevia(casa, botRevDespues) {
+  await insert("bot_deshacer", [{
+    household_id: casa.householdId,
+    bot_rev_despues: botRevDespues,
+    antes: {
+      state: casa.state,
+      menuActivo: casa.menu?.id ?? null,
+      semana: casa.semana ? { menuId: casa.semana.menuId, weekStart: casa.semana.weekStart, plan: casa.semana.plan, shopping: casa.semana.shopping } : null,
+    },
+  }]);
+  const viejas = await select("bot_deshacer", `household_id=${eq(casa.householdId)}&order=created_at.desc&offset=${FOTOS_POR_CASA}`, "id");
+  if (viejas.length) {
+    const { url, headers } = (await import("./db.js")).config();
+    await fetch(`${url}/rest/v1/bot_deshacer?id=in.(${viejas.map((v) => v.id).join(",")})`, { method: "DELETE", headers });
+  }
+}
+
+/**
+ * Deshace la última escritura del bot en la casa.
+ * @returns {Promise<string>} qué ha pasado, para el agente
+ */
+export async function deshacer(householdId) {
+  const [foto] = await select("bot_deshacer", `household_id=${eq(householdId)}&usado_at=is.null&order=created_at.desc&limit=1`, "id,bot_rev_despues,antes,created_at");
+  if (!foto) return "No hay ningún cambio mío reciente que deshacer.";
+  const casa = await cargarCasa(householdId);
+  if (!casa) return "Esta casa no tiene datos en la nube.";
+  if (casa.botRev !== Number(foto.bot_rev_despues)) return "Ya no puedo deshacerlo: después hubo otros cambios míos.";
+  // La app pone updated_at al guardar: si es posterior a mi cambio (con un
+  // margen para el propio guardado), alguien tocó la casa desde la app y
+  // restaurar pisaría lo suyo.
+  if (Date.parse(casa.updatedAt) - Date.parse(foto.created_at) > 5000) {
+    return "No lo deshago: desde ese cambio alguien ha tocado la casa en la app, y lo pisaría. Dime qué quieres volver a dejar como estaba y lo cambio a mano.";
+  }
+
+  const { antes } = foto;
+  // Si lo último fue generar un menú, vuelve a estar activo el anterior (el
+  // generado se queda en el historial de la app).
+  if (antes.menuActivo && casa.menu?.id && antes.menuActivo !== casa.menu.id) {
+    await update("user_menus", `household_id=${eq(householdId)}&is_active=eq.true`, { is_active: false });
+    await update("user_menus", `household_id=${eq(householdId)}&id=${eq(antes.menuActivo)}`, { is_active: true });
+  }
+  const mismaSemana = antes.semana && casa.semana && antes.semana.menuId === casa.semana.menuId && antes.semana.weekStart === casa.semana.weekStart;
+  const r = await guardarCasa(casa, {
+    state: antes.state,
+    semana: mismaSemana ? { plan: antes.semana.plan, shopping: antes.semana.shopping } : null,
+  }, { sinDeshacer: true });
+  if (!r.ok) return `No he podido deshacerlo: ${r.error ?? "se cruzó otro cambio"}.`;
+  await update("bot_deshacer", `id=eq.${foto.id}`, { usado_at: new Date().toISOString() });
+  return antes.menuActivo && antes.menuActivo !== casa.menu?.id
+    ? "Deshecho: vuelve a estar activo el menú anterior (el nuevo queda en el historial)."
+    : "Deshecho: la casa está como antes de mi último cambio.";
 }
 
 /**

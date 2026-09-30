@@ -9,11 +9,18 @@ ninguno fiable. Ver «El registro miente» más abajo.
 
 | | |
 |---|---|
-| Ficheros en `supabase/migrations/` | **59** |
+| Ficheros en `supabase/migrations/` | **60** |
 | Comprobadas contra producción | 32 |
-| Aplicadas | **35** |
-| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026) |
+| Aplicadas | **36** |
+| **Sin aplicar** | **1** — `0021_store_products` (la `0055_recipe_share_links` se aplicó el 24 sep 2026; la `0056_menu_share_links`, el 25 sep 2026; la `0057_bot_cimientos`, la `0058_bot_codigos` y la `0059_bot_codigo_por_email`, el 29 sep 2026; la `0060_bot_deshacer`, el 30 sep 2026) |
 | Registradas en `supabase_migrations.schema_migrations` | **12** |
+
+## La 0060, aplicada el 30 sep 2026
+
+`0060_bot_deshacer` — tabla `bot_deshacer` (RLS sin políticas, solo servidor):
+foto de la casa antes de cada escritura del bot, para «deshaz lo último».
+Comprobada en vivo con una casa de prueba (compra y menú generado, ida y
+vuelta), borrada después.
 
 ## La 0059, aplicada el 29 sep 2026
 
