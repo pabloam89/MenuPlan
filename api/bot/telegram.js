@@ -28,6 +28,7 @@ import { enviar, llamar, escaparHtml } from "../_bot/telegram.js";
 import { responder } from "../_bot/agente.js";
 import { registrar, EMBUDO } from "../_bot/embudo.js";
 import { transcribir } from "../_bot/voz.js";
+import { sembrarCasa } from "../_bot/ajustes.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
 
@@ -203,7 +204,7 @@ async function pulsado(cq, base) {
       ]],
     });
   }
-  if (cq.data === "cuenta:nuevo:ok") return crearCuenta(cq.from, chatId, base);
+  if (cq.data === "cuenta:nuevo:ok") return crearCuenta(cq.from, chatId);
 }
 
 // Límites de correos de acceso: por persona (no bombardear a nadie desde un
@@ -283,7 +284,7 @@ async function comprobarCodigo(msg, chatId, token) {
   return confirmarEnlace(chatId, hogar.id);
 }
 
-async function crearCuenta(from, chatId, base) {
+async function crearCuenta(from, chatId) {
   // Si este Telegram ya creó su cuenta, no se crea otra; y siempre su casa
   // PROPIA, nunca la activa (podría ser una ajena en la que es invitado).
   const nacida = await cuentaNacidaAqui(from.id);
@@ -302,12 +303,15 @@ async function crearCuenta(from, chatId, base) {
     lang: from.language_code,
   });
 
-  const codigo = await crearCodigo({ tipo: "entrar", chatId, externalId: from.id, userId: cuenta.userId, minutos: MIN_ENTRAR });
-  return enviar(
-    chatId,
-    "¡Hecho! Ya tienes tu casa en HoMenu 🏡\n\nPara el primer menú necesito conocer a tu familia. De momento eso se hace en la app (muy pronto también por aquí): pulsa el botón y entrarás ya dentro, sin contraseñas.\n\nSi más adelante quieres volver a entrar, escríbeme /app.",
-    { botones: [[{ texto: "Abrir HoMenu", url: `${base}/?entrar=${codigo}` }]] },
-  );
+  // El alta sigue aquí mismo, hablando: el agente pregunta lo imprescindible
+  // (quiénes, alergias, qué comidas) y propone el primer menú. La app queda
+  // para ver, con /app cuando se quiera.
+  await sembrarCasa(cuenta.householdId);
+  await enviar(chatId, "¡Hecho! Ya tienes tu casa en HoMenu 🏡 Vamos a montarla en un minuto.");
+  return conversar({
+    chatId, householdId: cuenta.householdId, from, esGrupo: false,
+    texto: "[alta] Acabo de crear mi cuenta desde Telegram. Ayúdame a montar mi casa.",
+  });
 }
 
 async function abrirApp(msg, chatId, esGrupo, base) {

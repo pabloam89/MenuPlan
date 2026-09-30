@@ -51,6 +51,8 @@ async function conData(householdId, cambiar) {
 
 const personaPorNombre = (data, nombre) => {
   const q = normal(nombre);
+  // Sin nombre no hay nadie: un startsWith("") casaría con el primero de la casa.
+  if (!q) return null;
   return (data.members ?? []).find((p) => normal(p.name) === q)
     ?? (data.members ?? []).find((p) => normal(p.name).startsWith(q));
 };
@@ -101,11 +103,17 @@ export async function ajustarGustos(householdId, ajustes, frase) {
 
 // ── Cocina: el `escribe` del registro del wizard ─────────────────────────────
 
-export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastos }) {
+export async function ajustarCocina(householdId, { estructura, esfuerzo, tiempo, tanda, trastos, comidas }) {
   return conData(householdId, (data, m) => {
     const R = m.PREGUNTAS_POR_ID;
     let d = data;
     const hechos = [];
+    // Qué comidas se planifican (la fila «comidas» del registro solo lee: se
+    // escribe `data.meals` directamente, con el mismo vocabulario).
+    if (Array.isArray(comidas)) {
+      const meals = ["Comida", "Cena"].filter((c) => comidas.includes(c));
+      if (meals.length) { d = { ...d, meals }; hechos.push(`comidas: ${meals.join(" y ")}`); }
+    }
     if (estructura) { d = R.estructura.escribe(d, estructura); hechos.push(`estructura: ${estructura}`); }
     if (esfuerzo) { d = R.esfuerzo.escribe(d, esfuerzo); hechos.push(`nivel: ${esfuerzo}`); }
     if (tiempo || tanda) { d = R.tiempo.escribe(d, { ...(tiempo ? { nivel: tiempo } : {}), ...(tanda ? { tanda } : {}) }); hechos.push(`tiempo: ${[tiempo, tanda].filter(Boolean).join(", ")}`); }
@@ -200,9 +208,14 @@ export async function quitarComensal(householdId, { nombre }) {
 
 // ── Alergias: nunca sin confirmar ───────────────────────────────────────────
 
-export async function ajustarAlergias(householdId, { persona, alergenos, quitar = false, confirmado }) {
+export async function ajustarAlergias(householdId, { persona, alergenos, quitar = false, ninguna = false, confirmado }) {
   if (confirmado !== true) {
     return "Las alergias no se guardan sin confirmación explícita. Repite lo que vas a guardar y pregúntale si es correcto; solo con su «sí» llama otra vez con confirmado=true.";
+  }
+  // «Nadie tiene alergias»: no se escribe ningún alérgeno, pero la casa queda
+  // revisada, que es lo que la app pide para dar los cimientos por hechos.
+  if (ninguna) {
+    return conData(householdId, (data) => ({ data: { ...data, allergiesReviewed: true }, texto: "Anotado: nadie en casa tiene alergias ni intolerancias." }));
   }
   return conData(householdId, (data, m) => {
     // La regla es la de la app (src/lib/alergias.js): ids con sus alias
@@ -217,6 +230,27 @@ export async function ajustarAlergias(householdId, { persona, alergenos, quitar 
     return {
       data: r.data,
       texto: `${quitar ? "Quitadas" : "Guardadas"} para ${toda ? "toda la casa" : x.name}: ${r.aplicados.join(", ")}.${r.ignorados.length ? ` No reconocidas: ${r.ignorados.join(", ")}.` : ""}`,
+    };
+  });
+}
+
+/**
+ * Una casa creada desde el bot nace vacía (`household_state.state = {}`). Se
+ * siembran los mínimos que la app tendría por defecto, para que el agente y el
+ * motor trabajen desde el primer mensaje. No pisa nada que ya exista.
+ */
+export async function sembrarCasa(householdId) {
+  return conData(householdId, (data) => {
+    if (Array.isArray(data.meals) && Array.isArray(data.members)) return { texto: "" };
+    return {
+      data: {
+        ...data,
+        members: data.members ?? [],
+        groups: data.groups ?? [],
+        meals: data.meals ?? ["Comida", "Cena"],
+        schedule: data.schedule ?? {},
+      },
+      texto: "",
     };
   });
 }

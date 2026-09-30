@@ -108,6 +108,7 @@ function herramientasDeAjustes(householdId, gustos) {
         tiempo: { type: "string", enum: ["con_prisa", "normal", "con_tiempo", "depende"] },
         tanda: { type: "string", enum: ["tanda", "cada_dia"] },
         trastos: { type: "array", items: { type: "string", enum: ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"] } },
+        comidas: { type: "array", items: { type: "string", enum: ["Comida", "Cena"] }, description: "Qué comidas se planifican." },
       }),
       run: (args) => ajustarCocina(householdId, args),
     }),
@@ -146,11 +147,11 @@ function herramientasDeAjustes(householdId, gustos) {
     }),
     betaTool({
       name: "ajustar_alergias",
-      description: "Alergias o intolerancias de una persona (los 14 alérgenos oficiales: gluten, crustaceos, huevos, pescado, cacahuetes, soja, leche, frutos_cascara, apio, mostaza, sesamo, sulfitos, altramuces, moluscos). Solo con confirmado=true tras el «sí» explícito del usuario.",
+      description: "Alergias o intolerancias de una persona o de «toda la casa» (los 14 alérgenos oficiales: gluten, crustaceos, huevos, pescado, cacahuetes, soja, leche, frutos_cascara, apio, mostaza, sesamo, sulfitos, altramuces, moluscos). ninguna=true si confirman que nadie tiene. Solo con confirmado=true tras el «sí» explícito del usuario.",
       inputSchema: obj({
-        persona: { type: "string" }, alergenos: { type: "array", items: { type: "string" }, minItems: 1 },
-        quitar: { type: "boolean" }, confirmado: { type: "boolean" },
-      }, ["persona", "alergenos", "confirmado"]),
+        persona: { type: "string" }, alergenos: { type: "array", items: { type: "string" } },
+        ninguna: { type: "boolean" }, quitar: { type: "boolean" }, confirmado: { type: "boolean" },
+      }, ["confirmado"]),
       run: (args) => ajustarAlergias(householdId, args),
     }),
     betaTool({
