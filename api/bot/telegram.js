@@ -30,6 +30,16 @@ import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPr
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
 
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/;
+
+// /app va aparte (abrirApp); el resto, al agente como frase.
+const COMANDOS = {
+  start: "Hola, ¿qué sabes hacer?",
+  menu: "Enséñame el menú de la semana",
+  hoy: "¿Qué comemos hoy?",
+  compra: "¿Qué falta por comprar?",
+  generar: "Quiero generar un menú nuevo",
+  ayuda: "¿Qué sabes hacer y cómo funcionas?",
+};
 const MIN_VINCULAR = 60; // lo que dura el enlace de acceso de Supabase
 const MIN_ENTRAR = 30;
 
@@ -95,8 +105,12 @@ async function atender(msg, base) {
     });
   }
 
+  // Los comandos del menú «/» (los registra scripts/telegram-perfil.mjs) se
+  // traducen a lo que diría una persona y los atiende el agente, igual que si
+  // se hubieran escrito. En grupo llegan como «/menu@bot».
+  const comando = texto.match(/^\/(\w+)(?:@\w+)?\s*$/)?.[1]?.toLowerCase();
   // En un grupo le hablan como «@bot …»: la mención no es parte del mensaje.
-  const limpio = texto.replace(/@\w+bot\b/gi, "").trim() || texto;
+  const limpio = COMANDOS[comando] ?? (texto.replace(/@\w+bot\b/gi, "").trim() || texto);
   return conversar({ chatId, householdId: chat.household_id, texto: limpio, from: msg.from, esGrupo, responderA: esGrupo ? msg.message_id : undefined });
 }
 
@@ -124,7 +138,7 @@ function sacarBotones(texto) {
 }
 
 function bienvenida(chatId) {
-  return enviar(chatId, "¡Hola! Soy <b>HoMenu</b> 👋 Te ayudo con el menú de casa, la compra y las recetas.\n\n¿Ya usas HoMenu?", {
+  return enviar(chatId, "¡Hola! Soy <b>Chef Mateo</b> 👨‍🍳, el chef de casa de HoMenu. Te ayudo con el menú, la compra y las recetas.\n\n¿Ya usas HoMenu?", {
     botones: [[
       { texto: "Ya tengo cuenta", dato: "cuenta:si" },
       { texto: "Soy nuevo", dato: "cuenta:nuevo" },
