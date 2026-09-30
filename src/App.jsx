@@ -196,6 +196,7 @@ import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour, FeedCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
+import { EMBUDO, PANTALLA_EMBUDO } from "./lib/embudo.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry, addPantryItems, addLocalPantryItems, removePantryItem, removeLocalPantryItem, setPantryItemQty, setLocalPantryItemQty } from "./lib/pantry.js";
 import { toCanonicalStockQty } from "./lib/kitchenUnits.js";
 import { normalizePantryInput } from "./utils/normalizePantryInput.js";
@@ -2224,7 +2225,10 @@ export default function App() {
         elapsedMs: Date.now() - startedAt,
         ...plannerStats,
       });
-      if (isFirstMenu) upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
+      if (isFirstMenu) {
+        upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
+        trackEvent(user, EMBUDO.PRIMER_MENU, PANTALLA_EMBUDO, { canal: "app" });
+      }
 
       const newMenu = {
         id: newMenuId,
@@ -5591,7 +5595,11 @@ export default function App() {
       // En el alta, avatares encadena con alergias: los dos son perfil (se
       // rellenan una vez), no asistente de menú. El alta termina en el paso
       // siguiente, no aquí.
-      onNext={nextOf(1)}
+      onNext={
+        firstRunOnboarding
+          ? () => { trackEvent(user, EMBUDO.FAMILIA, PANTALLA_EMBUDO, { canal: "app", miembros: data.members.length }); nextOf(1)?.(); }
+          : nextOf(1)
+      }
       onBack={backOf(1)}
       onFinish={firstRunOnboarding ? undefined : () => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
@@ -5599,14 +5607,24 @@ export default function App() {
     <OnboardingRestrictions
       data={data}
       setData={setData}
-      // Fin del alta: perfil listo (quién come + qué evitáis) y a Home. Modo y
-      // el resto del asistente se preguntan la primera vez que generes un
-      // menú, ya con esto relleno.
+      // Fin del alta: perfil listo (quién come + qué evitáis) y directo al
+      // menú, no a Inicio — lo primero que ves tras contarnos quiénes sois es
+      // vuestra semana. Genera con los valores por defecto, igual que «Genera
+      // el menú ya» del selector; el resto del asistente queda para afinar
+      // después, con el menú delante.
       onNext={
         editPreferencesOrigin
           ? undefined
           : firstRunOnboarding
-            ? () => { setFirstRunOnboarding(false); goToDashboard(); }
+            ? () => {
+                trackEvent(user, EMBUDO.ALERGIAS, PANTALLA_EMBUDO, {
+                  canal: "app",
+                  conAlergias: data.members.some((m) => m.allergies?.length > 0),
+                });
+                trackEvent(user, EMBUDO.CIMIENTOS, PANTALLA_EMBUDO, { canal: "app" });
+                setFirstRunOnboarding(false);
+                fwd(goToMenu);
+              }
             : nextOf(2)
       }
       onBack={
@@ -5805,6 +5823,7 @@ export default function App() {
                 // come en casa?" and land straight on Home. Force onbStep
                 // back to 0 too — it may still be pointing at a later step
                 // left over from a previous (abandoned) attempt.
+                trackEvent(user, EMBUDO.ARRANQUE, PANTALLA_EMBUDO, { canal: "app" });
                 setFirstRunOnboarding(true);
                 setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
                 setOnbStep(1);
