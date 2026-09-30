@@ -66,21 +66,75 @@ export function platosPedidos(m, casa, fijos = []) {
   });
 }
 
+/** La clave del hueco («Lun-Comida») donde está un plato pedido, o null. */
+function claveDelPedido(fijo, plan) {
+  if (!fijo.catalogId) return null;
+  for (const [gid, huecos] of Object.entries(plan)) {
+    if (gid.startsWith("_")) continue;
+    for (const [clave, h] of Object.entries(huecos ?? {})) {
+      const ids = [h?.recipeId, h?.firstRecipeId].filter(Boolean).map((id) => String(id).split("__").pop());
+      if (ids.includes(fijo.catalogId)) return clave;
+    }
+  }
+  return null;
+}
+
+const FINDE = new Set(["Sáb", "Dom"]);
+// Por encima de esto, mejor en fin de semana: es donde la casa tiene tiempo.
+const MINUTOS_ENTRE_SEMANA = 30;
+
+/**
+ * Los platos pedidos que el motor no ha dejado en el plan, colocados a mano en
+ * el servidor. Pasa: dos fijos van al mismo día, juntos se pasan del tiempo de
+ * una comida entre semana, y la reparación posterior quita uno (las lentejas
+ * «no cabían»); con plato único, a veces no se coloca ninguno. Cada uno va a un
+ * día sin otro pedido (los largos, antes en fin de semana), en la franja que
+ * toca y como primero o como principal según la receta y la estructura de la
+ * casa, en todos los grupos que comen esa franja salvo el del bebé. Muta
+ * `plan` y `recipes`; devuelve lo que ha colocado.
+ */
+export function colocarPedidos(m, data, plan, recipes, pedidos, activeDays) {
+  const colocados = [];
+  const ocupados = new Set(pedidos.map((p) => claveDelPedido(p.fijo, plan)?.split("-")[0]).filter(Boolean));
+  for (const p of pedidos) {
+    if (claveDelPedido(p.fijo, plan)) continue;
+    const receta = m.recipeCatalogById?.[p.fijo.catalogId] ?? (data.userRecipes ?? []).find((r) => r.id === p.fijo.catalogId);
+    if (!receta) continue;
+    const franja = p.fijo.meals?.[0] ?? "Comida";
+    const largo = (receta.time ?? 0) > MINUTOS_ENTRE_SEMANA;
+    const dias = largo ? [...activeDays.filter((d) => FINDE.has(d)), ...activeDays.filter((d) => !FINDE.has(d))] : activeDays;
+    const roles = receta.mealRole ?? [];
+    for (const d of dias) {
+      if (ocupados.has(d)) continue;
+      let puesto = false;
+      for (const [gid, huecos] of Object.entries(plan)) {
+        const clave = `${d}-${franja}`;
+        const h = gid.startsWith("_") ? null : huecos?.[clave];
+        if (!h || /(^|__)bebes_/.test(h.recipeId ?? "")) continue;
+        const course = h.firstRecipeId && roles.includes("primero") && !roles.includes("segundo") ? "first" : "main";
+        const el = m.pickCatalogReplacement(data, plan, { groupId: gid, day: d, meal: franja, course, forcedRecipe: receta });
+        if (!el?.recipeId) continue;
+        plan[gid][clave] = { ...h, [course === "first" ? "firstRecipeId" : "recipeId"]: el.recipeId, warnings: [] };
+        m.registerRecipes([el.frontendRecipe]);
+        recipes.push(el.frontendRecipe);
+        puesto = true;
+      }
+      if (puesto) {
+        ocupados.add(d);
+        colocados.push(p.pedido);
+        break;
+      }
+    }
+  }
+  return colocados;
+}
+
 /** Dónde ha quedado cada plato pedido en el plan, en palabras. */
 export function dondeQuedaron(pedidos, plan) {
   return pedidos.map(({ pedido, aproximada, fijo }) => {
-    let donde = null;
-    for (const [gid, huecos] of Object.entries(plan)) {
-      if (gid.startsWith("_") || donde) continue;
-      for (const [clave, h] of Object.entries(huecos ?? {})) {
-        const ids = [h?.recipeId, h?.firstRecipeId].filter(Boolean).map((id) => String(id).split("__").pop());
-        if (fijo.catalogId ? ids.includes(fijo.catalogId) : false) {
-          const [d, franja] = clave.split("-");
-          donde = `${DIA_LARGO[d] ?? d}, ${franja.toLowerCase()}`;
-          break;
-        }
-      }
-    }
+    const clave = claveDelPedido(fijo, plan);
+    const [d, franja] = clave ? clave.split("-") : [];
+    const donde = clave ? `${DIA_LARGO[d] ?? d}, ${franja.toLowerCase()}` : null;
     return donde
       ? `«${pedido}» → ${fijo.name} (${donde})${aproximada ? ", lo más parecido que hay" : ""}`
       : `«${pedido}» no ha cabido en la semana: ofrece ponerlo con cambiar_plato`;
@@ -123,6 +177,8 @@ export async function generarMenu(householdId, cual = "esta", fijos = [], out = 
 
   const { plan, recipes } = await m.generateMenuWithAI(weekData, { pantryIngredients, pantryMode, crossWeek });
   m.registerRecipes(recipes);
+  // Lo pedido que el motor no haya dejado, antes de la compra (que sale del plan).
+  if (pedidos.length) colocarPedidos(m, { schedule: {}, ...working, groups }, plan, recipes, pedidos, activeDays);
   const sh = m.buildShoppingList(plan, groups, m.getDayMeals(weekData), despensa);
   // Lo apuntado a mano y sin comprar («apunta leche y pan», con o sin menú)
   // pasa a la lista nueva: generar un menú no puede borrarlo.
