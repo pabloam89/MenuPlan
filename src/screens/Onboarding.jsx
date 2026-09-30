@@ -2356,6 +2356,16 @@ export function OnboardingRestrictions({
 
   const visibleAllergenIds = [...COMMON_ALLERGEN_IDS, ...EXTRA_ALLERGEN_IDS];
 
+  // Salir de aquí hacia delante ES haberlo revisado. Sin la marca, una lista
+  // vacía no distingue "no tenemos" de "no lo hemos mirado", que es justo lo
+  // que no se puede suponer (ver `alergias` en wizardRegistry.js).
+  const conRevision = (fn) => fn && (() => { setData((d) => ({ ...d, allergiesReviewed: true })); fn(); });
+  // Con todo vacío, el botón lo afirma en vez de decir "Continuar": pasar sin
+  // marcar nada tiene que leerse como una respuesta, no como saltarse el paso.
+  const nadaMarcado = data.members.every(
+    (m) => !m.allergies?.length && !m.intolerances?.length && !m.dietaryStates?.length && !m.healthProfiles?.length,
+  );
+  const etiquetaSiguiente = nextLabel ?? (nadaMarcado ? "Nada que evitar" : null);
 
   return (
     <OnboardingShell
@@ -2364,9 +2374,9 @@ export function OnboardingRestrictions({
       bg="#f5f9f6"
       onBack={onBack}
       onReset={onReset}
-      onNext={onNext}
-      onFinish={onFinish}
-      {...(nextLabel ? { nextLabel } : {})}
+      onNext={conRevision(onNext)}
+      onFinish={conRevision(onFinish)}
+      {...(etiquetaSiguiente ? { nextLabel: etiquetaSiguiente } : {})}
       {...(finishLabel ? { finishLabel } : {})}
     >
       <>
