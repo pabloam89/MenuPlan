@@ -22,6 +22,7 @@ process.env.TZ = "Europe/Madrid";
 import { select, insert, update, eq } from "./db.js";
 import { cargarCasa, guardarCasa } from "./casa.js";
 import { motor } from "./menu.js";
+import { registrar, EMBUDO } from "./embudo.js";
 
 const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 const indiceHoy = () => {
@@ -71,6 +72,7 @@ export async function generarMenu(householdId, cual = "esta") {
   const [hogar] = await select("households", `id=${eq(householdId)}`, "owner_user_id");
   const dueno = hogar?.owner_user_id;
   if (!dueno) return "No encuentro quién gestiona esta casa.";
+  const previos = await select("user_menus", `household_id=${eq(householdId)}&limit=1`, "id");
   await insert("user_menus", [m.menuToRow(menu, dueno, householdId)]);
   await insert("user_menu_weeks", [m.weekToRow(dueno, menu.id, startISO, week, householdId)]);
   const filas = recipes.filter((r) => r?.id).map((r) => ({
@@ -100,6 +102,8 @@ export async function generarMenu(householdId, cual = "esta") {
     const fresca = await cargarCasa(householdId);
     await guardarCasa(fresca, { state: { ...fresca.state, data: { ...fresca.state.data, activeMenuId: menu.id }, menuPlan: plan, shopping, aiRecipes: state.aiRecipes } });
   }
+
+  if (!previos.length) await registrar(EMBUDO.PRIMER_MENU, { userId: dueno, unaVez: true });
 
   const platos = Object.entries(plan).filter(([k]) => !k.startsWith("_")).reduce((n, [, h]) => n + Object.values(h ?? {}).filter((x) => x?.recipeId).length, 0);
   const avisos = (plan._warnings ?? []).length;

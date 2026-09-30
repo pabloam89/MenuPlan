@@ -18,6 +18,7 @@
 
 import { conCasa } from "./casa.js";
 import { motor, normal, diaDe, DIAS, DIA_LARGO } from "./menu.js";
+import { registrar, EMBUDO, duenoDe, cimientosCompletos } from "./embudo.js";
 
 const hoyISO = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
 const COMIDAS = ["Desayuno", "Comida", "Merienda", "Cena", "Postre"];
@@ -32,14 +33,19 @@ function lunesDe(cual) {
 /** Guarda un `data` nuevo en la casa. `cambiar` recibe el data actual y el motor. */
 async function conData(householdId, cambiar) {
   let texto = "";
+  let guardado = null;
   const r = await conCasa(householdId, async (casa) => {
     const m = await motor();
     const res = await cambiar(casa.state?.data ?? {}, m, casa);
     texto = res.texto;
+    guardado = res.data ?? null;
     if (!res.data) return null;
     return { state: { ...casa.state, data: res.data } };
   });
   if (!r.ok) return `No he podido guardarlo: ${r.error}.`;
+  if (guardado && cimientosCompletos(guardado)) {
+    await registrar(EMBUDO.CIMIENTOS, { userId: await duenoDe(householdId), unaVez: true });
+  }
   return texto;
 }
 

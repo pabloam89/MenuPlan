@@ -21,6 +21,7 @@ import {
   marcarCompra, anadirCompra, cambiarPlato, diaDe, franjaDe,
 } from "./menu.js";
 import { generarMenu } from "./generar.js";
+import { registrar, EMBUDO, duenoDe } from "./embudo.js";
 import {
   describirAjustes, ajustarGustos, ajustarCocina, ajustarHorario, anadirInvitado,
   anadirComensal, quitarComensal, ajustarAlergias, dominiosDeGustos,
@@ -300,8 +301,19 @@ export async function responder({ channel = "telegram", chatId, householdId, tex
     { channel, chat_id: String(chatId), household_id: householdId, role: "assistant", author_id: null, content: { texto: respuesta } },
   ]).catch((e) => console.error("[agente] memoria", e?.message));
   await contarUso(householdId, final.usage).catch(() => {});
+  await segundaSemana(householdId).catch(() => {});
 
   return respuesta;
+}
+
+/** Vuelve a usarlo una semana o más después de enlazar: la señal de que se queda. */
+async function segundaSemana(householdId) {
+  const dueno = await duenoDe(householdId);
+  if (!dueno) return;
+  const [enlace] = await select("user_events", `user_id=${eq(dueno)}&event=eq.${EMBUDO.ENLACE}&order=created_at.asc&limit=1`, "created_at");
+  if (enlace && Date.now() - Date.parse(enlace.created_at) >= 7 * 86400000) {
+    await registrar(EMBUDO.SEGUNDA_SEMANA, { userId: dueno, unaVez: true });
+  }
 }
 
 async function contarUso(householdId, usage) {

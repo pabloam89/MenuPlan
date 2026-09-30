@@ -26,6 +26,7 @@ import { waitUntil } from "@vercel/functions";
 import { select, update, eq } from "../_bot/db.js";
 import { enviar, llamar, escaparHtml } from "../_bot/telegram.js";
 import { responder } from "../_bot/agente.js";
+import { registrar, EMBUDO } from "../_bot/embudo.js";
 import { enlazarChat, crearCodigo, gastarCodigo, baseDe, confirmarEnlace, casaPropia } from "../_bot/enlace.js";
 import { enviarAcceso, verificarCodigoEmail, crearCuentaTelegram, cuentaNacidaAqui } from "../_bot/cuentas.js";
 
@@ -95,6 +96,7 @@ async function atender(msg, base) {
     if (EMAIL_RE.test(texto)) return pedirAcceso(msg, chatId, texto.toLowerCase(), base);
     const cifras = texto.replace(/\s/g, "");
     if (/^\d{6}$/.test(cifras)) return comprobarCodigo(msg, chatId, cifras);
+    await registrar(EMBUDO.ARRANQUE, { telegramId: msg.from?.id, unaVez: true });
     return bienvenida(chatId);
   }
 

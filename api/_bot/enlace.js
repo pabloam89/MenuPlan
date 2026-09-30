@@ -9,6 +9,7 @@
 import crypto from "node:crypto";
 import { select, insert, update, eq } from "./db.js";
 import { enviar, escaparHtml } from "./telegram.js";
+import { registrar, EMBUDO } from "./embudo.js";
 
 /**
  * @returns {Promise<{ ok: true } | { ok: false, ocupado: true }>}
@@ -37,6 +38,7 @@ export async function enlazarChat({ channel = "telegram", chatId, kind, househol
     linked_by: userId,
     lang: lang ?? null,
   }], { upsert: true });
+  await registrar(EMBUDO.ENLACE, { userId, telegramId: externalId, unaVez: true, extra: { tipo: kind } });
   return { ok: true };
 }
 
