@@ -74,7 +74,7 @@ export async function prepararRecetas(casa) {
  * otros ids), los de la casa no casan con las claves del plan. El nombre se
  * toma de la casa cuando coincide; si no, se deduce de quién come.
  */
-function grupos(casa) {
+export function grupos(casa) {
   const plan = casa.semana?.plan;
   const deLaCasa = (casa.state?.data?.groups ?? []).filter((g) => g?.id);
   if (!plan) return deLaCasa;
